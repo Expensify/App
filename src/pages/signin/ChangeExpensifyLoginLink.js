@@ -29,22 +29,24 @@ const defaultProps = {
     },
 };
 
-const ChangeExpensifyLoginLink = (props) => (
-    <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-        {!_.isEmpty(props.credentials.login) && <Text style={styles.mr1}>{props.translate('loginForm.notYou', {user: props.formatPhoneNumber(props.credentials.login)})}</Text>}
-        <PressableWithFeedback
-            style={[styles.link]}
-            onPress={props.onPress}
-            accessibilityRole="link"
-            accessibilityLabel={props.translate('common.goBack')}
-        >
-            <Text style={[styles.link]}>
-                {props.translate('common.goBack')}
-                {'.'}
-            </Text>
-        </PressableWithFeedback>
-    </View>
-);
+function ChangeExpensifyLoginLink(props) {
+    return (
+        <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
+            {!_.isEmpty(props.credentials.login) && <Text style={styles.mr1}>{props.translate('loginForm.notYou', {user: props.formatPhoneNumber(props.credentials.login)})}</Text>}
+            <PressableWithFeedback
+                style={[styles.link]}
+                onPress={props.onPress}
+                accessibilityRole="link"
+                accessibilityLabel={props.translate('common.goBack')}
+            >
+                <Text style={[styles.link]}>
+                    {props.translate('common.goBack')}
+                    {'.'}
+                </Text>
+            </PressableWithFeedback>
+        </View>
+    );
+}
 
 ChangeExpensifyLoginLink.propTypes = propTypes;
 ChangeExpensifyLoginLink.defaultProps = defaultProps;

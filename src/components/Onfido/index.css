@@ -10,6 +10,12 @@
     position: relative;
 }
 
+/* This is needed to dsiable the blue outline that shows up once the payment page is opened through keyboard */
+#onfido-mount [tabindex="-1"]:focus-visible,
+#onfido-mount [tabindex="-1"]:focus[data-focusvisible-polyfill] {
+    box-shadow: none !important;
+}
+
 @media only screen and (max-width: 600px) {
     .onfido-sdk-ui-Modal-inner {
         /* This keeps the bottom of the Onfido window from being cut off on mobile web because the height was being

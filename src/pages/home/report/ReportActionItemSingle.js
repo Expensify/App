@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
-import {View, Pressable} from 'react-native';
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -14,7 +14,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import {withPersonalDetails} from '../../../components/OnyxProvider';
-import Tooltip from '../../../components/Tooltip';
 import ControlSelection from '../../../libs/ControlSelection';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
@@ -22,13 +21,15 @@ import CONST from '../../../CONST';
 import SubscriptAvatar from '../../../components/SubscriptAvatar';
 import reportPropTypes from '../../reportPropTypes';
 import * as UserUtils from '../../../libs/UserUtils';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
     /** All the data of the action */
     action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** All of the personalDetails */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** Styles for the outermost View */
     // eslint-disable-next-line react/forbid-prop-types
@@ -53,7 +54,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    personalDetails: {},
+    personalDetailsList: {},
     wrapperStyles: [styles.chatItem],
     showHeader: true,
     shouldShowSubscriptAvatar: false,
@@ -61,14 +62,22 @@ const defaultProps = {
     report: undefined,
 };
 
-const showUserDetails = (email) => {
-    Navigation.navigate(ROUTES.getDetailsRoute(email));
+const showUserDetails = (accountID) => {
+    Navigation.navigate(ROUTES.getProfileRoute(accountID));
 };
 
-const ReportActionItemSingle = (props) => {
-    const actorEmail = props.action.actorEmail.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const {avatar, displayName, pendingFields} = props.personalDetails[actorEmail] || {};
-    const avatarSource = UserUtils.getAvatar(avatar, actorEmail);
+const showWorkspaceDetails = (reportID) => {
+    Navigation.navigate(ROUTES.getReportDetailsRoute(reportID));
+};
+
+function ReportActionItemSingle(props) {
+    const actorAccountID = props.action.actorAccountID;
+    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
+    const actorDetails = props.personalDetailsList[actorAccountID] || {};
+    const displayName = isWorkspaceActor ? ReportUtils.getPolicyName(props.report) : actorDetails.displayName;
+    const actorHint = isWorkspaceActor ? displayName : lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const pendingFields = isWorkspaceActor ? {} : actorDetails.pendingFields;
+    const avatarSource = isWorkspaceActor ? ReportUtils.getWorkspaceAvatar(props.report) : UserUtils.getAvatar(actorDetails.avatar, actorAccountID);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -82,55 +91,67 @@ const ReportActionItemSingle = (props) => {
           ]
         : props.action.person;
 
+    const showActorDetails = useCallback(() => {
+        if (isWorkspaceActor) {
+            showWorkspaceDetails(props.report.reportID);
+        } else {
+            showUserDetails(actorAccountID);
+        }
+    }, [isWorkspaceActor, props.report.reportID, actorAccountID]);
+
     return (
         <View style={props.wrapperStyles}>
-            <Pressable
+            <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(actorEmail)}
+                onPress={showActorDetails}
+                accessibilityLabel={actorHint}
+                accessibilityRole="button"
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
-                            mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
-                            secondaryAvatar={ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
-                            mainTooltip={actorEmail}
+                            mainAvatar={{source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName}}
+                            secondaryAvatar={isWorkspaceActor ? {} : ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
+                            mainTooltip={actorHint}
                             secondaryTooltip={ReportUtils.getPolicyName(props.report)}
                             noMargin
                         />
                     ) : (
-                        <Tooltip text={actorEmail}>
+                        <UserDetailsTooltip accountID={actorAccountID}>
                             <View>
                                 <Avatar
                                     containerStyles={[styles.actionAvatar]}
                                     source={avatarSource}
                                 />
                             </View>
-                        </Tooltip>
+                        </UserDetailsTooltip>
                     )}
                 </OfflineWithFeedback>
-            </Pressable>
+            </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
                     <View style={[styles.chatItemMessageHeader]}>
-                        <Pressable
+                        <PressableWithoutFeedback
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(actorEmail)}
+                            onPress={showActorDetails}
+                            accessibilityLabel={actorHint}
+                            accessibilityRole="button"
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
                                     key={`person-${props.action.reportActionID}-${index}`}
+                                    accountID={actorAccountID}
                                     fragment={fragment}
-                                    tooltipText={actorEmail}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
                                     isSingleLine
                                 />
                             ))}
-                        </Pressable>
+                        </PressableWithoutFeedback>
                         <ReportActionItemDate created={props.action.created} />
                     </View>
                 ) : null}
@@ -138,7 +159,7 @@ const ReportActionItemSingle = (props) => {
             </View>
         </View>
     );
-};
+}
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;

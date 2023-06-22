@@ -2,6 +2,7 @@ import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
 import Tooltip from './Tooltip';
@@ -11,6 +12,8 @@ import * as StyleUtils from '../styles/StyleUtils';
 import CONST from '../CONST';
 import variables from '../styles/variables';
 import avatarPropTypes from './avatarPropTypes';
+import UserDetailsTooltip from './UserDetailsTooltip';
+import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Array of avatar URLs or icons */
@@ -62,11 +65,11 @@ const defaultProps = {
     shouldUseCardBackground: false,
 };
 
-const MultipleAvatars = (props) => {
+function MultipleAvatars(props) {
     let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
     const singleAvatarStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
-    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [];
+    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
     if (!props.icons.length) {
         return null;
@@ -74,7 +77,14 @@ const MultipleAvatars = (props) => {
 
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
         return (
-            <Tooltip text={tooltipTexts[0]}>
+            <UserDetailsTooltip
+                accountID={props.icons[0].id}
+                fallbackUserDetails={{
+                    displayName: ReportUtils.getDisplayNameForParticipant(props.icons[0].name),
+                    login: lodashGet(props.icons[0], 'name', tooltipTexts[0]),
+                    avatar: lodashGet(props.icons[0], 'source', ''),
+                }}
+            >
                 <View style={avatarContainerStyles}>
                     <Avatar
                         source={props.icons[0].source}
@@ -84,7 +94,7 @@ const MultipleAvatars = (props) => {
                         type={props.icons[0].type}
                     />
                 </View>
-            </Tooltip>
+            </UserDetailsTooltip>
         );
     }
 
@@ -112,10 +122,9 @@ const MultipleAvatars = (props) => {
             {props.shouldStackHorizontally ? (
                 <>
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
-                        <Tooltip
+                        <UserDetailsTooltip
                             key={`stackedAvatars-${index}`}
-                            text={tooltipTexts[index]}
-                            absolute
+                            accountID={icon.id}
                         >
                             <View
                                 style={[
@@ -139,13 +148,12 @@ const MultipleAvatars = (props) => {
                                     type={icon.type}
                                 />
                             </View>
-                        </Tooltip>
+                        </UserDetailsTooltip>
                     ))}
                     {props.icons.length > 4 && (
                         <Tooltip
                             // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
                             text={tooltipTexts.slice(3, 10).join(', ')}
-                            absolute
                         >
                             <View
                                 style={[
@@ -175,7 +183,7 @@ const MultipleAvatars = (props) => {
                 </>
             ) : (
                 <View style={singleAvatarStyles}>
-                    <Tooltip text={tooltipTexts[0]}>
+                    <UserDetailsTooltip accountID={props.icons[0].id}>
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
@@ -187,10 +195,10 @@ const MultipleAvatars = (props) => {
                                 type={props.icons[0].type}
                             />
                         </View>
-                    </Tooltip>
+                    </UserDetailsTooltip>
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
-                            <Tooltip text={tooltipTexts[1]}>
+                            <UserDetailsTooltip accountID={props.icons[1].id}>
                                 <View>
                                     <Avatar
                                         source={props.icons[1].source || props.fallbackIcon}
@@ -201,7 +209,7 @@ const MultipleAvatars = (props) => {
                                         type={props.icons[1].type}
                                     />
                                 </View>
-                            </Tooltip>
+                            </UserDetailsTooltip>
                         ) : (
                             <Tooltip text={tooltipTexts.slice(1).join(', ')}>
                                 <View style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -219,7 +227,7 @@ const MultipleAvatars = (props) => {
             )}
         </View>
     );
-};
+}
 
 MultipleAvatars.defaultProps = defaultProps;
 MultipleAvatars.propTypes = propTypes;

@@ -19,21 +19,23 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceBillsPage = (props) => (
-    <WorkspacePageWithSections
-        shouldUseScrollView
-        headerText={props.translate('workspace.common.bills')}
-        route={props.route}
-        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
-    >
-        {(hasVBA, policyID) => (
-            <>
-                {!hasVBA && <WorkspaceBillsNoVBAView policyID={policyID} />}
-                {hasVBA && <WorkspaceBillsVBAView policyID={policyID} />}
-            </>
-        )}
-    </WorkspacePageWithSections>
-);
+function WorkspaceBillsPage(props) {
+    return (
+        <WorkspacePageWithSections
+            shouldUseScrollView
+            headerText={props.translate('workspace.common.bills')}
+            route={props.route}
+            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BILLS}
+        >
+            {(hasVBA, policyID) => (
+                <>
+                    {!hasVBA && <WorkspaceBillsNoVBAView policyID={policyID} />}
+                    {hasVBA && <WorkspaceBillsVBAView policyID={policyID} />}
+                </>
+            )}
+        </WorkspacePageWithSections>
+    );
+}
 
 WorkspaceBillsPage.propTypes = propTypes;
 WorkspaceBillsPage.displayName = 'WorkspaceBillsPage';

@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import defaultTheme from '../../styles/themes/default';
 import styles from '../../styles/styles';
@@ -60,6 +61,8 @@ class QRShare extends Component {
                     url={this.props.url}
                     logo={this.props.logo}
                     size={this.state.qrCodeSize}
+                    logoRatio={this.props.logoRatio}
+                    logoMarginRatio={this.props.logoMarginRatio}
                 />
 
                 <Text
@@ -71,7 +74,7 @@ class QRShare extends Component {
                     {this.props.title}
                 </Text>
 
-                {this.props.subtitle && (
+                {!_.isEmpty(this.props.subtitle) && (
                     <Text
                         family="EXP_NEUE_BOLD"
                         fontSize={variables.fontSizeLabel}

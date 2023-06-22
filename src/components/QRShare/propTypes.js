@@ -17,6 +17,14 @@ const qrSharePropTypes = {
      * The logo which will be display in the middle of the QR code
      */
     logo: PropTypes.oneOfType([PropTypes.shape({uri: PropTypes.string}), PropTypes.number, PropTypes.string]),
+    /**
+     * The size ratio of logo to QR code
+     */
+    logoRatio: PropTypes.number,
+    /**
+     * The size ratio of margin around logo to QR code
+     */
+    logoMarginRatio: PropTypes.number,
 };
 
 const defaultProps = {

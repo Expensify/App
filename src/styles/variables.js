@@ -37,6 +37,7 @@ export default {
     avatarSizeSmaller: 24,
     avatarSizeMidSubscript: 18,
     avatarSizeSubscript: 20,
+    avatarSizeMentionIcon: 16,
     avatarSizeSmallSubscript: 14,
     defaultAvatarPreviewSize: 360,
     fontSizeOnlyEmojis: 30,
@@ -91,6 +92,7 @@ export default {
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
     lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
+    lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
     lineHeightSizeh1: getValueUsingPixelRatio(23, 28),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
@@ -142,7 +144,7 @@ export default {
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
     googleEmptyListViewHeight: 14,
-    hoverDimValue: 0.5,
+    hoverDimValue: 1,
     pressDimValue: 0.8,
     qrShareHorizontalPadding: 32,
 };

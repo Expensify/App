@@ -140,7 +140,7 @@ class MoneyRequestParticipantsSelector extends Component {
      * @param {Object} option
      */
     addSingleParticipant(option) {
-        this.props.onAddParticipants([option]);
+        this.props.onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
         this.props.onStepComplete();
     }
 
@@ -175,7 +175,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

@@ -57,7 +57,15 @@ function isMoneyRequestAction(reportAction) {
 }
 
 /**
- * Returns the parentReportAction if the given report is a thread.
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function hasCommentThread(reportAction) {
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
+}
+
+/**
+ * Returns the parentReportAction if the given report is a thread/task.
  *
  * @param {Object} report
  * @returns {Object}
@@ -168,6 +176,25 @@ function getMostRecentIOURequestActionID(reportActions) {
 
     const sortedReportActions = getSortedReportActions(iouRequestActions);
     return _.last(sortedReportActions).reportActionID;
+}
+
+/**
+ * Returns array of links inside a given report action
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function extractLinksFromMessageHtml(reportAction) {
+    const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
+
+    // Regex to get link in href prop inside of <a/> component
+    const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
+
+    if (!htmlContent) {
+        return;
+    }
+
+    return _.map([...htmlContent.matchAll(regex)], (match) => match[1]);
 }
 
 /**
@@ -298,6 +325,10 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
@@ -394,11 +425,26 @@ function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
 
+/**
+ * A helper method to identify if the message is deleted or not.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isMessageDeleted(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
+}
+
+function isWhisperAction(action) {
+    return (action.whisperedTo || []).length > 0;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
     getLastVisibleMessageText,
     getMostRecentIOURequestActionID,
+    extractLinksFromMessageHtml,
     isDeletedAction,
     shouldReportActionBeVisible,
     isReportActionDeprecated,
@@ -407,6 +453,7 @@ export {
     getLastClosedReportAction,
     getLatestReportActionFromOnyxData,
     isMoneyRequestAction,
+    hasCommentThread,
     getLinkedTransactionID,
     getReportPreviewAction,
     isCreatedTaskReportAction,
@@ -414,4 +461,6 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isMessageDeleted,
+    isWhisperAction,
 };

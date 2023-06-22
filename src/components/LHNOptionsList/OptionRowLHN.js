@@ -22,6 +22,7 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -53,12 +54,8 @@ const defaultProps = {
     style: null,
 };
 
-const OptionRowLHN = (props) => {
+function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
-
-    React.useEffect(() => {
-        ReportActionContextMenu.hideContextMenu(false);
-    }, [optionItem.isPinned]);
 
     if (!optionItem) {
         return null;
@@ -86,10 +83,11 @@ const OptionRowLHN = (props) => {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const shouldShowGreenDotIndicator = !hasBrickError && (optionItem.isUnreadWithMention || (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner));
-
-    // If the item is a thread within a workspace, we will show the subtitle as the second line instead of in a pill
-    const alternativeText = optionItem.isThread && optionItem.subtitle ? optionItem.subtitle : optionItem.alternateText;
+    const shouldShowGreenDotIndicator =
+        !hasBrickError &&
+        (optionItem.isUnreadWithMention ||
+            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
+            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted));
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -110,6 +108,7 @@ const OptionRowLHN = (props) => {
             false,
             false,
             optionItem.isPinned,
+            optionItem.isUnread,
         );
     };
 
@@ -143,11 +142,10 @@ const OptionRowLHN = (props) => {
                             props.isFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
                     >
-                        <View
-                            accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
-                            style={sidebarInnerRowStyle}
-                        >
+                        <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
@@ -169,7 +167,7 @@ const OptionRowLHN = (props) => {
                                                 props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                 hovered && !props.isFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                             ]}
-                                            shouldShowTooltip={!optionItem.isChatRoom && !optionItem.isArchivedRoom}
+                                            shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
                                         />
                                     ))}
                                 <View style={contentContainerStyles}>
@@ -193,13 +191,13 @@ const OptionRowLHN = (props) => {
                                             />
                                         )}
                                     </View>
-                                    {alternativeText ? (
+                                    {optionItem.alternateText ? (
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
                                             accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {alternativeText}
+                                            {optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>
@@ -250,7 +248,7 @@ const OptionRowLHN = (props) => {
             </Hoverable>
         </OfflineWithFeedback>
     );
-};
+}
 
 OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;

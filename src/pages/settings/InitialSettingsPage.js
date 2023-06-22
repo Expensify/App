@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, ScrollView, Pressable} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -11,7 +11,7 @@ import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../../components/Tooltip';
 import Avatar from '../../components/Avatar';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -39,6 +39,7 @@ import policyMemberPropType from '../policyMemberPropType';
 import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /* Onyx Props */
@@ -99,8 +100,8 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
-    /** List of policy members */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
+    /** Members keyed by accountID for all policies */
+    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -118,7 +119,7 @@ const defaultProps = {
     bankAccountList: {},
     cardList: {},
     loginList: {},
-    policyMembers: {},
+    allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -170,7 +171,7 @@ class InitialSettingsPage extends React.Component {
             !_.isEmpty(this.props.reimbursementAccount.errors) ||
             _.chain(this.props.policies)
                 .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
+                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.allPolicyMembers))
                 .value()
                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                 : null;
@@ -314,10 +315,7 @@ class InitialSettingsPage extends React.Component {
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.settings')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
+                        <HeaderWithBackButton title={this.props.translate('common.settings')} />
                         <ScrollView
                             contentContainerStyle={safeAreaPaddingBottomStyle}
                             style={[styles.settingsPageBackground]}
@@ -325,22 +323,26 @@ class InitialSettingsPage extends React.Component {
                             <View style={styles.w100}>
                                 <View style={styles.avatarSectionWrapper}>
                                     <Tooltip text={this.props.translate('common.profile')}>
-                                        <Pressable
+                                        <PressableWithoutFeedback
                                             style={[styles.mb3]}
                                             onPress={this.openProfileSettings}
+                                            accessibilityLabel={this.props.translate('common.profile')}
+                                            accessibilityRole="button"
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
+                                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
-                                        </Pressable>
+                                        </PressableWithoutFeedback>
                                     </Tooltip>
-                                    <Pressable
+                                    <PressableWithoutFeedback
                                         style={[styles.mt1, styles.mw100]}
                                         onPress={this.openProfileSettings}
+                                        accessibilityLabel={this.props.translate('common.profile')}
+                                        accessibilityRole="link"
                                     >
                                         <Tooltip text={this.props.translate('common.profile')}>
                                             <Text
@@ -352,7 +354,7 @@ class InitialSettingsPage extends React.Component {
                                                     : this.props.formatPhoneNumber(this.props.session.email)}
                                             </Text>
                                         </Tooltip>
-                                    </Pressable>
+                                    </PressableWithoutFeedback>
                                     {Boolean(this.props.currentUserPersonalDetails.displayName) && (
                                         <Text
                                             style={[styles.textLabelSupporting, styles.mt1]}
@@ -396,8 +398,8 @@ export default compose(
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
-        policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+        allPolicyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,

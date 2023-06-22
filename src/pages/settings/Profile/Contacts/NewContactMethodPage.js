@@ -7,7 +7,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import compose from '../../../../libs/compose';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Text from '../../../../components/Text';
 import TextInput from '../../../../components/TextInput';
@@ -82,19 +82,19 @@ function NewContactMethodPage(props) {
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail)) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.contactMethodRequired'));
+            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
         }
 
         if (!_.isEmpty(values.phoneOrEmail) && !(parsePhoneNumber(phoneLogin).possible || Str.isValidEmail(values.phoneOrEmail))) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.invalidContactMethod'));
+            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
         }
 
         if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('contacts.genericFailureMessages.enteredMethodIsAlreadySubmited'));
+            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
         }
 
         if (!Permissions.canUsePasswordlessLogins(props.betas) && _.isEmpty(values.password)) {
-            errors.password = props.translate('contacts.genericFailureMessages.passwordRequired');
+            errors.password = 'contacts.genericFailureMessages.passwordRequired';
         }
 
         return errors;
@@ -119,11 +119,9 @@ function NewContactMethodPage(props) {
             }}
             includeSafeAreaPaddingBottom={false}
         >
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}

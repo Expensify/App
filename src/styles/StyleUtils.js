@@ -6,7 +6,10 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
+import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
+import * as Browser from '../libs/Browser';
+import cursor from './utilities/cursor';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -53,6 +56,7 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
+    [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
 };
 
 const emptyAvatarStyles = {
@@ -187,7 +191,7 @@ function getAvatarBorderStyle(size, type) {
  * @returns {Object}
  */
 function getDefaultWorkspaceAvatarColor(workspaceName) {
-    const colorHash = UserUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
+    const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
@@ -216,32 +220,6 @@ function getSafeAreaPadding(insets, insetsPercentage = variables.safeInsertPerce
  */
 function getSafeAreaMargins(insets) {
     return {marginBottom: insets.bottom * variables.safeInsertPercentage};
-}
-
-/**
- * Return navigation menu styles.
- *
- * @param {Boolean} isSmallScreenWidth
- * @returns {Object}
- */
-function getNavigationDrawerStyle(isSmallScreenWidth) {
-    return isSmallScreenWidth
-        ? {
-              width: '100%',
-              height: '100%',
-              borderColor: themeColors.border,
-              backgroundColor: themeColors.appBG,
-          }
-        : {
-              height: '100%',
-              width: variables.sideBarWidth,
-              borderRightColor: themeColors.border,
-              backgroundColor: themeColors.appBG,
-          };
-}
-
-function getNavigationDrawerType(isSmallScreenWidth) {
-    return isSmallScreenWidth ? 'slide' : 'permanent';
 }
 
 /**
@@ -587,7 +565,7 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
 function getEmojiPickerStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            width: '100%',
+            width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
         };
     }
     return {
@@ -715,12 +693,13 @@ function convertRGBToUnitValues(red, green, blue) {
  * Determines the theme color for a modal based on the app's background color,
  * the modal's backdrop, and the backdrop's opacity.
  *
+ * @param {String} bgColor - theme background color
  * @returns {String} The theme color as an RGB value.
  */
-function getThemeBackgroundColor() {
+function getThemeBackgroundColor(bgColor = themeColors.appBG) {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
+    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(bgColor);
     const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
@@ -1038,15 +1017,19 @@ function getAutoCompleteSuggestionItemStyle(highlightedEmojiIndex, rowHeight, ho
  * @returns {Object}
  */
 function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeReportRecipientLocalTimeHeight) {
+    'worklet';
+
     const optionalPadding = shouldIncludeReportRecipientLocalTimeHeight ? CONST.RECIPIENT_LOCAL_TIME_HEIGHT : 0;
     const padding = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_PADDING - optionalPadding;
+    const borderWidth = 2;
+    const height = itemsHeight + 2 * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING + borderWidth;
 
     // The suggester is positioned absolutely within the component that includes the input and RecipientLocalTime view (for non-expanded mode only). To position it correctly,
     // we need to shift it by the suggester's height plus its padding and, if applicable, the height of the RecipientLocalTime view.
     return {
         overflow: 'hidden',
-        top: -(itemsHeight + padding),
-        height: itemsHeight,
+        top: -(height + padding),
+        height,
     };
 }
 
@@ -1120,6 +1103,14 @@ function getDirectionStyle(direction) {
 }
 
 /**
+ * Returns a style object with display flex or none basing on the condition value.
+ *
+ * @param {boolean} condition
+ * @returns {Object}
+ */
+const displayIfTrue = (condition) => ({display: condition ? 'flex' : 'none'});
+
+/**
  * @param {Boolean} shouldDisplayBorder
  * @returns {Object}
  */
@@ -1136,6 +1127,30 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
     return {
         transform: [{scale: 0}],
     };
+}
+
+/**
+ * Gets the correct height for emoji picker list based on screen dimensions
+ *
+ * @param {Boolean} hasAdditionalSpace
+ * @param {Number} windowHeight
+ * @returns {Object}
+ */
+function getEmojiPickerListHeight(hasAdditionalSpace, windowHeight) {
+    const style = {
+        ...spacing.ph4,
+        height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+    };
+
+    if (windowHeight) {
+        // dimensions of content above the emoji picker list
+        const dimensions = hasAdditionalSpace ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT;
+        return {
+            ...style,
+            maxHeight: windowHeight - dimensions,
+        };
+    }
+    return style;
 }
 
 /**
@@ -1161,6 +1176,44 @@ function getMentionTextColor(isOurMention) {
     return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
 }
 
+/**
+ * Returns style object for the mobile on WEB
+ * @param {Number} windowHeight
+ * @param {Number} viewportOffsetTop
+ * @returns {Object}
+ */
+function getOuterModalStyle(windowHeight, viewportOffsetTop) {
+    return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
+}
+
+/**
+ * Returns style object for flexWrap depending on the screen size
+ * @param {Boolean} isExtraSmallScreenWidth
+ * @return {Object}
+ */
+function getWrappingStyle(isExtraSmallScreenWidth) {
+    return {
+        flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
+    };
+}
+
+/**
+ * Returns link styles based on whether the link is disabled or not
+ * @param {Boolean} isDisabled
+ * @returns {Object}
+ */
+function getDisabledLinkStyles(isDisabled = false) {
+    const disabledLinkStyles = {
+        color: themeColors.textSupporting,
+        ...cursor.cursorDisabled,
+    };
+
+    return {
+        ...styles.link,
+        ...(isDisabled ? disabledLinkStyles : {}),
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1171,8 +1224,6 @@ export {
     getErrorPageContainerStyle,
     getSafeAreaPadding,
     getSafeAreaMargins,
-    getNavigationDrawerStyle,
-    getNavigationDrawerType,
     getZoomCursorStyle,
     getZoomSizingStyle,
     getWidthStyle,
@@ -1219,11 +1270,16 @@ export {
     getEmojiReactionBubbleTextStyle,
     getEmojiReactionCounterTextStyle,
     getDirectionStyle,
+    displayIfTrue,
     getFontSizeStyle,
     getLineHeightStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
+    getEmojiPickerListHeight,
     getMentionStyle,
     getMentionTextColor,
     getHeightOfMagicCodeInput,
+    getOuterModalStyle,
+    getWrappingStyle,
+    getDisabledLinkStyles,
 };
