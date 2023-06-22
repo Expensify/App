@@ -1,21 +1,22 @@
-import _ from 'underscore';
-import React from 'react';
-import {View} from 'react-native';
-import moment from 'moment';
+import {Portal} from '@gorhom/portal';
 import Str from 'expensify-common/lib/str';
-import Text from '../Text';
-import ArrowIcon from './ArrowIcon';
-import styles from '../../styles/styles';
-import {propTypes as calendarPickerPropType, defaultProps as defaultCalendarPickerPropType} from './calendarPickerPropTypes';
-import generateMonthMatrix from './generateMonthMatrix';
-import withLocalize from '../withLocalize';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
+import moment from 'moment';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated, {SlideInRight, SlideOutLeft} from 'react-native-reanimated';
+import _ from 'underscore';
 import CONST from '../../CONST';
 import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
+import styles from '../../styles/styles';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import Text from '../Text';
+import withLocalize from '../withLocalize';
+import ArrowIcon from './ArrowIcon';
+import YearPickerPage from './YearPickerPage';
+import {propTypes as calendarPickerPropType, defaultProps as defaultCalendarPickerPropType} from './calendarPickerPropTypes';
+import generateMonthMatrix from './generateMonthMatrix';
 
 class CalendarPicker extends React.PureComponent {
     constructor(props) {
@@ -24,12 +25,6 @@ class CalendarPicker extends React.PureComponent {
         let currentSelection = moment(props.value, CONST.DATE.MOMENT_FORMAT_STRING);
         let currentDateView = currentSelection.toDate();
 
-        if (props.selectedYear) {
-            currentDateView = moment(currentDateView).set('year', props.selectedYear).toDate();
-        }
-        if (props.selectedMonth != null) {
-            currentDateView = moment(currentDateView).set('month', props.selectedMonth).toDate();
-        }
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
             currentSelection = moment(props.maxDate);
@@ -43,12 +38,14 @@ class CalendarPicker extends React.PureComponent {
             selectedYear: currentSelection.get('year').toString(),
             selectedMonth: this.getNumberStringWithLeadingZero(currentSelection.get('month') + 1),
             selectedDay: this.getNumberStringWithLeadingZero(currentSelection.get('date')),
+            isYearPickerVisible: false,
         };
 
         this.moveToPrevMonth = this.moveToPrevMonth.bind(this);
         this.moveToNextMonth = this.moveToNextMonth.bind(this);
         this.onYearPickerPressed = this.onYearPickerPressed.bind(this);
         this.onDayPressed = this.onDayPressed.bind(this);
+        this.onYearSelected = this.onYearSelected.bind(this);
     }
 
     componentDidMount() {
@@ -58,26 +55,19 @@ class CalendarPicker extends React.PureComponent {
         throw new Error('Minimum date cannot be greater than the maximum date.');
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        // if the selectedYear prop or state has changed, update the currentDateView state with the new year value
-        if (this.props.selectedYear === prevProps.selectedYear && prevState.selectedYear === this.state.selectedYear) {
-            return;
-        }
-
-        // If we changed the prop for selectedYear, update the state to match it, otherwise use the state value
-        const newSelectedYear = this.props.selectedYear !== prevProps.selectedYear ? this.props.selectedYear : this.state.selectedYear;
-
+    onYearSelected(year) {
         this.setState(
             (prev) => {
-                const newMomentDate = moment(prev.currentDateView).set('year', newSelectedYear);
+                const newMomentDate = moment(prev.currentDateView).set('year', year);
 
                 return {
-                    selectedYear: newSelectedYear,
+                    selectedYear: year,
                     currentDateView: this.clampDate(newMomentDate.toDate()),
                 };
             },
             () => {
                 this.props.onSelected(this.getSelectedDateString());
+                this.onYearPickerPressed();
             },
         );
     }
@@ -88,11 +78,7 @@ class CalendarPicker extends React.PureComponent {
      * based on the props, the current year based on the state, and the active route.
      */
     onYearPickerPressed() {
-        const minYear = moment(this.props.minDate).year();
-        const maxYear = moment(this.props.maxDate).year();
-        const currentYear = parseInt(this.state.selectedYear, 10);
-        Navigation.navigate(ROUTES.getYearSelectionRoute(minYear, maxYear, currentYear, Navigation.getActiveRoute()));
-        this.props.onYearPickerOpen(this.state.currentDateView);
+        this.setState((prev) => ({isYearPickerVisible: !prev.isYearPickerVisible}));
     }
 
     /**
@@ -305,9 +291,35 @@ class CalendarPicker extends React.PureComponent {
                         })}
                     </View>
                 ))}
+                {this.state.isYearPickerVisible && (
+                    <Portal hostName="RigthModalNavigator">
+                        <ScreenSlideAnimation>
+                            <YearPickerPage
+                                onYearChange={this.onYearSelected}
+                                onClose={() => this.setState({isYearPickerVisible: false})}
+                                min={moment(this.props.minDate).year()}
+                                max={moment(this.props.maxDate).year()}
+                                currentYear={parseInt(this.state.selectedYear, 10)}
+                            />
+                        </ScreenSlideAnimation>
+                    </Portal>
+                )}
             </View>
         );
     }
+}
+
+function ScreenSlideAnimation({children}) {
+    return (
+        <Animated.View
+            key="yearPicker"
+            entering={SlideInRight}
+            exiting={SlideOutLeft}
+            style={StyleSheet.absoluteFillObject}
+        >
+            {children}
+        </Animated.View>
+    );
 }
 
 CalendarPicker.propTypes = calendarPickerPropType;

@@ -1,17 +1,14 @@
-import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
-import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../components/withCurrentUserPersonalDetails';
-import ScreenWrapper from '../components/ScreenWrapper';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import ROUTES from '../ROUTES';
-import styles from '../styles/styles';
-import Navigation from '../libs/Navigation/Navigation';
-import OptionsSelector from '../components/OptionsSelector';
-import themeColors from '../styles/themes/default';
-import * as Expensicons from '../components/Icon/Expensicons';
-import CONST from '../CONST';
+import _ from 'underscore';
+import CONST from '../../CONST';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import HeaderWithBackButton from '../HeaderWithBackButton';
+import * as Expensicons from '../Icon/Expensicons';
+import OptionsSelector from '../OptionsSelector';
+import ScreenWrapper from '../ScreenWrapper';
+import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
@@ -28,10 +25,9 @@ class YearPickerPage extends React.Component {
     constructor(props) {
         super(props);
 
-        const {params} = props.route;
-        const minYear = Number(params.min);
-        const maxYear = Number(params.max);
-        const currentYear = Number(params.year);
+        const minYear = Number(props.min);
+        const maxYear = Number(props.max);
+        const currentYear = Number(props.year);
 
         this.currentYear = currentYear;
         this.yearList = _.map(
@@ -49,31 +45,12 @@ class YearPickerPage extends React.Component {
             }),
         );
 
-        this.updateYearOfBirth = this.updateSelectedYear.bind(this);
         this.filterYearList = this.filterYearList.bind(this);
 
         this.state = {
             inputText: '',
             yearOptions: this.yearList,
         };
-    }
-
-    /**
-     * Function called on selection of the year, to take user back to the previous screen
-     *
-     * @param {String} selectedYear
-     */
-    updateSelectedYear(selectedYear) {
-        // We have to navigate using concatenation here as it is not possible to pass a function as a route param
-        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-        const dateOfBirthRoute = _.find(routes, (route) => route.name === 'Settings_PersonalDetails_DateOfBirth');
-
-        if (dateOfBirthRoute) {
-            Navigation.setParams({year: selectedYear.toString()}, lodashGet(dateOfBirthRoute, 'key', ''));
-            Navigation.goBack();
-        } else {
-            Navigation.goBack(`${ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH}?year=${selectedYear}`);
-        }
     }
 
     /**
@@ -97,10 +74,13 @@ class YearPickerPage extends React.Component {
     render() {
         const headerMessage = this.state.inputText.trim() && !this.state.yearOptions.length ? this.props.translate('common.noResultsFound') : '';
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                style={[styles.navigationScreenCardStyle]}
+                includeSafeAreaPaddingBottom={false}
+            >
                 <HeaderWithBackButton
                     title={this.props.translate('yearPickerPage.year')}
-                    onBackButtonPress={() => Navigation.goBack(`${this.props.route.params.backTo}?year=${this.currentYear}` || ROUTES.HOME)}
+                    onBackButtonPress={this.props.onClose}
                 />
                 <OptionsSelector
                     textInputLabel={this.props.translate('yearPickerPage.selectYear')}
@@ -109,7 +89,7 @@ class YearPickerPage extends React.Component {
                     maxLength={4}
                     value={this.state.inputText}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
-                    onSelectRow={(option) => this.updateSelectedYear(option.value)}
+                    onSelectRow={(option) => this.props.onYearChange(option.value)}
                     headerMessage={headerMessage}
                     initiallyFocusedOptionKey={this.currentYear.toString()}
                     hideSectionHeaders
