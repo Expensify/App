@@ -68,7 +68,7 @@ class ShareCodePage extends React.Component {
                         />
                     </View>
 
-                    <View style={{marginTop: 36}}>
+                    <View style={styles.shareCodePageMenuItemsContainer}>
                         <ContextMenuItem
                             text={this.props.translate('qrCodes.copyUrlToClipboard')}
                             shouldShowRightIcon

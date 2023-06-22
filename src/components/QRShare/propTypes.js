@@ -27,9 +27,9 @@ const qrSharePropTypes = {
     logoMarginRatio: PropTypes.number,
 };
 
-const defaultProps = {
+const qrShareDefaultProps = {
     subtitle: undefined,
     logo: undefined,
 };
 
-export {qrSharePropTypes, defaultProps as qrShareDefaultProps};
+export {qrSharePropTypes, qrShareDefaultProps};

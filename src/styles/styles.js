@@ -3396,6 +3396,8 @@ const styles = {
         paddingHorizontal: 38.5,
     },
 
+    shareCodePageMenuItemsContainer: {marginTop: 36},
+
     shareCodeContainer: {
         width: '100%',
         alignItems: 'center',
