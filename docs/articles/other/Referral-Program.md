@@ -10,11 +10,11 @@ Expensify has grown thanks to our users who love Expensify so much that they tel
 
 As a thank you, every time you bring a new user into the platform who directly or indirectly leads to the adoption of a paid annual plan on Expensify, you will earn $250. 
 
-# How-to get paid for referring people to Expensify
+# How to get paid for referring people to Expensify
 
 1. Submit a report or invoice, or share your referral link with anyone you know who is spending too much time on expenses, or works at a company that could benefit from using Expensify. 
 
-2. You will get $250 for any referred business with that person as a paid member that commits to an annual subscription, has 2 or more active users, and makes two monthly payments.
+2. You will get $250 for any referred business that commits to an annual subscription, has 2 or more active users, and makes two monthly payments.
 
 That’s right! You can refer anyone working at any company you know. 
 
