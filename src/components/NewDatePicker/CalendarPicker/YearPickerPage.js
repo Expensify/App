@@ -25,23 +25,19 @@ class YearPickerPage extends React.Component {
     constructor(props) {
         super(props);
 
-        const minYear = Number(props.min);
-        const maxYear = Number(props.max);
-        const currentYear = Number(props.year);
-
-        this.currentYear = currentYear;
+        this.currentYear = Number(props.year);
         this.yearList = _.map(
-            Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear),
+            Array.from({length: props.max - props.min + 1}, (v, i) => i + props.min),
             (value) => ({
                 text: value.toString(),
                 value,
                 keyForList: value.toString(),
 
                 // Include the green checkmark icon to indicate the currently selected value
-                customIcon: value === currentYear ? greenCheckmark : undefined,
+                customIcon: value === this.currentYear ? greenCheckmark : undefined,
 
                 // This property will make the currently selected value have bold text
-                boldStyle: value === currentYear,
+                boldStyle: value === this.currentYear,
             }),
         );
 
