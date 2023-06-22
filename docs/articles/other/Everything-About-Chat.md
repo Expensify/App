@@ -27,7 +27,7 @@ All workspace admins can access the #admins room. Use the #admins room to collab
 
 - To italicize your message, place an underscore on both sides of the text:  *text*
 - To bold your message, place an asterisk on both sides of the text:  **text**
-- To strikethrough your message, place a tilde on both sides of the text:  ~text~
+- To strikethrough your message, place a tilde on both sides of the text:  ~~text~~
 - To turn your text into a blockquote, add a `>` symbol in front of the text: >your text
 - To turn your message into code, place a backtick on both sides of the text: `text`
 - To turn your message into a heading, place the `#` symbol in front of the text: 
