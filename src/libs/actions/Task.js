@@ -305,7 +305,9 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     const reportName = (title || report.reportName).trim();
-    const reportDescription = (!_.isUndefined(description) ? description : report.description).trim();
+
+    // Description can be unset, so we default to an empty string if so
+    const reportDescription = (!_.isUndefined(description) ? description : lodashGet(report, 'description', '')).trim();
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;

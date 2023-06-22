@@ -25,6 +25,7 @@ import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -65,6 +66,14 @@ let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
+});
+
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        allPersonalDetails = val || {};
+    },
 });
 
 const allReports = {};
@@ -117,27 +126,30 @@ function subscribeToReportTypingEvents(reportID) {
 
     const pusherChannelName = getReportChannelName(reportID);
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING, (typingStatus) => {
+        // If the pusher message comes from OldDot, we expect the typing status to be keyed by user
+        // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
+        // since personal details are keyed by accountID.
         const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
-        const login = _.first(_.keys(normalizedTypingStatus));
+        const accountIDOrLogin = _.first(_.keys(normalizedTypingStatus));
 
-        if (!login) {
+        if (!accountIDOrLogin) {
             return;
         }
 
-        // Don't show the typing indicator if a user is typing on another platform
-        if (login === currentUserEmail) {
+        // Don't show the typing indicator if the user is typing on another platform
+        if (Number(accountIDOrLogin) === currentUserAccountID) {
             return;
         }
 
-        // Use a combo of the reportID and the login as a key for holding our timers.
-        const reportUserIdentifier = `${reportID}-${login}`;
+        // Use a combo of the reportID and the accountID or login as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${accountIDOrLogin}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
             const typingStoppedStatus = {};
-            typingStoppedStatus[login] = false;
+            typingStoppedStatus[accountIDOrLogin] = false;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
@@ -334,8 +346,9 @@ function addComment(reportID, text) {
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
+ * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
-function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
+function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -376,6 +389,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     const params = {
         reportID,
         emailList: participantLoginList ? participantLoginList.join(',') : '',
+        accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
 
@@ -420,7 +434,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         const optimisticPersonalDetails = {};
         _.map(participantLoginList, (login, index) => {
             const accountID = newReportObject.participantAccountIDs[index];
-            optimisticPersonalDetails[accountID] = {
+            optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
                 login,
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
@@ -468,7 +482,26 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  * @param {Array} userLogins list of user logins to start a chat report with.
  */
 function navigateToAndOpenReport(userLogins) {
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    let newChat = {};
+    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+    const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
+    if (!chat) {
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    }
+    const reportID = chat ? chat.reportID : newChat.reportID;
+
+    // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
+    openReport(reportID, userLogins, newChat);
+    Navigation.dismissModal(reportID);
+}
+
+/**
+ * This will find an existing chat, or create a new one if none exists, for the given accountID or set of accountIDs. It will then navigate to this chat.
+ *
+ * @param {Array} participantAccountIDs of user logins to start a chat report with.
+ */
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
     let newChat = {};
     const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     if (!chat) {
@@ -477,7 +510,7 @@ function navigateToAndOpenReport(userLogins) {
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, userLogins, newChat);
+    openReport(reportID, [], newChat, '0', false, participantAccountIDs);
     Navigation.dismissModal(reportID);
 }
 
@@ -747,7 +780,7 @@ function setReportWithDraft(reportID, hasDraft) {
 function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
     const typingStatus = {};
-    typingStatus[currentUserEmail] = true;
+    typingStatus[currentUserAccountID] = true;
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 
@@ -1149,18 +1182,19 @@ function navigateToConciergeChat() {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {Object} policy
+ * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
+ * @param {Array} policyMembers
  */
-function addPolicyReport(policy, reportName, visibility) {
+function addPolicyReport(policyID, reportName, visibility, policyMembers) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserAccountID, ..._.pluck(policy.employeeList, 'accountID')]);
+    const participants = _.unique([currentUserAccountID, ...policyMembers]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        policy.id,
+        policyID,
         CONST.REPORT.OWNER_EMAIL_FAKE,
         CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         false,
@@ -1813,6 +1847,7 @@ export {
     openReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
+    navigateToAndOpenReportWithAccountIDs,
     navigateToAndOpenChildReport,
     updatePolicyRoomNameAndNavigate,
     clearPolicyRoomNameErrors,

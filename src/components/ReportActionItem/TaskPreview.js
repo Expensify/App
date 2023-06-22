@@ -68,7 +68,7 @@ function TaskPreview(props) {
             accessibilityRole="button"
             accessibilityLabel={props.translate('newTaskPage.task')}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
                 <Checkbox
                     style={[styles.mr2]}
                     containerStyle={[styles.taskCheckbox]}
