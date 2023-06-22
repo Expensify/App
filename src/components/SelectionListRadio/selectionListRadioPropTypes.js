@@ -33,6 +33,9 @@ const propTypes = {
         }),
     ).isRequired,
 
+    /** Whether this is a multi-select list */
+    canSelectMultiple: PropTypes.bool,
+
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
 
@@ -71,6 +74,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    canSelectMultiple: false,
     onSelectRow: () => {},
     textInputLabel: '',
     textInputPlaceholder: '',

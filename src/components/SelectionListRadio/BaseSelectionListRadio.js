@@ -11,6 +11,7 @@ import CONST from '../../CONST';
 import variables from '../../styles/variables';
 import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListRadioDefaultProps} from './selectionListRadioPropTypes';
 import RadioListItem from './RadioListItem';
+import CheckboxListItem from './CheckboxListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
@@ -44,6 +45,8 @@ function BaseSelectionListRadio(props) {
         let offset = 0;
         const itemLayouts = [{length: 0, offset}];
 
+        let selectedCount = 0;
+
         _.each(props.sections, (section, sectionIndex) => {
             // We're not rendering any section header, but we need to push to the array
             // because React Native accounts for it in getItemLayout
@@ -51,16 +54,16 @@ function BaseSelectionListRadio(props) {
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
-            _.each(section.data, (option, optionIndex) => {
+            _.each(section.data, (item, optionIndex) => {
                 // Add item to the general flattened array
                 allOptions.push({
-                    ...option,
+                    ...item,
                     sectionIndex,
                     index: optionIndex,
                 });
 
                 // If disabled, add to the disabled indexes array
-                if (section.isDisabled || option.isDisabled) {
+                if (section.isDisabled || item.isDisabled) {
                     disabledOptionsIndexes.push(disabledIndex);
                 }
                 disabledIndex += 1;
@@ -69,6 +72,10 @@ function BaseSelectionListRadio(props) {
                 const fullItemHeight = variables.optionRowHeight;
                 itemLayouts.push({length: fullItemHeight, offset});
                 offset += fullItemHeight;
+
+                if (item.isSelected) {
+                    selectedCount++;
+                }
             });
 
             // We're not rendering any section footer, but we need to push to the array
@@ -79,6 +86,12 @@ function BaseSelectionListRadio(props) {
         // We're not rendering the list footer, but we need to push to the array
         // because React Native accounts for it in getItemLayout
         itemLayouts.push({length: 0, offset});
+
+        if (selectedCount > 1 && !props.canSelectMultiple) {
+            throw new Error(
+                'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
+            );
+        }
 
         return {
             allOptions,
@@ -158,6 +171,16 @@ function BaseSelectionListRadio(props) {
 
     const renderItem = ({item, index, section}) => {
         const isFocused = focusedIndex === index + lodashGet(section, 'indexOffset', 0);
+
+        if (props.canSelectMultiple) {
+            return (
+                <CheckboxListItem
+                    item={item}
+                    isFocused={isFocused}
+                    onSelectRow={props.onSelectRow}
+                />
+            );
+        }
 
         return (
             <RadioListItem

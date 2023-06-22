@@ -38,6 +38,7 @@ import PressableWithFeedback from '../../components/Pressable/PressableWithFeedb
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import SelectionListRadio from '../../components/SelectionListRadio';
 
 const propTypes = {
     /** The personal details of the person who is logged in */
@@ -249,9 +250,9 @@ function WorkspaceMembersPage(props) {
 
             // Add or remove the user if the checkbox is enabled
             if (_.contains(selectedEmployees, Number(accountID))) {
-                removeUser(accountID);
+                removeUser(Number(accountID));
             } else {
-                addUser(accountID);
+                addUser(Number(accountID));
             }
         },
         [selectedEmployees, addUser, removeUser],
@@ -395,6 +396,77 @@ function WorkspaceMembersPage(props) {
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
 
+    const getListData = () => {
+        let result = [];
+
+        _.each(props.policyMembers, (policyMember, accountID) => {
+            if (isDeletedPolicyMember(policyMember)) {
+                return;
+            }
+
+            const details = props.personalDetails[accountID];
+
+            if (!details) {
+                Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
+                return;
+            }
+
+            // If search value is provided, filter out members that don't match the search value
+            if (searchValue.trim()) {
+                let memberDetails = '';
+                if (details.login) {
+                    memberDetails += ` ${details.login.toLowerCase()}`;
+                }
+                if (details.firstName) {
+                    memberDetails += ` ${details.firstName.toLowerCase()}`;
+                }
+                if (details.lastName) {
+                    memberDetails += ` ${details.lastName.toLowerCase()}`;
+                }
+                if (details.displayName) {
+                    memberDetails += ` ${details.displayName.toLowerCase()}`;
+                }
+                if (details.phoneNumber) {
+                    memberDetails += ` ${details.phoneNumber.toLowerCase()}`;
+                }
+
+                if (!OptionsListUtils.isSearchStringMatch(searchValue.trim(), memberDetails)) {
+                    return;
+                }
+            }
+
+            // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
+            // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
+            // see random people added to their policy, but guides having access to the policies help set them up.
+            if (PolicyUtils.isExpensifyTeam(details.login || details.displayName)) {
+                if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+                    return;
+                }
+            }
+
+            result.push({
+                keyForList: accountID,
+                isSelected: _.contains(selectedEmployees, Number(accountID)),
+                text: props.formatPhoneNumber(details.displayName),
+                alternateText: props.formatPhoneNumber(details.login),
+                isAdmin: props.session.email === details.login || policyMember.role === 'admin',
+                avatar: {
+                    source: UserUtils.getAvatar(details.avatar, accountID),
+                    name: details.login,
+                    type: CONST.ICON_TYPE_AVATAR,
+                },
+            });
+        });
+
+        result = _.sortBy(result, (value) => value.text.toLowerCase());
+
+        return result;
+    };
+
+    const data2 = getListData();
+
+    const headerMessage = searchValue.trim() && !data2.length ? props.translate('common.noResultsFound') : '';
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
@@ -442,53 +514,50 @@ function WorkspaceMembersPage(props) {
                                 onPress={askForConfirmationToRemove}
                             />
                         </View>
-                        <View style={[styles.w100, styles.pv3, styles.ph5]}>
-                            <TextInput
-                                value={searchValue}
-                                onChangeText={setSearchValue}
-                                label={props.translate('optionsSelector.findMember')}
-                            />
-                        </View>
-                        {data.length > 0 ? (
-                            <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                                <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                    <PressableWithFeedback
-                                        disabled={_.isEmpty(removableMembers)}
-                                        onPress={() => toggleAllUsers(removableMembers)}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                                        accessibilityState={{
-                                            checked: !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID))),
-                                        }}
-                                        accessibilityLabel={props.translate('workspace.people.selectAll')}
-                                        hoverDimmingValue={1}
-                                        pressDimmingValue={0.7}
-                                    >
-                                        <Checkbox
-                                            disabled={_.isEmpty(removableMembers)}
-                                            isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
-                                            onPress={() => toggleAllUsers(removableMembers)}
-                                            accessibilityLabel={props.translate('workspace.people.selectAll')}
-                                        />
-                                    </PressableWithFeedback>
-                                    <View style={[styles.flex1]}>
-                                        <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>
-                                    </View>
-                                </View>
-                                <KeyboardDismissingFlatList
-                                    renderItem={renderItem}
-                                    data={data}
-                                    keyExtractor={(item) => item.login}
-                                    showsVerticalScrollIndicator
-                                    style={[styles.ph5, styles.pb5]}
-                                    contentContainerStyle={safeAreaPaddingBottomStyle}
-                                    keyboardShouldPersistTaps="handled"
+                        {/* <View style={[styles.w100, styles.pv3, styles.ph5]}> */}
+                        {/*     <TextInput */}
+                        {/*         value={searchValue} */}
+                        {/*         onChangeText={setSearchValue} */}
+                        {/*         label={props.translate('optionsSelector.findMember')} */}
+                        {/*     /> */}
+                        {/* </View> */}
+                        {/* {data.length > 0 ? ( */}
+                        <View style={[styles.w100, styles.mt4, styles.flex1]}>
+                            <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
+                                <Checkbox
+                                    isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
+                                    onPress={() => toggleAllUsers(removableMembers)}
                                 />
+                                <View style={[styles.flex1]}>
+                                    <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>
+                                </View>
                             </View>
-                        ) : (
-                            <View style={[styles.ph5]}>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('workspace.common.memberNotFound')}</Text>
-                            </View>
-                        )}
+
+                            <SelectionListRadio
+                                canSelectMultiple
+                                sections={[{data: data2, indexOffset: 0, isDisabled: false}]}
+                                textInputLabel={props.translate('optionsSelector.findMember')}
+                                textInputValue={searchValue}
+                                onChangeText={setSearchValue}
+                                headerMessage={headerMessage}
+                                onSelectRow={(item) => toggleUser(item.keyForList)}
+                            />
+
+                            {/* <KeyboardDismissingFlatList */}
+                            {/*     renderItem={renderItem} */}
+                            {/*     data={data} */}
+                            {/*     keyExtractor={(item) => item.login} */}
+                            {/*     showsVerticalScrollIndicator */}
+                            {/*     style={[styles.ph5, styles.pb5]} */}
+                            {/*     contentContainerStyle={safeAreaPaddingBottomStyle} */}
+                            {/*     keyboardShouldPersistTaps="handled" */}
+                            {/* /> */}
+                        </View>
+                        {/* ) : ( */}
+                        {/*     <View style={[styles.ph5]}> */}
+                        {/*         <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('workspace.common.memberNotFound')}</Text> */}
+                        {/*     </View> */}
+                        {/* )} */}
                     </View>
                 </FullPageNotFoundView>
             )}
