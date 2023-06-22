@@ -696,7 +696,7 @@ export default {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
-        codeSent: '¡Código mágico enviado!',
+        requestNewCode: 'Pedir un código nuevo en ',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',

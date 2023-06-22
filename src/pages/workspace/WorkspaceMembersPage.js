@@ -54,8 +54,8 @@ const propTypes = {
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     ...policyPropTypes,
@@ -67,7 +67,7 @@ const propTypes = {
 const defaultProps = {
     personalDetails: {},
     session: {
-        email: null,
+        accountID: 0,
     },
     ...policyDefaultProps,
 };
@@ -330,12 +330,12 @@ function WorkspaceMembersPage(props) {
                                             type: CONST.ICON_TYPE_AVATAR,
                                         },
                                     ],
-                                    keyForList: item.login,
+                                    keyForList: item.accountID,
                                 }}
                                 onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
                         </View>
-                        {(props.session.email === item.login || item.role === 'admin') && (
+                        {(props.session.accountID === item.accountID || item.role === 'admin') && (
                             <View style={[styles.badge, styles.peopleBadge]}>
                                 <Text style={[styles.peopleBadgeText]}>{props.translate('common.admin')}</Text>
                             </View>
@@ -351,7 +351,7 @@ function WorkspaceMembersPage(props) {
             );
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectedEmployees, errors, props.session.email, dismissError, toggleUser],
+        [selectedEmployees, errors, props.session.accountID, dismissError, toggleUser],
     );
 
     const policyOwner = lodashGet(props.policy, 'owner');
@@ -383,7 +383,7 @@ function WorkspaceMembersPage(props) {
     }
 
     _.each(data, (member) => {
-        if (member.login === props.session.email || member.login === props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (member.accountID === props.session.accountID || member.login === props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return;
         }
         removableMembers[member.accountID] = member;
