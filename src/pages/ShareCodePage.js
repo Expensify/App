@@ -19,6 +19,8 @@ import CONST from '../CONST';
 import ContextMenuItem from '../components/ContextMenuItem';
 import * as UserUtils from '../libs/UserUtils';
 import ROUTES from '../ROUTES';
+import withEnvironment, {environmentPropTypes} from '../components/withEnvironment';
+import * as Url from '../libs/Url';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -26,6 +28,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -41,9 +44,10 @@ class ShareCodePage extends React.Component {
         const isReport = this.props.report != null && this.props.report.reportID != null;
         const subtitle = ReportUtils.getChatRoomSubtitle(this.props.report);
 
+        const urlWithTrailingSlash = Url.addTrailingForwardSlash(this.props.environmentURL);
         const url = isReport
-            ? `${CONST.NEW_EXPENSIFY_URL}${ROUTES.getReportRoute(this.props.report.reportID)}`
-            : `${CONST.NEW_EXPENSIFY_URL}${ROUTES.getProfileRoute(this.props.session.accountID)}`;
+            ? `${urlWithTrailingSlash}${ROUTES.getReportRoute(this.props.report.reportID)}`
+            : `${urlWithTrailingSlash}${ROUTES.getProfileRoute(this.props.session.accountID)}`;
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
@@ -96,4 +100,4 @@ class ShareCodePage extends React.Component {
 ShareCodePage.propTypes = propTypes;
 ShareCodePage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withCurrentUserPersonalDetails)(ShareCodePage);
+export default compose(withEnvironment, withLocalize, withCurrentUserPersonalDetails)(ShareCodePage);
