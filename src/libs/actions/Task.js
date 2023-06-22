@@ -477,7 +477,7 @@ function setAssigneeValueWithParentReportID(reportID) {
 
 function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurrentUser = false) {
     let newAssigneeAccountID = Number(assigneeAccountID);
-    let updatePromise;
+    let optimisticReportPromise;
 
     // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
     if (!newAssigneeAccountID) {
@@ -495,13 +495,13 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             setShareDestinationValue(reportID);
         }
 
-        updatePromise = Report.openReport(reportID, [assignee], newChat, '', false, [assigneeAccountID]);
+        optimisticReportPromise = Report.openReport(reportID, [assignee], newChat, '', false, [assigneeAccountID]);
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee, assigneeAccountID: newAssigneeAccountID});
 
-    return updatePromise;
+    return optimisticReportPromise;
 }
 
 /**

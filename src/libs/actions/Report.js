@@ -465,7 +465,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         }
     }
 
-    let updatePromise;
+    let optimisticDataPromise;
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects('OpenReport', params, onyxData).finally(() => {
@@ -473,10 +473,10 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         });
     } else {
         // eslint-disable-next-line rulesdir/no-multiple-api-calls
-        updatePromise = API.write('OpenReport', params, onyxData);
+        optimisticDataPromise = API.write('OpenReport', params, onyxData);
     }
 
-    return updatePromise;
+    return optimisticDataPromise;
 }
 
 /**
