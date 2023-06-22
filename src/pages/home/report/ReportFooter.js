@@ -1,8 +1,8 @@
 import React from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import {View, Keyboard} from 'react-native';
+import { withOnyx } from 'react-native-onyx';
+import { Keyboard, View } from 'react-native';
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';
 import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
@@ -11,7 +11,7 @@ import OfflineIndicator from '../../../components/OfflineIndicator';
 import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withWindowDimensions, { windowDimensionsPropTypes } from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
@@ -48,9 +48,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    report: {reportID: '0'},
+    report: { reportID: '0' },
     reportActions: [],
-    onSubmitComment: () => {},
+    onSubmitComment: () => { },
     errors: {},
     pendingAction: null,
     shouldShowComposeInput: true,
@@ -58,7 +58,10 @@ const defaultProps = {
 };
 
 function ReportFooter(props) {
-    const chatFooterStyles = {...styles.chatFooter, minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    const chatFooterStyles = {
+        ...styles.chatFooter,
+        minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0,
+    };
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
     const isAllowedToComment = ReportUtils.isAllowedToComment(props.report);
     const hideComposer = isArchivedRoom || !_.isEmpty(props.errors) || !isAllowedToComment;
@@ -75,7 +78,10 @@ function ReportFooter(props) {
             )}
             {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
                 <View style={[chatFooterStyles, props.isComposerFullSize && styles.chatFooterFullCompose]}>
-                    <SwipeableView onSwipeDown={Keyboard.dismiss}>
+                    <SwipeableView
+                        onSwipeDown={Keyboard.dismiss}
+                        style={styles.flex1}
+                    >
                         {Session.isAnonymousUser() ? (
                             <AnonymousReportFooter report={props.report} />
                         ) : (
@@ -102,6 +108,6 @@ ReportFooter.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
-        shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
+        shouldShowComposeInput: { key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT },
     }),
 )(ReportFooter);
