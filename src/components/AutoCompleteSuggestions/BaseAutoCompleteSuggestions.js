@@ -55,7 +55,7 @@ function BaseAutoCompleteSuggestions(props) {
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
      * lists.
-     * 
+     *
      * Also, `scrollToIndex` should be used in conjunction with `getItemLayout`, otherwise there is no way to know the location of offscreen indices or handle failures.
      *
      * @param {Array} data - This is the same as the data we pass into the component
