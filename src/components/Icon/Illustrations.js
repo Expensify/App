@@ -31,7 +31,7 @@ import PinkBill from '../../../assets/images/simple-illustrations/simple-illustr
 import CreditCardsNew from '../../../assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import InvoiceBlue from '../../../assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LockOpen from '../../../assets/images/simple-illustrations/simple-illustration__lockopen.svg';
-import Lounge from '../../../assets/images/product-illustrations/lounge-top-bg.svg';
+import Lounge from '../../../assets/images/product-illustrations/lounge.svg';
 import Luggage from '../../../assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MoneyIntoWallet from '../../../assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '../../../assets/images/simple-illustrations/simple-illustration__moneywings.svg';
