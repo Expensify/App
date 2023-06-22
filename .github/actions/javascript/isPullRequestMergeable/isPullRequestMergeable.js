@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const core = require('@actions/core');
+const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 const {promiseWhile} = require('../../../libs/promiseWhile');
 
@@ -15,8 +16,8 @@ const run = function () {
     console.log(`Checking the mergeability of PR #${pullRequestNumber}`);
     return GithubUtils.octokit.pulls
         .get({
-            owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.APP_REPO,
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
             pull_number: pullRequestNumber,
         })
         .then(({data}) => data.head.sha)
@@ -27,13 +28,13 @@ const run = function () {
                     () =>
                         Promise.all([
                             GithubUtils.octokit.pulls.get({
-                                owner: GithubUtils.GITHUB_OWNER,
-                                repo: GithubUtils.APP_REPO,
+                                owner: CONST.GITHUB_OWNER,
+                                repo: CONST.APP_REPO,
                                 pull_number: pullRequestNumber,
                             }),
                             GithubUtils.octokit.checks.listForRef({
-                                owner: GithubUtils.GITHUB_OWNER,
-                                repo: GithubUtils.APP_REPO,
+                                owner: CONST.GITHUB_OWNER,
+                                repo: CONST.APP_REPO,
                                 ref: headRef,
                             }),
                         ])
