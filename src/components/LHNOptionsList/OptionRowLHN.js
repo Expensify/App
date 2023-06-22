@@ -67,11 +67,11 @@ function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
 
     useEffect(() => {
-        if (!optionItem) return;
-        if (!optionItem.hasDraftComment && props.comment && props.comment.length > 0 && !props.isFocused) {
-            Report.setReportWithDraft(props.reportID, true);
+        if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
+        Report.setReportWithDraft(props.reportID, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!optionItem) {
