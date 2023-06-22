@@ -69,8 +69,8 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
 
     // Write commands can be saved and retried, so push it to the SequentialQueue
     SequentialQueue.push(request);
-    
-    return updatePromise
+
+    return updatePromise;
 }
 
 /**

@@ -495,7 +495,6 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             setShareDestinationValue(reportID);
         }
 
-        
         updatePromise = Report.openReport(reportID, [assignee], newChat, '', false, [assigneeAccountID]);
     }
 
@@ -503,7 +502,6 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
     Onyx.merge(ONYXKEYS.TASK, {assignee, assigneeAccountID: newAssigneeAccountID});
 
     return updatePromise;
-    
 }
 
 /**
