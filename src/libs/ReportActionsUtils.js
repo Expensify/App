@@ -60,7 +60,7 @@ function isWhisperAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
-function isPendingModeration(reportAction) {
+function isPendingRemove(reportAction) {
     return lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
 }
 
@@ -261,7 +261,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action) && !isWhisperAction(action) && !isCreatedAction(action) && !isPendingModeration(action));
+    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action) && !isWhisperAction(action) && !isCreatedAction(action) && !isPendingRemove(action));
 
     if (_.isEmpty(visibleActions)) {
         return {};
@@ -344,7 +344,7 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    if (isPendingModeration(reportAction)) {
+    if (isPendingRemove(reportAction)) {
         return false;
     }
 
