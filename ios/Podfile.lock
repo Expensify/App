@@ -541,7 +541,7 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-view-shot (3.6.0):
+  - react-native-view-shot (3.7.0):
     - React-Core
   - react-native-webview (11.23.0):
     - React-Core
@@ -1099,7 +1099,7 @@ SPEC CHECKSUMS:
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
-  react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
+  react-native-view-shot: f5507655f122e6b104888a11130f267a427f0d57
   react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
   React-perflogger: 9f7c5a9d22d104ae0348f38235ee636d156b5938
   React-RCTActionSheet: 43e74f3a54967bb1d0e9ff261bc076843fb50ca1
