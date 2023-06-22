@@ -4,11 +4,11 @@ import React from 'react';
 import {View} from 'react-native';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import CalendarPicker from '../CalendarPicker';
 import * as Expensicons from '../Icon/Expensicons';
 import TextInput from '../TextInput';
 import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '../TextInput/baseTextInputPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import CalendarPicker from './CalendarPicker';
 
 const propTypes = {
     ...withLocalizePropTypes,

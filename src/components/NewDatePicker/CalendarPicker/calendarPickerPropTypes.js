@@ -1,6 +1,6 @@
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import CONST from '../../CONST';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** An initial value of date string */
