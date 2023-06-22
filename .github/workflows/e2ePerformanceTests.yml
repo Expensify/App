@@ -115,7 +115,7 @@ jobs:
           ARTIFACT_NAME: delta-apk-${{ steps.getDeltaRef.outputs.DELTA_REF }}
 
   runTestsInAWS:
-    runs-on: ubuntu-latest-xl
+    runs-on: ubuntu-latest
     needs: [buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
