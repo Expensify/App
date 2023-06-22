@@ -55,9 +55,16 @@ function parseAndLogRoute(state) {
 function NavigationRoot(props) {
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
-
+    const firstRenderRef = useRef(true);
 
     useEffect(() => {
+        if (firstRenderRef.current) {
+            // we don't want to make the report back button go back to LHN if the user
+            // started on the small screen so we don't set it on the first render
+            // making it only work on consecutive changes of the screen size
+            firstRenderRef.current = false;
+            return;
+        }
         if (!props.isSmallScreenWidth) {
             return;
         }
