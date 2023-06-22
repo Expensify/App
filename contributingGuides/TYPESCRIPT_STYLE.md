@@ -378,7 +378,9 @@ function processAPIResponse (response: any) {
 }
 ```
 
-The `any` type allows assignment to all types and dereference of any property, which is undesirable and should be avoided. Instead, and in most cases, use the `unknown` type which expresses a similar concept and is much safer as it requires narrowing the type before using it. When you know that the type structure is a object but you don't have context about the content, use `Record<string, unknown>`.
+The `any` type allows assignment to all types and dereference of any property, which is undesirable and should be avoided. Instead, and in most cases, use the `unknown` type which expresses a similar concept and is much safer as it requires narrowing the type before using it. 
+
+When you know that the type structure is a object but you don't have context about the content, use `Record<string, unknown>`. Note that numeric keys are allowed with the `Record<string, unknown>` type. Numeric keys are implicitly converted to strings during property assignment and access. To read more about this, see [TypeScript documentation](https://www.typescriptlang.org/docs/handbook/2/objects.html#dynamically-adding-properties).
 
 ```ts
 // Bad
