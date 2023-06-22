@@ -35,6 +35,29 @@ module.exports = run;
 
 /***/ }),
 
+/***/ 4097:
+/***/ ((module) => {
+
+const CONST = {
+    GITHUB_OWNER: 'Expensify',
+    APP_REPO: 'App',
+    APPLAUSE_BOT: 'applausebot',
+    OS_BOTIFY: 'OSBotify',
+    LABELS: {
+        STAGING_DEPLOY: 'StagingDeployCash',
+        DEPLOY_BLOCKER: 'DeployBlockerCash',
+        INTERNAL_QA: 'InternalQA',
+    },
+};
+
+CONST.APP_REPO_URL = `https://github.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`;
+CONST.APP_REPO_GIT_URL = `git@github.com:${CONST.GITHUB_OWNER}/${CONST.APP_REPO}.git`;
+
+module.exports = CONST;
+
+
+/***/ }),
+
 /***/ 7999:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -44,20 +67,12 @@ const core = __nccwpck_require__(2186);
 const {GitHub, getOctokitOptions} = __nccwpck_require__(3030);
 const {throttling} = __nccwpck_require__(9968);
 const {paginateRest} = __nccwpck_require__(4193);
-
-const GITHUB_OWNER = 'Expensify';
-const APP_REPO = 'App';
-const APP_REPO_URL = 'https://github.com/Expensify/App';
+const CONST = __nccwpck_require__(4097);
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
 const ISSUE_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/issues/([0-9]+).*`);
 const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/(?:pull|issues)/([0-9]+).*`);
-
-const APPLAUSE_BOT = 'applausebot';
-const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
-const DEPLOY_BLOCKER_CASH_LABEL = 'DeployBlockerCash';
-const INTERNAL_QA_LABEL = 'InternalQA';
 
 /**
  * The standard rate in ms at which we'll poll the GitHub API to check for status changes.
@@ -136,20 +151,20 @@ class GithubUtils {
     static getStagingDeployCash() {
         return this.octokit.issues
             .listForRepo({
-                owner: GITHUB_OWNER,
-                repo: APP_REPO,
-                labels: STAGING_DEPLOY_CASH_LABEL,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                labels: CONST.LABELS.STAGING_DEPLOY,
                 state: 'open',
             })
             .then(({data}) => {
                 if (!data.length) {
-                    const error = new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    const error = new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue.`);
                     error.code = 404;
                     throw error;
                 }
 
                 if (data.length > 1) {
-                    const error = new Error(`Found more than one ${STAGING_DEPLOY_CASH_LABEL} issue.`);
+                    const error = new Error(`Found more than one ${CONST.LABELS.STAGING_DEPLOY} issue.`);
                     error.code = 500;
                     throw error;
                 }
@@ -182,7 +197,7 @@ class GithubUtils {
                 tag,
             };
         } catch (exception) {
-            throw new Error(`Unable to find ${STAGING_DEPLOY_CASH_LABEL} issue with correct data.`);
+            throw new Error(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue with correct data.`);
         }
     }
 
@@ -290,7 +305,7 @@ class GithubUtils {
                 //    'https://github.com/Expensify/App/pull/9642': [ 'mountiny', 'kidroca' ]
                 // }
                 const internalQAPRMap = _.reduce(
-                    _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
+                    _.filter(data, (pr) => !_.isEmpty(_.findWhere(pr.labels, {name: CONST.LABELS.INTERNAL_QA}))),
                     (map, pr) => {
                         // eslint-disable-next-line no-param-reassign
                         map[pr.html_url] = _.compact(_.pluck(pr.assignees, 'login'));
@@ -378,8 +393,8 @@ class GithubUtils {
         return this.paginate(
             this.octokit.pulls.list,
             {
-                owner: GITHUB_OWNER,
-                repo: APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 state: 'all',
                 sort: 'created',
                 direction: 'desc',
@@ -403,8 +418,8 @@ class GithubUtils {
     static getPullRequestBody(pullRequestNumber) {
         return this.octokit.pulls
             .get({
-                owner: GITHUB_OWNER,
-                repo: APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 pull_number: pullRequestNumber,
             })
             .then(({data: pullRequestComment}) => pullRequestComment.body);
@@ -418,8 +433,8 @@ class GithubUtils {
         return this.paginate(
             this.octokit.pulls.listReviews,
             {
-                owner: GITHUB_OWNER,
-                repo: APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 pull_number: pullRequestNumber,
                 per_page: 100,
             },
@@ -435,8 +450,8 @@ class GithubUtils {
         return this.paginate(
             this.octokit.issues.listComments,
             {
-                owner: GITHUB_OWNER,
-                repo: APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 issue_number: issueNumber,
                 per_page: 100,
             },
@@ -455,7 +470,7 @@ class GithubUtils {
     static createComment(repo, number, messageBody) {
         console.log(`Writing comment on #${number}`);
         return this.octokit.issues.createComment({
-            owner: GITHUB_OWNER,
+            owner: CONST.GITHUB_OWNER,
             repo,
             issue_number: number,
             body: messageBody,
@@ -472,8 +487,8 @@ class GithubUtils {
         console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions
             .listWorkflowRuns({
-                owner: GITHUB_OWNER,
-                repo: APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 workflow_id: workflow,
             })
             .then((response) => lodashGet(response, 'data.workflow_runs[0].id'));
@@ -496,7 +511,7 @@ class GithubUtils {
      * @returns {String}
      */
     static getPullRequestURLFromNumber(number) {
-        return `${APP_REPO_URL}/pull/${number}`;
+        return `${CONST.APP_REPO_URL}/pull/${number}`;
     }
 
     /**
@@ -551,7 +566,7 @@ class GithubUtils {
      * @returns {Boolean}
      */
     static isAutomatedPullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
+        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), CONST.OS_BOTIFY);
     }
 
     /**
@@ -562,8 +577,8 @@ class GithubUtils {
      */
     static getActorWhoClosedIssue(issueNumber) {
         return this.paginate(this.octokit.issues.listEvents, {
-            owner: GITHUB_OWNER,
-            repo: APP_REPO,
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
             issue_number: issueNumber,
             per_page: 100,
         })
@@ -573,12 +588,6 @@ class GithubUtils {
 }
 
 module.exports = GithubUtils;
-module.exports.GITHUB_OWNER = GITHUB_OWNER;
-module.exports.APP_REPO = APP_REPO;
-module.exports.APP_REPO_URL = APP_REPO_URL;
-module.exports.STAGING_DEPLOY_CASH_LABEL = STAGING_DEPLOY_CASH_LABEL;
-module.exports.DEPLOY_BLOCKER_CASH_LABEL = DEPLOY_BLOCKER_CASH_LABEL;
-module.exports.APPLAUSE_BOT = APPLAUSE_BOT;
 module.exports.ISSUE_OR_PULL_REQUEST_REGEX = ISSUE_OR_PULL_REQUEST_REGEX;
 module.exports.POLL_RATE = POLL_RATE;
 
