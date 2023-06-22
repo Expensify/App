@@ -20,7 +20,10 @@ class QRShareWithDownload extends Component {
 
     render() {
         return (
-            <ViewShot ref={this.qrCodeScreenshotRef}>
+            <ViewShot
+                ref={this.qrCodeScreenshotRef}
+                options={{result: 'data-uri'}}
+            >
                 <QRShare
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...this.props}
