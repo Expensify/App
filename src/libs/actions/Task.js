@@ -221,8 +221,8 @@ function completeTask(report) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS.OPEN,
+                stateNum: report.stateNum,
+                statusNum: report.statusNum,
                 lastMessageText: report.lastMessageText,
                 lastMessageHtml: report.lastMessageHtml,
                 lastVisibleActionCreated: report.lastVisibleActionCreated,
@@ -284,8 +284,8 @@ function reopenTask(report) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS.APPROVED,
+                stateNum: report.stateNum,
+                statusNum: report.statusNum,
                 lastMessageText: report.lastMessageText,
                 lastMessageHtml: report.lastMessageHtml,
                 lastVisibleActionCreated: report.lastVisibleActionCreated,
