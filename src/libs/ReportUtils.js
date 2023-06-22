@@ -239,7 +239,7 @@ function isSettled(reportID) {
 
 function isCurrentUserSubmitter(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    return report.owner === sessionEmail;
+    return report.ownerEmail === sessionEmail;
 }
 
 /**
@@ -1817,20 +1817,16 @@ function isUnreadWithMention(report) {
  * @returns {boolean}
  */
 function hasOutstandingIOU(report, iouReports) {
-    if (!report || !report.iouReportID || _.isUndefined(report.hasOutstandingIOU)) {
-        return false;
+    if (report.iouReportID) {
+        const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+        if (!iouReport || !iouReport.ownerAccountID) {
+            return false;
+        }
+
+        return iouReport.ownerAccountID === currentUserAccountID ? iouReport.isWaitingOnBankAccount : iouReport.hasOutstandingIOU;
     }
 
-    const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-    if (!iouReport || !iouReport.ownerAccountID) {
-        return false;
-    }
-
-    if (iouReport.ownerAccountID === currentUserAccountID) {
-        return report.isWaitingOnBankAccount;
-    }
-
-    return report.hasOutstandingIOU;
+    return report.ownerAccountID === currentUserAccountID ? report.isWaitingOnBankAccount : report.hasOutstandingIOU;
 }
 
 /**
@@ -1840,16 +1836,14 @@ function hasOutstandingIOU(report, iouReports) {
  * @returns {Boolean}
  */
 function isIOUOwnedByCurrentUser(report, iouReports = {}) {
-    if (report.hasOutstandingIOU) {
+    if (report.iouReportID) {
         const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
             return iouReport.ownerAccountID === currentUserAccountID;
         }
     }
-    if (report.isWaitingOnBankAccount) {
-        return report.ownerAccountID === currentUserAccountID;
-    }
-    return false;
+
+    return report.ownerAccountID === currentUserAccountID;
 }
 
 /**

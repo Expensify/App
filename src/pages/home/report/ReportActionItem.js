@@ -57,7 +57,9 @@ import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
-import * as PersonalDetailsUtils from "../../../libs/PersonalDetailsUtils";
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
+import ReportActionItemReimbursed from './ReportActionItemReimbursed';
+import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -283,6 +285,15 @@ function ReportActionItem(props) {
                 <ReportActionItemReimbursementQueued
                     submitterDisplayName={submitterDisplayName}
                     isCurrentUserSubmitter={ReportUtils.isCurrentUserSubmitter(props.report.reportID)}
+                />
+            );
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED) {
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            children = (
+                <ReportActionItemReimbursed
+                    amount={CurrencyUtils.convertToDisplayString(props.report.iouReportAmount, props.report.currency)}
+                    submitterDisplayName={submitterDisplayName}
+                    isFromSubmitterAddingBankAccount={props.action.originalMessage.isSubmitterAddingBankAccount}
                 />
             );
         } else {

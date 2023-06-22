@@ -88,7 +88,6 @@ function isSentMoneyReportAction(reportAction) {
         reportAction &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.IOU &&
         lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.PAY &&
-        lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.REIMBURSEMENTQUEUED &&
         _.has(reportAction.originalMessage, 'IOUDetails')
     );
 }
