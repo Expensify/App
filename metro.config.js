@@ -1,4 +1,6 @@
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
+const defaultAssetExts = require('metro-config/src/defaults/defaults').assetExts;
+const defaultSourceExts = require('metro-config/src/defaults/defaults').sourceExts;
 const _ = require('underscore');
 require('dotenv').config();
 
@@ -18,8 +20,8 @@ if (isUsingMockAPI) {
  */
 const config = {
     resolver: {
-        assetExts: _.filter(defaultConfig.resolver.assetExts, (ext) => ext !== 'svg'),
-        sourceExts: ['jsx', 'js', 'ts', 'tsx', 'json', 'svg'],
+        assetExts: _.filter(defaultAssetExts, (ext) => ext !== 'svg'),
+        sourceExts: [...defaultSourceExts, 'jsx', 'svg'],
         resolveRequest: (context, moduleName, platform) => {
             const resolution = context.resolveRequest(context, moduleName, platform);
             if (isUsingMockAPI && moduleName.includes('/API')) {
