@@ -15,9 +15,9 @@ import PressableWithFeedback from '../Pressable/PressableWithFeedback';
  */
 const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
     if (isSuggestionPickerLarge) {
-        if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS) {
+        if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_ITEMS_IN_WINDOW) {
             // On large screens, if there are more than 5 suggestions, we display a scrollable window with a height of 5 items, indicating that there are more items available
-            return CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
+            return CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_ITEMS_IN_WINDOW * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
         }
         return numRows * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
     }

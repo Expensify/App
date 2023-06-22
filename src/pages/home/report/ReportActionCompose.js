@@ -143,13 +143,12 @@ const {RNTextInputReset} = NativeModules;
  * Return the max available index for arrow manager.
  * @param {Number} numRows
  * @param {Boolean} isAutoSuggestionPickerLarge
- * @param {Number} [maxAmountOfItems]
  * @returns {Number}
  */
-const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge, maxAmountOfItems = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS) => {
+const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
     // rowCount is number of emoji/mention suggestions. For small screen we can fit 3 items
-    // and for large we show up to 5 items for emojis and 20 items for mentions
-    const rowCount = isAutoSuggestionPickerLarge ? Math.min(numRows, maxAmountOfItems) : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+    // and for large we show up to 20 items for mentions/emojis
+    const rowCount = isAutoSuggestionPickerLarge ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS) : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
 
     // -1 because we start at 0
     return rowCount - 1;
@@ -463,7 +462,7 @@ class ReportActionCompose extends React.Component {
         });
 
         const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
-        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_MENTIONS - suggestions.length), (detail) => {
+        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
             suggestions.push({
                 text: detail.displayName,
                 alternateText: detail.login,
@@ -1190,7 +1189,7 @@ class ReportActionCompose extends React.Component {
                 {!_.isEmpty(this.state.suggestedMentions) && this.state.shouldShowMentionSuggestionMenu && (
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedMentionIndex}
-                        maxIndex={getMaxArrowIndex(this.state.suggestedMentions.length, this.state.isAutoSuggestionPickerLarge, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_MENTIONS)}
+                        maxIndex={getMaxArrowIndex(this.state.suggestedMentions.length, this.state.isAutoSuggestionPickerLarge)}
                         shouldExcludeTextAreaNodes={false}
                         onFocusedIndexChanged={(index) => this.setState({highlightedMentionIndex: index})}
                     >

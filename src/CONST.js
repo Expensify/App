@@ -847,11 +847,11 @@ const CONST = {
         ITEM_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
         MIN_AMOUNT_OF_ITEMS: 3,
-        // used for max emoji suggestions and for limiting the height of mention suggestions,
-        // we show a scrollable list with max height equal to MAX_AMOUNT_OF_ITEMS (5) * ITEM_HEIGHT.
-        MAX_AMOUNT_OF_ITEMS: 5,
-        // used for max mention suggestions
-        MAX_AMOUNT_OF_MENTIONS: 20,
+        // max number of suggestions
+        MAX_AMOUNT_OF_ITEMS: 20,
+        // used for limiting the height of suggestions container, we show a scrollable list
+        // with max height equal to MAX_AMOUNT_OF_VISIBLE_ITEMS_IN_WINDOW (5) * ITEM_HEIGHT.
+        MAX_AMOUNT_OF_VISIBLE_ITEMS_IN_WINDOW: 5,
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
