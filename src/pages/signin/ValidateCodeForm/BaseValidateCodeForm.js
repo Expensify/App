@@ -26,6 +26,7 @@ import MagicCodeInput from '../../../components/MagicCodeInput';
 import Terms from '../Terms';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../../hooks/usePrevious';
+import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -68,7 +69,7 @@ function BaseValidateCodeForm(props) {
     const [formError, setFormError] = useState({});
     const [validateCode, setValidateCode] = useState(props.credentials.validateCode || '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
-    const [linkSent, setLinkSent] = useState(false);
+    const [timeRemaining, setTimeRemaining] = useState(30);
 
     const prevIsVisible = usePrevious(props.isVisible);
     const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
@@ -76,6 +77,7 @@ function BaseValidateCodeForm(props) {
 
     const inputValidateCodeRef = useRef();
     const input2FARef = useRef();
+    const timerRef = useRef();
 
     useEffect(() => {
         if (!inputValidateCodeRef.current || prevIsVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
@@ -93,11 +95,11 @@ function BaseValidateCodeForm(props) {
             return;
         }
 
-        // Clear the code input if magic code valid or a new magic code was requested
-        if ((prevIsVisible && !props.isVisible) || (props.isVisible && linkSent && props.account.message)) {
+        // Clear the code input if magic code valid
+        if (prevIsVisible && !props.isVisible) {
             setValidateCode('');
         }
-    }, [props.isVisible, props.account.message, prevIsVisible, linkSent, validateCode]);
+    }, [props.isVisible, prevIsVisible, validateCode]);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
@@ -110,7 +112,7 @@ function BaseValidateCodeForm(props) {
         if (!input2FARef.current || prevRequiresTwoFactorAuth || !props.account.requiresTwoFactorAuth) {
             return;
         }
-        input2FARef.current.focus();
+        input2FARef.current.resetFocus();
     }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
 
     useEffect(() => {
@@ -127,6 +129,17 @@ function BaseValidateCodeForm(props) {
         input2FARef.current.clear();
     }, [twoFactorAuthCode]);
 
+    useEffect(() => {
+        if (timeRemaining > 0) {
+            timerRef.current = setTimeout(() => {
+                setTimeRemaining(timeRemaining - 1);
+            }, 1000);
+        }
+        return () => {
+            clearTimeout(timerRef.current);
+        };
+    }, [timeRemaining]);
+
     /**
      * Handle text input and clear formError upon text change
      *
@@ -137,7 +150,6 @@ function BaseValidateCodeForm(props) {
         const setInput = key === 'validateCode' ? setValidateCode : setTwoFactorAuthCode;
         setInput(text);
         setFormError((prevError) => ({...prevError, [key]: ''}));
-        setLinkSent(false);
 
         if (props.account.errors) {
             Session.clearAccountMessages();
@@ -150,10 +162,11 @@ function BaseValidateCodeForm(props) {
     const resendValidateCode = () => {
         setTwoFactorAuthCode('');
         setFormError({});
+        setValidateCode('');
         User.resendValidateCode(props.credentials.login, true);
 
         // Give feedback to the user to let them know the email was sent so they don't spam the button.
-        setLinkSent(true);
+        setTimeRemaining(30);
     };
 
     /**
@@ -207,7 +220,7 @@ function BaseValidateCodeForm(props) {
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
-    const resendButtonStyle = props.network.isOffline ? styles.buttonOpacityDisabled : {};
+
     return (
         <>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -241,12 +254,16 @@ function BaseValidateCodeForm(props) {
                         hasError={hasError}
                         autoFocus
                     />
-                    <View style={[styles.changeExpensifyLoginLinkContainer]}>
-                        {linkSent ? (
-                            <Text style={[styles.mt2]}>{props.account.message ? props.translate(props.account.message) : ''}</Text>
+                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
+                    <View>
+                        {timeRemaining > 0 && !props.network.isOffline ? (
+                            <Text style={[styles.mt2]}>
+                                {props.translate('validateCodeForm.requestNewCode')}
+                                <Text style={[styles.textBlue]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
+                            </Text>
                         ) : (
                             <PressableWithFeedback
-                                style={[styles.mt2, resendButtonStyle]}
+                                style={[styles.mt2]}
                                 onPress={resendValidateCode}
                                 underlayColor={themeColors.componentBG}
                                 disabled={props.network.isOffline}
@@ -255,14 +272,12 @@ function BaseValidateCodeForm(props) {
                                 accessibilityRole="button"
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[styles.link]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
                 </View>
             )}
-
-            {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
             <View>
                 <Button
                     isDisabled={props.network.isOffline}
