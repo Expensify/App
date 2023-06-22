@@ -1,18 +1,18 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, {useEffect, useRef} from 'react';
+import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import Keyboard from '../../libs/NativeWebKeyboard';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 
-export default function (WrappedComponent) {
-    const WithBlockViewportScroll = (props) => {
+export default function(WrappedComponent) {
+    function WithBlockViewportScroll(props) {
         const optimalScrollY = useRef(0);
-        const keybShowOff = useRef(() => {});
-        const keybHideOff = useRef(() => {});
+        const keybShowOff = useRef(() => { });
+        const keybHideOff = useRef(() => { });
 
         useEffect(() => {
             const handleTouchEnd = () => {
-                window.scrollTo({top: optimalScrollY.current, behavior: 'smooth'});
+                window.scrollTo({ top: optimalScrollY.current, behavior: 'smooth' });
             };
 
             const handleKeybShow = () => {
@@ -40,11 +40,11 @@ export default function (WrappedComponent) {
                 ref={props.forwardedRef}
             />
         );
-    };
+    }
 
     WithBlockViewportScroll.displayName = `WithBlockViewportScroll(${getComponentDisplayName(WrappedComponent)})`;
     WithBlockViewportScroll.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({ current: PropTypes.instanceOf(React.Component) })]),
     };
     WithBlockViewportScroll.defaultProps = {
         forwardedRef: undefined,
