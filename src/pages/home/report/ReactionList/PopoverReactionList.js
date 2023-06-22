@@ -9,14 +9,21 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReactionList from './BaseReactionList';
 import compose from '../../../../libs/compose';
+import reportPropTypes from '../../../reportPropTypes';
 import reportActionPropTypes from '../reportActionPropTypes';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import emojis from '../../../../../assets/emojis';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import * as ReportActionsUtils from '../../../../libs/ReportActionsUtils';
+import * as ReportUtils from '../../../../libs/ReportUtils';
+import CONST from '../../../../CONST';
 
 const propTypes = {
+    /** The report currently being looked at */
+    report: reportPropTypes.isRequired,
+
     /** Actions from the ChatReport */
     reportActions: PropTypes.shape(reportActionPropTypes),
 
@@ -68,23 +75,22 @@ class PopoverReactionList extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        const prevSelectedReaction = this.getSelectedReaction(this.props.reportActions, this.state.reportActionID, this.state.emojiName);
         const selectedReaction = this.getSelectedReaction(nextProps.reportActions, nextState.reportActionID, nextState.emojiName);
-        const previousLocale = lodashGet(this.props, 'preferredLocale', 'en');
-        const nextLocale = lodashGet(nextProps, 'preferredLocale', 'en');
+        const {emojiCount, emojiCodes, hasUserReacted, users} = this.getReactionInformation(selectedReaction);
+        const previousLocale = lodashGet(this.props, 'preferredLocale', CONST.LOCALES.DEFAULT);
+        const nextLocale = lodashGet(nextProps, 'preferredLocale', CONST.LOCALES.DEFAULT);
 
         return (
             this.state.isPopoverVisible !== nextState.isPopoverVisible ||
             this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition ||
             previousLocale !== nextLocale ||
             (this.state.isPopoverVisible &&
-                (!_.isEqual(prevSelectedReaction, selectedReaction) ||
+                (this.state.reportActionID !== nextState.reportActionID ||
                     this.state.emojiName !== nextState.emojiName ||
-                    this.state.emojiCount !== nextState.emojiCount ||
-                    this.state.hasUserReacted !== nextState.hasUserReacted ||
-                    this.state.reportActionID !== nextState.reportActionID ||
-                    !_.isEqual(this.state.emojiCodes, nextState.emojiCodes) ||
-                    !_.isEqual(this.state.users, nextState.users)))
+                    this.state.emojiCount !== emojiCount ||
+                    this.state.hasUserReacted !== hasUserReacted ||
+                    !_.isEqual(this.state.emojiCodes, emojiCodes) ||
+                    !_.isEqual(this.state.users, users)))
         );
     }
 
@@ -92,6 +98,7 @@ class PopoverReactionList extends React.Component {
         if (!this.state.emojiName) {
             return;
         }
+
         const selectedReaction = this.getSelectedReaction(this.props.reportActions, this.state.reportActionID, this.state.emojiName);
         if (!selectedReaction) {
             this.setState({
@@ -132,6 +139,19 @@ class PopoverReactionList extends React.Component {
     }
 
     /**
+     * Get the selected reaction from report action.
+     *
+     * @param {Object} reportAction
+     * @param {String} emojiName - Name of emoji
+     * @returns {Object}
+     */
+    getSelectedReactionFromAction(reportAction, emojiName) {
+        const reactions = lodashGet(reportAction, ['message', 0, 'reactions'], []);
+        const reactionsWithCount = _.filter(reactions, (reaction) => reaction.users.length > 0);
+        return _.find(reactionsWithCount, (reaction) => reaction.emoji === emojiName);
+    }
+
+    /**
      * Get the selected reaction.
      *
      * @param {Array<Object>} reportActions
@@ -141,9 +161,11 @@ class PopoverReactionList extends React.Component {
      */
     getSelectedReaction(reportActions, reportActionID, emojiName) {
         const reportAction = _.find(reportActions, (action) => action.reportActionID === reportActionID);
-        const reactions = lodashGet(reportAction, ['message', 0, 'reactions'], []);
-        const reactionsWithCount = _.filter(reactions, (reaction) => reaction.users.length > 0);
-        return _.find(reactionsWithCount, (reaction) => reaction.emoji === emojiName);
+        if (!reportAction || ReportUtils.isThreadFirstChat(reportAction, this.props.report.reportID)) {
+            const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
+            return this.getSelectedReactionFromAction(parentReportAction, emojiName);
+        }
+        return this.getSelectedReactionFromAction(reportAction, emojiName);
     }
 
     /**
@@ -162,11 +184,11 @@ class PopoverReactionList extends React.Component {
             };
         }
         const emojiCount = selectedReaction.users.length;
-        const reactionUsers = _.map(selectedReaction.users, (sender) => sender.accountID.toString());
+        const reactionUsers = _.map(selectedReaction.users, (sender) => sender.accountID);
         const emoji = _.find(emojis, (e) => e.name === selectedReaction.emoji);
         const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, selectedReaction.users);
         const hasUserReacted = Report.hasAccountIDReacted(this.props.currentUserPersonalDetails.accountID, reactionUsers);
-        const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers);
+        const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers, this.props.currentUserPersonalDetails.accountID, true);
         return {
             emojiCount,
             emojiCodes,
@@ -247,6 +269,7 @@ class PopoverReactionList extends React.Component {
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     disableAnimation={false}
+                    animationOutTiming={1}
                     shouldSetModalVisibility={false}
                     fullscreen
                 >
@@ -273,7 +296,7 @@ export default compose(
     withLocalize,
     withOnyx({
         reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
             canEvict: false,
         },
     }),

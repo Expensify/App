@@ -18,31 +18,33 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesNoVBAView = (props) => (
-    <>
-        <WorkspaceInvoicesFirstSection policyID={props.policyID} />
+function WorkspaceInvoicesNoVBAView(props) {
+    return (
+        <>
+            <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
-        <Section
-            title={props.translate('workspace.invoices.unlockOnlineInvoiceCollection')}
-            icon={Illustrations.MoneyIntoWallet}
-            containerStyles={[styles.cardSection]}
-        >
-            <View style={[styles.mv3]}>
-                <Text>{props.translate('workspace.invoices.unlockNoVBACopy')}</Text>
-            </View>
-            <Button
-                text={props.translate('workspace.common.connectBankAccount')}
-                onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
-                icon={Expensicons.Bank}
-                style={[styles.mt4]}
-                iconStyles={[styles.buttonCTAIcon]}
-                shouldShowRightIcon
-                large
-                success
-            />
-        </Section>
-    </>
-);
+            <Section
+                title={props.translate('workspace.invoices.unlockOnlineInvoiceCollection')}
+                icon={Illustrations.MoneyIntoWallet}
+                containerStyles={[styles.cardSection]}
+            >
+                <View style={[styles.mv3]}>
+                    <Text>{props.translate('workspace.invoices.unlockNoVBACopy')}</Text>
+                </View>
+                <Button
+                    text={props.translate('workspace.common.connectBankAccount')}
+                    onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
+                    icon={Expensicons.Bank}
+                    style={[styles.mt4]}
+                    iconStyles={[styles.buttonCTAIcon]}
+                    shouldShowRightIcon
+                    large
+                    success
+                />
+            </Section>
+        </>
+    );
+}
 
 WorkspaceInvoicesNoVBAView.propTypes = propTypes;
 WorkspaceInvoicesNoVBAView.displayName = 'WorkspaceInvoicesNoVBAView';

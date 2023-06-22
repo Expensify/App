@@ -32,37 +32,41 @@ function createModalStackNavigator(screens) {
 }
 
 // We use getComponent/require syntax so that file used by screens are not loaded until we need them.
-const IOUBillStackNavigator = createModalStackNavigator([
+const MoneyRequestModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const IOUBillPage = require('../../../pages/iou/IOUBillPage').default;
-            return IOUBillPage;
+            const MoneyRequestAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
+            return MoneyRequestAmountPage;
         },
-        name: 'IOU_Bill_Root',
+        name: 'Money_Request',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
+            return MoneyRequestEditAmountPage;
+        },
+        name: 'Money_Request_Amount',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestParticipantsPage = require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default;
+            return MoneyRequestParticipantsPage;
+        },
+        name: 'Money_Request_Participants',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestConfirmPage = require('../../../pages/iou/steps/MoneyRequestConfirmPage').default;
+            return MoneyRequestConfirmPage;
+        },
+        name: 'Money_Request_Confirmation',
     },
     {
         getComponent: () => {
             const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
             return IOUCurrencySelection;
         },
-        name: 'IOU_Bill_Currency',
-    },
-]);
-
-const IOURequestModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const IOURequestPage = require('../../../pages/iou/IOURequestPage').default;
-            return IOURequestPage;
-        },
-        name: 'IOU_Request_Root',
-    },
-    {
-        getComponent: () => {
-            const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
-            return IOUCurrencySelection;
-        },
-        name: 'IOU_Request_Currency',
+        name: 'Money_Request_Currency',
     },
     {
         getComponent: () => {
@@ -70,23 +74,6 @@ const IOURequestModalStackNavigator = createModalStackNavigator([
             return MoneyRequestDescriptionPage;
         },
         name: 'Money_Request_Description',
-    },
-]);
-
-const IOUSendModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const IOUSendPage = require('../../../pages/iou/IOUSendPage').default;
-            return IOUSendPage;
-        },
-        name: 'IOU_Send_Root',
-    },
-    {
-        getComponent: () => {
-            const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
-            return IOUCurrencySelection;
-        },
-        name: 'IOU_Send_Currency',
     },
     {
         getComponent: () => {
@@ -111,6 +98,16 @@ const IOUSendModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const SplitDetailsModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SplitBillDetailsPage = require('../../../pages/iou/SplitBillDetailsPage').default;
+            return SplitBillDetailsPage;
+        },
+        name: 'SplitDetails_Root',
+    },
+]);
+
 const DetailsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -118,6 +115,16 @@ const DetailsModalStackNavigator = createModalStackNavigator([
             return DetailsPage;
         },
         name: 'Details_Root',
+    },
+]);
+
+const ProfileModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
+        },
+        name: 'Profile_Root',
     },
 ]);
 
@@ -213,8 +220,8 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const DetailsPage = require('../../../pages/DetailsPage').default;
-            return DetailsPage;
+            const ProfilePage = require('../../../pages/ProfilePage').default;
+            return ProfilePage;
         },
         name: 'ReportParticipants_Details',
     },
@@ -614,6 +621,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const YearPickerPage = require('../../../pages/YearPickerPage').default;
+            return YearPickerPage;
+        },
+        name: 'YearPicker_Root',
+    },
+    {
+        getComponent: () => {
             const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
             return SettingsTwoFactorAuthIsEnabled;
         },
@@ -699,11 +713,31 @@ const YearPickerStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const FlagCommentStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const FlagCommentPage = require('../../../pages/FlagCommentPage').default;
+            return FlagCommentPage;
+        },
+        name: 'FlagComment_Root',
+    },
+]);
+
+const EditRequestStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const EditRequestPage = require('../../../pages/EditRequestPage').default;
+            return EditRequestPage;
+        },
+        name: 'EditRequest_Root',
+    },
+]);
+
 export {
-    IOUBillStackNavigator,
-    IOURequestModalStackNavigator,
-    IOUSendModalStackNavigator,
+    MoneyRequestModalStackNavigator,
+    SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
+    ProfileModalStackNavigator,
     ReportDetailsModalStackNavigator,
     TaskModalStackNavigator,
     ReportSettingsModalStackNavigator,
@@ -719,4 +753,6 @@ export {
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
     YearPickerStackNavigator,
+    FlagCommentStackNavigator,
+    EditRequestStackNavigator,
 };

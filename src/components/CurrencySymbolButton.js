@@ -1,10 +1,10 @@
 import React from 'react';
-import {TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from './Text';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Currency symbol of selected currency */
@@ -19,9 +19,13 @@ const propTypes = {
 function CurrencySymbolButton(props) {
     return (
         <Tooltip text={props.translate('iOUCurrencySelection.selectCurrency')}>
-            <TouchableOpacity onPress={props.onCurrencyButtonPress}>
+            <PressableWithoutFeedback
+                onPress={props.onCurrencyButtonPress}
+                accessibilityLabel={props.translate('iOUCurrencySelection.selectCurrency')}
+                accessibilityRole="button"
+            >
                 <Text style={styles.iouAmountText}>{props.currencySymbol}</Text>
-            </TouchableOpacity>
+            </PressableWithoutFeedback>
         </Tooltip>
     );
 }

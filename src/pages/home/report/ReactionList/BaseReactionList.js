@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../../styles/styles';
 import HeaderReactionList from './HeaderReactionList';
-import * as ReportUtils from '../../../../libs/ReportUtils';
+import * as UserUtils from '../../../../libs/UserUtils';
 import CONST from '../../../../CONST';
 import participantPropTypes from '../../../../components/participantPropTypes';
 import reactionPropTypes from './reactionPropTypes';
@@ -57,7 +57,7 @@ const getItemLayout = (_, index) => ({
     offset: variables.listItemHeightNormal * index,
 });
 
-const BaseReactionList = (props) => {
+function BaseReactionList(props) {
     if (!props.isVisible) {
         return null;
     }
@@ -79,20 +79,20 @@ const BaseReactionList = (props) => {
             hoverStyle={styles.hoveredComponentBG}
             onSelectRow={() => {
                 props.onClose();
-                Navigation.navigate(ROUTES.getDetailsRoute(item.login));
+                Navigation.navigate(ROUTES.getProfileRoute(item.accountID));
             }}
             option={{
                 text: Str.removeSMSDomain(item.displayName),
-                alternateText: Str.removeSMSDomain(item.login),
+                alternateText: Str.removeSMSDomain(item.login || ''),
                 participantsList: [item],
                 icons: [
                     {
-                        source: ReportUtils.getAvatar(item.avatar, item.login),
+                        source: UserUtils.getAvatar(item.avatar, item.accountID),
                         name: item.login,
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                keyForList: item.login,
+                keyForList: item.login || String(item.accountID),
             }}
         />
     );
@@ -116,7 +116,7 @@ const BaseReactionList = (props) => {
             />
         </>
     );
-};
+}
 
 BaseReactionList.propTypes = propTypes;
 BaseReactionList.defaultProps = defaultProps;

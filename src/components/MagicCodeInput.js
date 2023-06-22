@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import CONST from '../CONST';
 import Text from './Text';
@@ -100,10 +101,23 @@ function MagicCodeInput(props) {
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
 
+    const blurMagicCodeInput = () => {
+        inputRefs.current[editIndex].blur();
+        setFocusedIndex(undefined);
+    };
+
+    const focusMagicCodeInput = () => {
+        setFocusedIndex(0);
+        inputRefs.current[0].focus();
+    };
+
     useImperativeHandle(props.innerRef, () => ({
         focus() {
-            setFocusedIndex(0);
-            inputRefs.current[0].focus();
+            focusMagicCodeInput();
+        },
+        resetFocus() {
+            setInput('');
+            focusMagicCodeInput();
         },
         clear() {
             setInput('');
@@ -111,6 +125,9 @@ function MagicCodeInput(props) {
             setEditIndex(0);
             inputRefs.current[0].focus();
             props.onChangeText('');
+        },
+        blur() {
+            blurMagicCodeInput();
         },
     }));
 
@@ -121,8 +138,7 @@ function MagicCodeInput(props) {
         }
         // Blurs the input and removes focus from the last input and, if it should submit
         // on complete, it will call the onFulfill callback.
-        inputRefs.current[editIndex].blur();
-        setFocusedIndex(undefined);
+        blurMagicCodeInput();
         props.onFulfill(props.value);
     };
 
@@ -293,7 +309,14 @@ function MagicCodeInput(props) {
                         key={index}
                         style={[styles.w15]}
                     >
-                        <View style={[styles.textInputContainer, focusedIndex === index ? styles.borderColorFocus : {}, props.hasError || props.errorText ? styles.borderColorDanger : {}]}>
+                        <View
+                            style={[
+                                styles.textInputContainer,
+                                StyleUtils.getHeightOfMagicCodeInput(),
+                                props.hasError || props.errorText ? styles.borderColorDanger : {},
+                                focusedIndex === index ? styles.borderColorFocus : {},
+                            ]}
+                        >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value, props.maxLength)[index] || ''}</Text>
                         </View>
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>

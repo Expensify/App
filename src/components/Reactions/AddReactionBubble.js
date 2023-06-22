@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
 import styles from '../../styles/styles';
@@ -11,6 +11,8 @@ import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import * as Session from '../../libs/actions/Session';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -33,6 +35,13 @@ const propTypes = {
      */
     onSelectEmoji: PropTypes.func.isRequired,
 
+    /**
+     * ReportAction for EmojiPicker.
+     */
+    reportAction: PropTypes.shape({
+        reportActionID: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -40,9 +49,10 @@ const defaultProps = {
     isContextMenu: false,
     onWillShowPicker: () => {},
     onPressOpenPicker: undefined,
+    reportAction: {},
 };
 
-const AddReactionBubble = (props) => {
+function AddReactionBubble(props) {
     const ref = useRef();
 
     const onPress = () => {
@@ -55,6 +65,7 @@ const AddReactionBubble = (props) => {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
+                props.reportAction,
             );
         };
 
@@ -67,12 +78,16 @@ const AddReactionBubble = (props) => {
 
     return (
         <Tooltip text={props.translate('emojiReactions.addReactionTooltip')}>
-            <Pressable
+            <PressableWithFeedback
                 ref={ref}
                 style={({hovered, pressed}) => [styles.emojiReactionBubble, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleStyle(hovered || pressed, false, props.isContextMenu)]}
-                onPress={onPress}
+                onPress={Session.checkIfActionIsAllowed(onPress)}
                 // Prevent text input blur when Add reaction is clicked
                 onMouseDown={(e) => e.preventDefault()}
+                accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
+                accessibilityRole="button"
+                // disable dimming
+                pressDimmingValue={1}
             >
                 {({hovered, pressed}) => (
                     <>
@@ -90,10 +105,10 @@ const AddReactionBubble = (props) => {
                         </View>
                     </>
                 )}
-            </Pressable>
+            </PressableWithFeedback>
         </Tooltip>
     );
-};
+}
 
 AddReactionBubble.propTypes = propTypes;
 AddReactionBubble.defaultProps = defaultProps;

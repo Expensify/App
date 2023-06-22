@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './attachmentPickerPropTypes';
 import * as FileUtils from '../../libs/fileDownload/FileUtils';
@@ -22,44 +22,46 @@ function getAcceptableFileTypes(type) {
  * a callback. This is the web/mWeb/desktop version since
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
+ * @param {propTypes} props
+ * @returns {JSX.Element}
  */
-class AttachmentPicker extends React.Component {
-    render() {
-        return (
-            <>
-                <input
-                    hidden
-                    type="file"
-                    ref={(el) => (this.fileInput = el)}
-                    onChange={(e) => {
-                        let file = e.target.files[0];
+function AttachmentPicker(props) {
+    const fileInput = useRef();
+    const onPicked = useRef();
+    return (
+        <>
+            <input
+                hidden
+                type="file"
+                ref={fileInput}
+                onChange={(e) => {
+                    let file = e.target.files[0];
 
-                        if (file) {
-                            const cleanName = FileUtils.cleanFileName(file.name);
-                            if (file.name !== cleanName) {
-                                file = new File([file], cleanName);
-                            }
-                            file.uri = URL.createObjectURL(file);
-                            this.onPicked(file);
+                    if (file) {
+                        const cleanName = FileUtils.cleanFileName(file.name);
+                        if (file.name !== cleanName) {
+                            file = new File([file], cleanName);
                         }
+                        file.uri = URL.createObjectURL(file);
+                        onPicked.current(file);
+                    }
 
-                        // Cleanup after selecting a file to start from a fresh state
-                        this.fileInput.value = null;
-                    }}
-                    // We are stopping the event propagation because triggering the `click()` on the hidden input
-                    // causes the event to unexpectedly bubble up to anything wrapping this component e.g. Pressable
-                    onClick={(e) => e.stopPropagation()}
-                    accept={getAcceptableFileTypes(this.props.type)}
-                />
-                {this.props.children({
-                    openPicker: ({onPicked}) => {
-                        this.onPicked = onPicked;
-                        this.fileInput.click();
-                    },
-                })}
-            </>
-        );
-    }
+                    // Cleanup after selecting a file to start from a fresh state
+                    fileInput.current.value = null;
+                }}
+                // We are stopping the event propagation because triggering the `click()` on the hidden input
+                // causes the event to unexpectedly bubble up to anything wrapping this component e.g. Pressable
+                onClick={(e) => e.stopPropagation()}
+                accept={getAcceptableFileTypes(props.type)}
+            />
+            {props.children({
+                openPicker: ({onPicked: newOnPicked}) => {
+                    onPicked.current = newOnPicked;
+                    fileInput.current.click();
+                },
+            })}
+        </>
+    );
 }
 
 AttachmentPicker.propTypes = propTypes;

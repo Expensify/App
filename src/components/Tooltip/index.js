@@ -8,6 +8,8 @@ import withWindowDimensions from '../withWindowDimensions';
 import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import compose from '../../libs/compose';
+import withLocalize from '../withLocalize';
 
 /**
  * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
@@ -51,6 +53,9 @@ class Tooltip extends PureComponent {
      * @param {Object} bounds - updated bounds
      */
     updateBounds(bounds) {
+        if (bounds.width === 0) {
+            this.setState({isRendered: false});
+        }
         this.setState({
             wrapperWidth: bounds.width,
             wrapperHeight: bounds.height,
@@ -116,22 +121,6 @@ class Tooltip extends PureComponent {
             return this.props.children;
         }
 
-        if (!React.isValidElement(this.props.children)) {
-            throw Error('Children is not a valid element.');
-        }
-
-        const target = React.cloneElement(React.Children.only(this.props.children), {
-            ref: (el) => {
-                this.wrapperView = el;
-
-                // Call the original ref, if any
-                const {ref} = this.props.children;
-                if (_.isFunction(ref)) {
-                    ref(el);
-                }
-            },
-        });
-
         return (
             <>
                 {this.state.isRendered && (
@@ -150,7 +139,7 @@ class Tooltip extends PureComponent {
                         renderTooltipContent={this.props.renderTooltipContent}
                         // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                         // This prevents flickering/moving while remaining performant.
-                        key={[this.props.text, ...this.props.renderTooltipContentKey]}
+                        key={[this.props.text, ...this.props.renderTooltipContentKey, this.props.preferredLocale]}
                     />
                 )}
                 <BoundsObserver
@@ -161,7 +150,7 @@ class Tooltip extends PureComponent {
                         onHoverIn={this.showTooltip}
                         onHoverOut={this.hideTooltip}
                     >
-                        {target}
+                        {this.props.children}
                     </Hoverable>
                 </BoundsObserver>
             </>
@@ -171,4 +160,4 @@ class Tooltip extends PureComponent {
 
 Tooltip.propTypes = tooltipPropTypes.propTypes;
 Tooltip.defaultProps = tooltipPropTypes.defaultProps;
-export default withWindowDimensions(Tooltip);
+export default compose(withWindowDimensions, withLocalize)(Tooltip);

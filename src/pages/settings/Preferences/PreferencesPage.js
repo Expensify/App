@@ -4,7 +4,7 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -46,7 +46,7 @@ const defaultProps = {
     user: {},
 };
 
-const PreferencesPage = (props) => {
+function PreferencesPage(props) {
     const priorityModes = props.translate('priorityModePage.priorityModes');
     const languages = props.translate('languagePage.languages');
     const colorThemes = props.translate('colorThemePage.colorThemes');
@@ -56,11 +56,9 @@ const PreferencesPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('common.preferences')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <ScrollView style={[styles.flex1, styles.mt3]}>
                 <View style={styles.mb6}>
@@ -110,7 +108,7 @@ const PreferencesPage = (props) => {
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 PreferencesPage.propTypes = propTypes;
 PreferencesPage.defaultProps = defaultProps;

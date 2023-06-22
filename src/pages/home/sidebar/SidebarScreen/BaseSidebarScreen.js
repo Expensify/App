@@ -8,10 +8,9 @@ import ROUTES from '../../../../ROUTES';
 import Timing from '../../../../libs/actions/Timing';
 import CONST from '../../../../CONST';
 import Performance from '../../../../libs/Performance';
-import withDrawerState from '../../../../components/withDrawerState';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
-import compose from '../../../../libs/compose';
 import sidebarPropTypes from './sidebarPropTypes';
+import * as Browser from '../../../../libs/Browser';
 
 const propTypes = {
     ...sidebarPropTypes,
@@ -50,7 +49,7 @@ class BaseSidebarScreen extends Component {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                style={[styles.sidebar]}
+                style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             >
                 {({insets}) => (
                     <>
@@ -60,7 +59,6 @@ class BaseSidebarScreen extends Component {
                                 insets={insets}
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
-                                isDrawerOpen={this.props.isDrawerOpen}
                                 reportIDFromRoute={this.props.reportIDFromRoute}
                                 onLayout={this.props.onLayout}
                             />
@@ -75,4 +73,4 @@ class BaseSidebarScreen extends Component {
 
 BaseSidebarScreen.propTypes = propTypes;
 
-export default compose(withWindowDimensions, withDrawerState)(BaseSidebarScreen);
+export default withWindowDimensions(BaseSidebarScreen);

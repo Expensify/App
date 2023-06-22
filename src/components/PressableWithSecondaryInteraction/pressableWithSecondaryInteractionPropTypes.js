@@ -29,6 +29,7 @@ const propTypes = {
      *
      * - No support for delayLongPress.
      * - No support for pressIn and pressOut events.
+     * - No support for opacity
      *
      * Note: Web uses styling instead of Text due to no support of LongPress. Thus above pointers are not valid for web.
      */
@@ -36,6 +37,9 @@ const propTypes = {
 
     /** Disable focus trap for the element on secondary interaction  */
     withoutFocusOnSecondaryInteraction: PropTypes.bool,
+
+    /** Opacity to reduce to when active  */
+    activeOpacity: PropTypes.number,
 
     /** Used to apply styles to the Pressable */
     style: stylePropTypes,
@@ -48,6 +52,7 @@ const defaultProps = {
     preventDefaultContextMenu: true,
     inline: false,
     withoutFocusOnSecondaryInteraction: false,
+    activeOpacity: 1,
     enableLongPressWithHover: false,
 };
 

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import HeaderWithCloseButton from './HeaderWithCloseButton';
+import HeaderWithBackButton from './HeaderWithBackButton';
 import Text from './Text';
 import Modal from './Modal';
 import CONST from '../CONST';
@@ -159,8 +159,10 @@ class KeyboardShortcutsModal extends React.Component {
                 innerContainerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(this.props.isSmallScreenWidth)}}
                 onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
             >
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('keyboardShortcutModal.title')}
+                    shouldShowCloseButton
+                    shouldShowBackButton={false}
                     onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal}
                 />
                 <ScrollView style={[styles.p5, styles.pt0]}>

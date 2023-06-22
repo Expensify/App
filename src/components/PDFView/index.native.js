@@ -62,6 +62,8 @@ class PDFView extends Component {
         this.setState({
             failedToLoadPDF: true,
             shouldAttemptPDFLoad: false,
+            shouldRequestPassword: false,
+            shouldShowLoadingIndicator: false,
         });
     }
 

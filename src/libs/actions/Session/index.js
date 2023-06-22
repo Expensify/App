@@ -1,6 +1,8 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {Linking} from 'react-native';
+import clearCache from './clearCache';
 import ONYXKEYS from '../../../ONYXKEYS';
 import redirectToSignIn from '../SignInRedirect';
 import CONFIG from '../../../CONFIG';
@@ -20,6 +22,15 @@ import * as Device from '../Device';
 import subscribeToReportCommentPushNotifications from '../../Notification/PushNotification/subscribeToReportCommentPushNotifications';
 import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
+import * as ReportUtils from '../../ReportUtils';
+import * as Report from '../Report';
+import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
+
+let authTokenType = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => (authTokenType = lodashGet(session, 'authTokenType')),
+});
 
 let credentials = {};
 Onyx.connect({
@@ -50,17 +61,6 @@ Onyx.connect({
 });
 
 /**
- * @private
- * @returns {string}
- */
-function getDeviceInfoForLogin() {
-    return JSON.stringify({
-        ...Device.getDeviceInfo(),
-        parentLogin: credentials.login,
-    });
-}
-
-/**
  * Clears the Onyx store and redirects user to the sign in page
  */
 function signOut() {
@@ -74,14 +74,45 @@ function signOut() {
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
         shouldRetry: false,
     });
-
+    clearCache().then(() => {
+        Log.info('Cleared all chache data', true, {}, true);
+    });
     Timing.clearData();
 }
 
+/**
+ * Checks if the account is an anonymous account.
+ *
+ * @return {boolean}
+ */
+function isAnonymousUser() {
+    return authTokenType === 'anonymousAccount';
+}
+
 function signOutAndRedirectToSignIn() {
+    hideContextMenu(false);
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
+    if (isAnonymousUser()) {
+        Linking.getInitialURL().then((url) => {
+            const reportID = ReportUtils.getReportIDFromLink(url);
+            if (reportID) {
+                Report.setLastOpenedPublicRoom(reportID);
+            }
+        });
+    }
+}
+
+/**
+ * @param {Function} callback The callback to execute if the action is allowed
+ * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
+ */
+function checkIfActionIsAllowed(callback) {
+    if (isAnonymousUser()) {
+        return () => signOutAndRedirectToSignIn();
+    }
+    return callback;
 }
 
 /**
@@ -165,45 +196,6 @@ function resendValidateCode(login = credentials.login) {
                 isLoading: false,
                 message: null,
                 loadingForm: null,
-            },
-        },
-    ];
-    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
-}
-
-/**
- * Request a new validate / magic code for user to sign in automatically with the link
- *
- * @param {String} [login]
- */
-function resendLinkWithValidateCode(login = credentials.login) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                message: null,
-            },
-        },
-    ];
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: Localize.translateLocal('validateCodeModal.successfulNewCodeRequest'),
-            },
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: null,
             },
         },
     ];
@@ -380,7 +372,6 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
         twoFactorAuthCode,
         email: credentials.login,
         preferredLocale,
-        deviceInfo: getDeviceInfoForLogin(),
     };
 
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
@@ -389,11 +380,12 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     } else {
         params.password = password;
     }
-
-    API.write('SigninUser', params, {optimisticData, successData, failureData});
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        API.write('SigninUser', {...params, deviceInfo}, {optimisticData, successData, failureData});
+    });
 }
 
-function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
+function signInWithValidateCode(accountID, code, preferredLocale = CONST.LOCALES.DEFAULT, twoFactorAuthCode = '') {
     // If this is called from the 2fa step, get the validateCode directly from onyx
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
@@ -454,22 +446,23 @@ function signInWithValidateCode(accountID, code, twoFactorAuthCode, preferredLoc
             value: {autoAuthState: CONST.AUTO_AUTH_STATE.FAILED},
         },
     ];
-
-    API.write(
-        'SigninUserWithLink',
-        {
-            accountID,
-            validateCode,
-            twoFactorAuthCode,
-            preferredLocale,
-            deviceInfo: getDeviceInfoForLogin(),
-        },
-        {optimisticData, successData, failureData},
-    );
+    Device.getDeviceInfoWithID().then((deviceInfo) => {
+        API.write(
+            'SigninUserWithLink',
+            {
+                accountID,
+                validateCode,
+                twoFactorAuthCode,
+                preferredLocale,
+                deviceInfo,
+            },
+            {optimisticData, successData, failureData},
+        );
+    });
 }
 
-function signInWithValidateCodeAndNavigate(accountID, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
-    signInWithValidateCode(accountID, validateCode, twoFactorAuthCode, preferredLocale);
+function signInWithValidateCodeAndNavigate(accountID, validateCode, preferredLocale = CONST.LOCALES.DEFAULT, twoFactorAuthCode = '') {
+    signInWithValidateCode(accountID, validateCode, preferredLocale, twoFactorAuthCode);
     Navigation.navigate(ROUTES.HOME);
 }
 
@@ -741,7 +734,7 @@ function requestUnlinkValidationLink() {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: Localize.translateLocal('unlinkLoginForm.linkSent'),
+                message: 'unlinkLoginForm.linkSent',
                 loadingForm: null,
             },
         },
@@ -887,6 +880,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
 export {
     beginSignIn,
+    checkIfActionIsAllowed,
     updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
@@ -898,7 +892,6 @@ export {
     signOutAndRedirectToSignIn,
     resendValidationLink,
     resendValidateCode,
-    resendLinkWithValidateCode,
     resetPassword,
     resendResetPassword,
     requestUnlinkValidationLink,
@@ -909,6 +902,7 @@ export {
     reauthenticatePusher,
     invalidateCredentials,
     invalidateAuthToken,
+    isAnonymousUser,
     toggleTwoFactorAuth,
     validateTwoFactorAuth,
 };
