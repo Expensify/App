@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import ButtonBase from '../ButtonBase';
+import IconButton from '../IconButton';
 import CONFIG from '../../../CONFIG';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
@@ -24,7 +24,7 @@ function GoogleSignIn(props) {
             accessibilityRole="button"
             accessibilityLabel={props.translate('common.signInWithGoogle')}
         >
-            <ButtonBase
+            <IconButton
                 onPress={() => {
                     window.open(googleSignInWebRouteForDesktopFlow);
                 }}

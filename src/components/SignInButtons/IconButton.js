@@ -16,19 +16,19 @@ const defaultProps = {
     icon: null,
 };
 
-function ButtonBase({onPress, icon}) {
+function IconButton({onPress, icon}) {
     return (
         <PressableWithoutFeedback
             onPress={onPress}
-            style={styles.signInButtonBase}
+            style={styles.signInIconButton}
         >
             {icon}
         </PressableWithoutFeedback>
     );
 }
 
-ButtonBase.displayName = 'ButtonBase';
-ButtonBase.propTypes = propTypes;
-ButtonBase.defaultProps = defaultProps;
+IconButton.displayName = 'IconButton';
+IconButton.propTypes = propTypes;
+IconButton.defaultProps = defaultProps;
 
-export default ButtonBase;
+export default IconButton;

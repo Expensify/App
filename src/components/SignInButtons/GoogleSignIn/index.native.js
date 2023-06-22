@@ -1,7 +1,7 @@
 import React from 'react';
 import {GoogleSignin, statusCodes} from '@react-native-google-signin/google-signin';
 import Log from '../../../libs/Log';
-import ButtonBase from '../ButtonBase';
+import IconButton from '../IconButton';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
 
@@ -47,7 +47,7 @@ function googleSignInRequest() {
 
 function GoogleSignIn() {
     return (
-        <ButtonBase
+        <IconButton
             onPress={googleSignInRequest}
             icon={googleLogoIcon}
         />

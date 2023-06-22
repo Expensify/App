@@ -3469,7 +3469,7 @@ const styles = {
         width: 219,
     },
 
-    signInButtonBase: {
+    signInIconButton: {
         margin: 10,
         marginTop: 0,
         padding: 2,
