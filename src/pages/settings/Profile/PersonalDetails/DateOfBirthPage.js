@@ -9,7 +9,7 @@ import Form from '../../../../components/Form';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import NewDatePicker from '../../../../components/NewDatePicker';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
-import withLocalize from '../../../../components/withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
@@ -34,9 +34,6 @@ const defaultProps = {
 };
 
 function DateOfBirthPage({translate, privatePersonalDetails}) {
-    const minDate = moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate();
-    const maxDate = moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate();
-
     /**
      * @param {Object} values
      * @param {String} values.dob - date of birth
@@ -76,8 +73,8 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                     inputID="dob"
                     label={translate('common.date')}
                     defaultValue={privatePersonalDetails.dob || ''}
-                    minDate={minDate}
-                    maxDate={maxDate}
+                    minDate={moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate()}
+                    maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate()}
                 />
             </Form>
         </ScreenWrapper>
