@@ -21,6 +21,9 @@ let pendingRoute = null;
 
 let shouldPopAllStateOnUP = false;
 
+/**
+ * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
+ */
 function setShouldPopAllStateOnUP() {
     shouldPopAllStateOnUP = true;
 }
