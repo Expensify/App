@@ -90,6 +90,9 @@ function NavigationRoot(props) {
     };
 
     const updateSavedNavigationStateAndLogRoute = (state) => {
+        if (!state) {
+            return;
+        }
         navigationStateRef.current = state;
         updateCurrentReportId(state);
         parseAndLogRoute(state);
