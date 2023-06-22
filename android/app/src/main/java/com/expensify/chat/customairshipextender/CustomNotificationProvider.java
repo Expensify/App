@@ -176,7 +176,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             });
         }
 
+        // Do other cached notifications exist for this chat already?
         boolean hasExistingNotification = notificationCache.messages.size() >= 1;
+
         try {
             JsonMap reportMap = payload.get(ONYX_DATA_KEY).getList().get(1).getMap().get("value").getMap();
             String reportId = reportMap.keySet().iterator().next();
@@ -195,7 +197,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             if (personIcon == null) {
                 personIcon = fetchIcon(context, avatar);
             }
+            builder.setLargeIcon(personIcon);
 
+            // Persist the person and icon to the notification cache
             if (person == null) {
                 IconCompat iconCompat = IconCompat.createWithBitmap(personIcon);
                 person = new Person.Builder()
@@ -231,9 +235,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             if (notificationCache.prevNotificationID != -1) {
                 NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationID);
             }
-
-            // Set notification icon
-            builder.setLargeIcon(personIcon);
 
         } catch (Exception e) {
             e.printStackTrace();
