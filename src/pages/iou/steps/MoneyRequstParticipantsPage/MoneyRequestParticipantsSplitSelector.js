@@ -13,7 +13,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import compose from '../../../../libs/compose';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
-import avatarPropTypes from '../../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Beta features list */
@@ -28,15 +27,11 @@ const propTypes = {
     /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(
         PropTypes.shape({
-            login: PropTypes.string.isRequired,
-            accountID: PropTypes.number.isRequired,
-            alternateText: PropTypes.string,
-            hasDraftComment: PropTypes.bool,
-            icons: PropTypes.arrayOf(avatarPropTypes),
-            searchText: PropTypes.string,
-            text: PropTypes.string,
-            keyForList: PropTypes.string,
-            reportID: PropTypes.string,
+            accountID: PropTypes.number,
+            login: PropTypes.string,
+            isPolicyExpenseChat: PropTypes.bool,
+            isOwnPolicyExpenseChat: PropTypes.bool,
+            selected: PropTypes.bool,
         }),
     ),
 
@@ -82,7 +77,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
 
         newSections.push({
             title: undefined,
-            data: props.participants,
+            data: OptionsListUtils.getParticipantsOptions(props.participants, props.personalDetails),
             shouldShow: true,
             indexOffset,
         });
@@ -121,7 +116,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
 
         return newSections;
         // eslint-disable-next-line react-hooks/exhaustive-deps -- props does not need to be a dependency as it will always exist
-    }, [maxParticipantsReached, newChatOptions, props.participants, props.translate]);
+    }, [maxParticipantsReached, newChatOptions, props.participants, props.personalDetails, props.translate]);
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
@@ -136,7 +131,7 @@ function MoneyRequestParticipantsSplitSelector(props) {
             if (isOptionInList) {
                 newSelectedOptions = _.reject(props.participants, (selectedOption) => selectedOption.accountID === option.accountID);
             } else {
-                newSelectedOptions = [...props.participants, option];
+                newSelectedOptions = [...props.participants, {accountID: option.accountID, login: option.login, selected: true}];
             }
 
             props.onAddParticipants(newSelectedOptions);
