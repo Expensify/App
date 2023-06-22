@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import Animated, {Easing, FadeOutDown, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 // We take FlatList from this package to properly handle the scrolling of AutoCompleteSuggestions in chats since one scroll is nested inside another
 import {FlatList} from 'react-native-gesture-handler';
@@ -30,6 +30,7 @@ const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
 
 function BaseAutoCompleteSuggestions(props) {
     const rowHeight = useSharedValue(0);
+    const scrollRef = useRef(null);
     /**
      * Render a suggestion menu item component.
      * @param {Object} params
@@ -60,6 +61,13 @@ function BaseAutoCompleteSuggestions(props) {
         });
     }, [props.suggestions.length, props.isSuggestionPickerLarge, rowHeight]);
 
+    useEffect(() => {
+        if (!scrollRef.current) {
+            return;
+        }
+        scrollRef.current.scrollToIndex({index: props.highlightedSuggestionIndex, animated: true});
+    }, [props.highlightedSuggestionIndex]);
+
     return (
         <Animated.View
             ref={props.forwardedRef}
@@ -67,6 +75,7 @@ function BaseAutoCompleteSuggestions(props) {
             exiting={FadeOutDown.duration(100).easing(Easing.inOut(Easing.ease))}
         >
             <FlatList
+                ref={scrollRef}
                 keyboardShouldPersistTaps="handled"
                 data={props.suggestions}
                 renderItem={renderSuggestionMenuItem}
