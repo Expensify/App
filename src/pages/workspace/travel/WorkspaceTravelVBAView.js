@@ -14,45 +14,47 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceTravelVBAView = (props) => (
-    <Section
-        title={props.translate('workspace.travel.packYourBags')}
-        icon={Illustrations.Luggage}
-        menuItems={[
-            {
-                title: props.translate('workspace.common.issueAndManageCards'),
-                onPress: () => Link.openOldDotLink('domain_companycards'),
-                icon: Expensicons.ExpensifyCard,
-                shouldShowRightIcon: true,
-                iconRight: Expensicons.NewWindow,
-                wrapperStyle: [styles.cardMenuItem],
-                link: () => Link.buildOldDotURL('domain_companycards'),
-            },
-            {
-                title: props.translate('workspace.travel.bookTravelWithConcierge'),
-                onPress: () => {
-                    Report.navigateToConciergeChat();
+function WorkspaceTravelVBAView(props) {
+    return (
+        <Section
+            title={props.translate('workspace.travel.packYourBags')}
+            icon={Illustrations.Luggage}
+            menuItems={[
+                {
+                    title: props.translate('workspace.common.issueAndManageCards'),
+                    onPress: () => Link.openOldDotLink('domain_companycards'),
+                    icon: Expensicons.ExpensifyCard,
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    wrapperStyle: [styles.cardMenuItem],
+                    link: () => Link.buildOldDotURL('domain_companycards'),
                 },
-                icon: Expensicons.Concierge,
-                shouldShowRightIcon: true,
-                wrapperStyle: [styles.cardMenuItem],
-            },
-            {
-                title: props.translate('requestorStep.learnMore'),
-                onPress: () => Link.openExternalLink(CONST.CONCIERGE_TRAVEL_URL),
-                icon: Expensicons.Info,
-                shouldShowRightIcon: true,
-                iconRight: Expensicons.NewWindow,
-                wrapperStyle: [styles.cardMenuItem],
-                link: CONST.CONCIERGE_TRAVEL_URL,
-            },
-        ]}
-    >
-        <View style={[styles.mv3]}>
-            <Text>{props.translate('workspace.travel.VBACopy')}</Text>
-        </View>
-    </Section>
-);
+                {
+                    title: props.translate('workspace.travel.bookTravelWithConcierge'),
+                    onPress: () => {
+                        Report.navigateToConciergeChat();
+                    },
+                    icon: Expensicons.Concierge,
+                    shouldShowRightIcon: true,
+                    wrapperStyle: [styles.cardMenuItem],
+                },
+                {
+                    title: props.translate('requestorStep.learnMore'),
+                    onPress: () => Link.openExternalLink(CONST.CONCIERGE_TRAVEL_URL),
+                    icon: Expensicons.Info,
+                    shouldShowRightIcon: true,
+                    iconRight: Expensicons.NewWindow,
+                    wrapperStyle: [styles.cardMenuItem],
+                    link: CONST.CONCIERGE_TRAVEL_URL,
+                },
+            ]}
+        >
+            <View style={[styles.mv3]}>
+                <Text>{props.translate('workspace.travel.VBACopy')}</Text>
+            </View>
+        </Section>
+    );
+}
 
 WorkspaceTravelVBAView.propTypes = propTypes;
 WorkspaceTravelVBAView.displayName = 'WorkspaceTravelVBAView';

@@ -56,7 +56,7 @@ const defaultProps = {
  */
 const keyExtractor = (item) => item.alternateText;
 
-const MentionSuggestions = (props) => {
+function MentionSuggestions(props) {
     /**
      * Render a suggestion menu item component.
      * @param {Object} item
@@ -117,9 +117,10 @@ const MentionSuggestions = (props) => {
             onSelect={props.onSelect}
             isSuggestionPickerLarge={props.isMentionPickerLarge}
             shouldIncludeReportRecipientLocalTimeHeight={props.shouldIncludeReportRecipientLocalTimeHeight}
+            accessibilityLabelExtractor={keyExtractor}
         />
     );
-};
+}
 
 MentionSuggestions.propTypes = propTypes;
 MentionSuggestions.defaultProps = defaultProps;

@@ -11,6 +11,7 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import Tooltip from '../Tooltip';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps as anchorForCommentsOnlyDefaultProps} from './anchorForCommentsOnlyPropTypes';
 
@@ -21,6 +22,9 @@ const propTypes = {
     /** Press out handler for the link */
     onPressOut: PropTypes.func,
 
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...anchorForCommentsOnlyPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -28,13 +32,14 @@ const propTypes = {
 const defaultProps = {
     onPressIn: undefined,
     onPressOut: undefined,
+    containerStyles: [],
     ...anchorForCommentsOnlyDefaultProps,
 };
 
 /*
  * This is a default anchor component for regular links.
  */
-const BaseAnchorForCommentsOnly = (props) => {
+function BaseAnchorForCommentsOnly(props) {
     let linkRef;
     const rest = _.omit(props, _.keys(propTypes));
     const linkProps = {};
@@ -43,12 +48,13 @@ const BaseAnchorForCommentsOnly = (props) => {
     } else {
         linkProps.href = props.href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : styles.userSelectText;
+    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
         <PressableWithSecondaryInteraction
             inline
+            style={[styles.cursorDefault, StyleUtils.getFontSizeStyle(props.style.fontSize)]}
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(
                     isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
@@ -81,7 +87,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             </Tooltip>
         </PressableWithSecondaryInteraction>
     );
-};
+}
 
 BaseAnchorForCommentsOnly.propTypes = propTypes;
 BaseAnchorForCommentsOnly.defaultProps = defaultProps;

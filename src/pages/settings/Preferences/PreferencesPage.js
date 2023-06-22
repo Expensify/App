@@ -42,7 +42,7 @@ const defaultProps = {
     user: {},
 };
 
-const PreferencesPage = (props) => {
+function PreferencesPage(props) {
     const priorityModes = props.translate('priorityModePage.priorityModes');
     const languages = props.translate('languagePage.languages');
 
@@ -96,7 +96,7 @@ const PreferencesPage = (props) => {
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 PreferencesPage.propTypes = propTypes;
 PreferencesPage.defaultProps = defaultProps;

@@ -54,31 +54,33 @@ const defaultProps = {
     contentStyles: [],
 };
 
-const ConfirmContent = (props) => (
-    <View style={[styles.m5, ...props.contentStyles]}>
-        <View style={[styles.flexRow, styles.mb4]}>
-            <Header title={props.title} />
-        </View>
+function ConfirmContent(props) {
+    return (
+        <View style={[styles.m5, ...props.contentStyles]}>
+            <View style={[styles.flexRow, styles.mb4]}>
+                <Header title={props.title} />
+            </View>
 
-        {_.isString(props.prompt) ? <Text>{props.prompt}</Text> : props.prompt}
+            {_.isString(props.prompt) ? <Text>{props.prompt}</Text> : props.prompt}
 
-        <Button
-            success={props.success}
-            danger={props.danger}
-            style={[styles.mt4]}
-            onPress={props.onConfirm}
-            pressOnEnter
-            text={props.confirmText || props.translate('common.yes')}
-        />
-        {props.shouldShowCancelButton && (
             <Button
-                style={[styles.mt3, styles.noSelect]}
-                onPress={props.onCancel}
-                text={props.cancelText || props.translate('common.no')}
+                success={props.success}
+                danger={props.danger}
+                style={[styles.mt4]}
+                onPress={props.onConfirm}
+                pressOnEnter
+                text={props.confirmText || props.translate('common.yes')}
             />
-        )}
-    </View>
-);
+            {props.shouldShowCancelButton && (
+                <Button
+                    style={[styles.mt3, styles.noSelect]}
+                    onPress={props.onCancel}
+                    text={props.cancelText || props.translate('common.no')}
+                />
+            )}
+        </View>
+    );
+}
 
 ConfirmContent.propTypes = propTypes;
 ConfirmContent.defaultProps = defaultProps;

@@ -17,11 +17,6 @@ const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
-let resolveReportScreenIsReadyPromise;
-let reportScreenIsReadyPromise = new Promise((resolve) => {
-    resolveReportScreenIsReadyPromise = resolve;
-});
-
 let pendingRoute = null;
 
 /**
@@ -141,7 +136,7 @@ function dismissModal(targetReportID) {
             action.type = 'REPLACE';
             navigationRef.current.dispatch(action);
         } else {
-            navigationRef.current.dispatch(StackActions.pop());
+            navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
         }
     } else {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
@@ -158,15 +153,10 @@ function getActiveRoute() {
         return '';
     }
 
-    const routeState = navigationRef.current.getState();
-    const currentRoute = routeState.routes[routeState.index];
+    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
 
-    if (currentRoute.state) {
-        return getPathFromState(routeState, linkingConfig.config);
-    }
-
-    if (currentRoute.params && currentRoute.params.path) {
-        return currentRoute.params.path;
+    if (routeFromState) {
+        return routeFromState;
     }
 
     return '';
@@ -224,20 +214,6 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-function resetIsReportScreenReadyPromise() {
-    reportScreenIsReadyPromise = new Promise((resolve) => {
-        resolveReportScreenIsReadyPromise = resolve;
-    });
-}
-
-function isReportScreenReady() {
-    return reportScreenIsReadyPromise;
-}
-
-function setIsReportScreenIsReady() {
-    resolveReportScreenIsReadyPromise();
-}
-
 export default {
     canNavigate,
     navigate,
@@ -249,9 +225,6 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getReportIDFromRoute,
-    resetIsReportScreenReadyPromise,
-    isReportScreenReady,
-    setIsReportScreenIsReady,
     getTopmostReportId,
 };
 

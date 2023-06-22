@@ -12,7 +12,7 @@ import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /** Error or hint text. Ignored when children is not empty */
-    message: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+    message: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Children to render next to dot indicator */
     children: PropTypes.node,
@@ -31,7 +31,7 @@ const defaultProps = {
     style: [],
 };
 
-const FormHelpMessage = (props) => {
+function FormHelpMessage(props) {
     if (_.isEmpty(props.message) && _.isEmpty(props.children)) {
         return null;
     }
@@ -50,7 +50,7 @@ const FormHelpMessage = (props) => {
             </View>
         </View>
     );
-};
+}
 
 FormHelpMessage.propTypes = propTypes;
 FormHelpMessage.defaultProps = defaultProps;

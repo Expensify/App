@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -35,17 +35,19 @@ const defaultProps = {
     },
 };
 
-const NewTaskDescriptionPage = (props) => {
+function NewTaskDescriptionPage(props) {
     const inputRef = useRef(null);
 
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Object}
-     */
-    function validate() {
-        // This field is optional and can be left blank, so we should not require validation for its value.
-        return {};
-    }
+    // The selection will be used to place the cursor at the end if there is prior text in the text input area
+    const [selection, setSelection] = useState({start: 0, end: 0});
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (props.task.description) {
+            const length = props.task.description.length;
+            setSelection({start: length, end: length});
+        }
+    }, [props.task.description]);
 
     // On submit, we want to call the assignTask function and wait to validate
     // the response
@@ -79,7 +81,6 @@ const NewTaskDescriptionPage = (props) => {
                 submitButtonText={props.translate('common.next')}
                 style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 onSubmit={(values) => onSubmit(values)}
-                validate={() => validate()}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
@@ -88,12 +89,19 @@ const NewTaskDescriptionPage = (props) => {
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         ref={(el) => (inputRef.current = el)}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
+                        selection={selection}
+                        onSelectionChange={(e) => {
+                            setSelection(e.nativeEvent.selection);
+                        }}
                     />
                 </View>
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskDescriptionPage.displayName = 'NewTaskDescriptionPage';
 NewTaskDescriptionPage.propTypes = propTypes;

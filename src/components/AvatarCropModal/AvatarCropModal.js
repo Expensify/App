@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, Image, View, Pressable} from 'react-native';
+import {ActivityIndicator, Image, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {runOnUI, interpolate, useAnimatedGestureHandler, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import CONST from '../../CONST';
@@ -21,6 +21,7 @@ import cropOrRotateImage from '../../libs/cropOrRotateImage';
 import HeaderGap from '../HeaderGap';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Tooltip from '../Tooltip';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Link to image for cropping */
@@ -58,7 +59,7 @@ const defaultProps = {
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-const AvatarCropModal = (props) => {
+function AvatarCropModal(props) {
     const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -396,16 +397,18 @@ const AvatarCropModal = (props) => {
                                 src={Expensicons.Zoom}
                                 fill={themeColors.icons}
                             />
-                            <Pressable
+                            <PressableWithoutFeedback
                                 style={[styles.mh5, styles.flex1]}
                                 onLayout={initializeSliderContainer}
                                 onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
+                                accessibilityLabel="slider"
+                                accessibilityRole="adjustable"
                             >
                                 <Slider
                                     sliderValue={translateSlider}
                                     onGesture={panSliderGestureEventHandler}
                                 />
-                            </Pressable>
+                            </PressableWithoutFeedback>
                             <Tooltip
                                 text={props.translate('common.rotate')}
                                 shiftVertical={-2}
@@ -433,7 +436,7 @@ const AvatarCropModal = (props) => {
             />
         </Modal>
     );
-};
+}
 
 AvatarCropModal.displayName = 'AvatarCropModal';
 AvatarCropModal.propTypes = propTypes;
