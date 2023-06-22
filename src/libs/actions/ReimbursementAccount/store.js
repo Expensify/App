@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
-import BankAccount from "../../models/BankAccount";
+import BankAccount from '../../models/BankAccount';
 
 /** Reimbursement account actively being set up */
 let reimbursementAccountInSetup = {};

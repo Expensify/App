@@ -126,7 +126,9 @@ function ReportPreview(props) {
                         ) : (
                             <View style={[styles.flexRow]}>
                                 <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                    {props.iouReport.isWaitingOnBankAccount ? `${props.translate('iou.waitingOnBankAccount', {submitterDisplayName})} ${props.translate('common.bankAccount')}` : lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
+                                    {props.iouReport.isWaitingOnBankAccount
+                                        ? `${props.translate('iou.waitingOnBankAccount', {submitterDisplayName})} ${props.translate('common.bankAccount')}`
+                                        : lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
                                 </Text>
                             </View>
                         )}

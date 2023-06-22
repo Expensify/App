@@ -215,7 +215,10 @@ function getOrderedReportIDs(reportIDFromRoute) {
 
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
-    return _.pluck([].concat(pinnedReports).concat(waitingOnBankAccountReports).concat(outstandingIOUReports).concat(draftReports).concat(nonArchivedReports).concat(archivedReports), 'reportID');
+    return _.pluck(
+        [].concat(pinnedReports).concat(waitingOnBankAccountReports).concat(outstandingIOUReports).concat(draftReports).concat(nonArchivedReports).concat(archivedReports),
+        'reportID',
+    );
 }
 
 /**

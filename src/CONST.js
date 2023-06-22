@@ -1045,7 +1045,6 @@ const CONST = {
             DECLINE: 'decline',
             CANCEL: 'cancel',
             DELETE: 'delete',
-            REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
