@@ -215,7 +215,6 @@ function completeTask(report) {
         },
     ];
 
-    const successData = [];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -244,7 +243,7 @@ function completeTask(report) {
             taskReportID: report.reportID,
             completedTaskReportActionID: completedTaskReportAction.reportActionID,
         },
-        {optimisticData, successData, failureData},
+        {optimisticData, failureData},
     );
 }
 
@@ -278,7 +277,6 @@ function reopenTask(report) {
         },
     ];
 
-    const successData = [];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -307,7 +305,7 @@ function reopenTask(report) {
             taskReportID: report.reportID,
             reopenedTaskReportActionID: reopenedTaskReportAction.reportActionID,
         },
-        {optimisticData, successData, failureData},
+        {optimisticData, failureData},
     );
 }
 
@@ -364,7 +362,6 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
             },
         },
     ];
-    const successData = [];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -420,7 +417,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
         },
-        {optimisticData, successData, failureData},
+        {optimisticData, failureData},
     );
 
     Navigation.dismissModal(report.reportID);
