@@ -466,7 +466,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsLoungeAccessPage = require('../../../pages/settings/LoungeAccessPage').default;
+            const SettingsLoungeAccessPage = require('../../../pages/settings/Profile/LoungeAccessPage').default;
             return SettingsLoungeAccessPage;
         },
         name: 'Settings_Lounge_Access',

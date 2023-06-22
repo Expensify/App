@@ -2,21 +2,21 @@ import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import styles from '../../styles/styles';
-import Text from '../../components/Text';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import MenuItem from '../../components/MenuItem';
-import compose from '../../libs/compose';
-import * as Illustrations from '../../components/Icon/Illustrations';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import userPropTypes from './userPropTypes';
-import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import styles from '../../../styles/styles';
+import Text from '../../../components/Text';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import MenuItem from '../../../components/MenuItem';
+import compose from '../../../libs/compose';
+import * as Illustrations from '../../../components/Icon/Illustrations';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+import userPropTypes from '../userPropTypes';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     ...withLocalizePropTypes,
