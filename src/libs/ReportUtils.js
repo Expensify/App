@@ -775,11 +775,6 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         result.source = defaultIcon || Expensicons.FallbackAvatar;
         return [result];
     }
-    if (isConciergeChatReport(report)) {
-        result.source = Expensicons.ConciergeAvatar;
-        result.name = CONST.EMAIL.CONCIERGE;
-        return [result];
-    }
     if (isExpenseRequest(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         const workspaceIcon = getWorkspaceIcon(report);
