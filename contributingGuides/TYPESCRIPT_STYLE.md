@@ -356,16 +356,15 @@ Usage of `any` is forbidden unless there is a very good reason for it. The `any`
 
 ```ts
 // Bad
-function processAPIResponse(response: any) {
+function example(argument: any) {
     // your code
 }
 
 // Good
-// As we are just going to persist the response in Onyx and
-// it would be very hard to type all possible data structures,
-// we just leave `response` as `any`.
+// Argument comes from external sources, and it is not feasible to provide a strict type. 
+// As we have taken necessary precautions to validate and handle invalid configurations, we leave `argument` as `any`.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function processAPIResponse (response: any) {
+function example(argument: any) {
     // your code
 }
 ```
