@@ -115,7 +115,6 @@ class YearPickerPage extends React.Component {
                     hideSectionHeaders
                     optionHoveredStyle={styles.hoveredComponentBG}
                     shouldHaveOptionSeparator
-                    contentContainerStyles={[styles.ph5]}
                 />
             </ScreenWrapper>
         );
