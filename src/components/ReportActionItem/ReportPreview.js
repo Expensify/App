@@ -125,10 +125,6 @@ function ReportPreview(props) {
                                     {props.translate(props.iouReport.hasOutstandingIOU ? 'iou.payerOwes' : 'iou.payerPaid', {payer: managerName})}
                                 </Text>
                             </View>
-                            <Icon
-                                src={Expensicons.ArrowRight}
-                                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-                            />
                         </View>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
