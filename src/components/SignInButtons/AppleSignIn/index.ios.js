@@ -3,7 +3,7 @@ import appleAuth from '@invertase/react-native-apple-authentication';
 import Log from '../../../libs/Log';
 import IconButton from '../IconButton';
 import * as Session from '../../../libs/actions/Session';
-import appleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
+import * as Expensicons from '../../Icon/Expensicons';
 
 /**
  * Apple Sign In method for iOS that returns identityToken.
@@ -46,7 +46,7 @@ function AppleSignIn() {
     return (
         <IconButton
             onPress={handleSignIn}
-            icon={appleLogoIcon}
+            icon={Expensicons.AppleLogo}
         />
     );
 }
