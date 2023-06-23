@@ -101,7 +101,7 @@ jobs:
           fi
 
       - name: Create Pull Request to manually finish CP
-        if: steps.cherryPick.outputs.hasConflicts == 'true'
+        if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
         id: createPullRequest
         run: |
           gh pr create \
