@@ -1278,7 +1278,6 @@ export default {
         task: 'Task',
         title: 'Title',
         description: 'Description',
-        createdBy: 'Created By',
         assignee: 'Assignee',
         completed: 'Completed',
         messages: {

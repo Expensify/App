@@ -1284,7 +1284,6 @@ export default {
     },
     task: {
         task: 'Tarea',
-        createdBy: '', // TODO:
         title: 'Título',
         description: 'Descripción',
         assignee: 'Cesionario',
