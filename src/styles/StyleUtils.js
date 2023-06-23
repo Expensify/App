@@ -6,7 +6,10 @@ import variables from './variables';
 import colors from './colors';
 import positioning from './utilities/positioning';
 import styles from './styles';
+import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
+import * as Browser from '../libs/Browser';
+import cursor from './utilities/cursor';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -188,7 +191,7 @@ function getAvatarBorderStyle(size, type) {
  * @returns {Object}
  */
 function getDefaultWorkspaceAvatarColor(workspaceName) {
-    const colorHash = UserUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
+    const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
@@ -562,7 +565,7 @@ function getFontFamilyMonospace({fontStyle, fontWeight}) {
 function getEmojiPickerStyle(isSmallScreenWidth) {
     if (isSmallScreenWidth) {
         return {
-            width: '100%',
+            width: CONST.SMALL_EMOJI_PICKER_SIZE.WIDTH,
         };
     }
     return {
@@ -690,12 +693,13 @@ function convertRGBToUnitValues(red, green, blue) {
  * Determines the theme color for a modal based on the app's background color,
  * the modal's backdrop, and the backdrop's opacity.
  *
+ * @param {String} bgColor - theme background color
  * @returns {String} The theme color as an RGB value.
  */
-function getThemeBackgroundColor() {
+function getThemeBackgroundColor(bgColor = themeColors.appBG) {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
+    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(bgColor);
     const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
@@ -1126,6 +1130,30 @@ function getGoogleListViewStyle(shouldDisplayBorder) {
 }
 
 /**
+ * Gets the correct height for emoji picker list based on screen dimensions
+ *
+ * @param {Boolean} hasAdditionalSpace
+ * @param {Number} windowHeight
+ * @returns {Object}
+ */
+function getEmojiPickerListHeight(hasAdditionalSpace, windowHeight) {
+    const style = {
+        ...spacing.ph4,
+        height: hasAdditionalSpace ? CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT,
+    };
+
+    if (windowHeight) {
+        // dimensions of content above the emoji picker list
+        const dimensions = hasAdditionalSpace ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT;
+        return {
+            ...style,
+            maxHeight: windowHeight - dimensions,
+        };
+    }
+    return style;
+}
+
+/**
  * Returns style object for the user mention component based on whether the mention is ours or not.
  * @param {Boolean} isOurMention
  * @returns {Object}
@@ -1146,6 +1174,44 @@ function getMentionStyle(isOurMention) {
  */
 function getMentionTextColor(isOurMention) {
     return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+}
+
+/**
+ * Returns style object for the mobile on WEB
+ * @param {Number} windowHeight
+ * @param {Number} viewportOffsetTop
+ * @returns {Object}
+ */
+function getOuterModalStyle(windowHeight, viewportOffsetTop) {
+    return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
+}
+
+/**
+ * Returns style object for flexWrap depending on the screen size
+ * @param {Boolean} isExtraSmallScreenWidth
+ * @return {Object}
+ */
+function getWrappingStyle(isExtraSmallScreenWidth) {
+    return {
+        flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
+    };
+}
+
+/**
+ * Returns link styles based on whether the link is disabled or not
+ * @param {Boolean} isDisabled
+ * @returns {Object}
+ */
+function getDisabledLinkStyles(isDisabled = false) {
+    const disabledLinkStyles = {
+        color: themeColors.textSupporting,
+        ...cursor.cursorDisabled,
+    };
+
+    return {
+        ...styles.link,
+        ...(isDisabled ? disabledLinkStyles : {}),
+    };
 }
 
 export {
@@ -1209,7 +1275,11 @@ export {
     getLineHeightStyle,
     getSignInWordmarkWidthStyle,
     getGoogleListViewStyle,
+    getEmojiPickerListHeight,
     getMentionStyle,
     getMentionTextColor,
     getHeightOfMagicCodeInput,
+    getOuterModalStyle,
+    getWrappingStyle,
+    getDisabledLinkStyles,
 };

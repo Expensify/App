@@ -26,55 +26,64 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const fakePersonalDetails = {
-    'email1@test.com': {
+    1: {
+        accountID: 1,
         login: 'email1@test.com',
         displayName: 'Email One',
         avatar: 'none',
         firstName: 'One',
     },
-    'email2@test.com': {
+    2: {
+        accountID: 2,
         login: 'email2@test.com',
         displayName: 'Email Two',
         avatar: 'none',
         firstName: 'Two',
     },
-    'email3@test.com': {
+    3: {
+        accountID: 3,
         login: 'email3@test.com',
         displayName: 'Email Three',
         avatar: 'none',
         firstName: 'Three',
     },
-    'email4@test.com': {
+    4: {
+        accountID: 4,
         login: 'email4@test.com',
         displayName: 'Email Four',
         avatar: 'none',
         firstName: 'Four',
     },
-    'email5@test.com': {
+    5: {
+        accountID: 5,
         login: 'email5@test.com',
         displayName: 'Email Five',
         avatar: 'none',
         firstName: 'Five',
     },
-    'email6@test.com': {
+    6: {
+        accountID: 6,
         login: 'email6@test.com',
         displayName: 'Email Six',
         avatar: 'none',
         firstName: 'Six',
     },
-    'email7@test.com': {
+    7: {
+        accountID: 7,
         login: 'email7@test.com',
         displayName: 'Email Seven',
         avatar: 'none',
         firstName: 'Seven',
     },
-    'email8@test.com': {
+    8: {
+        accountID: 8,
         login: 'email8@test.com',
         displayName: 'Email Eight',
         avatar: 'none',
         firstName: 'Eight',
     },
-    'email9@test.com': {
+    9: {
+        accountID: 9,
         login: 'email9@test.com',
         displayName: 'Email Nine',
         avatar: 'none',
@@ -86,12 +95,12 @@ let lastFakeReportID = 0;
 let lastFakeReportActionID = 0;
 
 /**
- * @param {String[]} participants
+ * @param {Number[]} participants
  * @param {Number} millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  * @param {boolean} isUnread
  * @returns {Object}
  */
-function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], millisecondsInThePast = 0, isUnread = false) {
+function getFakeReport(participants = [1, 2], millisecondsInThePast = 0, isUnread = false) {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
     return {
         type: CONST.REPORT.TYPE.CHAT,
@@ -99,7 +108,7 @@ function getFakeReport(participants = ['email1@test.com', 'email2@test.com'], mi
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participants,
+        participantAccountIDs: participants,
     };
 }
 
@@ -156,9 +165,9 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
 }
 
 /**
- * @param {String} [reportIDFromRoute]
+ * @param {String} [currentReportId]
  */
-function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
+function getDefaultRenderedSidebarLinks(currentReportId = '') {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
     // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
     // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
@@ -187,16 +196,16 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // our app (App.js) is when the react application is wrapped in the context providers
     render(
         <ErrorBoundary>
-            <MockedSidebarLinks reportIDFromRoute={reportIDFromRoute} />
+            <MockedSidebarLinks currentReportId={currentReportId} />
         </ErrorBoundary>,
     );
 }
 
 /**
- * @param {String} [reportIDFromRoute]
+ * @param {String} [currentReportId]
  * @returns {JSX.Element}
  */
-function MockedSidebarLinks({reportIDFromRoute}) {
+function MockedSidebarLinks({currentReportId}) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SidebarLinks
@@ -208,18 +217,18 @@ function MockedSidebarLinks({reportIDFromRoute}) {
                     bottom: 0,
                 }}
                 isSmallScreenWidth={false}
-                reportIDFromRoute={reportIDFromRoute}
+                currentReportId={currentReportId}
             />
         </ComposeProviders>
     );
 }
 
 MockedSidebarLinks.propTypes = {
-    reportIDFromRoute: PropTypes.string,
+    currentReportId: PropTypes.string,
 };
 
 MockedSidebarLinks.defaultProps = {
-    reportIDFromRoute: '',
+    currentReportId: '',
 };
 
 export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};

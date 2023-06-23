@@ -178,12 +178,12 @@ class TransferBalancePage extends React.Component {
                     subtitleKey="transferAmountPage.notHereSubTitle"
                     shouldShowLink
                     linkKey="transferAmountPage.goToPayment"
-                    onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
                 >
                     <HeaderWithBackButton
                         title={this.props.translate('common.transferBalance')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
                     />
                     <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                         <CurrentWalletBalance balanceStyles={[styles.transferBalanceBalance]} />

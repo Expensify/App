@@ -31,6 +31,11 @@ module.exports = {
                         importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable'],
                         message: 'Please use PressableWithFeedback and/or PressableWithoutFeedback from src/components/Pressable instead',
                     },
+                    {
+                        name: 'react-native',
+                        importNames: ['StatusBar'],
+                        message: 'Please use StatusBar from src/libs/StatusBar instead',
+                    },
                 ],
             },
         ],

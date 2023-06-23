@@ -18,7 +18,7 @@ const defaultProps = {
     icons: [],
 };
 
-const RoomHeaderAvatars = (props) => {
+function RoomHeaderAvatars(props) {
     if (!props.icons.length) {
         return null;
     }
@@ -79,7 +79,7 @@ const RoomHeaderAvatars = (props) => {
             </View>
         </View>
     );
-};
+}
 
 RoomHeaderAvatars.defaultProps = defaultProps;
 RoomHeaderAvatars.propTypes = propTypes;

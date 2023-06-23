@@ -21,6 +21,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import Form from '../../components/Form';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
+import policyMemberPropType from '../policyMemberPropType';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -52,12 +53,16 @@ const propTypes = {
         }),
     ),
 
+    /** A collection of objects for all policies which key policy member objects by accountIDs */
+    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
+
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
     reports: {},
     policies: {},
+    allPolicyMembers: {},
 };
 
 class WorkspaceNewRoomPage extends React.Component {
@@ -77,8 +82,8 @@ class WorkspaceNewRoomPage extends React.Component {
      * @param {Object} values - form input values passed by the Form component
      */
     submit(values) {
-        const policyID = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${values.policyID}`];
-        Report.addPolicyReport(policyID, values.roomName, values.visibility);
+        const policyMembers = _.map(_.keys(this.props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
+        Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers);
     }
 
     /**
@@ -101,20 +106,20 @@ class WorkspaceNewRoomPage extends React.Component {
 
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
             // We error if the user doesn't enter a room name or left blank
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.pleaseEnterRoomName'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.pleaseEnterRoomName');
         } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
             // We error if the room name has invalid characters
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameInvalidError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomNameInvalidError');
         } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomNameReservedError', {reservedName: values.roomName}));
+            ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
         } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', this.props.translate('newRoomPage.roomAlreadyExistsError'));
+            ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
         }
 
         if (!values.policyID) {
-            errors.policyID = this.props.translate('newRoomPage.pleaseSelectWorkspace');
+            errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
         }
 
         return errors;
@@ -201,6 +206,9 @@ export default compose(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        allPolicyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
     }),
     withLocalize,

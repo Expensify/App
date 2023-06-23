@@ -35,6 +35,11 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.DetailsModalStackNavigator}
             />
             <Stack.Screen
+                name="Profile"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.ProfileModalStackNavigator}
+            />
+            <Stack.Screen
                 name="Report_Details"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.ReportDetailsModalStackNavigator}
@@ -55,9 +60,9 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
             />
             <Stack.Screen
-                name="IOU_Request"
+                name="MoneyRequest"
                 options={defaultModalScreenOptions}
-                component={ModalStackNavigators.IOURequestModalStackNavigator}
+                component={ModalStackNavigators.MoneyRequestModalStackNavigator}
             />
             <Stack.Screen
                 name="NewTask"
@@ -68,11 +73,6 @@ function RigthModalNavigator() {
                 name="Task_Details"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.TaskModalStackNavigator}
-            />
-            <Stack.Screen
-                name="IOU_Bill"
-                options={defaultModalScreenOptions}
-                component={ModalStackNavigators.IOUBillStackNavigator}
             />
             <Stack.Screen
                 name="EnablePayments"
@@ -90,11 +90,6 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
             />
             <Stack.Screen
-                name="IOU_Send"
-                options={defaultModalScreenOptions}
-                component={ModalStackNavigators.IOUSendModalStackNavigator}
-            />
-            <Stack.Screen
                 name="Wallet_Statement"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.WalletStatementStackNavigator}
@@ -108,6 +103,11 @@ function RigthModalNavigator() {
                 name="Flag_Comment"
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.FlagCommentStackNavigator}
+            />
+            <Stack.Screen
+                name="EditRequest"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.EditRequestStackNavigator}
             />
         </Stack.Navigator>
     );

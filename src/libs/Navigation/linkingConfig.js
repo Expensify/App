@@ -9,7 +9,6 @@ export default {
         initialRouteName: SCREENS.HOME,
         screens: {
             // Main Routes
-            SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
@@ -278,29 +277,25 @@ export default {
                             Details_Root: ROUTES.DETAILS,
                         },
                     },
+                    Profile: {
+                        screens: {
+                            Profile_Root: ROUTES.PROFILE,
+                        },
+                    },
                     Participants: {
                         screens: {
                             ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,
                             ReportParticipants_Details: ROUTES.REPORT_PARTICIPANT,
                         },
                     },
-                    IOU_Request: {
+                    MoneyRequest: {
                         screens: {
-                            IOU_Request_Root: ROUTES.IOU_REQUEST_WITH_REPORT_ID,
-                            IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
+                            Money_Request: ROUTES.MONEY_REQUEST,
+                            Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
+                            Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS,
+                            Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,
+                            Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
-                        },
-                    },
-                    IOU_Bill: {
-                        screens: {
-                            IOU_Bill_Root: ROUTES.IOU_BILL_WITH_REPORT_ID,
-                            IOU_Bill_Currency: ROUTES.IOU_BILL_CURRENCY,
-                        },
-                    },
-                    IOU_Send: {
-                        screens: {
-                            IOU_Send_Root: ROUTES.IOU_SEND_WITH_REPORT_ID,
-                            IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -336,6 +331,11 @@ export default {
                     Flag_Comment: {
                         screens: {
                             FlagComment_Root: ROUTES.FLAG_COMMENT,
+                        },
+                    },
+                    EditRequest: {
+                        screens: {
+                            EditRequest_Root: ROUTES.EDIT_REQUEST,
                         },
                     },
                 },

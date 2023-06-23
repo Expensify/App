@@ -1,0 +1,45 @@
+name: Reassure Performance Tests
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches-ignore: [staging, production]
+
+jobs:
+  perf-tests:
+    if: ${{ github.actor != 'OSBotify' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+
+      - name: Setup NodeJS
+        uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - name: Run performance testing script
+        shell: bash
+        run: |
+          set -e 
+          BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
+          git fetch origin
+          git switch "$BASELINE_BRANCH"
+          npm install --force
+          npx reassure --baseline
+          git switch --detach -
+          npm install --force
+          npx reassure --branch
+
+      - name: Read output.json
+        id: reassure
+        uses: juliangruber/read-file-action@v1
+        with:
+          path: .reassure/output.json
+
+      - name: Validate output.json
+        id: validateReassureOutput
+        uses: Expensify/App/.github/actions/javascript/validateReassureOutput@main
+        with:
+          DURATION_DEVIATION_PERCENTAGE: 20
+          COUNT_DEVIATION: 0
+          REGRESSION_OUTPUT: ${{ steps.reassure.outputs.content }}
+
