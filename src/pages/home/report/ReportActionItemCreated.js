@@ -79,7 +79,7 @@ function ReportActionItemCreated(props) {
                     >
                         <MultipleAvatars
                             icons={icons}
-                            size={props.isLargeScreenWidth || (props.icons && props.icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
+                            size={props.isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
                             shouldStackHorizontally
                             shouldStackVertically={props.isSmallScreenWidth}
                             maxAvatars={props.isSmallScreenWidth ? 4 : 8}

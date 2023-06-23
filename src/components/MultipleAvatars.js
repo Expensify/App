@@ -81,7 +81,7 @@ function MultipleAvatars(props) {
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
     useEffect(() => {
-        if (props.shouldStackVertically) {
+        if (props.shouldStackVertically && props.icons.length > 4) {
             const rowSize = Math.ceil(props.icons.length / 2);
             const firstRow = props.icons.slice(rowSize);
             const secondRow = props.icons.slice(0, rowSize);
