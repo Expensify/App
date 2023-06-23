@@ -123,6 +123,8 @@ function MenuItem(props) {
             ]}
             disabled={props.disabled}
             ref={props.forwardedRef}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
+            accessibilityLabel={props.title}
         >
             {({hovered, pressed}) => (
                 <>

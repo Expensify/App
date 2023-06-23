@@ -180,10 +180,11 @@ function isTaskAssignee(report) {
 /**
  * Checks if a report is an IOU or expense report.
  *
- * @param {Object} report
+ * @param {Object|String} reportOrID
  * @returns {Boolean}
  */
-function isMoneyRequestReport(report) {
+function isMoneyRequestReport(reportOrID) {
+    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
     return isIOUReport(report) || isExpenseReport(report);
 }
 
@@ -1914,14 +1915,14 @@ function canSeeDefaultRoom(report, policies, betas) {
  * filter out the majority of reports before filtering out very specific minority of reports.
  *
  * @param {Object} report
- * @param {String} reportIDFromRoute
+ * @param {String} currentReportId
  * @param {Boolean} isInGSDMode
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -1942,7 +1943,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, iouR
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
-    if (report.reportID === reportIDFromRoute) {
+    if (report.reportID === currentReportId) {
         return true;
     }
 

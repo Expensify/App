@@ -64,7 +64,7 @@ function TaskView(props) {
                 {({hovered, pressed}) => (
                     <>
                         <Text style={styles.taskTitleDescription}>Title</Text>
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                        <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
                             <Checkbox
                                 onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
                                 isChecked={isCompleted}
