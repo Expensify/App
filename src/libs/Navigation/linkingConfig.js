@@ -338,6 +338,11 @@ export default {
                             EditRequest_Root: ROUTES.EDIT_REQUEST,
                         },
                     },
+                    SignIn: {
+                        screens: {
+                            SignIn_Root: ROUTES.SIGNINMODAL,
+                        },
+                    },
                 },
             },
         },

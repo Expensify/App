@@ -182,4 +182,5 @@ export default {
             isSubReportPageRoute: Boolean(lodashGet(pathSegments, 2)),
         };
     },
+    SIGNINMODAL: 'signinmodal'
 };

@@ -47,6 +47,8 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
     }),
 
+    isInModal: PropTypes.bool,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -56,6 +58,7 @@ const defaultProps = {
     account: {},
     betas: [],
     credentials: {},
+    isInModal: false,
 };
 
 class SignInPage extends Component {
@@ -110,13 +113,13 @@ class SignInPage extends Component {
             (!this.props.account.validated || this.props.account.forgotPassword) &&
             !showUnlinkLoginForm &&
             !Permissions.canUsePasswordlessLogins(this.props.betas);
-
+    
         let welcomeHeader = '';
         let welcomeText = '';
         if (showValidateCodeForm) {
             if (this.props.account.requiresTwoFactorAuth) {
                 // We will only know this after a user signs in successfully, without their 2FA code
-                welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
+                welcomeHeader = this.props.isSmallScreenWidth || this.props.isInModal ? '' : this.props.translate('welcomeText.welcomeBack');
                 welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
             } else {
                 const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
@@ -124,27 +127,27 @@ class SignInPage extends Component {
                 // replacing spaces with "hard spaces" to prevent breaking the number
                 const userLoginToDisplay = Str.isSMSLogin(userLogin) ? this.props.formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
                 if (this.props.account.validated) {
-                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
-                    welcomeText = this.props.isSmallScreenWidth
+                    welcomeHeader = this.props.isSmallScreenWidth || this.props.isInModal ? '' : this.props.translate('welcomeText.welcomeBack');
+                    welcomeText = this.props.isSmallScreenWidth || this.props.isInModal
                         ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                         : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
                 } else {
-                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcome');
-                    welcomeText = this.props.isSmallScreenWidth
+                    welcomeHeader = this.props.isSmallScreenWidth || this.props.isInModal ? '' : this.props.translate('welcomeText.welcome');
+                    welcomeText = this.props.isSmallScreenWidth || this.props.isInModal
                         ? `${this.props.translate('welcomeText.welcome')} ${this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
                         : this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
                 }
             }
         } else if (showPasswordForm) {
-            welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
-            welcomeText = this.props.isSmallScreenWidth
+            welcomeHeader = this.props.isSmallScreenWidth || this.props.isInModal ? '' : this.props.translate('welcomeText.welcomeBack');
+            welcomeText = this.props.isSmallScreenWidth || this.props.isInModal
                 ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.enterPassword')}`
                 : this.props.translate('welcomeText.enterPassword');
         } else if (showUnlinkLoginForm) {
-            welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.welcomeBack');
+            welcomeHeader = this.props.isSmallScreenWidth || this.props.isInModal ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.welcomeBack');
         } else if (!showResendValidationForm) {
-            welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.getStarted');
-            welcomeText = this.props.isSmallScreenWidth ? this.props.translate('welcomeText.getStarted') : '';
+            welcomeHeader = this.props.isSmallScreenWidth || this.props.isInModal ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.getStarted');
+            welcomeText = this.props.isSmallScreenWidth || this.props.isInModal ? this.props.translate('welcomeText.getStarted') : '';
         }
 
         return (
@@ -154,8 +157,9 @@ class SignInPage extends Component {
                 <SignInPageLayout
                     welcomeHeader={welcomeHeader}
                     welcomeText={welcomeText}
-                    shouldShowWelcomeHeader={showLoginForm || showPasswordForm || showValidateCodeForm || showUnlinkLoginForm || !this.props.isSmallScreenWidth}
+                    shouldShowWelcomeHeader={showLoginForm || showPasswordForm || showValidateCodeForm || showUnlinkLoginForm || !this.props.isSmallScreenWidth || !this.props.isInModal}
                     shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm}
+                    isInModal={this.props.isInModal}
                 >
                     {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
