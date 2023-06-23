@@ -40,6 +40,7 @@ import * as Session from '../../../libs/actions/Session';
 import Button from '../../../components/Button';
 import * as UserUtils from '../../../libs/UserUtils';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import onyxSubscribe from '../../../libs/onyxSubscribe';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -121,11 +122,19 @@ class SidebarLinks extends React.Component {
         SidebarUtils.setIsSidebarLoadedReady();
         this.isSidebarLoaded = true;
 
+        let modal = {};
+        this.unsubscribeOnyxModal = onyxSubscribe({
+            key: ONYXKEYS.MODAL,
+            callback: (modalArg) => {
+                modal = modalArg;
+            },
+        });
+
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                if (this.props.modal.willAlertModalBecomeVisible) {
+                if (modal.willAlertModalBecomeVisible) {
                     return;
                 }
 
@@ -365,9 +374,6 @@ export default compose(
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        modal: {
-            key: ONYXKEYS.MODAL,
         },
     }),
 )(SidebarLinks);
