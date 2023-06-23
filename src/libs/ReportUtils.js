@@ -2265,7 +2265,7 @@ function getParentReport(report) {
  * @returns {Boolean}
  */
 function shouldHideComposer(report, errors) {
-    return isArchivedRoom(report) || !_.isEmpty(errors) || isAllowedToComment(report);
+    return isArchivedRoom(report) || !_.isEmpty(errors) || !isAllowedToComment(report);
 }
 
 export {

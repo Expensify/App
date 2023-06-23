@@ -152,11 +152,8 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const isArchivedRoom = ReportUtils.isArchivedRoom(this.props.report);
-        const isAllowedToComment = ReportUtils.isAllowedToComment(this.props.report);
-        const hideEmojiPicker = isArchivedRoom || !_.isEmpty(this.props.errors) || !isAllowedToComment;
-        if(hideEmojiPicker) {
-            EmojiPickerAction.hideEmojiPicker()
+        if (ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
+            EmojiPickerAction.hideEmojiPicker();
         }
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
