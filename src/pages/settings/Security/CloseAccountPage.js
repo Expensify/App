@@ -107,6 +107,8 @@ class CloseAccountPage extends Component {
                             numberOfLines={6}
                             textAlignVertical="top"
                             label={this.props.translate('closeAccountPage.enterMessageHere')}
+                            accessibilityLabel={this.props.translate('closeAccountPage.enterMessageHere')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
                         />
                         <Text style={[styles.mt5]}>
@@ -116,6 +118,8 @@ class CloseAccountPage extends Component {
                             inputID="phoneOrEmail"
                             autoCapitalize="none"
                             label={this.props.translate('closeAccountPage.enterDefaultContact')}
+                            accessibilityLabel={this.props.translate('closeAccountPage.enterDefaultContact')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             containerStyles={[styles.mt5]}
                             autoCorrect={false}
                             keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}

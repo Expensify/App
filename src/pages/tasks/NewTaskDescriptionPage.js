@@ -14,6 +14,7 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Beta features list */
@@ -88,6 +89,8 @@ function NewTaskDescriptionPage(props) {
                         defaultValue={props.task.description}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
                         containerStyles={[styles.autoGrowHeightMultilineInput]}

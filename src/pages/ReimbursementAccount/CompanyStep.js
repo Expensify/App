@@ -176,6 +176,8 @@ class CompanyStep extends React.Component {
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
                         label={this.props.translate('companyStep.legalBusinessName')}
+                        accessibilityLabel={this.props.translate('companyStep.legalBusinessName')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="companyName"
                         containerStyles={[styles.mt4]}
                         disabled={shouldDisableCompanyName}
@@ -203,6 +205,8 @@ class CompanyStep extends React.Component {
                     <TextInput
                         inputID="companyPhone"
                         label={this.props.translate('common.phoneNumber')}
+                        accessibilityLabel={this.props.translate('common.phoneNumber')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         placeholder={this.props.translate('common.phoneNumberPlaceholder')}
@@ -212,6 +216,8 @@ class CompanyStep extends React.Component {
                     <TextInput
                         inputID="website"
                         label={this.props.translate('companyStep.companyWebsite')}
+                        accessibilityLabel={this.props.translate('companyStep.companyWebsite')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
                         defaultValue={this.props.getDefaultStateForField('website', this.defaultWebsite)}
                         shouldSaveDraft
@@ -221,6 +227,8 @@ class CompanyStep extends React.Component {
                     <TextInput
                         inputID="companyTaxID"
                         label={this.props.translate('companyStep.taxIDNumber')}
+                        accessibilityLabel={this.props.translate('companyStep.taxIDNumber')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         disabled={shouldDisableCompanyTaxID}

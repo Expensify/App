@@ -13,6 +13,7 @@ import styles from '../../styles/styles';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
 import * as TaskUtils from '../../libs/actions/Task';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Task Report Info */
@@ -78,9 +79,11 @@ function TaskTitlePage(props) {
             >
                 <View style={[styles.mb4]}>
                     <TextInput
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="title"
                         name="title"
                         label={props.translate('newTaskPage.title')}
+                        accessibilityLabel={props.translate('newTaskPage.title')}
                         defaultValue={(props.task.report && props.task.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />

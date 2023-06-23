@@ -55,6 +55,8 @@ function AddPayPalMePage(props) {
                     <TextInput
                         ref={payPalMeInput}
                         label={props.translate('addPayPalMePage.payPalMe')}
+                        accessibilityLabel={props.translate('addPayPalMePage.payPalMe')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCompleteType="off"
                         autoCorrect={false}
                         value={payPalMeUsername}

@@ -178,6 +178,8 @@ class LoginForm extends React.Component {
                     <TextInput
                         ref={(el) => (this.input = el)}
                         label={this.props.translate('loginForm.phoneOrEmail')}
+                        accessibilityLabel={this.props.translate('loginForm.phoneOrEmail')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={this.state.login}
                         autoCompleteType="username"
                         textContentType="username"

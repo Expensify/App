@@ -21,6 +21,7 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import ConfirmationPage from '../../components/ConfirmationPage';
 import ROUTES from '../../ROUTES';
 import FormHelpMessage from '../../components/FormHelpMessage';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -171,6 +172,8 @@ class PasswordPage extends Component {
                             <View style={styles.mb6}>
                                 <TextInput
                                     label={`${this.props.translate('passwordPage.currentPassword')}*`}
+                                    accessibilityLabel={this.props.translate('passwordPage.currentPassword')}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     ref={(el) => (this.currentPasswordInputRef = el)}
                                     secureTextEntry
                                     autoCompleteType="password"
@@ -186,6 +189,8 @@ class PasswordPage extends Component {
                             <View style={styles.mb6}>
                                 <TextInput
                                     label={`${this.props.translate('passwordPage.newPassword')}*`}
+                                    accessibilityLabel={this.props.translate('passwordPage.newPassword')}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     secureTextEntry
                                     autoCompleteType="password"
                                     textContentType="password"

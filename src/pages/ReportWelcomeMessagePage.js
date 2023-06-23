@@ -69,6 +69,8 @@ function ReportWelcomeMessagePage(props) {
                         <TextInput
                             inputID="welcomeMessage"
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
+                            accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             multiline
                             numberOfLines={10}
                             maxLength={CONST.MAX_COMMENT_LENGTH}
