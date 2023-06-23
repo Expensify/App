@@ -24,6 +24,8 @@ runs:
         git config commit.gpgsign true
         git config user.name OSBotify
         git config user.email infra+osbotify@expensify.com
+        git config checkout.defaultRemote origin
+        git config checkout.guess true
 
     - name: Enable debug logs for git
       shell: bash
