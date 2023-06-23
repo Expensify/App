@@ -389,7 +389,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (!reportPreviewAction) {
         isNewReportPreviewAction = true;
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport.reportID, iouReport.reportID);
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
     }
 
     // STEP 5: Build Onyx Data
@@ -650,7 +650,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (!oneOnOneReportPreviewAction) {
             isNewOneOnOneReportPreviewAction = true;
-            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
         // STEP 5: Build Onyx Data
@@ -938,7 +938,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         true,
     );
 
-    let reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport.reportID, optimisticIOUReport.reportID);
+    let reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
     // First, add data that will be used in all cases
     const optimisticChatReportData = {

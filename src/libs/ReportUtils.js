@@ -1426,27 +1426,30 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
-function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
+function buildOptimisticReportPreview(chatReport, iouReport) {
+    const reportAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(iouReport), iouReport.currency);
+    const payerName = isPolicyExpenseChat(chatReport) ? getPolicyName(chatReport) : getDisplayNameForParticipant(iouReport.managerID || '', true);
+    const message = iouReport.hasOutstandingIOU ? Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: reportAmount}) : Localize.translateLocal('iou.payerSettled', {amount: reportAmount});
     return {
         reportActionID: NumberUtils.rand64(),
-        reportID,
+        reportID: chatReport.reportID,
         created: DateUtils.getDBTime(),
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        accountID: payeeAccountID,
+        accountID: iouReport.managerID,
         message: [
             {
-                html: '',
-                text: '',
+                html: message,
+                text: message,
                 isEdited: false,
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
         originalMessage: {
-            linkedReportID: iouReportID,
+            linkedReportID: iouReport.reportID,
         },
-        actorEmail: currentUserEmail,
-        actorAccountID: currentUserAccountID,
+        actorEmail: iouReport.managerEmail,
+        actorAccountID: iouReport.managerID,
     };
 }
 
