@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../../ONYXKEYS';
-import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -18,6 +17,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import MultipleAvatars from '../../../components/MultipleAvatars';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The id of the report */
@@ -76,7 +77,13 @@ function ReportActionItemCreated(props) {
                         accessibilityLabel={props.translate('common.details')}
                         accessibilityRole="button"
                     >
-                        <RoomHeaderAvatars icons={icons} />
+                        <MultipleAvatars
+                            icons={icons}
+                            size={props.isLargeScreenWidth || (props.icons && props.icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
+                            shouldStackHorizontally
+                            shouldStackVertically={props.isSmallScreenWidth}
+                            maxAvatars={props.isSmallScreenWidth ? 4 : 8}
+                        />
                     </PressableWithoutFeedback>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText report={props.report} />
