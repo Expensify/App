@@ -116,7 +116,7 @@ function ReportPreview(props) {
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                    {props.translate(props.iouReport.hasOutstandingIOU ? 'iou.payerOwes' : 'iou.payerPaid', {payer: managerName})}
+                                    {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerOwes' : 'iou.payerPaid', {payer: managerName})}
                                 </Text>
                             </View>
                         </View>
