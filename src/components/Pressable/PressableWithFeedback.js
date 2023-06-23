@@ -39,8 +39,8 @@ const PressableWithFeedbackDefaultProps = {
 
 const PressableWithFeedback = forwardRef((props, ref) => {
     const propsWithoutWrapperStyles = _.omit(props, omittedProps);
-    const [isExecuting, setExecuting] = useState(false);
-    const [isPressed, setPressed] = useState(false);
+    const [isExecuting, setIsExecuting] = useState(false);
+    const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const isDisabled = props.disabled || isExecuting;
 
@@ -64,23 +64,23 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     if (props.onHoverOut) props.onHoverOut();
                 }}
                 onPressIn={() => {
-                    setPressed(true);
+                    setIsPressed(true);
                     if (props.onPressIn) props.onPressIn();
                 }}
                 onPressOut={() => {
-                    setPressed(false);
+                    setIsPressed(false);
                     if (props.onPressOut) props.onPressOut();
                 }}
                 onPress={(e) => {
-                    setExecuting(true);
+                    setIsExecuting(true);
                     const onPress = props.onPress(e);
                     InteractionManager.runAfterInteractions(() => {
                         if (!(onPress instanceof Promise)) {
-                            setExecuting(false);
+                            setIsExecuting(false);
                             return;
                         }
                         onPress.finally(() => {
-                            setExecuting(false);
+                            setIsExecuting(false);
                         });
                     });
                 }}
