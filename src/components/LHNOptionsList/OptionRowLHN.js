@@ -61,7 +61,7 @@ const defaultProps = {
     optionItem: null,
 };
 
-function OptionRowLHN(props) {
+function BaseOptionRowLHN(props) {
     const optionItem = props.optionItem;
 
     if (!optionItem) {
@@ -257,11 +257,11 @@ function OptionRowLHN(props) {
     );
 }
 
-OptionRowLHN.propTypes = propTypes;
-OptionRowLHN.defaultProps = defaultProps;
-OptionRowLHN.displayName = 'OptionRowLHN';
+BaseOptionRowLHN.propTypes = propTypes;
+BaseOptionRowLHN.defaultProps = defaultProps;
+BaseOptionRowLHN.displayName = 'BaseOptionRowLHN';
 
-const ConnectedOptonRowLHN = React.memo(
+const MemoedOptionRowLHN = React.memo(
     compose(
         withLocalize,
         withOnyx({
@@ -270,25 +270,26 @@ const ConnectedOptonRowLHN = React.memo(
                 selector: SidebarUtils.getOptionData,
             },
         }),
-    )(OptionRowLHN),
+    )(BaseOptionRowLHN),
 );
 
-// We only want to forward a boolean value to the memoized component
-// Thats why we have this intermediate component.
-function OptionRowIsFocusedSupport(props) {
+// We only want to pass a boolean to the memoized
+// component, thats why we have this intermediate component.
+// (We don't want to fully re-render all items, just because the active report changed).
+function OptionRowLHN(props) {
     const isFocused = props.currentReportId === props.reportID;
 
     return (
-        <ConnectedOptonRowLHN
+        <MemoedOptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {..._.omit(props, 'currentReportId')}
             isFocused={isFocused}
         />
     );
 }
-OptionRowIsFocusedSupport.propTypes = propTypes;
-OptionRowIsFocusedSupport.defaultProps = defaultProps;
-OptionRowIsFocusedSupport.displayName = 'OptionRowIsFocusedSupport';
 
-// TODO: Note on mobile we could skip this HOC
-export default withCurrentReportId(OptionRowIsFocusedSupport);
+OptionRowLHN.propTypes = propTypes;
+OptionRowLHN.defaultProps = defaultProps;
+OptionRowLHN.displayName = 'OptionRowIsFocusedSupport';
+
+export default withCurrentReportId(OptionRowLHN);
