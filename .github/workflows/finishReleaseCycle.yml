@@ -71,6 +71,7 @@ jobs:
       - name: Update production branch
         run: |
           # Get the production branch locally
+          git fetch production
           git switch production
 
           # Delete the production branch and re-create it from staging
@@ -112,6 +113,7 @@ jobs:
       - name: Update staging branch to trigger staging deploy
         run: |
           # Get the staging branch locally
+          git fetch staging
           git switch staging
 
           # Delete the staging branch and re-create it from main

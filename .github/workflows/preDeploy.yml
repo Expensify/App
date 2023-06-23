@@ -101,6 +101,7 @@ jobs:
         if: ${{ !fromJSON(needs.chooseDeployActions.outputs.SHOULD_CP) }}
         run: |
           # Get the staging branch locally
+          git fetch staging
           git switch staging
 
           # Delete the staging branch and re-create it from main
