@@ -20,7 +20,7 @@ jobs:
     steps:
       - id: isUserDeployer
         run: |
-          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ steps.getMergedPullRequest.outputs.author }} --silent; then
+          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
             echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
           else
             echo "IS_DEPLOYER=false" >> "$GITHUB_OUTPUT"
