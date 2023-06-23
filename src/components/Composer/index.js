@@ -283,6 +283,16 @@ class Composer extends React.Component {
     }
 
     /**
+     * Paste the plaintext content into Composer.
+     *
+     * @param {ClipboardEvent} event
+     */
+    handlePastePlainText(event) {
+        const plainText = event.clipboardData.getData('text/plain');
+        this.paste(plainText);
+    }
+
+    /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      *
@@ -311,8 +321,7 @@ class Composer extends React.Component {
             // If HTML has img tag, then we only paste the plain text. This is because
             // fetching the image via fetch triggers a Content-Security-Policy error.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                const plainText = event.clipboardData.getData('text/plain');
-                this.paste(plainText);
+                this.handlePastePlainText(event);
                 return;
             }
 
@@ -320,9 +329,7 @@ class Composer extends React.Component {
             return;
         }
 
-        const plainText = event.clipboardData.getData('text/plain');
-
-        this.paste(plainText);
+        this.handlePastePlainText(event);
     }
 
     /**
