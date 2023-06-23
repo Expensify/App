@@ -200,7 +200,7 @@ function MoneyRequestAmountPage(props) {
             setSelectedCurrencyCode(props.iou.currency);
         }
 
-        const amountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
+        const amountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : amount;
         setAmount(amountAsString);
         setSelection({
             start: amountAsString.length,
