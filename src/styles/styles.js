@@ -3411,7 +3411,7 @@ const styles = {
     },
 
     taskMenuItemCheckbox: {
-        height: 24,
+        height: 27,
         ...spacing.mr3,
     },
 
