@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {forwardRef, useMemo, useState} from 'react';
 import _ from 'underscore';
 import propTypes from 'prop-types';
 import {InteractionManager} from 'react-native';
@@ -39,25 +39,22 @@ const PressableWithFeedbackDefaultProps = {
 
 const PressableWithFeedback = forwardRef((props, ref) => {
     const propsWithoutWrapperStyles = _.omit(props, omittedProps);
-    const [disabled, setDisabled] = useState(props.disabled);
-    const [isPressed, setIsPressed] = useState(false);
+    const [isPressed, setPressed] = useState(false);
+    const [isPressedIn, setPressedIn] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-
-    useEffect(() => {
-        setDisabled(props.disabled);
-    }, [props.disabled]);
+    const isDisabled = useMemo(() => props.disabled || isPressed, [props.disabled, isPressed]);
 
     return (
         <OpacityView
-            shouldDim={Boolean(!disabled && (isPressed || isHovered))}
-            dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
+            shouldDim={Boolean(!isDisabled && (isPressedIn || isHovered))}
+            dimmingValue={isPressedIn ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
         >
             <GenericPressable
                 ref={ref}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...propsWithoutWrapperStyles}
-                disabled={disabled}
+                disabled={isDisabled}
                 onHoverIn={() => {
                     setIsHovered(true);
                     if (props.onHoverIn) props.onHoverIn();
@@ -67,23 +64,23 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     if (props.onHoverOut) props.onHoverOut();
                 }}
                 onPressIn={() => {
-                    setIsPressed(true);
+                    setPressedIn(true);
                     if (props.onPressIn) props.onPressIn();
                 }}
                 onPressOut={() => {
-                    setIsPressed(false);
+                    setPressedIn(false);
                     if (props.onPressOut) props.onPressOut();
                 }}
                 onPress={(e) => {
-                    setDisabled(true);
+                    setPressed(true);
                     const onPress = props.onPress(e);
                     InteractionManager.runAfterInteractions(() => {
                         if (!(onPress instanceof Promise)) {
-                            setDisabled(props.disabled);
+                            setPressed(false);
                             return;
                         }
                         onPress.finally(() => {
-                            setDisabled(props.disabled);
+                            setPressed(false);
                         });
                     });
                 }}
