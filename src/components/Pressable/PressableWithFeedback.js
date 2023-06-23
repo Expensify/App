@@ -1,4 +1,4 @@
-import React, {forwardRef, useMemo, useState} from 'react';
+import React, {forwardRef, useState} from 'react';
 import _ from 'underscore';
 import propTypes from 'prop-types';
 import {InteractionManager} from 'react-native';
@@ -42,7 +42,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
     const [isPressed, setPressed] = useState(false);
     const [isPressedIn, setPressedIn] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-    const isDisabled = useMemo(() => props.disabled || isPressed, [props.disabled, isPressed]);
+    const isDisabled = props.disabled || isPressed;
 
     return (
         <OpacityView
