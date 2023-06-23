@@ -5,6 +5,10 @@
  * @param {Object} index
  */
 function scrollToIndex(ref, index) {
+    if (!ref.current) {
+        return;
+    }
+
     ref.current.scrollToIndex(index);
 }
 
