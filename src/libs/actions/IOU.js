@@ -122,9 +122,7 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 ...(isNewChatReport ? {[chatCreatedAction.reportActionID]: chatCreatedAction} : {}),
-                [reportPreviewAction.reportActionID]: {
-                    ...(isNewReportPreviewAction ? reportPreviewAction : {created: DateUtils.getDBTime()}),
-                },
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
             },
         },
         {
@@ -385,12 +383,9 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         },
     };
 
-    let isNewReportPreviewAction = false;
-    let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
-    if (!reportPreviewAction) {
-        isNewReportPreviewAction = true;
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
-    }
+    let reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    const isNewReportPreviewAction = Boolean(!reportPreviewAction);
+    reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, reportPreviewAction);
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
@@ -646,12 +641,9 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             },
         };
 
-        let isNewOneOnOneReportPreviewAction = false;
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
-        if (!oneOnOneReportPreviewAction) {
-            isNewOneOnOneReportPreviewAction = true;
-            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
-        }
+        const isNewOneOnOneReportPreviewAction = Boolean(!oneOnOneReportPreviewAction);
+        oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, oneOnOneReportPreviewAction);
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(

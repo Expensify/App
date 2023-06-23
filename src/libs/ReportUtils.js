@@ -1426,31 +1426,36 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
-function buildOptimisticReportPreview(chatReport, iouReport) {
+function buildOptimisticReportPreview(chatReport, iouReport, existingReportPreviewAction) {
+    const reportPreviewAction = existingReportPreviewAction || {
+        reportActionID: NumberUtils.rand64(),
+        reportID: chatReport.reportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        originalMessage: {
+            linkedReportID: iouReport.reportID,
+        },
+    };
+
+    reportPreviewAction.created = DateUtils.getDBTime();
+    reportPreviewAction.accountID = iouReport.managerID;
+
     const reportAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(iouReport), iouReport.currency);
     const payerName = isPolicyExpenseChat(chatReport) ? getPolicyName(chatReport) : getDisplayNameForParticipant(iouReport.managerID || '', true);
     const message = iouReport.hasOutstandingIOU ? Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: reportAmount}) : Localize.translateLocal('iou.payerSettled', {amount: reportAmount});
-    return {
-        reportActionID: NumberUtils.rand64(),
-        reportID: chatReport.reportID,
-        created: DateUtils.getDBTime(),
-        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        accountID: iouReport.managerID,
-        message: [
+    reportPreviewAction.message = [
             {
                 html: message,
                 text: message,
                 isEdited: false,
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
-        ],
-        originalMessage: {
-            linkedReportID: iouReport.reportID,
-        },
-        actorEmail: iouReport.managerEmail,
-        actorAccountID: iouReport.managerID,
-    };
+        ];
+
+    reportPreviewAction.actorEmail = iouReport.managerEmail;
+    reportPreviewAction.actorAccountID = iouReport.managerID;
+
+    return reportPreviewAction;
 }
 
 function buildOptimisticTaskReportAction(taskReportID, actionName, message = '') {
