@@ -90,7 +90,7 @@ Broken behavior is the outcome of two things:
    
 2. `Navigation.navigate` creates action with `getActionFromState` dispatched high in the hierarchy. 
 
-The reason why `getActionFromState` provided by `react-navigation` is dispatched high in hierarchy is that it doesn't know about current navigation state, only about desired one.
+The reason why `getActionFromState` provided by `react-navigation` is dispatched at the top level of the navigation hierarchy is that it doesn't know about current navigation state, only about desired one.
 
 In this example it doesn't know if the `RightModalNavigator` and `Settings` are already mounted.
 
