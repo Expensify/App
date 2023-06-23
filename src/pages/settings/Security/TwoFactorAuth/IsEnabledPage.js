@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Text, View} from 'react-native';
+import {Text, View, ScrollView} from 'react-native';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -23,41 +23,43 @@ function IsEnabledPage(props) {
                 title={props.translate('twoFactorAuth.headerTitle')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
             />
-            <Section
-                title={props.translate('twoFactorAuth.twoFactorAuthEnabled')}
-                icon={Illustrations.ShieldYellow}
-                menuItems={[
-                    {
-                        title: props.translate('twoFactorAuth.disableTwoFactorAuth'),
-                        onPress: () => {
-                            setIsConfirmModalVisible(true);
+            <ScrollView>
+                <Section
+                    title={props.translate('twoFactorAuth.twoFactorAuthEnabled')}
+                    icon={Illustrations.ShieldYellow}
+                    menuItems={[
+                        {
+                            title: props.translate('twoFactorAuth.disableTwoFactorAuth'),
+                            onPress: () => {
+                                setIsConfirmModalVisible(true);
+                            },
+                            icon: Expensicons.Close,
+                            iconFill: themeColors.danger,
+                            wrapperStyle: [styles.cardMenuItem],
                         },
-                        icon: Expensicons.Close,
-                        iconFill: themeColors.danger,
-                        wrapperStyle: [styles.cardMenuItem],
-                    },
-                ]}
-                containerStyles={[styles.twoFactorAuthSection]}
-            >
-                <View style={styles.mv3}>
-                    <Text style={styles.textLabel}>{props.translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
-                </View>
-            </Section>
-            <ConfirmModal
-                title={props.translate('twoFactorAuth.disableTwoFactorAuth')}
-                onConfirm={() => {
-                    setIsConfirmModalVisible(false);
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
-                }}
-                onCancel={() => setIsConfirmModalVisible(false)}
-                onModalHide={() => setIsConfirmModalVisible(false)}
-                isVisible={isConfirmModalVisible}
-                prompt={props.translate('twoFactorAuth.disableTwoFactorAuthConfirmation')}
-                confirmText={props.translate('twoFactorAuth.disable')}
-                cancelText={props.translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-            />
+                    ]}
+                    containerStyles={[styles.twoFactorAuthSection]}
+                >
+                    <View style={styles.mv3}>
+                        <Text style={styles.textLabel}>{props.translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
+                    </View>
+                </Section>
+                <ConfirmModal
+                    title={props.translate('twoFactorAuth.disableTwoFactorAuth')}
+                    onConfirm={() => {
+                        setIsConfirmModalVisible(false);
+                        Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
+                    }}
+                    onCancel={() => setIsConfirmModalVisible(false)}
+                    onModalHide={() => setIsConfirmModalVisible(false)}
+                    isVisible={isConfirmModalVisible}
+                    prompt={props.translate('twoFactorAuth.disableTwoFactorAuthConfirmation')}
+                    confirmText={props.translate('twoFactorAuth.disable')}
+                    cancelText={props.translate('common.cancel')}
+                    shouldShowCancelButton
+                    danger
+                />
+            </ScrollView>
         </ScreenWrapper>
     );
 }

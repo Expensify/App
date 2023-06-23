@@ -1264,7 +1264,11 @@ const CONST = {
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
     },
-
+    EDIT_REQUEST_FIELD: {
+        AMOUNT: 'amount',
+        DATE: 'date',
+        DESCRIPTION: 'description',
+    },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
@@ -2485,6 +2489,7 @@ const CONST = {
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        MODERATOR_DECISION_PENDING_REMOVE: 'pendingRemove',
         MODERATOR_DECISION_APPROVED: 'approved',
         MODERATOR_DECISION_HIDDEN: 'hidden',
         FLAG_SEVERITY_SPAM: 'spam',
@@ -2500,6 +2505,13 @@ const CONST = {
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
+    },
+    ACCESSIBILITY_ROLE: {
+        BUTTON: 'button',
+        LINK: 'link',
+        MENUITEM: 'menuitem',
+        TEXT: 'text',
+        RADIO: 'radio',
     },
 };
 

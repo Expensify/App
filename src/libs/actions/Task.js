@@ -10,6 +10,8 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
 
 /**
  * Clears out the task info from the store
@@ -303,7 +305,9 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     const reportName = (title || report.reportName).trim();
-    const reportDescription = (!_.isUndefined(description) ? description : report.description).trim();
+
+    // Description can be unset, so we default to an empty string if so
+    const reportDescription = (!_.isUndefined(description) ? description : lodashGet(report, 'description', '')).trim();
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
@@ -627,6 +631,47 @@ function dismissModalAndClearOutTaskInfo() {
     clearOutTaskInfo();
 }
 
+/**
+ * Returns Task assignee accountID
+ *
+ * @param {Object} taskReport
+ * @returns {Number|null}
+ */
+function getTaskAssigneeAccountID(taskReport) {
+    if (!taskReport) {
+        return null;
+    }
+
+    if (taskReport.managerID) {
+        return taskReport.managerID;
+    }
+
+    const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
+    return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
+}
+
+/**
+ * Returns Task owner accountID
+ *
+ * @param {Object} taskReport
+ * @returns {Number|null}
+ */
+function getTaskOwnerAccountID(taskReport) {
+    return lodashGet(taskReport, 'ownerAccountID', null);
+}
+
+/**
+ * Check if current user is either task assignee or task owner
+ *
+ * @param {Object} taskReport
+ * @param {Number} sessionAccountID
+ * @returns {Boolean}
+ */
+function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
+    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -646,4 +691,6 @@ export {
     cancelTask,
     isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
+    getTaskAssigneeAccountID,
+    isTaskAssigneeOrTaskOwner,
 };
