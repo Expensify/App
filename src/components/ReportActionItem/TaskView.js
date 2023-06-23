@@ -113,7 +113,7 @@ function TaskView(props) {
                 wrapperStyle={[styles.pv2]}
                 isSmallAvatarSubscriptMenu
             />
-            <View style={styles.taskHorizontalRule} />
+            {props.shouldShowHorizontalRule && <View style={styles.taskHorizontalRule} />}
         </>
     );
 }
