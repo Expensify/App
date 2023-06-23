@@ -83,8 +83,8 @@ function MultipleAvatars(props) {
     useEffect(() => {
         if (props.shouldStackVertically) {
             const rowSize = Math.ceil(props.icons.length / 2);
-            const firstRow = props.icons.slice(0, rowSize);
-            const secondRow = props.icons.slice(rowSize);
+            const firstRow = props.icons.slice(rowSize);
+            const secondRow = props.icons.slice(0, rowSize);
             setAvatarRows([firstRow, secondRow]);
         } else {
             setAvatarRows([props.icons]);
