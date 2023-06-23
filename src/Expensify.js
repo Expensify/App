@@ -23,6 +23,7 @@ import compose from './libs/compose';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
+import Navigation from './libs/Navigation/Navigation';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -110,7 +111,12 @@ function Expensify(props) {
         ActiveClientManager.init();
     };
 
-    const setNavigationReady = useCallback(() => setIsNavigationReady(true), []);
+    const setNavigationReady = useCallback(() => {
+        setIsNavigationReady(true);
+
+        // Navigate to any pending routes now that the NavigationContainer is ready
+        Navigation.setIsNavigationReady();
+    }, []);
 
     const onSplashHide = useCallback(() => {
         setIsSplashHidden(true);
