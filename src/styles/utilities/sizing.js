@@ -20,10 +20,6 @@ export default {
         width: '25%',
     },
 
-    mnh10: {
-        minHeight: 40,
-    },
-
     mnh100: {
         minHeight: '100%',
     },

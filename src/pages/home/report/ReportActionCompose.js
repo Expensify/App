@@ -1004,7 +1004,7 @@ class ReportActionCompose extends React.Component {
                                                                 this.actionButton.blur();
                                                                 this.setMenuVisibility(true);
                                                             }}
-                                                            style={[styles.composerSizeButton, !this.props.isComposerFullSize && !isFullComposerAvailable ? styles.mnh10 : undefined]}
+                                                            style={[styles.composerSizeButton]}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
                                                             accessibilityRole="button"
                                                             accessibilityLabel={this.props.translate('reportActionCompose.addAction')}

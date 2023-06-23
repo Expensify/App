@@ -1721,7 +1721,7 @@ const styles = {
 
     composerSizeButton: {
         alignSelf: 'center',
-        height: 32,
+        height: 40,
         width: 32,
         padding: 6,
         margin: 3,
