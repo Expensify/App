@@ -60,7 +60,6 @@ function ContinueBankAccountSetup(props) {
                         icon={Illustrations.BankArrow}
                     >
                         <OfflineWithFeedback
-                            pendingAction={pendingAction}
                             errors={errors}
                             shouldShowErrorMessage
                             onClose={BankAccounts.resetReimbursementAccount}
