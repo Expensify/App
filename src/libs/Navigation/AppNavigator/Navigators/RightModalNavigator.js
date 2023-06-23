@@ -85,6 +85,11 @@ function RigthModalNavigator() {
                 name="Flag_Comment"
                 component={ModalStackNavigators.FlagCommentStackNavigator}
             />
+            <Stack.Screen
+                name="EditRequest"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.EditRequestStackNavigator}
+            />
         </Stack.Navigator>
     );
 }

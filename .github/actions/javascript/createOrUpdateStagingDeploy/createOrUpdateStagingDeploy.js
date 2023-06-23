@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const core = require('@actions/core');
 const moment = require('moment');
+const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 const GitUtils = require('../../../libs/GitUtils');
 
@@ -18,16 +19,16 @@ const run = function () {
     return Promise.all([
         GithubUtils.octokit.issues.listForRepo({
             log: console,
-            owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.APP_REPO,
-            labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            labels: CONST.LABELS.STAGING_DEPLOY,
             state: 'all',
         }),
         GithubUtils.octokit.issues.listForRepo({
             log: console,
-            owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.APP_REPO,
-            labels: GithubUtils.DEPLOY_BLOCKER_CASH_LABEL,
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            labels: CONST.LABELS.DEPLOY_BLOCKER,
         }),
     ])
         .then(([stagingDeployResponse, deployBlockerResponse]) => {
@@ -136,8 +137,8 @@ const run = function () {
         })
         .then((body) => {
             const defaultPayload = {
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 body,
             };
 
@@ -145,8 +146,8 @@ const run = function () {
                 return GithubUtils.octokit.issues.create({
                     ...defaultPayload,
                     title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
-                    labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
-                    assignees: [GithubUtils.APPLAUSE_BOT],
+                    labels: [CONST.LABELS.STAGING_DEPLOY],
+                    assignees: [CONST.APPLAUSE_BOT],
                 });
             }
 
