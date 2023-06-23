@@ -283,6 +283,16 @@ class Composer extends React.Component {
     }
 
     /**
+     * Paste the plaintext content into Composer.
+     *
+     * @param {ClipboardEvent} event
+     */
+    handlePastePlainText(event) {
+        const plainText = event.clipboardData.getData('text/plain');
+        this.paste(plainText);
+    }
+
+    /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      *
@@ -308,42 +318,10 @@ class Composer extends React.Component {
             const domparser = new DOMParser();
             const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
-            // If HTML has img tag, then fetch images from it.
+            // If HTML has img tag, then we only paste the plain text. This is because
+            // fetching the image via fetch triggers a Content-Security-Policy error.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                // If HTML has emoji, then treat this as plain text.
-                if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
-                    const plainText = event.clipboardData.getData('text/plain');
-                    this.paste(plainText);
-                    return;
-                }
-                fetch(embeddedImages[0].src)
-                    .then((response) => {
-                        if (!response.ok) {
-                            throw Error(response.statusText);
-                        }
-                        return response.blob();
-                    })
-                    .then((x) => {
-                        const extension = IMAGE_EXTENSIONS[x.type];
-                        if (!extension) {
-                            throw new Error(this.props.translate('composer.noExtensionFoundForMimeType'));
-                        }
-
-                        return new File([x], `pasted_image.${extension}`, {});
-                    })
-                    .then(this.props.onPasteFile)
-                    .catch(() => {
-                        const errorDesc = this.props.translate('composer.problemGettingImageYouPasted');
-                        Growl.error(errorDesc);
-
-                        /*
-                         * Since we intercepted the user-triggered paste event to check for attachments,
-                         * we need to manually set the value and call the `onChangeText` handler.
-                         * Synthetically-triggered paste events do not affect the document's contents.
-                         * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                         */
-                        this.handlePastedHTML(pastedHTML);
-                    });
+                this.handlePastePlainText(event);
                 return;
             }
 
@@ -351,9 +329,7 @@ class Composer extends React.Component {
             return;
         }
 
-        const plainText = event.clipboardData.getData('text/plain');
-
-        this.paste(plainText);
+        this.handlePastePlainText(event);
     }
 
     /**
