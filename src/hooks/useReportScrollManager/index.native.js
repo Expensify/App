@@ -10,6 +10,10 @@ function useReportScrollManager() {
      * @param {Object} index
      */
     const scrollToIndex = (index) => {
+        if (!flatListRef.current) {
+            return;
+        }
+
         flatListRef.current.scrollToIndex(index);
     };
 
@@ -17,6 +21,10 @@ function useReportScrollManager() {
      * Scroll to the bottom of the flatlist.
      */
     const scrollToBottom = () => {
+        if (!flatListRef.current) {
+            return;
+        }
+
         flatListRef.current.scrollToOffset({animated: false, offset: 0});
     };
 

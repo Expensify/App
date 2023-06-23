@@ -7,11 +7,7 @@
  * @param {Boolean} isEditing
  */
 function scrollToIndex(ref, index, isEditing) {
-    if (!ref.current) {
-        return;
-    }
-
-    if (isEditing) {
+    if (!ref.current || isEditing) {
         return;
     }
 
