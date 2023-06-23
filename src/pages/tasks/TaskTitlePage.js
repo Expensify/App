@@ -78,6 +78,8 @@ function TaskTitlePage(props) {
                         inputID="title"
                         name="title"
                         autoGrowHeight
+                        textAlignVertical="top"
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
                         label={props.translate('task.title')}
                         defaultValue={(props.report && props.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
