@@ -165,9 +165,9 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
 }
 
 /**
- * @param {String} [reportIDFromRoute]
+ * @param {String} [currentReportId]
  */
-function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
+function getDefaultRenderedSidebarLinks(currentReportId = '') {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
     // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
     // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
@@ -196,16 +196,16 @@ function getDefaultRenderedSidebarLinks(reportIDFromRoute = '') {
     // our app (App.js) is when the react application is wrapped in the context providers
     render(
         <ErrorBoundary>
-            <MockedSidebarLinks reportIDFromRoute={reportIDFromRoute} />
+            <MockedSidebarLinks currentReportId={currentReportId} />
         </ErrorBoundary>,
     );
 }
 
 /**
- * @param {String} [reportIDFromRoute]
+ * @param {String} [currentReportId]
  * @returns {JSX.Element}
  */
-function MockedSidebarLinks({reportIDFromRoute}) {
+function MockedSidebarLinks({currentReportId}) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SidebarLinks
@@ -217,18 +217,18 @@ function MockedSidebarLinks({reportIDFromRoute}) {
                     bottom: 0,
                 }}
                 isSmallScreenWidth={false}
-                reportIDFromRoute={reportIDFromRoute}
+                currentReportId={currentReportId}
             />
         </ComposeProviders>
     );
 }
 
 MockedSidebarLinks.propTypes = {
-    reportIDFromRoute: PropTypes.string,
+    currentReportId: PropTypes.string,
 };
 
 MockedSidebarLinks.defaultProps = {
-    reportIDFromRoute: '',
+    currentReportId: '',
 };
 
 export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};
