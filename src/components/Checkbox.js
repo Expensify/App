@@ -36,7 +36,7 @@ const propTypes = {
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
-    /** A ref to forward to the Pressable */
+    /** An accessibility label for the checkbox */
     accessibilityLabel: PropTypes.string,
 };
 
