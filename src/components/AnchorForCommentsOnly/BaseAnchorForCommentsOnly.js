@@ -39,7 +39,7 @@ const defaultProps = {
 /*
  * This is a default anchor component for regular links.
  */
-const BaseAnchorForCommentsOnly = (props) => {
+function BaseAnchorForCommentsOnly(props) {
     let linkRef;
     const rest = _.omit(props, _.keys(propTypes));
     const linkProps = {};
@@ -48,7 +48,7 @@ const BaseAnchorForCommentsOnly = (props) => {
     } else {
         linkProps.href = props.href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : styles.userSelectText;
+    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
@@ -87,7 +87,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             </Tooltip>
         </PressableWithSecondaryInteraction>
     );
-};
+}
 
 BaseAnchorForCommentsOnly.propTypes = propTypes;
 BaseAnchorForCommentsOnly.defaultProps = defaultProps;

@@ -1,12 +1,27 @@
-import React, {useRef} from 'react';
+import React, {useRef, useCallback} from 'react';
+import {InteractionManager} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import sidebarPropTypes from './sidebarPropTypes';
 import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 import FreezeWrapper from '../../../../libs/Navigation/FreezeWrapper';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
+import StatusBar from '../../../../libs/StatusBar';
+import themeColors from '../../../../styles/themes/default';
 
-const SidebarScreen = (props) => {
+function SidebarScreen(props) {
     const popoverModal = useRef(null);
+
+    useFocusEffect(
+        useCallback(() => {
+            const previousColor = StatusBar.getBackgroundColor();
+            InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(themeColors.sidebar));
+
+            return () => {
+                InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(previousColor));
+            };
+        }, []),
+    );
 
     /**
      * Method create event listener
@@ -36,7 +51,7 @@ const SidebarScreen = (props) => {
             </BaseSidebarScreen>
         </FreezeWrapper>
     );
-};
+}
 
 SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';

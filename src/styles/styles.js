@@ -25,6 +25,10 @@ import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 
+function getTransparentColor(color, transparency = '') {
+    return `${color}${transparency}`;
+}
+
 const picker = {
     backgroundColor: themeColors.transparent,
     color: themeColors.text,
@@ -1242,7 +1246,7 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: variables.leftPaneMaxWidth,
+        maxWidth: variables.sideBarWidth,
     },
 
     rightPanelContainer: {
@@ -2213,10 +2217,6 @@ const styles = {
         minWidth: 100,
     },
 
-    twoFactorAuthFooter: {
-        marginTop: 'auto',
-    },
-
     anonymousRoomFooter: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -2449,13 +2449,20 @@ const styles = {
         alignItems: 'center',
     },
 
+    checkboxPressable: {
+        borderRadius: 6,
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     checkboxContainer: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: 2,
+        borderRadius: 4,
         height: 20,
         width: 20,
-        borderColor: themeColors.icon,
-        borderWidth: 1,
+        borderColor: themeColors.borderLighter,
+        borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -2542,8 +2549,8 @@ const styles = {
         marginBottom: 0,
     },
 
-    iouPreviewBoxCheckmark: {
-        marginLeft: 4,
+    defaultCheckmarkWrapper: {
+        marginLeft: 8,
         alignSelf: 'center',
     },
 
@@ -2676,10 +2683,6 @@ const styles = {
         outline: 'none',
     },
 
-    cursorPointer: {
-        cursor: 'pointer',
-    },
-
     cardStyleNavigator: {
         overflow: 'hidden',
         height: '100%',
@@ -2772,7 +2775,7 @@ const styles = {
         width: 250,
     },
 
-    workspaceInviteWelcome: {
+    autoGrowHeightMultilineInput: {
         maxHeight: 115,
     },
 
@@ -2892,6 +2895,14 @@ const styles = {
         paddingRight: 12,
         paddingLeft: 12,
         marginTop: 12,
+    },
+
+    shortTermsHeadline: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
     },
 
     longTermsRow: {
@@ -3337,16 +3348,30 @@ const styles = {
         lineHeight: variables.lineHeightXXLarge,
     },
 
-    moneyRequestHeaderCheckmark: {
-        marginLeft: 5,
-        alignSelf: 'center',
-    },
-
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,
         color: themeColors.textLight,
         textAlign: 'center',
+    },
+
+    linkPreviewWrapper: {
+        marginTop: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        paddingLeft: 12,
+    },
+
+    linkPreviewImage: {
+        flex: 1,
+        resizeMode: 'contain',
+        borderRadius: 8,
+        marginTop: 8,
+    },
+
+    linkPreviewLogoImage: {
+        height: 16,
+        width: 16,
     },
 
     validateCodeMessage: {

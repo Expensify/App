@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 const core = require('@actions/core');
+const CONST = require('../../.github/libs/CONST');
 const GithubUtils = require('../../.github/libs/GithubUtils');
 
 const mockGetInput = jest.fn();
@@ -281,7 +282,7 @@ describe('GithubUtils', () => {
                 number: 4,
                 title: 'Test Automated PR',
                 html_url: 'https://github.com/Expensify/App/pull/4',
-                user: {login: 'OSBotify'},
+                user: {login: CONST.OS_BOTIFY},
                 labels: [{name: 'automerge'}],
             },
             {

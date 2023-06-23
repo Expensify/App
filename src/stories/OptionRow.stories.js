@@ -41,11 +41,13 @@ export default {
     },
 };
 
-const Template = (args) => (
-    <OnyxProvider>
-        <OptionRow {...args} />
-    </OnyxProvider>
-);
+function Template(args) {
+    return (
+        <OnyxProvider>
+            <OptionRow {...args} />
+        </OnyxProvider>
+    );
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

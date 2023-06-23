@@ -34,7 +34,7 @@ const defaultProps = {
     task: {},
 };
 
-const NewTaskPage = (props) => {
+function NewTaskPage(props) {
     const inputRef = useRef();
     const [taskTitle, setTaskTitle] = useState(props.task.title);
     const [taskDescription, setTaskDescription] = useState(props.task.description || '');
@@ -53,7 +53,7 @@ const NewTaskPage = (props) => {
 
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', props.translate('newTaskPage.pleaseEnterTaskName'));
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
         }
 
         return errors;
@@ -102,6 +102,9 @@ const NewTaskPage = (props) => {
                     <TextInput
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        autoGrowHeight
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
                     />
@@ -109,7 +112,7 @@ const NewTaskPage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskPage.displayName = 'NewTaskPage';
 NewTaskPage.propTypes = propTypes;
