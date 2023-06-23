@@ -1116,7 +1116,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {welcomeMessage: newValue},
+            value: {welcomeMessage: parsedWelcomeMessage},
         },
     ];
     const failureData = [
