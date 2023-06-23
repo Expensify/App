@@ -46,16 +46,20 @@ function end(eventName, secondaryName = '') {
         console.debug(`Timing:${grafanaEventName}`, eventTime);
         delete timestampData[eventName];
 
-        // if (Environment.isDevelopment()) {
-        //     // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
-        //     return;
-        // }
+        if (Environment.isDevelopment()) {
+            // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
+            return;
+        }
 
-        API.write('SendPerformanceTiming', {
-            name: grafanaEventName,
-            value: eventTime,
-            platform: `${getPlatform()}`,
-        });
+        API.read(
+            'SendPerformanceTiming',
+            {
+                name: grafanaEventName,
+                value: eventTime,
+                platform: `${getPlatform()}`,
+            },
+            {},
+        );
     });
 }
 
