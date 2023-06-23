@@ -672,6 +672,25 @@ function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
     return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
 }
 
+/**
+ * Focus the task description text input and place the cursor at the end of the value (if there is a value in the input).
+ *
+ * @param {Object} input the input element
+ */
+function focusAndUpdateTaskDescriptionInputRange(input) {
+    if (!input) {
+        return;
+    }
+
+    input.focus();
+    if (input.value && input.setSelectionRange) {
+        const length = input.value.length;
+        input.setSelectionRange(length, length);
+        // eslint-disable-next-line no-param-reassign
+        input.scrollTop = input.scrollHeight;
+    }
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -693,4 +712,5 @@ export {
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,
+    focusAndUpdateTaskDescriptionInputRange,
 };
