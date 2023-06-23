@@ -21,13 +21,17 @@ export default function subscribeToReportCommentPushNotifications() {
 
         Log.info('[PushNotification] onSelected() - called', false, {reportID, reportActionID});
         Navigation.isNavigationReady().then(() => {
-            // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
-            if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
-                Navigation.goBack();
-            }
+            try {
+                // If a chat is visible other than the one we are trying to navigate to, then we need to navigate back
+                if (Navigation.getActiveRoute().slice(1, 2) === ROUTES.REPORT && !Navigation.isActiveRoute(`r/${reportID}`)) {
+                    Navigation.goBack();
+                }
 
-            Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
-            Navigation.navigate(ROUTES.getReportRoute(reportID));
+                Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID, reportActionID});
+                Navigation.navigate(ROUTES.getReportRoute(reportID));
+            } catch (error) {
+                Log.alert('[PushNotification] onSelected() - failed', {reportID, reportActionID, error: error.message});
+            }
         });
     });
 }
