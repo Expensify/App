@@ -182,7 +182,7 @@ jobs:
       - name: Check whether the PR author is member of Expensify/expensify team
         id: checkAuthor
         run: |
-          if gh api /orgs/Expensify/teams/infra/memberships/${{ steps.getMergedPullRequest.outputs.author }} --silent; then
+          if gh api /orgs/Expensify/teams/expensify-expensify/memberships/${{ steps.getMergedPullRequest.outputs.author }} --silent; then
             echo "IS_EXPENSIFY_EMPLOYEE=true" >> "$GITHUB_OUTPUT"
           else
             echo "IS_EXPENSIFY_EMPLOYEE=false" >> "$GITHUB_OUTPUT"
