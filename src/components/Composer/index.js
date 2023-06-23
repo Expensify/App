@@ -308,7 +308,8 @@ class Composer extends React.Component {
             const domparser = new DOMParser();
             const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
 
-            // If HTML has img tag, then we strip the images from paste.
+            // If HTML has img tag, then we only paste the plain text. This is because
+            // fetching the image via fetch triggers a Content-Security-Policy error.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
                 const plainText = event.clipboardData.getData('text/plain');
                 this.paste(plainText);
