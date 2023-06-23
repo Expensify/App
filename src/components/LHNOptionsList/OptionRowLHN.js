@@ -26,6 +26,7 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import withCurrentReportId from '../withCurrentReportId';
 
 const propTypes = {
     /** Style for hovered state */
@@ -260,12 +261,34 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        optionItem: {
-            key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
-            selector: SidebarUtils.getOptionData,
-        },
-    }),
-)(OptionRowLHN);
+const ConnectedOptonRowLHN = React.memo(
+    compose(
+        withLocalize,
+        withOnyx({
+            optionItem: {
+                key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
+                selector: SidebarUtils.getOptionData,
+            },
+        }),
+    )(OptionRowLHN),
+);
+
+// We only want to forward a boolean value to the memoized component
+// Thats why we have this intermediate component.
+function OptionRowIsFocusedSupport(props) {
+    const isFocused = props.currentReportId === props.reportID;
+
+    return (
+        <ConnectedOptonRowLHN
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {..._.omit(props, 'currentReportId')}
+            isFocused={isFocused}
+        />
+    );
+}
+OptionRowIsFocusedSupport.propTypes = propTypes;
+OptionRowIsFocusedSupport.defaultProps = defaultProps;
+OptionRowIsFocusedSupport.displayName = 'OptionRowIsFocusedSupport';
+
+// TODO: Note on mobile we could skip this HOC
+export default withCurrentReportId(OptionRowIsFocusedSupport);
