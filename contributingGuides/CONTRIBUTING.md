@@ -18,6 +18,18 @@ You can generate multiple test accounts by using a `+` postfix, for example if y
 ##### High Traffic Accounts
 All internal engineers, contributors, and C+ members are **required** to test with a "high traffic" account against the staging or production web servers. Ask in [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) if someone can turn your account into a High Traffic account. These accounts more closely mirror the accounts used in production by real people. Internal team members can follow [this Stack Overflow](https://stackoverflow.com/c/expensify/questions/14504) to upgrade an account.
 
+All internal engineers, contributors, and C+ members are required to test with a “high traffic” account against the staging or production web servers. Ask in your PR for the assigned Contributor+ team member to turn your account into a High Traffic account. These accounts more closely mirror the accounts used in production by real people.
+You can say:
+
+Hey C+ team member, can you please make xxxxx+xxxx@xxxx.com into a **High Traffic** account following [this process](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts)? Thanks!
+
+###### The process for the C+ to set up an account as a high-traffic account is:
+
+1. Sign in to the Old Expensify web app ([www.expensify.com](https://www.expensify.com)) with your existing high-traffic account
+2. Go to **Settings** > **Policies** > **Group**
+3. For both the _Crowded Policy (Do Not Delete)_ and the _Big Chat (Do Not Delete)_ policies, go to **People** > **Invite** and add the test accounts (with the role _Employee_)
+
+
 #### Working on beta features
 Some features are locked behind beta flags while development is ongoing. As a contributor you can work on these beta features locally by overriding the [`Permissions.canUseAllBetas` function](https://github.com/Expensify/App/blob/5e268df7f2989ed04bc64c0c86ed77faf134554d/src/libs/Permissions.js#L10-L12) to return `true`.
 
