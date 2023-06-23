@@ -65,14 +65,6 @@ jobs:
             echo "New version is ${{ env.NEW_VERSION }}"
           fi;
 
-      - name: Get merge commit for version-bump pull request
-        id: getVersionBumpMergeCommit
-        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          USER: OSBotify
-          TITLE_REGEX: Update version to ${{ env.NEW_VERSION }}
-
       - name: Cherry-pick the version-bump to staging
         run: |
           # Find the commit for the version-bump
