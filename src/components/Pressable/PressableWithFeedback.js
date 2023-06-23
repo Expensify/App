@@ -39,15 +39,15 @@ const PressableWithFeedbackDefaultProps = {
 
 const PressableWithFeedback = forwardRef((props, ref) => {
     const propsWithoutWrapperStyles = _.omit(props, omittedProps);
+    const [isExecuting, setExecuting] = useState(false);
     const [isPressed, setPressed] = useState(false);
-    const [isPressedIn, setPressedIn] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-    const isDisabled = props.disabled || isPressed;
+    const isDisabled = props.disabled || isExecuting;
 
     return (
         <OpacityView
-            shouldDim={Boolean(!isDisabled && (isPressedIn || isHovered))}
-            dimmingValue={isPressedIn ? props.pressDimmingValue : props.hoverDimmingValue}
+            shouldDim={Boolean(!isDisabled && (isPressed || isHovered))}
+            dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
         >
             <GenericPressable
@@ -64,23 +64,23 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     if (props.onHoverOut) props.onHoverOut();
                 }}
                 onPressIn={() => {
-                    setPressedIn(true);
+                    setPressed(true);
                     if (props.onPressIn) props.onPressIn();
                 }}
                 onPressOut={() => {
-                    setPressedIn(false);
+                    setPressed(false);
                     if (props.onPressOut) props.onPressOut();
                 }}
                 onPress={(e) => {
-                    setPressed(true);
+                    setExecuting(true);
                     const onPress = props.onPress(e);
                     InteractionManager.runAfterInteractions(() => {
                         if (!(onPress instanceof Promise)) {
-                            setPressed(false);
+                            setExecuting(false);
                             return;
                         }
                         onPress.finally(() => {
-                            setPressed(false);
+                            setExecuting(false);
                         });
                     });
                 }}
