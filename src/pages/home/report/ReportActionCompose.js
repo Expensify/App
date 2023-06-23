@@ -953,7 +953,7 @@ class ReportActionCompose extends React.Component {
                                                     style={[
                                                         styles.dFlex,
                                                         styles.flexColumn,
-                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
+                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
                                                     ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
@@ -1004,7 +1004,7 @@ class ReportActionCompose extends React.Component {
                                                                 this.actionButton.blur();
                                                                 this.setMenuVisibility(true);
                                                             }}
-                                                            style={styles.composerSizeButton}
+                                                            style={[styles.composerSizeButton, !this.props.isComposerFullSize && !isFullComposerAvailable ? styles.mnh10 : undefined]}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
                                                             accessibilityRole="button"
                                                             accessibilityLabel={this.props.translate('reportActionCompose.addAction')}
