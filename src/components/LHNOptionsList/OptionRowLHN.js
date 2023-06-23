@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -23,6 +24,8 @@ import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteract
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Style for hovered state */
@@ -43,6 +46,8 @@ const propTypes = {
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    optionItem: PropTypes.shape({}),
+
     ...withLocalizePropTypes,
 };
 
@@ -52,10 +57,11 @@ const defaultProps = {
     onSelectRow: () => {},
     isFocused: false,
     style: null,
+    optionItem: null,
 };
 
 function OptionRowLHN(props) {
-    const optionItem = SidebarUtils.getOptionData(props.reportID);
+    const optionItem = props.optionItem;
 
     if (!optionItem) {
         return null;
@@ -254,4 +260,12 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default withLocalize(OptionRowLHN);
+export default compose(
+    withLocalize,
+    withOnyx({
+        optionItem: {
+            key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
+            selector: SidebarUtils.getOptionData,
+        },
+    }),
+)(OptionRowLHN);

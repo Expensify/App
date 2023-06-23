@@ -20,6 +20,7 @@ import * as UserUtils from './UserUtils';
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
+// TODO: get rid of this shit
 let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -213,13 +214,10 @@ function getOrderedReportIDs(currentReportId) {
 /**
  * Gets all the data necessary for rendering an OptionRowLHN component
  *
- * @param {String} reportID
+ * @param {Object} report
  * @returns {Object}
  */
-function getOptionData(reportID) {
-    const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-    const report = allReports[reportKey];
-
+function getOptionData(report) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
