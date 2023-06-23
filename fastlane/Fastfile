@@ -256,11 +256,11 @@ platform :ios do
     if app.nil?
       UI.important "not found in team #{teamID} on ASC!"
       next
+    else
+      # If there's an app that's Pending Developer Release, release it before continuing with the new version
+      pendingReviewVersion = app.get_pending_release_app_store_version
+      version.create_app_store_version_release_request unless version.nil?
     end
-
-    # If there's an app that's Pending Developer Release, release it before continuing with the new version
-    pendingReviewVersion = app.get_pending_release_app_store_version
-    version.create_app_store_version_release_request unless version.nil?
 
     deliver(
       api_key_path: "./ios/ios-fastlane-json-key.json",
