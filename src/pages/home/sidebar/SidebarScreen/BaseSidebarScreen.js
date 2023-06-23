@@ -59,7 +59,6 @@ class BaseSidebarScreen extends Component {
                                 insets={insets}
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
-                                reportIDFromRoute={this.props.reportIDFromRoute}
                                 onLayout={this.props.onLayout}
                             />
                         </View>

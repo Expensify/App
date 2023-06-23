@@ -25,6 +25,7 @@ import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -345,8 +346,9 @@ function addComment(reportID, text) {
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
+ * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
-function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
+function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -387,6 +389,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     const params = {
         reportID,
         emailList: participantLoginList ? participantLoginList.join(',') : '',
+        accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
 
@@ -479,7 +482,26 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  * @param {Array} userLogins list of user logins to start a chat report with.
  */
 function navigateToAndOpenReport(userLogins) {
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    let newChat = {};
+    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+    const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
+    if (!chat) {
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    }
+    const reportID = chat ? chat.reportID : newChat.reportID;
+
+    // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
+    openReport(reportID, userLogins, newChat);
+    Navigation.dismissModal(reportID);
+}
+
+/**
+ * This will find an existing chat, or create a new one if none exists, for the given accountID or set of accountIDs. It will then navigate to this chat.
+ *
+ * @param {Array} participantAccountIDs of user logins to start a chat report with.
+ */
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
     let newChat = {};
     const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     if (!chat) {
@@ -488,7 +510,7 @@ function navigateToAndOpenReport(userLogins) {
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, userLogins, newChat);
+    openReport(reportID, [], newChat, '0', false, participantAccountIDs);
     Navigation.dismissModal(reportID);
 }
 
@@ -1825,6 +1847,7 @@ export {
     openReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
+    navigateToAndOpenReportWithAccountIDs,
     navigateToAndOpenChildReport,
     updatePolicyRoomNameAndNavigate,
     clearPolicyRoomNameErrors,
