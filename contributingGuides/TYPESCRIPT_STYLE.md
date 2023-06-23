@@ -456,7 +456,7 @@ const [hint, setHint] = useState<string | undefined>(undefined);
 
 ### Parameter and return types
 
-For function parameter types, depending on the clarity of the function use inferred types. Provide explicit typing when it enhances code readability.
+For function parameter types, depending on the clarity of the function, use inferred types. Provide explicit typing when it enhances code readability.
 
 ```tsx
 // Bad
