@@ -1,8 +1,8 @@
 import React from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import { withOnyx } from 'react-native-onyx';
-import { Keyboard, View } from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import {Keyboard, View} from 'react-native';
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';
 import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
@@ -11,7 +11,7 @@ import OfflineIndicator from '../../../components/OfflineIndicator';
 import ArchivedReportFooter from '../../../components/ArchivedReportFooter';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import withWindowDimensions, { windowDimensionsPropTypes } from '../../../components/withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
@@ -48,9 +48,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    report: { reportID: '0' },
+    report: {reportID: '0'},
     reportActions: [],
-    onSubmitComment: () => { },
+    onSubmitComment: () => {},
     errors: {},
     pendingAction: null,
     shouldShowComposeInput: true,
@@ -108,6 +108,6 @@ ReportFooter.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
     withOnyx({
-        shouldShowComposeInput: { key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT },
+        shouldShowComposeInput: {key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT},
     }),
 )(ReportFooter);

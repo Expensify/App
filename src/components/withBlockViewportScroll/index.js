@@ -1,18 +1,39 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import Keyboard from '../../libs/NativeWebKeyboard';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 
-export default function(WrappedComponent) {
+/**
+ * A Higher Order Component (HOC) that wraps a given React component and blocks viewport scroll when the keyboard is visible.
+ * It does this by capturing the current scrollY position when the keyboard is shown, then scrolls back to this position smoothly on 'touchend' event.
+ * This scroll blocking is removed when the keyboard hides.
+ * This HOC is doing nothing on native platforms.
+ *
+ * The HOC also passes through a `forwardedRef` prop to the wrapped component, which can be used to assign a ref to the wrapped component.
+ *
+ * @export
+ * @param {React.Component} WrappedComponent - The component to be wrapped by the HOC.
+ * @returns {React.Component} A component that includes the scroll-blocking behaviour.
+ *
+ * @example
+ * export default withBlockViewportScroll(MyComponent);
+ *
+ * // Inside MyComponent definition
+ * // You can access the ref passed from HOC as follows:
+ * const MyComponent = React.forwardRef((props, ref) => (
+ *  // use ref here
+ * ));
+ */
+export default function (WrappedComponent) {
     function WithBlockViewportScroll(props) {
         const optimalScrollY = useRef(0);
-        const keybShowOff = useRef(() => { });
-        const keybHideOff = useRef(() => { });
+        const keyboardShowListenerRef = useRef(() => {});
+        const keyboardHideListenerRef = useRef(() => {});
 
         useEffect(() => {
             const handleTouchEnd = () => {
-                window.scrollTo({ top: optimalScrollY.current, behavior: 'smooth' });
+                window.scrollTo({top: optimalScrollY.current, behavior: 'smooth'});
             };
 
             const handleKeybShow = () => {
@@ -24,12 +45,12 @@ export default function(WrappedComponent) {
                 window.removeEventListener('touchend', handleTouchEnd);
             };
 
-            keybShowOff.current = Keyboard.addListener('keyboardDidShow', handleKeybShow);
-            keybHideOff.current = Keyboard.addListener('keyboardDidHide', handleKeybHide);
+            keyboardShowListenerRef.current = Keyboard.addListener('keyboardDidShow', handleKeybShow);
+            keyboardHideListenerRef.current = Keyboard.addListener('keyboardDidHide', handleKeybHide);
 
             return () => {
-                keybShowOff.current();
-                keybHideOff.current();
+                keyboardShowListenerRef.current();
+                keyboardHideListenerRef.current();
                 window.removeEventListener('touchend', handleTouchEnd);
             };
         }, []);
@@ -44,7 +65,7 @@ export default function(WrappedComponent) {
 
     WithBlockViewportScroll.displayName = `WithBlockViewportScroll(${getComponentDisplayName(WrappedComponent)})`;
     WithBlockViewportScroll.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({ current: PropTypes.instanceOf(React.Component) })]),
+        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
     WithBlockViewportScroll.defaultProps = {
         forwardedRef: undefined,
