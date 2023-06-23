@@ -151,7 +151,7 @@ function TaskAssigneeSelectorModal(props) {
     const selectReport = (option) => {
         if (!option) {
             return;
-        }
+        } 
 
         // Check to see if we're creating a new task
         // If there's no route params, we're creating a new task
