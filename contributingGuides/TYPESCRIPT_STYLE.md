@@ -120,7 +120,6 @@ Refer to the React Native documentation for more information about [Platform Spe
 
 Use **PascalCase** for class, type, interface, and enum names, as well as enum members and type parameters (generics). This improves readability and conforms to widely accepted TypeScript standards.
 
-
 ```ts
 // Bad
 class someService {}
@@ -160,7 +159,8 @@ import * as someModule from "some-module";
 
 ```
 
-Use **CONSTANT_CASE** for global constant values to distinguish them from other variables and emphasize their fixed state.
+Use **CONSTANT_CASE** for global-level constant values to distinguish them from other variables and emphasize their fixed state.
+
 ```ts
 // Bad
 const someConst = { config: “value” } as const;
