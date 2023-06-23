@@ -228,7 +228,7 @@ function fetchRefIfNeeded(ref) {
         execSync(command);
     } catch (e) {
         console.log(`Ref ${ref} not found locally, attempting to fetch it.`);
-        const command = `git fetch ${ref}`;
+        const command = `git fetch origin ${ref}`;
         console.log(`Running command: ${command}`);
         execSync(command);
     }
