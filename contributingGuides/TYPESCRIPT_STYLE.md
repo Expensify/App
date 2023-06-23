@@ -20,15 +20,7 @@ Files containing only type declarations should **not** use the `.d.ts` extension
 
 ### Platform-Specific Variants
 
-In most cases, the code written for this repo should be platform-independent. In such cases, each module should have a single file, `index.ts`, which defines the module's exports. There are, however, some cases in which a feature is intrinsically tied to the underlying platform. In such cases, the following file extensions can be used to export platform-specific code from a module:
-
-- `index.native.ts` - Native (iOS and Android)
-- `index.android.ts` - Android
-- `index.ios.ts` - iOS
-- `index.website.ts` - Web
-- `index.desktop.ts` - Desktop
-
-Note that `index.ts` should contain the default implementation, and only platform-specific implementations should be done in their respective files. i.e: If you have mobile-specific implementation in `index.native.ts`, then the desktop/web implementation can be contained in a shared `index.ts`.
+Platform-specific TypeScript files follow the same naming conventions as [JavaScript](https://github.com/Expensify/App#platform-specific-file-extensions) files, except with the `.ts`/`.tsx` extension instead of `.js`.
 
 For each platform-specific module, create shared type definitions in a separate `types.ts` file and place it in the same folder. `types.ts` has to export shared types which are **compatible with all platform-specific implementations**. Declare component props, return types, and other common types in this file.
 
