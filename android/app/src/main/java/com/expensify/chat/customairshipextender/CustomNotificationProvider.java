@@ -68,7 +68,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
     // Conversation JSON keys
     private static final String PAYLOAD_KEY = "payload";
-
     private static final String ONYX_DATA_KEY = "onyxData";
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -102,7 +101,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         if (message.containsKey(PAYLOAD_KEY)) {
             try {
                 JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
-                Log.d(TAG, "message contains payload: " + payload);
                 if (payload.containsKey(ONYX_DATA_KEY)) {
                     Objects.requireNonNull(payload.get(ONYX_DATA_KEY)).isNull();
                     Log.d(TAG, "payload contains onxyData");
@@ -169,14 +167,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             return;
         }
 
+        // Retrieve and check for cached notifications 
         NotificationCache notificationCache = findOrCreateNotificationCache(reportID);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            notificationCache.messages.forEach(message -> {
-                Log.d(TAG, "messageCache: " + message.toString());
-            });
-        }
-
-        // Do other cached notifications exist for this chat already?
         boolean hasExistingNotification = notificationCache.messages.size() >= 1;
 
         try {
