@@ -18,7 +18,7 @@ import TextLink from '../../../../components/TextLink';
 import Clipboard from '../../../../libs/Clipboard';
 import FixedFooter from '../../../../components/FixedFooter';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
+import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import QRCode from '../../../../components/QRCode';
 import expensifyLogo from '../../../../../assets/images/expensify-logo-round-transparent.png';
@@ -91,7 +91,7 @@ function VerifyPage(props) {
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldShowOfflineIndicator={false}>
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
                 shouldShowStepCounter
@@ -142,7 +142,7 @@ function VerifyPage(props) {
                         <TwoFactorAuthForm />
                     </View>
                 </ScrollView>
-                <FixedFooter style={[styles.twoFactorAuthFooter]}>
+                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
                     <Button
                         success
                         text={props.translate('common.next')}
