@@ -2259,7 +2259,7 @@ function getParentReport(report) {
 }
 
 /**
- * Returns the parentReportID if the given report is a thread else returns the current reportID.
+ * Returns ID of the original report from which the given reportAction is first created.
  *
  * @param {String} reportID
  * @param {Object} reportAction
