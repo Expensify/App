@@ -844,14 +844,11 @@ const CONST = {
     AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         SUGGESTER_INNER_PADDING: 8,
-        ITEM_HEIGHT: 40,
+        SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
-        MIN_AMOUNT_OF_ITEMS: 3,
-        // max number of suggestions
-        MAX_AMOUNT_OF_ITEMS: 20,
-        // used for limiting the height of suggestions container, we show a scrollable list
-        // with max height equal to MAX_AMOUNT_OF_VISIBLE_ITEMS_IN_WINDOW (5) * ITEM_HEIGHT.
-        MAX_AMOUNT_OF_VISIBLE_ITEMS_IN_WINDOW: 5,
+        MIN_AMOUNT_OF_SUGGESTIONS: 3,
+        MAX_AMOUNT_OF_SUGGESTIONS: 20,
+        MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,

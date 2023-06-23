@@ -15,17 +15,17 @@ import PressableWithFeedback from '../Pressable/PressableWithFeedback';
  */
 const measureHeightOfSuggestionRows = (numRows, isSuggestionPickerLarge) => {
     if (isSuggestionPickerLarge) {
-        if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_ITEMS_IN_WINDOW) {
+        if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER) {
             // On large screens, if there are more than 5 suggestions, we display a scrollable window with a height of 5 items, indicating that there are more items available
-            return CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_ITEMS_IN_WINDOW * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
+            return CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
         }
-        return numRows * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
+        return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
     }
     if (numRows > 2) {
         // On small screens, we display a scrollable window with a height of 2.5 items, indicating that there are more items available beyond what is currently visible
-        return CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
+        return CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
     }
-    return numRows * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT;
+    return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
 };
 
 function BaseAutoCompleteSuggestions(props) {
@@ -40,7 +40,7 @@ function BaseAutoCompleteSuggestions(props) {
      */
     const renderSuggestionMenuItem = ({item, index}) => (
         <PressableWithFeedback
-            style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(props.highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT, hovered, index)}
+            style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(props.highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
             hoverDimmingValue={1}
             onMouseDown={(e) => e.preventDefault()}
             onPress={() => props.onSelect(index)}
@@ -64,12 +64,12 @@ function BaseAutoCompleteSuggestions(props) {
      * @returns {Object}
      */
     const getItemLayout = (data, index) => ({
-        length: CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT,
-        offset: index * CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT,
+        length: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
+        offset: index * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT,
         index,
     });
 
-    const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.ITEM_HEIGHT * props.suggestions.length;
+    const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * props.suggestions.length;
     const animatedStyles = useAnimatedStyle(() => StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value, props.shouldIncludeReportRecipientLocalTimeHeight));
 
     useEffect(() => {
