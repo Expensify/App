@@ -8,7 +8,7 @@ import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
-export default function (WrappedComponent) {
+export default function (WrappedComponent, shouldHideIndicator) {
     const propTypes = {
         /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
          * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
@@ -27,7 +27,7 @@ export default function (WrappedComponent) {
     };
 
     function WithPolicyAndFullscreenLoading(props) {
-        if (props.isLoadingReportData && _.isEmpty(props.policy)) {
+        if (props.isLoadingReportData && _.isEmpty(props.policy) && !shouldHideIndicator) {
             return <FullscreenLoadingIndicator />;
         }
 
