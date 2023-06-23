@@ -68,7 +68,7 @@ jobs:
       - name: Cherry-pick the version-bump to staging
         run: |
           # Find the commit for the version-bump
-          git fetch main
+          git fetch origin main
           git switch main
           VERSION_BUMP_COMMIT="$(git log --format='%H' --author='OSBotify' --grep 'Update version to ${{ env.NEW_VERSION }}')"
 
