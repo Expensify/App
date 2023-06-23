@@ -163,7 +163,7 @@ function fetchTagIfNeeded(tag) {
         console.log(result);
     } catch (e) {
         console.log(`Tag ${tag} not found locally, attempting to fetch it.`);
-        let command = `git fetch origin refs/tags/${tag}:refs/tags/${tag}`;
+        let command = `git fetch origin tag ${tag} --no-tags`;
         console.log(`Running command: ${command}`);
         let result = execSync(command).toString();
         console.log(result);
