@@ -152,23 +152,23 @@ const CONST = __nccwpck_require__(4097);
 const sanitizeStringForJSONParse = __nccwpck_require__(9338);
 
 /**
- * @param {String} ref
+ * @param {String} tag
  */
-function fetchRefIfNeeded(ref) {
+function fetchTagIfNeeded(tag) {
     try {
-        console.log(`Checking if ref ${ref} exists locally`);
-        const command = `git rev-parse --verify ${ref}`;
+        console.log(`Checking if tag ${tag} exists locally`);
+        const command = `git rev-parse --verify ${tag}`;
         console.log(`Running command: ${command}`);
         const result = execSync(command).toString();
         console.log(result);
     } catch (e) {
-        console.log(`Ref ${ref} not found locally, attempting to fetch it.`);
-        let command = `git fetch origin ${ref}`;
+        console.log(`Tag ${tag} not found locally, attempting to fetch it.`);
+        let command = `git fetch origin refs/tags/${tag}:refs/tags/${tag}`;
         console.log(`Running command: ${command}`);
         let result = execSync(command).toString();
         console.log(result);
-        console.log('Verifying that the ref is now available...');
-        command = `git rev-parse --verify ${ref}`;
+        console.log('Verifying that the tag is now available...');
+        command = `git rev-parse --verify ${tag}`;
         console.log(`Running command: ${command}`);
         result = execSync(command).toString();
         console.log(result);
@@ -176,21 +176,21 @@ function fetchRefIfNeeded(ref) {
 }
 
 /**
- * Get merge logs between two refs (inclusive) as a JavaScript object.
+ * Get merge logs between two tags (inclusive) as a JavaScript object.
  *
- * @param {String} fromRef
- * @param {String} toRef
+ * @param {String} fromTag
+ * @param {String} toTag
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
-function getCommitHistoryAsJSON(fromRef, toRef) {
-    fetchRefIfNeeded(fromRef);
-    fetchRefIfNeeded(toRef);
+function getCommitHistoryAsJSON(fromTag, toTag) {
+    fetchTagIfNeeded(fromTag);
+    fetchTagIfNeeded(toTag);
 
-    console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
+    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
-        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromRef}...${toRef}`];
+        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
         console.log(`Running command: git ${args.join(' ')}`);
         const spawnedProcess = spawn('git', args);
         spawnedProcess.on('message', console.log);
@@ -255,19 +255,19 @@ function getValidMergedPRs(commits) {
 }
 
 /**
- * Takes in two git refs and returns a list of PR numbers of all PRs merged between those two refs
+ * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  *
- * @param {String} fromRef
- * @param {String} toRef
+ * @param {String} fromTag
+ * @param {String} toTag
  * @returns {Promise<Array<String>>} – Pull request numbers
  */
-function getPullRequestsMergedBetween(fromRef, toRef) {
-    return getCommitHistoryAsJSON(fromRef, toRef).then((commitList) => {
-        console.log(`Commits made between ${fromRef} and ${toRef}:`, commitList);
+function getPullRequestsMergedBetween(fromTag, toTag) {
+    return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
+        console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
         // Find which commit messages correspond to merged PR's
         const pullRequestNumbers = getValidMergedPRs(commitList);
-        console.log(`List of pull requests merged between ${fromRef} and ${toRef}`, pullRequestNumbers);
+        console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
         return pullRequestNumbers;
     });
 }
