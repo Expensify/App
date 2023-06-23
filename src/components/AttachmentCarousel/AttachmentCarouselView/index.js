@@ -67,20 +67,23 @@ function AttachmentCarouselView(props) {
      * @param {Object} props
      * @returns {JSX.Element}
      */
-    const renderCell = useCallback((cellProps) => {
-        // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
-        // considering horizontal margin and border width in centered modal
-        const modalStyles = styles.centeredModalStyles(cellProps.isSmallScreenWidth, true);
-        const style = [cellProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(cellProps.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
+    const renderCell = useCallback(
+        (cellProps) => {
+            // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
+            // considering horizontal margin and border width in centered modal
+            const modalStyles = styles.centeredModalStyles(props.isSmallScreenWidth, true);
+            const style = [cellProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 
-        return (
-            <View
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...cellProps}
-                style={style}
-            />
-        );
-    }, []);
+            return (
+                <View
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...cellProps}
+                    style={style}
+                />
+            );
+        },
+        [props.isSmallScreenWidth, props.windowWidth],
+    );
 
     /**
      * Defines how a single attachment should be rendered
