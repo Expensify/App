@@ -102,7 +102,12 @@ jobs:
       - name: Push changes to CP branch
         run: git push
 
+<<<<<<< HEAD
       - name: Create Pull Request
+=======
+      - name: Create Pull Request to manually finish CP
+        if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
+>>>>>>> cca6daf07a (Merge pull request #21447 from Expensify/Rory-FixBadFromJSON)
         id: createPullRequest
         run: |
           gh pr create \
