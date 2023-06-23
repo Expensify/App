@@ -371,8 +371,6 @@ function example(argument: any) {
 
 The `any` type allows assignment to all types and dereference of any property, which is undesirable and should be avoided. Instead, and in most cases, use the `unknown` type which expresses a similar concept and is much safer as it requires narrowing the type before using it. 
 
-When you know that the type structure is a object but you don't have context about the content, use `Record<string, unknown>`. Note that numeric keys are allowed with the `Record<string, unknown>` type. Numeric keys are implicitly converted to strings during property assignment and access. To read more about this, see [TypeScript documentation](https://www.typescriptlang.org/docs/handbook/2/objects.html#dynamically-adding-properties).
-
 ```ts
 // Bad
 const danger: any = 'danger';
@@ -388,6 +386,22 @@ safer.nonExistentProperty // TypeScript error, forces proper type checking
 // Narrowing the type before access
 if (typeof safer === 'string') {
     safer.toUpperCase(); // Allowed after narrowing the type
+}
+```
+
+When you know that the type structure is an object, but you don't have context about the content, use `Record<string, unknown>`. Note that numeric keys are allowed with the `Record<string, unknown>` type. Numeric keys are implicitly converted to strings during property assignment and access. To read more about this, see [TypeScript documentation](https://www.typescriptlang.org/docs/handbook/2/objects.html#dynamically-adding-properties).
+
+```ts
+// Bad: These typings are either too permissive (any), not fully representative of the type (object), or don't fully support type checking (unknown).
+function objectKeysToArray(obj: any): string[];
+function objectKeysToArray(obj: object): string[];
+function objectKeysToArray(obj: unknown): string[] {
+  return Object.keys(obj);
+}
+
+// Good: Using Record<string, unknown> to accurately represent that the input is an object with unknown properties.
+function objectKeysToArray(obj: Record<string, unknown>): string[] {
+  return Object.keys(obj);
 }
 ```
 
