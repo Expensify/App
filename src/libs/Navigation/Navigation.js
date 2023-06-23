@@ -92,9 +92,10 @@ function navigate(route = ROUTES.HOME, type) {
 
 /**
  * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
+ * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
  * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute = ROUTES.HOME, shouldPopToTop = false) {
+function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
     }
@@ -112,7 +113,7 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldPopToTop = false) {
         return;
     }
 
-    if (!getActiveRouteIndex(navigationRef.current.getState()) && fallbackRoute) {
+    if (shouldEnforceFallback || (!getActiveRouteIndex(navigationRef.current.getState()) && fallbackRoute)) {
         navigate(fallbackRoute, 'UP');
         return;
     }
