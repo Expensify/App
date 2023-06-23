@@ -70,16 +70,10 @@ jobs:
 
       - name: Update production branch
         run: |
-          # Get the production branch locally
-          git fetch production
-          git switch production
-
-          # Delete the production branch and re-create it from staging
-          git switch staging
-          git branch -D production
+          # Re-create the production branch from staging
           git switch -c production
 
-          # Force-update push the new production branch.
+          # Force-update the remote production branch.
           git push --force origin production
 
       - if: ${{ failure() }}
@@ -112,13 +106,7 @@ jobs:
 
       - name: Update staging branch to trigger staging deploy
         run: |
-          # Get the staging branch locally
-          git fetch staging
-          git switch staging
-
-          # Delete the staging branch and re-create it from main
-          git switch main
-          git branch -D staging
+          # Re-create the staging branch from main
           git switch -c staging
 
           # Force-update the updated staging branch
