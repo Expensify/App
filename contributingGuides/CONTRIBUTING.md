@@ -176,23 +176,24 @@ Additionally if you want to discuss an idea with the open source community witho
 Follow all the above above steps and processes. When you find a job you'd like to work on:
 - Post “I’m from [agency], I’d like to work on this job”
   - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you. 
-  - If there are existing proposals, BZ will put the issue on hold. Contributor+ (C+) will review the existing proposals.  If a contributor’s proposal is accepted then contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
+  - If there are existing proposals, BZ will put the issue on hold. Contributor+ (C+) will review the existing proposals.  If a contributor’s proposal is accepted then the contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
 - Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal 
 
 #### Guide on Acronyms used within Expensify Communication
-During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in slack or the GH issue if there are any that are not understood/known!
+During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in Slack or the GH issue if there are any that are not understood/known!
 - **ND/NewDot:** new.expensify.com
 - **OD/OldDot:** expensify.com
 - **BZ:** Bug Zero (Expensify internal team in charge of managing the GH issues related to our open-source project)
-- **LHN:** Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left hand side)
+- **LHN:** Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left-hand side)
 - **OP:** Original Post (Most commonly the post in E/App GH issues that reports the bug)
-- **GBR:** Green Brick Road (UX Design Principle that utlizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
-- **RBR:** Red Brick Road (UX Design Principle that utlizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors) 
+- **FAB** Floating Action Button (the + Button that is used to launch flows like 'New Chat', 'Request Money')
+- **GBR:** Green Brick Road (UX Design Principle that utilizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
+- **RBR:** Red Brick Road (UX Design Principle that utilizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors) 
 - **VBA:** Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
 - **NAB:** Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
 - **LHN:** Left Hand Navigation
 - **IOU:** I owe you (used to describe payment requests between users)
-- **OTP:** One time password, or magic sign-in
+- **OTP:** One-time password, or magic sign-in
 - **RHP:** Right Hand Panel (on larger screens, pages are often displayed docked to the right side of the screen)
 - **QA:** Quality Assurance
 - **GH:** GitHub
