@@ -695,7 +695,7 @@ export default {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
-        codeSent: 'Magic code sent!',
+        requestNewCode: 'Request a new code in ',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
