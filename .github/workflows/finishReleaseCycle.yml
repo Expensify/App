@@ -109,7 +109,7 @@ jobs:
           # Re-create the staging branch from main
           git switch -c staging
 
-          # Force-update the updated staging branch
+          # Force-update the remoteg staging branch
           git push --force origin staging
 
       - if: ${{ failure() }}
