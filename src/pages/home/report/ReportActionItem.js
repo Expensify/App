@@ -94,6 +94,9 @@ const propTypes = {
 
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
+
+    /** Is this the only report action on the report? */
+    isOnlyReportAction: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -102,6 +105,7 @@ const defaultProps = {
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
+    isOnlyReportAction: false,
 };
 
 function ReportActionItem(props) {
@@ -419,7 +423,12 @@ function ReportActionItem(props) {
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         if (ReportUtils.isTaskReport(props.report)) {
-            return <TaskView report={props.report} />;
+            return (
+                <TaskView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                />
+            );
         }
         return (
             <ReportActionItemCreated

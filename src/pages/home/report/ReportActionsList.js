@@ -138,10 +138,11 @@ function ReportActionsList(props) {
                     isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     index={index}
+                    isOnlyReportAction={props.sortedReportActions.length === 1}
                 />
             );
         },
-        [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID],
+        [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID, props.sortedReportActions],
     );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.

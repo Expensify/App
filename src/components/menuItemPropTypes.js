@@ -119,6 +119,9 @@ const propTypes = {
 
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+
+    /**  Whether we should use small avatar subscript sizing the for menu item */
+    isSmallAvatarSubscriptMenu: PropTypes.bool,
 };
 
 export default propTypes;

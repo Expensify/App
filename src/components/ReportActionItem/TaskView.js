@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -29,6 +30,9 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
+    /** Whether we should display the horizontal rule below the component */
+    shouldShowHorizontalRule: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -44,7 +48,7 @@ function TaskView(props) {
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
 
     return (
-        <View style={[styles.borderBottom]}>
+        <>
             <PressableWithSecondaryInteraction
                 onPress={Session.checkIfActionIsAllowed((e) => {
                     if (e && e.type === 'click') {
@@ -101,14 +105,16 @@ function TaskView(props) {
                     props.report.managerID,
                 )}
                 iconType={CONST.ICON_TYPE_AVATAR}
-                avatarSize={CONST.AVATAR_SIZE.SMALL}
-                titleStyle={styles.textStrong}
+                avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                titleStyle={styles.assigneeTextStyle}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                 shouldShowRightIcon
                 disabled={!isOpen}
                 wrapperStyle={[styles.pv2]}
+                isSmallAvatarSubscriptMenu
             />
-        </View>
+            <View style={styles.taskHorizontalRule} />
+        </>
     );
 }
 

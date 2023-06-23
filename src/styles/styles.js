@@ -3415,6 +3415,19 @@ const styles = {
         ...spacing.mr3,
     },
 
+    taskHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        ...spacing.mh5,
+        ...spacing.mv2,
+    },
+
+    assigneeTextStyle: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+        minHeight: variables.avatarSizeSubscript,
+    },
+
     taskRightIconContainer: {
         width: variables.componentSizeNormal,
         marginLeft: 'auto',

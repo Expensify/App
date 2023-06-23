@@ -67,6 +67,7 @@ const defaultProps = {
     hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
+    isSmallAvatarSubscriptMenu: false,
 };
 
 function MenuItem(props) {
@@ -178,7 +179,7 @@ function MenuItem(props) {
                                     )}
                                 </View>
                             )}
-                            <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
+                            <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(props.isSmallAvatarSubscriptMenu)]}>
                                 {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                     <Text
                                         style={descriptionTextStyle}

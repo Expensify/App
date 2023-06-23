@@ -1209,6 +1209,17 @@ function getWrappingStyle(isExtraSmallScreenWidth) {
     };
 }
 
+/**
+ *
+ * @param {Boolean} isSmallAvatarSubscriptMenu
+ * @returns {Number}
+ */
+function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu) {
+    return {
+        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarWidthStyle,
@@ -1277,4 +1288,5 @@ export {
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,
+    getMenuItemTextContainerStyle,
 };
