@@ -208,8 +208,9 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
             notificationCache.messages.add(new NotificationCache.Message(person, message, createdTimeInMillis));
 
-            // The initial notification for each conversation should use default styling. Once multiple messages are being displayed we should switch to conversation styling.
-            if (hasExistingNotification) {
+
+            // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
+            if (!conversationName.isEmpty() || hasExistingNotification) {
                 // Create the messaging style notification builder for this notification, associating it with the person who sent the report comment
                 NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
                         .setGroupConversation(true)
