@@ -88,7 +88,7 @@ Without minimal action, expected behavior won't be achieved and the final screen
 Broken behavior is the outcome of two things:
 1. Back button in the browser resets the navigation state with the state saved in step two.
    
-2. `Navigation.navigate` creates action with `getActionFromState` dispatched high in the hierarchy. 
+2. `Navigation.navigate` creates action with `getActionFromState` dispatched at the top level of the navigation hierarchy. 
 
 The reason why `getActionFromState` provided by `react-navigation` is dispatched at the top level of the navigation hierarchy is that it doesn't know about current navigation state, only about desired one.
 
