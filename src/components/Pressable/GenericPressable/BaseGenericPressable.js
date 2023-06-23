@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState, useMemo, forwardRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
 import _ from 'underscore';
 import Accessibility from '../../../libs/Accessibility';
