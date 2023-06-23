@@ -472,6 +472,11 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report, returnEmptyIfNotFound = false) {
+    const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
+    if (report === undefined) {
+        return noPolicyFound;
+    }
+
     if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
@@ -480,7 +485,7 @@ function getPolicyName(report, returnEmptyIfNotFound = false) {
     //     // Public rooms send back the policy name with the reportSummary,
     //     // since they can also be accessed by people who aren't in the workspace
 
-    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || (returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable'));
+    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
 }
 
 /**
