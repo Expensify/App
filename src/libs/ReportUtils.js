@@ -2258,6 +2258,16 @@ function getParentReport(report) {
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
 }
 
+/**
+ * Whether the composer should be hide
+ * @param {Object} report
+ * @param {Object} errors
+ * @returns {Boolean}
+ */
+function shouldHideComposer(report, errors) {
+    return isArchivedRoom(report) || !_.isEmpty(errors) || isAllowedToComment(report);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2350,4 +2360,5 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    shouldHideComposer,
 };

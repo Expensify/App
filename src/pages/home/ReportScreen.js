@@ -152,6 +152,9 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
+            EmojiPickerAction.hideEmojiPicker();
+        }
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
