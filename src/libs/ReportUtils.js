@@ -2259,7 +2259,7 @@ function getParentReport(report) {
 }
 
 /**
- * Whether the composer should be hide
+ * Return true if the composer should be hide
  * @param {Object} report
  * @param {Object} errors
  * @returns {Boolean}
