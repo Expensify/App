@@ -42,7 +42,7 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
-        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
+        const args = ['log', '--format=\'{"commit": "%H", "authorName": "%an", "subject": "%s"},\'', `${fromTag}...${toTag}`];
         console.log(`Running command: git ${args.join(' ')}`);
         const spawnedProcess = spawn('git', args);
         spawnedProcess.on('message', console.log);
