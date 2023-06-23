@@ -58,7 +58,7 @@ class ValidateLoginPage extends Component {
             if (lodashGet(this.props, 'session.authToken')) {
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
-                Navigation.goBack();
+                Navigation.goBack(false);
             } else {
                 Session.signInWithValidateCodeAndNavigate(accountID, validateCode, this.props.preferredLocale);
             }
