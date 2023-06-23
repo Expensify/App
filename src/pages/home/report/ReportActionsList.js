@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
@@ -181,6 +182,12 @@ function ReportActionsList(props) {
 
                     return null;
                 }}
+                ItemSeparatorComponent={() => (
+                    <View
+                        style={styles.chatSeparator}
+                        pointerEvents="none"
+                    />
+                )}
                 keyboardShouldPersistTaps="handled"
                 onLayout={(event) => {
                     setSkeletonViewHeight(event.nativeEvent.layout.height);

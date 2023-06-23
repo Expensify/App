@@ -242,7 +242,6 @@ function ReportActionItem(props) {
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                    style={props.displayAsGroup ? [] : [styles.mt2]}
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
@@ -276,9 +275,7 @@ function ReportActionItem(props) {
                 />
             );
         } else {
-            const message = _.last(lodashGet(props.action, 'message', [{}]));
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
-            const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
@@ -294,7 +291,6 @@ function ReportActionItem(props) {
                                 action={props.action}
                                 isHidden={isHidden}
                                 style={[
-                                    !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
                                     _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
                                         ? styles.colorMuted
                                         : undefined,
