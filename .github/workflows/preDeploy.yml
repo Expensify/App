@@ -30,7 +30,6 @@ jobs:
     needs: confirmPassingBuild
     outputs:
       MERGED_PR: ${{ steps.getMergedPullRequest.outputs.number }}
-      IS_AUTOMATED_PR: ${{ steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR }}
       SHOULD_DEPLOY: ${{ steps.shouldDeploy.outputs.SHOULD_DEPLOY }}
       SHOULD_CP: ${{ steps.isStagingDeployLocked.outputs.IS_LOCKED && steps.hasCherryPickLabel.outputs.HAS_CP_LABEL }}
 
@@ -47,22 +46,18 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Check if merged pull request was an automated PR
-        id: isAutomatedPullRequest
-        run: echo "IS_AUTOMATED_PR=${{ github.actor == 'OSBotify' }}" >> "$GITHUB_OUTPUT"
-
       - name: Check if merged pull request has `CP Staging` label
         id: hasCherryPickLabel
         run: echo "HAS_CP_LABEL=${{ contains(steps.getMergedPullRequest.outputs.labels, 'CP Staging') }}" >> "$GITHUB_OUTPUT"
 
       - name: Check if merged pull request should trigger a deploy
         id: shouldDeploy
-        run: echo "SHOULD_DEPLOY=${{ fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && !fromJSON(steps.isAutomatedPullRequest.outputs.IS_AUTOMATED_PR)) }}" >> "$GITHUB_OUTPUT"
+        run: echo "SHOULD_DEPLOY=${{ fromJSON(steps.hasCherryPickLabel.outputs.HAS_CP_LABEL) || (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && github.actor != 'OSBotify') }}" >> "$GITHUB_OUTPUT"
 
   skipDeploy:
     runs-on: ubuntu-latest
     needs: chooseDeployActions
-    if: ${{ !fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) && !fromJSON(needs.chooseDeployActions.outputs.IS_AUTOMATED_PR) }}
+    if: ${{ !fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) && github.actor != 'OSBotify' }}
     steps:
       - name: Comment on deferred PR
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
