@@ -63,7 +63,7 @@ const defaultProps = {
     onScaleChanged: () => {},
     onToggleKeyboard: () => {},
     containerStyles: [],
-    isFocused: false
+    isFocused: false,
 };
 
 function AttachmentView(props) {
@@ -85,7 +85,6 @@ function AttachmentView(props) {
     // will appear with a source that is a blob
     if (Str.isPDF(props.source) || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
         const sourceURL = props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.source) : props.source;
-        console.log("AttachmentView: ", props.isFocused)
         const children = (
             <PDFView
                 onPress={props.onPress}

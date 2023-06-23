@@ -33,7 +33,7 @@ const defaultProps = {
     onToggleKeyboard: () => {},
     onScaleChanged: () => {},
     onLoadComplete: () => {},
-    isFocused: false
+    isFocused: false,
 };
 
 export {propTypes, defaultProps};

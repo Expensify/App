@@ -195,7 +195,7 @@ class AttachmentCarousel extends React.Component {
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
             isZoomed: false,
-            activeSource: null
+            activeSource: null,
         };
     }
 
@@ -227,15 +227,13 @@ class AttachmentCarousel extends React.Component {
      */
     updatePage({viewableItems}) {
         Keyboard.dismiss();
-        console.log("updatePage", viewableItems)
         // Since we can have only one item in view at a time, we can use the first item in the array
         // to get the index of the current page
         const entry = _.first(viewableItems);
         if (!entry) {
-            this.setState({ activeSource: null });
+            this.setState({activeSource: null});
             return;
         }
-        console.log('entry.item', entry.item);
 
         const page = entry.index;
         this.props.onNavigate(entry.item);

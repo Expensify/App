@@ -60,15 +60,9 @@ class PDFPasswordForm extends Component {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
-
-        // console.log("prevProps.isFocused", prevProps.isFocused)
-        console.log("this.props.isFocused", this.props.isFocused)
-        // console.log("this.textInputRef", !!this.textInputRef)
-
         if (!prevProps.isFocused && this.props.isFocused && this.textInputRef) {
             this.textInputRef.focus();
         }
-        
     }
 
     submitPassword() {
