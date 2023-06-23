@@ -51,11 +51,11 @@ function end(eventName, secondaryName = '') {
             return;
         }
 
-        API.write('SendPerformanceTiming', {
+        API.read('SendPerformanceTiming', {
             name: grafanaEventName,
             value: eventTime,
             platform: `${getPlatform()}`,
-        });
+        }, {});
     });
 }
 
