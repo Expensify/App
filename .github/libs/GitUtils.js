@@ -11,12 +11,19 @@ function fetchRefIfNeeded(ref) {
         console.log(`Checking if ref ${ref} exists locally`);
         const command = `git rev-parse --verify ${ref}`;
         console.log(`Running command: ${command}`);
-        execSync(command);
+        const result = execSync(command).toString();
+        console.log(result);
     } catch (e) {
         console.log(`Ref ${ref} not found locally, attempting to fetch it.`);
-        const command = `git fetch origin ${ref}`;
+        let command = `git fetch origin ${ref}`;
         console.log(`Running command: ${command}`);
-        execSync(command);
+        let result = execSync(command).toString();
+        console.log(result);
+        console.log('Verifying that the ref is now available...');
+        command = `git rev-parse --verify ${ref}`;
+        console.log(`Running command: ${command}`);
+        result = execSync(command).toString();
+        console.log(result);
     }
 }
 
