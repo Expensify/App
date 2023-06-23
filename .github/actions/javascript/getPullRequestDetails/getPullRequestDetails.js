@@ -46,49 +46,26 @@ function outputForkedRepoUrl(PR) {
     }
 }
 
-/**
- * Output pull request data.
- *
- * @param {Object} PR
- */
-function outputPullRequestData(PR) {
-    core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
-    core.setOutput('HEAD_COMMIT_SHA', PR.head.sha);
-    core.setOutput('IS_MERGED', PR.merged);
-    outputMergeActor(PR);
-    outputForkedRepoUrl(PR);
-}
-
-/**
- * Process a pull request and output its data.
- *
- * @param {Object} PR
- */
-function processPullRequest(PR) {
-    if (!_.isEmpty(PR)) {
-        console.log(`Found matching pull request: ${PR.html_url}`);
-        outputPullRequestData(PR);
-    } else {
-        const err = new Error('Could not find matching pull request');
-        console.error(err);
-        core.setFailed(err);
-    }
-}
-
-/**
- * Handle an unknown API error.
- *
- * @param {Error} err
- */
-function handleUnknownError(err) {
-    console.log(`An unknown error occurred with the GitHub API: ${err}`);
-    core.setFailed(err);
-}
-
 GithubUtils.octokit.pulls
     .get({
         ...DEFAULT_PAYLOAD,
         pull_number: pullRequestNumber,
     })
-    .then(({data}) => processPullRequest(data))
-    .catch(handleUnknownError);
+    .then(({data: PR}) => {
+        if (!_.isEmpty(PR)) {
+            console.log(`Found matching pull request: ${PR.html_url}`);
+            core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
+            core.setOutput('HEAD_COMMIT_SHA', PR.head.sha);
+            core.setOutput('IS_MERGED', PR.merged);
+            outputMergeActor(PR);
+            outputForkedRepoUrl(PR);
+        } else {
+            const err = new Error('Could not find matching pull request');
+            console.error(err);
+            core.setFailed(err);
+        }
+    })
+    .catch((err) => {
+        console.log(`An unknown error occurred with the GitHub API: ${err}`);
+        core.setFailed(err);
+    });
