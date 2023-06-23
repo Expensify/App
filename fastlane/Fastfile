@@ -243,6 +243,25 @@ platform :ios do
 
   desc "Move app to App Store Review"
   lane :production do
+    # Login to Spaceship
+    fastlane_require 'spaceship'
+    teamID = "368M544MTT"
+    Spaceship::ConnectAPI.login(
+      use_portal: false,
+      tunes_team_id: teamID,
+    )
+
+    # Find our app
+    app = Spaceship::ConnectAPI::App.find("com.chat.expensify.chat")
+    if app.nil?
+      UI.important "not found in team #{teamID} on ASC!"
+      next
+    end
+
+    # If there's an app that's Pending Developer Release, release it before continuing with the new version
+    pendingReviewVersion = app.get_pending_release_app_store_version
+    version.create_app_store_version_release_request unless version.nil?
+
     deliver(
       api_key_path: "./ios/ios-fastlane-json-key.json",
 
