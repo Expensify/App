@@ -594,6 +594,7 @@ function getOptions(
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
         includeTasks = false,
+        includeMoneyRequests = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -644,6 +645,7 @@ function getOptions(
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         const accountIDs = report.participantAccountIDs || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
@@ -655,6 +657,10 @@ function getOptions(
         }
 
         if (isTaskReport && !includeTasks) {
+            return;
+        }
+
+        if (isMoneyRequestReport && !includeMoneyRequests) {
             return;
         }
 
@@ -853,6 +859,7 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
         includeThreads: true,
+        includeMoneyRequests: true,
     });
 }
 
@@ -935,9 +942,7 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  */
 
 function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
-    // We want to filter out any IOUs or expense reports
-    const filteredReports = _.filter(reports, (report) => !ReportUtils.isMoneyRequestReport(report));
-    return getOptions(filteredReports, personalDetails, {
+    return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,
