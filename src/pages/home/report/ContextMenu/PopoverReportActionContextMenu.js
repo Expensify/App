@@ -41,7 +41,6 @@ class PopoverReportActionContextMenu extends React.Component {
             isChronosReport: false,
             isPinnedChat: false,
             isUnreadChat: false,
-            isParentReport: false,
         };
         this.onPopoverShow = () => {};
         this.onPopoverHide = () => {};
@@ -131,7 +130,6 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
      * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
      * @param {Boolean} isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
-     * @param {Boolean} [isParentReport] - Is the report action from parent report
      */
     showContextMenu(
         type,
@@ -147,7 +145,6 @@ class PopoverReportActionContextMenu extends React.Component {
         isChronosReport = false,
         isPinnedChat = false,
         isUnreadChat = false,
-        isParentReport = false,
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
@@ -180,7 +177,6 @@ class PopoverReportActionContextMenu extends React.Component {
                 isChronosReport,
                 isPinnedChat,
                 isUnreadChat,
-                isParentReport,
             });
         });
     }
@@ -270,7 +266,6 @@ class PopoverReportActionContextMenu extends React.Component {
             isChronosReport: false,
             isPinnedChat: false,
             isUnreadChat: false,
-            isParentReport: false,
         });
     }
 
@@ -319,7 +314,6 @@ class PopoverReportActionContextMenu extends React.Component {
                         isChronosReport={this.state.isChronosReport}
                         isPinnedChat={this.state.isPinnedChat}
                         isUnreadChat={this.state.isUnreadChat}
-                        isParentReport={this.state.isParentReport}
                         anchor={this.contextMenuTargetNode}
                         contentRef={this.contentRef}
                     />

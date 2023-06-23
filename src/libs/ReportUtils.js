@@ -553,7 +553,6 @@ function isThreadParent(reportAction) {
 /**
  * Returns true if reportAction is the first chat preview of a Thread
  *
- * @deprecated
  * @param {Object} reportAction
  * @param {String} reportID
  * @returns {Boolean}

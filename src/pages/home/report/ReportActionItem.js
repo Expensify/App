@@ -71,9 +71,6 @@ const propTypes = {
     /** Is this the most recent IOU Action? */
     isMostRecentIOUReportAction: PropTypes.bool.isRequired,
 
-    /** Is this the action from parent report */
-    isParentReport: PropTypes.bool,
-
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: PropTypes.bool.isRequired,
 
@@ -103,7 +100,6 @@ const defaultProps = {
     personalDetails: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
-    isParentReport: false,
 };
 
 function ReportActionItem(props) {
@@ -187,12 +183,9 @@ function ReportActionItem(props) {
                 toggleContextMenuFromActiveReportAction,
                 ReportUtils.isArchivedRoom(props.report),
                 ReportUtils.chatIncludesChronos(props.report),
-                undefined,
-                undefined,
-                props.isParentReport,
             );
         },
-        [props.draftMessage, props.action, props.report, props.isParentReport, toggleContextMenuFromActiveReportAction],
+        [props.draftMessage, props.action, props.report, toggleContextMenuFromActiveReportAction],
     );
 
     const toggleReaction = useCallback(
@@ -329,7 +322,7 @@ function ReportActionItem(props) {
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
-        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !props.isParentReport;
+        const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
         const oldestFourAccountIDs = lodashGet(props.action, 'childOldestFourAccountIDs', '').split(',');
         const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
@@ -450,7 +443,6 @@ function ReportActionItem(props) {
                             isVisible={hovered && !props.draftMessage && !hasErrors}
                             draftMessage={props.draftMessage}
                             isChronosReport={ReportUtils.chatIncludesChronos(props.report)}
-                            isParentReport={props.isParentReport}
                         />
                         <View
                             style={StyleUtils.getReportActionItemStyle(
@@ -534,7 +526,6 @@ export default compose(
             _.isEqual(prevProps.action, nextProps.action) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
-            prevProps.translate === nextProps.translate &&
-            prevProps.isParentReport === nextProps.isParentReport,
+            prevProps.translate === nextProps.translate,
     ),
 );
