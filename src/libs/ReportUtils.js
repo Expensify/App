@@ -2258,6 +2258,18 @@ function getParentReport(report) {
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
 }
 
+/**
+ * Returns the parentReportID if the given report is a thread else returns the current reportID.
+ *
+ * @param {String} reportID
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getOriginalReportID(reportID, reportAction) {
+    return isThreadFirstChat(reportAction, reportID) ?
+        lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'parentReportID']) : reportID;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2350,4 +2362,5 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getOriginalReportID,
 };
