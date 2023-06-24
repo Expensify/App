@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashCloneDeep from 'lodash/cloneDeep';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
 import Visibility from '../../../libs/Visibility';
@@ -215,6 +216,15 @@ class ReportActionsView extends React.Component {
         if (ReportUtils.isUnread(this.props.report) && prevProps.reportActions.length > this.props.reportActions.length) {
             this.setState({
                 newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions),
+            });
+        }
+
+        // If the last unread message was deleted, remove the *New* green marker and the *New Messages* notification at scroll just as the deletion starts.
+        if (this.props.reportActions.length > 0 && this.props.reportActions[0].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !this.props.network.isOffline) {
+            const reportActionsWithoutPendingOne = lodashCloneDeep(this.props.reportActions);
+            reportActionsWithoutPendingOne.shift();
+            this.setState({
+                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, reportActionsWithoutPendingOne),
             });
         }
 
