@@ -357,11 +357,11 @@ describe('Unread Indicators', () => {
                 expect(displayNameTexts).toHaveLength(2);
                 const firstReportOption = displayNameTexts[0];
                 expect(lodashGet(firstReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
-                expect(lodashGet(firstReportOption, ['props', 'children'])).toHaveTextContent('C User');
+                expect(firstReportOption).toHaveTextContent('C User');
 
                 const secondReportOption = displayNameTexts[1];
                 expect(lodashGet(secondReportOption, ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
-                expect(lodashGet(secondReportOption, ['props', 'children'])).toHaveTextContent('B User');
+                expect(secondReportOption).toHaveTextContent('B User');
 
                 // Tap the new report option and navigate back to the sidebar again via the back button
                 return navigateToSidebarOption(0);
@@ -372,9 +372,9 @@ describe('Unread Indicators', () => {
                 const displayNameTexts = screen.queryAllByLabelText(hintText);
                 expect(displayNameTexts).toHaveLength(2);
                 expect(lodashGet(displayNameTexts[0], ['props', 'style', 0, 'fontWeight'])).toBe(undefined);
-                expect(lodashGet(displayNameTexts[0], ['props', 'children'])).toHaveTextContent('C User');
+                expect(displayNameTexts[0]).toHaveTextContent('C User');
                 expect(lodashGet(displayNameTexts[1], ['props', 'style', 0, 'fontWeight'])).toBe(fontWeightBold);
-                expect(lodashGet(displayNameTexts[1], ['props', 'children'])).toHaveTextContent('B User');
+                expect(displayNameTexts[1]).toHaveTextContent('B User');
             }));
 
     xit('Manually marking a chat message as unread shows the new line indicator and updates the LHN', () =>
