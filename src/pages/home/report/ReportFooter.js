@@ -65,13 +65,18 @@ function ReportFooter(props) {
     const isAnonymousUser = Session.isAnonymousUser();
     const hideComposer = isArchivedRoom || !_.isEmpty(props.errors) || !isAllowedToComment;
 
-    const isSmallSizeLayout = (props.windowWidth - (props.isSmallScreenWidth ? 0 : 375)) < variables.anonymousReportFooterBreakpoint;
+    const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : 375) < variables.anonymousReportFooterBreakpoint;
 
     return (
         <>
             {(isArchivedRoom || hideComposer || isAnonymousUser) && (
                 <View style={[styles.chatFooter, props.isSmallScreenWidth ? styles.mb5 : null]}>
-                    {isAnonymousUser && <AnonymousReportFooter report={props.report} isSmallSizeLayout={isSmallSizeLayout} />}
+                    {isAnonymousUser && (
+                        <AnonymousReportFooter
+                            report={props.report}
+                            isSmallSizeLayout={isSmallSizeLayout}
+                        />
+                    )}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
                     {!props.isSmallScreenWidth && (
                         <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
