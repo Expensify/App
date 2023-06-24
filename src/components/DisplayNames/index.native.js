@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {Fragment} from 'react';
+import _ from 'underscore';
 import {propTypes, defaultProps} from './displayNamesPropTypes';
 import Text from '../Text';
+import styles from '../../styles/styles';
 
-// As we don't have to show tooltips of the Native platform so we simply render the full display names list.
 function DisplayNames(props) {
     return (
         <Text
@@ -10,7 +11,14 @@ function DisplayNames(props) {
             style={props.textStyles}
             numberOfLines={props.numberOfLines}
         >
-            {props.fullTitle}
+            {props.shouldUseFullTitle
+                ? props.fullTitle
+                : _.map(props.displayNamesWithTooltips, ({displayName}, index) => (
+                      <Fragment key={index}>
+                          <Text style={[...props.textStyles, styles.pre]}>{displayName}</Text>
+                          {index < props.displayNamesWithTooltips.length - 1 && <Text style={props.textStyles}>,&nbsp;</Text>}
+                      </Fragment>
+                  ))}
         </Text>
     );
 }
