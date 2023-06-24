@@ -15,14 +15,17 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) || github.actor == 'OSBotify' }}
+      IS_DEPLOYER: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) || github.actor == 'OSBotify' }}
     steps:
-      - id: isUserDeployer
-        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
-        with:
+      - id: isDeployer
+        run: |
+          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
+            echo "IS_DEPLOYER=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "IS_DEPLOYER=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          username: ${{ github.actor }}
-          team: mobile-deployers
 
   createNewVersion:
     needs: validateActor
@@ -65,18 +68,16 @@ jobs:
             echo "New version is ${{ env.NEW_VERSION }}"
           fi;
 
-      - name: Get merge commit for version-bump pull request
-        id: getVersionBumpMergeCommit
-        uses: Expensify/App/.github/actions/javascript/getPullRequestDetails@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          USER: OSBotify
-          TITLE_REGEX: Update version to ${{ env.NEW_VERSION }}
-
       - name: Cherry-pick the version-bump to staging
         run: |
-          git fetch main
-          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }}
+          # Find the commit for the version-bump
+          git fetch origin main
+          git switch main
+          VERSION_BUMP_COMMIT="$(git log --format='%H' --author='OSBotify' --grep 'Update version to ${{ env.NEW_VERSION }}')"
+
+          # Cherry-pick it to staging
+          git switch staging
+          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs "$VERSION_BUMP_COMMIT"
 
       - name: Cherry-pick the merge commit of target PR
         id: cherryPick
@@ -103,7 +104,7 @@ jobs:
           fi
 
       - name: Create Pull Request to manually finish CP
-        if: fromJSON(steps.cherryPick.outputs.hasConflicts)
+        if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
         id: createPullRequest
         run: |
           gh pr create \
