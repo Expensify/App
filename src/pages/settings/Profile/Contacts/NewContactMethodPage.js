@@ -54,26 +54,34 @@ const defaultProps = {
     loginList: {},
 };
 
+const getPhoneLogin = (phoneOrEmail) => {
+    if (_.isEmpty(phoneOrEmail)) {
+        return '';
+    }
+
+    return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
+};
+
+const validateNumber = (values) => {
+    const parsedPhoneNumber = parsePhoneNumber(values);
+
+    if (parsedPhoneNumber.possible) {
+        return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
+    }
+
+    return '';
+};
+
+const addNewContactMethod = (values) => {
+    const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+    const validateIfnumber = validateNumber(phoneLogin);
+    const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+
+    User.addNewContactMethodAndNavigate(submitDetail, values.password);
+};
+
 function NewContactMethodPage(props) {
     const loginInputRef = useRef(null);
-
-    const getPhoneLogin = (phoneOrEmail) => {
-        if (_.isEmpty(phoneOrEmail)) {
-            return '';
-        }
-
-        return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
-    };
-
-    const validateNumber = (values) => {
-        const parsedPhoneNumber = parsePhoneNumber(values);
-
-        if (parsedPhoneNumber.possible) {
-            return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
-        }
-
-        return '';
-    };
 
     const validate = React.useCallback(
         (values) => {
@@ -106,14 +114,6 @@ function NewContactMethodPage(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
-
-    const addNewContactMethod = (values) => {
-        const phoneLogin = getPhoneLogin(values.phoneOrEmail);
-        const validateIfnumber = validateNumber(phoneLogin);
-        const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
-
-        User.addNewContactMethodAndNavigate(submitDetail, values.password);
-    };
 
     return (
         <ScreenWrapper
