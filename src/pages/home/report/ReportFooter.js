@@ -13,6 +13,7 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles from '../../../styles/styles';
+import variables from '../../../styles/variables';
 import reportActionPropTypes from './reportActionPropTypes';
 import reportPropTypes from '../../reportPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -64,11 +65,13 @@ function ReportFooter(props) {
     const isAnonymousUser = Session.isAnonymousUser();
     const hideComposer = isArchivedRoom || !_.isEmpty(props.errors) || !isAllowedToComment;
 
+    const isSmallSizeLayout = (props.windowWidth - (props.isSmallScreenWidth ? 0 : 375)) < variables.anonymousReportFooterBreakpoint;
+
     return (
         <>
             {(isArchivedRoom || hideComposer || isAnonymousUser) && (
                 <View style={[styles.chatFooter, props.isSmallScreenWidth ? styles.mb5 : null]}>
-                    {isAnonymousUser && <AnonymousReportFooter report={props.report} />}
+                    {isAnonymousUser && <AnonymousReportFooter report={props.report} isSmallSizeLayout={isSmallSizeLayout} />}
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
                     {!props.isSmallScreenWidth && (
                         <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
