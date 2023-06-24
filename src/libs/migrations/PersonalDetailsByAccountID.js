@@ -39,27 +39,7 @@ function getDeprecatedPersonalDetailsFromOnyx() {
 }
 
 /**
- * Migrate Onyx data to hide emails where necessary.
- *
- * - personalDetails -> personalDetailsList
- *     - Key by accountID instead of email
- *     - Must check if users are "known" or not, and include their contact info if and only if they are "known"
- * - policyMemberList_ -> policyMember_
- *     - Key by accountID instead of email
- * - reportAction_
- *     - oldLogin -> oldAccountID
- *     - newLogin -> newAccountID
- *     - actorEmail -> actorAccountID
- *     - accountEmail -> accountID
- *     - childManagerEmail -> childManagerAccountID
- *     - originalMessage.participants -> originalMessage.participantAccountIDs
- *     - whisperedTo -> whisperedToAccountID
- *     - childOldestFourEmails -> childOldestFourAccountIDs
- * - report_
- *     - ownerEmail -> ownerAccountID
- *     - managerEmail -> managerID
- *     - lastActorEmail -> lastActorAccountID
- *     - participants -> participantAccountIDs
+ * Migrate Onyx data for the email to accountID migration.
  *
  * @returns {Promise<void>}
  */
@@ -67,6 +47,14 @@ export default function () {
     return Promise.all([getReportActionsFromOnyx(), getDeprecatedPersonalDetailsFromOnyx()]).then(
         ([oldReportActions, oldPersonalDetails]) => {
             const onyxData = {};
+            // originalMessage.oldLogin -> originalMessage.oldAccountID x
+            // originalMessage.newLogin -> originalMessage.newAccountID x
+            // actorEmail -> actorAccountID x
+            // childManagerEmail -> childManagerAccountID x
+            // whisperedTo -> whisperedToAccountIDs x
+            // childOldestFourEmails -> childOldestFourAccountIDs x
+            // participants -> participantAccountIDs ?
+            // accountEmail -> accountID ?
 
             // We migrate reportActions to have the new accountID-based data if they don't already.
             // If we are not able to get the accountID for some reason, we will just clear the reportAction
@@ -84,19 +72,19 @@ export default function () {
 
                     const newReportAction = reportAction;
 
-                    if (reportAction.oldLogin && !reportAction.oldAccountID) {
-                        const oldAccountID = _.get(oldPersonalDetails, [reportAction.oldLogin, 'accountID']);
+                    if (reportAction.originalMessage.oldLogin && !reportAction.originalMessage.oldAccountID) {
+                        const oldAccountID = _.get(oldPersonalDetails, [reportAction.originalMessage.oldLogin, 'accountID']);
                         if (oldAccountID) {
-                            newReportAction.oldAccountID = oldAccountID;
+                            newReportAction.originalMessage.oldAccountID = oldAccountID;
                         } else {
                             return;
                         }
                     }
 
-                    if (reportAction.newLogin && !reportAction.newAccountID) {
-                        const newAccountID = _.get(oldPersonalDetails, [reportAction.newLogin, 'accountID']);
+                    if (reportAction.originalMessage.newLogin && !reportAction.originalMessage.newAccountID) {
+                        const newAccountID = _.get(oldPersonalDetails, [reportAction.originalMessage.newLogin, 'accountID']);
                         if (newAccountID) {
-                            newReportAction.newAccountID = newAccountID;
+                            newReportAction.originalMessage.newAccountID = newAccountID;
                         } else {
                             return;
                         }
@@ -111,19 +99,53 @@ export default function () {
                         }
                     }
 
-                    if (reportAction.accountEmail && !reportAction.accountID) {
-                        const accountID = _.get(oldPersonalDetails, [reportAction.accountEmail, 'accountID']);
-                        if (accountID) {
-                            newReportAction.accountID = accountID;
+                    if (reportAction.childManagerEmail && !reportAction.childManagerAccountID) {
+                        const childManagerAccountID = _.get(oldPersonalDetails, [reportAction.childManagerEmail, 'accountID']);
+                        if (childManagerAccountID) {
+                            newReportAction.childManagerAccountID = childManagerAccountID;
                         } else {
                             return;
                         }
                     }
 
-                    if (reportAction.childManagerEmail && !reportAction.childManagerAccountID) {
-                        const childManagerAccountID = _.get(oldPersonalDetails, [reportAction.childManagerEmail, 'accountID']);
-                        if (childManagerAccountID) {
-                            newReportAction.childManagerAccountID = childManagerAccountID;
+                    if (reportAction.whisperedTo && !reportAction.whisperedToAccountIDs) {
+                        const whisperedToAccountIDs = [];
+                        _.each(reportAction.whisperedTo, (whisperedToLogin) => {
+                            const whisperedToAccountID = _.get(oldPersonalDetails, [whisperedToLogin, 'accountID']);
+                            if (whisperedToAccountID) {
+                                whisperedToAccountIDs.push(whisperedToAccountID);
+                            }
+                        });
+
+                        if (whisperedToAccountIDs.length === reportAction.whisperedTo.length) {
+                            newReportAction.whisperedToAccountIDs = whisperedToAccountIDs;
+                        } else {
+                            return;
+                        }
+                    }
+
+                    if (reportAction.childOldestFourEmails && !reportAction.childOldestFourAccountIDs) {
+                        const childOldestFourEmails = reportAction.childOldestFourEmails.split(',');
+                        const childOldestFourAccountIDs = [];
+                        _.each(childOldestFourEmails, (login) => {
+                            const accountID = _.get(oldPersonalDetails, [login, 'accountID']);
+                            if (accountID) {
+                                childOldestFourAccountIDs.push(accountID);
+                            }
+                        });
+
+                        if (childOldestFourAccountIDs.length === childOldestFourEmails.length) {
+                            newReportAction.childOldestFourAccountIDs = childOldestFourAccountIDs.join(',');
+                        } else {
+                            return;
+                        }
+                    }
+
+
+                    if (reportAction.accountEmail && !reportAction.accountID) {
+                        const accountID = _.get(oldPersonalDetails, [reportAction.accountEmail, 'accountID']);
+                        if (accountID) {
+                            newReportAction.accountID = accountID;
                         } else {
                             return;
                         }
@@ -139,28 +161,6 @@ export default function () {
                     newOriginalMessage.participantAccountIDs = newParticipants;
                     newReportAction.originalMessage = newOriginalMessage;
 
-                    if (reportAction.whisperedTo) {
-                        const whisperedToAccountIDs = [];
-                        _.each(reportAction.whisperedTo, (whisperedToLogin) => {
-                            const whisperedToAccountID = _.get(oldPersonalDetails, [whisperedToLogin, 'accountID']);
-                            if (whisperedToAccountID) {
-                                whisperedToAccountIDs.push(whisperedToAccountID);
-                            }
-                        });
-                        newReportAction.whisperedToAccountIDs = whisperedToAccountIDs;
-                    }
-
-                    if (reportAction.childOldestFourEmails) {
-                        const childOldestFourEmails = reportAction.childOldestFourEmails.split(',');
-                        const childOldestFourAccountIDs = [];
-                        _.each(childOldestFourEmails, (login) => {
-                            const accountID = _.get(oldPersonalDetails, [login, 'accountID']);
-                            if (accountID) {
-                                childOldestFourAccountIDs.push(accountID);
-                            }
-                        });
-                        newReportAction.childOldestFourAccountIDs = childOldestFourAccountIDs.join(',');
-                    }
 
                     newReportActionsForReport[newReportAction.reportActionID] = newReportAction;
                 });
