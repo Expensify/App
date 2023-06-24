@@ -376,6 +376,16 @@ function getBankAccountRoute(report) {
 }
 
 /**
+ * Returns true if report has a parent and is therefore a Thread.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isThread(report) {
+    return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
+}
+
+/**
  * Only returns true if this is our main 1:1 DM report with Concierge
  *
  * @param {Object} report
@@ -522,16 +532,6 @@ function isPolicyExpenseChatAdmin(report, policies) {
     const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']);
 
     return policyRole === CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
- * Returns true if report has a parent and is therefore a Thread.
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isThread(report) {
-    return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
 }
 
 /**
