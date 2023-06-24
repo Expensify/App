@@ -134,7 +134,7 @@ class WorkspaceNewRoomPage extends React.Component {
 
         // Workspaces are policies with type === 'free'
         const workspaceOptions = _.map(
-            _.filter(this.props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
+            _.filter(this.props.policies, (policy) => policy && (policy.type === CONST.POLICY.TYPE.FREE || CONST.POLICY.TYPE.CORPORATE)),
             (policy) => ({label: policy.name, key: policy.id, value: policy.id}),
         );
 

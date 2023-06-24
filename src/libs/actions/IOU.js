@@ -407,6 +407,9 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         isNewReportPreviewAction,
     );
 
+    console.log(typeof report.policyID);
+    console.log(report.policyID);
+
     // STEP 6: Make the request
     API.write(
         'RequestMoney',
@@ -422,6 +425,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
             createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            policyID: report.policyID,
         },
         {optimisticData, successData, failureData},
     );
@@ -459,7 +463,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
-    const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, (participant) => participant.login)]);
+    const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, (participant) => participant.login || participant.displayName)]);
     const groupTransaction = TransactionUtils.buildOptimisticTransaction(
         amount,
         currency,
@@ -581,7 +585,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
-        const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
+        const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login || '').toLowerCase();
         const accountID = Number(participant.accountID);
         if (email === currentUserEmail) {
             return;
