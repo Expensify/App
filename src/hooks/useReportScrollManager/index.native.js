@@ -28,7 +28,7 @@ function useReportScrollManager() {
         flatListRef.current.scrollToOffset({animated: false, offset: 0});
     };
 
-    return {scrollToIndex, scrollToBottom};
+    return {ref: flatListRef, scrollToIndex, scrollToBottom};
 }
 
 export default useReportScrollManager;
