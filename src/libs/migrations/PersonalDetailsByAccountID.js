@@ -74,7 +74,7 @@ export default function () {
             let reportActionsWereModified = false;
             _.each(reportActionsForReport, (reportAction, reportActionID) => {
                 if (_.isEmpty(reportAction)) {
-                    Log.info(`[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for reportAction ${reportActionID} because the reportAction was empty`);
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because the reportAction was empty`);
                     return;
                 }
 
@@ -157,6 +157,24 @@ export default function () {
                         newReportAction.childOldestFourAccountIDs = childOldestFourAccountIDs.join(',');
                     } else {
                         Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because childOldestFourAccountIDs not found`);
+                        return;
+                    }
+                }
+
+                if (lodashHas(reportAction, ['originalMessage', 'participants']) && !lodashHas(reportAction, ['originalMessage', 'participantAccountIDs'])) {
+                    reportActionsWereModified = true;
+                    const participantAccountIDs = [];
+                    _.each(reportAction.originalMessage.participants, (participant) => {
+                        const participantAccountID = _.get(oldPersonalDetails, [participant, 'accountID']);
+                        if (participantAccountID) {
+                            participantAccountIDs.push(participantAccountID);
+                        }
+                    });
+
+                    if (participantAccountIDs.length === reportAction.originalMessage.participants.length) {
+                        newReportAction.participantAccountIDs = participantAccountIDs;
+                    } else {
+                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.participantAccountIDs not found`);
                         return;
                     }
                 }
