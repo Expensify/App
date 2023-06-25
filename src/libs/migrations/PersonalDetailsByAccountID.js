@@ -48,13 +48,13 @@ function getDeprecatedPersonalDetailsFromOnyx() {
 export default function () {
     return Promise.all([getReportActionsFromOnyx(), getDeprecatedPersonalDetailsFromOnyx()]).then(([oldReportActions, oldPersonalDetails]) => {
         const onyxData = {};
-        // originalMessage.oldLogin -> originalMessage.oldAccountID x
-        // originalMessage.newLogin -> originalMessage.newAccountID x
-        // actorEmail -> actorAccountID x
-        // childManagerEmail -> childManagerAccountID x
-        // whisperedTo -> whisperedToAccountIDs x
-        // childOldestFourEmails -> childOldestFourAccountIDs x
-        // participants -> participantAccountIDs ?
+        // originalMessage.oldLogin -> originalMessage.oldAccountID xx
+        // originalMessage.newLogin -> originalMessage.newAccountID xx
+        // actorEmail -> actorAccountID xx
+        // childManagerEmail -> childManagerAccountID xx
+        // whisperedTo -> whisperedToAccountIDs xx
+        // childOldestFourEmails -> childOldestFourAccountIDs xx
+        // participants -> participantAccountIDs xx
         // accountEmail -> accountID ?
         if (!oldReportActions) {
             Log.info('[Migrate Onyx] Skipped migration PersonalDetailsByAccountID because there were no reportActions');
@@ -74,6 +74,7 @@ export default function () {
             let reportActionsWereModified = false;
             _.each(reportActionsForReport, (reportAction, reportActionID) => {
                 if (_.isEmpty(reportAction)) {
+                    reportActionsWereModified = true;
                     Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because the reportAction was empty`);
                     return;
                 }
@@ -147,7 +148,7 @@ export default function () {
                     const childOldestFourEmails = reportAction.childOldestFourEmails.split(',');
                     const childOldestFourAccountIDs = [];
                     _.each(childOldestFourEmails, (login) => {
-                        const accountID = _.get(oldPersonalDetails, [login, 'accountID']);
+                        const accountID = _.get(oldPersonalDetails, [login.trim(), 'accountID']);
                         if (accountID) {
                             childOldestFourAccountIDs.push(accountID);
                         }
