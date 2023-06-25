@@ -35,7 +35,9 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
+    /** Should focus to the password input  */
     isFocused: PropTypes.bool,
+
     /** Function for handle on press */
     onPress: PropTypes.func,
 

@@ -30,6 +30,7 @@ const propTypes = {
     /** Notify parent that a text field has been focused or blurred */
     onPasswordFieldFocused: PropTypes.func,
 
+    /** Should focus to the password input  */
     isFocused: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
@@ -58,11 +59,11 @@ class PDFPasswordForm extends Component {
         this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
-        if (!prevProps.isFocused && this.props.isFocused && this.textInputRef) {
-            this.textInputRef.focus();
+        if (prevProps.isFocused || !this.props.isFocused || !this.textInputRef) {
+            return;
         }
+        this.textInputRef.focus();
     }
 
     submitPassword() {

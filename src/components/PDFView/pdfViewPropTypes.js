@@ -21,6 +21,7 @@ const propTypes = {
     /** Handles load complete event in PDF component */
     onLoadComplete: PropTypes.func,
 
+    /** Should focus to the password input  */
     isFocused: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
