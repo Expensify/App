@@ -466,6 +466,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsLoungeAccessPage = require('../../../pages/settings/Profile/LoungeAccessPage').default;
+            return SettingsLoungeAccessPage;
+        },
+        name: 'Settings_Lounge_Access',
+    },
+    {
+        getComponent: () => {
             const SettingsPaymentsPage = require('../../../pages/settings/Payments/PaymentsPage').default;
             return SettingsPaymentsPage;
         },
@@ -716,6 +723,16 @@ const FlagCommentStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const EditRequestStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const EditRequestPage = require('../../../pages/EditRequestPage').default;
+            return EditRequestPage;
+        },
+        name: 'EditRequest_Root',
+    },
+]);
+
 export {
     MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
@@ -737,4 +754,5 @@ export {
     WalletStatementStackNavigator,
     YearPickerStackNavigator,
     FlagCommentStackNavigator,
+    EditRequestStackNavigator,
 };
