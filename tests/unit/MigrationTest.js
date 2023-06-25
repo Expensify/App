@@ -7,6 +7,7 @@ import getPlatform from '../../src/libs/getPlatform';
 import AddLastVisibleActionCreated from '../../src/libs/migrations/AddLastVisibleActionCreated';
 import MoveToIndexedDB from '../../src/libs/migrations/MoveToIndexedDB';
 import KeyReportActionsByReportActionID from '../../src/libs/migrations/KeyReportActionsByReportActionID';
+import PersonalDetailsByAccountID from '../../src/libs/migrations/PersonalDetailsByAccountID';
 import ONYXKEYS from '../../src/ONYXKEYS';
 
 jest.mock('../../src/libs/getPlatform');
@@ -252,5 +253,112 @@ describe('Migrations', () => {
                         },
                     });
                 }));
+    });
+
+    describe('PersonalDetailsByAccountID', () => {
+        // Warning: this test has to come before the others in this suite because Onyx.clear leaves traces and keys with null values aren't cleared out between tests
+        it("Should work even if there's no reportAction data in Onyx", () =>
+            PersonalDetailsByAccountID().then(() =>
+                expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration PersonalDetailsByAccountID because there were no reportActions'),
+            ));
+
+        it("Should work even if there's zombie reportAction data in Onyx", () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith(`[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1 because there were no reportActions`);
+                    expect(LogSpy).toHaveBeenCalledWith(`[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2 because there were no reportActions`);
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            _.each(allReportActions, (reportActionsForReport) => expect(reportActionsForReport).toBeNull());
+                        },
+                    });
+                }));
+
+        // it('Should migrate reportActions to be keyed by reportActionID instead of sequenceNumber', () =>
+        //     Onyx.multiSet({
+        //         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+        //             1: {
+        //                 reportActionID: '1000',
+        //                 sequenceNumber: 1,
+        //             },
+        //             2: {
+        //                 reportActionID: '2000',
+        //                 sequenceNumber: 2,
+        //             },
+        //         },
+        //         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: {
+        //             1: {
+        //                 reportActionID: '3000',
+        //                 sequenceNumber: 1,
+        //             },
+        //             2: {
+        //                 reportActionID: '4000',
+        //                 sequenceNumber: 2,
+        //             },
+        //         },
+        //     })
+        //         .then(KeyReportActionsByReportActionID)
+        //         .then(() => {
+        //             expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Re-keying reportActions by reportActionID for 2 reports');
+        //             const connectionID = Onyx.connect({
+        //                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        //                 waitForCollectionCallback: true,
+        //                 callback: (allReportActions) => {
+        //                     Onyx.disconnect(connectionID);
+        //                     expect(_.keys(allReportActions).length).toBe(2);
+        //                     _.each(allReportActions, (reportActionsForReport) => {
+        //                         _.each(reportActionsForReport, (reportAction, key) => {
+        //                             expect(key).toBe(reportAction.reportActionID);
+        //                         });
+        //                     });
+        //                 },
+        //             });
+        //         }));
+
+        // it('Should return early if the migration has already happened', () =>
+        //     Onyx.multiSet({
+        //         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+        //             1000: {
+        //                 reportActionID: '1000',
+        //                 sequenceNumber: 1,
+        //             },
+        //             2000: {
+        //                 reportActionID: '2000',
+        //                 sequenceNumber: 2,
+        //             },
+        //         },
+        //         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: {
+        //             3000: {
+        //                 reportActionID: '3000',
+        //             },
+        //             4000: {
+        //                 reportActionID: '4000',
+        //             },
+        //         },
+        //     })
+        //         .then(KeyReportActionsByReportActionID)
+        //         .then(() => {
+        //             expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because we already migrated it');
+        //             const connectionID = Onyx.connect({
+        //                 key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        //                 waitForCollectionCallback: true,
+        //                 callback: (allReportActions) => {
+        //                     Onyx.disconnect(connectionID);
+        //                     expect(_.keys(allReportActions).length).toBe(2);
+        //                     _.each(allReportActions, (reportActionsForReport) => {
+        //                         _.each(reportActionsForReport, (reportAction, key) => {
+        //                             expect(key).toBe(reportAction.reportActionID);
+        //                         });
+        //                     });
+        //                 },
+        //             });
+        //         }));
     });
 });

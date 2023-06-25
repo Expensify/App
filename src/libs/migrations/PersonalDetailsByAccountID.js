@@ -56,6 +56,10 @@ export default function () {
         // childOldestFourEmails -> childOldestFourAccountIDs x
         // participants -> participantAccountIDs ?
         // accountEmail -> accountID ?
+        if (!oldReportActions) {
+            Log.info('[Migrate Onyx] Skipped migration PersonalDetailsByAccountID because there were no reportActions');
+            return;
+        }
 
         // We migrate reportActions to have the new accountID-based data if they don't already.
         // If we are not able to get the accountID for some reason, we will just clear the reportAction
