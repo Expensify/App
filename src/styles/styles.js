@@ -2297,6 +2297,11 @@ const styles = {
         padding: 20,
     },
 
+    pageWrapperNotCentered: {
+        width: '100%',
+        padding: 20,
+    },
+
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -2895,6 +2900,14 @@ const styles = {
         paddingRight: 12,
         paddingLeft: 12,
         marginTop: 12,
+    },
+
+    shortTermsHeadline: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
     },
 
     longTermsRow: {
