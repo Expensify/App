@@ -2,6 +2,7 @@ import _ from 'underscore';
 import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import Log from '../Log';
 
 const DEPRECATED_ONYX_KEYS = {
     // Deprecated personal details object which was keyed by login instead of accountID.
@@ -60,13 +61,15 @@ export default function () {
         // If we are not able to get the accountID for some reason, we will just clear the reportAction
         // and let it be fetched from the API next time they open the report and scroll to that action.
         _.each(oldReportActions, (reportActionsForReport, onyxKey) => {
-            if (!reportActionsForReport) {
+            if (_.isEmpty(reportActionsForReport)) {
+                Log.info(`[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${onyxKey} because there were no reportActions`);
                 return;
             }
 
             const newReportActionsForReport = {};
-            _.each(reportActionsForReport, (reportAction) => {
-                if (!reportAction) {
+            _.each(reportActionsForReport, (reportAction, reportActionID) => {
+                if (_.isEmpty(reportAction)) {
+                    Log.info(`[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for reportAction ${reportActionID} because the reportAction was empty`);
                     return;
                 }
 
@@ -77,6 +80,7 @@ export default function () {
                     if (oldAccountID) {
                         newReportAction.originalMessage.oldAccountID = oldAccountID;
                     } else {
+                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.oldAccountID not found`);
                         return;
                     }
                 }
@@ -86,6 +90,7 @@ export default function () {
                     if (newAccountID) {
                         newReportAction.originalMessage.newAccountID = newAccountID;
                     } else {
+                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.newAccountID not found`);
                         return;
                     }
                 }
@@ -95,6 +100,7 @@ export default function () {
                     if (actorAccountID) {
                         newReportAction.actorAccountID = actorAccountID;
                     } else {
+                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because actorAccountID not found`);
                         return;
                     }
                 }
@@ -104,6 +110,7 @@ export default function () {
                     if (childManagerAccountID) {
                         newReportAction.childManagerAccountID = childManagerAccountID;
                     } else {
+                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because childManagerAccountID not found`);
                         return;
                     }
                 }
@@ -120,6 +127,7 @@ export default function () {
                     if (whisperedToAccountIDs.length === reportAction.whisperedTo.length) {
                         newReportAction.whisperedToAccountIDs = whisperedToAccountIDs;
                     } else {
+                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because whisperedToAccountIDs not found`);
                         return;
                     }
                 }
@@ -137,6 +145,7 @@ export default function () {
                     if (childOldestFourAccountIDs.length === childOldestFourEmails.length) {
                         newReportAction.childOldestFourAccountIDs = childOldestFourAccountIDs.join(',');
                     } else {
+                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because childOldestFourAccountIDs not found`);
                         return;
                     }
                 }
@@ -160,7 +169,7 @@ export default function () {
                 // newOriginalMessage.participantAccountIDs = newParticipants;
                 // newReportAction.originalMessage = newOriginalMessage;
 
-                newReportActionsForReport[newReportAction.reportActionID] = newReportAction;
+                newReportActionsForReport[reportActionID] = newReportAction;
             });
 
             onyxData[onyxKey] = newReportActionsForReport;
