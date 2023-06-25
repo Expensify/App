@@ -67,6 +67,7 @@ export default function () {
             }
 
             const newReportActionsForReport = {};
+            let reportActionsWereModified = false;
             _.each(reportActionsForReport, (reportAction, reportActionID) => {
                 if (_.isEmpty(reportAction)) {
                     Log.info(`[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for reportAction ${reportActionID} because the reportAction was empty`);
@@ -76,6 +77,7 @@ export default function () {
                 const newReportAction = reportAction;
 
                 if (lodashHas(reportAction, ['originalMessage', 'oldLogin']) && !lodashHas(reportAction, ['originalMessage', 'oldAccountID'])) {
+                    reportActionsWereModified = true;
                     const oldAccountID = _.get(oldPersonalDetails, [reportAction.originalMessage.oldLogin, 'accountID']);
                     if (oldAccountID) {
                         newReportAction.originalMessage.oldAccountID = oldAccountID;
@@ -86,6 +88,7 @@ export default function () {
                 }
 
                 if (lodashHas(reportAction, ['originalMessage', 'newLogin']) && !lodashHas(reportAction, ['originalMessage', 'newAccountID'])) {
+                    reportActionsWereModified = true;
                     const newAccountID = _.get(oldPersonalDetails, [reportAction.originalMessage.newLogin, 'accountID']);
                     if (newAccountID) {
                         newReportAction.originalMessage.newAccountID = newAccountID;
@@ -96,6 +99,7 @@ export default function () {
                 }
 
                 if (lodashHas(reportAction, ['actorEmail']) && !lodashHas(reportAction, ['actorAccountID'])) {
+                    reportActionsWereModified = true;
                     const actorAccountID = _.get(oldPersonalDetails, [reportAction.actorEmail, 'accountID']);
                     if (actorAccountID) {
                         newReportAction.actorAccountID = actorAccountID;
@@ -106,6 +110,7 @@ export default function () {
                 }
 
                 if (lodashHas(reportAction, ['childManagerEmail']) && !lodashHas(reportAction, ['childManagerAccountID'])) {
+                    reportActionsWereModified = true;
                     const childManagerAccountID = _.get(oldPersonalDetails, [reportAction.childManagerEmail, 'accountID']);
                     if (childManagerAccountID) {
                         newReportAction.childManagerAccountID = childManagerAccountID;
@@ -116,6 +121,7 @@ export default function () {
                 }
 
                 if (lodashHas(reportAction, ['whisperedTo']) && !lodashHas(reportAction, ['whisperedToAccountIDs'])) {
+                    reportActionsWereModified = true;
                     const whisperedToAccountIDs = [];
                     _.each(reportAction.whisperedTo, (whisperedToLogin) => {
                         const whisperedToAccountID = _.get(oldPersonalDetails, [whisperedToLogin, 'accountID']);
@@ -133,6 +139,7 @@ export default function () {
                 }
 
                 if (lodashHas(reportAction, ['childOldestFourEmails']) && !lodashHas(reportAction, ['childOldestFourAccountIDs'])) {
+                    reportActionsWereModified = true;
                     const childOldestFourEmails = reportAction.childOldestFourEmails.split(',');
                     const childOldestFourAccountIDs = [];
                     _.each(childOldestFourEmails, (login) => {
@@ -172,7 +179,10 @@ export default function () {
                 newReportActionsForReport[reportActionID] = newReportAction;
             });
 
-            onyxData[onyxKey] = newReportActionsForReport;
+            // Only include the reportActions from this report if they were modified in any way
+            if (reportActionsWereModified) {
+                onyxData[onyxKey] = newReportActionsForReport;
+            }
         });
 
         return Onyx.multiSet(onyxData);
