@@ -2232,7 +2232,6 @@ const styles = {
         flexDirection: 'row',
         alignItems: 'center',
         ...(isSmallSizeLayout && {
-            // flex: 1,
             justifyContent: 'space-between',
             marginTop: 16,
         }),

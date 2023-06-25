@@ -35,7 +35,7 @@ function AnonymousReportFooter(props) {
                 />
             </View>
             <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(props.isSmallSizeLayout)}>
-                <View style={[styles.mr4, styles.flexShrink1]}>
+                <View style={[props.isSmallSizeLayout ? styles.mr1 : styles.mr4, styles.flexShrink1]}>
                     <View style={[props.isSmallSizeLayout ? styles.alignItemsStart : styles.alignItemsEnd]}>
                         <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
                     </View>
