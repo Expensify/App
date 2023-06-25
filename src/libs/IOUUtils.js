@@ -121,4 +121,13 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
     return hasPendingRequests;
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion};
+/**
+ * Checks if the iou type is one of request, send, or split.
+ * @param {String} iouType
+ * @returns {Boolean}
+ */
+function isValidMoneyRequestType(iouType) {
+    return [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SEND, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT].includes(iouType);
+}
+
+export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};

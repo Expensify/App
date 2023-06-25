@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View, Animated, Keyboard} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -78,164 +78,153 @@ const defaultProps = {
     onModalHide: () => {},
 };
 
-class AttachmentModal extends PureComponent {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            isModalOpen: false,
-            shouldLoadAttachment: false,
-            isAttachmentInvalid: false,
-            isAuthTokenRequired: props.isAuthTokenRequired,
-            attachmentInvalidReasonTitle: null,
-            attachmentInvalidReason: null,
-            source: props.source,
-            modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
-            isConfirmButtonDisabled: false,
-            confirmButtonFadeAnimation: new Animated.Value(1),
-            file: props.originalFileName
-                ? {
-                      name: props.originalFileName,
-                  }
-                : undefined,
-        };
-
-        this.submitAndClose = this.submitAndClose.bind(this);
-        this.closeConfirmModal = this.closeConfirmModal.bind(this);
-        this.onNavigate = this.onNavigate.bind(this);
-        this.downloadAttachment = this.downloadAttachment.bind(this);
-        this.validateAndDisplayFileToUpload = this.validateAndDisplayFileToUpload.bind(this);
-        this.updateConfirmButtonVisibility = this.updateConfirmButtonVisibility.bind(this);
-    }
+function AttachmentModal(props) {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
+    const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
+    const [isAuthTokenRequired] = useState(props.isAuthTokenRequired);
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState(null);
+    const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
+    const [source, setSource] = useState(props.source);
+    const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
+    const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
+    const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
+    const [file, setFile] = useState(
+        props.originalFileName
+            ? {
+                  name: props.originalFileName,
+              }
+            : undefined,
+    );
 
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
      * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
      */
-    onNavigate(attachment) {
-        this.setState(attachment);
-    }
+    const onNavigate = useCallback((attachment) => {
+        setSource(attachment.source);
+        setFile(attachment.file);
+    }, []);
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
      * @param {String} sourceURL
-     * @param {Object} file
+     * @param {Object} _file
      * @returns {String}
      */
-    getModalType(sourceURL, file) {
-        return sourceURL && (Str.isPDF(sourceURL) || (file && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename'))))
-            ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-            : CONST.MODAL.MODAL_TYPE.CENTERED;
-    }
-
+    const getModalType = useCallback(
+        (sourceURL, _file) =>
+            sourceURL && (Str.isPDF(sourceURL) || (_file && Str.isPDF(_file.name || props.translate('attachmentView.unknownFilename'))))
+                ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
+                : CONST.MODAL.MODAL_TYPE.CENTERED,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.translate],
+    );
     /**
      * Download the currently viewed attachment.
      */
-    downloadAttachment() {
-        let sourceURL = this.state.source;
-        if (this.state.isAuthTokenRequired) {
+    const downloadAttachment = useCallback(() => {
+        let sourceURL = source;
+        if (isAuthTokenRequired) {
             sourceURL = addEncryptedAuthTokenToURL(sourceURL);
         }
 
-        fileDownload(sourceURL, this.state.file.name);
+        fileDownload(sourceURL, file.name);
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }
+    }, [isAuthTokenRequired, source, file]);
 
     /**
      * Execute the onConfirm callback and close the modal.
      */
-    submitAndClose() {
+    const submitAndClose = useCallback(() => {
         // If the modal has already been closed or the confirm button is disabled
         // do not submit.
-        if (!this.state.isModalOpen || this.state.isConfirmButtonDisabled) {
+        if (!isModalOpen || isConfirmButtonDisabled) {
             return;
         }
 
-        if (this.props.onConfirm) {
-            this.props.onConfirm(lodashExtend(this.state.file, {source: this.state.source}));
+        if (props.onConfirm) {
+            props.onConfirm(lodashExtend(file, {source}));
         }
 
-        this.setState({isModalOpen: false});
-    }
+        setIsModalOpen(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isModalOpen, isConfirmButtonDisabled, props.onConfirm, file, source]);
 
     /**
      * Close the confirm modal.
      */
-    closeConfirmModal() {
-        this.setState({isAttachmentInvalid: false});
-    }
-
+    const closeConfirmModal = useCallback(() => {
+        setIsAttachmentInvalid(false);
+    }, []);
     /**
-     * @param {Object} file
+     * @param {Object} _file
      * @returns {Boolean}
      */
-    isValidFile(file) {
-        const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
-        if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-            const invalidReason = this.props.translate('attachmentPicker.notAllowedExtension');
-            this.setState({
-                isAttachmentInvalid: true,
-                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.wrongFileType'),
-                attachmentInvalidReason: invalidReason,
-            });
-            return false;
-        }
+    const isValidFile = useCallback(
+        (_file) => {
+            const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
+            if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
+                const invalidReason = props.translate('attachmentPicker.notAllowedExtension');
 
-        if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-            this.setState({
-                isAttachmentInvalid: true,
-                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooLarge'),
-                attachmentInvalidReason: this.props.translate('attachmentPicker.sizeExceeded'),
-            });
-            return false;
-        }
+                setIsAttachmentInvalid(true);
+                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.wrongFileType'));
+                setAttachmentInvalidReason(invalidReason);
+                return false;
+            }
 
-        if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-            this.setState({
-                isAttachmentInvalid: true,
-                attachmentInvalidReasonTitle: this.props.translate('attachmentPicker.attachmentTooSmall'),
-                attachmentInvalidReason: this.props.translate('attachmentPicker.sizeNotMet'),
-            });
-            return false;
-        }
+            if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setIsAttachmentInvalid(true);
+                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentTooLarge'));
+                setAttachmentInvalidReason(props.translate('attachmentPicker.sizeExceeded'));
+                return false;
+            }
 
-        return true;
-    }
+            if (lodashGet(_file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                setIsAttachmentInvalid(true);
+                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentTooSmall'));
+                setAttachmentInvalidReason(props.translate('attachmentPicker.sizeNotMet'));
+                return false;
+            }
 
+            return true;
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [props.translate],
+    );
     /**
-     * @param {Object} file
+     * @param {Object} _file
      */
-    validateAndDisplayFileToUpload(file) {
-        if (!file) {
-            return;
-        }
+    const validateAndDisplayFileToUpload = useCallback(
+        (_file) => {
+            if (!_file) {
+                return;
+            }
 
-        if (!this.isValidFile(file)) {
-            return;
-        }
+            if (!isValidFile(_file)) {
+                return;
+            }
 
-        if (file instanceof File) {
-            const source = URL.createObjectURL(file);
-            const modalType = this.getModalType(source, file);
-            this.setState({
-                isModalOpen: true,
-                source,
-                file,
-                modalType,
-            });
-        } else {
-            const modalType = this.getModalType(file.uri, file);
-            this.setState({
-                isModalOpen: true,
-                source: file.uri,
-                file,
-                modalType,
-            });
-        }
-    }
+            if (_file instanceof File) {
+                const inputSource = URL.createObjectURL(_file);
+                const inputModalType = getModalType(inputSource, _file);
+                setIsModalOpen(true);
+                setSource(inputSource);
+                setFile(_file);
+                setModalType(inputModalType);
+            } else {
+                const inputModalType = getModalType(_file.uri, _file);
+                setIsModalOpen(true);
+                setSource(_file.uri);
+                setFile(_file);
+                setModalType(inputModalType);
+            }
+        },
+        [isValidFile, getModalType],
+    );
 
     /**
      * In order to gracefully hide/show the confirm button when the keyboard
@@ -245,110 +234,124 @@ class AttachmentModal extends PureComponent {
      *
      * @param {Boolean} shouldFadeOut If true, fade out confirm button. Otherwise fade in.
      */
-    updateConfirmButtonVisibility(shouldFadeOut) {
-        this.setState({isConfirmButtonDisabled: shouldFadeOut});
-        const toValue = shouldFadeOut ? 0 : 1;
+    const updateConfirmButtonVisibility = useCallback(
+        (shouldFadeOut) => {
+            setIsConfirmButtonDisabled(shouldFadeOut);
+            const toValue = shouldFadeOut ? 0 : 1;
 
-        Animated.timing(this.state.confirmButtonFadeAnimation, {
-            toValue,
-            duration: 100,
-            useNativeDriver: true,
-        }).start();
-    }
+            Animated.timing(confirmButtonFadeAnimation, {
+                toValue,
+                duration: 100,
+                useNativeDriver: true,
+            }).start();
+        },
+        [confirmButtonFadeAnimation],
+    );
 
-    render() {
-        const source = this.props.source || this.state.source;
-        return (
-            <>
-                <Modal
-                    type={this.state.modalType}
-                    onSubmit={this.submitAndClose}
-                    onClose={() => this.setState({isModalOpen: false})}
-                    isVisible={this.state.isModalOpen}
-                    backgroundColor={themeColors.componentBG}
-                    onModalShow={() => {
-                        this.props.onModalShow();
-                        this.setState({shouldLoadAttachment: true});
-                    }}
-                    onModalHide={(e) => {
-                        this.props.onModalHide(e);
-                        this.setState({shouldLoadAttachment: false});
-                    }}
-                    propagateSwipe
-                >
-                    {this.props.isSmallScreenWidth && <HeaderGap />}
-                    <HeaderWithBackButton
-                        title={this.props.headerTitle || this.props.translate('common.attachment')}
-                        shouldShowBorderBottom
-                        shouldShowDownloadButton={this.props.allowDownload}
-                        onDownloadButtonPress={this.downloadAttachment}
-                        shouldShowCloseButton={!this.props.isSmallScreenWidth}
-                        shouldShowBackButton={this.props.isSmallScreenWidth}
-                        onBackButtonPress={() => this.setState({isModalOpen: false})}
-                        onCloseButtonPress={() => this.setState({isModalOpen: false})}
-                    />
-                    <View style={styles.imageModalImageCenterContainer}>
-                        {!_.isEmpty(this.props.report) ? (
-                            <AttachmentCarousel
-                                report={this.props.report}
-                                onNavigate={this.onNavigate}
-                                source={this.props.source}
-                                onToggleKeyboard={this.updateConfirmButtonVisibility}
-                            />
-                        ) : (
-                            Boolean(source) &&
-                            this.state.shouldLoadAttachment && (
-                                <AttachmentView
-                                    containerStyles={[styles.mh5]}
-                                    source={source}
-                                    isAuthTokenRequired={this.state.isAuthTokenRequired}
-                                    file={this.state.file}
-                                    onToggleKeyboard={this.updateConfirmButtonVisibility}
-                                />
-                            )
-                        )}
-                    </View>
-                    {/* If we have an onConfirm method show a confirmation button */}
-                    {Boolean(this.props.onConfirm) && (
-                        <SafeAreaConsumer>
-                            {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View style={[StyleUtils.fade(this.state.confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
-                                    <Button
-                                        success
-                                        style={[styles.buttonConfirm, this.props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
-                                        textStyles={[styles.buttonConfirmText]}
-                                        text={this.props.translate('common.send')}
-                                        onPress={this.submitAndClose}
-                                        disabled={this.state.isConfirmButtonDisabled}
-                                        pressOnEnter
-                                    />
-                                </Animated.View>
-                            )}
-                        </SafeAreaConsumer>
-                    )}
-                </Modal>
+    /**
+     * close the modal
+     */
+    const closeModal = useCallback(() => {
+        setIsModalOpen(false);
+    }, []);
 
-                <ConfirmModal
-                    title={this.state.attachmentInvalidReasonTitle}
-                    onConfirm={this.closeConfirmModal}
-                    onCancel={this.closeConfirmModal}
-                    isVisible={this.state.isAttachmentInvalid}
-                    prompt={this.state.attachmentInvalidReason}
-                    confirmText={this.props.translate('common.close')}
-                    shouldShowCancelButton={false}
+    /**
+     *  open the modal
+     */
+    const openModal = useCallback(() => {
+        setIsModalOpen(true);
+    }, []);
+
+    const sourceForAttachmentView = props.source || source;
+    return (
+        <>
+            <Modal
+                type={modalType}
+                onSubmit={submitAndClose}
+                onClose={closeModal}
+                isVisible={isModalOpen}
+                backgroundColor={themeColors.componentBG}
+                onModalShow={() => {
+                    props.onModalShow();
+                    setShouldLoadAttachment(true);
+                }}
+                onModalHide={(e) => {
+                    props.onModalHide(e);
+                    setShouldLoadAttachment(false);
+                }}
+                propagateSwipe
+            >
+                {props.isSmallScreenWidth && <HeaderGap />}
+                <HeaderWithBackButton
+                    title={props.headerTitle || props.translate('common.attachment')}
+                    shouldShowBorderBottom
+                    shouldShowDownloadButton={props.allowDownload}
+                    onDownloadButtonPress={() => downloadAttachment(source)}
+                    shouldShowCloseButton={!props.isSmallScreenWidth}
+                    shouldShowBackButton={props.isSmallScreenWidth}
+                    onBackButtonPress={closeModal}
+                    onCloseButtonPress={closeModal}
                 />
+                <View style={styles.imageModalImageCenterContainer}>
+                    {!_.isEmpty(props.report) ? (
+                        <AttachmentCarousel
+                            report={props.report}
+                            onNavigate={onNavigate}
+                            source={props.source}
+                            onToggleKeyboard={updateConfirmButtonVisibility}
+                        />
+                    ) : (
+                        Boolean(sourceForAttachmentView) &&
+                        shouldLoadAttachment && (
+                            <AttachmentView
+                                containerStyles={[styles.mh5]}
+                                source={sourceForAttachmentView}
+                                isAuthTokenRequired={isAuthTokenRequired}
+                                file={file}
+                                onToggleKeyboard={updateConfirmButtonVisibility}
+                            />
+                        )
+                    )}
+                </View>
+                {/* If we have an onConfirm method show a confirmation button */}
+                {Boolean(props.onConfirm) && (
+                    <SafeAreaConsumer>
+                        {({safeAreaPaddingBottomStyle}) => (
+                            <Animated.View style={[StyleUtils.fade(confirmButtonFadeAnimation), safeAreaPaddingBottomStyle]}>
+                                <Button
+                                    success
+                                    style={[styles.buttonConfirm, props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
+                                    textStyles={[styles.buttonConfirmText]}
+                                    text={props.translate('common.send')}
+                                    onPress={submitAndClose}
+                                    disabled={isConfirmButtonDisabled}
+                                    pressOnEnter
+                                />
+                            </Animated.View>
+                        )}
+                    </SafeAreaConsumer>
+                )}
+            </Modal>
 
-                {this.props.children({
-                    displayFileInModal: this.validateAndDisplayFileToUpload,
-                    show: () => {
-                        this.setState({isModalOpen: true});
-                    },
-                })}
-            </>
-        );
-    }
+            <ConfirmModal
+                title={attachmentInvalidReasonTitle}
+                onConfirm={closeConfirmModal}
+                onCancel={closeConfirmModal}
+                isVisible={isAttachmentInvalid}
+                prompt={attachmentInvalidReason}
+                confirmText={props.translate('common.close')}
+                shouldShowCancelButton={false}
+            />
+
+            {props.children({
+                displayFileInModal: validateAndDisplayFileToUpload,
+                show: openModal,
+            })}
+        </>
+    );
 }
 
 AttachmentModal.propTypes = propTypes;
 AttachmentModal.defaultProps = defaultProps;
+AttachmentModal.displayName = 'AttachmentModal';
 export default compose(withWindowDimensions, withLocalize)(AttachmentModal);

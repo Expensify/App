@@ -409,6 +409,14 @@ export default {
         offline: 'Offline',
         syncing: 'Syncing',
     },
+    loungeAccessPage: {
+        loungeAccess: 'Lounge access',
+        headline: 'You qualify for access to our exclusive lounges.',
+        description: 'The Expensify Lounge is where a "high-end airport lounge" meets a vibrant "co-working space" optimized for like-minded individuals.',
+        coffeePromo: 'Great coffee and cocktails',
+        networkingPromo: 'Network with other members',
+        viewsPromo: 'Incredible views of San Francisco',
+    },
     pronounsPage: {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',
@@ -695,7 +703,7 @@ export default {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
-        codeSent: 'Magic code sent!',
+        requestNewCode: 'Request a new code in ',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
@@ -837,6 +845,7 @@ export default {
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
             routingNumber: 'Please enter a valid routing number',
             accountNumber: 'Please enter a valid account number',
+            routingAndAccountNumberCannotBeSame: 'The routing number and account number cannot be the same',
             companyType: 'Please select a valid company type',
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
             address: 'Please enter a valid address',

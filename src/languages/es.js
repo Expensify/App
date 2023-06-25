@@ -408,6 +408,15 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
     },
+    loungeAccessPage: {
+        loungeAccess: 'Acceso a la sala vip',
+        headline: 'Podrás acceder a nuestras salas vip exclusivas.',
+        description:
+            'La sala vip Expensify es el punto de encuentro entre una "sala vip de aeropuerto de alta gama" y un vibrante "espacio de co-working" optimizado para personas con ideas afines.',
+        coffeePromo: 'Buen café y buenos cócteles',
+        networkingPromo: 'Conecta con otros miembros',
+        viewsPromo: 'Increíbles vistas de San Francisco',
+    },
     pronounsPage: {
         pronouns: 'Pronombres',
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
@@ -696,7 +705,7 @@ export default {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
-        codeSent: '¡Código mágico enviado!',
+        requestNewCode: 'Pedir un código nuevo en ',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',
@@ -840,6 +849,7 @@ export default {
             restrictedBusiness: 'Por favor, confirma que la empresa no está en la lista de negocios restringidos',
             routingNumber: 'Por favor, introduce un número de ruta válido',
             accountNumber: 'Por favor, introduce un número de cuenta válido',
+            routingAndAccountNumberCannotBeSame: 'El número de ruta y el número de cuenta no pueden ser iguales',
             companyType: 'Por favor, selecciona un tipo de compañía válido',
             tooManyAttempts:
                 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduce los detalles manualmente.',

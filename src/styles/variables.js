@@ -92,6 +92,7 @@ export default {
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
     lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
+    lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
     lineHeightSizeh1: getValueUsingPixelRatio(23, 28),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
