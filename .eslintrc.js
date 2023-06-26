@@ -74,6 +74,25 @@ module.exports = {
                 '@typescript-eslint/no-unsafe-member-access': 'off',
                 '@typescript-eslint/no-unsafe-assignment': 'off',
 
+                '@typescript-eslint/naming-convention': [
+                    'error',
+                    {
+                        selector: 'variable',
+                        format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+                    },
+                    {
+                        selector: ['property', 'function'],
+                        format: ['camelCase', 'PascalCase'],
+                    },
+                    {
+                        selector: ['enumMember', 'typeLike', 'typeParameter'],
+                        format: ['PascalCase'],
+                    },
+                    {
+                        selector: ['parameter', 'method'],
+                        format: ['camelCase'],
+                    },
+                ],
                 '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
                 '@typescript-eslint/no-unsafe-enum-comparison': 'error',
                 '@typescript-eslint/prefer-enum-initializers': 'error',
