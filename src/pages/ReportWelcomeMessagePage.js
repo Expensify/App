@@ -48,7 +48,7 @@ function ReportWelcomeMessagePage(props) {
 
     return (
         <ScreenWrapper
-            onTransitionEnd={() => {
+            onEntryTransitionEnd={() => {
                 if (!welcomeMessageInputRef.current) {
                     return;
                 }
@@ -61,7 +61,6 @@ function ReportWelcomeMessagePage(props) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
-                    validate={() => ({})}
                     submitButtonText={props.translate('common.save')}
                     enabledWhenOffline
                 >
@@ -73,7 +72,7 @@ function ReportWelcomeMessagePage(props) {
                             multiline
                             numberOfLines={10}
                             maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={welcomeMessageInputRef}
+                            ref={(el) => (welcomeMessageInputRef.current = el)}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
