@@ -246,7 +246,7 @@ class ReportScreen extends React.Component {
         this.firstRenderRef.current = true;
 
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
-        const isSingleTransactionView = ReportActionsUtils.isTransactionThread(this.props.report);
+        const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
 
