@@ -198,7 +198,8 @@ export default function () {
                 newReportActionsForReport[reportActionID] = newReportAction;
             });
 
-            // Only include the reportActions from this report if they were modified in any way
+            // Only include the reportActions from this report if at least one reportAction in this report
+            // was modified in any way.
             if (reportActionsWereModified) {
                 onyxData[onyxKey] = newReportActionsForReport;
             }
