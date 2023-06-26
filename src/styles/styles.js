@@ -2297,6 +2297,11 @@ const styles = {
         padding: 20,
     },
 
+    pageWrapperNotCentered: {
+        width: '100%',
+        padding: 20,
+    },
+
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
