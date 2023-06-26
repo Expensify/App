@@ -1,5 +1,5 @@
 import lodashClamp from 'lodash/clamp';
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
@@ -33,14 +33,13 @@ const defaultProps = {
     imageHeight: 200,
 };
 
-    /**
-     * Compute the thumbnails width and height given original image dimensions.
-     *
-     * @param {Number} width - Width of the original image.
-     * @param {Number} height - Height of the original image.
-     * @returns {Object} - Object containing thumbnails width and height.
-     */
-
+/**
+ * Compute the thumbnails width and height given original image dimensions.
+ *
+ * @param {Number} width - Width of the original image.
+ * @param {Number} height - Height of the original image.
+ * @returns {Object} - Object containing thumbnails width and height.
+ */
 
 function calculateThumbnailImageSize(width, height, windowHeight) {
     if (!width || !height) {
@@ -66,16 +65,16 @@ function calculateThumbnailImageSize(width, height, windowHeight) {
 }
 
 function ThumbnailImage(props) {
-const [imageWidth, setImageWidth] = useState(200);
-const [imageHeight, setImageHeight] = useState(200);
+    const [imageWidth, setImageWidth] = useState(200);
+    const [imageHeight, setImageHeight] = useState(200);
 
-     /**
+    /**
      * Update the state with the computed thumbnail sizes.
      *
      * @param {{ width: number, height: number }} Params - width and height of the original image.
      */
-    
-     function updateImageSize({width, height}) {
+
+    function updateImageSize({width, height}) {
         const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height, props.windowHeight);
         setImageWidth(thumbnailWidth);
         setImageHeight(thumbnailHeight);
