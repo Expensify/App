@@ -48,14 +48,14 @@ function checkout_repo {
 
 function setup_git_as_human {
   info "Switching to human git user"
-  git config user.name test
-  git config user.email test@test.com
+  git config --global user.name test
+  git config --global user.email test@test.com
 }
 
 function setup_git_as_osbotify {
   info "Switching to OSBotify git user"
-  git config user.name OSBotify
-  git config user.email infra+osbotify@expensify.com
+  git config --global user.name OSBotify
+  git config --global user.email infra+osbotify@expensify.com
 }
 
 function print_version {
@@ -136,6 +136,13 @@ function tag_staging {
   success "Created new tag $(print_version)"
 }
 
+function assert_prs_merged_between {
+  info "Checking output of getPullRequestsMergedBetween $1 $2"
+  checkout_repo
+  output=$(node "$getPullRequestsMergedBetween" "$1" "$2")
+  assert_equal "$output" "$3"
+}
+
 ### Phase 0: Verify necessary tools are installed (all tools should be pre-installed on all GitHub Actions runners)
 
 if ! command -v jq &> /dev/null; then
@@ -185,9 +192,7 @@ tag_staging
 git switch main
 
 # Verify output for checklist and deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.1"
-output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.1')
-assert_equal "$output" "[ '1' ]"
+assert_prs_merged_between '1.0.0' '1.0.1' "[ '1' ]"
 
 success "Scenario #1 completed successfully!"
 
@@ -216,14 +221,10 @@ cherry_pick_pr 3
 tag_staging
 
 # Verify output for checklist
-info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
-output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.2')
-assert_equal "$output" "[ '3', '1' ]"
+assert_prs_merged_between '1.0.0' '1.0.2' "[ '3', '1' ]"
 
 # Verify output for deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.0.1 1.0.2"
-output=$(node "$getPullRequestsMergedBetween" '1.0.1' '1.0.2')
-assert_equal "$output" "[ '3' ]"
+assert_prs_merged_between '1.0.1' '1.0.2' "[ '3' ]"
 
 success "Scenario #3 completed successfully!"
 
@@ -234,9 +235,7 @@ title "Scenario #4A: Run the production deploy"
 update_production_from_staging
 
 # Verify output for release body and production deploy comments
-info "Checking output of getPullRequestsMergedBetween 1.0.0 1.0.2"
-output=$(node "$getPullRequestsMergedBetween" '1.0.0' '1.0.2')
-assert_equal "$output" "[ '3', '1' ]"
+assert_prs_merged_between '1.0.0' '1.0.2' "[ '3', '1' ]"
 
 success "Scenario #4A completed successfully!"
 
@@ -247,9 +246,7 @@ update_staging_from_main
 tag_staging
 
 # Verify output for new checklist and staging deploy comments
-info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.0"
-output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.0')
-assert_equal "$output" "[ '2' ]"
+assert_prs_merged_between '1.0.2' '1.1.0' "[ '2' ]"
 
 success "Scenario #4B completed successfully!"
 
@@ -270,14 +267,10 @@ update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.1"
-output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.1')
-assert_equal "$output" "[ '5', '2' ]"
+assert_prs_merged_between '1.0.2' '1.1.1' "[ '5', '2' ]"
 
 # Verify output for deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.1.0 1.1.1"
-output=$(node "$getPullRequestsMergedBetween" '1.1.0' '1.1.1')
-assert_equal "$output" "[ '5' ]"
+assert_prs_merged_between '1.1.0' '1.1.1' "[ '5' ]"
 
 success "Scenario #5 completed successfully!"
 
@@ -297,14 +290,10 @@ update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.2"
-output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.2')
-assert_equal "$output" "[ '6', '5', '2' ]"
+assert_prs_merged_between '1.0.2' '1.1.2' "[ '6', '5', '2' ]"
 
 # Verify output for deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.1.1 1.1.2"
-output=$(node "$getPullRequestsMergedBetween" '1.1.1' '1.1.2')
-assert_equal "$output" "[ '6' ]"
+assert_prs_merged_between '1.1.1' '1.1.2' "[ '6' ]"
 
 info "Appending and prepending content to myFile.txt in PR #7"
 setup_git_as_human
@@ -323,14 +312,10 @@ update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.3"
-output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.3')
-assert_equal "$output" "[ '7', '6', '5', '2' ]"
+assert_prs_merged_between '1.0.2' '1.1.3' "[ '7', '6', '5', '2' ]"
 
 # Verify output for deploy comment
-info "Checking output of getPullRequestsMergedBetween 1.1.2 1.1.3"
-output=$(node "$getPullRequestsMergedBetween" '1.1.2' '1.1.3')
-assert_equal "$output" "[ '7' ]"
+assert_prs_merged_between '1.1.2' '1.1.3' "[ '7' ]"
 
 info "Making an unrelated change in PR #8"
 setup_git_as_human
@@ -387,14 +372,10 @@ update_staging_from_main
 tag_staging
 
 # Verify production release list
-info "Checking output of getPullRequestsMergedBetween 1.0.2 1.1.4"
-output=$(node "$getPullRequestsMergedBetween" '1.0.2' '1.1.4')
-assert_equal "$output" "[ '9', '7', '6', '5', '2' ]"
+assert_prs_merged_between '1.0.2' '1.1.4' "[ '9', '7', '6', '5', '2' ]"
 
 # Verify PR list for the new checklist
-info "Checking output of getPullRequestsMergedBetween 1.1.4 1.2.0"
-output=$(node "$getPullRequestsMergedBetween" '1.1.4' '1.2.0')
-assert_equal "$output" "[ '10', '8' ]"
+assert_prs_merged_between '1.1.4' '1.2.0' "[ '10', '8' ]"
 
 ### Cleanup
 title "Cleaning up..."
