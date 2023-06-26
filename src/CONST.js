@@ -844,10 +844,11 @@ const CONST = {
     AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         SUGGESTER_INNER_PADDING: 8,
-        ITEM_HEIGHT: 40,
+        SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
-        MIN_AMOUNT_OF_ITEMS: 3,
-        MAX_AMOUNT_OF_ITEMS: 5,
+        MIN_AMOUNT_OF_SUGGESTIONS: 3,
+        MAX_AMOUNT_OF_SUGGESTIONS: 20,
+        MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
@@ -2506,6 +2507,16 @@ const CONST = {
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
+    },
+    ACCESSIBILITY_ROLE: {
+        BUTTON: 'button',
+        LINK: 'link',
+        MENUITEM: 'menuitem',
+        TEXT: 'text',
+        RADIO: 'radio',
+    },
+    SETTINGS_LOUNGE_ACCESS: {
+        HEADER_IMAGE_ASPECT_RATIO: 0.64,
     },
 };
 
