@@ -257,7 +257,7 @@ class ReportScreen extends React.Component {
                     reactionListRef: this.reactionListRef,
                 }}
             >
-                <ScreenWrapper 
+                <ScreenWrapper
                     style={screenWrapperStyle}
                     shouldEnableKeyboardAvoidingView={this.props.isFocused}
                 >
