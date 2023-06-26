@@ -6,6 +6,7 @@ const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
 /**
  * @param {String} tag
  */
+// eslint-disable-next-line no-unused-vars
 function fetchTagIfNeeded(tag) {
     try {
         console.log(`Checking if tag ${tag} exists locally`);
