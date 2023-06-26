@@ -110,7 +110,7 @@ export default function getPlatform(): Platform {
 
 // index.website.ts
 export default function getPlatform(): Platform {
-  return "website";
+  return "web";
 }
 ```
 
