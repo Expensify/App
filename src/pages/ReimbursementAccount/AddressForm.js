@@ -117,7 +117,7 @@ function AddressForm(props) {
                 defaultValue={props.defaultValues.city}
                 onChangeText={(value) => props.onFieldChange({city: value})}
                 errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
-                containerStyles={styles.mt4}
+                containerStyles={[styles.mt4]}
             />
 
             <View style={[styles.mt4, styles.mhn5]}>
