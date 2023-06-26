@@ -81,8 +81,8 @@ function MultipleAvatars(props) {
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
     useEffect(() => {
-        if (props.shouldStackVertically && props.icons.length > 4) {
-            const rowSize = Math.ceil(props.icons.length / 2);
+        if (props.shouldStackVertically && props.icons.length > props.maxAvatars) {
+            const rowSize = Math.min(Math.ceil(props.icons.length / 2), props.maxAvatars);
             const firstRow = props.icons.slice(rowSize);
             const secondRow = props.icons.slice(0, rowSize);
             setAvatarRows([firstRow, secondRow]);
@@ -204,7 +204,7 @@ function MultipleAvatars(props) {
                                             StyleUtils.getWidthStyle(oneAvatarSize.width),
                                         ]}
                                     >
-                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${props.icons.length - props.maxAvatars}`}</Text>
+                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${avatars.length - props.maxAvatars}`}</Text>
                                     </View>
                                 </View>
                             </Tooltip>
