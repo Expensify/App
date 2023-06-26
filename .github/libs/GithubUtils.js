@@ -233,9 +233,6 @@ class GithubUtils {
     ) {
         return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
-                const automatedPRs = _.pluck(_.filter(data, GithubUtils.isAutomatedPullRequest), 'html_url');
-                console.log('Filtering out the following automated pull requests:', automatedPRs);
-
                 // The format of this map is following:
                 // {
                 //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
@@ -259,7 +256,7 @@ class GithubUtils {
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
 
-                const sortedPRList = _.chain(PRList).difference(automatedPRs).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
+                const sortedPRList = _.chain(PRList).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
                 const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), GithubUtils.getIssueOrPullRequestNumberFromURL);
 
                 // Tag version and comparison URL
@@ -316,7 +313,7 @@ class GithubUtils {
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;
             })
-            .catch((err) => console.warn('Error generating StagingDeployCash issue body!', 'Automated PRs may not be properly filtered out. Continuing...', err));
+            .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
     }
 
     /**
@@ -494,16 +491,6 @@ class GithubUtils {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
         return Number.parseInt(matches[1], 10);
-    }
-
-    /**
-     * Determine if a given pull request is an automated PR.
-     *
-     * @param {Object} pullRequest
-     * @returns {Boolean}
-     */
-    static isAutomatedPullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), CONST.OS_BOTIFY);
     }
 
     /**

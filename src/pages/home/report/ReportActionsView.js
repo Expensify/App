@@ -21,9 +21,9 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import ReactionListRefContext from './ReactionList/ReactionListRefContext';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
+import ReportScreenContext from '../ReportScreenContext';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -105,7 +105,7 @@ class ReportActionsView extends React.Component {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
-                ReportScrollManager.scrollToBottom();
+                ReportScrollManager.scrollToBottom(this.context.flatListRef);
 
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 this.setState({newMarkerReportActionID: ''});
@@ -286,7 +286,7 @@ class ReportActionsView extends React.Component {
     }
 
     scrollToBottomAndMarkReportAsRead() {
-        ReportScrollManager.scrollToBottom();
+        ReportScrollManager.scrollToBottom(this.context.flatListRef);
         Report.readNewestAction(this.props.report.reportID);
     }
 
@@ -344,20 +344,18 @@ class ReportActionsView extends React.Component {
                     isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
                     onClick={this.scrollToBottomAndMarkReportAsRead}
                 />
-                <ReactionListRefContext.Provider value={this.reactionListRef}>
-                    <ReportActionsList
-                        report={this.props.report}
-                        onScroll={this.trackScroll}
-                        onLayout={this.recordTimeToMeasureItemLayout}
-                        sortedReportActions={this.props.reportActions}
-                        mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
-                        isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
-                        loadMoreChats={this.loadMoreChats}
-                        newMarkerReportActionID={this.state.newMarkerReportActionID}
-                    />
-                </ReactionListRefContext.Provider>
+                <ReportActionsList
+                    report={this.props.report}
+                    onScroll={this.trackScroll}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.props.reportActions}
+                    mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
+                    isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                    loadMoreChats={this.loadMoreChats}
+                    newMarkerReportActionID={this.state.newMarkerReportActionID}
+                />
                 <PopoverReactionList
-                    ref={this.reactionListRef}
+                    ref={this.context.reactionListRef}
                     report={this.props.report}
                 />
                 <CopySelectionHelper />
@@ -368,5 +366,6 @@ class ReportActionsView extends React.Component {
 
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
+ReportActionsView.contextType = ReportScreenContext;
 
 export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withNavigationFocus, withLocalize, withNetwork())(ReportActionsView);
