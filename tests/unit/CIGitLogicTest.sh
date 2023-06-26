@@ -19,7 +19,10 @@ function reset_repo_to_initial_state {
   cd "$DUMMY_DIR"
   git reset --hard "$INITIAL_COMMIT_HASH"
   git push --force origin main
-  git branch -r | grep 'origin' | grep -v 'master$' | grep -v HEAD | cut -d/ -f2- | while read -r line; do git push origin ":heads/$line"; done;
+
+  # Delete all branches except main
+  git branch -r | grep 'origin' | grep -v 'main$' | grep -v HEAD | cut -d/ -f2- | while read -r line; do git push --force origin ":heads/$line"; done;
+
   cd "$HOME"
   rm -rf "$DUMMY_DIR"
   success "Reset remote repo to initial state!"
