@@ -26,6 +26,9 @@ function getReportActionsFromOnyx() {
 }
 
 /**
+ * We use the old personalDetails object becuase it is more efficient for this migration since it is keyed by email address.
+ * Also, if the old personalDetails object is not available, that likely means the migration has already run successfully before on this account.
+ *
  * @returns {Promise<Object>}
  */
 function getDeprecatedPersonalDetailsFromOnyx() {
