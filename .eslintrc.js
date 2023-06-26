@@ -62,7 +62,7 @@ module.exports = {
         {
             files: ['*.ts', '*.tsx'],
             extends: ['airbnb-typescript', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier'],
-            plugins: ['@typescript-eslint'],
+            plugins: ['@typescript-eslint', 'jsdoc'],
             parser: '@typescript-eslint/parser',
             parserOptions: {
                 project: './tsconfig.json',
@@ -87,6 +87,7 @@ module.exports = {
                 'es/no-nullish-coalescing-operators': 'off',
                 'es/no-optional-chaining': 'off',
                 'valid-jsdoc': 'off',
+                'jsdoc/no-types': 'error',
                 'import/no-extraneous-dependencies': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
                 'no-restricted-syntax': [
