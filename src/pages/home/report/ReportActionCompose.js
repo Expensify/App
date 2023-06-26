@@ -971,7 +971,7 @@ function ReportActionCompose({translate, ...props}) {
                                                 style={[
                                                     styles.dFlex,
                                                     styles.flexColumn,
-                                                    isFullSizeComposerAvailable || props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                    isFullSizeComposerAvailable || props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
                                                 ]}
                                             >
                                                 {props.isComposerFullSize && (
