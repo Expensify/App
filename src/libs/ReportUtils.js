@@ -994,7 +994,7 @@ function getTransactionReportName(reportAction) {
  * @param {Object} reportAction
  * @returns  {String}
  */
-function getMoneyRequestReportActionMessage(report, reportAction) {
+function getReportPreviewMessage(report, reportAction) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -2390,6 +2390,6 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
-    getMoneyRequestReportActionMessage,
+    getReportPreviewMessage,
     getOriginalReportID,
 };
