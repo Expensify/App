@@ -16,14 +16,12 @@ function setup_git_as_human {
   info "Switching to human git user"
   git config --local user.name test
   git config --local user.email test@test.com
-  gh auth login --with-token < "$GITHUB_TOKEN"
 }
 
 function setup_git_as_osbotify {
   info "Switching to OSBotify git user"
   git config --local user.name OSBotify
   git config --local user.email infra+osbotify@expensify.com
-  gh auth login --with-token < "$OS_BOTIFY_TOKEN"
 }
 
 function remove_repo_if_needed {
