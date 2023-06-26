@@ -21,8 +21,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -52,6 +50,7 @@ import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
+import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
@@ -146,13 +145,14 @@ const {RNTextInputReset} = NativeModules;
  * @returns {Number}
  */
 const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
-    // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
-    const emojiRowCount = isAutoSuggestionPickerLarge
-        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+    // rowCount is number of emoji/mention suggestions. For small screen we can fit 3 items
+    // and for large we show up to 20 items for mentions/emojis
+    const rowCount = isAutoSuggestionPickerLarge
+        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS)
+        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_SUGGESTIONS);
 
     // -1 because we start at 0
-    return emojiRowCount - 1;
+    return rowCount - 1;
 };
 
 class ReportActionCompose extends React.Component {
@@ -370,20 +370,20 @@ class ReportActionCompose extends React.Component {
             [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: this.props.translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: this.props.translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
         };
-        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), (option) => options[option]);
+        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), (option) => ({
+            ...options[option],
+            onSelected: () => IOU.startMoneyRequest(option, this.props.report.reportID),
+        }));
     }
 
     /**
@@ -452,6 +452,10 @@ class ReportActionCompose extends React.Component {
         }
 
         const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+            // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
+            if (!detail.login) {
+                return false;
+            }
             if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
                 return false;
             }
@@ -459,7 +463,7 @@ class ReportActionCompose extends React.Component {
         });
 
         const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
-        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
+        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
             suggestions.push({
                 text: detail.displayName,
                 alternateText: detail.login,
@@ -949,7 +953,7 @@ class ReportActionCompose extends React.Component {
                                                     style={[
                                                         styles.dFlex,
                                                         styles.flexColumn,
-                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
                                                     ]}
                                                 >
                                                     {this.props.isComposerFullSize && (

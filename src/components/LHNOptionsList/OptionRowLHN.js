@@ -108,6 +108,7 @@ function OptionRowLHN(props) {
             false,
             false,
             optionItem.isPinned,
+            optionItem.isUnread,
         );
     };
 
@@ -141,11 +142,10 @@ function OptionRowLHN(props) {
                             props.isFocused ? styles.sidebarLinkActive : null,
                             hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
                     >
-                        <View
-                            accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
-                            style={sidebarInnerRowStyle}
-                        >
+                        <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
