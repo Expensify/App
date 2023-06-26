@@ -144,12 +144,33 @@ function isTaskReport(report) {
 }
 
 /**
- * Checks if a report is an IOU or expense report.
+ * Checks if a task is completed
  *
  * @param {Object} report
  * @returns {Boolean}
  */
-function isMoneyRequestReport(report) {
+function isTaskCompleted(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
+}
+
+/**
+ * Checks if the current user is assigned to the task report
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isTaskAssignee(report) {
+    return lodashGet(report, 'managerEmail') === currentUserEmail;
+}
+
+/**
+ * Checks if a report is an IOU or expense report.
+ *
+ * @param {Object|String} reportOrID
+ * @returns {Boolean}
+ */
+function isMoneyRequestReport(reportOrID) {
+    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
     return isIOUReport(report) || isExpenseReport(report);
 }
 
@@ -450,22 +471,15 @@ function isArchivedRoom(report) {
  * @returns {String}
  */
 function getPolicyName(report) {
-    // Public rooms send back the policy name with the reportSummary,
-    // since they can also be accessed by people who aren't in the workspace
-    if (report.policyName) {
-        return report.policyName;
-    }
-
-    if (!allPolicies || _.size(allPolicies) === 0) {
+    if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
+    const policy = _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
 
-    const policy = allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-    if (!policy) {
-        return report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
-    }
+    //     // Public rooms send back the policy name with the reportSummary,
+    //     // since they can also be accessed by people who aren't in the workspace
 
-    return policy.name || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
 }
 
 /**
@@ -534,7 +548,7 @@ function isThreadParent(reportAction) {
  * Returns true if reportAction is the first chat preview of a Thread
  *
  * @param {Object} reportAction
- *  @param {String} reportID
+ * @param {String} reportID
  * @returns {Boolean}
  */
 function isThreadFirstChat(reportAction, reportID) {
@@ -663,19 +677,25 @@ function getIconsForParticipants(participants, personalDetails) {
     for (let i = 0; i < participantsList.length; i++) {
         const accountID = participantsList[i];
         const avatarSource = UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar'], ''), accountID);
-        participantDetails.push([lodashGet(personalDetails, [accountID, 'login'], ''), lodashGet(personalDetails, [accountID, 'firstName'], ''), avatarSource]);
+        participantDetails.push([
+            accountID,
+            lodashGet(personalDetails, [accountID, 'login'], lodashGet(personalDetails, [accountID, 'displayName'], '')),
+            lodashGet(personalDetails, [accountID, 'firstName'], ''),
+            avatarSource,
+        ]);
     }
 
     // Sort all logins by first name (which is the second element in the array)
-    const sortedParticipantDetails = participantDetails.sort((a, b) => a[1] - b[1]);
+    const sortedParticipantDetails = participantDetails.sort((a, b) => a[2] - b[2]);
 
     // Now that things are sorted, gather only the avatars (third element in the array) and return those
     const avatars = [];
     for (let i = 0; i < sortedParticipantDetails.length; i++) {
         const userIcon = {
-            source: sortedParticipantDetails[i][2],
+            id: sortedParticipantDetails[i][0],
+            source: sortedParticipantDetails[i][3],
             type: CONST.ICON_TYPE_AVATAR,
-            name: sortedParticipantDetails[i][0],
+            name: sortedParticipantDetails[i][1],
         };
         avatars.push(userIcon);
     }
@@ -704,11 +724,6 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         result.source = defaultIcon || Expensicons.FallbackAvatar;
         return [result];
     }
-    if (isConciergeChatReport(report)) {
-        result.source = CONST.CONCIERGE_ICON_URL;
-        result.name = CONST.EMAIL.CONCIERGE;
-        return [result];
-    }
     if (isArchivedRoom(report)) {
         result.source = Expensicons.DeletedRoomAvatar;
         return [result];
@@ -719,6 +734,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
         const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', '');
         const actorIcon = {
+            id: actorAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
             name: actorEmail,
             type: CONST.ICON_TYPE_AVATAR,
@@ -729,6 +745,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     if (isTaskReport(report)) {
         const ownerEmail = report.ownerEmail || '';
         const ownerIcon = {
+            id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             name: ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
@@ -766,6 +783,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         }
 
         const adminIcon = {
+            id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             name: report.ownerEmail,
             type: CONST.ICON_TYPE_AVATAR,
@@ -786,6 +804,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
         const accountID = isPayer ? report.managerID : report.ownerAccountID;
         return [
             {
+                id: accountID,
                 source: UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar']), accountID),
                 name: email,
                 type: CONST.ICON_TYPE_AVATAR,
@@ -819,16 +838,6 @@ function getPersonalDetailsForAccountID(accountID) {
             avatar: UserUtils.getDefaultAvatar(accountID),
         }
     );
-}
-
-/**
- * Gets the accountID for a login by looking in the ONYXKEYS.PERSONAL_DETAILS Onyx key (stored in the local variable, allPersonalDetails). If it doesn't exist in Onyx,
- * then an empty string is returned.
- * @param {String} login
- * @returns {String}
- */
-function getAccountIDForLogin(login) {
-    return lodashGet(allPersonalDetails, [login, 'accountID'], '');
 }
 
 /**
@@ -993,10 +1002,10 @@ function getReportName(report) {
         }
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
-        if (isAttachment) {
+        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
+        if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
-        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     if (isChatRoom(report) || isTaskReport(report)) {
@@ -1882,7 +1891,7 @@ function canSeeDefaultRoom(report, policies, betas) {
  * filter out the majority of reports before filtering out very specific minority of reports.
  *
  * @param {Object} report
- * @param {String} reportIDFromRoute
+ * @param {String} currentReportId
  * @param {Boolean} isInGSDMode
  * @param {Object} iouReports
  * @param {String[]} betas
@@ -1890,7 +1899,7 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Boolean} excludeEmptyChats
  * @returns {Boolean}
  */
-function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, iouReports, betas, policies, excludeEmptyChats = false) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, excludeEmptyChats = false) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -1911,7 +1920,7 @@ function shouldReportBeInOptionList(report, reportIDFromRoute, isInGSDMode, iouR
     // Include the currently viewed report. If we excluded the currently viewed report, then there
     // would be no way to highlight it in the options list and it would be confusing to users because they lose
     // a sense of context.
-    if (report.reportID === reportIDFromRoute) {
+    if (report.reportID === currentReportId) {
         return true;
     }
 
@@ -1965,6 +1974,28 @@ function getChatByParticipants(newParticipantList) {
 
         // Only return the room if it has all the participants and is not a policy room
         return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
+    });
+}
+
+/**
+ * Attempts to find a report in onyx with the provided email list of participants. Does not include threads
+ * This is temporary function while migrating from PersonalDetails to PersonalDetailsList
+ *
+ * @deprecated - use getChatByParticipants()
+ *
+ * @param {Array} participantsLoginList
+ * @returns {Array|undefined}
+ */
+function getChatByParticipantsByLoginList(participantsLoginList) {
+    participantsLoginList.sort();
+    return _.find(allReports, (report) => {
+        // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
+        if (!report || !report.participants || isThread(report)) {
+            return false;
+        }
+
+        // Only return the room if it has all the participants and is not a policy room
+        return !isUserCreatedPolicyRoom(report) && _.isEqual(participantsLoginList, _.sortBy(report.participants));
     });
 }
 
@@ -2233,8 +2264,18 @@ function getParentReport(report) {
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
 }
 
+/**
+ * Returns ID of the original report from which the given reportAction is first created.
+ *
+ * @param {String} reportID
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getOriginalReportID(reportID, reportAction) {
+    return isThreadFirstChat(reportAction, reportID) ? lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'parentReportID']) : reportID;
+}
+
 export {
-    getAccountIDForLogin,
     getReportParticipantsTitle,
     isReportMessageAttachment,
     findLastAccessedReport,
@@ -2294,6 +2335,7 @@ export {
     buildOptimisticTaskCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
+    getChatByParticipantsByLoginList,
     getChatByParticipantsAndPolicy,
     getAllPolicyReports,
     getIOUReportActionMessage,
@@ -2302,6 +2344,8 @@ export {
     isExpenseReport,
     isIOUReport,
     isTaskReport,
+    isTaskCompleted,
+    isTaskAssignee,
     isMoneyRequestReport,
     chatIncludesChronos,
     getNewMarkerReportActionID,
@@ -2323,4 +2367,5 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getOriginalReportID,
 };

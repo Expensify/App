@@ -10,6 +10,7 @@ import CONST from '../../../../CONST';
 import Performance from '../../../../libs/Performance';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import sidebarPropTypes from './sidebarPropTypes';
+import * as Browser from '../../../../libs/Browser';
 
 const propTypes = {
     ...sidebarPropTypes,
@@ -48,7 +49,7 @@ class BaseSidebarScreen extends Component {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                style={[styles.sidebar]}
+                style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             >
                 {({insets}) => (
                     <>
@@ -58,7 +59,6 @@ class BaseSidebarScreen extends Component {
                                 insets={insets}
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
-                                reportIDFromRoute={this.props.reportIDFromRoute}
                                 onLayout={this.props.onLayout}
                             />
                         </View>

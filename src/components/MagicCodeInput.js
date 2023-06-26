@@ -106,10 +106,18 @@ function MagicCodeInput(props) {
         setFocusedIndex(undefined);
     };
 
+    const focusMagicCodeInput = () => {
+        setFocusedIndex(0);
+        inputRefs.current[0].focus();
+    };
+
     useImperativeHandle(props.innerRef, () => ({
         focus() {
-            setFocusedIndex(0);
-            inputRefs.current[0].focus();
+            focusMagicCodeInput();
+        },
+        resetFocus() {
+            setInput('');
+            focusMagicCodeInput();
         },
         clear() {
             setInput('');
@@ -328,7 +336,7 @@ function MagicCodeInput(props) {
                                     // not currently being responsible for the input, this is
                                     // necessary to avoid calls when the input changes due to
                                     // deleted characters. Only happens in mobile.
-                                    if (index !== editIndex) {
+                                    if (index !== editIndex || _.isUndefined(focusedIndex)) {
                                         return;
                                     }
                                     onChangeText(value);
