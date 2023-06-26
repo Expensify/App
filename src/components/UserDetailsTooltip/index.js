@@ -16,7 +16,7 @@ function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
     let title = String(userDetails.displayName).trim() ? userDetails.displayName : '';
     const subtitle = String(userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
-    if(props.icon && props.icon.type === CONST.ICON_TYPE_WORKSPACE){
+    if (props.icon && props.icon.type === CONST.ICON_TYPE_WORKSPACE) {
         title = props.icon.name;
     }
     const renderTooltipContent = useCallback(
@@ -31,13 +31,9 @@ function UserDetailsTooltip(props) {
                     />
                 </View>
 
-                <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>
-                    {title}
-                </Text>
+                <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
 
-                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
-                    {subtitle}
-                </Text>
+                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{subtitle}</Text>
             </View>
         ),
         [props.icon, userDetails.avatar, userDetails.accountID, userDetails.login, title, subtitle],
