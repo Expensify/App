@@ -21,7 +21,6 @@ const DEFAULT_PAYLOAD = {
 
 const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
 const user = core.getInput('USER', {required: true});
-let titleRegex = core.getInput('TITLE_REGEX', {required: false});
 
 if (pullRequestNumber) {
     console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
@@ -29,11 +28,6 @@ if (pullRequestNumber) {
 
 if (user) {
     console.log(`Looking for pull request w/ user: ${user}`);
-}
-
-if (titleRegex) {
-    titleRegex = new RegExp(titleRegex);
-    console.log(`Looking for pull request w/ title matching: ${titleRegex.toString()}`);
 }
 
 /**
@@ -62,72 +56,29 @@ function outputForkedRepoUrl(PR) {
     }
 }
 
-/**
- * Output pull request data.
- *
- * @param {Object} PR
- */
-function outputPullRequestData(PR) {
-    core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
-    core.setOutput('HEAD_COMMIT_SHA', PR.head.sha);
-    core.setOutput('IS_MERGED', PR.merged);
-    outputMergeActor(PR);
-    outputForkedRepoUrl(PR);
-}
-
-/**
- * Process a pull request and output its data.
- *
- * @param {Object} PR
- */
-function processPullRequest(PR) {
-    if (!_.isEmpty(PR)) {
-        console.log(`Found matching pull request: ${PR.html_url}`);
-        outputPullRequestData(PR);
-    } else {
-        const err = new Error('Could not find matching pull request');
-        console.error(err);
+GithubUtils.octokit.pulls
+    .get({
+        ...DEFAULT_PAYLOAD,
+        pull_number: pullRequestNumber,
+    })
+    .then(({data: PR}) => {
+        if (!_.isEmpty(PR)) {
+            console.log(`Found matching pull request: ${PR.html_url}`);
+            core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
+            core.setOutput('HEAD_COMMIT_SHA', PR.head.sha);
+            core.setOutput('IS_MERGED', PR.merged);
+            outputMergeActor(PR);
+            outputForkedRepoUrl(PR);
+        } else {
+            const err = new Error('Could not find matching pull request');
+            console.error(err);
+            core.setFailed(err);
+        }
+    })
+    .catch((err) => {
+        console.log(`An unknown error occurred with the GitHub API: ${err}`);
         core.setFailed(err);
-    }
-}
-
-/**
- * Handle an unknown API error.
- *
- * @param {Error} err
- */
-function handleUnknownError(err) {
-    console.log(`An unknown error occurred with the GitHub API: ${err}`);
-    core.setFailed(err);
-}
-
-if (pullRequestNumber) {
-    GithubUtils.octokit.pulls
-        .get({
-            ...DEFAULT_PAYLOAD,
-            pull_number: pullRequestNumber,
-        })
-        .then(({data}) => {
-            processPullRequest(data);
-        })
-        .catch(handleUnknownError);
-} else {
-    GithubUtils.octokit.pulls
-        .list({
-            ...DEFAULT_PAYLOAD,
-            state: 'all',
-        })
-        .then(({data}) => _.find(data, (PR) => PR.user.login === user && titleRegex.test(PR.title)).number)
-        .then((matchingPRNum) =>
-            GithubUtils.octokit.pulls.get({
-                ...DEFAULT_PAYLOAD,
-                pull_number: matchingPRNum,
-            }),
-        )
-        .then(({data}) => {
-            processPullRequest(data);
-        });
-}
+    });
 
 
 /***/ }),
@@ -439,9 +390,6 @@ class GithubUtils {
     ) {
         return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
-                const automatedPRs = _.pluck(_.filter(data, GithubUtils.isAutomatedPullRequest), 'html_url');
-                console.log('Filtering out the following automated pull requests:', automatedPRs);
-
                 // The format of this map is following:
                 // {
                 //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
@@ -465,7 +413,7 @@ class GithubUtils {
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
 
-                const sortedPRList = _.chain(PRList).difference(automatedPRs).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
+                const sortedPRList = _.chain(PRList).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
                 const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), GithubUtils.getIssueOrPullRequestNumberFromURL);
 
                 // Tag version and comparison URL
@@ -522,7 +470,7 @@ class GithubUtils {
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;
             })
-            .catch((err) => console.warn('Error generating StagingDeployCash issue body!', 'Automated PRs may not be properly filtered out. Continuing...', err));
+            .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
     }
 
     /**
@@ -700,16 +648,6 @@ class GithubUtils {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
         return Number.parseInt(matches[1], 10);
-    }
-
-    /**
-     * Determine if a given pull request is an automated PR.
-     *
-     * @param {Object} pullRequest
-     * @returns {Boolean}
-     */
-    static isAutomatedPullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), CONST.OS_BOTIFY);
     }
 
     /**

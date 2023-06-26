@@ -75,9 +75,6 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
-    /** Current reportID from the route in react navigation state object */
-    reportIDFromRoute: PropTypes.string,
-
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -102,7 +99,6 @@ const defaultProps = {
     currentUserPersonalDetails: {
         avatar: '',
     },
-    reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     modal: {},
 };
@@ -184,7 +180,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.currentReportId);
 
         const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
 
