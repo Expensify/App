@@ -191,7 +191,7 @@ function getMostRecentIOURequestActionID(reportActions) {
  * Returns array of links inside a given report action
  *
  * @param {Object} reportAction
- * @returns {Boolean}
+ * @returns {Array}
  */
 function extractLinksFromMessageHtml(reportAction) {
     const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
@@ -200,7 +200,7 @@ function extractLinksFromMessageHtml(reportAction) {
     const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
 
     if (!htmlContent) {
-        return;
+        return [];
     }
 
     return _.map([...htmlContent.matchAll(regex)], (match) => match[1]);
