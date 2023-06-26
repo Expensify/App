@@ -516,7 +516,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID));
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.login), false, personalDetail.login);
     result.subtitle = subtitle;
 
     return result;

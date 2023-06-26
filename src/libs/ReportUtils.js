@@ -713,7 +713,7 @@ function getIconsForParticipants(participants, personalDetails) {
  * @param {Boolean} [isPayer]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) {
+function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '') {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
@@ -722,6 +722,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 
     if (_.isEmpty(report)) {
         result.source = defaultIcon || Expensicons.FallbackAvatar;
+        result.name = defaultName || '';
         return [result];
     }
     if (isArchivedRoom(report)) {
