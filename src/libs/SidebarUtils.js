@@ -20,7 +20,6 @@ import * as UserUtils from './UserUtils';
 // Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
 // data anyway and cause SidebarLinks to rerender.
 
-// TODO: get rid of this shit
 let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,

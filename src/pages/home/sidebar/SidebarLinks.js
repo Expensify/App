@@ -150,6 +150,9 @@ class SidebarLinks extends React.Component {
         if (this.unsubscribeEscapeKey) {
             this.unsubscribeEscapeKey();
         }
+        if (this.unsubscribeOnyxModal) {
+            this.unsubscribeOnyxModal();
+        }
     }
 
     showSearchPage() {
