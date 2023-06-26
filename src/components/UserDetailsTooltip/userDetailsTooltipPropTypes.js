@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
+import avatarPropTypes from '../avatarPropTypes';
 
 const propTypes = {
     /** User's Account ID */
@@ -15,6 +16,8 @@ const propTypes = {
         /** Whether this is a Workspace Avatar or User Avatar */
         type: PropTypes.string,
     }),
+    /** Optionally, pass in the icon instead of calculating it. If defined, will take precedence. */
+    icon: avatarPropTypes,
     /** Component that displays the tooltip */
     children: PropTypes.node.isRequired,
     /** List of personalDetails (keyed by accountID)  */
@@ -25,6 +28,7 @@ const defaultProps = {
     accountID: '',
     fallbackUserDetails: {displayName: '', login: '', avatar: '', type: ''},
     personalDetailsList: {},
+    icon: undefined,
 };
 
 export {propTypes, defaultProps};

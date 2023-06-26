@@ -10,34 +10,40 @@ import {propTypes, defaultProps} from './userDetailsTooltipPropTypes';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as UserUtils from '../../libs/UserUtils';
+import CONST from '../../CONST';
 
 function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
+    let title = String(userDetails.displayName).trim() ? userDetails.displayName : '';
+    const subtitle = String(userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
+    if(props.icon && props.icon.type === CONST.ICON_TYPE_WORKSPACE){
+        title = props.icon.name;
+    }
     const renderTooltipContent = useCallback(
         () => (
             <View style={[styles.alignItemsCenter, styles.ph2, styles.pv2]}>
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={UserUtils.getAvatar(userDetails.avatar, userDetails.accountID)}
-                        type={props.fallbackUserDetails.type}
-                        name={props.fallbackUserDetails.login}
+                        source={props.icon ? props.icon.source : UserUtils.getAvatar(userDetails.avatar, userDetails.accountID)}
+                        type={props.icon ? props.icon.type : CONST.ICON_TYPE_AVATAR}
+                        name={props.icon ? props.icon.name : userDetails.login}
                     />
                 </View>
 
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>
-                    {String(userDetails.displayName).trim() ? userDetails.displayName : ''}
+                    {title}
                 </Text>
 
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
-                    {String(userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : ''}
+                    {subtitle}
                 </Text>
             </View>
         ),
-        [userDetails.avatar, userDetails.displayName, userDetails.login, userDetails.accountID],
+        [props.icon, userDetails.avatar, userDetails.accountID, userDetails.login, title, subtitle],
     );
 
-    if (!userDetails.displayName && !userDetails.login) {
+    if (!props.icon && !userDetails.displayName && !userDetails.login) {
         return props.children;
     }
 

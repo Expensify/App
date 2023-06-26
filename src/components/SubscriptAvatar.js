@@ -10,7 +10,6 @@ import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import avatarPropTypes from './avatarPropTypes';
 import UserDetailsTooltip from './UserDetailsTooltip';
-import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
     /** Avatar URL or icon */
@@ -52,12 +51,7 @@ function SubscriptAvatar(props) {
         <View style={[containerStyle, marginStyle]}>
             <UserDetailsTooltip
                 accountID={lodashGet(props.mainAvatar, 'id', '')}
-                fallbackUserDetails={{
-                    displayName: ReportUtils.getDisplayNameForParticipant(props.mainAvatar.name),
-                    login: lodashGet(props.mainAvatar, 'name', ''),
-                    avatar: lodashGet(props.mainAvatar, 'source', ''),
-                    type: lodashGet(props.mainAvatar, 'type', ''),
-                }}
+                icon={props.mainAvatar}
             >
                 <View>
                     <Avatar
@@ -70,12 +64,7 @@ function SubscriptAvatar(props) {
             </UserDetailsTooltip>
             <UserDetailsTooltip
                 accountID={lodashGet(props.secondaryAvatar, 'id', '')}
-                fallbackUserDetails={{
-                    displayName: ReportUtils.getDisplayNameForParticipant(props.secondaryAvatar.name),
-                    login: lodashGet(props.secondaryAvatar, 'name', ''),
-                    avatar: lodashGet(props.secondaryAvatar, 'source', ''),
-                    type: lodashGet(props.secondaryAvatar, 'type', ''),
-                }}
+                icon={props.secondaryAvatar}
             >
                 <View style={props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}}>
                     <Avatar
