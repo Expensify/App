@@ -6,6 +6,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {withCurrentUserPersonalDetailsDefaultProps} from '../withCurrentUserPersonalDetails';
+import CONST from '../../CONST';
 
 const propTypes = {
     /**
@@ -59,6 +60,8 @@ function EmojiReactionBubble(props) {
             enableLongPressWithHover={props.isSmallScreenWidth}
             // Prevent text input blur when emoji reaction is clicked
             onMouseDown={(e) => e.preventDefault()}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+            accessibilityLabel={props.emojiCodes.join('')}
         >
             <Text style={[styles.emojiReactionBubbleText, styles.userSelectNone, StyleUtils.getEmojiReactionBubbleTextStyle(props.isContextMenu)]}>{props.emojiCodes.join('')}</Text>
             {props.count > 0 && <Text style={[styles.reactionCounterText, styles.userSelectNone, StyleUtils.getEmojiReactionCounterTextStyle(props.hasUserReacted)]}>{props.count}</Text>}
