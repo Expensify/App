@@ -19,14 +19,16 @@ const defaultProps = {
     tooltipText: '',
 };
 
-const AvatarWithIndicator = props => (
-    <View style={[styles.sidebarAvatar]}>
-        <Tooltip text={props.tooltipText}>
-            <Avatar source={UserUtils.getSmallSizeAvatar(props.source)} />
-            <Indicator />
-        </Tooltip>
-    </View>
-);
+function AvatarWithIndicator(props) {
+    return (
+        <View style={[styles.sidebarAvatar]}>
+            <Tooltip text={props.tooltipText}>
+                <Avatar source={UserUtils.getSmallSizeAvatar(props.source)} />
+                <Indicator />
+            </Tooltip>
+        </View>
+    );
+}
 
 AvatarWithIndicator.defaultProps = defaultProps;
 AvatarWithIndicator.propTypes = propTypes;

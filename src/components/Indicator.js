@@ -62,8 +62,8 @@ const defaultProps = {
     loginList: {},
 };
 
-const Indicator = (props) => {
-        // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
+function Indicator(props) {
+    // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
     // those should be cleaned out before doing any error checking
     const cleanPolicies = _.pick(props.policies, (policy) => policy);
     const cleanAllPolicyMembers = _.pick(props.allPolicyMembers, (policyMembers) => policyMembers);
@@ -95,7 +95,7 @@ const Indicator = (props) => {
     }
 
     return null;
-};
+}
 
 Indicator.defaultProps = defaultProps;
 Indicator.propTypes = propTypes;

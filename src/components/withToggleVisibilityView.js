@@ -12,7 +12,10 @@ const toggleVisibilityViewPropTypes = {
 export default function (WrappedComponent) {
     function WithToggleVisibilityView(props) {
         return (
-            <View style={!props.isVisible && styles.visuallyHidden} collapsable={false}>
+            <View
+                style={!props.isVisible && styles.visuallyHidden}
+                collapsable={false}
+            >
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}

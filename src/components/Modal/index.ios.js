@@ -4,7 +4,7 @@ import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './modalPropTypes';
 
 function Modal(props) {
-    return  (
+    return (
         <BaseModal
             useNativeDriver
             useNativeDriverForBackdrop={false}
