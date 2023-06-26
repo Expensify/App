@@ -35,6 +35,7 @@ import BlockingView from '../components/BlockingViews/BlockingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
 import ROUTES from '../ROUTES';
+import * as ValidationUtils from '../libs/ValidationUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -95,12 +96,13 @@ function ProfilePage(props) {
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (accountID > 0) {
+        if (ValidationUtils.isValidAccountRoute(accountID)) {
             PersonalDetails.openPublicProfilePage(accountID);
         }
     }, [accountID]);
 
-    const details = lodashGet(props.personalDetails, accountID, {});
+    const details = lodashGet(props.personalDetails, accountID, {isLoading: ValidationUtils.isValidAccountRoute(accountID)});
+
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const originalFileName = lodashGet(details, 'originalFileName', '');

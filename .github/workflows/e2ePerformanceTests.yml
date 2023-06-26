@@ -68,8 +68,8 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ github.token }}
           PULL_REQUEST_NUMBER: ${{ inputs.PR_NUMBER }}
-          user: ${{ github.actor }}
-  
+          USER: ${{ github.actor }}
+
       - name: Merged PR - Get merge commit sha for the pull request
         if: ${{ fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitShaIfMergedPR
@@ -77,7 +77,7 @@ jobs:
           echo "MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
-  
+
       - name: Unmerged PR - Fetch changes from forked repository if necessary
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '') }}
         run: |
@@ -89,7 +89,7 @@ jobs:
         run: |
           git config --global user.email "test@test.com"
           git config --global user.name "Test"
-  
+
       - name: Unmerged PR - Merge pull request locally and get merge commit sha
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitShaIfUnmergedPR
