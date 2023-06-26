@@ -29,7 +29,6 @@ function Enable2FAPrompt(props) {
                     icon: Expensicons.Shield,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
-                    iconFill: themeColors.success,
                     wrapperStyle: [styles.cardMenuItem],
                     link: () => Link.buildOldDotURL(secureYourAccountUrl),
                 },
