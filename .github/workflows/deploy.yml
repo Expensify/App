@@ -5,28 +5,9 @@ on:
     branches: [staging, production]
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    outputs:
-      isAutomatedPullRequest: ${{ steps.isAutomatedPullRequest.outputs.IS_AUTOMERGE_PR }}
-
-    steps:
-      - name: Get merged pull request
-        id: getMergedPullRequest
-        # TODO: Point back action actions-ecosystem after https://github.com/actions-ecosystem/action-get-merged-pull-request/pull/223 is merged
-        uses: roryabraham/action-get-merged-pull-request@7a7a194f6ff8f3eef58c822083695a97314ebec1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check if merged pull request was an automatic version bump PR
-        id: isAutomatedPullRequest
-        run: echo "IS_AUTOMERGE_PR=${{ steps.getMergedPullRequest.outputs.author == 'OSBotify' }}" >> "$GITHUB_OUTPUT"
-
   deployStaging:
     runs-on: ubuntu-latest
-    needs: validate
-    if: ${{ fromJSON(needs.validate.outputs.isAutomatedPullRequest) && github.ref == 'refs/heads/staging' }}
-
+    if: github.ref == 'refs/heads/staging'
     steps:
       - name: Checkout staging branch
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -46,8 +27,7 @@ jobs:
 
   deployProduction:
     runs-on: ubuntu-latest
-    needs: validate
-    if: ${{ fromJSON(needs.validate.outputs.isAutomatedPullRequest) && github.ref == 'refs/heads/production' }}
+    if: github.ref == 'refs/heads/production'
 
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
@@ -84,6 +64,5 @@ jobs:
         with:
           tag_name: ${{ env.PRODUCTION_VERSION }}
           body: ${{ steps.getReleaseBody.outputs.RELEASE_BODY }}
-
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
