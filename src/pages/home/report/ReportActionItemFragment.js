@@ -16,7 +16,6 @@ import compose from '../../../libs/compose';
 import convertToLTR from '../../../libs/convertToLTR';
 import {withNetwork} from '../../../components/OnyxProvider';
 import CONST from '../../../CONST';
-import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
 import editedLabelStyles from '../../../styles/editedLabelStyles';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
@@ -95,6 +94,7 @@ function ReportActionItemFragment(props) {
                 );
             }
             const {html, text} = props.fragment;
+            const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
 
             // Threaded messages display "[Deleted message]" instead of being hidden altogether.
             // While offline we display the previous message with a strikethrough style. Once online we want to
@@ -111,34 +111,39 @@ function ReportActionItemFragment(props) {
 
             // Only render HTML if we have html in the fragment
             if (!differByLineBreaksOnly) {
-                const isPendingDelete = props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && props.network.isOffline;
                 const editedTag = props.fragment.isEdited ? `<edited ${isPendingDelete ? 'deleted' : ''}></edited>` : '';
-                const htmlContent = applyStrikethrough(html + editedTag, isPendingDelete);
+                const htmlContent = isPendingDelete ? `<del>${html}</del>` : html
 
-                return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlContent}</email-comment>` : `<comment>${htmlContent}</comment>`} />;
+                const htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
+
+                return <RenderHTML html={props.source === 'email' ? `<email-comment>${htmlWithTag}</email-comment>` : `<comment>${htmlWithTag}</comment>`} />;
             }
             const containsOnlyEmojis = EmojiUtils.containsOnlyEmojis(text);
 
             return (
-                <Text
-                    selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
-                    style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
-                >
-                    {convertToLTR(text)}
+                <Text>
+                    <Text
+                        selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
+                        style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style, isPendingDelete && styles.offlineFeedback.deleted]}
+                    >
+                        {convertToLTR(text)}
+                    </Text>
                     {Boolean(props.fragment.isEdited) && (
-                        <Text
-                            fontSize={variables.fontSizeSmall}
-                            color={themeColors.textSupporting}
-                            style={[editedLabelStyles, ...props.style]}
-                        >
+                        <>
                             <Text
                                 selectable={false}
-                                style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.w1, styles.userSelectNone]}
+                                style={[containsOnlyEmojis ? styles.onlyEmojisTextLineHeight : undefined, styles.userSelectNone]}
                             >
                                 {' '}
                             </Text>
-                            {props.translate('reportActionCompose.edited')}
-                        </Text>
+                            <Text
+                                fontSize={variables.fontSizeSmall}
+                                color={themeColors.textSupporting}
+                                style={[editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted, ...props.style]}
+                            >
+                                {props.translate('reportActionCompose.edited')}
+                            </Text>
+                        </>
                     )}
                 </Text>
             );

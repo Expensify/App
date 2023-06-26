@@ -480,6 +480,7 @@ function ReportActionItem(props) {
                                 errors={props.action.errors}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={ReportActionsUtils.isMoneyRequestAction(props.action)}
+                                noStrikeThrough
                             >
                                 {isWhisper && (
                                     <View style={[styles.flexRow, styles.pl5, styles.pt2]}>

@@ -97,7 +97,7 @@ function OfflineWithFeedback(props) {
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
     const isAddError = hasErrors && props.pendingAction === 'add';
     const needsOpacity = (isOfflinePendingAction && !isUpdateOrDeleteError) || isAddError;
-    const needsStrikeThrough = props.network.isOffline && props.pendingAction === 'delete';
+    const needsStrikeThrough = !props.noStrikeThrough && props.network.isOffline && props.pendingAction === 'delete';
     const hideChildren = props.shouldHideOnDelete && !props.network.isOffline && props.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !hasErrors;
     let children = props.children;
 
