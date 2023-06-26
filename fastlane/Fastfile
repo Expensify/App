@@ -245,14 +245,15 @@ platform :ios do
   lane :production do
     # Login to Spaceship
     fastlane_require 'spaceship'
-    teamID = "368M544MTT"
+    teamID = CredentialsManager::AppfileConfig.try_fetch_value(:team_id)
     Spaceship::ConnectAPI.login(
       use_portal: false,
       tunes_team_id: teamID,
     )
 
     # Find our app
-    app = Spaceship::ConnectAPI::App.find("com.chat.expensify.chat")
+    bundleID = CredentialsManager::AppfileConfig.try_fetch_value(:app_identifier)
+    app = Spaceship::ConnectAPI::App.find(bundleID)
     if app.nil?
       UI.important "not found in team #{teamID} on ASC!"
       next
