@@ -107,7 +107,6 @@ The action for the first step looks like that:
             "params": {
                 "initial": true,
                 "screen": "Profile",
-                "path": "/settings/profile"
             }
         }
     }
@@ -115,7 +114,51 @@ The action for the first step looks like that:
 ```
 
 
-That means, the params for the `RightModalNavigator` and `Settings` (also a navigator) will be filled with the information that we want to navigate to the `Profile` screen.
+That means, the params for the `RightModalNavigator` and `Settings` (also a navigator) will be filled with the information that we want to have the `Profile` screen in the state.
+
+```json
+{
+    "index": 2,
+    "routes": [
+        { "name": "Home", },
+        {
+            "name": "RightModalNavigator",
+            // here you can see that the params are filled with the information about structure that should be in the state.
+            "params": {
+                "initial": true,
+                "screen": "Settings",
+                "params": {
+                    "initial": true,
+                    "screen": "Settings_Profile",
+                    "path": "/settings/profile"
+                }
+            },
+            "state": {
+                "index": 0,
+                "routes": [
+                    {
+                        "name": "Settings",
+                        // Same here
+                        "params": {
+                            "initial": true,
+                            "screen": "Settings_Profile",
+                            "path": "/settings/profile"
+                        },
+                        "state": {
+                            "index": 0,
+                            "routes": [
+                                {
+                                    "name": "Settings_Profile"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
+```
 
 This information will stay here even if we pop the `Profile` screen and navigate to `About` screen. 
 

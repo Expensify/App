@@ -87,7 +87,6 @@ function RigthModalNavigator() {
             />
             <Stack.Screen
                 name="EditRequest"
-                options={defaultModalScreenOptions}
                 component={ModalStackNavigators.EditRequestStackNavigator}
             />
         </Stack.Navigator>
