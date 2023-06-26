@@ -65,8 +65,9 @@ export default function () {
         }
 
         // We migrate reportActions to have the new accountID-based data if they don't already.
-        // If we are not able to get the accountID for some reason, we will just clear the reportAction
+        // If we are not able to get the accountID from personalDetails for some reason, we will just clear the reportAction
         // and let it be fetched from the API next time they open the report and scroll to that action.
+        // We do this because we know the reportAction from the API will include the needed accountID data.
         _.each(oldReportActions, (reportActionsForReport, onyxKey) => {
             if (_.isEmpty(reportActionsForReport)) {
                 Log.info(`[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${onyxKey} because there were no reportActions`);
