@@ -12,11 +12,35 @@ INITIAL_COMMIT_HASH="5558c22349548c00bd7bc93914904469ff7cdedc"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
+function setup_git_as_human {
+  info "Switching to human git user"
+  git config --local user.name test
+  git config --local user.email test@test.com
+  gh auth login --with-token < "$GITHUB_TOKEN"
+}
+
+function setup_git_as_osbotify {
+  info "Switching to OSBotify git user"
+  git config --local user.name OSBotify
+  git config --local user.email infra+osbotify@expensify.com
+  gh auth login --with-token < "$OS_BOTIFY_TOKEN"
+}
+
+function remove_repo_if_needed {
+  if [ -d "$DUMMY_DIR" ]; then
+    info "Found existing directory at $DUMMY_DIR, deleting it..."
+    cd "$HOME" || exit 1
+    rm -rf "$DUMMY_DIR"
+  fi
+}
+
 function reset_repo_to_initial_state {
   info "Resetting remote repo to initial state..."
+  remove_repo_if_needed
   cd "$HOME" || exit 1
   git clone "$REPO_URL"
   cd "$DUMMY_DIR" || exit 1
+  setup_git_as_osbotify
   git reset --hard "$INITIAL_COMMIT_HASH"
   git push --force origin main
 
@@ -30,32 +54,16 @@ function reset_repo_to_initial_state {
 
 # Note that instead of doing a git clone, we checkout the repo following the same steps used by actions/checkout
 function checkout_repo {
-  if [ -d "$DUMMY_DIR" ]; then
-    info "Found existing directory at $DUMMY_DIR, deleting it and checking it out again"
-    cd "$HOME" || exit 1
-    rm -rf "$DUMMY_DIR"
-  fi
-
   info "Checking out repo at $DUMMY_DIR"
+  remove_repo_if_needed
   mkdir "$DUMMY_DIR"
   cd "$DUMMY_DIR" || exit 1
   git init
+  setup_git_as_osbotify
   git remote add origin https://github.com/roryabraham/DumDumRepo
   git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main
   git checkout --progress --force -B main refs/remotes/origin/main
   success "Checked out repo at $DUMMY_DIR!"
-}
-
-function setup_git_as_human {
-  info "Switching to human git user"
-  git config --global user.name test
-  git config --global user.email test@test.com
-}
-
-function setup_git_as_osbotify {
-  info "Switching to OSBotify git user"
-  git config --global user.name OSBotify
-  git config --global user.email infra+osbotify@expensify.com
 }
 
 function print_version {
@@ -118,7 +126,7 @@ function cherry_pick_pr {
   git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
 
   git switch staging
-  # TODO: test CP's with and without a PR involved
+  # TODO: test CPs with and without a PR involved
   git merge cherry-pick-staging --no-ff -m "Merge pull request #$(($1 + 1)) from Expensify/cherry-pick-staging"
   git branch -d cherry-pick-staging
   git push origin staging
