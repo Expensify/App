@@ -2,17 +2,19 @@
 
 ## Table of Contents
 
-- [1.1 `props.children`](#convension-children)
+- [1.1 `props.children`](#children-prop)
 - [1.2 `forwardRef`](#forwardRef)
 - [1.3 Animated styles](#animated-style)
 - [1.4 Style Props](#style-props)
 - [1.5 Render Prop](#render-prop)
 - [1.6 Type Narrowing](#type-narrowing)
-- [1.7 Errors in Type Catch Clauses](#try-catch-errors)
+- [1.7 Errors in Type Catch Clauses](#try-catch-clauses)
 
 ## CheatSheet
 
-- [1.1](#convension-children) **`props.children`**
+<a name="children-prop"></a><a name="1.1"></a>
+
+- [1.1](#children-prop) **`props.children`**
 
   ```tsx
   type WrapperComponentProps = {
@@ -31,6 +33,8 @@
     );
   }
   ```
+
+<a name="forwardRef"></a><a name="1.2"></a>
 
 - [1.2](#forwardRef) **`forwardRef`**
 
@@ -60,6 +64,8 @@
   }
   ```
 
+<a name="animated-style"></a><a name="1.3"></a>
+
 - [1.3](#animated-style) **Animated styles**
 
   ```ts
@@ -79,6 +85,8 @@
       return <Component style={{opacity: anim.interpolate({...})}} />;
   }
   ```
+
+<a name="style-props"></a><a name="1.4"></a>
 
 - [1.4](#style-props) **Style Props**
 
@@ -100,6 +108,8 @@
     </View>
   }
   ```
+
+<a name="render-prop"></a><a name="1.5"></a>
 
 - [1.5](#render-prop) **Render Prop**
 
@@ -124,6 +134,8 @@
     );
   }
   ```
+
+<a name="type-narrowing"></a><a name="1.6"></a>
 
 - [1.6](#type-narrowing) **Type Narrowing** Narrow types down using `typeof` or custom type guards.
 
@@ -167,7 +179,9 @@
 
   In the above code, `employee is Manager` is Type Predicate. It signifies that the return type of `isManager` is a `boolean`, indicating whether a value passed to the function is of a certain type (e.g. `Manager`).
 
-- [1.7] **Error in Try Catch Clauses**
+<a name="try-catch-clauses"></a><a name="1.7"></a>
+
+- [1.7](#try-catch-clauses) **Error in Try Catch Clauses**
 
   Errors in try/catch clauses are typed as unknown, if the developer needs to use the error data they must conditionally check the type of the data first. Use type narrowing
 

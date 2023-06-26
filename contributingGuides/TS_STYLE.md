@@ -1,28 +1,10 @@
 # Expensify TypeScript Style Guide
 
-## Other Expensify Resources on TypeScript
-
-- [Expensify TypeScript React Native CheatSheet](./TS_CHEATSHEET.md)
-- [Expensify TypeScript PropTypes Conversion Table](./PROPTYPES_CONVERSION_TABLE.md)
-
-## Learning Sources
-
-### Quickest way to learn TypeScript
-
-- Get up to speed quickly
-  - [TypeScript playground](https://www.typescriptlang.org/play?q=231#example)
-    - Go though all examples on the playground. Click on "Example" tab on the top
-- Handy Reference
-  - [TypeScript CheatSheet](https://www.typescriptlang.org/static/TypeScript%20Types-ae199d69aeecf7d4a2704a528d0fd3f9.png)
-    - [Type](https://www.typescriptlang.org/static/TypeScript%20Types-ae199d69aeecf7d4a2704a528d0fd3f9.png)
-    - [Control Flow Analysis](https://www.typescriptlang.org/static/TypeScript%20Control%20Flow%20Analysis-8a549253ad8470850b77c4c5c351d457.png)
-- TypeScript with React
-  - [React TypeScript CheatSheet](https://react-typescript-cheatsheet.netlify.app/)
-    - [List of built-in utility types](https://react-typescript-cheatsheet.netlify.app/docs/basic/troubleshooting/utilities)
-    - [HOC CheatSheet](https://react-typescript-cheatsheet.netlify.app/docs/hoc/)
-
 ## Table of Contents
 
+- [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
+- [Learning Resources](#learning-resources)
+- [Exception to Rules](#exception-to-rules)
 - [1.1 Naming Conventions](#convension-naming-convension)
 - [1.2 `d.ts` Extension](#convensions-d-ts-extension)
 - [1.3 Type Alias vs. Interface](#convensions-type-alias-vs-interface)
@@ -40,13 +22,34 @@
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
 
+## Other Expensify Resources on TypeScript
+
+- [Expensify TypeScript React Native CheatSheet](./TS_CHEATSHEET.md)
+- [Expensify TypeScript PropTypes Conversion Table](./PROPTYPES_CONVERSION_TABLE.md)
+
+## Learning Resources
+
+### Quickest way to learn TypeScript
+
+- Get up to speed quickly
+  - [TypeScript playground](https://www.typescriptlang.org/play?q=231#example)
+    - Go though all examples on the playground. Click on "Example" tab on the top
+- Handy Reference
+  - [TypeScript CheatSheet](https://www.typescriptlang.org/static/TypeScript%20Types-ae199d69aeecf7d4a2704a528d0fd3f9.png)
+    - [Type](https://www.typescriptlang.org/static/TypeScript%20Types-ae199d69aeecf7d4a2704a528d0fd3f9.png)
+    - [Control Flow Analysis](https://www.typescriptlang.org/static/TypeScript%20Control%20Flow%20Analysis-8a549253ad8470850b77c4c5c351d457.png)
+- TypeScript with React
+  - [React TypeScript CheatSheet](https://react-typescript-cheatsheet.netlify.app/)
+    - [List of built-in utility types](https://react-typescript-cheatsheet.netlify.app/docs/basic/troubleshooting/utilities)
+    - [HOC CheatSheet](https://react-typescript-cheatsheet.netlify.app/docs/hoc/)
+
 ## Exception to Rules
 
 Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. Internal engineers will assess the case and suggest alternative or grants an exception. When an exception is granted, link the relevant Slack conversation in your pull request. Suppress ESLint or TypeScript warnings/errors with comments if necessary.
 
 This rule will apply until the migration is done. After the migration, exceptions are assessed and granted by PR reviewers.
 
-## Conventions
+## Guidelines
 
 <a name="convension-naming-convension"></a><a name="1.1"></a>
 
