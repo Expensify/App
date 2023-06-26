@@ -1,7 +1,4 @@
 import React, {PureComponent} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import _, {compose} from 'underscore';
 import {View} from 'react-native';
 import colors from '../../styles/colors';
 import styles from '../../styles/styles';
@@ -11,23 +8,10 @@ import Text from '../Text';
 import * as Expensicons from '../Icon/Expensicons';
 import * as Illustrations from '../Icon/Illustrations';
 import variables from '../../styles/variables';
-import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
-    /** The details about the account that the user is signing in with */
-    account: PropTypes.shape({
-        /** An error message to display to the user */
-        errors: PropTypes.objectOf(PropTypes.string),
-
-        /** The message to be displayed when code requested */
-        message: PropTypes.string,
-    }),
 
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    account: {},
 };
 
 class ExpiredValidateCodeModal extends PureComponent {
@@ -61,10 +45,4 @@ class ExpiredValidateCodeModal extends PureComponent {
 }
 
 ExpiredValidateCodeModal.propTypes = propTypes;
-ExpiredValidateCodeModal.defaultProps = defaultProps;
-export default compose(
-    withLocalize,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(ExpiredValidateCodeModal);
+export default withLocalize(ExpiredValidateCodeModal);
