@@ -2,7 +2,7 @@ import {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {StyleSheet} from 'react-native';
 import Reanimated, {useSharedValue, withTiming, Easing, useAnimatedStyle, runOnJS} from 'react-native-reanimated';
-import DeviceInfo from "react-native-device-info";
+import DeviceInfo from 'react-native-device-info';
 import BootSplash from '../../libs/BootSplash';
 import LogoProduction from '../../../assets/images/new-expensify-dark.svg';
 import LogoDev from '../../../assets/images/new-expensify-dev.svg';
@@ -19,13 +19,16 @@ const defaultProps = {
 };
 
 const getLogo = () => {
-    const bundleId = DeviceInfo.getBundleId()
+    const bundleId = DeviceInfo.getBundleId();
     switch (bundleId) {
-        case "com.expensify.chat.dev": return LogoDev;
-        case "com.expensify.chat.adhoc": return LogoAdHoc;
-        default: return LogoProduction
+        case 'com.expensify.chat.dev':
+            return LogoDev;
+        case 'com.expensify.chat.adhoc':
+            return LogoAdHoc;
+        default:
+            return LogoProduction;
     }
-}
+};
 
 function SplashScreenHider(props) {
     const {onHide} = props;
