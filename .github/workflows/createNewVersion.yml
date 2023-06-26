@@ -46,28 +46,20 @@ jobs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
     steps:
-      # Version: 3.0.2
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0
-
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
       - uses: softprops/turnstyle@ca99add00ff0c9cbc697d22631d2992f377e5bd5
         with:
           poll-interval-seconds: 10
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Create new branch
-        run: |
-          git pull
-          BRANCH_NAME="version-${{ inputs.SEMVER_LEVEL }}-$(uuidgen)"
-          git checkout -b "$BRANCH_NAME"
-          git push --set-upstream origin "$BRANCH_NAME"
-          echo "VERSION_BRANCH=$BRANCH_NAME" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Generate version
         id: bumpVersion
@@ -85,15 +77,9 @@ jobs:
             ./ios/NewExpensify/Info.plist \
             ./ios/NewExpensifyTests/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
-          git push origin ${{ env.VERSION_BRANCH }}
 
       - name: Update main branch
-        uses: Expensify/App/.github/actions/composite/updateProtectedBranch@main
-        with:
-          TARGET_BRANCH: main
-          SOURCE_BRANCH: ${{ env.VERSION_BRANCH }}
-          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+        run: git push origin main
 
       - if: ${{ failure() }}
         uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
