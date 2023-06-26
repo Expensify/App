@@ -187,7 +187,7 @@ export default function () {
                     });
 
                     if (participantAccountIDs.length === reportAction.originalMessage.participants.length) {
-                        newReportAction.participantAccountIDs = participantAccountIDs;
+                        newReportAction.originalMessage.participantAccountIDs = participantAccountIDs;
                     } else {
                         Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.participantAccountIDs not found`);
                         return;
