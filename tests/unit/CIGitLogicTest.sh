@@ -14,25 +14,31 @@ source "$SCRIPTS_DIR/shellUtils.sh"
 
 function reset_repo_to_initial_state {
   info "Resetting remote repo to initial state..."
-  cd "$HOME"
+  cd "$HOME" || exit 1
   git clone "$REPO_URL"
-  cd "$DUMMY_DIR"
+  cd "$DUMMY_DIR" || exit 1
   git reset --hard "$INITIAL_COMMIT_HASH"
   git push --force origin main
 
   # Delete all branches except main
   git branch -r | grep 'origin' | grep -v 'main$' | grep -v HEAD | cut -d/ -f2- | while read -r line; do git push --force origin ":heads/$line"; done;
 
-  cd "$HOME"
+  cd "$HOME" || exit 1
   rm -rf "$DUMMY_DIR"
   success "Reset remote repo to initial state!"
 }
 
 # Note that instead of doing a git clone, we checkout the repo following the same steps used by actions/checkout
 function checkout_repo {
+  if [ -d "$DUMMY_DIR" ]; then
+    info "Found existing directory at $DUMMY_DIR, deleting it and checking it out again"
+    cd "$HOME" || exit 1
+    rm -rf "$DUMMY_DIR"
+  fi
+
   info "Checking out repo at $DUMMY_DIR"
   mkdir "$DUMMY_DIR"
-  cd "$DUMMY_DIR"
+  cd "$DUMMY_DIR" || exit 1
   git init
   git remote add origin https://github.com/roryabraham/DumDumRepo
   git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main
@@ -67,6 +73,7 @@ function bump_version {
   fi
   git add package.json package-lock.json
   git commit -m "Update version to $(print_version)"
+  git push origin main
   success "Version bumped to $(print_version) on main"
 }
 
@@ -75,6 +82,7 @@ function update_staging_from_main {
   git switch main
   git branch -D staging
   git switch -c staging
+  git push --force origin staging
   success "Recreated staging from main!"
 }
 
@@ -83,6 +91,7 @@ function update_production_from_staging {
   git switch staging
   git branch -D production
   git switch -c production
+  git push --force origin production
   success "Recreated production from staging!"
 }
 
@@ -90,6 +99,7 @@ function merge_pr {
   info "Merging PR #$1 to main"
   git switch main
   git merge "pr-$1" --no-ff -m "Merge pull request #$1 from Expensify/pr-$1"
+  git push origin main
   git branch -d "pr-$1"
   success "Merged PR #$1 to main"
 }
@@ -108,8 +118,10 @@ function cherry_pick_pr {
   git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
 
   git switch staging
+  # TODO: test CP's with and without a PR involved
   git merge cherry-pick-staging --no-ff -m "Merge pull request #$(($1 + 1)) from Expensify/cherry-pick-staging"
   git branch -d cherry-pick-staging
+  git push origin staging
   info "Merged PR #$(($1 + 1)) into staging"
 
   success "Successfully cherry-picked PR #$1 to staging!"
@@ -120,6 +132,7 @@ function tag_staging {
   setup_git_as_osbotify
   git switch staging
   git tag "$(print_version)"
+  git push --tags
   success "Created new tag $(print_version)"
 }
 
@@ -139,38 +152,13 @@ fi
 ### Setup
 title "Starting setup"
 
-info "Creating new dummy repo at $DUMMY_DIR"
-mkdir "$DUMMY_DIR"
-cd "$DUMMY_DIR" || exit 1
-success "Successfully created dummy repo at $(pwd)"
-
-info "Initializing npm project in $DUMMY_DIR"
-if [[ $(npm init -y) ]]; then
-  success "Successfully initialized npm project"
-else
-  error "Failed initializing npm project"
-  exit 1
-fi
-
-info "Installing node dependencies..."
-if [[ $(npm install underscore) ]]; then
-  success "Successfully installed node dependencies"
-else
-  error "Failed installing node dependencies"
-  exit 1
-fi
-
-info "Initializing Git repo..."
-git init -b main
-setup_git_as_human
-git add package.json package-lock.json
-git commit -m "Initial commit"
+reset_repo_to_initial_state
+checkout_repo
 
 info "Creating branches..."
 git branch staging
 git branch production
-
-success "Initialized Git repo!"
+success "Created staging and production branches!"
 
 tag_staging
 git switch main
