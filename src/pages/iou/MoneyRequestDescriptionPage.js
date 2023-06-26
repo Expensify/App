@@ -112,6 +112,9 @@ class MoneyRequestDescriptionPage extends Component {
                             defaultValue={this.props.iou.comment}
                             label={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
                             ref={(el) => (this.descriptionInputRef = el)}
+                            autoGrowHeight
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
+                            textAlignVertical="top"
                         />
                     </View>
                 </Form>
