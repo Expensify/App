@@ -61,11 +61,12 @@ function NavigationRoot(props) {
     const statusBarBackgroundColor = useRef(themeColors.appBG);
     const statusBarAnimation = useSharedValue(0);
 
+    const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
     useAnimatedReaction(
         () => statusBarAnimation.value,
         () => {
             const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
-            runOnJS(StatusBar.setBackgroundColor)(color);
+            runOnJS(updateStatusBarBackgroundColor)(color);
         },
     );
 
