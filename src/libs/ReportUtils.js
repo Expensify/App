@@ -548,7 +548,7 @@ function isThreadParent(reportAction) {
  * Returns true if reportAction is the first chat preview of a Thread
  *
  * @param {Object} reportAction
- *  @param {String} reportID
+ * @param {String} reportID
  * @returns {Boolean}
  */
 function isThreadFirstChat(reportAction, reportID) {
@@ -2258,6 +2258,17 @@ function getParentReport(report) {
     return lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {});
 }
 
+/**
+ * Returns ID of the original report from which the given reportAction is first created.
+ *
+ * @param {String} reportID
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getOriginalReportID(reportID, reportAction) {
+    return isThreadFirstChat(reportAction, reportID) ? lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'parentReportID']) : reportID;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2350,4 +2361,5 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getOriginalReportID,
 };

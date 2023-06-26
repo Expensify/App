@@ -209,18 +209,14 @@ function ReportActionItemMessageEdit(props) {
 
         const trimmedNewDraft = draft.trim();
 
-        // If the reportActionID and parentReportActionID are the same then the user is editing the first message of a
-        // thread and we should pass the parentReportID instead of the reportID of the thread
-        const reportID = props.report.parentReportActionID === props.action.reportActionID ? props.report.parentReportID : props.reportID;
-
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
-            ReportActionContextMenu.showDeleteModal(reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
+            ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
             return;
         }
-        Report.editReportComment(reportID, props.action, trimmedNewDraft);
+        Report.editReportComment(props.reportID, props.action, trimmedNewDraft);
         deleteDraft();
-    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID, props.report]);
+    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID]);
 
     /**
      * @param {String} emoji
