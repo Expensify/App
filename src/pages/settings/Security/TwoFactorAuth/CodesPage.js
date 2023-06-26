@@ -17,7 +17,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import styles from '../../../../styles/styles';
 import FixedFooter from '../../../../components/FixedFooter';
 import Button from '../../../../components/Button';
-import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
+import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 import Text from '../../../../components/Text';
 import Section from '../../../../components/Section';
 import ONYXKEYS from '../../../../ONYXKEYS';
