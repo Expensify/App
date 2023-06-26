@@ -94,4 +94,5 @@ function ThumbnailImage(props) {
 
 ThumbnailImage.propTypes = propTypes;
 ThumbnailImage.defaultProps = defaultProps;
+ThumbnailImage.displayName = 'ThumbnailImage';
 export default withWindowDimensions(ThumbnailImage);
