@@ -3,12 +3,39 @@
 # Fail immediately if there is an error thrown
 set -e
 
-TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1;pwd)/$(basename "$0")")")
+TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1; pwd)/$(basename "$0")")")
 SCRIPTS_DIR="$TEST_DIR/../scripts"
 DUMMY_DIR="$HOME/DumDumRepo"
+REPO_URL="https://github.com/roryabraham/DumDumRepo"
 getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
+INITIAL_COMMIT_HASH="5558c22349548c00bd7bc93914904469ff7cdedc"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
+
+function reset_repo_to_initial_state {
+  info "Resetting remote repo to initial state..."
+  cd "$HOME"
+  git clone "$REPO_URL"
+  cd "$DUMMY_DIR"
+  git reset --hard "$INITIAL_COMMIT_HASH"
+  git push --force origin main
+  git branch -r | grep 'origin' | grep -v 'master$' | grep -v HEAD | cut -d/ -f2- | while read -r line; do git push origin ":heads/$line"; done;
+  cd "$HOME"
+  rm -rf "$DUMMY_DIR"
+  success "Reset remote repo to initial state!"
+}
+
+# Note that instead of doing a git clone, we checkout the repo following the same steps used by actions/checkout
+function checkout_repo {
+  info "Checking out repo at $DUMMY_DIR"
+  mkdir "$DUMMY_DIR"
+  cd "$DUMMY_DIR"
+  git init
+  git remote add origin https://github.com/roryabraham/DumDumRepo
+  git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main
+  git checkout --progress --force -B main refs/remotes/origin/main
+  success "Checked out repo at $DUMMY_DIR!"
+}
 
 function setup_git_as_human {
   info "Switching to human git user"
