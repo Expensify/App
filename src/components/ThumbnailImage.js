@@ -42,7 +42,7 @@ const defaultProps = {
      */
 
 
-function calculateThumbnailImageSize(width, height) {
+function calculateThumbnailImageSize(width, height, windowHeight) {
     if (!width || !height) {
         return {};
     }
@@ -52,7 +52,7 @@ function calculateThumbnailImageSize(width, height) {
     // Note: Clamp minimum width 40px to support touch device
     let thumbnailScreenWidth = lodashClamp(width, 40, 250);
     const imageHeight = height / (width / thumbnailScreenWidth);
-    let thumbnailScreenHeight = lodashClamp(imageHeight, 40, this.props.windowHeight * 0.4);
+    let thumbnailScreenHeight = lodashClamp(imageHeight, 40, windowHeight * 0.4);
     const aspectRatio = height / width;
 
     // If thumbnail height is greater than its width, then the image is portrait otherwise landscape.
@@ -65,8 +65,7 @@ function calculateThumbnailImageSize(width, height) {
     return {thumbnailWidth: Math.max(40, thumbnailScreenWidth), thumbnailHeight: Math.max(40, thumbnailScreenHeight)};
 }
 
-
-function ThumbnailImage() {
+function ThumbnailImage(props) {
 const [imageWidth, setImageWidth] = useState(200);
 const [imageHeight, setImageHeight] = useState(200);
 
@@ -77,17 +76,17 @@ const [imageHeight, setImageHeight] = useState(200);
      */
     
      function updateImageSize({width, height}) {
-        const {thumbnailWidth, thumbnailHeight} = this.calculateThumbnailImageSize(width, height);
-        this.setState({thumbnailWidth, thumbnailHeight}); --// use callback function
+        const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height, props.windowHeight);
+        setImageWidth(thumbnailWidth);
+        setImageHeight(thumbnailHeight);
     }
-
     return (
-        <View style={[this.props.style, styles.overflowHidden]}>
-            <View style={[StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
+        <View style={[props.style, styles.overflowHidden]}>
+            <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
-                    url={this.props.previewSourceURL}
-                    onMeasure={this.updateImageSize}
-                    isAuthTokenRequired={this.props.isAuthTokenRequired}
+                    url={props.previewSourceURL}
+                    onMeasure={updateImageSize}
+                    isAuthTokenRequired={props.isAuthTokenRequired}
                 />
             </View>
         </View>
