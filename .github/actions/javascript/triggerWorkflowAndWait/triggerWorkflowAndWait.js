@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const core = require('@actions/core');
+const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GithubUtils = require('../../../libs/GithubUtils');
 const {promiseWhile} = require('../../../libs/promiseWhile');
@@ -55,8 +56,8 @@ const run = function () {
 
                 console.log(`Dispatching workflow: ${workflow}`);
                 return GithubUtils.octokit.actions.createWorkflowDispatch({
-                    owner: GithubUtils.GITHUB_OWNER,
-                    repo: GithubUtils.APP_REPO,
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
                     workflow_id: workflow,
                     ref: 'main',
                     inputs,
@@ -114,8 +115,8 @@ const run = function () {
                         console.log(`\n⏳ Waiting for workflow run ${newWorkflowRunURL} to finish...`);
                         return GithubUtils.octokit.actions
                             .getWorkflowRun({
-                                owner: GithubUtils.GITHUB_OWNER,
-                                repo: GithubUtils.APP_REPO,
+                                owner: CONST.GITHUB_OWNER,
+                                repo: CONST.APP_REPO,
                                 run_id: newWorkflowRunID,
                             })
                             .then(({data}) => {
