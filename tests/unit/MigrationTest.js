@@ -330,6 +330,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -342,6 +343,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -383,6 +385,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -395,6 +398,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -404,6 +408,61 @@ describe('Migrations', () => {
                 .then(PersonalDetailsByAccountID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because originalMessage.newAccountID not found');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toHaveProperty('1');
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).not.toHaveProperty('2');
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have accountEmail but the matching accountID is not found', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                    2: {
+                        reportActionID: '2',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'non-existent@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because accountID not found');
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                         waitForCollectionCallback: true,
@@ -436,6 +495,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -448,6 +508,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'non-existent@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -489,6 +550,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -501,6 +563,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'non-existent@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -542,6 +605,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -554,6 +618,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'non-existent@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -595,6 +660,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -607,6 +673,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, non-existent@account.com',
@@ -648,6 +715,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'test2@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -660,6 +728,7 @@ describe('Migrations', () => {
                             participants: ['test1@account.com', 'non-existent@account.com'],
                         },
                         actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
                         childManagerEmail: 'test2@account.com',
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',

@@ -43,19 +43,22 @@ function getDeprecatedPersonalDetailsFromOnyx() {
 /**
  * Migrate Onyx data for the email to accountID migration.
  *
+ * - reportAction_
+ *     - originalMessage.oldLogin -> originalMessage.oldAccountID
+ *     - originalMessage.newLogin -> originalMessage.newAccountID
+ *     - accountEmail -> accountID
+ *     - actorEmail -> actorAccountID
+ *     - childManagerEmail -> childManagerAccountID
+ *     - whisperedTo -> whisperedToAccountIDs
+ *     - childOldestFourEmails -> childOldestFourAccountIDs
+ *     - originalMessage.participants -> originalMessage.participantAccountIDs
+ *
  * @returns {Promise<void>}
  */
 export default function () {
     return Promise.all([getReportActionsFromOnyx(), getDeprecatedPersonalDetailsFromOnyx()]).then(([oldReportActions, oldPersonalDetails]) => {
         const onyxData = {};
-        // originalMessage.oldLogin -> originalMessage.oldAccountID xx
-        // originalMessage.newLogin -> originalMessage.newAccountID xx
-        // actorEmail -> actorAccountID xx
-        // childManagerEmail -> childManagerAccountID xx
-        // whisperedTo -> whisperedToAccountIDs xx
-        // childOldestFourEmails -> childOldestFourAccountIDs xx
-        // participants -> participantAccountIDs xx
-        // accountEmail -> accountID ?
+
         if (!oldReportActions) {
             Log.info('[Migrate Onyx] Skipped migration PersonalDetailsByAccountID because there were no reportActions');
             return;
@@ -99,6 +102,17 @@ export default function () {
                         newReportAction.originalMessage.newAccountID = newAccountID;
                     } else {
                         Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.newAccountID not found`);
+                        return;
+                    }
+                }
+
+                if (lodashHas(reportAction, ['accountEmail']) && !lodashHas(reportAction, ['accountID'])) {
+                    reportActionsWereModified = true;
+                    const accountID = _.get(oldPersonalDetails, [reportAction.accountEmail, 'accountID']);
+                    if (accountID) {
+                        newReportAction.accountID = accountID;
+                    } else {
+                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because accountID not found`);
                         return;
                     }
                 }
@@ -179,25 +193,6 @@ export default function () {
                         return;
                     }
                 }
-
-                // if (reportAction.accountEmail && !reportAction.accountID) {
-                //     const accountID = _.get(oldPersonalDetails, [reportAction.accountEmail, 'accountID']);
-                //     if (accountID) {
-                //         newReportAction.accountID = accountID;
-                //     } else {
-                //         return;
-                //     }
-                // }
-
-                // const newOriginalMessage = _.omit(reportAction.originalMessage, ['participants']);
-                // const oldParticipants = _.get(reportAction, ['originalMessage', 'participants'], []);
-                // const newParticipants = [];
-                // _.each(oldParticipants, (login) => {
-                //     const accountID = _.get(oldPersonalDetails, [login, 'accountID']);
-                //     newParticipants.push(accountID);
-                // });
-                // newOriginalMessage.participantAccountIDs = newParticipants;
-                // newReportAction.originalMessage = newOriginalMessage;
 
                 newReportActionsForReport[reportActionID] = newReportAction;
             });
