@@ -448,6 +448,16 @@ function isNumeric(value) {
     return /^\d*$/.test(value);
 }
 
+/**
+ * Checks that the provided accountID is a number and bigger than 0.
+ *
+ * @param {Number} accountID
+ * @returns {Boolean}
+ */
+function isValidAccountRoute(accountID) {
+    return CONST.REGEX.NUMBER.test(accountID) && accountID > 0;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -481,4 +491,5 @@ export {
     isValidLegalName,
     doesContainReservedWord,
     isNumeric,
+    isValidAccountRoute,
 };

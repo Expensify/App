@@ -195,6 +195,21 @@ function subscribeToNewActionEvent(reportID, callback) {
 }
 
 /**
+ * Notify the ReportActionsView that a new comment has arrived
+ *
+ * @param {String} reportID
+ * @param {Number} accountID
+ * @param {String} reportActionID
+ */
+function notifyNewAction(reportID, accountID, reportActionID) {
+    if (reportID !== newActionSubscriber.reportID) {
+        return;
+    }
+    const isFromCurrentUser = accountID === currentUserAccountID;
+    newActionSubscriber.callback(isFromCurrentUser, reportActionID);
+}
+
+/**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
  * - Adding one comment
@@ -307,12 +322,7 @@ function addActions(reportID, text = '', file) {
         successData,
         failureData,
     });
-
-    // Notify the ReportActionsView that a new comment has arrived
-    if (reportID === newActionSubscriber.reportID) {
-        const isFromCurrentUser = lastAction.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, lastAction.reportActionID);
-    }
+    notifyNewAction(reportID, lastAction.actorAccountID, lastAction.reportActionID);
 }
 
 /**
@@ -1458,12 +1468,7 @@ function showReportActionNotification(reportID, action) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
-
-    // Notify the ReportActionsView that a new comment has arrived
-    if (reportID === newActionSubscriber.reportID) {
-        const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
-    }
+    notifyNewAction(reportID, action.actorAccountID, action.reportActionID);
 }
 
 /**
@@ -1853,6 +1858,7 @@ export {
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
+    notifyNewAction,
     showReportActionNotification,
     addEmojiReaction,
     removeEmojiReaction,
