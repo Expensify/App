@@ -59,7 +59,7 @@ project.ext.envConfigFiles = [
     productionRelease: ".env.production",
     adhocRelease: ".env.staging",
     developmentRelease: ".env",
-    developmentDebug: ".env"
+    developmentDebug: ".env",
     e2eRelease: ".env.production"
 ]
 
