@@ -195,8 +195,6 @@ export default {
         signInHere: 'just sign in here',
         expiredCodeTitle: 'Magic code expired',
         expiredCodeDescription: 'Go back to the original device and request a new code.',
-        requestNewCode: 'You can also',
-        requestNewCodeLink: 'request a new code here',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
         tfaRequiredTitle: 'Two-factor authentication\nrequired',
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',

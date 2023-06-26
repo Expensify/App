@@ -194,8 +194,6 @@ export default {
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',
         expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo.',
-        requestNewCode: '¡También puedes',
-        requestNewCodeLink: 'solicitar un nuevo código aquí',
         successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba tu dispositivo.',
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
