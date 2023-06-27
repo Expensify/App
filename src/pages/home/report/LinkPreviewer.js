@@ -5,6 +5,7 @@ import _ from 'underscore';
 import {uniqBy} from 'lodash';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import Text from '../../../components/Text';
+import TextLink from '../../../components/TextLink';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import colors from '../../../styles/colors';
@@ -103,13 +104,14 @@ function LinkPreviewer(props) {
                             )}
                         </View>
                         {!_.isEmpty(title) && (
-                            <Text
+                            <TextLink
                                 fontSize={variables.fontSizeNormal}
                                 style={styles.pv2}
                                 color={colors.blueLinkPreview}
+                                href={url}
                             >
                                 {title}
-                            </Text>
+                            </TextLink>
                         )}
                         {!_.isEmpty(description) && <Text fontSize={variables.fontSizeNormal}>{description}</Text>}
                         {!_.isEmpty(image) && IMAGE_TYPES.includes(image.type) && (
