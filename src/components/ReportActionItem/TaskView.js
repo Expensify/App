@@ -43,7 +43,7 @@ function TaskView(props) {
         Task.setTaskReport({...props.report, isExistingTaskReport: true});
     }, [props.report]);
 
-    const taskTitle = props.report.reportName;
+    const taskTitle = convertToLTR(props.report.reportName);
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
 
@@ -60,6 +60,7 @@ function TaskView(props) {
                 style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed), true)]}
                 ref={props.forwardedRef}
                 disabled={!isOpen}
+                accessibilityLabel={taskTitle}
             >
                 {({hovered, pressed}) => (
                     <>
@@ -78,7 +79,7 @@ function TaskView(props) {
                                     numberOfLines={3}
                                     style={styles.taskTitleMenuItem}
                                 >
-                                    {convertToLTR(taskTitle)}
+                                    {taskTitle}
                                 </Text>
                             </View>
                             <View style={styles.taskRightIconContainer}>
