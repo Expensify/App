@@ -64,7 +64,6 @@ function TaskTitlePage(props) {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
             <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
