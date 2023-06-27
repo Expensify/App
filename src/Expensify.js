@@ -161,14 +161,10 @@ function Expensify(props) {
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => {
-            Report.openReportFromDeepLink(url);
-        });
+        Linking.getInitialURL().then((url) => Report.openReportFromDeepLink(url, isAuthenticated));
 
         // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url);
-        });
+        Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
 
         return () => {
             if (!appStateChangeListener.current) {

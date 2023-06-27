@@ -1733,13 +1733,6 @@ function setLastOpenedPublicRoom(reportID) {
 }
 
 /**
- * @param {String} reportID
- */
-function setLastAccessedReportID(reportID) {
-    Onyx.set(ONYXKEYS.LAST_ACCESSED_REPORT_ID, reportID);
-}
-
-/**
  * Navigates to the last opened public room
  *
  * @param {String} lastOpenedPublicRoomID
@@ -1884,7 +1877,6 @@ export {
     getCurrentUserAccountID,
     leaveRoom,
     setLastOpenedPublicRoom,
-    setLastAccessedReportID,
     flagComment,
     openLastOpenedPublicRoom,
 };
