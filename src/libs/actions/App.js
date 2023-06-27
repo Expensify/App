@@ -117,42 +117,6 @@ function setLocaleAndNavigate(locale) {
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
-/**
- * @param {String} colorTheme
- */
-// eslint-disable-next-line rulesdir/prefer-early-return
-function setColorTheme(colorTheme) {
-    // If user is not signed in, change just locally.
-    if (!currentUserAccountID) {
-        Onyx.set(ONYXKEYS.COLOR_THEME, colorTheme);
-        return;
-    }
-
-    Onyx.set(ONYXKEYS.COLOR_THEME, colorTheme);
-
-    // TODO: Implement this in the backend
-    // // Optimistically change preferred locale
-    // const optimisticData = [
-    //     {
-    //         onyxMethod: CONST.ONYX.METHOD.SET,
-    //         key: ONYXKEYS.COLOR_THEME,
-    //         value: colorTheme,
-    //     },
-    // ];
-
-    // API.write('UpdateColorTheme', {
-    //     value: colorTheme,
-    // }, {optimisticData});
-}
-
-/**
- * @param {String} colorTheme
- */
-function setColorThemeAndNavigate(colorTheme) {
-    setColorTheme(colorTheme);
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
-}
-
 function setSidebarLoaded() {
     if (isSidebarLoaded) {
         return;
@@ -348,4 +312,4 @@ function openProfile() {
     Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setColorThemeAndNavigate, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp, confirmReadyToOpenApp};
+export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp, confirmReadyToOpenApp};

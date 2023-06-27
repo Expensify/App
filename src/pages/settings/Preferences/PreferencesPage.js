@@ -24,9 +24,6 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
-    /** The app's color theme */
-    colorTheme: PropTypes.string,
-
     /** The details about the user that is signed in */
     user: PropTypes.shape({
         /** Whether or not the user is subscribed to news updates */
@@ -42,14 +39,12 @@ const propTypes = {
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    colorTheme: CONST.COLOR_THEME.DARK,
     user: {},
 };
 
 function PreferencesPage(props) {
     const priorityModes = props.translate('priorityModePage.priorityModes');
     const languages = props.translate('languagePage.languages');
-    const colorThemes = props.translate('colorThemePage.colorThemes');
 
     // Enable additional test features in the staging or dev environments
     const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.ADHOC, CONST.ENVIRONMENT.DEV], props.environment);
@@ -92,13 +87,6 @@ function PreferencesPage(props) {
                         description={props.translate('languagePage.language')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                     />
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={colorThemes[props.colorTheme].label}
-                        description={props.translate('colorThemePage.colorTheme')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_COLOR_THEME)}
-                    />
-
                     {shouldShowTestToolMenu && (
                         <View style={[styles.ml5, styles.mr8, styles.mt6]}>
                             <TestToolMenu />
@@ -120,9 +108,6 @@ export default compose(
     withOnyx({
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
-        },
-        colorTheme: {
-            key: ONYXKEYS.COLOR_THEME,
         },
         user: {
             key: ONYXKEYS.USER,
