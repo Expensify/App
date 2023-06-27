@@ -2218,7 +2218,7 @@ const styles = {
         minWidth: 140,
     },
 
-    verifyCodesButton: {
+    twoFactorAuthCopyCodeButton: {
         minWidth: 110,
     },
 
