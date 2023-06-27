@@ -93,12 +93,13 @@ function AttachmentCarouselView(props) {
     const renderItem = useCallback(
         ({item}) => (
             <AttachmentView
+                isFocused={props.carouselState.activeSource === item.source}
                 source={item.source}
                 file={item.file}
                 isAuthTokenRequired={item.isAuthTokenRequired}
             />
         ),
-        [],
+        [props.carouselState.activeSource],
     );
 
     return (
