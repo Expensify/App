@@ -134,7 +134,6 @@ function FlagCommentPage(props) {
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}
-            hoverAndPressStyle={[styles.mh0, styles.ph5]}
         />
     ));
 
