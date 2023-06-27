@@ -65,8 +65,10 @@ function calculateThumbnailImageSize(width, height, windowHeight) {
 }
 
 function ThumbnailImage(props) {
-    const [imageWidth, setImageWidth] = useState(200);
-    const [imageHeight, setImageHeight] = useState(200);
+
+    const {initialWidth, initialHeight} = calculateThumbnailImageSize(props.imageWidth, props.imageHeight, props.windowHeight);
+    const [imageWidth, setImageWidth] = useState(initialWidth);
+    const [imageHeight, setImageHeight] = useState(initialHeight);
 
     /**
      * Update the state with the computed thumbnail sizes.
@@ -84,7 +86,7 @@ function ThumbnailImage(props) {
             <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={props.previewSourceURL}
-                    onMeasure={updateImageSize}
+                    onMeasure={() => updateImageSize()}
                     isAuthTokenRequired={props.isAuthTokenRequired}
                 />
             </View>
