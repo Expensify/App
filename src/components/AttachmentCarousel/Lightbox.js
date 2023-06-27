@@ -1,3 +1,4 @@
+/* eslint-disable es/no-optional-chaining */
 import React, {createContext, useContext, useEffect, useRef, useState, useMemo, useImperativeHandle} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View, useWindowDimensions} from 'react-native';
 import PropTypes from 'prop-types';
@@ -684,14 +685,14 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
                         });
                     }}
                     style={
-                        dimensions
-                            ? getScaledDimensions({
+                        dimensions == null
+                            ? {}
+                            : getScaledDimensions({
                                   imageHeight: dimensions.height,
                                   imageWidth: dimensions.width,
                                   canvasHeight,
                                   canvasWidth,
                               })
-                            : {}
                     }
                 />
             </ImageWrapper>
@@ -705,8 +706,8 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
             onSwipeDown={onSwipeDown}
             isActive
             onTap={onTap}
-            imageHeight={dimensions.height}
-            imageWidth={dimensions.width}
+            imageHeight={dimensions?.height}
+            imageWidth={dimensions?.width}
             canvasHeight={canvasHeight}
             canvasWidth={canvasWidth}
             renderFallback={() => <ActivityIndicator />}
@@ -716,13 +717,13 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
                     style={[style, {width, height}]}
                     onLoad={(evt) => {
                         cachedDimensions.set(item.url, {
-                            width: evt.nativeEvent.width,
-                            height: evt.nativeEvent.height,
+                            width: evt.nativeEvent?.width,
+                            height: evt.nativeEvent?.height,
                         });
 
                         onResolveImageDimensions({
-                            width: evt.nativeEvent.width / PixelRatio.get(),
-                            height: evt.nativeEvent.height / PixelRatio.get(),
+                            width: evt.nativeEvent?.width / PixelRatio.get(),
+                            height: evt.nativeEvent?.height / PixelRatio.get(),
                         });
                     }}
                 />
