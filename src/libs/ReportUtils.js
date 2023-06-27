@@ -548,7 +548,7 @@ function isThreadParent(reportAction) {
  * Returns true if reportAction is the first chat preview of a Thread
  *
  * @param {Object} reportAction
- *  @param {String} reportID
+ * @param {String} reportID
  * @returns {Boolean}
  */
 function isThreadFirstChat(reportAction, reportID) {
@@ -1002,10 +1002,10 @@ function getReportName(report) {
         }
 
         const isAttachment = _.has(parentReportAction, 'isAttachment') ? parentReportAction.isAttachment : isReportMessageAttachment(_.last(lodashGet(parentReportAction, 'message', [{}])));
-        if (isAttachment) {
+        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
+        if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
-        const parentReportActionMessage = lodashGet(parentReportAction, ['message', 0, 'text'], '').replace(/(\r\n|\n|\r)/gm, ' ');
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     if (isChatRoom(report) || isTaskReport(report)) {
@@ -2268,6 +2268,17 @@ function shouldHideComposer(report, errors) {
     return isArchivedRoom(report) || !_.isEmpty(errors) || !isAllowedToComment(report);
 }
 
+/**
+ * Returns ID of the original report from which the given reportAction is first created.
+ *
+ * @param {String} reportID
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getOriginalReportID(reportID, reportAction) {
+    return isThreadFirstChat(reportAction, reportID) ? lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'parentReportID']) : reportID;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2361,4 +2372,5 @@ export {
     getBankAccountRoute,
     getParentReport,
     shouldHideComposer,
+    getOriginalReportID,
 };
