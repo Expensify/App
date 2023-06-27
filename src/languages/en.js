@@ -701,10 +701,10 @@ export default {
     },
     validateCodeForm: {
         magicCodeNotReceived: "Didn't receive a magic code?",
-        requestNewCodeAfterErrorOccured: "Request a new code",
         enterAuthenticatorCode: 'Please enter your authenticator code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: 'Request a new code in ',
+        requestNewCodeAfterErrorOccured: "Request a new code",
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',

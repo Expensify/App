@@ -703,10 +703,10 @@ export default {
     },
     validateCodeForm: {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
-        requestNewCodeAfterErrorOccured: 'Solicitar un nuevo código',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         requestNewCode: 'Pedir un código nuevo en ',
+        requestNewCodeAfterErrorOccured: 'Solicitar un nuevo código',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',
