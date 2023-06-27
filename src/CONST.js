@@ -1112,7 +1112,7 @@ const CONST = {
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
-        EIGHT: 8,
+        LARGE_SCREEN: 8,
     },
     OPTION_MODE: {
         COMPACT: 'compact',

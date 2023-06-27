@@ -94,7 +94,7 @@ function MultipleAvatars(props) {
         const firstRow = props.icons.slice(rowSize);
         const secondRow = props.icons.slice(0, rowSize);
 
-        // // Update the state with the two rows as an array
+        // Update the state with the two rows as an array
         setAvatarRows([firstRow, secondRow]);
     };
 
