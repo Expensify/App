@@ -105,7 +105,7 @@ function HeaderView(props) {
         if (ReportUtils.isOpenTaskReport(props.report) && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('newTaskPage.markAsDone'),
+                text: props.translate('task.markAsDone'),
                 onSelected: () => Task.completeTask(props.report.reportID, title),
             });
         }
@@ -114,7 +114,7 @@ function HeaderView(props) {
         if (ReportUtils.isCompletedTaskReport(props.report) && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('newTaskPage.markAsIncomplete'),
+                text: props.translate('task.markAsIncomplete'),
                 onSelected: () => Task.reopenTask(props.report.reportID, title),
             });
         }

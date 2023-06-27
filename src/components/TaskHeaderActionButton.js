@@ -32,7 +32,7 @@ function TaskHeaderActionButton(props) {
                     success
                     isDisabled={ReportUtils.isCanceledTaskReport(props.report)}
                     medium
-                    text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'newTaskPage.markAsIncomplete' : 'newTaskPage.markAsDone')}
+                    text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'task.markAsIncomplete' : 'task.markAsDone')}
                     onPress={() =>
                         ReportUtils.isCompletedTaskReport(props.report)
                             ? Task.reopenTask(props.report.reportID, props.report.reportName)

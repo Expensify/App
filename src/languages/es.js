@@ -1287,8 +1287,6 @@ export default {
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
         pleaseEnterTaskName: 'Por favor introduce un título',
-        markAsDone: 'Marcar como hecho',
-        markAsIncomplete: 'Marcar como incompleta',
         pleaseEnterTaskDestination: 'Por favor selecciona con quien deseas compartir.',
     },
     task: {
@@ -1302,6 +1300,8 @@ export default {
             canceled: 'tarea cancelada',
             reopened: 'tarea reabrir',
         },
+        markAsDone: 'Marcar como hecho',
+        markAsIncomplete: 'Marcar como incompleta',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',

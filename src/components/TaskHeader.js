@@ -108,7 +108,7 @@ function TaskHeader(props) {
                                         success
                                         isDisabled={Task.isTaskCanceled(props.report) || !Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID)}
                                         medium
-                                        text={props.translate('newTaskPage.markAsDone')}
+                                        text={props.translate('task.markAsDone')}
                                         onPress={() => Task.completeTask(props.report.reportID, title)}
                                     />
                                 )}

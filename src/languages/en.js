@@ -1278,8 +1278,6 @@ export default {
         descriptionOptional: 'Description (optional)',
         shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
-        markAsDone: 'Mark as done',
-        markAsIncomplete: 'Mark as incomplete',
         pleaseEnterTaskDestination: 'Please select with whom you want to share.',
     },
     task: {
@@ -1293,6 +1291,8 @@ export default {
             canceled: 'canceled task',
             reopened: 'reopened task',
         },
+        markAsDone: 'Mark as done',
+        markAsIncomplete: 'Mark as incomplete',
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
