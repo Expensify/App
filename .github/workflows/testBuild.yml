@@ -17,14 +17,17 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      READY_TO_BUILD: ${{ fromJSON(steps.isUserTeamMember.outputs.isTeamMember) && fromJSON(steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL) }}
+      READY_TO_BUILD: ${{ fromJSON(steps.isExpensifyEmployee.outputs.IS_EXPENSIFY_EMPLOYEE) && fromJSON(steps.hasReadyToBuildLabel.outputs.HAS_READY_TO_BUILD_LABEL) }}
     steps:
-      - id: isUserTeamMember
-        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
-        with:
+      - id: isExpensifyEmployee
+        run: |
+          if gh api /orgs/Expensify/teams/expensify-expensify/memberships/${{ github.actor }} --silent; then
+            echo "IS_EXPENSIFY_EMPLOYEE=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "IS_EXPENSIFY_EMPLOYEE=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          username: ${{ github.actor }}
-          team: 'Expensify/expensify'
 
       - id: hasReadyToBuildLabel
         name: Set HAS_READY_TO_BUILD_LABEL flag

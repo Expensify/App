@@ -953,7 +953,7 @@ class ReportActionCompose extends React.Component {
                                                     style={[
                                                         styles.dFlex,
                                                         styles.flexColumn,
-                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
                                                     ]}
                                                 >
                                                     {this.props.isComposerFullSize && (

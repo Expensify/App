@@ -1278,7 +1278,7 @@ const styles = {
 
     createMenuPositionReportActionCompose: (windowHeight) => ({
         horizontal: 18 + variables.sideBarWidth,
-        vertical: windowHeight - 75,
+        vertical: windowHeight - 83,
     }),
 
     createMenuPositionRightSidepane: {
@@ -1554,7 +1554,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusRounded,
-        minHeight: variables.componentSizeNormal,
+        minHeight: variables.componentSizeMedium,
     },
 
     chatItemFullComposeBox: {
@@ -1640,8 +1640,8 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: variables.componentBorderRadiusRounded,
         backgroundColor: themeColors.transparent,
-        height: 32,
-        padding: 6,
+        height: 40,
+        padding: 10,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1708,9 +1708,9 @@ const styles = {
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
-        height: 32,
+        height: 40,
         marginVertical: 3,
-        paddingHorizontal: 6,
+        paddingHorizontal: 10,
         justifyContent: 'center',
     },
 
@@ -1731,6 +1731,7 @@ const styles = {
         margin: 3,
         borderRadius: variables.componentBorderRadiusRounded,
         backgroundColor: themeColors.transparent,
+        justifyContent: 'center',
     },
 
     chatItemAttachmentPlaceholder: {
