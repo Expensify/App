@@ -80,15 +80,26 @@ function MultipleAvatars(props) {
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
-    useEffect(() => {
-        if (props.shouldDisplayAvatarsInRows && props.icons.length > props.maxAvatarsInRow) {
-            const rowSize = Math.min(Math.ceil(props.icons.length / 2), props.maxAvatarsInRow);
-            const firstRow = props.icons.slice(rowSize);
-            const secondRow = props.icons.slice(0, rowSize);
-            setAvatarRows([firstRow, secondRow]);
-        } else {
-            setAvatarRows([props.icons]);
+    function calculateAvatarRows(icons, maxAvatarsInRow, shouldDisplayAvatarsInRows) {
+        // If we're not displaying avatars in rows or the number of icons is less than or equal to the max avatars in a row, return a single row
+        if (!shouldDisplayAvatarsInRows || icons.length <= maxAvatarsInRow) {
+            setAvatarRows([icons]);
         }
+
+        // Calculate the size of each row
+        const rowSize = Math.min(Math.ceil(icons.length / 2), maxAvatarsInRow);
+
+        // Slice the icons array into two rows
+        const firstRow = icons.slice(rowSize);
+        const secondRow = icons.slice(0, rowSize);
+
+        // // Update the state with the two rows as an array
+        setAvatarRows([firstRow, secondRow]);
+    }
+
+    // useEffect hook to update avatar rows when props change
+    useEffect(() => {
+        calculateAvatarRows();
     }, [props.icons, props.maxAvatarsInRow, props.shouldDisplayAvatarsInRows]);
 
     if (!props.icons.length) {
