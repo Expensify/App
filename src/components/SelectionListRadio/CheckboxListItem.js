@@ -10,6 +10,7 @@ import Checkbox from '../Checkbox';
 import FormHelpMessage from '../FormHelpMessage';
 import {propTypes as item} from '../UserDetailsTooltip/userDetailsTooltipPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import Avatar from '../Avatar';
 
 const propTypes = {
     /** The section list item */
@@ -55,26 +56,27 @@ function CheckboxListItem(props) {
                     isChecked={props.item.isSelected}
                     onPress={() => props.onSelectRow(props.item)}
                 />
-                <View style={styles.flex1}>
-                    <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow]}>
-                        <View style={[styles.flex1, styles.alignItemsStart]}>
-                            <Text
-                                style={[
-                                    styles.optionDisplayName,
-                                    props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
-                                    props.item.isSelected && styles.sidebarLinkTextBold,
-                                ]}
-                            >
-                                {props.item.text}
-                            </Text>
-
-                            {Boolean(props.item.alternateText) && (
-                                <Text style={[props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}>
-                                    {props.item.alternateText}
-                                </Text>
-                            )}
-                        </View>
-                    </View>
+                <Avatar
+                    containerStyles={styles.pl5}
+                    source={props.item.avatar.source}
+                    name={props.item.avatar.name}
+                    type={props.item.avatar.type}
+                />
+                <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStart, styles.pl3, styles.optionRow]}>
+                    <Text
+                        style={[styles.optionDisplayName, props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, props.item.isSelected && styles.sidebarLinkTextBold]}
+                        numberOfLines={1}
+                    >
+                        {props.item.text}
+                    </Text>
+                    {Boolean(props.item.alternateText) && (
+                        <Text
+                            style={[props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                            numberOfLines={1}
+                        >
+                            {props.item.alternateText}
+                        </Text>
+                    )}
                 </View>
                 {props.item.isAdmin && (
                     <View style={[styles.badge, styles.peopleBadge]}>
