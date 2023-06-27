@@ -94,11 +94,10 @@ function CloseAccountPage(props) {
                     <Text>{props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
                     <TextInput
                         inputID="reasonForLeaving"
-                        multiline
-                        numberOfLines={6}
+                        autoGrowHeight
                         textAlignVertical="top"
                         label={props.translate('closeAccountPage.enterMessageHere')}
-                        containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
+                        containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                     />
                     <Text style={[styles.mt5]}>
                         {props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.
