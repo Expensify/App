@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -13,7 +13,7 @@ import Text from '../../../components/Text';
 import TextWithEllipsis from '../../../components/TextWithEllipsis';
 
 const propTypes = {
-    /** Key-value pairs of user logins and whether or not they are typing. Keys are logins. */
+    /** Key-value pairs of user accountIDs/logins and whether or not they are typing. Keys are accountIDs or logins. */
     userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
 
     /** Information about the network */
@@ -26,66 +26,47 @@ const defaultProps = {
     userTypingStatuses: {},
 };
 
-class ReportTypingIndicator extends React.Component {
-    constructor(props) {
-        super(props);
-
-        const usersTyping = props.userTypingStatuses ? _.filter(_.keys(props.userTypingStatuses), (login) => props.userTypingStatuses[login]) : [];
-        this.state = {usersTyping};
+function ReportTypingIndicator(props) {
+    const usersTyping = useMemo(() => _.filter(_.keys(props.userTypingStatuses), (loginOrAccountID) => props.userTypingStatuses[loginOrAccountID]), [props.userTypingStatuses]);
+    // If we are offline, the user typing statuses are not up-to-date so do not show them
+    if (props.network.isOffline) {
+        return null;
     }
 
-    componentDidUpdate(prevProps) {
-        // Make sure we only update the state if there's been a change in who's typing.
-        if (_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
-            return;
-        }
+    const numUsersTyping = _.size(usersTyping);
 
-        const usersTyping = _.filter(_.keys(this.props.userTypingStatuses), (login) => this.props.userTypingStatuses[login]);
-
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({usersTyping});
-    }
-
-    render() {
-        const numUsersTyping = _.size(this.state.usersTyping);
-
-        // If we are offline, the user typing statuses are not up-to-date so do not show them
-        if (this.props.network.isOffline) {
+    // Decide on the Text element that will hold the display based on the number of users that are typing.
+    switch (numUsersTyping) {
+        case 0:
             return null;
-        }
 
-        // Decide on the Text element that will hold the display based on the number of users that are typing.
-        switch (numUsersTyping) {
-            case 0:
-                return null;
+        case 1:
+            return (
+                <TextWithEllipsis
+                    leadingText={PersonalDetails.getDisplayNameForTypingIndicator(usersTyping[0], props.translate('common.someone'))}
+                    trailingText={` ${props.translate('reportTypingIndicator.isTyping')}`}
+                    textStyle={[styles.chatItemComposeSecondaryRowSubText]}
+                    wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
+                    leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
+                />
+            );
 
-            case 1:
-                return (
-                    <TextWithEllipsis
-                        leadingText={PersonalDetails.getDisplayName(this.state.usersTyping[0])}
-                        trailingText={` ${this.props.translate('reportTypingIndicator.isTyping')}`}
-                        textStyle={[styles.chatItemComposeSecondaryRowSubText]}
-                        wrapperStyle={[styles.chatItemComposeSecondaryRow, styles.flex1]}
-                        leadingTextParentStyle={styles.chatItemComposeSecondaryRowOffset}
-                    />
-                );
-
-            default:
-                return (
-                    <Text
-                        style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
-                        numberOfLines={1}
-                    >
-                        {this.props.translate('reportTypingIndicator.multipleUsers')}
-                        {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
-                    </Text>
-                );
-        }
+        default:
+            return (
+                <Text
+                    style={[styles.chatItemComposeSecondaryRowSubText, styles.chatItemComposeSecondaryRowOffset]}
+                    numberOfLines={1}
+                >
+                    {props.translate('reportTypingIndicator.multipleUsers')}
+                    {` ${props.translate('reportTypingIndicator.areTyping')}`}
+                </Text>
+            );
     }
 }
 
 ReportTypingIndicator.propTypes = propTypes;
 ReportTypingIndicator.defaultProps = defaultProps;
+ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
 export default compose(
     withLocalize,

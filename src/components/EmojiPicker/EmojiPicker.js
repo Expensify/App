@@ -3,11 +3,21 @@ import {Dimensions, Keyboard} from 'react-native';
 import _ from 'underscore';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import CONST from '../../CONST';
+import styles from '../../styles/styles';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../withViewportOffsetTop';
+import compose from '../../libs/compose';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+};
+
+const propTypes = {
+    ...windowDimensionsPropTypes,
+    ...viewportOffsetTopPropTypes,
 };
 
 class EmojiPicker extends React.Component {
@@ -24,6 +34,7 @@ class EmojiPicker extends React.Component {
         this.onEmojiSelected = () => {};
 
         this.state = {
+            reportAction: {},
             isEmojiPickerVisible: false,
 
             // The horizontal and vertical position (relative to the window) where the emoji popover will display.
@@ -91,6 +102,16 @@ class EmojiPicker extends React.Component {
     }
 
     /**
+     * Whether Context Menu is active for the Report Action.
+     *
+     * @param {Number|String} actionID
+     * @return {Boolean}
+     */
+    isActiveReportAction(actionID) {
+        return Boolean(actionID) && this.state.reportAction.reportActionID === actionID;
+    }
+
+    /**
      * Show the emoji picker menu.
      *
      * @param {Function} [onModalHide=() => {}] - Run a callback when Modal hides.
@@ -98,8 +119,9 @@ class EmojiPicker extends React.Component {
      * @param {Element} emojiPopoverAnchor - Element to which Popover is anchored
      * @param {Object} [anchorOrigin=DEFAULT_ANCHOR_ORIGIN] - Anchor origin for Popover
      * @param {Function} [onWillShow=() => {}] - Run a callback when Popover will show
+     * @param {Object} reportAction - ReportAction for EmojiPicker
      */
-    showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow = () => {}) {
+    showEmojiPicker(onModalHide, onEmojiSelected, emojiPopoverAnchor, anchorOrigin, onWillShow = () => {}, reportAction) {
         this.onModalHide = onModalHide;
         this.onEmojiSelected = onEmojiSelected;
         this.emojiPopoverAnchor = emojiPopoverAnchor;
@@ -111,7 +133,7 @@ class EmojiPicker extends React.Component {
 
         this.measureEmojiPopoverAnchorPosition().then((emojiPopoverAnchorPosition) => {
             onWillShow();
-            this.setState({isEmojiPickerVisible: true, emojiPopoverAnchorPosition, emojiPopoverAnchorOrigin: anchorOrigin || DEFAULT_ANCHOR_ORIGIN});
+            this.setState({reportAction, isEmojiPickerVisible: true, emojiPopoverAnchorPosition, emojiPopoverAnchorOrigin: anchorOrigin || DEFAULT_ANCHOR_ORIGIN});
         });
     }
 
@@ -134,7 +156,8 @@ class EmojiPicker extends React.Component {
      * Focus the search input in the emoji picker.
      */
     focusEmojiSearchInput() {
-        if (!this.emojiSearchInput) {
+        // we won't focus the input if it's mobile device
+        if (!this.emojiSearchInput || this.props.isSmallScreenWidth) {
             return;
         }
         this.emojiSearchInput.focus();
@@ -161,7 +184,10 @@ class EmojiPicker extends React.Component {
                     width: CONST.EMOJI_PICKER_SIZE.WIDTH,
                     height: CONST.EMOJI_PICKER_SIZE.HEIGHT,
                 }}
+                outerStyle={StyleUtils.getOuterModalStyle(this.props.windowHeight, this.props.viewportOffsetTop)}
                 anchorAlignment={this.state.emojiPopoverAnchorOrigin}
+                innerContainerStyle={styles.popoverInnerContainer}
+                avoidKeyboard
             >
                 <EmojiPickerMenu
                     onEmojiSelected={this.selectEmoji}
@@ -172,4 +198,6 @@ class EmojiPicker extends React.Component {
     }
 }
 
-export default EmojiPicker;
+EmojiPicker.propTypes = propTypes;
+
+export default compose(withViewportOffsetTop, withWindowDimensions)(EmojiPicker);

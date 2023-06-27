@@ -7,6 +7,7 @@ import MoveToIndexedDB from './migrations/MoveToIndexedDB';
 import RenameExpensifyNewsStatus from './migrations/RenameExpensifyNewsStatus';
 import AddLastVisibleActionCreated from './migrations/AddLastVisibleActionCreated';
 import KeyReportActionsByReportActionID from './migrations/KeyReportActionsByReportActionID';
+import PersonalDetailsByAccountID from './migrations/PersonalDetailsByAccountID';
 
 export default function () {
     const startTime = Date.now();
@@ -22,6 +23,7 @@ export default function () {
             RenameExpensifyNewsStatus,
             AddLastVisibleActionCreated,
             KeyReportActionsByReportActionID,
+            PersonalDetailsByAccountID,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

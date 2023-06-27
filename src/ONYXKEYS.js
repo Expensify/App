@@ -42,9 +42,6 @@ export default {
     // Has information about the network status (offline/online)
     NETWORK: 'network',
 
-    // Contains all the personalDetails the user has access to
-    PERSONAL_DETAILS: 'personalDetails',
-
     // Contains all the personalDetails the user has access to, keyed by accountID
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
@@ -113,11 +110,12 @@ export default {
     COLLECTION: {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
-        POLICY_MEMBER_LIST: 'policyMemberList_',
+        POLICY_MEMBERS: 'policyMembers_',
         WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
+        REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',

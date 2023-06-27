@@ -49,7 +49,7 @@ const defaultProps = {
     account: {},
 };
 
-const ResendValidationForm = (props) => {
+function ResendValidationForm(props) {
     const isSMSLogin = Str.isSMSLogin(props.credentials.login);
 
     // replacing spaces with "hard spaces" to prevent breaking the number
@@ -81,7 +81,7 @@ const ResendValidationForm = (props) => {
                 <DotIndicatorMessage
                     style={[styles.mb5, styles.flex0]}
                     type="success"
-                    messages={{0: props.translate(props.account.message)}}
+                    messages={{0: props.account.message}}
                 />
             )}
             {!_.isEmpty(props.account.errors) && (
@@ -113,7 +113,7 @@ const ResendValidationForm = (props) => {
             </View>
         </>
     );
-};
+}
 
 ResendValidationForm.propTypes = propTypes;
 ResendValidationForm.defaultProps = defaultProps;
