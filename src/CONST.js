@@ -670,6 +670,10 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    COLOR_THEME: {
+        LIGHT: 'light',
+        DARK: 'dark',
+    },
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
