@@ -14,14 +14,16 @@ import * as Illustrations from '../Icon/Illustrations';
 import variables from '../../styles/variables';
 import TextLink from '../TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Code to display. */
     code: PropTypes.string.isRequired,
 
     /** The ID of the account to which the code belongs. */
-    accountID: PropTypes.string.isRequired,
+    justValidateHereText: PropTypes.string,
+
+    /** Function to call when user click on just validate here text */
+    justValidateHereCallback: PropTypes.func,
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -33,14 +35,14 @@ const propTypes = {
 };
 
 const defaultProps = {
+    justValidateHereText: '',
+    justValidateHereCallback: () => {},
     session: {
         authToken: null,
     },
 };
 
 function ValidateCodeModal(props) {
-    const signInHere = useCallback(() => Session.signInWithValidateCode(props.accountID, props.code, props.preferredLocale), [props.accountID, props.code, props.preferredLocale]);
-
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -57,10 +59,10 @@ function ValidateCodeModal(props) {
                         {props.translate('validateCodeModal.description')}
                         {!lodashGet(props, 'session.authToken', null) && (
                             <>
-                                {props.translate('validateCodeModal.or')} <TextLink onPress={signInHere}>{props.translate('validateCodeModal.signInHere')}</TextLink>
+                                {props.translate('validateCodeModal.or')} <TextLink onPress={props.justValidateHereCallback}>{props.justValidateHereText}</TextLink>
                             </>
                         )}
-                        {props.shouldShowSignInHere ? '!' : '.'}
+                        {'.'}
                     </Text>
                 </View>
                 <View style={styles.mt6}>

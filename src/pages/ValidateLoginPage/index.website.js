@@ -59,6 +59,11 @@ const defaultProps = {
 };
 
 class ValidateLoginPage extends Component {
+    constructor(props) {
+        super(props);
+        this.signInWithValidateCode = this.signInWithValidateCode.bind(this);
+    }
+
     componentDidMount() {
         const login = lodashGet(this.props, 'credentials.login', null);
 
@@ -83,7 +88,7 @@ class ValidateLoginPage extends Component {
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode(), this.props.preferredLocale);
+        this.signInWithValidateCode();
     }
 
     componentDidUpdate() {
@@ -116,6 +121,10 @@ class ValidateLoginPage extends Component {
         return lodashGet(this.props.route.params, 'validateCode', '');
     }
 
+    signInWithValidateCode() {
+        Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode(), this.props.preferredLocale);
+    }
+
     render() {
         const is2FARequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
         const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
@@ -127,8 +136,9 @@ class ValidateLoginPage extends Component {
                 {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
                 {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
                     <ValidateCodeModal
-                        accountID={this.getAccountID()}
                         code={this.getValidateCode()}
+                        justValidateHereText={this.props.translate('validateCodeModal.signInHere')}
+                        justValidateHereCallback={this.signInWithValidateCode()}
                     />
                 )}
                 {currentAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
