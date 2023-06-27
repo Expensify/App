@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -12,6 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     /** Current user session */
@@ -48,21 +49,10 @@ function TaskDescriptionPage(props) {
 
     const inputRef = useRef(null);
 
-    // Same as NewtaskDescriptionPage, use the selection to place the cursor correctly if there is prior text
-    const [selection, setSelection] = useState({start: 0, end: 0});
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (props.task.report && props.task.report.description) {
-            const length = props.task.report.description.length;
-            setSelection({start: length, end: length});
-        }
-    }, [props.task.report]);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
             <Form
@@ -84,10 +74,6 @@ function TaskDescriptionPage(props) {
                         submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
-                        selection={selection}
-                        onSelectionChange={(e) => {
-                            setSelection(e.nativeEvent.selection);
-                        }}
                     />
                 </View>
             </Form>
