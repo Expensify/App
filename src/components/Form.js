@@ -346,7 +346,9 @@ function Form(props) {
                             const focusInput = inputRefs.current[focusKey];
 
                             // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
-                            Keyboard.dismiss();
+                            if(typeof focusInput.isFocused !== 'function'){
+                                Keyboard.dismiss();
+                            }
 
                             // We subtract 10 to scroll slightly above the input
                             if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
