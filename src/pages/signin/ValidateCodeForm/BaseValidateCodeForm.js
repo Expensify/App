@@ -80,6 +80,12 @@ function BaseValidateCodeForm(props) {
     const timerRef = useRef();
 
     useEffect(() => {
+        if(inputValidateCodeRef.current && ((hasError && props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED) || props.account.isLoading)) {
+            inputValidateCodeRef.current.blur();
+        }
+    }, [props.account.isLoading, props.session.autoAuthState])
+
+    useEffect(() => {
         if (!inputValidateCodeRef.current || prevIsVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
             return;
         }
@@ -273,7 +279,7 @@ function BaseValidateCodeForm(props) {
                                 accessibilityRole="button"
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{hasError ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccured') : props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
@@ -309,6 +315,7 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
+        session: {key: ONYXKEYS.SESSION},
     }),
     withToggleVisibilityView,
     withNetwork(),
