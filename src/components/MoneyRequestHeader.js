@@ -196,7 +196,6 @@ function MoneyRequestHeader(props) {
                         description={props.translate('common.description')}
                         title={transactionDescription}
                         disabled={isSettled}
-                        numberOfLines={6}
                         // shouldShowRightIcon={!isSettled}
                         // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                     />

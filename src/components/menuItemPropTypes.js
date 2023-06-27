@@ -119,9 +119,6 @@ const propTypes = {
 
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
-
-    /** Number of lines for the title */
-    numberOfLines: PropTypes.number,
 };
 
 export default propTypes;
