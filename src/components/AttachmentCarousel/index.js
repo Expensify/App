@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, PixelRatio} from 'react-native';
+import {View, PixelRatio, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -134,6 +134,13 @@ class AttachmentCarousel extends React.Component {
         _.forEach(actions, (action) => htmlParser.write(_.get(action, ['message', 0, 'html'])));
         htmlParser.end();
 
+        // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
+        // promotes the natural feeling of swiping left/right to go to the next/previous image
+        // We don't want to invert the list for desktop/web because this interferes with mouse
+        // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
+        if (this.canUseTouchScreen) {
+            attachments.reverse();
+        }
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (page === -1) {
             throw new Error('Attachment not found');
@@ -144,6 +151,7 @@ class AttachmentCarousel extends React.Component {
             attachments,
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
+            activeSource: null,
         };
     }
 
@@ -152,17 +160,20 @@ class AttachmentCarousel extends React.Component {
      * @param {Array<{item: {source, file}, index: Number}>} viewableItems
      */
     updatePage({viewableItems}) {
+        Keyboard.dismiss();
         // Since we can have only one item in view at a time, we can use the first item in the array
         // to get the index of the current page
         const entry = _.first(viewableItems);
         if (!entry) {
+            // eslint-disable-next-line react/no-unused-state
+            this.setState({activeSource: null});
             return;
         }
 
         const page = entry.index;
         this.props.onNavigate(entry.item);
         // eslint-disable-next-line react/no-unused-state
-        this.setState({page});
+        this.setState({page, activeSource: entry.item.source});
     }
 
     /**

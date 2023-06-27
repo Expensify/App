@@ -35,6 +35,9 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
+    /** Whether this view is the active screen  */
+    isFocused: PropTypes.bool,
+
     /** Function for handle on press */
     onPress: PropTypes.func,
 
@@ -62,6 +65,7 @@ const defaultProps = {
     onScaleChanged: () => {},
     onToggleKeyboard: () => {},
     containerStyles: [],
+    isFocused: false,
 };
 
 function AttachmentView(props) {
@@ -86,6 +90,7 @@ function AttachmentView(props) {
         const children = (
             <PDFView
                 onPress={props.onPress}
+                isFocused={props.isFocused}
                 sourceURL={sourceURL}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
