@@ -595,6 +595,7 @@ function getOptions(
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
+        isShareDestination = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -619,7 +620,9 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getReportIDFromRoute(), false, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, (report) =>
+        ReportUtils.shouldReportBeInOptionList(report, Navigation.getReportIDFromRoute(), false, iouReports, betas, policies, isShareDestination),
+    );
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -950,6 +953,7 @@ function getShareDestinationOptions(reports, personalDetails, betas = [], search
         includePersonalDetails: true,
         excludeLogins,
         includeOwnedWorkspaceChats,
+        isShareDestination: true,
     });
 }
 

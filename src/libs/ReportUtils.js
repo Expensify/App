@@ -1914,9 +1914,10 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
+ * @param {Boolean} isShareDestination
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, isShareDestination = false) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -1969,7 +1970,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
     }
 
     // TODO: Add description
-    if (report.writeCapability === CONST.REPORT.WRITE_CAPABILITIES.ADMINS) {
+    if (isShareDestination && report.writeCapability === CONST.REPORT.WRITE_CAPABILITIES.ADMINS) {
         const linkedWorkspace = _.find(policies, (policy) => policy && policy.id === report.policyID);
         const shouldAllowShare = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
 
