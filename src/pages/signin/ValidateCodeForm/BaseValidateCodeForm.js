@@ -88,6 +88,8 @@ function BaseValidateCodeForm(props) {
     const input2FARef = useRef();
     const timerRef = useRef();
 
+    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
+
     useEffect(() => {
         if(inputValidateCodeRef.current && ((hasError && props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED) || props.account.isLoading)) {
             inputValidateCodeRef.current.blur();
@@ -233,8 +235,6 @@ function BaseValidateCodeForm(props) {
             Session.signIn('', validateCode, twoFactorAuthCode, props.preferredLocale);
         }
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
-
-    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
 
     return (
         <>
