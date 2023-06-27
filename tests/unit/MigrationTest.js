@@ -263,7 +263,7 @@ describe('Migrations', () => {
 
         // Warning: this test has to come before the others in this suite because Onyx.clear leaves traces and keys with null values aren't cleared out between tests
         it("Should skip the migration if there's no reportAction data in Onyx", () =>
-            PersonalDetailsByAccountID().then(() => expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration PersonalDetailsByAccountID because there were no reportActions')));
+            PersonalDetailsByAccountID().then(() => expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped PersonalDetailsByAccountID reportActions migration because there were no reportActions')));
 
         it('Should skip any zombie reportAction collections that have no reportAction data in Onyx', () =>
             Onyx.multiSet({

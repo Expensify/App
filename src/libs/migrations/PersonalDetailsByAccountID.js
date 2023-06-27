@@ -7,11 +7,6 @@ import Log from '../Log';
 const DEPRECATED_ONYX_KEYS = {
     // Deprecated personal details object which was keyed by login instead of accountID.
     PERSONAL_DETAILS: 'personalDetails',
-
-    // Deprecated policy member list object which was keyed by login instead of accountID.
-    COLLECTION: {
-        POLICY_MEMBER_LIST: 'policyMemberList_',
-    },
 };
 
 /**
@@ -54,7 +49,7 @@ function getDeprecatedPersonalDetailsFromOnyx() {
 function getDeprecatedPolicyMemberListFromOnyx() {
     return new Promise((resolve) => {
         const connectionID = Onyx.connect({
-            key: DEPRECATED_ONYX_KEYS.COLLECTION.POLICY_MEMBER_LIST,
+            key: ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST,
             waitForCollectionCallback: true,
             callback: (allPolicyMembers) => {
                 Onyx.disconnect(connectionID);
@@ -86,156 +81,157 @@ export default function () {
         console.log('puneetlath', oldReportActions);
         console.log('puneetlath', oldPersonalDetails);
         console.log('puneetlath', oldPolicyMembers);
+        // The policyMemberList_ collection has been replaced by policyMembers_
+        // So if we find any instances of policyMemberList_ we will clear them out
         _.each(oldPolicyMembers, (_policyMembersForPolicy, policyKey) => {
-            console.log('puneetlath', policyKey);
+            Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing policyMemberList ${policyKey}`);
             onyxData[policyKey] = null;
         });
-
-        if (!oldReportActions) {
-            Log.info('[Migrate Onyx] Skipped migration PersonalDetailsByAccountID because there were no reportActions');
-            return;
-        }
 
         // We migrate reportActions to have the new accountID-based data if they don't already.
         // If we are not able to get the accountID from personalDetails for some reason, we will just clear the reportAction
         // and let it be fetched from the API next time they open the report and scroll to that action.
         // We do this because we know the reportAction from the API will include the needed accountID data.
-        _.each(oldReportActions, (reportActionsForReport, onyxKey) => {
-            if (_.isEmpty(reportActionsForReport)) {
-                Log.info(`[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${onyxKey} because there were no reportActions`);
-                return;
-            }
-
-            const newReportActionsForReport = {};
-            let reportActionsWereModified = false;
-            _.each(reportActionsForReport, (reportAction, reportActionID) => {
-                if (_.isEmpty(reportAction)) {
-                    reportActionsWereModified = true;
-                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because the reportAction was empty`);
+        if (!oldReportActions) {
+            Log.info('[Migrate Onyx] Skipped PersonalDetailsByAccountID reportActions migration because there were no reportActions');
+        } else {
+            _.each(oldReportActions, (reportActionsForReport, onyxKey) => {
+                if (_.isEmpty(reportActionsForReport)) {
+                    Log.info(`[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${onyxKey} because there were no reportActions`);
                     return;
                 }
 
-                const newReportAction = reportAction;
-
-                if (lodashHas(reportAction, ['originalMessage', 'oldLogin']) && !lodashHas(reportAction, ['originalMessage', 'oldAccountID'])) {
-                    reportActionsWereModified = true;
-                    const oldAccountID = _.get(oldPersonalDetails, [reportAction.originalMessage.oldLogin, 'accountID']);
-                    if (oldAccountID) {
-                        newReportAction.originalMessage.oldAccountID = oldAccountID;
-                    } else {
-                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.oldAccountID not found`);
+                const newReportActionsForReport = {};
+                let reportActionsWereModified = false;
+                _.each(reportActionsForReport, (reportAction, reportActionID) => {
+                    if (_.isEmpty(reportAction)) {
+                        reportActionsWereModified = true;
+                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because the reportAction was empty`);
                         return;
                     }
-                }
 
-                if (lodashHas(reportAction, ['originalMessage', 'newLogin']) && !lodashHas(reportAction, ['originalMessage', 'newAccountID'])) {
-                    reportActionsWereModified = true;
-                    const newAccountID = _.get(oldPersonalDetails, [reportAction.originalMessage.newLogin, 'accountID']);
-                    if (newAccountID) {
-                        newReportAction.originalMessage.newAccountID = newAccountID;
-                    } else {
-                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.newAccountID not found`);
-                        return;
-                    }
-                }
+                    const newReportAction = reportAction;
 
-                if (lodashHas(reportAction, ['accountEmail']) && !lodashHas(reportAction, ['accountID'])) {
-                    reportActionsWereModified = true;
-                    const accountID = _.get(oldPersonalDetails, [reportAction.accountEmail, 'accountID']);
-                    if (accountID) {
-                        newReportAction.accountID = accountID;
-                    } else {
-                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because accountID not found`);
-                        return;
-                    }
-                }
-
-                if (lodashHas(reportAction, ['actorEmail']) && !lodashHas(reportAction, ['actorAccountID'])) {
-                    reportActionsWereModified = true;
-                    const actorAccountID = _.get(oldPersonalDetails, [reportAction.actorEmail, 'accountID']);
-                    if (actorAccountID) {
-                        newReportAction.actorAccountID = actorAccountID;
-                    } else {
-                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because actorAccountID not found`);
-                        return;
-                    }
-                }
-
-                if (lodashHas(reportAction, ['childManagerEmail']) && !lodashHas(reportAction, ['childManagerAccountID'])) {
-                    reportActionsWereModified = true;
-                    const childManagerAccountID = _.get(oldPersonalDetails, [reportAction.childManagerEmail, 'accountID']);
-                    if (childManagerAccountID) {
-                        newReportAction.childManagerAccountID = childManagerAccountID;
-                    } else {
-                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because childManagerAccountID not found`);
-                        return;
-                    }
-                }
-
-                if (lodashHas(reportAction, ['whisperedTo']) && !lodashHas(reportAction, ['whisperedToAccountIDs'])) {
-                    reportActionsWereModified = true;
-                    const whisperedToAccountIDs = [];
-                    _.each(reportAction.whisperedTo, (whisperedToLogin) => {
-                        const whisperedToAccountID = _.get(oldPersonalDetails, [whisperedToLogin, 'accountID']);
-                        if (whisperedToAccountID) {
-                            whisperedToAccountIDs.push(whisperedToAccountID);
+                    if (lodashHas(reportAction, ['originalMessage', 'oldLogin']) && !lodashHas(reportAction, ['originalMessage', 'oldAccountID'])) {
+                        reportActionsWereModified = true;
+                        const oldAccountID = _.get(oldPersonalDetails, [reportAction.originalMessage.oldLogin, 'accountID']);
+                        if (oldAccountID) {
+                            newReportAction.originalMessage.oldAccountID = oldAccountID;
+                        } else {
+                            Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.oldAccountID not found`);
+                            return;
                         }
-                    });
-
-                    if (whisperedToAccountIDs.length === reportAction.whisperedTo.length) {
-                        newReportAction.whisperedToAccountIDs = whisperedToAccountIDs;
-                    } else {
-                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because whisperedToAccountIDs not found`);
-                        return;
                     }
-                }
 
-                if (lodashHas(reportAction, ['childOldestFourEmails']) && !lodashHas(reportAction, ['childOldestFourAccountIDs'])) {
-                    reportActionsWereModified = true;
-                    const childOldestFourEmails = reportAction.childOldestFourEmails.split(',');
-                    const childOldestFourAccountIDs = [];
-                    _.each(childOldestFourEmails, (login) => {
-                        const accountID = _.get(oldPersonalDetails, [login.trim(), 'accountID']);
+                    if (lodashHas(reportAction, ['originalMessage', 'newLogin']) && !lodashHas(reportAction, ['originalMessage', 'newAccountID'])) {
+                        reportActionsWereModified = true;
+                        const newAccountID = _.get(oldPersonalDetails, [reportAction.originalMessage.newLogin, 'accountID']);
+                        if (newAccountID) {
+                            newReportAction.originalMessage.newAccountID = newAccountID;
+                        } else {
+                            Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.newAccountID not found`);
+                            return;
+                        }
+                    }
+
+                    if (lodashHas(reportAction, ['accountEmail']) && !lodashHas(reportAction, ['accountID'])) {
+                        reportActionsWereModified = true;
+                        const accountID = _.get(oldPersonalDetails, [reportAction.accountEmail, 'accountID']);
                         if (accountID) {
-                            childOldestFourAccountIDs.push(accountID);
+                            newReportAction.accountID = accountID;
+                        } else {
+                            Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because accountID not found`);
+                            return;
                         }
-                    });
-
-                    if (childOldestFourAccountIDs.length === childOldestFourEmails.length) {
-                        newReportAction.childOldestFourAccountIDs = childOldestFourAccountIDs.join(',');
-                    } else {
-                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because childOldestFourAccountIDs not found`);
-                        return;
                     }
-                }
 
-                if (lodashHas(reportAction, ['originalMessage', 'participants']) && !lodashHas(reportAction, ['originalMessage', 'participantAccountIDs'])) {
-                    reportActionsWereModified = true;
-                    const participantAccountIDs = [];
-                    _.each(reportAction.originalMessage.participants, (participant) => {
-                        const participantAccountID = _.get(oldPersonalDetails, [participant, 'accountID']);
-                        if (participantAccountID) {
-                            participantAccountIDs.push(participantAccountID);
+                    if (lodashHas(reportAction, ['actorEmail']) && !lodashHas(reportAction, ['actorAccountID'])) {
+                        reportActionsWereModified = true;
+                        const actorAccountID = _.get(oldPersonalDetails, [reportAction.actorEmail, 'accountID']);
+                        if (actorAccountID) {
+                            newReportAction.actorAccountID = actorAccountID;
+                        } else {
+                            Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because actorAccountID not found`);
+                            return;
                         }
-                    });
-
-                    if (participantAccountIDs.length === reportAction.originalMessage.participants.length) {
-                        newReportAction.originalMessage.participantAccountIDs = participantAccountIDs;
-                    } else {
-                        Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.participantAccountIDs not found`);
-                        return;
                     }
-                }
 
-                newReportActionsForReport[reportActionID] = newReportAction;
+                    if (lodashHas(reportAction, ['childManagerEmail']) && !lodashHas(reportAction, ['childManagerAccountID'])) {
+                        reportActionsWereModified = true;
+                        const childManagerAccountID = _.get(oldPersonalDetails, [reportAction.childManagerEmail, 'accountID']);
+                        if (childManagerAccountID) {
+                            newReportAction.childManagerAccountID = childManagerAccountID;
+                        } else {
+                            Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because childManagerAccountID not found`);
+                            return;
+                        }
+                    }
+
+                    if (lodashHas(reportAction, ['whisperedTo']) && !lodashHas(reportAction, ['whisperedToAccountIDs'])) {
+                        reportActionsWereModified = true;
+                        const whisperedToAccountIDs = [];
+                        _.each(reportAction.whisperedTo, (whisperedToLogin) => {
+                            const whisperedToAccountID = _.get(oldPersonalDetails, [whisperedToLogin, 'accountID']);
+                            if (whisperedToAccountID) {
+                                whisperedToAccountIDs.push(whisperedToAccountID);
+                            }
+                        });
+
+                        if (whisperedToAccountIDs.length === reportAction.whisperedTo.length) {
+                            newReportAction.whisperedToAccountIDs = whisperedToAccountIDs;
+                        } else {
+                            Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because whisperedToAccountIDs not found`);
+                            return;
+                        }
+                    }
+
+                    if (lodashHas(reportAction, ['childOldestFourEmails']) && !lodashHas(reportAction, ['childOldestFourAccountIDs'])) {
+                        reportActionsWereModified = true;
+                        const childOldestFourEmails = reportAction.childOldestFourEmails.split(',');
+                        const childOldestFourAccountIDs = [];
+                        _.each(childOldestFourEmails, (login) => {
+                            const accountID = _.get(oldPersonalDetails, [login.trim(), 'accountID']);
+                            if (accountID) {
+                                childOldestFourAccountIDs.push(accountID);
+                            }
+                        });
+
+                        if (childOldestFourAccountIDs.length === childOldestFourEmails.length) {
+                            newReportAction.childOldestFourAccountIDs = childOldestFourAccountIDs.join(',');
+                        } else {
+                            Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because childOldestFourAccountIDs not found`);
+                            return;
+                        }
+                    }
+
+                    if (lodashHas(reportAction, ['originalMessage', 'participants']) && !lodashHas(reportAction, ['originalMessage', 'participantAccountIDs'])) {
+                        reportActionsWereModified = true;
+                        const participantAccountIDs = [];
+                        _.each(reportAction.originalMessage.participants, (participant) => {
+                            const participantAccountID = _.get(oldPersonalDetails, [participant, 'accountID']);
+                            if (participantAccountID) {
+                                participantAccountIDs.push(participantAccountID);
+                            }
+                        });
+
+                        if (participantAccountIDs.length === reportAction.originalMessage.participants.length) {
+                            newReportAction.originalMessage.participantAccountIDs = participantAccountIDs;
+                        } else {
+                            Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction ${reportActionID} because originalMessage.participantAccountIDs not found`);
+                            return;
+                        }
+                    }
+
+                    newReportActionsForReport[reportActionID] = newReportAction;
+                });
+
+                // Only include the reportActions from this report if at least one reportAction in this report
+                // was modified in any way.
+                if (reportActionsWereModified) {
+                    onyxData[onyxKey] = newReportActionsForReport;
+                }
             });
-
-            // Only include the reportActions from this report if at least one reportAction in this report
-            // was modified in any way.
-            if (reportActionsWereModified) {
-                onyxData[onyxKey] = newReportActionsForReport;
-            }
-        });
+        }
 
         return Onyx.multiSet(onyxData);
     });
