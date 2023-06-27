@@ -7,8 +7,11 @@ TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1; pwd)/$(basename
 SCRIPTS_DIR="$TEST_DIR/../scripts"
 DUMMY_DIR="$HOME/DumDumRepo"
 REPO_URL="https://github.com/roryabraham/DumDumRepo"
+bumpVersion="$TEST_DIR/utils/bumpVersion.mjs"
 getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
 INITIAL_COMMIT_HASH="6a473fcb1a7792e503ca3f2a5873fcb7b9c607f3"
+SEMVER_LEVEL_BUILD='BUILD'
+SEMVER_LEVEL_PATCH='PATCH'
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
@@ -100,11 +103,7 @@ function bump_version {
   info "Bumping version..."
   setup_git_as_osbotify
   git switch main
-  if [[ $1 == 'patch' ]]; then
-    npm --no-git-tag-version version patch
-  else
-    npm --no-git-tag-version version prerelease
-  fi
+  npm --no-git-tag-version version "$(node "$bumpVersion" "$(print_version)" "$1")"
   git add package.json package-lock.json
   git commit -m "Update version to $(print_version)"
   git push origin main
@@ -157,7 +156,7 @@ function cherry_pick_pr {
   merge_pr "$1"
   PR_MERGE_COMMIT="$(git rev-parse HEAD)"
 
-  bump_version prerelease
+  bump_version "$SEMVER_LEVEL_BUILD"
   VERSION_BUMP_COMMIT="$(git rev-parse HEAD)"
 
   if ! git rev-parse --verify staging 2>/dev/null; then
@@ -234,7 +233,7 @@ git commit -m "Changes from PR #1"
 success "Created PR #1 in branch pr-1"
 
 merge_pr 1
-bump_version prerelease
+bump_version "$SEMVER_LEVEL_BUILD"
 update_staging_from_main
 
 # Tag staging
@@ -291,7 +290,7 @@ success "Scenario #4A completed successfully!"
 
 title "Scenario #4B: Run the staging deploy and create a new checklist"
 
-bump_version patch
+bump_version "$SEMVER_LEVEL_PATCH"
 update_staging_from_main
 tag_staging
 
@@ -312,7 +311,7 @@ git add PR5.txt
 git commit -m "Changes from PR #5"
 merge_pr 5
 
-bump_version prerelease
+bump_version "$SEMVER_LEVEL_BUILD"
 update_staging_from_main
 tag_staging
 
@@ -335,7 +334,7 @@ git add myFile.txt
 git commit -m "Add myFile.txt in PR #6"
 
 merge_pr 6
-bump_version prerelease
+bump_version "$SEMVER_LEVEL_BUILD"
 update_staging_from_main
 tag_staging
 
@@ -357,7 +356,7 @@ git add myFile.txt
 git commit -m "Append and prepend content in myFile.txt"
 
 merge_pr 7
-bump_version prerelease
+bump_version "$SEMVER_LEVEL_BUILD"
 update_staging_from_main
 tag_staging
 
@@ -417,7 +416,7 @@ git commit -m "Append and prepend content in myFile.txt"
 
 merge_pr 10
 update_production_from_staging
-bump_version patch
+bump_version "$SEMVER_LEVEL_PATCH"
 update_staging_from_main
 tag_staging
 
@@ -425,7 +424,7 @@ tag_staging
 assert_prs_merged_between '1.0.0-2' '1.0.1-4' "[ '9', '7', '6', '5', '2' ]"
 
 # Verify PR list for the new checklist
-assert_prs_merged_between '1.0.1-4' '1.0.2' "[ '10', '8' ]"
+assert_prs_merged_between '1.0.1-4' '1.0.2-0' "[ '10', '8' ]"
 
 ### Cleanup
 title "Cleaning up..."
