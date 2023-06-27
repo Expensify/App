@@ -3,6 +3,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import CONST from '../../CONST';
+import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import Navigation from '../Navigation/Navigation';
 import * as Localize from '../Localize';
@@ -16,6 +17,7 @@ import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
+import * as Report from './Report';
 
 const chatReports = {};
 const iouReports = {};
@@ -44,6 +46,36 @@ Onyx.connect({
         transactions = val;
     },
 });
+
+let userAccountID = '';
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        userAccountID = lodashGet(val, 'accountID', '');
+    },
+});
+
+let currentUserPersonalDetails = {};
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        currentUserPersonalDetails = lodashGet(val, userAccountID, {});
+    },
+});
+
+/**
+ * Reset money request info from the store with its initial value
+ * @param {String} id
+ */
+function resetMoneyRequestInfo(id = '') {
+    Onyx.merge(ONYXKEYS.IOU, {
+        id,
+        amount: 0,
+        currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
+        comment: '',
+        participants: [],
+    });
+}
 
 function buildOnyxDataForMoneyRequest(
     chatReport,
@@ -281,7 +313,7 @@ function buildOnyxDataForMoneyRequest(
 function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
-    const isPolicyExpenseChat = participant.isPolicyExpenseChat || participant.isOwnPolicyExpenseChat;
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
@@ -394,7 +426,9 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         },
         {optimisticData, successData, failureData},
     );
+    resetMoneyRequestInfo();
     Navigation.dismissModal(chatReport.reportID);
+    Report.notifyNewAction(chatReport.reportID, payeeAccountID);
 }
 
 /**
@@ -699,7 +733,9 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
         onyxData,
     );
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal();
+    Report.notifyNewAction(groupData.chatReportID, currentUserAccountID);
 }
 
 /**
@@ -728,7 +764,9 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
         onyxData,
     );
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal(groupData.chatReportID);
+    Report.notifyNewAction(groupData.chatReportID, currentUserAccountID);
 }
 
 /**
@@ -837,24 +875,6 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     if (shouldCloseOnDelete) {
         Navigation.dismissModal(iouReportID);
     }
-}
-
-/**
- * Sets IOU'S selected currency
- *
- * @param {String} selectedCurrencyCode
- */
-function setIOUSelectedCurrency(selectedCurrencyCode) {
-    Onyx.merge(ONYXKEYS.IOU, {selectedCurrencyCode});
-}
-
-/**
- * Sets Money Request description
- *
- * @param {String} comment
- */
-function setMoneyRequestDescription(comment) {
-    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
 }
 
 /**
@@ -1209,7 +1229,9 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipi
 
     API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
+    Report.notifyNewAction(params.chatReportID, managerID);
 }
 
 /**
@@ -1225,7 +1247,9 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
 
     API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
+    Report.notifyNewAction(params.chatReportID, managerID);
 }
 
 /**
@@ -1241,7 +1265,9 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipi
 
     API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
 
+    resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
+    Report.notifyNewAction(params.chatReportID, managerID);
 
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }
@@ -1271,6 +1297,51 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
     }
 }
 
+/**
+ * Initialize money request info and navigate to the MoneyRequest page
+ * @param {String} iouType
+ * @param {String} reportID
+ */
+function startMoneyRequest(iouType, reportID = '') {
+    resetMoneyRequestInfo(`${iouType}${reportID}`);
+    Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
+}
+
+/**
+ * @param {String} id
+ */
+function setMoneyRequestId(id) {
+    Onyx.merge(ONYXKEYS.IOU, {id});
+}
+
+/**
+ * @param {Number} amount
+ */
+function setMoneyRequestAmount(amount) {
+    Onyx.merge(ONYXKEYS.IOU, {amount});
+}
+
+/**
+ * @param {String} currency
+ */
+function setMoneyRequestCurrency(currency) {
+    Onyx.merge(ONYXKEYS.IOU, {currency});
+}
+
+/**
+ * @param {String} comment
+ */
+function setMoneyRequestDescription(comment) {
+    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
+}
+
+/**
+ * @param {Object[]} participants
+ */
+function setMoneyRequestParticipants(participants) {
+    Onyx.merge(ONYXKEYS.IOU, {participants});
+}
+
 export {
     deleteMoneyRequest,
     splitBill,
@@ -1279,7 +1350,12 @@ export {
     sendMoneyElsewhere,
     sendMoneyViaPaypal,
     payMoneyRequest,
-    setIOUSelectedCurrency,
-    setMoneyRequestDescription,
     sendMoneyWithWallet,
+    startMoneyRequest,
+    resetMoneyRequestInfo,
+    setMoneyRequestId,
+    setMoneyRequestAmount,
+    setMoneyRequestCurrency,
+    setMoneyRequestDescription,
+    setMoneyRequestParticipants,
 };
