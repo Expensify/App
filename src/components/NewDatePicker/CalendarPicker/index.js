@@ -1,4 +1,3 @@
-import {Portal} from '@gorhom/portal';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import React from 'react';
@@ -22,63 +21,34 @@ class CalendarPicker extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        let currentSelection = moment(props.value, CONST.DATE.MOMENT_FORMAT_STRING);
-        let currentDateView = currentSelection.toDate();
+        if (props.minDate >= props.maxDate) {
+            throw new Error('Minimum date cannot be greater than the maximum date.');
+        }
 
+        let currentDateView = moment(props.value, CONST.DATE.MOMENT_FORMAT_STRING).toDate();
         if (props.maxDate < currentDateView) {
             currentDateView = props.maxDate;
-            currentSelection = moment(props.maxDate);
         } else if (props.minDate > currentDateView) {
             currentDateView = props.minDate;
-            currentSelection = moment(props.minDate);
         }
 
         this.state = {
             currentDateView,
-            selectedYear: currentSelection.get('year').toString(),
-            selectedMonth: this.getNumberStringWithLeadingZero(currentSelection.get('month') + 1),
-            selectedDay: this.getNumberStringWithLeadingZero(currentSelection.get('date')),
-            isYearPickerVisible: false,
         };
 
         this.moveToPrevMonth = this.moveToPrevMonth.bind(this);
         this.moveToNextMonth = this.moveToNextMonth.bind(this);
-        this.onYearPickerPressed = this.onYearPickerPressed.bind(this);
         this.onDayPressed = this.onDayPressed.bind(this);
         this.onYearSelected = this.onYearSelected.bind(this);
     }
 
-    componentDidMount() {
-        if (this.props.minDate <= this.props.maxDate) {
-            return;
-        }
-        throw new Error('Minimum date cannot be greater than the maximum date.');
-    }
-
     onYearSelected(year) {
         this.setState(
-            (prev) => {
-                const newMomentDate = moment(prev.currentDateView).set('year', year);
-
-                return {
-                    selectedYear: year,
-                    currentDateView: this.clampDate(newMomentDate.toDate()),
-                };
-            },
-            () => {
-                this.props.onSelected(this.getSelectedDateString());
-                this.onYearPickerPressed();
-            },
+            (prev) => ({
+                currentDateView: moment(prev.currentDateView).set('year', year).toDate(),
+            }),
+            () => this.yearPickerRef.close(),
         );
-    }
-
-    /**
-     * Handles the user pressing the year picker button.
-     * Opens the year selection screen with the minimum and maximum year range
-     * based on the props, the current year based on the state, and the active route.
-     */
-    onYearPickerPressed() {
-        this.setState((prev) => ({isYearPickerVisible: !prev.isYearPickerVisible}));
     }
 
     /**
@@ -87,101 +57,25 @@ class CalendarPicker extends React.PureComponent {
      */
     onDayPressed(day) {
         this.setState(
-            (prev) => {
-                const momentDate = moment(prev.currentDateView).date(day);
-
-                return {
-                    selectedDay: this.getNumberStringWithLeadingZero(day),
-                    currentDateView: this.clampDate(momentDate.toDate()),
-                };
-            },
-            () => {
-                this.props.onSelected(this.getSelectedDateString());
-            },
+            (prev) => ({
+                currentDateView: moment(prev.currentDateView).set('date', day).toDate(),
+            }),
+            () => this.props.onSelected(moment(this.state.currentDateView).format('YYYY-MM-DD')),
         );
-    }
-
-    /**
-     * Gets the date string build from state values of selected year, month and day.
-     * @returns {string} - Date string in the 'YYYY-MM-DD' format.
-     */
-    getSelectedDateString() {
-        // can't use moment.format() method here because it won't allow incorrect dates
-        return `${this.state.selectedYear}-${this.state.selectedMonth}-${this.state.selectedDay}`;
-    }
-
-    /**
-     * Returns the string converted from the given number. If the number is lower than 10,
-     * it will add zero at the beginning of the string.
-     * @param {Number} number - The number to be converted.
-     * @returns {string} - Converted string prefixed by zero if necessary.
-     */
-    getNumberStringWithLeadingZero(number) {
-        return `${number < 10 ? `0${number}` : number}`;
-    }
-
-    /**
-     * Gives the new version of the state object,
-     * changing both selected month and year based on the given moment date.
-     * @param {moment.Moment} momentDate - Moment date object.
-     * @returns {{currentDateView: Date, selectedMonth: string, selectedYear: string}} - The new version of the state.
-     */
-    getMonthState(momentDate) {
-        const clampedDate = this.clampDate(momentDate.toDate());
-        const month = clampedDate.getMonth() + 1;
-
-        return {
-            selectedMonth: this.getNumberStringWithLeadingZero(month),
-            selectedYear: clampedDate.getFullYear().toString(), // year might have changed too
-            currentDateView: clampedDate,
-        };
     }
 
     /**
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
     moveToPrevMonth() {
-        this.setState(
-            (prev) => {
-                const momentDate = moment(prev.currentDateView).subtract(1, 'M');
-
-                return this.getMonthState(momentDate);
-            },
-            () => {
-                this.props.onSelected(this.getSelectedDateString());
-            },
-        );
+        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).subtract(1, 'M').toDate()}));
     }
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
     moveToNextMonth() {
-        this.setState(
-            (prev) => {
-                const momentDate = moment(prev.currentDateView).add(1, 'M');
-
-                return this.getMonthState(momentDate);
-            },
-            () => {
-                this.props.onSelected(this.getSelectedDateString());
-            },
-        );
-    }
-
-    /**
-     * Checks whether the given date is in the min/max date range and returns the limit value if not.
-     * @param {Date} date - The date object to check.
-     * @returns {Date} - The date that is within the min/max date range.
-     */
-    clampDate(date) {
-        if (this.props.maxDate < date) {
-            return this.props.maxDate;
-        }
-        if (this.props.minDate > date) {
-            return this.props.minDate;
-        }
-        return date;
+        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).add(1, 'M').toDate()}));
     }
 
     render() {
@@ -197,10 +91,11 @@ class CalendarPicker extends React.PureComponent {
             <View>
                 <View style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}>
                     <PressableWithFeedback
-                        onPress={this.onYearPickerPressed}
+                        onPress={() => this.yearPickerRef.open()}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
                         wrapperStyle={[styles.alignItemsCenter]}
                         hoverDimmingValue={1}
+                        testID="currentYearButton"
                         accessibilityLabel={this.props.translate('common.currentYear')}
                     >
                         <Text
@@ -221,6 +116,7 @@ class CalendarPicker extends React.PureComponent {
                             {monthNames[currentMonthView]}
                         </Text>
                         <PressableWithFeedback
+                            shouldUseAutoHitSlop={false}
                             testID="prev-month-arrow"
                             disabled={!hasAvailableDatesPrevMonth}
                             onPress={this.moveToPrevMonth}
@@ -233,6 +129,7 @@ class CalendarPicker extends React.PureComponent {
                             />
                         </PressableWithFeedback>
                         <PressableWithFeedback
+                            shouldUseAutoHitSlop={false}
                             testID="next-month-arrow"
                             disabled={!hasAvailableDatesNextMonth}
                             onPress={this.moveToNextMonth}
@@ -291,19 +188,18 @@ class CalendarPicker extends React.PureComponent {
                         })}
                     </View>
                 ))}
-                {this.state.isYearPickerVisible && (
-                    <Portal hostName="RigthModalNavigator">
-                        <ScreenSlideAnimation>
-                            <YearPickerPage
-                                onYearChange={this.onYearSelected}
-                                onClose={() => this.setState({isYearPickerVisible: false})}
-                                min={moment(this.props.minDate).year()}
-                                max={moment(this.props.maxDate).year()}
-                                currentYear={parseInt(this.state.selectedYear, 10)}
-                            />
-                        </ScreenSlideAnimation>
-                    </Portal>
-                )}
+                <ScreenSlideAnimation
+                    ref={(ref) => (this.yearPickerRef = ref)}
+                    testID="yearListView"
+                >
+                    <YearPickerPage
+                        onYearChange={this.onYearSelected}
+                        onClose={() => this.yearPickerRef.close()}
+                        min={moment(this.props.minDate).year()}
+                        max={moment(this.props.maxDate).year()}
+                        currentYear={moment(this.props.value).year()}
+                    />
+                </ScreenSlideAnimation>
             </View>
         );
     }
