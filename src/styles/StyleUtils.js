@@ -1240,7 +1240,7 @@ function getDisabledLinkStyles(isDisabled = false) {
 
 /**
  * Returns the checkbox container style
- * @param {Number} size 
+ * @param {Number} size
  * @param {Number} borderRadius
  * @returns {Object}
  */
@@ -1253,7 +1253,7 @@ function getCheckboxContainerStyle(size, borderRadius) {
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
-        // eslint-disable-next-line object-shorthand 
+        // eslint-disable-next-line object-shorthand
         borderRadius: borderRadius,
     };
 }
