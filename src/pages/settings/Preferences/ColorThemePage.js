@@ -2,7 +2,7 @@ import _, {compose} from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -28,7 +28,7 @@ const defaultProps = {
     colorTheme: CONST.COLOR_THEME.LIGHT,
 };
 
-const ColorThemePage = (props) => {
+function ColorThemePage(props) {
     const localesToColorThemes = _.map(props.translate('colorThemePage.colorThemes'), (colorTheme, key) => ({
         value: key,
         text: colorTheme.label,
@@ -43,7 +43,7 @@ const ColorThemePage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('colorThemePage.colorTheme')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
@@ -64,7 +64,7 @@ const ColorThemePage = (props) => {
             />
         </ScreenWrapper>
     );
-};
+}
 
 ColorThemePage.displayName = 'ColorThemePage';
 ColorThemePage.propTypes = propTypes;
