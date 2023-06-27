@@ -117,7 +117,7 @@ function CloseAccountPage(props) {
                         onCancel={hideConfirmModal}
                         isVisible={isConfirmModalVisible}
                         prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
-                        confirmText={props.translate('common.yes')}
+                        confirmText={props.translate('common.yesContinue')}
                         cancelText={props.translate('common.cancel')}
                         shouldShowCancelButton
                     />
