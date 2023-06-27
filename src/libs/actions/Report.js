@@ -1684,10 +1684,6 @@ function openReportFromDeepLink(url, isAuthenticated) {
     });
 }
 
-function getCurrentUserAccountID() {
-    return currentUserAccountID;
-}
-
 /**
  * Leave a report by setting the state to submitted and closed
  *
@@ -1874,7 +1870,6 @@ export {
     toggleEmojiReaction,
     hasAccountIDReacted,
     shouldShowReportActionNotification,
-    getCurrentUserAccountID,
     leaveRoom,
     setLastOpenedPublicRoom,
     flagComment,
