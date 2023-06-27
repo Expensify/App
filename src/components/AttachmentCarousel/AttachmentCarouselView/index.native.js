@@ -11,6 +11,11 @@ const propTypes = {
     toggleArrowsVisibility: PropTypes.func.isRequired,
     autoHideArrow: PropTypes.func.isRequired,
     cancelAutoHideArrow: PropTypes.func.isRequired,
+    onClose: PropTypes.func,
+};
+
+const defaultProps = {
+    onClose: () => {},
 };
 
 function AttachmentCarouselView(props) {
@@ -64,6 +69,7 @@ function AttachmentCarouselView(props) {
                     initialIndex={reversedPage}
                     onTap={() => props.toggleArrowsVisibility(!props.carouselState.shouldShowArrow)}
                     onPinchGestureChange={(isPinchGestureRunning) => props.toggleArrowsVisibility(!isPinchGestureRunning)}
+                    onSwipeDown={props.onClose}
                     itemExtractor={({item}) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})}
                     containerWidth={props.carouselState.containerWidth}
                     containerHeight={props.carouselState.containerHeight}
@@ -75,5 +81,6 @@ function AttachmentCarouselView(props) {
 }
 
 AttachmentCarouselView.propTypes = propTypes;
+AttachmentCarouselView.defaultProps = defaultProps;
 
 export default AttachmentCarouselView;

@@ -24,6 +24,9 @@ const propTypes = {
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate: PropTypes.func,
 
+    /** Callback to close carousel when user swipes down (on native) */
+    onClose: PropTypes.func,
+
     /** Object of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
@@ -37,6 +40,7 @@ const defaultProps = {
     source: '',
     reportActions: {},
     onNavigate: () => {},
+    onClose: () => {},
 };
 
 class AttachmentCarousel extends React.Component {
@@ -183,8 +187,8 @@ class AttachmentCarousel extends React.Component {
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
-                // eslint-disable-next-line react/no-unused-state
                 onLayout={({nativeEvent}) =>
+                    // eslint-disable-next-line react/no-unused-state
                     this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), containerHeight: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
                 }
                 onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
@@ -197,6 +201,7 @@ class AttachmentCarousel extends React.Component {
                     toggleArrowsVisibility={this.toggleArrowsVisibility}
                     autoHideArrow={this.autoHideArrow}
                     cancelAutoHideArrow={this.cancelAutoHideArrow}
+                    onClose={this.props.onClose}
                 />
             </View>
         );
