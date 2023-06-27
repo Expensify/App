@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import lodashGet from 'lodash/get';
 import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
 import {getActionFromState} from '@react-navigation/core';
 import Log from '../Log';
