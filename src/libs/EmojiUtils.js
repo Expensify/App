@@ -242,11 +242,6 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
                 types: checkEmoji.metaData.types,
             });
 
-            // If this is the last emoji in the message and it's the end of the message so far,
-            // add a space after it so the user can keep typing easily.
-            if (isSmallScreenWidth && i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
-                emojiReplacement += ' ';
-            }
             newText = newText.replace(emojiData[i], emojiReplacement);
         }
     }
