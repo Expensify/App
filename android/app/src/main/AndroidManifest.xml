@@ -1,79 +1,92 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:tools="http://schemas.android.com/tools"
-  package="com.expensify.chat">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.expensify.chat">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!-- android:hardwareAccelerated is essential for Android performance: https://developer.android.com/topic/performance/hardware-accel -->
     <application
-      android:supportsRtl="false"
-      android:hardwareAccelerated="true"
-      android:name=".MainApplication"
-      android:label="@string/app_name"
-      android:icon="@mipmap/ic_launcher"
-      android:roundIcon="@mipmap/ic_launcher_round"
-      android:allowBackup="false"
-      android:resizeableActivity="false"
-      android:theme="@style/AppTheme"
-      tools:replace="android:supportsRtl">
-
-      <activity
-        android:name=".MainActivity"
+        android:name=".MainApplication"
+        android:allowBackup="false"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
-        android:launchMode="singleTask"
-        android:exported="true"
-        android:windowSoftInputMode="adjustResize"
-        android:theme="@style/BootTheme">
+        android:resizeableActivity="false"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="false"
+        android:theme="@style/AppTheme"
+        tools:replace="android:supportsRtl">
 
-        <intent-filter android:autoVerify="true">
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:theme="@style/BootTheme"
+            android:windowSoftInputMode="adjustResize">
 
-        <!-- Custom URI handlers. Used to intercept Urban Airship deep links. -->
-        <intent-filter android:autoVerify="true">
-            <action android:name="android.intent.action.VIEW"/>
-            <category android:name="android.intent.category.DEFAULT"/>
-            <category android:name="android.intent.category.BROWSABLE"/>
-            <data android:scheme="new-expensify"/>
-        </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
 
-        <!-- Web URL handlers. Used to intercept web links. -->
-        <intent-filter android:autoVerify="true">
-            <action android:name="android.intent.action.VIEW"/>
-            <category android:name="android.intent.category.DEFAULT"/>
-            <category android:name="android.intent.category.BROWSABLE"/>
+            <!-- Custom URI handlers. Used to intercept Urban Airship deep links. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
 
-            <!-- Production URLs -->
-            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/r"/>
-            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/settings"/>
-            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/details"/>
-            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/v"/>
-            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/bank-account"/>
-            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/iou"/>
-            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/enable-payments"/>
-            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/statements"/>
-            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/concierge"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
-            <!-- Staging URLs -->
-            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/settings"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/details"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/v"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/bank-account"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/iou"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/enable-payments"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/statements"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/concierge"/>
-        </intent-filter>
-      </activity>
+                <data android:scheme="new-expensify" />
+            </intent-filter>
 
-      <meta-data android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
-          android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />
+            <!-- Web URL handlers. Used to intercept web links. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Production URLs -->
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/r"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/details"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/v"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/bank-account"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/iou"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/enable-payments"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/statements"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/concierge"/>
+
+                <!-- Staging URLs -->
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/settings"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/details"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/v"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/bank-account"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/iou"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/enable-payments"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/statements"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/concierge"/>
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
+            android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_launcher" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/bootsplash_background" />
+
     </application>
 </manifest>
