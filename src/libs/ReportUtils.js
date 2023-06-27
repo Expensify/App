@@ -711,6 +711,7 @@ function getIconsForParticipants(participants, personalDetails) {
  * @param {Object} personalDetails
  * @param {*} [defaultIcon]
  * @param {Boolean} [isPayer]
+ * @param {String} [defaultName]
  * @returns {Array<*>}
  */
 function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '') {
