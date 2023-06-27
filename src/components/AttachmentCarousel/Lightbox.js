@@ -1,5 +1,6 @@
 import React, {createContext, useContext, useEffect, useRef, useState, useMemo, useImperativeHandle} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View, useWindowDimensions} from 'react-native';
+import PropTypes from 'prop-types';
 import {Gesture, GestureDetector, createNativeWrapper} from 'react-native-gesture-handler';
 import Animated, {
     cancelAnimation,
@@ -63,6 +64,7 @@ const defaultDimensions = {
     height: 1,
 };
 
+// eslint-disable-next-line react/prop-types
 function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, isActive, onSwipe, onSwipeSuccess, renderImage, renderFallback, onTap}) {
     const {pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
     const windowDimensions = useWindowDimensions();
@@ -640,6 +642,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
     );
 }
 
+// eslint-disable-next-line react/prop-types
 function ImageWrapper({children}) {
     return (
         <Animated.View
@@ -659,7 +662,14 @@ function ImageWrapper({children}) {
 
 const cachedDimensions = new Map();
 
-function Page({isActive, item, onSwipe, onSwipeSuccess, canvasWidth, canvasHeight, onTap}) {
+const pagePropTypes = {
+    item: PropTypes.shape({
+        url: PropTypes.string.isRequired,
+    }).isRequired,
+};
+
+// eslint-disable-next-line react/prop-types
+function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth, canvasHeight, onTap}) {
     const dimensions = cachedDimensions.get(item.url);
 
     if (!isActive) {
@@ -669,15 +679,15 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, canvasWidth, canvasHeigh
                     source={{uri: item.url}}
                     onLoad={(evt) => {
                         cachedDimensions.set(item.url, {
-                            width: evt.nativeEvent?.width,
-                            height: evt.nativeEvent?.height,
+                            width: evt.nativeEvent.width,
+                            height: evt.nativeEvent.height,
                         });
                     }}
                     style={
                         dimensions
                             ? getScaledDimensions({
-                                  imageHeight: dimensions?.height,
-                                  imageWidth: dimensions?.width,
+                                  imageHeight: dimensions.height,
+                                  imageWidth: dimensions.width,
                                   canvasHeight,
                                   canvasWidth,
                               })
@@ -692,10 +702,11 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, canvasWidth, canvasHeigh
         <ImageTransformer
             onSwipe={onSwipe}
             onSwipeSuccess={onSwipeSuccess}
+            onSwipeDown={onSwipeDown}
             isActive
             onTap={onTap}
-            imageHeight={dimensions?.height}
-            imageWidth={dimensions?.width}
+            imageHeight={dimensions.height}
+            imageWidth={dimensions.width}
             canvasHeight={canvasHeight}
             canvasWidth={canvasWidth}
             renderFallback={() => <ActivityIndicator />}
@@ -719,6 +730,7 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, canvasWidth, canvasHeigh
         />
     );
 }
+Page.propTypes = pagePropTypes;
 
 const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
 
@@ -746,15 +758,44 @@ const noopWorklet = () => {
     // noop
 };
 
+const pagerPropTypes = {
+    items: PropTypes.arrayOf(
+        PropTypes.shape({
+            url: PropTypes.string.isRequired,
+        }),
+    ).isRequired,
+    initialIndex: PropTypes.number,
+    onTap: PropTypes.func,
+    onSwipe: PropTypes.func,
+    onSwipeSuccess: PropTypes.func,
+    onSwipeDown: PropTypes.func,
+    onPinchGestureChange: PropTypes.func,
+    itemExtractor: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    containerWidth: PropTypes.number.isRequired,
+    containerHeight: PropTypes.number.isRequired,
+};
+
+const pagerDefaultProps = {
+    initialIndex: 0,
+    onTap: () => {},
+    onSwipe: noopWorklet,
+    onSwipeSuccess: () => {},
+    onSwipeDown: () => {},
+    onPinchGestureChange: () => {},
+    forwardedRef: null,
+};
+
 function Pager({
     items,
     initialIndex = 0,
     onTap,
-    itemExtractor,
     onSwipe = noopWorklet,
     onSwipeSuccess = () => {},
-    forwardedRef,
+    onSwipeDown = () => {},
     onPinchGestureChange = () => {},
+    itemExtractor,
+    forwardedRef,
     containerWidth,
     containerHeight,
 }) {
@@ -831,6 +872,7 @@ function Pager({
                             onTap={onTap}
                             onSwipe={onSwipe}
                             onSwipeSuccess={onSwipeSuccess}
+                            onSwipeDown={onSwipeDown}
                             isActive={index === activePage}
                             item={item}
                             canvasHeight={containerHeight}
@@ -842,6 +884,8 @@ function Pager({
         </Context.Provider>
     );
 }
+Pager.propTypes = pagerPropTypes;
+Pager.defaultProps = pagerDefaultProps;
 
 export default React.forwardRef((props, ref) => (
     <Pager
