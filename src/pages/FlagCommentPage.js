@@ -120,7 +120,10 @@ function FlagCommentPage(props) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
             reportAction = ReportActionsUtils.getParentReportAction(props.report);
         }
-        Report.flagComment(reportID, reportAction, severity);
+        
+        if (!ReportActionsUtils.isDeletedAction(reportAction)) {
+            Report.flagComment(reportID, reportAction, severity);
+        }
         Navigation.dismissModal();
     };
 
