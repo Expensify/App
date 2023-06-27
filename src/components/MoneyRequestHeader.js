@@ -94,7 +94,7 @@ function MoneyRequestHeader(props) {
     if (isSettled) {
         description += ` • ${props.translate('iou.settledExpensify')}`;
     } else if (props.report.isWaitingOnBankAccount) {
-        description += ` • Waiting for credit account`;
+        description += ` • ${props.translate('iou.pending')}`;
     }
 
     return (
