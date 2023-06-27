@@ -112,6 +112,7 @@ end
 platform :ios do
   desc "Generate a local iOS production build"
   lane :build do
+    xcversion(version: "14.2")
     ENV["ENVFILE"]=".env.production"
 
     build_app(
@@ -122,6 +123,7 @@ platform :ios do
 
   desc "Build app for testing"
   lane :build_internal do
+    xcversion(version: "14.2")
     require 'securerandom'
     ENV["ENVFILE"]=".env.adhoc"
 
@@ -176,6 +178,7 @@ platform :ios do
 
   desc "Build and upload app to TestFlight"
   lane :beta do
+    xcversion(version: "14.2")
     require 'securerandom'
     ENV["ENVFILE"]=".env.production"
 
@@ -248,6 +251,7 @@ platform :ios do
 
   desc "Move app to App Store Review"
   lane :production do
+    xcversion(version: "14.2")
     deliver(
       api_key_path: "./ios/ios-fastlane-json-key.json",
 
