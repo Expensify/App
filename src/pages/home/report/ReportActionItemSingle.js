@@ -88,6 +88,7 @@ function ReportActionItemSingle(props) {
         const delegateDetails = props.personalDetailsList[props.action.delegateAccountID];
         const delegateDisplayName = delegateDetails.displayName;
         actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
+        displayName = actorHint;
         avatarSource = UserUtils.getAvatar(delegateDetails.avatar, props.action.delegateAccountID);
     }
 
