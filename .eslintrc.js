@@ -85,7 +85,7 @@ module.exports = {
                         format: ['camelCase', 'PascalCase'],
                     },
                     {
-                        selector: ['enumMember', 'typeLike', 'typeParameter'],
+                        selector: ['typeLike', 'enumMember'],
                         format: ['PascalCase'],
                     },
                     {
