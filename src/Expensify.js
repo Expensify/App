@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
