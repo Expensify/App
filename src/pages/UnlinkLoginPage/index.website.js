@@ -43,8 +43,8 @@ function UnlinkLoginPage(props) {
     useEffect(() => {
         const login = lodashGet(props, 'credentials.login', null);
 
-        // A fresh session (i.e: user opens link incognito or requests sign in in desktop but open link in web browser) will not have credentials.login
-        // Same as sign in with magic link page, we would like to show the Magic code screen in order to give a chance for user to unlink here or in original device.  
+        // A fresh session (i.e: user opens link in incognito browser or requests unlink in desktop but open link in web browser) will not have credentials.login
+        // Same as sign in with magic link page, we would like to show the Magic code screen in order to give a chance for user to unlink here or in original device.
         if (!login) {
             setIsMagicCodePage(true);
             return;
