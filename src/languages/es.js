@@ -1280,7 +1280,6 @@ export default {
     },
     newTaskPage: {
         assignTask: 'Asignar tarea',
-        assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario.',
         assignMe: 'Asignar a mí mismo',
         confirmTask: 'Confirmar tarea',
         confirmError: 'Por favor introduce un título y selecciona un destino de tarea.',
@@ -1302,6 +1301,7 @@ export default {
         },
         markAsDone: 'Marcar como hecho',
         markAsIncomplete: 'Marcar como incompleta',
+        assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario.',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
