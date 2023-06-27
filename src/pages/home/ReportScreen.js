@@ -155,6 +155,7 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // If composer should be hidden, hide emoji picker as well
         if (ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
             EmojiPickerAction.hideEmojiPicker(true);
         }
