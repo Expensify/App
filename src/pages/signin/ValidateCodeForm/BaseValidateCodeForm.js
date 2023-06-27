@@ -288,7 +288,7 @@ function BaseValidateCodeForm(props) {
                                 accessibilityRole="button"
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{hasError ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccured') : props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{Boolean(hasError) ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccured') : props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
