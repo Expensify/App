@@ -1152,7 +1152,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         login: recipient.login,
     };
 
-    const optimisticReportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
+    const optimisticReportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID), true);
 
     const optimisticData = [
         {
