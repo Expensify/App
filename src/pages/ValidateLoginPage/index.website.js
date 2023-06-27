@@ -138,7 +138,7 @@ class ValidateLoginPage extends Component {
                     <ValidateCodeModal
                         code={this.getValidateCode()}
                         justValidateHereText={this.props.translate('validateCodeModal.signInHere')}
-                        justValidateHereCallback={this.signInWithValidateCode()}
+                        justValidateHereCallback={this.signInWithValidateCode}
                     />
                 )}
                 {currentAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
