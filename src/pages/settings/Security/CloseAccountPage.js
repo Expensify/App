@@ -78,7 +78,7 @@ function CloseAccountPage(props) {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('closeAccountPage.closeAccount')}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM}
