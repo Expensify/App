@@ -110,7 +110,7 @@ function ReportActionItemSingle(props) {
         } else {
             showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
         }
-    }, [isWorkspaceActor, props.report.reportID, actorAccountID]);
+    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID]);
 
     return (
         <View style={props.wrapperStyles}>
