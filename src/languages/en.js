@@ -193,6 +193,7 @@ export default {
         description: 'Please enter the code using the device\nwhere it was originally requested',
         or: ', or',
         signInHere: 'just sign in here',
+        unlinkHere: 'just unlink here',
         expiredCodeTitle: 'Magic code expired',
         expiredCodeDescription: 'Go back to the original device and request a new code.',
         requestNewCode: 'You can also',

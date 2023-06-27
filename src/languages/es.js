@@ -192,6 +192,7 @@ export default {
         or: ', ¡o',
         description: 'Por favor, introduce el código utilizando el dispositivo\nen el que se solicitó originalmente',
         signInHere: 'simplemente inicia sesión aquí',
+        unlinkHere: 'TBU',
         expiredCodeTitle: 'Código mágico caducado',
         expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo.',
         requestNewCode: '¡También puedes',
