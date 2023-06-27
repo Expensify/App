@@ -798,8 +798,12 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                     text: '',
                     isEdited: true,
                     isDeletedParentAction: shouldShowDeletedRequestMessage,
+
                 },
             ],
+            originalMessage: {
+                IOUTransactionID: null,
+            },
             errors: null,
         },
     };
