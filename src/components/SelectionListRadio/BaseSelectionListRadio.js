@@ -12,14 +12,7 @@ import variables from '../../styles/variables';
 import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListRadioDefaultProps} from './selectionListRadioPropTypes';
 import RadioListItem from './RadioListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
-
-const propTypes = {
-    ...selectionListRadioPropTypes,
-};
-
-const defaultProps = {
-    ...selectionListRadioDefaultProps,
-};
+import SafeAreaConsumer from '../SafeAreaConsumer';
 
 function SelectionListRadio(props) {
     const listRef = useRef(null);
@@ -210,50 +203,54 @@ function SelectionListRadio(props) {
             maxIndex={flattenedSections.allOptions.length - 1}
             onFocusedIndexChanged={setFocusedIndex}
         >
-            <View style={[styles.flex1]}>
-                {shouldShowTextInput && (
-                    <View style={[styles.ph5, styles.pv5]}>
-                        <TextInput
-                            ref={textInputRef}
-                            label={props.textInputLabel}
-                            value={props.textInputValue}
-                            placeholder={props.textInputPlaceholder}
-                            maxLength={props.textInputMaxLength}
-                            onChangeText={props.onChangeText}
-                            keyboardType={props.keyboardType}
-                            selectTextOnFocus
+            <SafeAreaConsumer>
+                {({safeAreaPaddingBottomStyle}) => (
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        {shouldShowTextInput && (
+                            <View style={[styles.ph5, styles.pv5]}>
+                                <TextInput
+                                    ref={textInputRef}
+                                    label={props.textInputLabel}
+                                    value={props.textInputValue}
+                                    placeholder={props.textInputPlaceholder}
+                                    maxLength={props.textInputMaxLength}
+                                    onChangeText={props.onChangeText}
+                                    keyboardType={props.keyboardType}
+                                    selectTextOnFocus
+                                />
+                            </View>
+                        )}
+                        {Boolean(props.headerMessage) && (
+                            <View style={[styles.ph5, styles.pb5]}>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
+                            </View>
+                        )}
+                        <SectionList
+                            ref={listRef}
+                            sections={props.sections}
+                            renderItem={renderItem}
+                            getItemLayout={getItemLayout}
+                            onScroll={props.onScroll}
+                            onScrollBeginDrag={props.onScrollBeginDrag}
+                            keyExtractor={(item) => item.keyForList}
+                            extraData={focusedIndex}
+                            indicatorStyle="white"
+                            keyboardShouldPersistTaps="always"
+                            showsVerticalScrollIndicator={false}
+                            initialNumToRender={12}
+                            maxToRenderPerBatch={5}
+                            windowSize={5}
+                            viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                         />
                     </View>
                 )}
-                {Boolean(props.headerMessage) && (
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
-                    </View>
-                )}
-                <SectionList
-                    ref={listRef}
-                    sections={props.sections}
-                    renderItem={renderItem}
-                    getItemLayout={getItemLayout}
-                    onScroll={props.onScroll}
-                    onScrollBeginDrag={props.onScrollBeginDrag}
-                    keyExtractor={(item) => item.keyForList}
-                    extraData={focusedIndex}
-                    indicatorStyle="white"
-                    keyboardShouldPersistTaps="always"
-                    showsVerticalScrollIndicator={false}
-                    initialNumToRender={12}
-                    maxToRenderPerBatch={5}
-                    windowSize={5}
-                    viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                />
-            </View>
+            </SafeAreaConsumer>
         </ArrowKeyFocusManager>
     );
 }
 
 SelectionListRadio.displayName = 'SelectionListRadio';
-SelectionListRadio.propTypes = propTypes;
-SelectionListRadio.defaultProps = defaultProps;
+SelectionListRadio.propTypes = selectionListRadioPropTypes;
+SelectionListRadio.defaultProps = selectionListRadioDefaultProps;
 
 export default SelectionListRadio;

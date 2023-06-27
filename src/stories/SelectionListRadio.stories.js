@@ -13,92 +13,139 @@ const story = {
     component: SelectionListRadio,
 };
 
-const ITEMS = [
+const SECTIONS = [
     {
-        text: 'Option 1',
-        keyForList: 'option-1',
+        data: [
+            {
+                text: 'Option 1',
+                keyForList: 'option-1',
+                isSelected: false,
+            },
+            {
+                text: 'Option 2',
+                keyForList: 'option-2',
+                isSelected: false,
+            },
+            {
+                text: 'Option 3',
+                keyForList: 'option-3',
+                isSelected: false,
+            },
+        ],
+        indexOffset: 0,
+        isDisabled: false,
     },
     {
-        text: 'Option 2',
-        keyForList: 'option-2',
-    },
-    {
-        text: 'Option 3',
-        keyForList: 'option-3',
+        data: [
+            {
+                text: 'Option 4',
+                keyForList: 'option-4',
+                isSelected: false,
+            },
+            {
+                text: 'Option 5',
+                keyForList: 'option-5',
+                isSelected: false,
+            },
+            {
+                text: 'Option 6',
+                keyForList: 'option-6',
+                isSelected: false,
+            },
+        ],
+        indexOffset: 3,
+        isDisabled: false,
     },
 ];
 
-function Default(props) {
+function Default(args) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
-    const data = _.map(ITEMS, (item, index) => {
-        const isSelected = index === selectedIndex;
+    const sections = _.map(args.sections, (section) => {
+        const data = _.map(section.data, (item, index) => {
+            const isSelected = selectedIndex === index + section.indexOffset;
+            return {...item, isSelected};
+        });
 
-        return {
-            ...item,
-            isSelected,
-        };
+        return {...section, data};
     });
 
     const onSelectRow = (item) => {
-        const newSelectedIndex = _.findIndex(data, (option) => option.keyForList === item.keyForList);
-        setSelectedIndex(newSelectedIndex);
+        _.forEach(sections, (section) => {
+            const newSelectedIndex = _.findIndex(section.data, (option) => option.keyForList === item.keyForList);
+
+            if (newSelectedIndex >= 0) {
+                setSelectedIndex(newSelectedIndex + section.indexOffset);
+            }
+        });
     };
 
     return (
         <SelectionListRadio
-            sections={[{data, indexOffset: 0, isDisabled: false}]}
             onSelectRow={onSelectRow}
-            initiallyFocusedOptionKey={_.get(_.filter(data, (item, index) => index === selectedIndex)[0], 'keyForList')}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...args}
+            sections={sections}
         />
     );
 }
 
-Default.args = {};
+Default.args = {
+    sections: SECTIONS,
+    initiallyFocusedOptionKey: 'option-2',
+};
 
-function WithTextInput(props) {
+function WithTextInput(args) {
     const [searchText, setSearchText] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(1);
 
-    const data = _.reduce(
-        ITEMS,
-        (memo, item, index) => {
-            if (!item.text.toLowerCase().includes(searchText.trim().toLowerCase())) {
-                return memo;
-            }
+    const sections = _.map(args.sections, (section) => {
+        const data = _.reduce(
+            section.data,
+            (memo, item, index) => {
+                if (!item.text.toLowerCase().includes(searchText.trim().toLowerCase())) {
+                    return memo;
+                }
 
-            const isSelected = index === selectedIndex;
-            memo.push({...item, isSelected});
-            return memo;
-        },
-        [],
-    );
+                const isSelected = selectedIndex === index + section.indexOffset;
+                memo.push({...item, isSelected});
+                return memo;
+            },
+            [],
+        );
+
+        return {...section, data};
+    });
 
     const onSelectRow = (item) => {
-        const newSelectedIndex = _.findIndex(data, (option) => option.keyForList === item.keyForList);
-        setSelectedIndex(newSelectedIndex);
+        _.forEach(sections, (section) => {
+            const newSelectedIndex = _.findIndex(section.data, (option) => option.keyForList === item.keyForList);
+
+            if (newSelectedIndex >= 0) {
+                setSelectedIndex(newSelectedIndex + section.indexOffset);
+            }
+        });
     };
 
     return (
         <SelectionListRadio
             textInputValue={searchText}
             onChangeText={setSearchText}
-            sections={[{data, indexOffset: 0, isDisabled: false}]}
             onSelectRow={onSelectRow}
-            initiallyFocusedOptionKey={_.get(_.filter(data, (item, index) => index === selectedIndex)[0], 'keyForList')}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...args}
+            sections={sections}
         />
     );
 }
 
 WithTextInput.args = {
+    sections: SECTIONS,
     textInputLabel: 'Option list',
     textInputPlaceholder: 'Search something...',
     textInputMaxLength: 4,
     keyboardType: CONST.KEYBOARD_TYPE.NUMBER_PAD,
+    initiallyFocusedOptionKey: 'option-2',
 };
 
 function WithHeaderMessage(props) {
@@ -116,31 +163,38 @@ WithHeaderMessage.args = {
     sections: [],
 };
 
-function WithAlternateText(props) {
+function WithAlternateText(args) {
     const [selectedIndex, setSelectedIndex] = useState(1);
 
-    const data = _.map(ITEMS, (item, index) => {
-        const isSelected = index === selectedIndex;
+    const sections = _.map(args.sections, (section) => {
+        const data = _.map(section.data, (item, index) => {
+            const isSelected = selectedIndex === index + section.indexOffset;
 
-        return {
-            ...item,
-            alternateText: `Alternate ${index + 1}`,
-            isSelected,
-        };
+            return {
+                ...item,
+                alternateText: `Alternate ${index + 1}`,
+                isSelected,
+            };
+        });
+
+        return {...section, data};
     });
 
     const onSelectRow = (item) => {
-        const newSelectedIndex = _.findIndex(data, (option) => option.keyForList === item.keyForList);
-        setSelectedIndex(newSelectedIndex);
-    };
+        _.forEach(sections, (section) => {
+            const newSelectedIndex = _.findIndex(section.data, (option) => option.keyForList === item.keyForList);
 
+            if (newSelectedIndex >= 0) {
+                setSelectedIndex(newSelectedIndex + section.indexOffset);
+            }
+        });
+    };
     return (
         <SelectionListRadio
-            sections={[{data, indexOffset: 0, isDisabled: false}]}
             onSelectRow={onSelectRow}
-            initiallyFocusedOptionKey={_.get(_.filter(data, (item, index) => index === selectedIndex)[0], 'keyForList')}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
+            {...args}
+            sections={sections}
         />
     );
 }
@@ -149,5 +203,5 @@ WithAlternateText.args = {
     ...Default.args,
 };
 
-export default story;
 export {Default, WithTextInput, WithHeaderMessage, WithAlternateText};
+export default story;
