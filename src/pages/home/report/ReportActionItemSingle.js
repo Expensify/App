@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -66,22 +66,30 @@ const showUserDetails = (accountID) => {
     Navigation.navigate(ROUTES.getProfileRoute(accountID));
 };
 
-function ReportActionItemSingle(props) {
-    const actorEmail = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const actorAccountID = props.action.actorAccountID;
-    let {avatar, displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {pendingFields} = props.personalDetailsList[actorAccountID] || {};
+const showWorkspaceDetails = (reportID) => {
+    Navigation.navigate(ROUTES.getReportDetailsRoute(reportID));
+};
 
-    // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
-    // the Copilot feature is implemented.
-    if (props.action.delegateAccountID) {
+function ReportActionItemSingle(props) {
+    const actorAccountID = props.action.actorAccountID;
+    let {displayName} = props.personalDetailsList[actorAccountID] || {};
+    const {avatar, pendingFields} = props.personalDetailsList[actorAccountID] || {};
+    let actorHint = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
+    let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
+
+    if (isWorkspaceActor) {
+        displayName = ReportUtils.getPolicyName(props.report);
+        actorHint = displayName;
+        avatarSource = ReportUtils.getWorkspaceAvatar(props.report);
+    } else if (props.action.delegateAccountID) {
+        // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
+        // the Copilot feature is implemented.
         const delegateDetails = props.personalDetailsList[props.action.delegateAccountID];
         const delegateDisplayName = delegateDetails.displayName;
-        displayName = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
-        avatar = delegateDetails.avatar;
+        actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
+        avatarSource = UserUtils.getAvatar(delegateDetails.avatar, props.action.delegateAccountID);
     }
-
-    const avatarSource = UserUtils.getAvatar(avatar, props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -95,22 +103,30 @@ function ReportActionItemSingle(props) {
           ]
         : props.action.person;
 
+    const showActorDetails = useCallback(() => {
+        if (isWorkspaceActor) {
+            showWorkspaceDetails(props.report.reportID);
+        } else {
+            showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
+        }
+    }, [isWorkspaceActor, props.report.reportID, actorAccountID]);
+
     return (
         <View style={props.wrapperStyles}>
             <PressableWithoutFeedback
                 style={[styles.alignSelfStart, styles.mr3]}
                 onPressIn={ControlSelection.block}
                 onPressOut={ControlSelection.unblock}
-                onPress={() => showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID)}
-                accessibilityLabel={actorEmail}
+                onPress={showActorDetails}
+                accessibilityLabel={actorHint}
                 accessibilityRole="button"
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
-                            mainAvatar={{source: avatarSource, type: CONST.ICON_TYPE_AVATAR}}
-                            secondaryAvatar={ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
-                            mainTooltip={actorEmail}
+                            mainAvatar={{source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName}}
+                            secondaryAvatar={isWorkspaceActor ? {} : ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
+                            mainTooltip={actorHint}
                             secondaryTooltip={ReportUtils.getPolicyName(props.report)}
                             noMargin
                         />
@@ -136,8 +152,8 @@ function ReportActionItemSingle(props) {
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
                             onPressOut={ControlSelection.unblock}
-                            onPress={() => showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID)}
-                            accessibilityLabel={actorEmail}
+                            onPress={showActorDetails}
+                            accessibilityLabel={actorHint}
                             accessibilityRole="button"
                         >
                             {_.map(personArray, (fragment, index) => (

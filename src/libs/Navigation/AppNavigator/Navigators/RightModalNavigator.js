@@ -104,6 +104,11 @@ function RigthModalNavigator() {
                 options={defaultModalScreenOptions}
                 component={ModalStackNavigators.FlagCommentStackNavigator}
             />
+            <Stack.Screen
+                name="EditRequest"
+                options={defaultModalScreenOptions}
+                component={ModalStackNavigators.EditRequestStackNavigator}
+            />
         </Stack.Navigator>
     );
 }
