@@ -96,7 +96,7 @@ function MultipleAvatars(props) {
 
         // // Update the state with the two rows as an array
         setAvatarRows([firstRow, secondRow]);
-    }
+    };
 
     // useEffect hook to update avatar rows when props change
     useEffect(() => {
