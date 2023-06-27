@@ -171,7 +171,6 @@ function resendValidateCode(login = credentials.login) {
             value: {
                 isLoading: true,
                 errors: null,
-                message: null,
                 loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
             },
         },
@@ -182,7 +181,6 @@ function resendValidateCode(login = credentials.login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: 'validateCodeForm.codeSent',
                 loadingForm: null,
             },
         },
@@ -193,7 +191,6 @@ function resendValidateCode(login = credentials.login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: null,
                 loadingForm: null,
             },
         },
