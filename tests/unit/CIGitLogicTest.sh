@@ -53,6 +53,10 @@ function reset_repo_to_initial_state {
   # Delete all branches except main
   git branch -r | grep 'origin' | grep -v 'main$' | grep -v HEAD | cut -d/ -f2- | while read -r line; do git push --force origin ":heads/$line"; done;
 
+  # Delete all tags
+  # shellcheck disable=SC2046
+  git push origin --delete $(git tag --list)
+
   cd "$HOME" || exit 1
   rm -rf "$DUMMY_DIR"
   success "Reset remote repo to initial state!"
