@@ -24,7 +24,6 @@ const defaultProps = {};
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
 class ReportScreenWrapper extends PureComponent {
-
     render() {
         // Wait until there is reportID in the route params
         if (lodashGet(this.props.route, 'params.reportID', null)) {
