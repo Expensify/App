@@ -96,7 +96,7 @@ function TaskHeader(props) {
                                 {isCompleted ? (
                                     <>
                                         <Text>{props.translate('task.completed')}</Text>
-                                        <View style={styles.moneyRequestHeaderCheckmark}>
+                                        <View style={styles.defaultCheckmarkWrapper}>
                                             <Icon
                                                 src={Expensicons.Checkmark}
                                                 fill={themeColors.iconSuccessFill}
