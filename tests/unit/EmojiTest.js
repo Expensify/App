@@ -101,24 +101,14 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.containsOnlyEmojis('🅃🄴🅂🅃')).toBe(false);
     });
 
-    it('replaces an emoji code with an emoji and a space on mobile', () => {
+    it('replaces an emoji code with an emoji and a no space', () => {
         const text = 'Hi :smile:';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text, true), 'text')).toBe('Hi 😄 ');
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄');
     });
 
     it('will not add a space after the last emoji if there is text after it', () => {
         const text = 'Hi :smile::wave:no space after last emoji';
         expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋no space after last emoji');
-    });
-
-    it('will not add a space after the last emoji when there is text after it on mobile', () => {
-        const text = 'Hi :smile::wave:no space after last emoji';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text, true), 'text')).toBe('Hi 😄👋no space after last emoji');
-    });
-
-    it("will not add a space after the last emoji if we're not on mobile", () => {
-        const text = 'Hi :smile:';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄');
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
