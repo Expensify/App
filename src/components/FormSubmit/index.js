@@ -27,7 +27,7 @@ class FormSubmit extends React.Component {
         const tagName = lodashGet(event, 'target.tagName', '');
 
         // ENTER is pressed on INPUT or SELECT element, call the submit callback.
-        if (tagName === 'INPUT' || tagName === 'SELECT') {
+        if (tagName === 'SELECT') {
             this.props.onSubmit();
             return;
         }
