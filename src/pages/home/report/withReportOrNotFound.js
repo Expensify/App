@@ -26,7 +26,7 @@ export default function (WrappedComponent) {
         report: {},
         isLoadingReportData: true,
     };
-    
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportOrNotFound(props) {
         if (props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID)) {
