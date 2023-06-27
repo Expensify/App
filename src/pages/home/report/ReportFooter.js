@@ -68,9 +68,7 @@ function ReportFooter(props) {
             {(isArchivedRoom || hideComposer) && (
                 <View style={[styles.chatFooter, props.isSmallScreenWidth ? styles.mb5 : null]}>
                     {isArchivedRoom && <ArchivedReportFooter report={props.report} />}
-                    {!props.isSmallScreenWidth && (
-                        <View style={styles.offlineIndicatorRow}>{hideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
-                    )}
+                    {!props.isSmallScreenWidth && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
                 </View>
             )}
             {!hideComposer && (props.shouldShowComposeInput || !props.isSmallScreenWidth) && (
