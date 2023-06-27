@@ -1,3 +1,13 @@
+const reactNativeRestrictedImport = {
+    name: 'react-native',
+    importNames: ['useWindowDimensions', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'StatusBar'],
+    message: [
+        "For 'useWindowDimensions', please use 'src/hooks/useWindowDimensions' instead.",
+        "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', please use 'src/components/Pressable' instead.",
+        "For 'StatusBar', please use 'src/libs/StatusBar' instead.",
+    ].join('\n'),
+};
+
 module.exports = {
     extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier'],
     plugins: ['react-hooks'],
@@ -10,33 +20,6 @@ module.exports = {
         __DEV__: 'readonly',
     },
     overrides: [
-        {
-            files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
-            rules: {
-                'no-restricted-imports': [
-                    'error',
-                    {
-                        paths: [
-                            {
-                                name: 'react-native',
-                                importNames: ['useWindowDimensions'],
-                                message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead.',
-                            },
-                            {
-                                name: 'react-native',
-                                importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
-                                message: 'Please use PressableWithFeedback and/or PressableWithoutFeedback from src/components/Pressable instead.',
-                            },
-                            {
-                                name: 'react-native',
-                                importNames: ['StatusBar'],
-                                message: 'Please use StatusBar from src/libs/StatusBar instead',
-                            },
-                        ],
-                    },
-                ],
-            },
-        },
         {
             files: ['*.js', '*.jsx'],
             settings: {
@@ -55,6 +38,12 @@ module.exports = {
                         jsx: 'never',
                         ts: 'never',
                         tsx: 'never',
+                    },
+                ],
+                'no-restricted-imports': [
+                    'error',
+                    {
+                        paths: [reactNativeRestrictedImport],
                     },
                 ],
             },
@@ -118,6 +107,7 @@ module.exports = {
                     'error',
                     {
                         paths: [
+                            reactNativeRestrictedImport,
                             {
                                 name: 'lodash/get',
                                 message: 'Please use optional chaining and nullish coalescing instead.',
