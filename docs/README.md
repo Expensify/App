@@ -36,6 +36,7 @@ ln -sf universal-darwin22 universal-darwin21
 ## Steps
 
 1. Open the Terminal command line in macOS.
+1. In the root folder of the repository, execute `npm run createDocsRoutes` to generate the file which contains the routes for the articles (without this, the site will appear empty).
 1. Navigate to the `docs` folder in the command line.
 1. Run `bundle exec jekyll serve --livereload`.
     - _Note: If you see an error like `Unable to load the EventMachine C Extension...`, try running `gem uninstall eventmachine && bundle install`. If that doesn't work just removing the `--livereload` flag should work._
@@ -46,7 +47,7 @@ ln -sf universal-darwin22 universal-darwin21
 ### Android Chrome emulator
 To visit the site on the Android emulator, go to `10.0.2.2:4000`.
 
-If you're getting an error page that says "Refused to connect", try running `adb reverse tcp:4000 tcp:4000` with your emulator open. 
+If you're getting an error page that says "Refused to connect", try running `adb reverse tcp:4000 tcp:4000` with your emulator open.
 
 
 # How the project is structured

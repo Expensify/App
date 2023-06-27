@@ -24,6 +24,7 @@ import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
 import * as TaskUtils from '../../../../libs/actions/Task';
 import * as Session from '../../../../libs/actions/Session';
+import * as IOU from '../../../../libs/actions/IOU';
 
 /**
  * @param {Object} [policy]
@@ -197,7 +198,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Send,
                                       text: this.props.translate('iou.sendMoney'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_SEND)),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
                                   },
                               ]
                             : []),
@@ -206,7 +207,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.MoneyCircle,
                                       text: this.props.translate('iou.requestMoney'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_REQUEST)),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
                                   },
                               ]
                             : []),
@@ -215,7 +216,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Receipt,
                                       text: this.props.translate('iou.splitBill'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_BILL)),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
                                   },
                               ]
                             : []),
