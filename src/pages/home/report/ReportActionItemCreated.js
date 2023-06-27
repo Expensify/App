@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -29,11 +29,21 @@ const propTypes = {
     /** Personal details of all the users */
     personalDetails: PropTypes.objectOf(participantPropTypes),
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     report: {},
     personalDetails: {},
+    policy: {},
 };
 
 function ReportActionItemCreated(props) {
@@ -91,5 +101,18 @@ export default compose(
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
+        policy: {
+            key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+        },
     }),
-)(ReportActionItemCreated);
+)(
+    memo(
+        ReportActionItemCreated,
+        (prevProps, nextProps) =>
+            lodashGet(prevProps.props, 'policy.name') === lodashGet(nextProps, 'policy.name') &&
+            lodashGet(prevProps.props, 'policy.avatar') === lodashGet(nextProps, 'policy.avatar') &&
+            lodashGet(prevProps.props, 'report.lastReadTime') === lodashGet(nextProps, 'report.lastReadTime') &&
+            lodashGet(prevProps.props, 'report.statusNum') === lodashGet(nextProps, 'report.statusNum') &&
+            lodashGet(prevProps.props, 'report.stateNum') === lodashGet(nextProps, 'report.stateNum'),
+    ),
+);

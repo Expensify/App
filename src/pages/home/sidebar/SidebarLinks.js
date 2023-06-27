@@ -28,7 +28,7 @@ import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import withCurrentReportId from '../../../components/withCurrentReportId';
+import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../../components/withCurrentReportId';
 import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
@@ -39,6 +39,7 @@ import PressableWithoutFeedback from '../../../components/Pressable/PressableWit
 import * as Session from '../../../libs/actions/Session';
 import Button from '../../../components/Button';
 import * as UserUtils from '../../../libs/UserUtils';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -74,16 +75,20 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
-    /** Current reportID from the route in react navigation state object */
-    reportIDFromRoute: PropTypes.string,
-
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
+    /** Details about any modals being used */
+    modal: PropTypes.shape({
+        /** Indicates when an Alert modal is about to be visible */
+        willAlertModalBecomeVisible: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
+    ...withCurrentReportIdPropTypes,
     ...withNavigationPropTypes,
 };
 
@@ -94,8 +99,8 @@ const defaultProps = {
     currentUserPersonalDetails: {
         avatar: '',
     },
-    reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    modal: {},
 };
 
 class SidebarLinks extends React.Component {
@@ -115,10 +120,29 @@ class SidebarLinks extends React.Component {
         App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
         this.isSidebarLoaded = true;
+
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+            shortcutConfig.shortcutKey,
+            () => {
+                if (this.props.modal.willAlertModalBecomeVisible) {
+                    return;
+                }
+
+                Navigation.dismissModal();
+            },
+            shortcutConfig.descriptionKey,
+            shortcutConfig.modifiers,
+            true,
+            true,
+        );
     }
 
     componentWillUnmount() {
         SidebarUtils.resetIsSidebarLoadedReadyPromise();
+        if (this.unsubscribeEscapeKey) {
+            this.unsubscribeEscapeKey();
+        }
     }
 
     showSearchPage() {
@@ -156,7 +180,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.currentReportId);
 
         const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
 
@@ -343,6 +367,9 @@ export default compose(
         },
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        modal: {
+            key: ONYXKEYS.MODAL,
         },
     }),
 )(SidebarLinks);

@@ -197,7 +197,7 @@ class AddPlaidBankAccount extends React.Component {
 
         // Plaid bank accounts view
         return (
-            <View>
+            <FullPageOfflineBlockingView>
                 {!_.isEmpty(this.props.text) && <Text style={[styles.mb5]}>{this.props.text}</Text>}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                     <Icon
@@ -219,7 +219,7 @@ class AddPlaidBankAccount extends React.Component {
                         value={this.props.selectedPlaidAccountID}
                     />
                 </View>
-            </View>
+            </FullPageOfflineBlockingView>
         );
     }
 }

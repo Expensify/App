@@ -81,6 +81,7 @@ function TaskDescriptionPage(props) {
                         defaultValue={(props.task.report && props.task.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
+                        submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
                         selection={selection}

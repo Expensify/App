@@ -1,6 +1,7 @@
 import getPlatform from '../getPlatform';
 import * as Environment from '../Environment/Environment';
 import Firebase from '../Firebase';
+// eslint-disable-next-line import/no-cycle
 import * as API from '../API';
 import Log from '../Log';
 
@@ -57,11 +58,15 @@ function end(eventName, secondaryName = '', maxExecutionTime = 0) {
             Log.alert(`${eventName} exceeded max execution time of ${maxExecutionTime}.`, {eventTime, eventName});
         }
 
-        API.write('SendPerformanceTiming', {
-            name: grafanaEventName,
-            value: eventTime,
-            platform: `${getPlatform()}`,
-        });
+        API.read(
+            'SendPerformanceTiming',
+            {
+                name: grafanaEventName,
+                value: eventTime,
+                platform: `${getPlatform()}`,
+            },
+            {},
+        );
     });
 }
 
