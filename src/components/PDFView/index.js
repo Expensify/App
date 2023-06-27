@@ -150,6 +150,7 @@ class PDFView extends Component {
                 </View>
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
+                        isFocused={this.props.isFocused}
                         onSubmit={this.attemptPDFLoad}
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
