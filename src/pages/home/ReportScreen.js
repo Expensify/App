@@ -281,7 +281,7 @@ class ReportScreen extends React.Component {
 
                         {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && (
                             <View style={styles.borderBottom}>
-                                <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
+                                <View style={[styles.backgroundBG, styles.pl0]}>
                                     <View style={[styles.ph5, styles.pb3]}>
                                         <TaskHeaderActionButton report={this.props.report} />
                                     </View>

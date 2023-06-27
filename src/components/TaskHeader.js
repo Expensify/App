@@ -60,7 +60,7 @@ function TaskHeader(props) {
 
     return (
         <View style={styles.borderBottom}>
-            <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
+            <View style={[styles.backgroundBG, styles.pl0]}>
                 <View style={[styles.ph5, styles.pb5]}>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                     <PressableWithFeedback

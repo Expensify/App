@@ -245,6 +245,10 @@ const styles = {
         color: themeColors.textMutedReversed,
     },
 
+    backgroundBG: {
+        backgroundColor: themeColors.highlightBG,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,

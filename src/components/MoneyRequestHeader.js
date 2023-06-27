@@ -91,7 +91,7 @@ function MoneyRequestHeader(props) {
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     return (
-        <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
+        <View style={[styles.backgroundBG, styles.pl0]}>
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={props.isSingleTransactionView}
