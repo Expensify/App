@@ -6,6 +6,7 @@ import themeColors from '../styles/themes/default';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Whether checkbox is checked */
@@ -32,6 +33,15 @@ const propTypes = {
     /** Callback that is called when mousedown is triggered. */
     onMouseDown: PropTypes.func,
 
+    /** The size of the checkbox container */
+    containerSize: PropTypes.number,
+
+    /** The border radius of the checkbox container */
+    containerBorderRadius: PropTypes.number,
+
+    /** The size of the caret (checkmark) */
+    caretSize: PropTypes.number,
+
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 };
@@ -45,6 +55,9 @@ const defaultProps = {
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
+    containerSize: 20,
+    containerBorderRadius: 4,
+    caretSize: 14,
 };
 
 function Checkbox(props) {
@@ -82,7 +95,7 @@ function Checkbox(props) {
             ) : (
                 <View
                     style={[
-                        styles.checkboxContainer,
+                        StyleUtils.getCheckboxContainerStyle(props.containerSize, props.containerBorderRadius),
                         props.containerStyle,
                         props.isChecked && styles.checkedContainer,
                         props.hasError && styles.borderColorDanger,
@@ -94,8 +107,8 @@ function Checkbox(props) {
                         <Icon
                             src={Expensicons.Checkmark}
                             fill={themeColors.textLight}
-                            height={14}
-                            width={14}
+                            height={props.caretSize}
+                            width={props.caretSize}
                         />
                     )}
                 </View>

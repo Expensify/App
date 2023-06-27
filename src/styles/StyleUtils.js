@@ -1211,7 +1211,7 @@ function getWrappingStyle(isExtraSmallScreenWidth) {
 }
 
 /**
- *
+ * Returns the text container styles for menu items depending on if the menu item container a small avatar
  * @param {Boolean} isSmallAvatarSubscriptMenu
  * @returns {Number}
  */
@@ -1235,6 +1235,26 @@ function getDisabledLinkStyles(isDisabled = false) {
     return {
         ...styles.link,
         ...(isDisabled ? disabledLinkStyles : {}),
+    };
+}
+
+/**
+ * Returns the checkbox container style
+ * @param {Number} size 
+ * @param {Number} borderRadius
+ * @returns {Object}
+ */
+function getCheckboxContainerStyle(size, borderRadius) {
+    return {
+        backgroundColor: themeColors.componentBG,
+        height: size,
+        width: size,
+        borderColor: themeColors.borderLighter,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // eslint-disable-next-line object-shorthand 
+        borderRadius: borderRadius,
     };
 }
 
@@ -1308,4 +1328,5 @@ export {
     getWrappingStyle,
     getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
+    getCheckboxContainerStyle,
 };

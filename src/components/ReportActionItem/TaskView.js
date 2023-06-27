@@ -69,6 +69,9 @@ function TaskView(props) {
                                 onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
                                 isChecked={isCompleted}
                                 style={styles.taskMenuItemCheckbox}
+                                containerSize={24}
+                                containerBorderRadius={8}
+                                caretSize={16}
                             />
                             <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
