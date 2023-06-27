@@ -54,7 +54,7 @@ const propTypes = {
     shouldUseCardBackground: PropTypes.bool,
 
     /** Prop to limit the amount of avatars displayed horizontally */
-    maxAvatars: PropTypes.number,
+    maxAvatarsInRow: PropTypes.number,
 };
 
 const defaultProps = {
@@ -70,7 +70,7 @@ const defaultProps = {
     isInReportAction: false,
     shouldShowTooltip: true,
     shouldUseCardBackground: false,
-    maxAvatars: 4,
+    maxAvatarsInRow: 4,
 };
 
 function MultipleAvatars(props) {
@@ -81,15 +81,15 @@ function MultipleAvatars(props) {
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
     useEffect(() => {
-        if (props.shouldStackVertically && props.icons.length > props.maxAvatars) {
-            const rowSize = Math.min(Math.ceil(props.icons.length / 2), props.maxAvatars);
+        if (props.shouldStackVertically && props.icons.length > props.maxAvatarsInRow) {
+            const rowSize = Math.min(Math.ceil(props.icons.length / 2), props.maxAvatarsInRow);
             const firstRow = props.icons.slice(rowSize);
             const secondRow = props.icons.slice(0, rowSize);
             setAvatarRows([firstRow, secondRow]);
         } else {
             setAvatarRows([props.icons]);
         }
-    }, [props.icons, props.maxAvatars, props.shouldStackVertically]);
+    }, [props.icons, props.maxAvatarsInRow, props.shouldStackVertically]);
 
     if (!props.icons.length) {
         return null;
@@ -145,7 +145,7 @@ function MultipleAvatars(props) {
                         style={avatarContainerStyles}
                         key={`avatarRow-${rowIndex}`}
                     >
-                        {_.map([...avatars].splice(0, props.maxAvatars), (icon, index) => (
+                        {_.map([...avatars].splice(0, props.maxAvatarsInRow), (icon, index) => (
                             <UserDetailsTooltip
                                 key={`stackedAvatars-${index}`}
                                 accountID={icon.id}
@@ -174,7 +174,7 @@ function MultipleAvatars(props) {
                                 </View>
                             </UserDetailsTooltip>
                         ))}
-                        {avatars.length > props.maxAvatars && (
+                        {avatars.length > props.maxAvatarsInRow && (
                             <Tooltip
                                 // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
                                 text={tooltipTexts.slice(3, 10).join(', ')}
@@ -204,7 +204,7 @@ function MultipleAvatars(props) {
                                             StyleUtils.getWidthStyle(oneAvatarSize.width),
                                         ]}
                                     >
-                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${avatars.length - props.maxAvatars}`}</Text>
+                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
                                 </View>
                             </Tooltip>

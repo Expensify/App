@@ -82,7 +82,7 @@ function ReportActionItemCreated(props) {
                             size={props.isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
                             shouldStackHorizontally
                             shouldStackVertically={props.isSmallScreenWidth}
-                            maxAvatars={props.isSmallScreenWidth ? 4 : 8}
+                            maxAvatarsInRow={props.isSmallScreenWidth ? 4 : 8}
                         />
                     </PressableWithoutFeedback>
                     <View style={[styles.ph5]}>
