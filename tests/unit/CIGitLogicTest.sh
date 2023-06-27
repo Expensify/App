@@ -8,7 +8,7 @@ SCRIPTS_DIR="$TEST_DIR/../scripts"
 DUMMY_DIR="$HOME/DumDumRepo"
 REPO_URL="https://github.com/roryabraham/DumDumRepo"
 getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
-INITIAL_COMMIT_HASH="5558c22349548c00bd7bc93914904469ff7cdedc"
+INITIAL_COMMIT_HASH="6a473fcb1a7792e503ca3f2a5873fcb7b9c607f3"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
@@ -100,10 +100,10 @@ function bump_version {
   info "Bumping version..."
   setup_git_as_osbotify
   git switch main
-  if [[ $1 == 'minor' ]]; then
-    npm --no-git-tag-version version minor
-  else
+  if [[ $1 == 'patch' ]]; then
     npm --no-git-tag-version version patch
+  else
+    npm --no-git-tag-version version prerelease
   fi
   git add package.json package-lock.json
   git commit -m "Update version to $(print_version)"
@@ -157,7 +157,7 @@ function cherry_pick_pr {
   merge_pr "$1"
   PR_MERGE_COMMIT="$(git rev-parse HEAD)"
 
-  bump_version patch
+  bump_version prerelease
   VERSION_BUMP_COMMIT="$(git rev-parse HEAD)"
 
   if ! git rev-parse --verify staging 2>/dev/null; then
@@ -234,7 +234,7 @@ git commit -m "Changes from PR #1"
 success "Created PR #1 in branch pr-1"
 
 merge_pr 1
-bump_version patch
+bump_version prerelease
 update_staging_from_main
 
 # Tag staging
@@ -242,7 +242,7 @@ tag_staging
 git switch main
 
 # Verify output for checklist and deploy comment
-assert_prs_merged_between '1.0.0' '1.0.1' "[ '1' ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-1' "[ '1' ]"
 
 success "Scenario #1 completed successfully!"
 
@@ -271,10 +271,10 @@ cherry_pick_pr 3
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.0' '1.0.2' "[ '3', '1' ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ '3', '1' ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.0.1' '1.0.2' "[ '3' ]"
+assert_prs_merged_between '1.0.0-1' '1.0.0-2' "[ '3' ]"
 
 success "Scenario #3 completed successfully!"
 
@@ -285,18 +285,18 @@ title "Scenario #4A: Run the production deploy"
 update_production_from_staging
 
 # Verify output for release body and production deploy comments
-assert_prs_merged_between '1.0.0' '1.0.2' "[ '3', '1' ]"
+assert_prs_merged_between '1.0.0-0' '1.0.0-2' "[ '3', '1' ]"
 
 success "Scenario #4A completed successfully!"
 
 title "Scenario #4B: Run the staging deploy and create a new checklist"
 
-bump_version minor
+bump_version patch
 update_staging_from_main
 tag_staging
 
 # Verify output for new checklist and staging deploy comments
-assert_prs_merged_between '1.0.2' '1.1.0' "[ '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-0' "[ '2' ]"
 
 success "Scenario #4B completed successfully!"
 
@@ -312,15 +312,15 @@ git add PR5.txt
 git commit -m "Changes from PR #5"
 merge_pr 5
 
-bump_version patch
+bump_version prerelease
 update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.2' '1.1.1' "[ '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-1' "[ '5', '2' ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.1.0' '1.1.1' "[ '5' ]"
+assert_prs_merged_between '1.0.1-0' '1.0.1-1' "[ '5' ]"
 
 success "Scenario #5 completed successfully!"
 
@@ -335,15 +335,15 @@ git add myFile.txt
 git commit -m "Add myFile.txt in PR #6"
 
 merge_pr 6
-bump_version patch
+bump_version prerelease
 update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.2' '1.1.2' "[ '6', '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-2' "[ '6', '5', '2' ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.1.1' '1.1.2' "[ '6' ]"
+assert_prs_merged_between '1.0.1-1' '1.0.1-2' "[ '6' ]"
 
 info "Appending and prepending content to myFile.txt in PR #7"
 setup_git_as_human
@@ -357,15 +357,15 @@ git add myFile.txt
 git commit -m "Append and prepend content in myFile.txt"
 
 merge_pr 7
-bump_version patch
+bump_version prerelease
 update_staging_from_main
 tag_staging
 
 # Verify output for checklist
-assert_prs_merged_between '1.0.2' '1.1.3' "[ '7', '6', '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-3' "[ '7', '6', '5', '2' ]"
 
 # Verify output for deploy comment
-assert_prs_merged_between '1.1.2' '1.1.3' "[ '7' ]"
+assert_prs_merged_between '1.0.1-2' '1.0.1-3' "[ '7' ]"
 
 info "Making an unrelated change in PR #8"
 setup_git_as_human
@@ -417,15 +417,15 @@ git commit -m "Append and prepend content in myFile.txt"
 
 merge_pr 10
 update_production_from_staging
-bump_version minor
+bump_version patch
 update_staging_from_main
 tag_staging
 
 # Verify production release list
-assert_prs_merged_between '1.0.2' '1.1.4' "[ '9', '7', '6', '5', '2' ]"
+assert_prs_merged_between '1.0.0-2' '1.0.1-4' "[ '9', '7', '6', '5', '2' ]"
 
 # Verify PR list for the new checklist
-assert_prs_merged_between '1.1.4' '1.2.0' "[ '10', '8' ]"
+assert_prs_merged_between '1.0.1-4' '1.0.2' "[ '10', '8' ]"
 
 ### Cleanup
 title "Cleaning up..."
