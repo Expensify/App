@@ -567,7 +567,7 @@ const mainWindow = () => {
                     if (updatedLocale === 'en') {
                         Menu.setApplicationMenu(Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, labelsEng)));
                     } else if (updatedLocale === 'es') {
-                        Menu.setApplicationMenu( Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, labelsEsp)));
+                        Menu.setApplicationMenu(Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, labelsEsp)));
                     }
                 });
 
