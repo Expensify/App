@@ -2798,7 +2798,8 @@ const styles = {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        ...spacing.pt2,
+        ...spacing.ph5,
+        // ...spacing.pt2,
     },
 
     peopleRowBorderBottom: {

@@ -30,8 +30,6 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import networkPropTypes from '../../components/networkPropTypes';
 import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
-import TextInput from '../../components/TextInput';
-import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
@@ -204,8 +202,16 @@ function WorkspaceMembersPage(props) {
      * @param {Object} memberList
      */
     const toggleAllUsers = (memberList) => {
-        const accountIDList = _.map(_.keys(memberList), (memberAccountID) => Number(memberAccountID));
-        setSelectedEmployees((prevSelected) => (!_.every(accountIDList, (memberAccountID) => _.contains(prevSelected, memberAccountID)) ? accountIDList : []));
+        const enabledAccounts = _.filter(memberList, (member) => !member.isDisabled);
+        const everyoneSelected = _.every(enabledAccounts, (member) => _.contains(selectedEmployees, Number(member.keyForList)));
+
+        if (everyoneSelected) {
+            setSelectedEmployees([]);
+        } else {
+            const everyAccountId = _.map(enabledAccounts, (member) => Number(member.keyForList));
+            setSelectedEmployees(everyAccountId);
+        }
+
         validateSelection();
     };
 
@@ -447,6 +453,7 @@ function WorkspaceMembersPage(props) {
             result.push({
                 keyForList: accountID,
                 isSelected: _.contains(selectedEmployees, Number(accountID)),
+                isDisabled: props.session.email === details.login,
                 text: props.formatPhoneNumber(details.displayName),
                 alternateText: props.formatPhoneNumber(details.login),
                 isAdmin: props.session.email === details.login || policyMember.role === 'admin',
@@ -523,15 +530,15 @@ function WorkspaceMembersPage(props) {
                         {/* </View> */}
                         {/* {data.length > 0 ? ( */}
                         <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                            <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                <Checkbox
-                                    isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
-                                    onPress={() => toggleAllUsers(removableMembers)}
-                                />
-                                <View style={[styles.flex1]}>
-                                    <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>
-                                </View>
-                            </View>
+                            {/* <View style={[styles.peopleRow, styles.ph5, styles.pb3]}> */}
+                            {/*     <Checkbox */}
+                            {/*         isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))} */}
+                            {/*         onPress={() => toggleAllUsers(removableMembers)} */}
+                            {/*     /> */}
+                            {/*     <View style={[styles.flex1]}> */}
+                            {/*         <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text> */}
+                            {/*     </View> */}
+                            {/* </View> */}
 
                             <SelectionListRadio
                                 canSelectMultiple
@@ -541,6 +548,12 @@ function WorkspaceMembersPage(props) {
                                 onChangeText={setSearchValue}
                                 headerMessage={headerMessage}
                                 onSelectRow={(item) => toggleUser(item.keyForList)}
+                                onSelectAll={() => toggleAllUsers(data2)}
+                                initiallyFocusedOptionKey={lodashGet(
+                                    _.find(data2, (item) => !item.isDisabled),
+                                    'keyForList',
+                                    undefined,
+                                )}
                             />
 
                             {/* <KeyboardDismissingFlatList */}

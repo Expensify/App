@@ -39,8 +39,10 @@ function CheckboxListItem(props) {
         <>
             <PressableWithFeedback
                 // style={[styles.peopleRow, (_.isEmpty(props.item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
-                style={[styles.peopleRow]}
+                style={[styles.peopleRow, props.isFocused && styles.sidebarLinkActive]}
                 onPress={() => props.onSelectRow(props.item)}
+                disabled={props.item.isDisabled}
+                disabledStyle={styles.buttonOpacityDisabled}
                 accessibilityLabel={props.item.text}
                 accessibilityRole="checkbox"
                 accessibilityState={{checked: props.item.isSelected}}
@@ -49,11 +51,12 @@ function CheckboxListItem(props) {
                 focusStyle={styles.hoveredComponentBG}
             >
                 <Checkbox
+                    disabled={props.item.isDisabled}
                     isChecked={props.item.isSelected}
                     onPress={() => props.onSelectRow(props.item)}
                 />
                 <View style={styles.flex1}>
-                    <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, props.isFocused && styles.sidebarLinkActive]}>
+                    <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow]}>
                         <View style={[styles.flex1, styles.alignItemsStart]}>
                             <Text
                                 style={[

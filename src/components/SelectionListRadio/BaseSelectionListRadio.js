@@ -15,6 +15,9 @@ import CheckboxListItem from './CheckboxListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
+import Checkbox from '../Checkbox';
+import withLocalize from '../withLocalize';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -97,6 +100,7 @@ function BaseSelectionListRadio(props) {
             allOptions,
             disabledOptionsIndexes,
             itemLayouts,
+            allSelected: selectedCount === allOptions.length - disabledOptionsIndexes.length,
         };
     };
 
@@ -257,6 +261,23 @@ function BaseSelectionListRadio(props) {
                             <View style={[styles.ph5, styles.pb5]}>
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
                             </View>
+                        )}
+                        {!props.headerMessage && props.canSelectMultiple && (
+                            <PressableWithFeedback
+                                style={[styles.peopleRow, styles.ph5, styles.pb3]}
+                                onPress={props.onSelectAll}
+                                accessibilityLabel={props.translate('workspace.people.selectAll')}
+                                accessibilityRole="button"
+                                accessibilityState={{checked: flattenedSections.allSelected}}
+                            >
+                                <Checkbox
+                                    isChecked={flattenedSections.allSelected}
+                                    onPress={props.onSelectAll}
+                                />
+                                <View style={[styles.flex1]}>
+                                    <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>
+                                </View>
+                            </PressableWithFeedback>
                         )}
                         <SectionList
                             ref={listRef}

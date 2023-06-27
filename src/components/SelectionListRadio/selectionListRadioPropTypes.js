@@ -36,8 +36,11 @@ const propTypes = {
     /** Whether this is a multi-select list */
     canSelectMultiple: PropTypes.bool,
 
-    /** Callback to fire when a row is tapped */
+    /** Callback to fire when a row is pressed */
     onSelectRow: PropTypes.func,
+
+    /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
+    onSelectAll: PropTypes.func,
 
     /** Label for the text input */
     textInputLabel: PropTypes.string,
@@ -76,6 +79,7 @@ const propTypes = {
 const defaultProps = {
     canSelectMultiple: false,
     onSelectRow: () => {},
+    onSelectAll: () => {},
     textInputLabel: '',
     textInputPlaceholder: '',
     textInputValue: '',
