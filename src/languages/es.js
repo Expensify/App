@@ -680,6 +680,17 @@ export default {
             },
         },
     },
+    colorThemePage: {
+        colorTheme: 'Tema de color',
+        colorThemes: {
+            dark: {
+                label: 'Oscura',
+            },
+            light: {
+                label: 'Ligera',
+            },
+        },
+    },
     signInPage: {
         expensifyDotCash: 'Nuevo Expensify',
         theCode: 'el código',

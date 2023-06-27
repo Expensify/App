@@ -53,6 +53,10 @@ export default {
                                 path: ROUTES.SETTINGS_LANGUAGE,
                                 exact: true,
                             },
+                            Settings_Preferences_ColorTheme: {
+                                path: ROUTES.SETTINGS_COLOR_THEME,
+                                exact: true,
+                            },
                             Settings_Close: {
                                 path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
