@@ -119,6 +119,7 @@ export default [
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
                 hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
                     Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
                 });
                 return;
