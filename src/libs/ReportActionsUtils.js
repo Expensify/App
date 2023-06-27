@@ -461,7 +461,7 @@ function getMostRecentReportActionLastModified() {
         mostRecentReportActionLastModified = reportLastVisibleActionLastModified;
     });
 
-    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, 500);
+    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
     return mostRecentReportActionLastModified;
 }
 
