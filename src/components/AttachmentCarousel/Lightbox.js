@@ -2,7 +2,7 @@
 import React, {createContext, useContext, useEffect, useRef, useState, useMemo, useImperativeHandle} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View, useWindowDimensions} from 'react-native';
 import PropTypes from 'prop-types';
-import {Gesture, GestureDetector, createNativeWrapper} from 'react-native-gesture-handler';
+import {Gesture, GestureDetector, GestureHandlerRootView, createNativeWrapper} from 'react-native-gesture-handler';
 import Animated, {
     cancelAnimation,
     runOnJS,
@@ -137,7 +137,6 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
     };
 
     // used for pan gesture
-
     const translateY = useSharedValue(0);
     const translateX = useSharedValue(0);
     const offsetX = useSharedValue(0);
@@ -665,7 +664,7 @@ const cachedDimensions = new Map();
 
 const pagePropTypes = {
     item: PropTypes.shape({
-        url: PropTypes.string.isRequired,
+        url: PropTypes.string,
     }).isRequired,
 };
 
@@ -848,41 +847,43 @@ function Pager({
     const processedItems = _.map(items, (item, index) => itemExtractor({item, index}));
 
     return (
-        <Context.Provider
-            value={{
-                isScrolling,
-                pagerRef,
-                shouldPagerScroll,
-                onPinchGestureChange,
-            }}
-        >
-            <AnimatedPagerView
-                pageMargin={40}
-                onPageScroll={pageScrollHandler}
-                animatedProps={animatedProps}
-                ref={pagerRef}
-                style={{flex: 1}}
-                initialPage={initialIndex}
+        <GestureHandlerRootView style={{flex: 1}}>
+            <Context.Provider
+                value={{
+                    isScrolling,
+                    pagerRef,
+                    shouldPagerScroll,
+                    onPinchGestureChange,
+                }}
             >
-                {_.map(processedItems, (item, index) => (
-                    <View
-                        key={item.key}
-                        style={{flex: 1}}
-                    >
-                        <Page
-                            onTap={onTap}
-                            onSwipe={onSwipe}
-                            onSwipeSuccess={onSwipeSuccess}
-                            onSwipeDown={onSwipeDown}
-                            isActive={index === activePage}
-                            item={item}
-                            canvasHeight={containerHeight}
-                            canvasWidth={containerWidth}
-                        />
-                    </View>
-                ))}
-            </AnimatedPagerView>
-        </Context.Provider>
+                <AnimatedPagerView
+                    pageMargin={40}
+                    onPageScroll={pageScrollHandler}
+                    animatedProps={animatedProps}
+                    ref={pagerRef}
+                    style={{flex: 1}}
+                    initialPage={initialIndex}
+                >
+                    {_.map(processedItems, (item, index) => (
+                        <View
+                            key={item.key}
+                            style={{flex: 1}}
+                        >
+                            <Page
+                                onTap={onTap}
+                                onSwipe={onSwipe}
+                                onSwipeSuccess={onSwipeSuccess}
+                                onSwipeDown={onSwipeDown}
+                                isActive={index === activePage}
+                                item={item}
+                                canvasHeight={containerHeight}
+                                canvasWidth={containerWidth}
+                            />
+                        </View>
+                    ))}
+                </AnimatedPagerView>
+            </Context.Provider>
+        </GestureHandlerRootView>
     );
 }
 Pager.propTypes = pagerPropTypes;
