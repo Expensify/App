@@ -346,7 +346,7 @@ function Form(props) {
                             const focusInput = inputRefs.current[focusKey];
 
                             // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
-                            if(typeof focusInput.isFocused !== 'function'){
+                            if (typeof focusInput.isFocused !== 'function') {
                                 Keyboard.dismiss();
                             }
 
