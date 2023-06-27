@@ -98,10 +98,9 @@ function AttachmentView(props) {
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
             />
         );
-        return props.onPress ? (
+        return props.onPress && !loadComplete ? (
             <PressableWithoutFeedback
                 onPress={props.onPress}
-                disabled={loadComplete}
                 style={containerStyles}
                 accessibilityRole="imagebutton"
                 accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
