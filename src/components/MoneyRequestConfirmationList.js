@@ -28,6 +28,9 @@ const propTypes = {
     /** Callback to parent modal to send money */
     onSendMoney: PropTypes.func,
 
+    /** Callback to inform a participant is selected */
+    onSelectParticipant: PropTypes.func,
+
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
@@ -66,31 +69,22 @@ const propTypes = {
 
     /* Onyx Props */
 
-    /** Holds data related to IOU view state, rather than the underlying IOU data. */
-    iou: PropTypes.shape({
-        /** Whether or not the IOU step is loading (creating the IOU Report) */
-        loading: PropTypes.bool,
-    }),
-
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }),
 
-    /** Callback function to navigate to a provided step in the MoneyRequestModal flow */
-    navigateToStep: PropTypes.func,
-
     /** The policyID of the request */
     policyID: PropTypes.string,
+
+    /** The reportID of the request */
+    reportID: PropTypes.string,
 };
 
 const defaultProps = {
     onConfirm: () => {},
     onSendMoney: () => {},
-    navigateToStep: () => {},
-    iou: {
-        loading: false,
-    },
+    onSelectParticipant: () => {},
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     payeePersonalDetails: null,
     canModifyParticipants: false,
@@ -100,13 +94,14 @@ const defaultProps = {
         email: null,
     },
     policyID: '',
+    reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {translate, onSendMoney, onConfirm} = props;
+    const {translate, onSendMoney, onConfirm, onSelectParticipant} = props;
 
     /**
      * Returns the participants with amount
@@ -121,13 +116,6 @@ function MoneyRequestConfirmationList(props) {
         [props.iouAmount, props.iouCurrencyCode],
     );
 
-    const getFormattedParticipants = () =>
-        _.map(getParticipantsWithAmount(props.participants), (participant) => ({
-            ...participant,
-            selected: true,
-        }));
-
-    const [participants, setParticipants] = useState(getFormattedParticipants);
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
@@ -142,17 +130,15 @@ function MoneyRequestConfirmationList(props) {
         ];
     }, [props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, translate]);
 
-    const selectedParticipants = useMemo(() => _.filter(participants, (participant) => participant.selected), [participants]);
-    const getParticipantsWithoutAmount = useCallback((participantsList) => _.map(participantsList, (option) => _.omit(option, 'descriptiveText')), []);
+    const selectedParticipants = useMemo(() => _.filter(props.participants, (participant) => participant.selected), [props.participants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = _.filter(participants, (participant) => !participant.selected);
+        const unselectedParticipants = _.filter(props.participants, (participant) => !participant.selected);
         if (props.hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
-            const formattedUnselectedParticipants = getParticipantsWithoutAmount(unselectedParticipants);
-            const formattedParticipantsList = _.union(formattedSelectedParticipants, formattedUnselectedParticipants);
+            const formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
@@ -175,27 +161,15 @@ function MoneyRequestConfirmationList(props) {
                 },
             );
         } else {
-            const formattedParticipantsList = getParticipantsWithoutAmount(props.participants);
             sections.push({
                 title: translate('common.to'),
-                data: formattedParticipantsList,
+                data: props.participants,
                 shouldShow: true,
                 indexOffset: 0,
             });
         }
         return sections;
-    }, [
-        selectedParticipants,
-        getParticipantsWithAmount,
-        getParticipantsWithoutAmount,
-        props.hasMultipleParticipants,
-        props.iouAmount,
-        props.iouCurrencyCode,
-        props.participants,
-        participants,
-        translate,
-        payeePersonalDetails,
-    ]);
+    }, [selectedParticipants, getParticipantsWithAmount, props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, props.participants, translate, payeePersonalDetails]);
 
     const selectedOptions = useMemo(() => {
         if (!props.hasMultipleParticipants) {
@@ -205,27 +179,17 @@ function MoneyRequestConfirmationList(props) {
     }, [selectedParticipants, props.hasMultipleParticipants, payeePersonalDetails]);
 
     /**
-     * Toggle selected option's selected prop.
      * @param {Object} option
      */
-    const toggleOption = useCallback(
+    const selectParticipant = useCallback(
         (option) => {
             // Return early if selected option is currently logged in user.
             if (option.accountID === props.session.accountID) {
                 return;
             }
-
-            setParticipants((prevParticipants) => {
-                const newParticipants = _.map(prevParticipants, (participant) => {
-                    if (participant.accountID === option.accountID) {
-                        return {...participant, selected: !participant.selected};
-                    }
-                    return participant;
-                });
-                return newParticipants;
-            });
+            onSelectParticipant(option);
         },
-        [props.session.accountID],
+        [props.session.accountID, onSelectParticipant],
     );
 
     /**
@@ -274,7 +238,7 @@ function MoneyRequestConfirmationList(props) {
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = participants[0];
+        const recipient = props.participants[0] || {};
 
         return shouldShowSettlementButton ? (
             <SettlementButton
@@ -295,13 +259,13 @@ function MoneyRequestConfirmationList(props) {
                 options={splitOrRequestOptions}
             />
         );
-    }, [confirm, participants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+    }, [confirm, props.participants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
     return (
         <OptionsSelector
             sections={optionSelectorSections}
             value=""
-            onSelectRow={canModifyParticipants ? toggleOption : navigateToUserDetail}
+            onSelectRow={canModifyParticipants ? selectParticipant : navigateToUserDetail}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
@@ -318,7 +282,7 @@ function MoneyRequestConfirmationList(props) {
                 shouldShowRightIcon={!props.isReadOnly}
                 title={formattedAmount}
                 description={translate('iou.amount')}
-                onPress={() => props.navigateToStep(0)}
+                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
                 style={[styles.moneyRequestMenuItem, styles.mt2]}
                 titleStyle={styles.moneyRequestConfirmationAmount}
                 disabled={didConfirm || props.isReadOnly}
@@ -327,7 +291,7 @@ function MoneyRequestConfirmationList(props) {
                 shouldShowRightIcon={!props.isReadOnly}
                 title={props.iouComment}
                 description={translate('common.description')}
-                onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_DESCRIPTION)}
+                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 disabled={didConfirm || props.isReadOnly}
             />
@@ -343,7 +307,6 @@ export default compose(
     withWindowDimensions,
     withCurrentUserPersonalDetails,
     withOnyx({
-        iou: {key: ONYXKEYS.IOU},
         session: {
             key: ONYXKEYS.SESSION,
         },

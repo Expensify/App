@@ -9,6 +9,7 @@ import styles from './styles';
 import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
 import * as Browser from '../libs/Browser';
+import cursor from './utilities/cursor';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -1196,6 +1197,23 @@ function getWrappingStyle(isExtraSmallScreenWidth) {
     };
 }
 
+/**
+ * Returns link styles based on whether the link is disabled or not
+ * @param {Boolean} isDisabled
+ * @returns {Object}
+ */
+function getDisabledLinkStyles(isDisabled = false) {
+    const disabledLinkStyles = {
+        color: themeColors.textSupporting,
+        ...cursor.cursorDisabled,
+    };
+
+    return {
+        ...styles.link,
+        ...(isDisabled ? disabledLinkStyles : {}),
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1263,4 +1281,5 @@ export {
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,
+    getDisabledLinkStyles,
 };
