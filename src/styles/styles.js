@@ -2215,7 +2215,11 @@ const styles = {
     },
 
     twoFactorAuthCodesButton: {
-        minWidth: 100,
+        minWidth: 140,
+    },
+
+    verifyCodesButton: {
+        minWidth: 110,
     },
 
     anonymousRoomFooter: {
