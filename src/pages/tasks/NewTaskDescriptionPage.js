@@ -14,6 +14,7 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     /** Beta features list */
@@ -52,7 +53,7 @@ function NewTaskDescriptionPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => TaskUtils.focusAndUpdateTaskDescriptionInputRange(inputRef.current)}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.description')}

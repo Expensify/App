@@ -12,6 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     /** Current user session */
@@ -51,7 +52,7 @@ function TaskDescriptionPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => TaskUtils.focusAndUpdateTaskDescriptionInputRange(inputRef.current)}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
             <Form
