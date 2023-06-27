@@ -346,7 +346,7 @@ function ReportActionItem(props) {
         return (
             <>
                 {children}
-                {!_.isEmpty(props.action.linkMetadata) && (
+                {!isHidden && !_.isEmpty(props.action.linkMetadata) && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
                     </View>
