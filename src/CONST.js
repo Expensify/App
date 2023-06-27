@@ -1152,7 +1152,7 @@ const CONST = {
 
         SPECIAL_CHAR_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+            /[\n\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         SPACE_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
@@ -1161,7 +1161,7 @@ const CONST = {
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
         MENTION_REPLACER:
             // eslint-disable-next-line no-misleading-character-class
-            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
+            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 
