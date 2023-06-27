@@ -3,13 +3,16 @@ import htmlRendererPropTypes from './htmlRendererPropTypes';
 import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
-import PressableWithoutFocus from '../../PressableWithoutFocus';
+import PressableWithoutFocus from '../../Pressable/PressableWithoutFocus';
 import CONST from '../../../CONST';
 import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContextMenuContext';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 
-const ImageRenderer = (props) => {
+const propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
+
+function ImageRenderer(props) {
     const htmlAttribs = props.tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
@@ -53,16 +56,18 @@ const ImageRenderer = (props) => {
             {({anchor, report, action, checkIfContextMenuActive}) => (
                 <AttachmentModal
                     allowDownload
-                    reportID={report.reportID}
+                    report={report}
                     source={source}
                     isAuthTokenRequired={isAttachment}
                     originalFileName={originalFileName}
                 >
                     {({show}) => (
                         <PressableWithoutFocus
-                            styles={styles.noOutline}
+                            style={[styles.noOutline]}
                             onPress={show}
                             onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                            accessibilityRole="imagebutton"
+                            accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
                         >
                             <ThumbnailImage
                                 previewSourceURL={previewSource}
@@ -77,9 +82,9 @@ const ImageRenderer = (props) => {
             )}
         </ShowContextMenuContext.Consumer>
     );
-};
+}
 
-ImageRenderer.propTypes = htmlRendererPropTypes;
+ImageRenderer.propTypes = propTypes;
 ImageRenderer.displayName = 'ImageRenderer';
 
-export default ImageRenderer;
+export default withLocalize(ImageRenderer);

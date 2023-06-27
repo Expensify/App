@@ -19,18 +19,20 @@ const propTypes = {
     ).isRequired,
 };
 
-const CategoryShortcutBar = (props) => (
-    <View style={[styles.ph4, styles.flexRow]}>
-        {_.map(props.headerEmojis, (headerEmoji, i) => (
-            <CategoryShortcutButton
-                icon={headerEmoji.icon}
-                onPress={() => props.onPress(headerEmoji.index)}
-                key={`categoryShortcut${i}`}
-                code={headerEmoji.code}
-            />
-        ))}
-    </View>
-);
+function CategoryShortcutBar(props) {
+    return (
+        <View style={[styles.ph4, styles.flexRow]}>
+            {_.map(props.headerEmojis, (headerEmoji, i) => (
+                <CategoryShortcutButton
+                    icon={headerEmoji.icon}
+                    onPress={() => props.onPress(headerEmoji.index)}
+                    key={`categoryShortcut${i}`}
+                    code={headerEmoji.code}
+                />
+            ))}
+        </View>
+    );
+}
 
 CategoryShortcutBar.propTypes = propTypes;
 CategoryShortcutBar.displayName = 'CategoryShortcutBar';

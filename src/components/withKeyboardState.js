@@ -68,4 +68,4 @@ export default function withKeyboardState(WrappedComponent) {
     return WithKeyboardState;
 }
 
-export {KeyboardStateProvider, keyboardStatePropTypes};
+export {KeyboardStateProvider, keyboardStatePropTypes, KeyboardStateContext};

@@ -17,7 +17,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceBillsVBAView = (props) => {
+function WorkspaceBillsVBAView(props) {
     const reportsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`;
 
     return (
@@ -45,7 +45,7 @@ const WorkspaceBillsVBAView = (props) => {
             </Section>
         </>
     );
-};
+}
 
 WorkspaceBillsVBAView.propTypes = propTypes;
 WorkspaceBillsVBAView.displayName = 'WorkspaceBillsVBAView';

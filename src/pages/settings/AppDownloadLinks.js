@@ -21,7 +21,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const AppDownloadLinksPage = (props) => {
+function AppDownloadLinksPage(props) {
     let popoverAnchor;
 
     const menuItems = [
@@ -80,7 +80,7 @@ const AppDownloadLinksPage = (props) => {
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 AppDownloadLinksPage.propTypes = propTypes;
 AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';

@@ -49,7 +49,7 @@ test('simple Sidebar render with hundred of reports', () => {
         .then(() =>
             Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-                [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                 ...mockOnyxReports,
             }),
         )

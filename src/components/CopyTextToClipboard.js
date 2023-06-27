@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
-import PressableWithDelayToggle from './PressableWithDelayToggle';
+import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
 import Clipboard from '../libs/Clipboard';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
@@ -20,7 +20,7 @@ const defaultProps = {
     textStyles: [],
 };
 
-const CopyTextToClipboard = (props) => {
+function CopyTextToClipboard(props) {
     const copyToClipboard = useCallback(() => {
         Clipboard.setString(props.text);
     }, [props.text]);
@@ -35,7 +35,7 @@ const CopyTextToClipboard = (props) => {
             onPress={copyToClipboard}
         />
     );
-};
+}
 
 CopyTextToClipboard.propTypes = propTypes;
 CopyTextToClipboard.defaultProps = defaultProps;

@@ -49,7 +49,7 @@ class BankAccountPlaidStep extends React.Component {
     validate(values) {
         const errorFields = {};
         if (!values.acceptTerms) {
-            errorFields.acceptTerms = this.props.translate('common.error.acceptTerms');
+            errorFields.acceptTerms = 'common.error.acceptTerms';
         }
 
         return errorFields;
@@ -83,6 +83,7 @@ class BankAccountPlaidStep extends React.Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicator={false}
             >
                 <HeaderWithBackButton
                     title={this.props.translate('workspace.common.connectBankAccount')}

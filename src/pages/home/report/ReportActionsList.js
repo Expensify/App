@@ -4,7 +4,6 @@ import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-nati
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -21,13 +20,14 @@ import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
     /** Position of the "New" line marker */
     newMarkerReportActionID: PropTypes.string,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetailsList: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -77,7 +77,8 @@ function keyExtractor(item) {
     return item.reportActionID;
 }
 
-const ReportActionsList = (props) => {
+function ReportActionsList(props) {
+    const reportScrollManager = useReportScrollManager();
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -147,12 +148,12 @@ const ReportActionsList = (props) => {
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report, props.currentUserPersonalDetails.login);
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetailsList, props.report, props.currentUserPersonalDetails.accountID);
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
                 accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
-                ref={ReportScrollManager.flatListRef}
+                ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
                 contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
@@ -191,7 +192,7 @@ const ReportActionsList = (props) => {
             />
         </Animated.View>
     );
-};
+}
 
 ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
