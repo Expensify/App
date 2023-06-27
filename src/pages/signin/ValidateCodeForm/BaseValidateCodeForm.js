@@ -46,6 +46,12 @@ const propTypes = {
         login: PropTypes.string,
     }),
 
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
+    }),
+
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
 
@@ -62,6 +68,9 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
+    session: {
+        authToken: null,
+    },
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
