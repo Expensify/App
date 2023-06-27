@@ -118,7 +118,7 @@ function AttachmentCarouselView(props) {
                 cancelAutoHideArrow={props.cancelAutoHideArrow}
             />
 
-            {props.carouselState.containerWidth > 0 && (
+            {props.carouselState.containerWidth > 0 && props.carouselState.containerHeight > 0 && (
                 <FlatList
                     listKey="AttachmentCarousel"
                     horizontal

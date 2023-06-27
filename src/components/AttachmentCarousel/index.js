@@ -144,6 +144,7 @@ class AttachmentCarousel extends React.Component {
             attachments,
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
+            containerHeight: 0,
             activeSource: null,
         };
     }
@@ -183,7 +184,9 @@ class AttachmentCarousel extends React.Component {
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
                 // eslint-disable-next-line react/no-unused-state
-                onLayout={({nativeEvent}) => this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width)})}
+                onLayout={({nativeEvent}) =>
+                    this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), containerHeight: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
+                }
                 onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
             >
