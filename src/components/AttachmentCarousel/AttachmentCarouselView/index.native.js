@@ -16,6 +16,8 @@ const propTypes = {
 function AttachmentCarouselView(props) {
     const pagerRef = useRef(null);
 
+    // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
+    // promotes the natural feeling of swiping left/right to go to the next/previous image
     const reversedAttachments = useMemo(() => props.carouselState.attachments.reverse(), [props.carouselState.attachments]);
     const reversedPage = useMemo(() => props.carouselState.attachments.length - props.carouselState.page - 1, [props.carouselState.attachments, props.carouselState.page]);
 
