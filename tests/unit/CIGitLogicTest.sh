@@ -57,6 +57,18 @@ function reset_repo_to_initial_state {
   # shellcheck disable=SC2046
   git push origin --delete $(git tag --list)
 
+  if git rev-parse --verify staging; then
+    git branch -D staging
+  fi
+  git branch staging
+  git push --force origin staging
+
+  if git rev-parse --verify production; then
+    git branch -D production
+  fi
+  git branch production
+  git push --force origin production
+
   cd "$HOME" || exit 1
   rm -rf "$DUMMY_DIR"
   success "Reset remote repo to initial state!"
@@ -98,6 +110,9 @@ function bump_version {
 function update_staging_from_main {
   info "Recreating staging from main..."
   git switch main
+  if ! git rev-parse --verify staging; then
+    git fetch origin staging --depth=1
+  fi
   git branch -D staging
   git switch -c staging
   git push --force origin staging
@@ -106,7 +121,14 @@ function update_staging_from_main {
 
 function update_production_from_staging {
   info "Recreating production from staging..."
+  if ! git rev-parse --verify staging; then
+    git fetch origin staging --depth=1
+  fi
+
   git switch staging
+  if ! git rev-parse --verify production; then
+    git fetch origin production --depth=1
+  fi
   git branch -D production
   git switch -c production
   git push --force origin production
@@ -129,6 +151,10 @@ function cherry_pick_pr {
 
   bump_version patch
   VERSION_BUMP_COMMIT="$(git rev-parse HEAD)"
+
+  if ! git rev-parse --verify staging; then
+    git fetch origin staging --depth=1
+  fi
 
   git switch staging
   git switch -c cherry-pick-staging
@@ -179,11 +205,6 @@ title "Starting setup"
 
 reset_repo_to_initial_state
 checkout_repo
-
-info "Creating branches..."
-git branch staging
-git branch production
-success "Created staging and production branches!"
 
 tag_staging
 git switch main
