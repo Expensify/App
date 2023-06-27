@@ -66,6 +66,12 @@ Onyx.connect({
     callback: (val) => (personalDetails = val),
 });
 
+let loginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: (val) => (loginList = val),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -157,7 +163,7 @@ function isAdminOfFreePolicy(policies) {
  * @returns {Boolean}
  */
 function isPolicyOwner(policy) {
-    return policy.owner === sessionEmail;
+    return _.keys(loginList).includes(policy.owner);
 }
 
 /**
