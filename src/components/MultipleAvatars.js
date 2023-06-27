@@ -70,7 +70,7 @@ const defaultProps = {
     isInReportAction: false,
     shouldShowTooltip: true,
     shouldUseCardBackground: false,
-    maxAvatarsInRow: 4,
+    maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
 function MultipleAvatars(props) {
