@@ -132,7 +132,7 @@ This rule will apply until the migration is done. After the migration, exception
 
 <a name="convensions-unknown-vs-any"></a><a name="1.5"></a>
 
-- [1.5](#convensions-unknown-vs-any) **`unknown` vs. `any`**: Don't use `any`. Use `unknown` if type is not known beforehand
+- [1.5](#convensions-unknown-vs-any) **`unknown` vs. `any`**: Don't use `any`. Use `unknown` if type is not known beforehand.
 
   > Why? `any` type bypasses type checking. `unknown` is type safe as `unknown` type needs to be type narrowed before being used.
 
@@ -145,7 +145,7 @@ This rule will apply until the migration is done. After the migration, exception
 
 <a name="convensions-array"></a><a name="1.6"></a>
 
-- [1.6](#convensions-array) **`T[]` vs. `Array<T>`**: Use T[] or readonly T[] for simple types (i.e. types which are just primitive names or type references). Use Array<T> or ReadonlyArray<T> for all other types (union types, intersection types, object types, function types, etc).
+- [1.6](#convensions-array) **`T[]` vs. `Array<T>`**: Use `T[]` or `readonly T[]` for simple types (i.e. types which are just primitive names or type references). Use `Array<T>` or `ReadonlyArray<T>` for all other types (union types, intersection types, object types, function types, etc).
 
   ```ts
   // Array<T>
@@ -234,13 +234,18 @@ This rule will apply until the migration is done. After the migration, exception
   > Refer to [the propTypes Migration Table](./PROPTYPES_CONVERSION_TABLE.md) on how to type props based on existing `propTypes`.
 
   ```tsx
-  type GreetingProps = {
-    greeting: string;
-    name: string;
+  type MyComponentProps = {
+    requiredProp: string;
+    optionalPropWithDefaultValue?: number;
+    optionalProp?: boolean;
   };
 
-  function Greeting({ greeting = "hello", name = "world" }: ComponentProps) {
-    <Text>{`${greeting}, ${name}`}</Text>;
+  function MyComponent({
+    requiredProp,
+    optionalPropWithDefaultValue = 42,
+    optionalProp,
+  }: MyComponentProps) {
+    // component's code
   }
   ```
 

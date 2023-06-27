@@ -90,7 +90,7 @@
 
 - [1.4](#style-props) **Style Props**
 
-      When converting or typing style props, use `StyleProp<T>` type where `T` is the type of styles related to the component your prop is going to apply.
+  Use `StyleProp<T>` to type style props. For pass-through style props, use types exported from `react-native` for the type parameter (e.g. `ViewStyle`).
 
   ```tsx
   import { StyleProp, ViewStyle, TextStyle, ImageStyle } from "react-native";
@@ -118,7 +118,7 @@
     children: (label: string) => React.ReactNode;
   };
 
-  function ParentComponent({ children }: Props) {
+  function ParentComponent({ children }: ParentComponentProps) {
     return children("String being injected");
   }
 
@@ -177,13 +177,13 @@
   }
   ```
 
-  In the above code, `employee is Manager` is Type Predicate. It signifies that the return type of `isManager` is a `boolean`, indicating whether a value passed to the function is of a certain type (e.g. `Manager`).
+  In the above code, `employee is Manager` is a [type predicate](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates). It means that the return type of `isManager` is a `boolean` that indicates whether a value passed to the function is of a certain type (e.g. `Manager`).
 
 <a name="try-catch-clauses"></a><a name="1.7"></a>
 
 - [1.7](#try-catch-clauses) **Error in Try Catch Clauses**
 
-  Errors in try/catch clauses are typed as unknown, if the developer needs to use the error data they must conditionally check the type of the data first. Use type narrowing
+  Errors in try/catch clauses are inferred as `unknown`. If the error dat needs to be accessed, the type of the error needs to be checked and narrowed down.
 
   ```ts
   try {
