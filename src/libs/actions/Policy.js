@@ -237,10 +237,11 @@ function removeMembers(accountIDs, policyID) {
     const failurePersonalDetails = {};
 
     _.forEach(accountIDs, (accountID) => {
-        if (!ReportUtils.getChatByParticipantInclude(accountID, policyID)) {
-            optimisticPersonalDetails[accountID] = null;
-            failurePersonalDetails[accountID] = personalDetails[accountID];
+        if (ReportUtils.getChatByParticipantInclude(accountID, policyID)) {
+            return;
         }
+        optimisticPersonalDetails[accountID] = null;
+        failurePersonalDetails[accountID] = personalDetails[accountID];
     });
 
     if (!_.isEmpty(optimisticPersonalDetails)) {
