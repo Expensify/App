@@ -220,11 +220,10 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  *
  * @param {String} text
- * @param {Boolean} isSmallScreenWidth
  * @param {Number} preferredSkinTone
  * @returns {Object}
  */
-function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
+function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
     let newText = text;
     const emojis = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
@@ -235,13 +234,12 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
         const name = emojiData[i].slice(1, -1);
         const checkEmoji = emojisTrie.search(name);
         if (checkEmoji && checkEmoji.metaData.code) {
-            let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
+            const emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
             emojis.push({
                 name,
                 code: checkEmoji.metaData.code,
                 types: checkEmoji.metaData.types,
             });
-
             newText = newText.replace(emojiData[i], emojiReplacement);
         }
     }
