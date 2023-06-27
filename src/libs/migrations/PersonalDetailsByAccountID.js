@@ -7,6 +7,11 @@ import Log from '../Log';
 const DEPRECATED_ONYX_KEYS = {
     // Deprecated personal details object which was keyed by login instead of accountID.
     PERSONAL_DETAILS: 'personalDetails',
+
+    // Deprecated policy member list object which was keyed by login instead of accountID.
+    COLLECTION: {
+        POLICY_MEMBER_LIST: 'policyMemberList_',
+    },
 };
 
 /**
@@ -44,6 +49,22 @@ function getDeprecatedPersonalDetailsFromOnyx() {
 }
 
 /**
+ * @returns {Promise<Object>}
+ */
+function getDeprecatedPolicyMemberListFromOnyx() {
+    return new Promise((resolve) => {
+        const connectionID = Onyx.connect({
+            key: DEPRECATED_ONYX_KEYS.COLLECTION.POLICY_MEMBER_LIST,
+            waitForCollectionCallback: true,
+            callback: (allPolicyMembers) => {
+                Onyx.disconnect(connectionID);
+                return resolve(allPolicyMembers);
+            },
+        });
+    });
+}
+
+/**
  * Migrate Onyx data for the email to accountID migration.
  *
  * - reportAction_
@@ -59,8 +80,16 @@ function getDeprecatedPersonalDetailsFromOnyx() {
  * @returns {Promise<void>}
  */
 export default function () {
-    return Promise.all([getReportActionsFromOnyx(), getDeprecatedPersonalDetailsFromOnyx()]).then(([oldReportActions, oldPersonalDetails]) => {
+    return Promise.all([getReportActionsFromOnyx(), getDeprecatedPersonalDetailsFromOnyx(), getDeprecatedPolicyMemberListFromOnyx()]).then(([oldReportActions, oldPersonalDetails, oldPolicyMembers]) => {
         const onyxData = {};
+
+        console.log('puneetlath', oldReportActions);
+        console.log('puneetlath', oldPersonalDetails);
+        console.log('puneetlath', oldPolicyMembers);
+        _.each(oldPolicyMembers, (_policyMembersForPolicy, policyKey) => {
+            console.log('puneetlath', policyKey);
+            onyxData[policyKey] = null;
+        });
 
         if (!oldReportActions) {
             Log.info('[Migrate Onyx] Skipped migration PersonalDetailsByAccountID because there were no reportActions');
