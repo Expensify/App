@@ -55,7 +55,11 @@ function reset_repo_to_initial_state {
 
   # Delete all tags
   # shellcheck disable=SC2046
-  git push origin --delete $(git tag --list)
+  TAGS=$(git tag --list)
+  if [[ -n "$TAGS" ]]; then
+    # shellcheck disable=SC2086
+    git push origin --delete $TAGS
+  fi
 
   if git rev-parse --verify staging 2>/dev/null; then
     git branch -D staging
@@ -112,6 +116,8 @@ function update_staging_from_main {
   git switch main
   if ! git rev-parse --verify staging 2>/dev/null; then
     git fetch origin staging --depth=1
+    git switch staging
+    git switch main
   fi
   git branch -D staging
   git switch -c staging
@@ -128,6 +134,8 @@ function update_production_from_staging {
   git switch staging
   if ! git rev-parse --verify production 2>/dev/null; then
     git fetch origin production --depth=1
+    git switch production
+    git switch staging
   fi
   git branch -D production
   git switch -c production
@@ -174,6 +182,9 @@ function cherry_pick_pr {
 function tag_staging {
   info "Tagging new version from the staging branch..."
   setup_git_as_osbotify
+  if ! git rev-parse --verify staging 2>/dev/null; then
+    git fetch origin staging --depth=1
+  fi
   git switch staging
   git tag "$(print_version)"
   git push --tags
@@ -181,9 +192,9 @@ function tag_staging {
 }
 
 function assert_prs_merged_between {
-  info "Checking output of getPullRequestsMergedBetween $1 $2"
   checkout_repo
   output=$(node "$getPullRequestsMergedBetween" "$1" "$2")
+  info "Checking output of getPullRequestsMergedBetween $1 $2"
   assert_equal "$output" "$3"
 }
 
