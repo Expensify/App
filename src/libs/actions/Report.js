@@ -1198,8 +1198,9 @@ function navigateToConciergeChat() {
  * @param {String} reportName
  * @param {String} visibility
  * @param {Array} policyMembers
+ * @param {String} writeCapability
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembers) {
+function addPolicyReport(policyID, reportName, visibility, policyMembers, writeCapability) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
     const participants = _.unique([currentUserAccountID, ...policyMembers]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
@@ -1212,6 +1213,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembers) {
         false,
         '',
         visibility,
+        writeCapability,
 
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
@@ -1278,6 +1280,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembers) {
             visibility,
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
+            writeCapability,
         },
         {optimisticData, successData, failureData},
     );

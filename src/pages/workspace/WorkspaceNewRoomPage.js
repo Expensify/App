@@ -81,9 +81,9 @@ class WorkspaceNewRoomPage extends React.Component {
     /**
      * @param {Object} values - form input values passed by the Form component
      */
-    submit(values) {
-        const policyMembers = _.map(_.keys(this.props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers);
+    submit({policyID, roomName, visibility, writeCapability}) {
+        const policyMembers = _.map(_.keys(this.props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`]), (accountID) => Number(accountID));
+        Report.addPolicyReport(policyID, roomName, visibility, policyMembers, writeCapability);
     }
 
     /**
@@ -132,6 +132,11 @@ class WorkspaceNewRoomPage extends React.Component {
             return null;
         }
 
+        const writeCapabilityOptions = _.map(CONST.REPORT.WRITE_CAPABILITIES, (value) => ({
+            value,
+            label: this.props.translate(`writeCapabilityPage.writeCapability.${value}`),
+        }));
+
         // Workspaces are policies with type === 'free'
         const workspaceOptions = _.map(
             _.filter(this.props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
@@ -169,7 +174,15 @@ class WorkspaceNewRoomPage extends React.Component {
                             shouldDelayFocus={shouldDelayFocus}
                         />
                     </View>
-                    <View style={styles.mb5}>
+                    <View style={styles.mb2}>
+                        <Picker
+                            inputID="writeCapability"
+                            label={this.props.translate('writeCapabilityPage.label')}
+                            items={writeCapabilityOptions}
+                            defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
+                        />
+                    </View>
+                    <View style={styles.mb2}>
                         <Picker
                             inputID="policyID"
                             label={this.props.translate('workspace.common.workspace')}

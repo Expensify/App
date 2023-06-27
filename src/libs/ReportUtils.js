@@ -1499,6 +1499,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
+ * @param {String} writeCapability
  * @param {String} notificationPreference
  * @param {String} parentReportActionID
  * @param {String} parentReportID
@@ -1514,6 +1515,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
+    writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
@@ -1545,6 +1547,7 @@ function buildOptimisticChatReport(
         statusNum: 0,
         visibility,
         welcomeMessage: '',
+        writeCapability,
     };
 }
 
