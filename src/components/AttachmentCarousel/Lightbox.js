@@ -381,27 +381,30 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                 state.activate();
             }
 
-            // this is for swipe down to close
-            // needs fine tuning to work properly
+            // TODO: Swipe down to close carousel gesture
+            // this needs fine tuning to work properly
             // if (!isScrolling.value && scale.value === 1 && previousTouch.value != null) {
-            //     const velocityX = evt.allTouches[0].x - previousTouch.value.x;
+            //     const velocityX = Math.abs(evt.allTouches[0].x - previousTouch.value.x);
             //     const velocityY = evt.allTouches[0].y - previousTouch.value.y;
 
-            //     // this needs tuning
-            //     if (Math.abs(velocityY) > Math.abs(velocityX) && Math.abs(velocityY) > 50) {
+            //     // TODO: this needs tuning
+            //     if (Math.abs(velocityY) > velocityX && velocityY > 20) {
             //         state.activate();
 
             //         isSwiping.value = true;
             //         previousTouch.value = null;
+
+            //         runOnJS(onSwipeDown)();
+            //         return;
             //     }
             // }
 
-            // if (previousTouch.value == null) {
-            //     previousTouch.value = {
-            //         x: evt.allTouches[0].x,
-            //         y: evt.allTouches[0].y,
-            //     };
-            // }
+            if (previousTouch.value == null) {
+                previousTouch.value = {
+                    x: evt.allTouches[0].x,
+                    y: evt.allTouches[0].y,
+                };
+            }
         })
         .simultaneousWithExternalGesture(pagerRef, doubleTap, singleTap)
         .onBegin(() => {
