@@ -442,11 +442,7 @@ function getMostRecentReportActionLastModified() {
             return;
         }
 
-        let lastModified = action.lastModified;
-        if (!lastModified) {
-            lastModified = action.created;
-        }
-
+        const lastModified = action.lastModified || action.created;
         if (lastModified < mostRecentReportActionLastModified) {
             return;
         }
