@@ -1953,6 +1953,14 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
+    // TODO: Add description
+    if (report.writeCapability === CONST.REPORT.WRITE_CAPABILITIES.ADMINS) {
+        const linkedWorkspace = _.find(policies, (policy) => policy && policy.id === report.policyID);
+        const shouldAllowShare = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
+
+        return shouldAllowShare;
+    }
+
     return true;
 }
 
