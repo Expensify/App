@@ -19,6 +19,7 @@ import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as Pressables from '../Pressable';
+import withLocalize from '../withLocalize';
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 class BaseTextInput extends Component {
@@ -346,6 +347,7 @@ class BaseTextInput extends Component {
                                         style={[styles.flex1, styles.textInputIconContainer]}
                                         onPress={this.togglePasswordVisibility}
                                         onMouseDown={(e) => e.preventDefault()}
+                                        accessibilityLabel={this.props.translate('common.visible')}
                                     >
                                         <Icon
                                             src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
@@ -399,4 +401,4 @@ class BaseTextInput extends Component {
 BaseTextInput.propTypes = baseTextInputPropTypes.propTypes;
 BaseTextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
-export default BaseTextInput;
+export default withLocalize(BaseTextInput);

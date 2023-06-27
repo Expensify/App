@@ -37,7 +37,7 @@ const propTypes = {
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
     /** An accessibility label for the checkbox */
-    accessibilityLabel: PropTypes.string,
+    accessibilityLabel: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -49,7 +49,6 @@ const defaultProps = {
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
-    accessibilityLabel: '',
 };
 
 function Checkbox(props) {

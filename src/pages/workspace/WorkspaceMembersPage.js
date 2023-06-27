@@ -315,6 +315,7 @@ function WorkspaceMembersPage(props) {
                         <Checkbox
                             isChecked={isChecked}
                             onPress={() => toggleUser(item.accountID, item.pendingAction)}
+                            accessibilityLabel={item.displayName}
                         />
                         <View style={styles.flex1}>
                             <OptionRow
@@ -451,6 +452,7 @@ function WorkspaceMembersPage(props) {
                                     <Checkbox
                                         isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
                                         onPress={() => toggleAllUsers(removableMembers)}
+                                        accessibilityLabel={props.translate('workspace.people.selectAll')}
                                     />
                                     <View style={[styles.flex1]}>
                                         <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>

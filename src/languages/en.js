@@ -45,6 +45,7 @@ export default {
         details: 'Details',
         privacy: 'Privacy',
         hidden: 'Hidden',
+        visible: 'Visible',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
