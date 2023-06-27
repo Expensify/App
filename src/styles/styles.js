@@ -1422,6 +1422,7 @@ const styles = {
     },
 
     appContent: {
+        backgroundColor: themeColors.appBG,
         overflow: 'hidden',
     },
 
