@@ -71,7 +71,7 @@ let downloadedVersion;
 // Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
-let preferredLocale = CONST.LOCALES.DEFAULT;
+const preferredLocale = CONST.LOCALES.DEFAULT;
 
 const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
@@ -150,8 +150,8 @@ const electronUpdater = (browserWindow) => ({
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             const systemMenu = Menu.getApplicationMenu();
             downloadedVersion = info.version;
-            systemMenu.getMenuItemById(`updateAppMenuItem-${preferredLocale}`).visible = true;
-            systemMenu.getMenuItemById(`checkForUpdateMenuItem-${preferredLocale}`).visible = false;
+            systemMenu.getMenuItemById(`update`).visible = true;
+            systemMenu.getMenuItemById(`check-for-updates`).visible = false;
             if (browserWindow.isVisible()) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
@@ -166,70 +166,6 @@ const electronUpdater = (browserWindow) => ({
         autoUpdater.checkForUpdates();
     },
 });
-
-/*
- * @param {Menu} systemMenu
- */
-const localizeMenuItems = (browserWindow, systemMenu) => {
-    // List the Expensify Chat instance under the Window menu, even when it's hidden
-    systemMenu.insert(
-        4,
-        new MenuItem({
-            id: `historyMenuItem-${preferredLocale}`,
-            label: Localize.translate(preferredLocale, 'desktopApplicationMenu.history'),
-            submenu: [
-                {
-                    id: `backMenuItem-${preferredLocale}`,
-                    label: Localize.translate(preferredLocale, 'historyMenu.back'),
-                    accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
-                    click: () => {
-                        browserWindow.webContents.goBack();
-                    },
-                },
-                {
-                    id: `forwardMenuItem-${preferredLocale}`,
-                    label: Localize.translate(preferredLocale, 'historyMenu.forward'),
-                    accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                    click: () => {
-                        browserWindow.webContents.goForward();
-                    },
-                },
-            ],
-        }),
-    );
-
-    // Defines the system-level menu item to manually apply an update
-    // This menu item should become visible after an update is downloaded and ready to be applied
-    const updateAppMenuItem = new MenuItem({
-        id: `updateAppMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.updateExpensify'),
-        visible: false,
-        click: quitAndInstallWithUpdate,
-    });
-
-    // System-level menu item to manually check for App updates
-    const checkForUpdateMenuItem = new MenuItem({
-        id: `checkForUpdateMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.checkForUpdates'),
-        visible: true,
-        click: manuallyCheckForUpdates,
-    });
-
-    // Defines the system-level menu item for opening keyboard shortcuts modal
-    const keyboardShortcutsMenuItem = new MenuItem({
-        id: `keyboardShortcutsMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
-        accelerator: 'CmdOrCtrl+I',
-        click: () => {
-            showKeyboardShortcutsModal(browserWindow);
-        },
-    });
-
-    const appMenu = _.find(systemMenu.items, (item) => item.role === 'appmenu');
-    appMenu.submenu.insert(1, updateAppMenuItem);
-    appMenu.submenu.insert(2, checkForUpdateMenuItem);
-    appMenu.submenu.insert(3, keyboardShortcutsMenuItem);
-};
 
 const mainWindow = () => {
     let deeplinkUrl;
@@ -328,41 +264,230 @@ const mainWindow = () => {
                     browserWindow.setTitle('New Expensify');
                 }
 
-                const systemMenu = Menu.getApplicationMenu();
+                const setLabelsInMenuTemplate = (submenu, labels) =>
+                    _.map(submenu, (menu) => {
+                        const newMenu = _.clone(menu);
+                        const labelTranslation = _.find(labels, (translation) => translation.id === menu.id);
+                        if (labelTranslation && labelTranslation.label) {
+                            newMenu.label = labelTranslation.label;
+                        }
+                        if (menu.submenu) {
+                            newMenu.submenu = setLabelsInMenuTemplate(menu.submenu, labels);
+                        }
+                        return newMenu;
+                    });
 
-                // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
-                const editMenu = _.find(systemMenu.items, (item) => item.role === 'editmenu');
-                editMenu.submenu.insert(
-                    6,
-                    new MenuItem({
-                        role: 'pasteAndMatchStyle',
-                        accelerator: 'CmdOrCtrl+Shift+V',
-                    }),
-                );
+                const labelsEng = [
+                    {id: 'main-menu', label: 'New Expensify'},
+                    {id: 'about', label: 'About New Expensify'},
+                    {id: 'update', label: 'Update New Expensify'},
+                    {id: 'check-for-updates', label: 'Check for updates'},
+                    {id: 'view-shortcuts', label: 'View keyboard shortcuts'},
+                    {id: 'services', label: 'Services'},
+                    {id: 'hide', label: 'Hide New Expensify'},
+                    {id: 'hide-others', label: 'Hide Others'},
+                    {id: 'show-all', label: 'Show All'},
+                    {id: 'quit', label: 'Quit New Expensify'},
 
-                // Append custom context menu items using the preferred language of the user.
-                localizeMenuItems(browserWindow, systemMenu);
+                    {id: 'file-menu', label: 'File'},
+                    {id: 'close-window', label: 'Close Window'},
 
-                // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
-                // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
-                const viewWindow = _.find(systemMenu.items, (item) => item.role === 'viewmenu');
-                viewWindow.submenu.append(
-                    new MenuItem({
-                        role: 'zoomin',
-                        accelerator: 'CommandOrControl+=',
-                        visible: false,
-                    }),
-                );
-                const windowMenu = _.find(systemMenu.items, (item) => item.role === 'windowmenu');
-                windowMenu.submenu.append(new MenuItem({type: 'separator'}));
-                windowMenu.submenu.append(
-                    new MenuItem({
+                    {id: 'edit-menu', label: 'Edit'},
+                    {id: 'undo', label: 'Undo'},
+                    {id: 'redo', label: 'Redo'},
+                    {id: 'cut', label: 'Cut'},
+                    {id: 'copy', label: 'Copy'},
+                    {id: 'paste', label: 'Paste'},
+                    {id: 'pasteAndMatchStyle', label: 'Paste and Match Style'},
+                    {id: 'delete', label: 'Delete'},
+                    {id: 'selectAll', label: 'Select All'},
+                    {id: 'speech-submenu', label: 'Speech'},
+                    {id: 'startSpeaking', label: 'Start Speaking'},
+                    {id: 'stopSpeaking', label: 'Stop Speaking'},
+
+                    {id: 'view-menu', label: 'View'},
+                    {id: 'reload', label: 'Reload'},
+                    {id: 'forceReload', label: 'Force Reload'},
+                    {id: 'resetZoom', label: 'Actual Size'},
+                    {id: 'zoomIn', label: 'Zoom In'},
+                    {id: 'zoomOut', label: 'Zoom Out'},
+                    {id: 'togglefullscreen', label: 'Toggle Full Screen'},
+
+                    {id: 'history-menu', label: 'History'},
+                    {id: 'back', label: 'Back'},
+                    {id: 'forward', label: 'Forward'},
+
+                    {id: 'window-menu', label: 'Window'},
+
+                    {id: 'help-menu', label: 'Help'},
+                    {id: 'learn-more', label: 'Learn more'},
+                    {id: 'documentation', label: 'Documentation'},
+                    {id: 'community-discissions', label: 'Community Discussions'},
+                    {id: 'search-issues', label: 'Search Issues'},
+                ];
+
+                const labelsEsp = [
+                    {id: 'main-menu', label: 'Nuevo Expensify'},
+                    {id: 'about', label: 'Sobre Nuevo Expensify'},
+                    {id: 'update', label: 'Actualizar Nuevo Expensify'},
+                    {id: 'check-for-updates', label: 'Buscar actualizaciones'},
+                    {id: 'view-shortcuts', label: 'Ver atajos de teclado'},
+                    {id: 'services', label: 'Servicios'},
+                    {id: 'hide', label: 'Ocultar Nuevo Expensify'},
+                    {id: 'hide-others', label: 'Ocultar otros'},
+                    {id: 'show-all', label: 'Mostrar todos'},
+                    {id: 'quit', label: 'Salir de Nuevo Expensify'},
+
+                    {id: 'file-menu', label: 'Archivo'},
+                    {id: 'close-window', label: 'Cerrar ventana'},
+
+                    {id: 'edit-menu', label: 'Editar'},
+                    {id: 'undo', label: 'Deshacer'},
+                    {id: 'redo', label: 'Rehacer'},
+                    {id: 'cut', label: 'Cortar'},
+                    {id: 'copy', label: 'Copiar'},
+                    {id: 'paste', label: 'Pegar'},
+                    {id: 'pasteAndMatchStyle', label: 'Pegar adaptando el estilo'},
+                    {id: 'delete', label: 'Eliminar'},
+                    {id: 'selectAll', label: 'Seleccionar todo'},
+                    {id: 'speech-submenu', label: 'Voz'},
+                    {id: 'startSpeaking', label: 'Empezar a hablar'},
+                    {id: 'stopSpeaking', label: 'Dejar de Hablar'},
+
+                    {id: 'view-menu', label: 'Ver'},
+                    {id: 'reload', label: 'Cargar de nuevo'},
+                    {id: 'forceReload', label: 'Forzar recarga'},
+                    {id: 'resetZoom', label: 'Tamaño real'},
+                    {id: 'zoomIn', label: 'Acercar'},
+                    {id: 'zoomOut', label: 'Alejar'},
+                    {id: 'togglefullscreen', label: 'Alternar pantalla completa'},
+
+                    {id: 'history-menu', label: 'Historial'},
+                    {id: 'back', label: 'Atrás'},
+                    {id: 'forward', label: 'Adelante'},
+
+                    {id: 'window-menu', label: 'Ventana'},
+
+                    {id: 'help-menu', label: 'Ayuda'},
+                    {id: 'learn-more', label: 'Más información'},
+                    {id: 'documentation', label: 'Documentación'},
+                    {id: 'community-discissions', label: 'Debates de la comunidad'},
+                    {id: 'search-issues', label: 'Buscar problemas'},
+                ];
+
+                const initialMenuTemplate = [
+                    {
+                        id: 'main-menu',
                         label: 'New Expensify',
-                        accelerator: 'CmdOrCtrl+1',
-                        click: () => browserWindow.show(),
-                    }),
-                );
-                Menu.setApplicationMenu(systemMenu);
+                        submenu: [
+                            {id: 'about', role: 'about'},
+                            {id: 'update', label: 'Update new Expensify', click: quitAndInstallWithUpdate, visible: false},
+                            {id: 'check-for-updates', label: 'Check for updates', click: manuallyCheckForUpdates},
+                            {
+                                id: 'view-shortcuts',
+                                label: 'View keyboard shortcuts',
+                                accelerator: 'CmdOrCtrl+I',
+                                click: () => {
+                                    showKeyboardShortcutsModal(browserWindow);
+                                },
+                            },
+                            {type: 'separator'},
+                            {id: 'services', role: 'services'},
+                            {type: 'separator'},
+                            {id: 'hide', role: 'hide'},
+                            {id: 'hide-others', role: 'hideOthers'},
+                            {id: 'show-all', role: 'unhide'},
+                            {type: 'separator'},
+                            {id: 'quit', role: 'quit'},
+                        ],
+                    },
+                    {
+                        id: 'file-menu',
+                        label: 'File',
+                        submenu: [{id: 'close-window', role: 'close', accelerator: 'Cmd+w'}],
+                    },
+                    {
+                        id: 'edit-menu',
+                        label: 'Edit',
+                        submenu: [
+                            {id: 'undo', role: 'undo'},
+                            {id: 'redo', role: 'redo'},
+                            {type: 'separator'},
+                            {id: 'cut', role: 'cut'},
+                            {id: 'copy', role: 'copy'},
+                            {id: 'paste', role: 'paste'},
+                            {id: 'pasteAndMatchStyle', role: 'pasteAndMatchStyle'},
+                            {id: 'delete', role: 'delete'},
+                            {id: 'selectAll', role: 'selectAll'},
+                            {type: 'separator'},
+                            {
+                                id: 'speech-submenu',
+                                label: 'Speech',
+                                submenu: [
+                                    {id: 'startSpeaking', role: 'startSpeaking'},
+                                    {id: 'stopSpeaking', role: 'stopSpeaking'},
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        id: 'view-menu',
+                        label: 'View',
+                        submenu: [
+                            {id: 'reload', role: 'reload'},
+                            {id: 'forceReload', role: 'forceReload'},
+                            {type: 'separator'},
+                            {id: 'resetZoom', role: 'resetZoom'},
+                            {id: 'zoomIn', role: 'zoomIn'},
+                            {id: 'zoomOut', role: 'zoomOut'},
+                            {type: 'separator'},
+                            {id: 'togglefullscreen', role: 'togglefullscreen'},
+                        ],
+                    },
+                    {
+                        id: 'history-menu',
+                        label: 'History',
+                        submenu: [
+                            {
+                                id: 'back',
+                                role: 'back',
+                                accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+                                click: () => {
+                                    browserWindow.webContents.goBack();
+                                },
+                            },
+                            {
+                                id: 'forward',
+                                role: 'forward',
+                                accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                                click: () => {
+                                    browserWindow.webContents.goForward();
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        id: 'window-menu',
+                        role: 'windowMenu',
+                    },
+                    {
+                        id: 'help-menu',
+                        label: 'Help',
+                        role: 'help',
+                        submenu: [
+                            {id: 'learn-more', label: 'Learn more'},
+                            {id: 'documentation', label: 'Documentation'},
+                            {id: 'community-discissions', label: 'Community Discussions'},
+                            {id: 'search-issues', label: 'Search Issues'},
+                        ],
+                    },
+                ];
+
+                const translatedMenu = setLabelsInMenuTemplate(initialMenuTemplate, labelsEng);
+
+                // Build and set the initial menu
+                const initialMenu = Menu.buildFromTemplate(translatedMenu);
+                Menu.setApplicationMenu(initialMenu);
 
                 // When the user clicks a link that has target="_blank" (which is all external links)
                 // open the default browser instead of a new electron window
@@ -439,34 +564,11 @@ const mainWindow = () => {
                 }
 
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
-                    // Store the old locale so we can hide/remove these items after adding/showing the new ones.
-                    const outdatedLocale = preferredLocale;
-                    preferredLocale = updatedLocale;
-
-                    const currentHistoryMenuItem = systemMenu.getMenuItemById(`historyMenuItem-${outdatedLocale}`);
-                    const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${outdatedLocale}`);
-                    const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${outdatedLocale}`);
-                    const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${outdatedLocale}`);
-
-                    // If we have previously added those languages, don't add new menu items, reshow them.
-                    if (!systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
-                        // Update the labels and ids to use the translations.
-                        localizeMenuItems(browserWindow, systemMenu);
+                    if (updatedLocale === 'en') {
+                        Menu.setApplicationMenu(Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, labelsEng)));
+                    } else if (updatedLocale === 'es') {
+                        Menu.setApplicationMenu( Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, labelsEsp)));
                     }
-
-                    // Show the localized menu items if there were visible before we updated the locale.
-                    systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = currentUpdateAppMenuItem.visible;
-                    systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = currentCheckForUpdateMenuItem.visible;
-                    systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = currentKeyboardShortcutsMenuItem.visible;
-                    systemMenu.getMenuItemById(`historyMenuItem-${updatedLocale}`).visible = currentHistoryMenuItem.visible;
-
-                    // Since we can't remove menu items, we hide the old ones.
-                    currentUpdateAppMenuItem.visible = false;
-                    currentCheckForUpdateMenuItem.visible = false;
-                    currentKeyboardShortcutsMenuItem.visible = false;
-                    currentHistoryMenuItem.visible = false;
-
-                    Menu.setApplicationMenu(systemMenu);
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
