@@ -409,6 +409,14 @@ export default {
         offline: 'Offline',
         syncing: 'Syncing',
     },
+    loungeAccessPage: {
+        loungeAccess: 'Lounge access',
+        headline: 'You qualify for access to our exclusive lounges.',
+        description: 'The Expensify Lounge is where a "high-end airport lounge" meets a vibrant "co-working space" optimized for like-minded individuals.',
+        coffeePromo: 'Great coffee and cocktails',
+        networkingPromo: 'Network with other members',
+        viewsPromo: 'Incredible views of San Francisco',
+    },
     pronounsPage: {
         pronouns: 'Pronouns',
         isShownOnProfile: 'Your pronouns are shown on your profile.',
@@ -706,7 +714,7 @@ export default {
         magicCodeNotReceived: "Didn't receive a magic code?",
         enterAuthenticatorCode: 'Please enter your authenticator code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
-        codeSent: 'Magic code sent!',
+        requestNewCode: 'Request a new code in ',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',

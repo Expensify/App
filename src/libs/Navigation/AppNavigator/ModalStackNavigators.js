@@ -473,6 +473,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsLoungeAccessPage = require('../../../pages/settings/Profile/LoungeAccessPage').default;
+            return SettingsLoungeAccessPage;
+        },
+        name: 'Settings_Lounge_Access',
+    },
+    {
+        getComponent: () => {
             const SettingsPaymentsPage = require('../../../pages/settings/Payments/PaymentsPage').default;
             return SettingsPaymentsPage;
         },
