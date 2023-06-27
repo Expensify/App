@@ -41,7 +41,7 @@ const defaultProps = {
 
 const PressableWithFeedback = Pressables.PressableWithFeedback;
 
-const RadioButtonWithLabel = (props) => {
+function RadioButtonWithLabel(props) {
     const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
@@ -75,7 +75,7 @@ const RadioButtonWithLabel = (props) => {
             <FormHelpMessage message={props.errorText} />
         </>
     );
-};
+}
 
 RadioButtonWithLabel.propTypes = propTypes;
 RadioButtonWithLabel.defaultProps = defaultProps;

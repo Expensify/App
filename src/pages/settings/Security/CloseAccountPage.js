@@ -78,7 +78,7 @@ class CloseAccountPage extends Component {
         const errors = {};
 
         if (_.isEmpty(values.phoneOrEmail) || userEmailOrPhone.toLowerCase() !== values.phoneOrEmail.toLowerCase()) {
-            errors.phoneOrEmail = this.props.translate('closeAccountPage.enterYourDefaultContactMethod');
+            errors.phoneOrEmail = 'closeAccountPage.enterYourDefaultContactMethod';
         }
         return errors;
     }
@@ -103,11 +103,10 @@ class CloseAccountPage extends Component {
                         <Text>{this.props.translate('closeAccountPage.reasonForLeavingPrompt')}</Text>
                         <TextInput
                             inputID="reasonForLeaving"
-                            multiline
-                            numberOfLines={6}
+                            autoGrowHeight
                             textAlignVertical="top"
                             label={this.props.translate('closeAccountPage.enterMessageHere')}
-                            containerStyles={[styles.mt5, styles.closeAccountMessageInput]}
+                            containerStyles={[styles.mt5, styles.autoGrowHeightMultilineInput]}
                         />
                         <Text style={[styles.mt5]}>
                             {this.props.translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>.

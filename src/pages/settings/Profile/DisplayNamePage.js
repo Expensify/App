@@ -51,15 +51,15 @@ function DisplayNamePage(props) {
 
         // First we validate the first name field
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.hasInvalidCharacter'));
+            ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         }
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.containsReservedWord'));
+            ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
 
         // Then we validate the last name field
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            errors.lastName = props.translate('personalDetails.error.hasInvalidCharacter');
+            errors.lastName = 'personalDetails.error.hasInvalidCharacter';
         }
 
         return errors;
