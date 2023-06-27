@@ -90,6 +90,7 @@ function NewTaskDescriptionPage(props) {
                         label={props.translate('newTaskPage.descriptionOptional')}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
+                        submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
                         selection={selection}
