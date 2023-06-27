@@ -32,8 +32,8 @@ const propTypes = {
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
 
-    /** Prop to identify if we should display avatars in vertical rows */
-    shouldStackVertically: PropTypes.bool,
+    /** Prop to identify if we should display avatars in rows */
+    shouldDisplayAvatarsInRows: PropTypes.bool,
 
     /** Whether the avatars are hovered */
     isHovered: PropTypes.bool,
@@ -63,7 +63,7 @@ const defaultProps = {
     secondAvatarStyle: [StyleUtils.getBackgroundAndBorderStyle(themeColors.componentBG)],
     fallbackIcon: undefined,
     shouldStackHorizontally: false,
-    shouldStackVertically: false,
+    shouldDisplayAvatarsInRows: false,
     isHovered: false,
     isPressed: false,
     isFocusMode: false,
@@ -81,7 +81,7 @@ function MultipleAvatars(props) {
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
     useEffect(() => {
-        if (props.shouldStackVertically && props.icons.length > props.maxAvatarsInRow) {
+        if (props.shouldDisplayAvatarsInRows && props.icons.length > props.maxAvatarsInRow) {
             const rowSize = Math.min(Math.ceil(props.icons.length / 2), props.maxAvatarsInRow);
             const firstRow = props.icons.slice(rowSize);
             const secondRow = props.icons.slice(0, rowSize);
@@ -89,7 +89,7 @@ function MultipleAvatars(props) {
         } else {
             setAvatarRows([props.icons]);
         }
-    }, [props.icons, props.maxAvatarsInRow, props.shouldStackVertically]);
+    }, [props.icons, props.maxAvatarsInRow, props.shouldDisplayAvatarsInRows]);
 
     if (!props.icons.length) {
         return null;
