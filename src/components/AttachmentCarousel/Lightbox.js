@@ -56,30 +56,6 @@ function getScaledDimensions({canvasWidth, canvasHeight, imageWidth, imageHeight
         width: scaledWidth,
         height: canvasHeight,
     };
-
-    // console.log({
-    //     canvasWidth,
-    //     canvasHeight,
-    //     imageWidth,
-    //     imageHeight,
-    // });
-
-    // const scaleFactor = imageWidth / canvasWidth;
-
-    // const width = canvasWidth;
-    // const height = imageHeight / scaleFactor;
-
-    // console.log({
-    //     canvasWidth,
-    //     canvasHeight,
-    //     imageWidth,
-    //     imageHeight,
-    //     width,
-    //     height,
-    //     scaleFactor,
-    // });
-
-    // return {width, height};
 }
 
 const defaultDimensions = {
@@ -135,6 +111,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         })();
     }, [canvasX, canvasY, canvasWidth, canvasHeight]);
 
+    const targetWidth = useSharedValue(0);
     const targetHeight = useSharedValue(0);
 
     const onLoad = (resolvedDimensions) => {
@@ -145,6 +122,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
             imageHeight: resolvedDimensions.height,
         });
 
+        targetWidth.value = width;
         targetHeight.value = height;
 
         setImageDimensions({
@@ -194,14 +172,15 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         };
 
         const fixedScale = clamp(MIN_SCALE, scale.value, MAX_SCALE);
-        const scaledImage = targetHeight.value * fixedScale;
+        const scaledImageWidth = targetWidth.value * fixedScale;
+        const scaledImageHeight = targetHeight.value * fixedScale;
 
-        const rightBoundary = (canvasX.value / 2) * (fixedScale - 1);
+        const rightBoundary = Math.abs(canvasX.value - scaledImageWidth) / 2;
 
         let topBoundary = 0;
 
-        if (canvasY.value < scaledImage) {
-            topBoundary = Math.abs(scaledImage - canvasY.value) / 2;
+        if (canvasY.value < scaledImageHeight) {
+            topBoundary = Math.abs(scaledImageHeight - canvasY.value) / 2;
         }
 
         const maxVector = {x: rightBoundary, y: topBoundary};
@@ -299,7 +278,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         stopAnimation();
 
         const usableImage = {
-            x: canvasWidth,
+            x: targetWidth.value,
             y: targetHeight.value,
         };
 
@@ -482,7 +461,6 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                             velocity: Math.abs(evt.velocityY) < 1200 ? maybeInvert(1200) : evt.velocityY,
                         },
                         () => {
-                            console.log('success');
                             runOnJS(onSwipeSuccess)();
                         },
                     );
@@ -765,10 +743,18 @@ const noopWorklet = () => {
     // noop
 };
 
-// eslint-disable-next-line react/prop-types
-function Pager({items, initialIndex = 0, onTap, itemExtractor, onSwipe = noopWorklet, onSwipeSuccess = () => {}, forwardedRef, onPinchGestureChange = () => {}}) {
-    const windowDimensions = useWindowDimensions();
-
+function Pager({
+    items,
+    initialIndex = 0,
+    onTap,
+    itemExtractor,
+    onSwipe = noopWorklet,
+    onSwipeSuccess = () => {},
+    forwardedRef,
+    onPinchGestureChange = () => {},
+    containerWidth,
+    containerHeight,
+}) {
     const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef(null);
 
@@ -817,44 +803,40 @@ function Pager({items, initialIndex = 0, onTap, itemExtractor, onSwipe = noopWor
     const processedItems = _.map(items, (item, index) => itemExtractor({item, index}));
 
     return (
-        <View style={{flex: 1}}>
-            <View style={{flex: 1}}>
-                <Context.Provider
-                    value={{
-                        isScrolling,
-                        pagerRef,
-                        shouldPagerScroll,
-                        onPinchGestureChange,
-                    }}
-                >
-                    <AnimatedPagerView
-                        pageMargin={40}
-                        onPageScroll={pageScrollHandler}
-                        animatedProps={animatedProps}
-                        ref={pagerRef}
+        <Context.Provider
+            value={{
+                isScrolling,
+                pagerRef,
+                shouldPagerScroll,
+                onPinchGestureChange,
+            }}
+        >
+            <AnimatedPagerView
+                pageMargin={40}
+                onPageScroll={pageScrollHandler}
+                animatedProps={animatedProps}
+                ref={pagerRef}
+                style={{flex: 1}}
+                initialPage={initialIndex}
+            >
+                {_.map(processedItems, (item, index) => (
+                    <View
+                        key={item.key}
                         style={{flex: 1}}
-                        initialPage={initialIndex}
                     >
-                        {_.map(processedItems, (item, index) => (
-                            <View
-                                key={item.key}
-                                style={{flex: 1}}
-                            >
-                                <Page
-                                    onTap={onTap}
-                                    onSwipe={onSwipe}
-                                    onSwipeSuccess={onSwipeSuccess}
-                                    isActive={index === activePage}
-                                    item={item}
-                                    canvasHeight={windowDimensions.height}
-                                    canvasWidth={windowDimensions.width}
-                                />
-                            </View>
-                        ))}
-                    </AnimatedPagerView>
-                </Context.Provider>
-            </View>
-        </View>
+                        <Page
+                            onTap={onTap}
+                            onSwipe={onSwipe}
+                            onSwipeSuccess={onSwipeSuccess}
+                            isActive={index === activePage}
+                            item={item}
+                            canvasHeight={containerHeight}
+                            canvasWidth={containerWidth}
+                        />
+                    </View>
+                ))}
+            </AnimatedPagerView>
+        </Context.Provider>
     );
 }
 
