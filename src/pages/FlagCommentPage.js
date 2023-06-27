@@ -120,7 +120,7 @@ function FlagCommentPage(props) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
             reportAction = ReportActionsUtils.getParentReportAction(props.report);
         }
-        
+
         if (!ReportActionsUtils.isDeletedAction(reportAction)) {
             Report.flagComment(reportID, reportAction, severity);
         }
