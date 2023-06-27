@@ -2,11 +2,12 @@ import {useState, useEffect} from 'react';
 import {Appearance} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 
-const DEFAULT_THEME = 'dark';
+const DEFAULT_THEME = CONST.COLOR_THEME.DARK;
 
 function useThemePreference() {
-    const [themePreference, setThemePreference] = useState('dark');
+    const [themePreference, setThemePreference] = useState(DEFAULT_THEME);
     const [systemColorTheme, setSystemColorTheme] = useState();
 
     useEffect(() => {
@@ -15,6 +16,7 @@ function useThemePreference() {
     }, []);
 
     useEffect(() => {
+        // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
         const connectionId = Onyx.connect({
             key: ONYXKEYS.COLOR_THEME,
             callback: (newColorTheme) => {
