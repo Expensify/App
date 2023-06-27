@@ -62,5 +62,6 @@ function BaseSidebarScreen(props) {
 }
 
 BaseSidebarScreen.propTypes = propTypes;
+BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
 export default withWindowDimensions(BaseSidebarScreen);
