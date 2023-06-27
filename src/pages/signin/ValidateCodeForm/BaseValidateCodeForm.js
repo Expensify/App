@@ -91,9 +91,10 @@ function BaseValidateCodeForm(props) {
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
 
     useEffect(() => {
-        if(inputValidateCodeRef.current && ((hasError && props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED) || props.account.isLoading)) {
-            inputValidateCodeRef.current.blur();
+        if(!(inputValidateCodeRef.current && ((hasError && props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED) || props.account.isLoading))) {
+            return
         }
+        inputValidateCodeRef.current.blur();
     }, [props.account.isLoading, props.session.autoAuthState, hasError])
 
     useEffect(() => {
@@ -288,7 +289,7 @@ function BaseValidateCodeForm(props) {
                                 accessibilityRole="button"
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{hasError ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{Boolean(hasError) ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
