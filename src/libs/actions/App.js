@@ -16,6 +16,7 @@ import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import Timing from './Timing';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -146,7 +147,9 @@ function openApp(isReconnecting = false) {
                 // - We send this to the server so that it can compute which chats are critical for the user to see and return only those as an optimization.
                 const params = {policyIDList: getNonOptimisticPolicyIDs(policies)};
                 if (isReconnecting) {
+                    Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
                     params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+                    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
                 }
                 Onyx.disconnect(connectionID);
 

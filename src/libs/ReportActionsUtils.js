@@ -10,7 +10,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import Log from './Log';
 import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
-import Timing from './actions/Timing';
 
 const allReports = {};
 Onyx.connect({
@@ -427,8 +426,6 @@ function getLinkedTransactionID(reportID, reportActionID) {
  * @returns {string}
  */
 function getMostRecentReportActionLastModified() {
-    Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-
     // Start with the oldest date possible
     let mostRecentReportActionLastModified = new Date(0).toISOString();
 
@@ -461,7 +458,6 @@ function getMostRecentReportActionLastModified() {
         mostRecentReportActionLastModified = reportLastVisibleActionLastModified;
     });
 
-    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
     return mostRecentReportActionLastModified;
 }
 
