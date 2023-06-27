@@ -109,7 +109,7 @@ function CloseAccountPage(props) {
                         label={props.translate('closeAccountPage.enterDefaultContact')}
                         containerStyles={[styles.mt5]}
                         autoCorrect={false}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}
                     />
                     <ConfirmModal
                         title={props.translate('closeAccountPage.closeAccountWarning')}
