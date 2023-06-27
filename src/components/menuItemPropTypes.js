@@ -99,6 +99,9 @@ const propTypes = {
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
 
+    /** Prop to represent the size of the float right avatar images to be shown */
+    floatRightAvatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+
     /** Prop to represent the size of the avatar images to be shown */
     avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 

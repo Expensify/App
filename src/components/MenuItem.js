@@ -63,6 +63,7 @@ const defaultProps = {
     floatRightAvatars: [],
     shouldStackHorizontally: false,
     avatarSize: undefined,
+    floatRightAvatarSize: undefined,
     shouldBlockSelection: false,
     hoverAndPressStyle: [],
     furtherDetails: '',
@@ -254,7 +255,7 @@ function MenuItem(props) {
                                     isHovered={hovered}
                                     isPressed={pressed}
                                     icons={props.floatRightAvatars}
-                                    size={props.avatarSize || fallbackAvatarSize}
+                                    size={props.floatRightAvatarSize || fallbackAvatarSize}
                                     fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
                                     shouldStackHorizontally={props.shouldStackHorizontally}
                                 />
