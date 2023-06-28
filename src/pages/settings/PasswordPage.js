@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -43,12 +43,21 @@ const propTypes = {
 const defaultProps = {
     account: {},
 };
-class PasswordPage extends Component {
-    constructor(props) {
-        super(props);
 
-        this.state = {
-            currentPassword: '',
+function PasswordPage(props) {
+    const [currentPassword, setCurrentPassword] = useState('')
+    const [newPassword, setNewPassword] = useState(''),
+    const [errors, setErrors] = ({
+        
+    })
+
+}
+// class PasswordPage extends Component {
+    // constructor(props) {
+    //     super(props);
+
+    //     this.state = {
+    //         currentPassword: '',
             newPassword: '',
             errors: {
                 currentPassword: false,
