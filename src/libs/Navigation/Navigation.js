@@ -148,7 +148,8 @@ function dismissModal(targetReportID) {
  * @returns {String}
  */
 function getActiveRoute() {
-    const currentRouteHasName = navigationRef.current && navigationRef.current.getCurrentRoute().name;
+    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
     if (!currentRouteHasName) {
         return '';
     }

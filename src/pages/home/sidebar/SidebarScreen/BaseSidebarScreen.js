@@ -49,6 +49,7 @@ class BaseSidebarScreen extends Component {
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
+                shouldEnableKeyboardAvoidingView={false}
                 style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
             >
                 {({insets}) => (
