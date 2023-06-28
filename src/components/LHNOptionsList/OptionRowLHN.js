@@ -1,8 +1,9 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -13,6 +14,7 @@ import Hoverable from '../Hoverable';
 import DisplayNames from '../DisplayNames';
 import colors from '../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import {withReportCommentDrafts} from '../OnyxProvider';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
@@ -27,11 +29,15 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import withCurrentReportId from '../withCurrentReportId';
+import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
+
+    /** The comment left by the user */
+    comment: PropTypes.string,
 
     /** The ID of the report that the option is for */
     reportID: PropTypes.string.isRequired,
@@ -59,10 +65,19 @@ const defaultProps = {
     isFocused: false,
     style: null,
     optionItem: null,
+    comment: '',
 };
 
 function BaseOptionRowLHN(props) {
     const optionItem = props.optionItem;
+
+    useEffect(() => {
+        if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
+            return;
+        }
+        Report.setReportWithDraft(props.reportID, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (!optionItem) {
         return null;
@@ -292,4 +307,14 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowIsFocusedSupport';
 
-export default withCurrentReportId(OptionRowLHN);
+export default compose(
+    withLocalize,
+    withCurrentReportId,
+    withReportCommentDrafts({
+        propName: 'comment',
+        transformValue: (drafts, props) => {
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
+            return lodashGet(drafts, draftKey, '');
+        },
+    }),
+)(OptionRowLHN);

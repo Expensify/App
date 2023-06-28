@@ -400,18 +400,17 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     ];
 
     const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
-    API.write(
-        'AddMembersToWorkspace',
-        {
-            employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
+    const params = {
+        employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
-            // Escape HTML special chars to enable them to appear in the invite email
-            welcomeNote: _.escape(welcomeNote),
-            policyID,
-            reportCreationData: JSON.stringify(membersChats.reportCreationData),
-        },
-        {optimisticData, successData, failureData},
-    );
+        // Escape HTML special chars to enable them to appear in the invite email
+        welcomeNote: _.escape(welcomeNote),
+        policyID,
+    };
+    if (!_.isEmpty(membersChats.reportCreationData)) {
+        params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
+    }
+    API.write('AddMembersToWorkspace', params, {optimisticData, successData, failureData});
 }
 
 /**
