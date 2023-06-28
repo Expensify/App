@@ -85,10 +85,9 @@ function bump_version {
 function update_staging_from_main {
   info "Recreating staging from main..."
   git switch main
-  if ! git rev-parse --verify staging 2>/dev/null; then
-    git fetch origin staging:staging --depth=1
+  if git rev-parse --verify staging 2>/dev/null; then
+    git branch -D staging
   fi
-  git branch -D staging
   git switch -c staging
   git push --force origin staging
   success "Recreated staging from main!"
@@ -96,17 +95,18 @@ function update_staging_from_main {
 
 function update_production_from_staging {
   info "Recreating production from staging..."
+
   if ! git rev-parse --verify staging 2>/dev/null; then
     git fetch origin staging --depth=1
   fi
-
   git switch staging
-  if ! git rev-parse --verify production 2>/dev/null; then
-    git fetch origin production:production --depth=1
+
+  if git rev-parse --verify production 2>/dev/null; then
+    git branch -D production
   fi
-  git branch -D production
   git switch -c production
   git push --force origin production
+
   success "Recreated production from staging!"
 }
 
