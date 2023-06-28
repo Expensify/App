@@ -303,7 +303,7 @@ function WorkspaceMembersPage(props) {
                     <PressableWithFeedback
                         style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
                         onPress={() => toggleUser(item.accountID, item.pendingAction)}
-                        accessibilityRole="checkbox"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                         accessibilityState={{
                             checked: isChecked,
                         }}

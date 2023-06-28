@@ -143,7 +143,7 @@ function HeaderView(props) {
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                         accessibilityLabel={props.translate('common.back')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Tooltip
                             text={props.translate('common.back')}
@@ -162,7 +162,7 @@ function HeaderView(props) {
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={isTaskReport}
                             accessibilityLabel={title}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
@@ -194,7 +194,7 @@ function HeaderView(props) {
                                                     Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
                                                 }}
                                                 accessibilityLabel={subtitle}
-                                                accessibilityRole="link"
+                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                             >
                                                 <Text
                                                     style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
