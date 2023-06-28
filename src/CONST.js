@@ -2518,7 +2518,7 @@ const CONST = {
         HEADER_IMAGE_ASPECT_RATIO: 0.64,
     },
     TRANSLATION_KEYS: {
-        ATTACHMENT: 'common.attachment'
+        ATTACHMENT: 'common.attachment',
     },
 };
 
