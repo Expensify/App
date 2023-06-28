@@ -42,4 +42,5 @@ function ExpiredValidateCodeModal(props) {
 }
 
 ExpiredValidateCodeModal.propTypes = propTypes;
+ExpiredValidateCodeModal.displayName = 'ExpiredValidateCodeModal';
 export default withLocalize(ExpiredValidateCodeModal);
