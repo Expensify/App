@@ -761,7 +761,7 @@ const noopWorklet = () => {
 const pagerPropTypes = {
     items: PropTypes.arrayOf(
         PropTypes.shape({
-            url: PropTypes.string.isRequired,
+            url: PropTypes.string,
         }),
     ).isRequired,
     initialIndex: PropTypes.number,
@@ -771,7 +771,7 @@ const pagerPropTypes = {
     onSwipeDown: PropTypes.func,
     onPinchGestureChange: PropTypes.func,
     itemExtractor: PropTypes.func.isRequired,
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
     containerWidth: PropTypes.number.isRequired,
     containerHeight: PropTypes.number.isRequired,
 };
