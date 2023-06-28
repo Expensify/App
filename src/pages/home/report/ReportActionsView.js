@@ -220,7 +220,7 @@ class ReportActionsView extends React.Component {
         }
 
         // If the last unread message was deleted, remove the *New* green marker and the *New Messages* notification at scroll just as the deletion starts.
-        if (this.props.reportActions.length > 0 && this.props.reportActions[0].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !this.props.network.isOffline) {
+        if (ReportUtils.isUnread(this.props.report) && this.props.reportActions.length > 0 && this.props.reportActions[0].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !this.props.network.isOffline) {
             const reportActionsWithoutPendingOne = lodashCloneDeep(this.props.reportActions);
             reportActionsWithoutPendingOne.shift();
             const newMarkerReportActionID = ReportUtils.getNewMarkerReportActionID(this.props.report, reportActionsWithoutPendingOne);
@@ -230,7 +230,7 @@ class ReportActionsView extends React.Component {
                 });
             }
         }
-
+ 
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
         // changes it will be because we marked the entire report as read.
         const didManuallyMarkReportAsUnread = prevProps.report.lastReadTime !== this.props.report.lastReadTime && ReportUtils.isUnread(this.props.report);
