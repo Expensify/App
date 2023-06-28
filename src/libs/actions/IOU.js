@@ -1070,6 +1070,11 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         optimisticData.push(optimisticPersonalDetailListData);
     }
 
+    let reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, optimisticIOUReport.reportID);
+    if (!reportPreviewAction) {
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport.reportID, optimisticIOUReport.reportID);
+    }
+
     return {
         params: {
             iouReportID: optimisticIOUReport.reportID,
@@ -1079,6 +1084,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
             createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
+            reportPreviewReportActionID: reportPreviewAction.reportActionID,
         },
         optimisticData,
         successData,
