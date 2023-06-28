@@ -219,6 +219,7 @@ class MoneyRequestParticipantsSplitSelector extends Component {
                     headerMessage={headerMessage}
                     boldStyle
                     shouldShowConfirmButton
+                    shouldFocusOnSelectRow
                     confirmButtonText={this.props.translate('common.next')}
                     onConfirmSelection={this.finalizeParticipants}
                     textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
