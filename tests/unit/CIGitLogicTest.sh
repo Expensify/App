@@ -52,18 +52,16 @@ function init_git_server {
   success "Initialized git server in $GIT_REMOTE"
 }
 
-function remove_local_repo {
-  if [ -d "$DUMMY_DIR" ]; then
-    info "Found existing directory at $DUMMY_DIR, deleting it..."
-    cd "$HOME" || exit 1
-    rm -rf "$DUMMY_DIR"
-  fi
-}
-
 # Note that instead of doing a git clone, we checkout the repo following the same steps used by actions/checkout
 function checkout_repo {
   info "Checking out repo at $DUMMY_DIR"
-  remove_local_repo
+
+  if [ -d "$DUMMY_DIR" ]; then
+    info "Found existing directory at $DUMMY_DIR, deleting it to simulate a fresh checkout..."
+    cd "$HOME" || exit 1
+    rm -rf "$DUMMY_DIR"
+  fi
+
   mkdir "$DUMMY_DIR"
   cd "$DUMMY_DIR" || exit 1
   git init
