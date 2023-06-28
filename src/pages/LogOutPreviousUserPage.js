@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useEffect} from 'react';
 import {Linking} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -22,10 +22,10 @@ const defaultProps = {
     },
 };
 
-class LogOutPreviousUserPage extends Component {
-    componentDidMount() {
+function LogOutPreviousUserPage(props) {
+    useEffect(() => {
         Linking.getInitialURL().then((transitionURL) => {
-            const sessionEmail = this.props.session.email;
+            const sessionEmail = props.session.email;
             const isLoggingInAsNewUser = SessionUtils.isLoggingInAsNewUser(transitionURL, sessionEmail);
 
             if (isLoggingInAsNewUser) {
@@ -36,18 +36,16 @@ class LogOutPreviousUserPage extends Component {
             // and their authToken stored in Onyx becomes invalid.
             // This workflow is triggered while setting up VBBA. User is redirected from NewDot to OldDot to set up 2FA, and then redirected back to NewDot
             // On Enabling 2FA, authToken stored in Onyx becomes expired and hence we need to fetch new authToken
-            const shouldForceLogin = lodashGet(this.props, 'route.params.shouldForceLogin', '') === 'true';
+            const shouldForceLogin = lodashGet(props, 'route.params.shouldForceLogin', '') === 'true';
             if (shouldForceLogin) {
-                const email = lodashGet(this.props, 'route.params.email', '');
-                const shortLivedAuthToken = lodashGet(this.props, 'route.params.shortLivedAuthToken', '');
+                const email = lodashGet(props, 'route.params.email', '');
+                const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '');
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
         });
-    }
+    }, [props]);
 
-    render() {
-        return <FullScreenLoadingIndicator />;
-    }
+    return <FullScreenLoadingIndicator />;
 }
 
 LogOutPreviousUserPage.propTypes = propTypes;
