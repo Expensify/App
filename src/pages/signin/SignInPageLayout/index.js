@@ -1,5 +1,5 @@
 import React, {useRef, useEffect} from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Platform} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import compose from '../../../libs/compose';
@@ -13,6 +13,7 @@ import scrollViewContentContainerStyles from './signInPageStyles';
 import themeColors from '../../../styles/themes/default';
 import SignInHeroBackgroundImage from '../../../../assets/images/home-background--desktop.svg';
 import SignInHeroBackgroundImageMobile from '../../../../assets/images/home-background--mobile.svg';
+import SignInHeroBackgroundImageMobileAndroid from '../../../../assets/images/home-background--mobile.android.svg';
 import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';
 
@@ -56,6 +57,8 @@ function SignInPageLayout(props) {
         }
         scrollViewRef.current.scrollTo({y: 0, animated});
     };
+
+    const MobileBackgroundImage = Platform.OS === 'android' ? SignInHeroBackgroundImageMobileAndroid : SignInHeroBackgroundImageMobile;
 
     useEffect(scrollPageToTop, [props.welcomeHeader, props.welcomeText]);
 
@@ -112,11 +115,12 @@ function SignInPageLayout(props) {
                     ref={scrollViewRef}
                 >
                     <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
-                        <SignInHeroBackgroundImageMobile
+                        <MobileBackgroundImage
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
                             style={styles.signInBackgroundMobile}
                         />
+
                         <SignInPageContent
                             welcomeHeader={props.welcomeHeader}
                             welcomeText={props.welcomeText}

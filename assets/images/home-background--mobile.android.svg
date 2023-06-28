@@ -5,8 +5,7 @@
 <style type="text/css">
 	.st0{clip-path:url(#SVGID_00000162326939888092793850000013240168525736031417_);}
 	.st1{fill:#07271F;}
-	.st2{opacity:6.000000e-02;}
-	.st3{fill:#FFFFFF;filter:url(#Adobe_OpacityMaskFilter); }
+	.st3{fill:#FFFFFF;filter:url(#Adobe_OpacityMaskFilter);opacity:6.000000e-02; }
 	.st4{mask:url(#mask0_99_7160_00000082330393645354685330000006860170060284918959_);}
 	.st5{fill:#5BE3AA;}
 	.st6{fill:#002E22;}
