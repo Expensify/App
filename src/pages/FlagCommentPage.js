@@ -41,7 +41,7 @@ const propTypes = {
         }),
     }).isRequired,
 
-    /** Indicated whether the report data is loading */
+    /** Indicates whether the report data is loading */
     isLoadingReportData: PropTypes.bool,
 
     ...withLocalizePropTypes,
