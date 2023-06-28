@@ -144,7 +144,7 @@ function openApp(isReconnecting = false) {
                 // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
                 //
                 // - Look through the local report actions and reports to find the most recently modified report action or report.
-                // - We send this to the server so that it can compute which chats are critical for the user to see and return only those as an optimization.
+                // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
                 const params = {policyIDList: getNonOptimisticPolicyIDs(policies)};
                 if (isReconnecting) {
                     Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);

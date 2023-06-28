@@ -27,7 +27,7 @@ function start(eventName, shouldUseFirebase = false) {
  *
  * @param {String} eventName - event name used as timestamp key
  * @param {String} [secondaryName] - optional secondary event name, passed to grafana
- * @param {number} [maxExecutionTime] - optional amount of time to wait before logging an alert
+ * @param {number} [maxExecutionTime] - optional amount of time (ms) to wait before logging a warn
  */
 function end(eventName, secondaryName = '', maxExecutionTime = 0) {
     if (!timestampData[eventName]) {
@@ -54,7 +54,7 @@ function end(eventName, secondaryName = '', maxExecutionTime = 0) {
         }
 
         if (maxExecutionTime && eventTime > maxExecutionTime) {
-            Log.alert(`${eventName} exceeded max execution time of ${maxExecutionTime}.`, {eventTime, eventName});
+            Log.warn(`${eventName} exceeded max execution time of ${maxExecutionTime}.`, {eventTime, eventName});
         }
 
         API.read(
