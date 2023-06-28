@@ -2493,7 +2493,8 @@ const styles = {
         caretColor: 'transparent',
         WebkitTextFillColor: 'transparent',
         // The input text color get background-color after set it to transparent.
-        // Cannot override background-color, so delay the transition effect.
+        // Cannot override background-color, see here: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+        // So delay the transition effect.
         transitionDelay: '99999s',
     },
 
