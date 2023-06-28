@@ -1,12 +1,12 @@
 import React, {useRef, useCallback} from 'react';
 import {View, FlatList, PixelRatio} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
 import CarouselActions from '../CarouselActions';
 import AttachmentView from '../../AttachmentView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import CarouselButtons from '../CarouselButtons';
+import attachmentCarouselViewPropTypes from './propTypes';
 
 const VIEWABILITY_CONFIG = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
@@ -15,13 +15,7 @@ const VIEWABILITY_CONFIG = {
 };
 
 const propTypes = {
-    // eslint-disable-next-line react/forbid-prop-types
-    carouselState: PropTypes.object.isRequired,
-    updatePage: PropTypes.func.isRequired,
-    toggleArrowsVisibility: PropTypes.func.isRequired,
-    autoHideArrow: PropTypes.func.isRequired,
-    cancelAutoHideArrow: PropTypes.func.isRequired,
-
+    ...attachmentCarouselViewPropTypes,
     ...windowDimensionsPropTypes,
 };
 
@@ -35,7 +29,7 @@ function AttachmentCarouselView(props) {
      * @returns {{offset: Number, length: Number, index: Number}}
      */
     const getItemLayout = useCallback(
-        (data, index) => ({
+        (_data, index) => ({
             length: props.carouselState.containerWidth,
             offset: props.carouselState.containerWidth * index,
             index,

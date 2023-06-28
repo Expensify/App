@@ -1,24 +1,10 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import Pager from '../Lightbox';
 import styles from '../../../styles/styles';
 import CarouselButtons from '../CarouselButtons';
-
-const propTypes = {
-    // eslint-disable-next-line react/forbid-prop-types
-    carouselState: PropTypes.object.isRequired,
-    updatePage: PropTypes.func.isRequired,
-    toggleArrowsVisibility: PropTypes.func.isRequired,
-    autoHideArrow: PropTypes.func.isRequired,
-    cancelAutoHideArrow: PropTypes.func.isRequired,
-    onClose: PropTypes.func,
-};
-
-const defaultProps = {
-    onClose: () => {},
-};
+import attachmentCarouselViewPropTypes from './propTypes';
 
 function AttachmentCarouselView(props) {
     const pagerRef = useRef(null);
@@ -99,7 +85,6 @@ function AttachmentCarouselView(props) {
     );
 }
 
-AttachmentCarouselView.propTypes = propTypes;
-AttachmentCarouselView.defaultProps = defaultProps;
+AttachmentCarouselView.propTypes = attachmentCarouselViewPropTypes;
 
 export default AttachmentCarouselView;
