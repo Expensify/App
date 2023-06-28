@@ -65,7 +65,7 @@ function MentionSuggestions(props) {
     const renderSuggestionMenuItem = (item) => {
         const isIcon = item.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT;
         const styledDisplayName = getStyledTextArray(item.text, props.prefix);
-        const styledHandle = getStyledTextArray(item.alternateText, props.prefix);
+        const styledHandle = item.text === item.alternateText ? '' : getStyledTextArray(item.alternateText, props.prefix);
 
         return (
             <View style={[styles.autoCompleteSuggestionContainer, styles.ph2]}>
@@ -96,12 +96,14 @@ function MentionSuggestions(props) {
                     numberOfLines={1}
                 >
                     {_.map(styledHandle, ({text, isColored}, i) => (
-                        <Text
-                            key={`${text}${i}`}
-                            style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle, {...(isColored && {color: styles.text})}]}
-                        >
-                            {text}
-                        </Text>
+                        text !== '' && (
+                            <Text
+                                key={`${text}${i}`}
+                                style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle, {...(isColored && {color: styles.text})}]}
+                            >
+                                {text}
+                            </Text>
+                        )
                     ))}
                 </Text>
             </View>
