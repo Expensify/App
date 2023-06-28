@@ -22,7 +22,7 @@ const propTypes = {
  */
 const navigateToSettings = () => {
     Navigation.navigate(ROUTES.SETTINGS);
-}
+};
 
 /**
  * Method called when a pinned chat is selected.
@@ -30,7 +30,7 @@ const navigateToSettings = () => {
 const startTimer = () => {
     Timing.start(CONST.TIMING.SWITCH_REPORT);
     Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-}
+};
 
 function BaseSidebarScreen(props) {
     useEffect(() => {
