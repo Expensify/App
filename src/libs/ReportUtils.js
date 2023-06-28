@@ -712,9 +712,10 @@ function getIconsForParticipants(participants, personalDetails) {
  * @param {*} [defaultIcon]
  * @param {Boolean} [isPayer]
  * @param {String} [defaultName]
+ * @param {Number} [defaultID]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '') {
+function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '', defaultID = undefined) {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
@@ -724,6 +725,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
     if (_.isEmpty(report)) {
         result.source = defaultIcon || Expensicons.FallbackAvatar;
         result.name = defaultName || '';
+        result.id = defaultID;
         return [result];
     }
     if (isArchivedRoom(report)) {
