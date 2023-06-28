@@ -662,11 +662,13 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
+        const isEmojiAtEnd = this.state.selection.start === this.comment.length;
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, isEmojiAtEnd ? `${emoji} ` : emoji));
+
         this.setState((prevState) => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emoji.length + (isEmojiAtEnd ? CONST.SPACE_LENGTH : 0),
+                end: prevState.selection.start + emoji.length + (isEmojiAtEnd ? CONST.SPACE_LENGTH : 0),
             },
         }));
     }
