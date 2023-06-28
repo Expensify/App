@@ -1355,13 +1355,13 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, payeeA
  */
 function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
     const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
-    let paymentMethodMessage;
+    let paymentMethodMessage = '';
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-            paymentMethodMessage = ' elsewhere';
+            paymentMethodMessage = 'elsewhere';
             break;
         case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-            paymentMethodMessage = ' using PayPal.me';
+            paymentMethodMessage = 'using PayPal.me';
             break;
         default:
             break;
@@ -1379,7 +1379,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
+            iouMessage = isSettlingUp ? `paid ${amount} ${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`} ${paymentMethodMessage}`;
             break;
         default:
             break;
