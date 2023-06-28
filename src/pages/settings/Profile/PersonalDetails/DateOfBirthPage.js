@@ -73,8 +73,8 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                     inputID="dob"
                     label={translate('common.date')}
                     defaultValue={privatePersonalDetails.dob || ''}
-                    minDate={moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'Y').toDate()}
-                    maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'Y').toDate()}
+                    minDate={moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years').toDate()}
+                    maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'years').toDate()}
                 />
             </Form>
         </ScreenWrapper>

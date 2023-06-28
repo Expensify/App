@@ -11,8 +11,6 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import CalendarPicker from './CalendarPicker';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-    ...baseTextInputPropTypes,
     /**
      * The datepicker supports any value that `moment` can parse.
      * `onInputChange` would always be called with a Date (or null)
@@ -30,6 +28,9 @@ const propTypes = {
 
     /** A maximum date of calendar to select */
     maxDate: PropTypes.objectOf(Date),
+
+    ...withLocalizePropTypes,
+    ...baseTextInputPropTypes,
 };
 
 const datePickerDefaultProps = {
@@ -98,7 +99,6 @@ class NewDatePicker extends React.Component {
     }
 }
 
-NewDatePicker.name = 'NewDatePicker';
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 

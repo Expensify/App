@@ -1,7 +1,6 @@
 import {Portal} from '@gorhom/portal';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {Dimensions} from 'react-native';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
@@ -22,9 +21,9 @@ const defaultProps = {
     testID: undefined,
 };
 
-const ScreenSlideAnimation = React.forwardRef(({children, testID, isSmallScreenWidth}, ref) => {
+const ScreenSlideAnimation = React.forwardRef(({children, testID, isSmallScreenWidth, windowHeight}, ref) => {
     const [visible, setVisible] = React.useState(false);
-    const width = isSmallScreenWidth ? Dimensions.get('window').width : variables.sideBarWidth;
+    const width = isSmallScreenWidth ? windowHeight : variables.sideBarWidth;
     const translateX = useSharedValue(width);
 
     React.useImperativeHandle(

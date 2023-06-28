@@ -18,8 +18,6 @@ import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** An initial value of date string */
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 
@@ -31,6 +29,8 @@ const propTypes = {
 
     /** A function called when the date is selected */
     onSelected: PropTypes.func,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -91,14 +91,14 @@ class CalendarPicker extends React.PureComponent {
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
     moveToPrevMonth() {
-        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).subtract(1, 'M').toDate()}));
+        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).subtract(1, 'months').toDate()}));
     }
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
     moveToNextMonth() {
-        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).add(1, 'M').toDate()}));
+        this.setState((prev) => ({currentDateView: moment(prev.currentDateView).add(1, 'months').toDate()}));
     }
 
     render() {
@@ -107,8 +107,8 @@ class CalendarPicker extends React.PureComponent {
         const currentMonthView = this.state.currentDateView.getMonth();
         const currentYearView = this.state.currentDateView.getFullYear();
         const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-        const hasAvailableDatesNextMonth = moment(this.props.maxDate).endOf('month').startOf('day') > moment(this.state.currentDateView).add(1, 'M');
-        const hasAvailableDatesPrevMonth = moment(this.props.minDate).startOf('day') < moment(this.state.currentDateView).subtract(1, 'M').endOf('month');
+        const hasAvailableDatesNextMonth = moment(this.props.maxDate).endOf('month').startOf('day') > moment(this.state.currentDateView).add(1, 'months');
+        const hasAvailableDatesPrevMonth = moment(this.props.minDate).startOf('day') < moment(this.state.currentDateView).subtract(1, 'months').endOf('month');
 
         return (
             <View>
@@ -225,7 +225,6 @@ class CalendarPicker extends React.PureComponent {
     }
 }
 
-CalendarPicker.name = 'CalendarPicker';
 CalendarPicker.propTypes = propTypes;
 CalendarPicker.defaultProps = defaultProps;
 
