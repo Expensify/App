@@ -40,6 +40,7 @@ const ScreenSlideAnimation = React.forwardRef(({children, testID, isSmallScreenW
             },
             open: () => setVisible(true),
         }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [width],
     );
 
@@ -48,6 +49,7 @@ const ScreenSlideAnimation = React.forwardRef(({children, testID, isSmallScreenW
             return;
         }
         translateX.value = withTiming(0, {duration: CONST.ANIMATED_TRANSITION});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visible]);
 
     const animatedStyle = useAnimatedStyle(() => ({width, transform: [{translateX: translateX.value}]}), [translateX.value, width]);
