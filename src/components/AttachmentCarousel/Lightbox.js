@@ -21,6 +21,7 @@ import Animated, {
 import PagerView from 'react-native-pager-view';
 import _ from 'underscore';
 import Image from '../Image';
+import styles from '../../styles/styles';
 
 const Context = createContext(null);
 
@@ -603,10 +604,12 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
     return (
         <View
             collapsable={false}
-            style={{
-                flex: 1,
-                width: canvasWidth,
-            }}
+            style={[
+                styles.flex1,
+                {
+                    width: canvasWidth,
+                },
+            ]}
         >
             <GestureDetector gesture={pinchGesture}>
                 <Animated.View
@@ -616,7 +619,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                     <GestureDetector gesture={Gesture.Race(pinchGesture, singleTap, panGesture)}>
                         <Animated.View
                             collapsable
-                            style={[StyleSheet.absoluteFill]}
+                            style={StyleSheet.absoluteFill}
                         >
                             <ImageWrapper>
                                 <GestureDetector gesture={doubleTap}>
@@ -629,7 +632,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                                         {renderImage({
                                             onResolveImageDimensions: onLoad,
                                             ...dimensionsWithScale,
-                                            style: showFallback ? {opacity: 0, position: 'absolute'} : {},
+                                            style: showFallback ? {...styles.opacity0, ...styles.pAbsolute} : {},
                                         })}
                                     </Animated.View>
                                 </GestureDetector>
@@ -647,13 +650,7 @@ function ImageWrapper({children}) {
     return (
         <Animated.View
             collapsable={false}
-            style={[
-                {
-                    ...StyleSheet.absoluteFillObject,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                },
-            ]}
+            style={[StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter]}
         >
             {children}
         </Animated.View>
@@ -847,7 +844,7 @@ function Pager({
     const processedItems = _.map(items, (item, index) => itemExtractor({item, index}));
 
     return (
-        <GestureHandlerRootView style={{flex: 1}}>
+        <GestureHandlerRootView style={styles.flex1}>
             <Context.Provider
                 value={{
                     isScrolling,
@@ -861,13 +858,13 @@ function Pager({
                     onPageScroll={pageScrollHandler}
                     animatedProps={animatedProps}
                     ref={pagerRef}
-                    style={{flex: 1}}
+                    style={styles.flex1}
                     initialPage={initialIndex}
                 >
                     {_.map(processedItems, (item, index) => (
                         <View
                             key={item.key}
-                            style={{flex: 1}}
+                            style={styles.flex1}
                         >
                             <Page
                                 onTap={onTap}
