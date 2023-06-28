@@ -1951,8 +1951,13 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    // Exclude empty chats between two users
-    if (excludeEmptyChats && _.isEmpty(report.lastMessageText) && _.isEmpty(report.lastMessageHtml) && isChatReport(report) && !isChatRoom(report) && !isThread(report)) {
+    // Hide thread reports that haven't been commented on
+    if (isThread(report) && _.isEmpty(report.lastMessageText)) {
+        return false;
+    }
+
+    // Hide chats between two users that haven't been commented on
+    if (excludeEmptyChats && _.isEmpty(report.lastMessageText) && isChatReport(report) && !isChatRoom(report)) {
         return false;
     }
 
@@ -2265,6 +2270,16 @@ function getParentReport(report) {
 }
 
 /**
+ * Return true if the composer should be hidden
+ * @param {Object} report
+ * @param {Object} reportErrors
+ * @returns {Boolean}
+ */
+function shouldHideComposer(report, reportErrors) {
+    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report);
+}
+
+/**
  * Returns ID of the original report from which the given reportAction is first created.
  *
  * @param {String} reportID
@@ -2367,5 +2382,6 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    shouldHideComposer,
     getOriginalReportID,
 };

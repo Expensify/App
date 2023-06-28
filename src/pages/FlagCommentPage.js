@@ -131,10 +131,9 @@ function FlagCommentPage(props) {
             title={item.name}
             description={item.description}
             onPress={Session.checkIfActionIsAllowed(() => flagComment(item.severity))}
-            style={[styles.pt2, styles.pb4, styles.mh5, styles.ph0, styles.flexRow, styles.borderBottom]}
+            style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}
-            hoverAndPressStyle={[styles.mh0, styles.ph5]}
         />
     ));
 
