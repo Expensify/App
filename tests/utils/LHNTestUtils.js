@@ -165,9 +165,9 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
 }
 
 /**
- * @param {String} [currentReportId]
+ * @param {String} [currentReportID]
  */
-function getDefaultRenderedSidebarLinks(currentReportId = '') {
+function getDefaultRenderedSidebarLinks(currentReportID = '') {
     // An ErrorBoundary needs to be added to the rendering so that any errors that happen while the component
     // renders are logged to the console. Without an error boundary, Jest only reports the error like "The above error
     // occurred in your component", except, there is no "above error". It's just swallowed up by Jest somewhere.
@@ -196,16 +196,16 @@ function getDefaultRenderedSidebarLinks(currentReportId = '') {
     // our app (App.js) is when the react application is wrapped in the context providers
     render(
         <ErrorBoundary>
-            <MockedSidebarLinks currentReportId={currentReportId} />
+            <MockedSidebarLinks currentReportID={currentReportID} />
         </ErrorBoundary>,
     );
 }
 
 /**
- * @param {String} [currentReportId]
+ * @param {String} [currentReportID]
  * @returns {JSX.Element}
  */
-function MockedSidebarLinks({currentReportId}) {
+function MockedSidebarLinks({currentReportID}) {
     return (
         <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SidebarLinks
@@ -217,18 +217,18 @@ function MockedSidebarLinks({currentReportId}) {
                     bottom: 0,
                 }}
                 isSmallScreenWidth={false}
-                currentReportId={currentReportId}
+                currentReportID={currentReportID}
             />
         </ComposeProviders>
     );
 }
 
 MockedSidebarLinks.propTypes = {
-    currentReportId: PropTypes.string,
+    currentReportID: PropTypes.string,
 };
 
 MockedSidebarLinks.defaultProps = {
-    currentReportId: '',
+    currentReportID: '',
 };
 
 export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};
