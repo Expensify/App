@@ -1,12 +1,19 @@
-const reactNativeRestrictedImport = {
-    name: 'react-native',
-    importNames: ['useWindowDimensions', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'StatusBar'],
-    message: [
-        "For 'useWindowDimensions', please use 'src/hooks/useWindowDimensions' instead.",
-        "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', please use 'src/components/Pressable' instead.",
-        "For 'StatusBar', please use 'src/libs/StatusBar' instead.",
-    ].join('\n'),
-};
+const globalRestrictedImport = [
+    {
+        name: 'react-native',
+        importNames: ['useWindowDimensions', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'StatusBar'],
+        message: [
+            "For 'useWindowDimensions', please use 'src/hooks/useWindowDimensions' instead.",
+            "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', please use 'src/components/Pressable' instead.",
+            "For 'StatusBar', please use 'src/libs/StatusBar' instead.",
+        ].join('\n'),
+    },
+    {
+        name: 'react-native-gesture-handler',
+        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableHighlight'],
+        message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
+    },
+];
 
 module.exports = {
     extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier'],
@@ -43,7 +50,7 @@ module.exports = {
                 'no-restricted-imports': [
                     'error',
                     {
-                        paths: [reactNativeRestrictedImport],
+                        paths: globalRestrictedImport,
                     },
                 ],
             },
@@ -107,7 +114,7 @@ module.exports = {
                     'error',
                     {
                         paths: [
-                            reactNativeRestrictedImport,
+                            ...globalRestrictedImport,
                             {
                                 name: 'lodash/get',
                                 message: 'Please use optional chaining and nullish coalescing instead.',
