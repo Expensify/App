@@ -30,6 +30,7 @@ const propTypes = {
     /** Number of lines for the comment */
     numberOfLines: PropTypes.number,
 
+    
     /** Callback method to update number of lines for the comment */
     onNumberOfLinesChange: PropTypes.func,
 

@@ -31,17 +31,17 @@ export const processUserInput = aztecInputString => {
 
     rules.forEach(([markdownChar, htmlTag, surround]) => {
       processedParagraph = processedParagraph.replace(
-        new RegExp(`<${htmlTag}>(.*?)<\/${htmlTag}>`, 'g'),
-        (match, p1) => {
-          if (p1.startsWith(markdownChar) && p1.endsWith(markdownChar)) {
-            return match;
-          }
-          const replacement = surround
-            ? `${markdownChar}${p1}${markdownChar}`
-            : `${markdownChar} ${p1}`;
+          new RegExp(`<${htmlTag}>(.*?)<\/${htmlTag}>`, 'g'),
+          (match, p1) => {
+            if (p1.startsWith(markdownChar) && p1.endsWith(markdownChar)) {
+              return match;
+            }
+            const replacement = surround
+                ? `${markdownChar}${p1}${markdownChar}`
+                : `${markdownChar} ${p1}`;
 
-          return `<${htmlTag}>${replacement}</${htmlTag}>`;
-        },
+            return `<${htmlTag}>${replacement}</${htmlTag}>`;
+          },
       );
     });
 

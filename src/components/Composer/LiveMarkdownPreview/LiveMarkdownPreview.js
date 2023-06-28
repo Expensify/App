@@ -24,13 +24,13 @@ const LiveMarkdownPreview = () => {
     };
 
     const hasSelectionChanged =
-      selection.start !== newSelection.start ||
-      selection.end !== newSelection.end;
+        selection.start !== newSelection.start ||
+        selection.end !== newSelection.end;
 
     const isNewline =
-      text === value &&
-      newSelection.start === selection.start + 1 &&
-      newSelection.end === selection.end + 1;
+        text === value &&
+        newSelection.start === selection.start + 1 &&
+        newSelection.end === selection.end + 1;
 
     if (hasSelectionChanged && !isNewline) {
       setSelection(newSelection);
@@ -38,23 +38,23 @@ const LiveMarkdownPreview = () => {
   };
 
   return (
-    <>
-      <AztecRichTextEditor
-        autocorrect={false}
-        ref={richTextEditorRef}
-        style={styles.richTextEditor}
-        onChange={event => {
-          handleOnChange(event);
-        }}
-        onSelectionChange={(selectionStart, selectionEnd, text, event) => {
-          handleOnSelectionChange(selectionStart, selectionEnd, text, event);
-        }}
-        text={{
-          text: value,
-          selection: selection,
-        }}
-      />
-    </>
+      <>
+        <AztecRichTextEditor
+            autocorrect={false}
+            ref={richTextEditorRef}
+            style={styles.richTextEditor}
+            onChange={event => {
+              handleOnChange(event);
+            }}
+            onSelectionChange={(selectionStart, selectionEnd, text, event) => {
+              handleOnSelectionChange(selectionStart, selectionEnd, text, event);
+            }}
+            text={{
+              text: value,
+              selection: selection,
+            }}
+        />
+      </>
   );
 };
 
