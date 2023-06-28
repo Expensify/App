@@ -2513,6 +2513,10 @@ const CONST = {
         TEXT: 'text',
         RADIO: 'radio',
     },
+
+    TRANSLATION_KEYS: {
+        ATTACHMENT: 'common.attachment'
+    },
 };
 
 export default CONST;

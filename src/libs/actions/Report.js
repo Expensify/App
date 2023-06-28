@@ -234,6 +234,7 @@ function addActions(reportID, text = '', file) {
 
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
+        lastMessageTranslationKey: lodashGet(lastAction, 'message[0].translationKey', ''),
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
         lastActorEmail: currentUserEmail,
@@ -824,6 +825,7 @@ function deleteReportComment(reportID, reportAction) {
     const reportActionID = reportAction.reportActionID;
     const deletedMessage = [
         {
+            translationKey: '',
             type: 'COMMENT',
             html: '',
             text: '',
@@ -843,13 +845,15 @@ function deleteReportComment(reportID, reportAction) {
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     let optimisticReport = {
+        lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
-    if (lastMessageText.length > 0) {
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(reportID, optimisticReportActions);
+    if (lastMessageText || lastMessageTranslationKey) {
         const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
         optimisticReport = {
+            lastMessageTranslationKey,
             lastMessageText,
             lastVisibleActionCreated,
         };
@@ -1008,6 +1012,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     if (reportActionID === lastVisibleAction.reportActionID) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
+            lastMessageTranslationKey: '',
             lastMessageText,
         };
         optimisticData.push({

@@ -378,8 +378,8 @@ function getAllReportErrors(report, reportActions) {
  */
 function getLastMessageTextForReport(report) {
     let lastMessageTextFromReport = '';
-    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
+        lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
