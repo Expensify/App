@@ -2392,12 +2392,15 @@ const styles = {
         alignSelf: 'flex-start',
     },
 
-    attachmentModalArrowsContainer: {
-        display: 'flex',
-        justifyContent: 'center',
+    attachmentCarouselContainer: {
         height: '100%',
         width: '100%',
         ...cursor.cursorUnset,
+    },
+
+    attachmentCarouselButtonsContainer: {
+        display: 'flex',
+        justifyContent: 'center',
     },
 
     attachmentArrow: {

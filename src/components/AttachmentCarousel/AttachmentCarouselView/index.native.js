@@ -1,7 +1,9 @@
 import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import Pager from '../Lightbox';
+import styles from '../../../styles/styles';
 import CarouselButtons from '../CarouselButtons';
 
 const propTypes = {
@@ -64,7 +66,7 @@ function AttachmentCarouselView(props) {
     );
 
     return (
-        <>
+        <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
             <CarouselButtons
                 carouselState={props.carouselState}
                 onBack={() => {
@@ -93,7 +95,7 @@ function AttachmentCarouselView(props) {
                     ref={pagerRef}
                 />
             )}
-        </>
+        </View>
     );
 }
 

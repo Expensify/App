@@ -175,7 +175,7 @@ class AttachmentCarousel extends React.Component {
     render() {
         return (
             <View
-                style={[styles.attachmentModalArrowsContainer, styles.flex1]}
+                style={[styles.flex1, styles.attachmentCarouselContainer]}
                 onLayout={({nativeEvent}) =>
                     // eslint-disable-next-line react/no-unused-state
                     this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), containerHeight: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})

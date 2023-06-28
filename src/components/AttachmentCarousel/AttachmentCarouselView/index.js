@@ -8,6 +8,12 @@ import AttachmentView from '../../AttachmentView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import CarouselButtons from '../CarouselButtons';
 
+const VIEWABILITY_CONFIG = {
+    // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
+    // more than 95% visible. When that happens we update the page index in the state.
+    itemVisiblePercentThreshold: 95,
+};
+
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     carouselState: PropTypes.object.isRequired,
@@ -21,11 +27,6 @@ const propTypes = {
 
 function AttachmentCarouselView(props) {
     const scrollRef = useRef(null);
-    const viewabilityConfig = {
-        // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
-        // more than 95% visible. When that happens we update the page index in the state.
-        itemVisiblePercentThreshold: 95,
-    };
 
     /**
      * Calculate items layout information to optimize scrolling performance
@@ -102,11 +103,23 @@ function AttachmentCarouselView(props) {
         [props.carouselState.activeSource],
     );
 
+    const handleViewableItemsChange = useCallback(
+        ({viewableItems}) => {
+            // Since we can have only one item in view at a time, we can use the first item in the array
+            // to get the index of the current page
+            const entry = _.first([...viewableItems]);
+            props.updatePage({item: entry.item, index: entry.index});
+        },
+        [props],
+    );
+
+    const viewabilityConfigCallbackPairs = useRef([{viewabilityConfig: VIEWABILITY_CONFIG, onViewableItemsChanged: handleViewableItemsChange}]);
+
     return (
         <View
             onMouseEnter={() => props.toggleArrowsVisibility(true)}
             onMouseLeave={() => props.toggleArrowsVisibility(false)}
-            style={styles.flex1}
+            style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}
         >
             <CarouselButtons
                 carouselState={props.carouselState}
@@ -144,13 +157,7 @@ function AttachmentCarouselView(props) {
                     renderItem={renderItem}
                     getItemLayout={getItemLayout}
                     keyExtractor={(item) => item.source}
-                    viewabilityConfig={viewabilityConfig}
-                    onViewableItemsChanged={({viewableItems}) => {
-                        // Since we can have only one item in view at a time, we can use the first item in the array
-                        // to get the index of the current page
-                        const entry = _.first(viewableItems);
-                        props.updatePage({item: entry.item, index: entry.index});
-                    }}
+                    viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
                 />
             )}
 
