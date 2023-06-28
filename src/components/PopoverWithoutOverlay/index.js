@@ -43,7 +43,11 @@ function Popover(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isVisible]);
 
-    return props.isVisible ? (
+    if (!props.isVisible) {
+        return null;
+    }
+
+    return (
         <Pressable
             style={[modalStyle, {zIndex: 1}]}
             ref={ref}
@@ -87,7 +91,7 @@ function Popover(props) {
                 }}
             </SafeAreaInsetsContext.Consumer>
         </Pressable>
-    ) : null;
+    );
 }
 
 Popover.propTypes = propTypes;

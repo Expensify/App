@@ -2,8 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    // eslint-disable-next-line
-    children: PropTypes.any,
+    children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {};
