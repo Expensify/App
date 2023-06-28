@@ -23,6 +23,21 @@ import _ from 'underscore';
 import Image from '../Image';
 import styles from '../../styles/styles';
 
+const DOUBLE_TAP_SCALE = 3;
+const MAX_SCALE = 20;
+const MIN_SCALE = 0.7;
+
+const SPRING_CONFIG = {
+    mass: 3,
+    stiffness: 1000,
+    damping: 500,
+};
+
+const DEFAULT_DIMENSIONS = {
+    width: 1,
+    height: 1,
+};
+
 const Context = createContext(null);
 
 function clamp(value, lowerBound, upperBound) {
@@ -30,16 +45,6 @@ function clamp(value, lowerBound, upperBound) {
 
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
-
-const DOUBLE_TAP_SCALE = 3;
-const MAX_SCALE = 20;
-const MIN_SCALE = 0.7;
-
-const config = {
-    mass: 3,
-    stiffness: 1000,
-    damping: 500,
-};
 
 function getScaledDimensions({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
     const scaleFactorX = imageWidth / canvasWidth;
@@ -61,11 +66,6 @@ function getScaledDimensions({canvasWidth, canvasHeight, imageWidth, imageHeight
     };
 }
 
-const defaultDimensions = {
-    width: 1,
-    height: 1,
-};
-
 // eslint-disable-next-line react/prop-types
 function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, isActive, onSwipe, onSwipeSuccess, renderImage, renderFallback, onTap}) {
     const {pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
@@ -75,7 +75,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
 
     const [imageDimensions, setImageDimensions] = useState(
         showFallback
-            ? defaultDimensions
+            ? DEFAULT_DIMENSIONS
             : getScaledDimensions({
                   canvasWidth,
                   canvasHeight,
@@ -210,7 +210,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
 
         if (!canPanVertically.value) {
-            offsetY.value = withSpring(target.y, config);
+            offsetY.value = withSpring(target.y, SPRING_CONFIG);
         }
 
         if (
@@ -229,8 +229,8 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         if (scale.value <= 1) {
             // just center it
             // reset(true);
-            offsetX.value = withSpring(0, config);
-            offsetY.value = withSpring(0, config);
+            offsetX.value = withSpring(0, SPRING_CONFIG);
+            offsetY.value = withSpring(0, SPRING_CONFIG);
             return;
         }
 
@@ -246,7 +246,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                 });
             }
         } else {
-            offsetX.value = withSpring(target.x, config);
+            offsetX.value = withSpring(target.x, SPRING_CONFIG);
         }
 
         if (isInBoundaryY) {
@@ -264,7 +264,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                 });
             }
         } else {
-            offsetY.value = withSpring(target.y, config, () => {
+            offsetY.value = withSpring(target.y, SPRING_CONFIG, () => {
                 isSwiping.value = false;
             });
         }
@@ -321,9 +321,9 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
             target.y = 0;
         }
 
-        offsetX.value = withSpring(target.x, config);
-        offsetY.value = withSpring(target.y, config);
-        scale.value = withSpring(DOUBLE_TAP_SCALE, config);
+        offsetX.value = withSpring(target.x, SPRING_CONFIG);
+        offsetY.value = withSpring(target.y, SPRING_CONFIG);
+        scale.value = withSpring(DOUBLE_TAP_SCALE, SPRING_CONFIG);
         scaleOffset.value = DOUBLE_TAP_SCALE;
     });
 
@@ -333,9 +333,9 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         stopAnimation();
 
         if (animated) {
-            offsetX.value = withSpring(0, config);
-            offsetY.value = withSpring(0, config);
-            scale.value = withSpring(1, config);
+            offsetX.value = withSpring(0, SPRING_CONFIG);
+            offsetY.value = withSpring(0, SPRING_CONFIG);
+            scale.value = withSpring(1, SPRING_CONFIG);
         } else {
             scale.value = 1;
             translateX.value = 0;
@@ -533,10 +533,10 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                 scaleOffset.value = 1;
 
                 // this runs the timing animation
-                scale.value = withSpring(1, config);
+                scale.value = withSpring(1, SPRING_CONFIG);
             } else if (scaleOffset.value > MAX_SCALE) {
                 scaleOffset.value = MAX_SCALE;
-                scale.value = withSpring(MAX_SCALE, config);
+                scale.value = withSpring(MAX_SCALE, SPRING_CONFIG);
             }
 
             afterGesture();
