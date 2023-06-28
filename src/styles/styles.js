@@ -1171,6 +1171,11 @@ const styles = {
         height: '100%',
     },
 
+    sidebarAnimatedWrapperContainer: {
+        height: '100%',
+        position: 'absolute',
+    },
+
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',

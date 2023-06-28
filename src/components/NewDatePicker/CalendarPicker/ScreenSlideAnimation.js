@@ -1,8 +1,12 @@
 import {Portal} from '@gorhom/portal';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {Dimensions, StyleSheet} from 'react-native';
+import {Dimensions} from 'react-native';
 import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import CONST from '../../../CONST';
+import styles from '../../../styles/styles';
+import variables from '../../../styles/variables';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 
 const propTypes = {
     /** Children to render */
@@ -10,23 +14,24 @@ const propTypes = {
 
     /** TestID for test */
     testID: PropTypes.string,
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     testID: undefined,
 };
 
-const height = Dimensions.get('window').height;
-
-const ScreenSlideAnimation = React.forwardRef(({children, testID}, ref) => {
+const ScreenSlideAnimation = React.forwardRef(({children, testID, isSmallScreenWidth}, ref) => {
     const [visible, setVisible] = React.useState(false);
-    const translateX = useSharedValue(height);
+    const width = isSmallScreenWidth ? Dimensions.get('window').width : variables.sideBarWidth;
+    const translateX = useSharedValue(width);
 
     React.useImperativeHandle(
         ref,
         () => ({
             close: () => {
-                translateX.value = withTiming(height, {duration: 500}, (finished) => {
+                translateX.value = withTiming(width, {duration: CONST.ANIMATED_TRANSITION}, (finished) => {
                     if (!finished) {
                         return;
                     }
@@ -35,17 +40,17 @@ const ScreenSlideAnimation = React.forwardRef(({children, testID}, ref) => {
             },
             open: () => setVisible(true),
         }),
-        [],
+        [width],
     );
 
     React.useEffect(() => {
         if (!visible) {
             return;
         }
-        translateX.value = withTiming(0, {duration: 500});
+        translateX.value = withTiming(0, {duration: CONST.ANIMATED_TRANSITION});
     }, [visible]);
 
-    const animatedStyle = useAnimatedStyle(() => ({transform: [{translateX: translateX.value}]}), [translateX.value]);
+    const animatedStyle = useAnimatedStyle(() => ({width, transform: [{translateX: translateX.value}]}), [translateX.value, width]);
 
     if (!visible) return null;
 
@@ -53,7 +58,7 @@ const ScreenSlideAnimation = React.forwardRef(({children, testID}, ref) => {
         <Portal hostName="RigthModalNavigator">
             <Animated.View
                 testID={testID}
-                style={[StyleSheet.absoluteFillObject, animatedStyle]}
+                style={[styles.sidebarAnimatedWrapperContainer, animatedStyle]}
             >
                 {children}
             </Animated.View>
@@ -65,4 +70,4 @@ ScreenSlideAnimation.displayName = 'ScreenSlideAnimation';
 ScreenSlideAnimation.propTypes = propTypes;
 ScreenSlideAnimation.defaultProps = defaultProps;
 
-export default ScreenSlideAnimation;
+export default withWindowDimensions(ScreenSlideAnimation);

@@ -188,16 +188,13 @@ class CalendarPicker extends React.PureComponent {
                         })}
                     </View>
                 ))}
-                <ScreenSlideAnimation
-                    ref={(ref) => (this.yearPickerRef = ref)}
-                    testID="yearListView"
-                >
+                <ScreenSlideAnimation ref={(ref) => (this.yearPickerRef = ref)}>
                     <YearPickerPage
                         onYearChange={this.onYearSelected}
                         onClose={() => this.yearPickerRef.close()}
                         min={moment(this.props.minDate).year()}
                         max={moment(this.props.maxDate).year()}
-                        currentYear={moment(this.props.value).year()}
+                        currentYear={currentYearView}
                     />
                 </ScreenSlideAnimation>
             </View>

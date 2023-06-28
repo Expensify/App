@@ -25,7 +25,6 @@ class YearPickerPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.currentYear = Number(props.year);
         this.yearList = _.map(
             Array.from({length: props.max - props.min + 1}, (v, i) => i + props.min),
             (value) => ({
@@ -34,10 +33,10 @@ class YearPickerPage extends React.Component {
                 keyForList: value.toString(),
 
                 // Include the green checkmark icon to indicate the currently selected value
-                customIcon: value === this.currentYear ? greenCheckmark : undefined,
+                customIcon: value === this.props.currentYear ? greenCheckmark : undefined,
 
                 // This property will make the currently selected value have bold text
-                boldStyle: value === this.currentYear,
+                boldStyle: value === this.props.currentYear,
             }),
         );
 
@@ -87,11 +86,12 @@ class YearPickerPage extends React.Component {
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
                     onSelectRow={(option) => this.props.onYearChange(option.value)}
                     headerMessage={headerMessage}
-                    initiallyFocusedOptionKey={this.currentYear.toString()}
+                    initiallyFocusedOptionKey={this.props.currentYear.toString()}
                     hideSectionHeaders
                     optionHoveredStyle={styles.hoveredComponentBG}
                     shouldHaveOptionSeparator
                     contentContainerStyles={[styles.ph5]}
+                    shouldDelayFocus
                 />
             </ScreenWrapper>
         );
