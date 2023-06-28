@@ -17,26 +17,26 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
+/**
+* Method called when avatar is clicked
+*/
+const navigateToSettings = () => {
+    Navigation.navigate(ROUTES.SETTINGS);
+}
+
+/**
+ * Method called when a pinned chat is selected.
+ */
+const startTimer = () => {
+    Timing.start(CONST.TIMING.SWITCH_REPORT);
+    Performance.markStart(CONST.TIMING.SWITCH_REPORT);
+}
+
 function BaseSidebarScreen(props) {
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }, []);
-
-    /**
-     * Method called when avatar is clicked
-     */
-    const navigateToSettings = () => {
-        Navigation.navigate(ROUTES.SETTINGS);
-    }
-
-    /**
-     * Method called when a pinned chat is selected.
-     */
-    const startTimer = () => {
-        Timing.start(CONST.TIMING.SWITCH_REPORT);
-        Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-    }
 
     return (
         <ScreenWrapper
