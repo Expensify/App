@@ -30,5 +30,5 @@ export default {
     error: PropTypes.string,
 
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedToAccountIDs: PropTypes.arrayOf(PropTypes.string),
+    whisperedToAccountIDs: PropTypes.arrayOf(PropTypes.number),
 };
