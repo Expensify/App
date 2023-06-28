@@ -225,6 +225,12 @@ export default function () {
                 }
             });
 
+            // The personalDetails object has been replaced by personalDetailsList
+            // So if we find an instance of personalDetails we will clear it out
+            if (oldPersonalDetails) {
+                onyxData[DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS] = null;
+            }
+
             return Onyx.multiSet(onyxData);
         },
     );
