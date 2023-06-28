@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import React, { Component, useMemo } from 'react';
-import { FlatList, View } from 'react-native';
+import React, {useMemo} from 'react';
+import {FlatList, View} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
@@ -33,7 +33,6 @@ const defaultProps = {
 };
 
 function LHNOptionsList(props) {
-
     const data = useMemo(() => props.data, [props.data]);
 
     /**
@@ -41,12 +40,12 @@ function LHNOptionsList(props) {
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
      * lists.
      *
-     * @param {Array} data - This is the same as the data we pass into the component
+     * @param {Array} itemData - This is the same as the data we pass into the component
      * @param {Number} index the current item's index in the set of data
      *
      * @returns {Object}
      */
-    const getItemLayout = (data, index) => {
+    const getItemLayout = (itemData, index) => {
         const optionHeight = props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
         return {
             length: optionHeight,
@@ -64,16 +63,14 @@ function LHNOptionsList(props) {
      *
      * @return {Component}
      */
-    const renderItem = ({item, index}) => {
-        return (
-            <OptionRowLHN
-                reportID={item}
-                viewMode={props.optionMode}
-                isFocused={!props.shouldDisableFocusOptions && props.focusedIndex === index}
-                onSelectRow={props.onSelectRow}
-            />
-        );
-    };
+    const renderItem = ({item, index}) => (
+        <OptionRowLHN
+            reportID={item}
+            viewMode={props.optionMode}
+            isFocused={!props.shouldDisableFocusOptions && props.focusedIndex === index}
+            onSelectRow={props.onSelectRow}
+        />
+    );
 
     return (
         <View style={[styles.flex1]}>
