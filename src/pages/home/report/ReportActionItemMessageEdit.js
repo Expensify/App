@@ -145,7 +145,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, isSmallScreenWidth, props.preferredSkinTone);
+            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone);
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
@@ -172,7 +172,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, isSmallScreenWidth, props.preferredSkinTone],
+        [props.action.message, debouncedSaveDraft, props.preferredSkinTone],
     );
 
     /**
@@ -223,10 +223,10 @@ function ReportActionItemMessageEdit(props) {
      */
     const addEmojiToTextBox = (emoji) => {
         setSelection((prevSelection) => ({
-            start: prevSelection.start + emoji.length,
-            end: prevSelection.start + emoji.length,
+            start: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
+            end: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
         }));
-        updateDraft(ComposerUtils.insertText(draft, selection, emoji));
+        updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
 
     /**
