@@ -1950,6 +1950,11 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
+    // Hide thread reports that haven't been commented on
+    if (isThread(report) && !report.lastMessageText) {
+        return false;
+    }
+
     return true;
 }
 
