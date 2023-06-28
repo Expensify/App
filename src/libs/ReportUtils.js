@@ -2288,6 +2288,16 @@ function getParentReport(report) {
 }
 
 /**
+ * Return true if the composer should be hidden
+ * @param {Object} report
+ * @param {Object} reportErrors
+ * @returns {Boolean}
+ */
+function shouldHideComposer(report, reportErrors) {
+    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report);
+}
+
+/**
  * Returns ID of the original report from which the given reportAction is first created.
  *
  * @param {String} reportID
@@ -2391,5 +2401,6 @@ export {
     getBankAccountRoute,
     getParentReport,
     getReportPreviewMessage,
+    shouldHideComposer,
     getOriginalReportID,
 };
