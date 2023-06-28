@@ -92,6 +92,7 @@ function OptionsSelectorWithSearch(props) {
                         safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         shouldFocusOnSelectRow
                         shouldHaveOptionSeparator
+                        shouldDelayFocus
                         initiallyFocusedOptionKey={initialOption}
                     />
                 </>
