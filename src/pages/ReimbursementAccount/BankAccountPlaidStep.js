@@ -39,7 +39,9 @@ const defaultProps = {
     plaidLinkOAuthToken: '',
 };
 
-function BankAccountPlaidStep({plaidData, receivedRedirectURI, plaidLinkOAuthToken, ...props}) {
+function BankAccountPlaidStep(props) {
+    const {plaidData, receivedRedirectURI, plaidLinkOAuthToken} = props;
+
     const validate = useCallback((values) => {
         const errorFields = {};
         if (!values.acceptTerms) {
