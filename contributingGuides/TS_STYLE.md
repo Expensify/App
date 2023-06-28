@@ -5,21 +5,22 @@
 - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
 - [Learning Resources](#learning-resources)
 - [Exception to Rules](#exception-to-rules)
-- [1.1 Naming Conventions](#convension-naming-convension)
-- [1.2 `d.ts` Extension](#convensions-d-ts-extension)
-- [1.3 Type Alias vs. Interface](#convensions-type-alias-vs-interface)
-- [1.4 Enum vs. Union Type](#convensions-enum-vs-union-type)
-- [1.5 `unknown` vs. `any`](#convensions-unknown-vs-any)
-- [1.6 `T[]` vs. `Array<T>`](#convensions-array)
-- [1.7 @ts-ignore](#convension-ts-ignore)
-- [1.8 Optional chaining and nullish coalescing](#convension-ts-nullish-coalescing)
-- [1.9 Type Inference](#convension-type-inference)
-- [1.10 JSDoc](#conventions-jsdoc)
-- [1.11 `propTypes` and `defaultProps`](#convension-proptypes-and-defaultprops)
-- [1.12 Utility Types](#convension-utility-types)
-- [1.13 `object` Type](#convension-object-type)
-- [1.14 Export Prop Types](#convension-export-prop-types)
-- [1.15 File Organization](#convension-file-organization)
+- [Guidelines](#guidelines)
+  - [1.1 Naming Conventions](#convension-naming-convension)
+  - [1.2 `d.ts` Extension](#convensions-d-ts-extension)
+  - [1.3 Type Alias vs. Interface](#convensions-type-alias-vs-interface)
+  - [1.4 Enum vs. Union Type](#convensions-enum-vs-union-type)
+  - [1.5 `unknown` vs. `any`](#convensions-unknown-vs-any)
+  - [1.6 `T[]` vs. `Array<T>`](#convensions-array)
+  - [1.7 @ts-ignore](#convension-ts-ignore)
+  - [1.8 Optional chaining and nullish coalescing](#convension-ts-nullish-coalescing)
+  - [1.9 Type Inference](#convension-type-inference)
+  - [1.10 JSDoc](#conventions-jsdoc)
+  - [1.11 `propTypes` and `defaultProps`](#convension-proptypes-and-defaultprops)
+  - [1.12 Utility Types](#convension-utility-types)
+  - [1.13 `object` Type](#convension-object-type)
+  - [1.14 Export Prop Types](#convension-export-prop-types)
+  - [1.15 File Organization](#convension-file-organization)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
 
@@ -321,33 +322,45 @@ This rule will apply until the migration is done. After the migration, exception
 
   > Why? To encourage consistent API across platform-specific implementations.
 
+  Utility module example
+
   ```ts
   // types.ts
   type GreetingModule = {
-    sayHello: () => boolean;
-    sayGoodbye: () => boolean;
+    getHello: () => string;
+    getGoodbye: () => string;
   };
 
   // index.native.ts
   import { GreetingModule } from "./types.ts";
-  function sayHello() {
-    console.log("hello from mobile code");
+  function getHello() {
+    return "hello from mobile code";
   }
-  function sayGoodbye() {
-    console.log("goodbye from mobile code");
+  function getGoodbye() {
+    return "goodbye from mobile code";
   }
   const Greeting: GreetingModule = {
-    sayHello,
-    sayGoodbye,
+    getHello,
+    getGoodbye,
   };
   export default Greeting;
 
   // index.ts
   import { GreetingModule } from "./types.ts";
-  ...
+  function getHello() {
+    return "hello from other platform code";
+  }
+  function getGoodbye() {
+    return "goodbye from other platform code";
+  }
   const Greeting: GreetingModule = {
-  ...
+    getHello,
+    getGoodbye,
+  };
+  export default Greeting;
   ```
+
+  Component module example
 
   ```ts
     // types.ts

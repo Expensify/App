@@ -8,7 +8,7 @@
 - [1.4 Style Props](#style-props)
 - [1.5 Render Prop](#render-prop)
 - [1.6 Type Narrowing](#type-narrowing)
-- [1.7 Errors in Type Catch Clauses](#try-catch-clauses)
+- [1.7 Errors in Try-Catch Clauses](#try-catch-clauses)
 
 ## CheatSheet
 
@@ -181,7 +181,7 @@
 
 <a name="try-catch-clauses"></a><a name="1.7"></a>
 
-- [1.7](#try-catch-clauses) **Error in Try Catch Clauses**
+- [1.7](#try-catch-clauses) **Error in Try-Catch Clauses**
 
   Errors in try/catch clauses are inferred as `unknown`. If the error dat needs to be accessed, the type of the error needs to be checked and narrowed down.
 
