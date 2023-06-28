@@ -630,7 +630,6 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        console.log(emojiObject, "emojiobject")
         this.debounceReducedUpdateFrequentlyUsedEmojis(emojiObject);
     }
 
@@ -719,15 +718,12 @@ class ReportActionCompose extends React.Component {
     debounceReducedUpdateFrequentlyUsedEmojis() {
         let insertedEmojis = [];
 
-        // normally-debounced fn that we will call later with the accumulated args
         const wrapper = _.debounce(() => {
             const args = insertedEmojis;
             insertedEmojis = [];
             User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(args));
         }, 1000);
 
-        // what we actually return is this function which will really just add the new args to
-        // allArgs using the combine fn
         return (emojis) => {
             insertedEmojis = [...insertedEmojis, ...emojis];
             wrapper();
@@ -744,7 +740,6 @@ class ReportActionCompose extends React.Component {
         const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
 
         if (!_.isEmpty(emojis)) {
-            console.log(emojis, "emojiobject")
             this.debounceReducedUpdateFrequentlyUsedEmojis(emojis);
         }
 
