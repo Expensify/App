@@ -423,6 +423,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
             createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            policyID: report.policyID,
         },
         {optimisticData, successData, failureData},
     );
