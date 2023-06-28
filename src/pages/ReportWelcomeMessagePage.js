@@ -71,14 +71,14 @@ function ReportWelcomeMessagePage(props) {
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
                             accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            multiline
-                            numberOfLines={10}
+                            autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
                             ref={(el) => (welcomeMessageInputRef.current = el)}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
                             textAlignVertical="top"
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
                 </Form>
