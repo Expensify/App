@@ -95,16 +95,18 @@ function MentionSuggestions(props) {
                     style={[styles.mentionSuggestionsText, styles.flex1]}
                     numberOfLines={1}
                 >
-                    {_.map(styledHandle, ({text, isColored}, i) => (
-                        text !== '' && (
-                            <Text
-                                key={`${text}${i}`}
-                                style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle, {...(isColored && {color: styles.text})}]}
-                            >
-                                {text}
-                            </Text>
-                        )
-                    ))}
+                    {_.map(
+                        styledHandle,
+                        ({text, isColored}, i) =>
+                            text !== '' && (
+                                <Text
+                                    key={`${text}${i}`}
+                                    style={[StyleUtils.getColoredBackgroundStyle(isColored), styles.mentionSuggestionsHandle, {...(isColored && {color: styles.text})}]}
+                                >
+                                    {text}
+                                </Text>
+                            ),
+                    )}
                 </Text>
             </View>
         );
