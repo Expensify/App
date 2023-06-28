@@ -49,7 +49,6 @@ jobs:
   shellTests:
     if: ${{ github.actor != 'OSBotify' || github.event_name == 'workflow_call' }}
     runs-on: ubuntu-latest
-    concurrency: shellTests
     name: Shell tests
     steps:
       - uses: actions/checkout@v3

@@ -6,9 +6,7 @@ set -e
 TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1; pwd)/$(basename "$0")")")
 declare -r SCRIPTS_DIR="$TEST_DIR/../scripts"
 declare -r DUMMY_DIR="$HOME/DumDumRepo"
-declare -r REPO_SLUG="roryabraham/DumDumRepo"
-declare -r REPO_URL="https://github.com/$REPO_SLUG"
-declare -r INITIAL_COMMIT_HASH="6a473fcb1a7792e503ca3f2a5873fcb7b9c607f3"
+declare -r GIT_REMOTE="$HOME/dummyGitRemotes/DumDumRepo"
 declare -r SEMVER_LEVEL_BUILD='BUILD'
 declare -r SEMVER_LEVEL_PATCH='PATCH'
 
@@ -17,11 +15,28 @@ declare -r getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBe
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
-function setup_git_authorization {
-  if [[ -n "$(git remote -v)" ]]; then
-    git remote remove origin
-  fi
-  git remote add origin "https://$GITHUB_TOKEN@github.com/$REPO_SLUG"
+function print_version {
+  < package.json jq -r .version
+}
+
+function init_git_server {
+  info "Initializing git server..."
+  cd "$HOME" || exit 1
+  rm -rf "$GIT_REMOTE" || exit 1
+  mkdir -p "$GIT_REMOTE"
+  cd "$GIT_REMOTE" || exit 1
+  git init -b main
+  npm init -y
+  npm version 1.0.0-0
+  npm install underscore
+  echo "node_modules/" >> .gitignore
+  git add -A
+  git commit -m "Initial commit"
+  git switch -c staging
+  git tag "$(print_version)"
+  git branch production
+  git config --local receive.denyCurrentBranch ignore
+  success "Initialized git server in $GIT_REMOTE"
 }
 
 function setup_git_as_human {
@@ -36,7 +51,7 @@ function setup_git_as_osbotify {
   git config --local user.email infra+osbotify@expensify.com
 }
 
-function remove_repo_if_needed {
+function remove_local_repo {
   if [ -d "$DUMMY_DIR" ]; then
     info "Found existing directory at $DUMMY_DIR, deleting it..."
     cd "$HOME" || exit 1
@@ -44,61 +59,17 @@ function remove_repo_if_needed {
   fi
 }
 
-function reset_repo_to_initial_state {
-  info "Resetting remote repo to initial state..."
-  remove_repo_if_needed
-  cd "$HOME" || exit 1
-  git clone "$REPO_URL"
-  cd "$DUMMY_DIR" || exit 1
-  setup_git_authorization
-  setup_git_as_osbotify
-  git reset --hard "$INITIAL_COMMIT_HASH"
-  git push --force origin main
-
-  # Delete all branches except main
-  git branch -r | grep 'origin' | grep -v 'main$' | grep -v HEAD | cut -d/ -f2- | while read -r line; do git push --force origin ":heads/$line"; done;
-
-  # Delete all tags
-  # shellcheck disable=SC2046
-  TAGS=$(git tag --list)
-  if [[ -n "$TAGS" ]]; then
-    # shellcheck disable=SC2086
-    git push origin --delete $TAGS
-  fi
-
-  if git rev-parse --verify staging 2>/dev/null; then
-    git branch -D staging
-  fi
-  git branch staging
-  git push --force origin staging
-
-  if git rev-parse --verify production 2>/dev/null; then
-    git branch -D production
-  fi
-  git branch production
-  git push --force origin production
-
-  cd "$HOME" || exit 1
-  rm -rf "$DUMMY_DIR"
-  success "Reset remote repo to initial state!"
-}
-
 # Note that instead of doing a git clone, we checkout the repo following the same steps used by actions/checkout
 function checkout_repo {
   info "Checking out repo at $DUMMY_DIR"
-  remove_repo_if_needed
+  remove_local_repo
   mkdir "$DUMMY_DIR"
   cd "$DUMMY_DIR" || exit 1
   git init
-  setup_git_authorization
-  setup_git_as_osbotify
+  git remote add origin "$GIT_REMOTE"
   git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main
   git checkout --progress --force -B main refs/remotes/origin/main
   success "Checked out repo at $DUMMY_DIR!"
-}
-
-function print_version {
-  < package.json jq -r .version
 }
 
 function bump_version {
@@ -215,11 +186,8 @@ fi
 ### Setup
 title "Starting setup"
 
-reset_repo_to_initial_state
+init_git_server
 checkout_repo
-
-tag_staging
-git switch main
 
 success "Setup complete!"
 
@@ -432,4 +400,5 @@ assert_prs_merged_between '1.0.1-4' '1.0.2-0' "[ '10', '8' ]"
 title "Cleaning up..."
 cd "$TEST_DIR" || exit 1
 rm -rf "$DUMMY_DIR"
+rm -rf "$GIT_REMOTE"
 success "All tests passed! Hooray!"
