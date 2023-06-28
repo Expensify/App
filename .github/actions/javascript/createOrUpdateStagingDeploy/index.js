@@ -222,22 +222,22 @@ const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
  * @param {String} tag
  */
 function fetchTag(tag) {
-    const previousMinorVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
+    const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
     try {
         let command = `git fetch origin tag ${tag} --no-tags`;
 
-        // Exclude commits reachable from the previous minor version (i.e: previous checklist),
+        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
         // so that we don't have to fetch the full history
         // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
-        if (previousMinorVersion !== tag) {
-            command += ` --shallow-exclude=${previousMinorVersion}`;
+        if (previousPatchVersion !== tag) {
+            command += ` --shallow-exclude=${previousPatchVersion}`;
         }
 
         console.log(`Running command: ${command}`);
         execSync(command);
     } catch (e) {
         // This can happen if the tag was only created locally but does not exist in the remote. In this case, we'll fetch history of the staging branch instead
-        const command = `git fetch origin staging --no-tags --shallow-exclude=${previousMinorVersion}`;
+        const command = `git fetch origin staging --no-tags --shallow-exclude=${previousPatchVersion}`;
         console.log(`Running command: ${command}`);
         execSync(command);
     }
