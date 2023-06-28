@@ -98,6 +98,7 @@ class NewDatePicker extends React.Component {
     }
 }
 
+NewDatePicker.name = 'NewDatePicker';
 NewDatePicker.propTypes = propTypes;
 NewDatePicker.defaultProps = datePickerDefaultProps;
 

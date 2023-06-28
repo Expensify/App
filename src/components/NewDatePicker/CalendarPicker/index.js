@@ -2,20 +2,43 @@ import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
 import moment from 'moment';
+import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../Text';
 import ScreenSlideAnimation from './ScreenSlideAnimation';
 import YearPickerPage from './YearPickerPage';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../../styles/styles';
-import {propTypes as calendarPickerPropType, defaultProps as defaultCalendarPickerPropType} from './calendarPickerPropTypes';
 import generateMonthMatrix from './generateMonthMatrix';
-import withLocalize from '../../withLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import CONST from '../../../CONST';
 import getButtonState from '../../../libs/getButtonState';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
+
+const propTypes = {
+    ...withLocalizePropTypes,
+
+    /** An initial value of date string */
+    value: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+
+    /** A minimum date (oldest) allowed to select */
+    minDate: PropTypes.objectOf(Date),
+
+    /** A maximum date (earliest) allowed to select */
+    maxDate: PropTypes.objectOf(Date),
+
+    /** A function called when the date is selected */
+    onSelected: PropTypes.func,
+};
+
+const defaultProps = {
+    value: new Date(),
+    minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
+    maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
+    onSelected: () => {},
+};
 
 class CalendarPicker extends React.PureComponent {
     constructor(props) {
@@ -202,7 +225,8 @@ class CalendarPicker extends React.PureComponent {
     }
 }
 
-CalendarPicker.propTypes = calendarPickerPropType;
-CalendarPicker.defaultProps = defaultCalendarPickerPropType;
+CalendarPicker.name = 'CalendarPicker';
+CalendarPicker.propTypes = propTypes;
+CalendarPicker.defaultProps = defaultProps;
 
 export default withLocalize(CalendarPicker);

@@ -17,10 +17,6 @@ const propTypes = {
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
-const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
-};
-
 class YearPickerPage extends React.Component {
     constructor(props) {
         super(props);
@@ -99,6 +95,6 @@ class YearPickerPage extends React.Component {
 }
 
 YearPickerPage.propTypes = propTypes;
-YearPickerPage.defaultProps = defaultProps;
+YearPickerPage.defaultProps = withCurrentUserPersonalDetailsDefaultProps;
 
 export default withLocalize(YearPickerPage);
