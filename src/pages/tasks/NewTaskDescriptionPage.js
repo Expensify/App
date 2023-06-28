@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -14,6 +14,7 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     /** Beta features list */
@@ -38,17 +39,6 @@ const defaultProps = {
 function NewTaskDescriptionPage(props) {
     const inputRef = useRef(null);
 
-    // The selection will be used to place the cursor at the end if there is prior text in the text input area
-    const [selection, setSelection] = useState({start: 0, end: 0});
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (props.task.description) {
-            const length = props.task.description.length;
-            setSelection({start: length, end: length});
-        }
-    }, [props.task.description]);
-
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     const onSubmit = (values) => {
@@ -63,13 +53,7 @@ function NewTaskDescriptionPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => {
-                if (!inputRef.current) {
-                    return;
-                }
-
-                inputRef.current.focus();
-            }}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.description')}
@@ -93,10 +77,6 @@ function NewTaskDescriptionPage(props) {
                         submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
-                        selection={selection}
-                        onSelectionChange={(e) => {
-                            setSelection(e.nativeEvent.selection);
-                        }}
                     />
                 </View>
             </Form>
