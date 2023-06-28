@@ -2799,7 +2799,6 @@ const styles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         ...spacing.ph5,
-        // ...spacing.pt2,
     },
 
     peopleRowBorderBottom: {

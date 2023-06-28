@@ -1,6 +1,39 @@
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 
+const checkboxListItemPropTypes = {
+    /** Text to display */
+    text: PropTypes.string,
+
+    /** Alternate text to display */
+    alternateText: PropTypes.string,
+
+    /** Key used internally by React */
+    keyForList: PropTypes.string,
+
+    /** Whether this option is selected */
+    isSelected: PropTypes.bool,
+
+    /** Whether this option is disabled for selection */
+    isDisabled: PropTypes.bool,
+
+    /** Whether this user is an admin */
+    isAdmin: PropTypes.bool,
+
+    /** Avatar for the user */
+    avatar: PropTypes.shape({
+        source: PropTypes.string,
+        name: PropTypes.string,
+        type: PropTypes.string,
+    }),
+
+    /** Errors that this user may contain */
+    errors: PropTypes.objectOf(PropTypes.string),
+
+    /** The type of action that's pending  */
+    pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+};
+
 const radioListItemPropTypes = {
     /** Text to display */
     text: PropTypes.string,
@@ -42,6 +75,9 @@ const propTypes = {
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll: PropTypes.func,
 
+    /** Callback to fire when an error is dismissed */
+    onDismissError: PropTypes.func,
+
     /** Label for the text input */
     textInputLabel: PropTypes.string,
 
@@ -80,6 +116,7 @@ const defaultProps = {
     canSelectMultiple: false,
     onSelectRow: () => {},
     onSelectAll: () => {},
+    onDismissError: () => {},
     textInputLabel: '',
     textInputPlaceholder: '',
     textInputValue: '',
@@ -93,4 +130,4 @@ const defaultProps = {
     headerMessage: '',
 };
 
-export {propTypes, radioListItemPropTypes, defaultProps};
+export {propTypes, defaultProps, radioListItemPropTypes, checkboxListItemPropTypes};

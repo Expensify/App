@@ -7,10 +7,9 @@ import styles from '../../styles/styles';
 import Text from '../Text';
 import {radioListItemPropTypes} from './selectionListRadioPropTypes';
 import Checkbox from '../Checkbox';
-import FormHelpMessage from '../FormHelpMessage';
-import {propTypes as item} from '../UserDetailsTooltip/userDetailsTooltipPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Avatar from '../Avatar';
+import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
     /** The section list item */
@@ -22,6 +21,9 @@ const propTypes = {
     /** Callback to fire when the item is pressed */
     onSelectRow: PropTypes.func,
 
+    /** Callback to fire when an error is dismissed */
+    onDismissError: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -29,18 +31,21 @@ const defaultProps = {
     item: {},
     isFocused: false,
     onSelectRow: () => {},
+    onDismissError: () => {},
 };
 
 function CheckboxListItem(props) {
-    // TODO: REVIEW ERRORS
-
-    const errors = {};
+    const hasError = !_.isEmpty(props.item.errors);
 
     return (
-        <>
+        <OfflineWithFeedback
+            onClose={() => props.onDismissError(props.item)}
+            pendingAction={props.item.pendingAction}
+            errors={props.item.errors}
+            errorRowStyles={styles.ph5}
+        >
             <PressableWithFeedback
-                // style={[styles.peopleRow, (_.isEmpty(props.item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
-                style={[styles.peopleRow, props.isFocused && styles.sidebarLinkActive]}
+                style={[styles.peopleRow, props.isFocused && styles.sidebarLinkActive, hasError && styles.borderColorDanger]}
                 onPress={() => props.onSelectRow(props.item)}
                 disabled={props.item.isDisabled}
                 disabledStyle={styles.buttonOpacityDisabled}
@@ -84,13 +89,7 @@ function CheckboxListItem(props) {
                     </View>
                 )}
             </PressableWithFeedback>
-            {!_.isEmpty(errors[item.accountID]) && (
-                <FormHelpMessage
-                    isError
-                    message={errors[item.accountID]}
-                />
-            )}
-        </>
+        </OfflineWithFeedback>
     );
 }
 

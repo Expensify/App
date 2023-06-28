@@ -100,7 +100,7 @@ function BaseSelectionListRadio(props) {
             allOptions,
             disabledOptionsIndexes,
             itemLayouts,
-            allSelected: selectedCount === allOptions.length - disabledOptionsIndexes.length,
+            allSelected: selectedCount > 0 && selectedCount === allOptions.length - disabledOptionsIndexes.length,
         };
     };
 
@@ -182,6 +182,7 @@ function BaseSelectionListRadio(props) {
                     item={item}
                     isFocused={isFocused}
                     onSelectRow={props.onSelectRow}
+                    onDismissError={props.onDismissError}
                 />
             );
         }

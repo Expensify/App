@@ -14,25 +14,19 @@ import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import Button from '../../components/Button';
-import Checkbox from '../../components/Checkbox';
-import Text from '../../components/Text';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-import OptionRow from '../../components/OptionRow';
 import {policyPropTypes, policyDefaultProps} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import CONST from '../../CONST';
-import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as UserUtils from '../../libs/UserUtils';
-import FormHelpMessage from '../../components/FormHelpMessage';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
-import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
@@ -252,95 +246,8 @@ function WorkspaceMembersPage(props) {
      * @returns {Boolean}
      */
     const isDeletedPolicyMember = (policyMember) => !props.network.isOffline && policyMember.pendingAction === 'delete' && _.isEmpty(policyMember.errors);
-
-    /**
-     * Render a workspace member component
-     *
-     * @param {Object} args
-     * @param {Object} args.item
-     * @param {Number} args.index
-     *
-     * @returns {React.Component}
-     */
-    const renderItem = useCallback(
-        ({item}) => {
-            const disabled = props.session.email === item.login || item.role === 'admin';
-            const hasError = !_.isEmpty(item.errors) || errors[item.accountID];
-            const isChecked = _.contains(selectedEmployees, Number(item.accountID));
-            return (
-                <OfflineWithFeedback
-                    onClose={() => dismissError(item)}
-                    pendingAction={item.pendingAction}
-                    errors={item.errors}
-                >
-                    <PressableWithFeedback
-                        style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
-                        disabled={disabled}
-                        onPress={() => toggleUser(item.accountID, item.pendingAction)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                        accessibilityState={{
-                            checked: isChecked,
-                        }}
-                        accessibilityLabel={props.formatPhoneNumber(item.displayName)}
-                        hoverDimmingValue={1}
-                        pressDimmingValue={0.7}
-                    >
-                        <Checkbox
-                            disabled={disabled}
-                            isChecked={isChecked}
-                            onPress={() => toggleUser(item.accountID, item.pendingAction)}
-                            accessibilityLabel={item.displayName}
-                        />
-                        <View style={styles.flex1}>
-                            <OptionRow
-                                boldStyle
-                                isDisabled={disabled}
-                                option={{
-                                    text: props.formatPhoneNumber(item.displayName),
-                                    alternateText: props.formatPhoneNumber(item.login),
-                                    participantsList: [item],
-                                    icons: [
-                                        {
-                                            source: UserUtils.getAvatar(item.avatar, item.accountID),
-                                            name: item.login,
-                                            type: CONST.ICON_TYPE_AVATAR,
-                                        },
-                                    ],
-                                    keyForList: item.accountID,
-                                }}
-                                onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
-                            />
-                        </View>
-                        {(props.session.accountID === item.accountID || item.role === 'admin') && (
-                            <View style={[styles.badge, styles.peopleBadge]}>
-                                <Text style={[styles.peopleBadgeText]}>{props.translate('common.admin')}</Text>
-                            </View>
-                        )}
-                    </PressableWithFeedback>
-                    {!_.isEmpty(errors[item.accountID]) && (
-                        <FormHelpMessage
-                            isError
-                            message={errors[item.accountID]}
-                        />
-                    )}
-                </OfflineWithFeedback>
-            );
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [selectedEmployees, errors, props.session.accountID, dismissError, toggleUser],
-    );
-
     const policyOwner = lodashGet(props.policy, 'owner');
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
-
-    // const removableMembers = {};
-    // _.each(data, (member) => {
-    //     if (member.accountID === props.session.accountID || member.login === props.policy.owner || member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-    //         return;
-    //     }
-    //     removableMembers[member.accountID] = member;
-    // });
-
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
 
@@ -395,7 +302,7 @@ function WorkspaceMembersPage(props) {
             result.push({
                 keyForList: accountID,
                 isSelected: _.contains(selectedEmployees, Number(accountID)),
-                isDisabled: props.session.email === details.login,
+                isDisabled: accountID === props.session.accountID || details.login === props.policy.owner || policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 text: props.formatPhoneNumber(details.displayName),
                 alternateText: props.formatPhoneNumber(details.login),
                 isAdmin: props.session.email === details.login || policyMember.role === 'admin',
@@ -404,6 +311,8 @@ function WorkspaceMembersPage(props) {
                     name: details.login,
                     type: CONST.ICON_TYPE_AVATAR,
                 },
+                errors: policyMember.errors,
+                pendingAction: policyMember.pendingAction,
             });
         });
 
@@ -413,7 +322,6 @@ function WorkspaceMembersPage(props) {
     };
 
     const data = getListData();
-
     const headerMessage = searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
 
     return (
@@ -472,6 +380,7 @@ function WorkspaceMembersPage(props) {
                             headerMessage={headerMessage}
                             onSelectRow={(item) => toggleUser(item.keyForList)}
                             onSelectAll={() => toggleAllUsers(data)}
+                            onDismissError={dismissError}
                             initiallyFocusedOptionKey={lodashGet(
                                 _.find(data, (item) => !item.isDisabled),
                                 'keyForList',
