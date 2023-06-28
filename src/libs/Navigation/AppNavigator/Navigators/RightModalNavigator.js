@@ -97,11 +97,6 @@ function RigthModalNavigator() {
                     component={ModalStackNavigators.WalletStatementStackNavigator}
                 />
                 <Stack.Screen
-                    name="Select_Year"
-                    options={defaultModalScreenOptions}
-                    component={ModalStackNavigators.YearPickerStackNavigator}
-                />
-                <Stack.Screen
                     name="Flag_Comment"
                     options={defaultModalScreenOptions}
                     component={ModalStackNavigators.FlagCommentStackNavigator}
