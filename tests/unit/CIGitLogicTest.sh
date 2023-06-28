@@ -177,11 +177,6 @@ if ! command -v npm &> /dev/null; then
   exit 1
 fi
 
-if [[ -z "$GITHUB_TOKEN" ]]; then
-  error "GITHUB_TOKEN environment variable must be set in order for this to work"
-  exit 1
-fi
-
 
 ### Setup
 title "Starting setup"
