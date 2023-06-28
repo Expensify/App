@@ -10,7 +10,7 @@ const globalRestrictedImport = [
     },
     {
         name: 'react-native-gesture-handler',
-        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableHighlight'],
+        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
         message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
     },
 ];
