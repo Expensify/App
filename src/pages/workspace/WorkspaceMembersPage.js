@@ -310,7 +310,6 @@ function WorkspaceMembersPage(props) {
                             checked: isChecked,
                         }}
                         accessibilityLabel={props.formatPhoneNumber(item.displayName)}
-                        // Disable hover dimming
                         hoverDimmingValue={1}
                         pressDimmingValue={0.7}
                     >
