@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -18,8 +19,12 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import * as TaskUtils from '../../libs/actions/Task';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 const propTypes = {
+    /** All personal details asssociated with user */
+    allPersonalDetails: personalDetailsPropType,
+
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
 
@@ -58,7 +63,8 @@ function TaskPreview(props) {
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
-    const taskAssignee = props.taskReport.managerEmail || props.action.childManagerEmail;
+    const taskAssigneeAccountID = TaskUtils.getTaskAssigneeAccountID(props.taskReport);
+    const taskAssignee = lodashGet(allPersonalDetails, [taskAssigneeAccountID, 'login'], '');
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
@@ -101,6 +107,9 @@ export default compose(
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+        },
+        allPersonalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(TaskPreview);
