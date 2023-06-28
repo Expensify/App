@@ -25,7 +25,7 @@ jobs:
           git switch "$BASELINE_BRANCH"
           npm install --force
           npx reassure --baseline
-          git switch --detach -
+          git switch --force --detach -
           npm install --force
           npx reassure --branch
 
