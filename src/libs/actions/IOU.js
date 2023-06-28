@@ -798,7 +798,6 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                     text: '',
                     isEdited: true,
                     isDeletedParentAction: shouldShowDeletedRequestMessage,
-
                 },
             ],
             originalMessage: {
@@ -853,10 +852,10 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       value: null,
                   },
                   {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
-                    value: null,
-                },
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                      value: null,
+                  },
               ]
             : []),
         {
