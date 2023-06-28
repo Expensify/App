@@ -15,10 +15,6 @@ declare -r getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBe
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
-function print_version {
-  < package.json jq -r .version
-}
-
 function setup_git_as_human {
   info "Switching to human git user"
   git config --local user.name test
@@ -31,6 +27,9 @@ function setup_git_as_osbotify {
   git config --local user.email infra+osbotify@expensify.com
 }
 
+function print_version {
+  < package.json jq -r .version
+}
 
 function init_git_server {
   info "Initializing git server..."
