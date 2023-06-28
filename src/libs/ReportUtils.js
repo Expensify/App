@@ -1974,21 +1974,18 @@ function getChatByParticipants(newParticipantList) {
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads
  * @param {String} accountID
- * @param {String} policyID
  * @returns {boolean|undefined}
  */
-function getChatByParticipantInclude(accountID, policyID) {
-    const report = _.find(allReports, (report) => {
+function getChatByParticipantInclude(accountID) {
+    return !!_.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participantAccountIDs || isThread(report) || report.policyID === policyID || isArchivedRoom(report)) {
+        if (!report || !report.participantAccountIDs || isThread(report) || isArchivedRoom(report)) {
             return false;
         }
 
         // Only return the room if it has all the participants and is not a policy room
         return report.participantAccountIDs.includes(accountID);
     });
-
-    return !!report;
 }
 
 /**

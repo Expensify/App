@@ -231,33 +231,6 @@ function removeMembers(accountIDs, policyID) {
             value: _.object(accountIDs, Array(accountIDs.length).fill({errors: ErrorUtils.getMicroSecondOnyxError('workspace.people.error.genericRemove')})),
         },
     ];
-
-    const optimisticPersonalDetails = {};
-
-    const failurePersonalDetails = {};
-
-    _.forEach(accountIDs, (accountID) => {
-        if (ReportUtils.getChatByParticipantInclude(accountID, policyID)) {
-            return;
-        }
-        optimisticPersonalDetails[accountID] = null;
-        failurePersonalDetails[accountID] = personalDetails[accountID];
-    });
-
-    if (!_.isEmpty(optimisticPersonalDetails)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetails,
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: failurePersonalDetails,
-        });
-    }
-
     API.write(
         'DeleteMembersFromWorkspace',
         {
