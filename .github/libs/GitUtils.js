@@ -4,6 +4,9 @@ const CONST = require('./CONST');
 const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
 const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = require('../libs/versionUpdater');
 
+/**
+ * @param {String} tag
+ */
 function fetchTag(tag) {
     const previousMinorVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
     try {

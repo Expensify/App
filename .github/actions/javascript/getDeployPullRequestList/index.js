@@ -152,6 +152,9 @@ const CONST = __nccwpck_require__(4097);
 const sanitizeStringForJSONParse = __nccwpck_require__(9338);
 const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
 
+/**
+ * @param {String} tag
+ */
 function fetchTag(tag) {
     const previousMinorVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
     try {
