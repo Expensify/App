@@ -18,7 +18,7 @@ import TextLink from '../../../../components/TextLink';
 import Clipboard from '../../../../libs/Clipboard';
 import FixedFooter from '../../../../components/FixedFooter';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
+import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import QRCode from '../../../../components/QRCode';
 import expensifyLogo from '../../../../../assets/images/expensify-logo-round-transparent.png';
