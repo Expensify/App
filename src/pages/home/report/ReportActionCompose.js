@@ -182,6 +182,7 @@ class ReportActionCompose extends React.Component {
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
+        this.debounceReducedUpdateFrequentlyUsedEmojis = this.debounceReducedUpdateFrequentlyUsedEmojis().bind(this);
         this.comment = props.comment;
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
@@ -629,8 +630,8 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
+        console.log(emojiObject, "emojiobject")
+        this.debounceReducedUpdateFrequentlyUsedEmojis(emojiObject);
     }
 
     /**
@@ -715,6 +716,24 @@ class ReportActionCompose extends React.Component {
         Report.broadcastUserIsTyping(this.props.reportID);
     }
 
+    debounceReducedUpdateFrequentlyUsedEmojis() {
+        let insertedEmojis = [];
+
+        // normally-debounced fn that we will call later with the accumulated args
+        const wrapper = _.debounce(() => {
+            const args = insertedEmojis;
+            insertedEmojis = [];
+            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(args));
+        }, 1000);
+
+        // what we actually return is this function which will really just add the new args to
+        // allArgs using the combine fn
+        return (emojis) => {
+            insertedEmojis = [...insertedEmojis, ...emojis];
+            wrapper();
+        };
+    }
+
     /**
      * Update the value of the comment in Onyx
      *
@@ -725,7 +744,8 @@ class ReportActionCompose extends React.Component {
         const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
 
         if (!_.isEmpty(emojis)) {
-            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+            console.log(emojis, "emojiobject")
+            this.debounceReducedUpdateFrequentlyUsedEmojis(emojis);
         }
 
         this.setState((prevState) => {
