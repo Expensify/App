@@ -647,8 +647,7 @@ function getTaskAssigneeAccountID(taskReport) {
     }
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
-    const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
-    return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
+    return lodashGet(reportAction, 'childManagerAccountID');
 }
 
 /**
