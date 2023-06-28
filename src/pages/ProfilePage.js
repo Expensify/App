@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import {parsePhoneNumber} from 'awesome-phonenumber';
+import * as Session from '../libs/actions/Session';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import ONYXKEYS from '../ONYXKEYS';
@@ -34,6 +35,7 @@ import BlockingView from '../components/BlockingViews/BlockingView';
 import * as Illustrations from '../components/Icon/Illustrations';
 import variables from '../styles/variables';
 import ROUTES from '../ROUTES';
+import * as ValidationUtils from '../libs/ValidationUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -90,16 +92,17 @@ const getPhoneNumber = (details) => {
 };
 
 function ProfilePage(props) {
-    const accountID = lodashGet(props.route.params, 'accountID', 0);
+    const accountID = Number(lodashGet(props.route.params, 'accountID', 0));
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (accountID > 0) {
+        if (ValidationUtils.isValidAccountRoute(accountID)) {
             PersonalDetails.openPublicProfilePage(accountID);
         }
     }, [accountID]);
 
-    const details = lodashGet(props.personalDetails, accountID, {});
+    const details = lodashGet(props.personalDetails, accountID, {isLoading: ValidationUtils.isValidAccountRoute(accountID)});
+
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const originalFileName = lodashGet(details, 'originalFileName', '');
@@ -200,11 +203,11 @@ function ProfilePage(props) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {!isCurrentUser && Boolean(login) && (
+                        {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
                                 title={`${props.translate('common.message')}${displayName}`}
                                 icon={Expensicons.ChatBubble}
-                                onPress={() => Report.navigateToAndOpenReport([login])}
+                                onPress={() => Report.navigateToAndOpenReportWithAccountIDs([accountID])}
                                 wrapperStyle={styles.breakAll}
                                 shouldShowRightIcon
                             />

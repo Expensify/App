@@ -311,7 +311,7 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
  * @param {Number} [limit] - matching emojis limit
  * @returns {Array}
  */
-function suggestEmojis(text, lang, limit = 5) {
+function suggestEmojis(text, lang, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS) {
     const trie = emojisTrie[lang];
     if (!trie) {
         return [];

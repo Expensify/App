@@ -12,7 +12,7 @@ import * as Report from '../../libs/actions/Report';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
 import * as EmojiUtils from '../../libs/EmojiUtils';
-import ReactionListRefContext from '../../pages/home/report/ReactionList/ReactionListRefContext';
+import ReportScreenContext from '../../pages/home/ReportScreenContext';
 
 const propTypes = {
     /**
@@ -48,7 +48,7 @@ const defaultProps = {
 };
 
 function ReportActionItemReactions(props) {
-    const reactionListRef = useContext(ReactionListRefContext);
+    const {reactionListRef} = useContext(ReportScreenContext);
     const popoverReactionListAnchor = useRef(null);
     const reactionsWithCount = _.filter(props.reactions, (reaction) => reaction.users.length > 0);
 
@@ -99,7 +99,12 @@ function ReportActionItemReactions(props) {
                     </Tooltip>
                 );
             })}
-            {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {reactionsWithCount.length > 0 && (
+                <AddReactionBubble
+                    onSelectEmoji={props.toggleReaction}
+                    reportAction={{reportActionID: props.reportActionID}}
+                />
+            )}
         </View>
     );
 }

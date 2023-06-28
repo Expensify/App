@@ -30,6 +30,7 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
     return {
         transactionID,
         amount,
+        currency,
         reportID,
         comment: commentJSON,
         merchant,
