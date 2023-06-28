@@ -1,16 +1,15 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useMemo, useCallback} from 'react';
 import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as IOUUtils from '../../../libs/IOUUtils';
@@ -21,10 +20,10 @@ import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import withNavigation from '../../../components/withNavigation';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
+import useLocalize from '../../../hooks/useLocalize';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
@@ -54,7 +53,6 @@ const propTypes = {
         ),
     }),
 
-    ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -74,18 +72,115 @@ const defaultProps = {
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
+
+const amountViewID = 'amountView';
+const numPadContainerViewID = 'numPadContainerView';
+const numPadViewID = 'numPadView';
+
+/**
+ * Returns the new selection object based on the updated amount's length
+ *
+ * @param {Object} oldSelection
+ * @param {Number} prevLength
+ * @param {Number} newLength
+ * @returns {Object}
+ */
+const getNewSelection = (oldSelection, prevLength, newLength) => {
+    const cursorPosition = oldSelection.end + (newLength - prevLength);
+    return {start: cursorPosition, end: cursorPosition};
+};
+
+/**
+ * Strip comma from the amount
+ *
+ * @param {String} newAmount
+ * @returns {String}
+ */
+const stripCommaFromAmount = (newAmount) => newAmount.replace(/,/g, '');
+
+/**
+ * Strip spaces from the amount
+ *
+ * @param {String} newAmount
+ * @returns {String}
+ */
+const stripSpacesFromAmount = (newAmount) => newAmount.replace(/\s+/g, '');
+
+/**
+ * Adds a leading zero to the amount if user entered just the decimal separator
+ *
+ * @param {String} newAmount - Changed amount from user input
+ * @returns {String}
+ */
+const addLeadingZero = (newAmount) => (newAmount === '.' ? '0.' : newAmount);
+
+/**
+ * @param {String} newAmount
+ * @returns {Number}
+ */
+const calculateAmountLength = (newAmount) => {
+    const leadingZeroes = newAmount.match(/^0+/);
+    const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
+    const absAmount = parseFloat((stripCommaFromAmount(newAmount) * 100).toFixed(2)).toString();
+
+    // The following logic will prevent users from pasting an amount that is excessively long in length,
+    // which would result in the 'absAmount' value being expressed in scientific notation or becoming infinity.
+    if (/\D/.test(absAmount)) {
+        return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
+    }
+
+    /*
+      Return the sum of leading zeroes length and absolute amount length(including fraction digits).
+      When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
+    */
+    return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
+};
+
+/**
+ * Check if amount is a decimal up to 3 digits
+ *
+ * @param {String} newAmount
+ * @returns {Boolean}
+ */
+const validateAmount = (newAmount) => {
+    const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
+    return newAmount === '' || (decimalNumberRegex.test(newAmount) && calculateAmountLength(newAmount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
+};
+
+/**
+ * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
+ * the original character will be preserved.
+ *
+ * @param {String} text
+ * @param {Function} convertFn - `fromLocaleDigit` or `toLocaleDigit`
+ * @returns {String}
+ */
+const replaceAllDigits = (text, convertFn) =>
+    _.chain([...text])
+        .map((char) => {
+            try {
+                return convertFn(char);
+            } catch {
+                return char;
+            }
+        })
+        .join('')
+        .value();
+
 function MoneyRequestAmountPage(props) {
-    const amountViewID = 'amountView';
-    const numPadContainerViewID = 'numPadContainerView';
-    const numPadViewID = 'numPadView';
-    const selectedAmountAsString = props.selectedAmount ? props.selectedAmount.toString() : '';
+    const route = useRoute();
+    const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
+    const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
+
+    const prevMoneyRequestId = useRef(lodashGet(props.iou, 'id', ''));
+    const prevProps = useRef(props);
     const textInput = useRef(null);
-    const iouType = lodashGet(props.route, 'params.iouType', '');
-    const reportID = lodashGet(props.route, 'params.reportID', '');
-    const isEditing = lodashGet(props.route, 'path', '').includes('amount');
+    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
+    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
+    const isEditing = useRef(lodashGet(route, 'path', '').includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
-    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(() => (_.isUndefined(props.iou.selectedCurrencyCode) ? CONST.CURRENCY.USD : props.iou.selectedCurrencyCode));
+    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(() => props.iou.currency);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
     const [selection, setSelection] = useState({start: selectedAmountAsString.length, end: selectedAmountAsString.length});
 
@@ -106,45 +201,19 @@ function MoneyRequestAmountPage(props) {
         }
     };
 
-    const getCurrencyFromRouteParams = () => {
-        if (props.iou.selectedCurrencyCode === lodashGet(props.route.params, 'currency', '')) {
-            return;
-        }
-        const newSelectedCurrencyCode = lodashGet(props.route.params, 'currency', '');
-        if (newSelectedCurrencyCode !== '') {
-            setSelectedCurrencyCode(newSelectedCurrencyCode);
-        }
-    };
-
-    /**
-     * Returns the new selection object based on the updated amount's length
-     *
-     * @param {Object} oldSelection
-     * @param {Number} prevLength
-     * @param {Number} newLength
-     * @returns {Object}
-     */
-    const getNewSelection = (oldSelection, prevLength, newLength) => {
-        const cursorPosition = oldSelection.end + (newLength - prevLength);
-        return {start: cursorPosition, end: cursorPosition};
-    };
-
-    /**
-     * Get page title based on the iou type
-     *
-     * @returns {String}
-     */
-    const getTitleForStep = () => {
-        if (isEditing) {
-            return props.translate('iou.amount');
+    const titleForStep = useMemo(() => {
+        if (isEditing.current) {
+            return translate('iou.amount');
         }
         const title = {
-            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: props.translate('iou.requestMoney'),
-            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: props.translate('iou.sendMoney'),
-            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: props.translate('iou.splitBill'),
+            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
+            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
+            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
         };
-        return title[iouType];
-    };
+        return title[iouType.current];
+        // warning for props - Don't require in this case
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
      * Focus text input
@@ -163,132 +232,81 @@ function MoneyRequestAmountPage(props) {
     };
 
     useEffect(() => {
-        if (isEditing) {
-            const moneyRequestId = `${iouType}${reportID}`;
-            const shouldReset = props.iou.id !== moneyRequestId;
-            if (shouldReset) {
-                IOU.resetMoneyRequestInfo(moneyRequestId);
-            }
-
-            if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
-                return;
-            }
+        if (!isEditing.current) return;
+        const moneyRequestId = `${iouType.current}${reportID.current}`;
+        const shouldReset = props.iou.id !== moneyRequestId;
+        if (shouldReset) {
+            IOU.resetMoneyRequestInfo(moneyRequestId);
         }
-        focusTextInput();
+
+        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
+            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+        }
+        // componentDidMount method refactoring
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        if (isEditing) {
+        if (isEditing.current) {
             // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-            if (_.isEmpty(props.iou.participants) || props.iou.amount === 0) {
+            if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || prevMoneyRequestId !== props.iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
                 if (props.iou.id) {
-                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
+                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
                 }
                 return;
             }
         }
 
-        const currencyParam = lodashGet(props.route.params, 'currency', '');
-        if (currencyParam !== '' && selectedCurrencyCode !== currencyParam) {
+        const currencyParam = lodashGet(route.params, 'currency', '');
+        const prevCurrencyParam = lodashGet(prevProps.current.route.params, 'currency', '');
+        if (currencyParam !== '' && prevCurrencyParam !== currencyParam) {
             setSelectedCurrencyCode(currencyParam);
+            return;
         }
 
-        if (selectedCurrencyCode !== props.iou.currency) {
+        if (prevProps.current.iou.currency !== props.iou.currency) {
             setSelectedCurrencyCode(props.iou.currency);
         }
+        return () => {
+            prevProps.current = props;
+            prevMoneyRequestId.current = props.iou.id;
+        };
+    }, [props, route]);
 
-        const amountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : amount;
-        setAmount(amountAsString);
+    useEffect(() => {
+        const selectedAmountAsStringForState = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
+        setAmount(selectedAmountAsStringForState);
         setSelection({
-            start: amountAsString.length,
-            end: amountAsString.length,
+            start: selectedAmountAsStringForState.length,
+            end: selectedAmountAsStringForState.length,
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.iou, props.route]);
+    }, [props.iou.amount, props.iou.currency]);
 
-    useFocusEffect(() => {
-        focusTextInput();
-        getCurrencyFromRouteParams();
-    });
-
-    /**
-     * Strip comma from the amount
-     *
-     * @param {String} newAmount
-     * @returns {String}
-     */
-    const stripCommaFromAmount = (newAmount) => newAmount.replace(/,/g, '');
-
-    /**
-     * Strip spaces from the amount
-     *
-     * @param {String} newAmount
-     * @returns {String}
-     */
-    const stripSpacesFromAmount = (newAmount) => newAmount.replace(/\s+/g, '');
-
-    /**
-     * Adds a leading zero to the amount if user entered just the decimal separator
-     *
-     * @param {String} newAmount - Changed amount from user input
-     * @returns {String}
-     */
-    const addLeadingZero = (newAmount) => (newAmount === '.' ? '0.' : newAmount);
-
-    /**
-     * @param {String} newAmount
-     * @returns {Number}
-     */
-    const calculateAmountLength = (newAmount) => {
-        const leadingZeroes = newAmount.match(/^0+/);
-        const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
-        const absAmount = parseFloat((stripCommaFromAmount(newAmount) * 100).toFixed(2)).toString();
-
-        // The following logic will prevent users from pasting an amount that is excessively long in length,
-        // which would result in the 'absAmount' value being expressed in scientific notation or becoming infinity.
-        if (/\D/.test(absAmount)) {
-            return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
-        }
-
-        /*
-          Return the sum of leading zeroes length and absolute amount length(including fraction digits).
-          When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
-        */
-        return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
-    };
-
-    /**
-     * Check if amount is a decimal up to 3 digits
-     *
-     * @param {String} newAmount
-     * @returns {Boolean}
-     */
-    const validateAmount = (newAmount) => {
-        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
-        return newAmount === '' || (decimalNumberRegex.test(newAmount) && calculateAmountLength(newAmount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
-    };
+    useFocusEffect(
+        useCallback(() => {
+            focusTextInput();
+        }, []),
+    );
 
     /**
      * Returns new state object if the updated amount is valid
+     * @param {String} prevAmount
+     * @param {String} prevSelection
      * @param {String} newAmount - Changed amount from user input
+     * @returns {Object}
      */
-    const setNewState = (newAmount) => {
+    const getNewState = (prevAmount, prevSelection, newAmount) => {
         // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
         // More info: https://github.com/Expensify/App/issues/16974
         const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
         if (!validateAmount(newAmountWithoutSpaces)) {
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            setAmount(amount);
-            setSelection(selection);
-            return;
+            return {amount: prevAmount, selection: {...prevSelection}};
         }
-        const newSelection = getNewSelection(selection, amount.length, newAmountWithoutSpaces.length);
-        setAmount(stripCommaFromAmount(newAmountWithoutSpaces));
-        setSelection(newSelection);
+        const newSelection = getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length);
+        return {amount: stripCommaFromAmount(newAmountWithoutSpaces), selection: newSelection};
     };
 
     /**
@@ -306,12 +324,16 @@ function MoneyRequestAmountPage(props) {
             if (amount.length > 0) {
                 const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
                 const newAmount = `${amount.substring(0, selectionStart)}${amount.substring(selection.end)}`;
-                setNewState(newAmount);
+                const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
+                setAmount(amountValueForState);
+                setSelection(selectionValueForState);
             }
             return;
         }
         const newAmount = addLeadingZero(`${amount.substring(0, selection.start)}${key}${amount.substring(selection.end)}`);
-        setNewState(newAmount);
+        const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
+        setAmount(amountValueForState);
+        setSelection(selectionValueForState);
     };
 
     /**
@@ -319,32 +341,13 @@ function MoneyRequestAmountPage(props) {
      *
      * @param {Boolean} value - Changed text from user input
      */
-    const updateLongPressHandlerState = (value) => {
+    const updateLongPressHandlerState = useCallback((value) => {
         setShouldUpdateSelection(!value);
         if (!value && !textInput.current.isFocused()) {
             textInput.current.focus();
         }
-    };
+    }, []);
 
-    /**
-     * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
-     * the original character will be preserved.
-     *
-     * @param {String} text
-     * @param {Function} convertFn - `props.fromLocaleDigit` or `props.toLocaleDigit`
-     * @returns {String}
-     */
-    const replaceAllDigits = (text, convertFn) =>
-        _.chain([...text])
-            .map((char) => {
-                try {
-                    return convertFn(char);
-                } catch {
-                    return char;
-                }
-            })
-            .join('')
-            .value();
     /**
      * Update amount on amount change
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
@@ -352,18 +355,20 @@ function MoneyRequestAmountPage(props) {
      * @param {String} text - Changed text from user input
      */
     const updateAmount = (text) => {
-        const newAmount = addLeadingZero(replaceAllDigits(text, props.fromLocaleDigit));
-        setNewState(newAmount);
+        const newAmount = addLeadingZero(replaceAllDigits(text, fromLocaleDigit));
+        const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
+        setAmount(amountValueForState);
+        setSelection(selectionValueForState);
     };
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
+        Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
     };
 
     const navigateToCurrencySelectionPage = () => {
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType, reportID, selectedCurrencyCode, activeRoute));
+        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType.current, reportID.current, selectedCurrencyCode, activeRoute));
     };
 
     const navigateToNextPage = () => {
@@ -371,12 +376,12 @@ function MoneyRequestAmountPage(props) {
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(selectedCurrencyCode);
 
-        if (isEditing) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        if (isEditing.current) {
+            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
             return;
         }
 
-        const moneyRequestId = `${iouType}${reportID}`;
+        const moneyRequestId = `${iouType.current}${reportID.current}`;
         const shouldReset = props.iou.id !== moneyRequestId;
         // If the money request ID in Onyx does not match the ID from params, we want to start a new request
         // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
@@ -399,17 +404,17 @@ function MoneyRequestAmountPage(props) {
                           .value();
                 IOU.setMoneyRequestParticipants(participants);
             }
-            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
             return;
         }
-        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
+        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
     };
 
-    const formattedAmount = replaceAllDigits(amount, props.toLocaleDigit);
-    const buttonText = isEditing ? props.translate('common.save') : props.translate('common.next');
+    const formattedAmount = replaceAllDigits(amount, toLocaleDigit);
+    const buttonText = isEditing.current ? translate('common.save') : translate('common.next');
 
     return (
-        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 onEntryTransitionEnd={focusTextInput}
@@ -417,7 +422,7 @@ function MoneyRequestAmountPage(props) {
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
-                            title={getTitleForStep()}
+                            title={titleForStep}
                             onBackButtonPress={navigateBack}
                         />
                         <View
@@ -429,7 +434,7 @@ function MoneyRequestAmountPage(props) {
                                 formattedAmount={formattedAmount}
                                 onChangeAmount={updateAmount}
                                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                                placeholder={props.numberFormat(0)}
+                                placeholder={numberFormat(0)}
                                 ref={(el) => (textInput.current = el)}
                                 selectedCurrencyCode={selectedCurrencyCode}
                                 selection={selection}
@@ -477,8 +482,6 @@ MoneyRequestAmountPage.defaultProps = defaultProps;
 MoneyRequestAmountPage.displayName = 'MoneyRequestAmountPage';
 
 export default compose(
-    withLocalize,
-    withNavigation,
     withCurrentUserPersonalDetails,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
