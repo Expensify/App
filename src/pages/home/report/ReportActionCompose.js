@@ -614,7 +614,7 @@ class ReportActionCompose extends React.Component {
         const emojiCode = emojiObject.types && emojiObject.types[this.props.preferredSkinTone] ? emojiObject.types[this.props.preferredSkinTone] : emojiObject.code;
         const commentAfterColonWithEmojiNameRemoved = this.state.value.slice(this.state.selection.end);
 
-        this.updateComment(`${commentBeforeColon}${emojiCode}${this.trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
+        this.updateComment(`${commentBeforeColon}${emojiCode} ${this.trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
         // In some Android phones keyboard, the text to search for the emoji is not cleared
         // will be added after the user starts typing again on the keyboard. This package is
         // a workaround to reset the keyboard natively.
@@ -623,8 +623,8 @@ class ReportActionCompose extends React.Component {
         }
         this.setState((prevState) => ({
             selection: {
-                start: prevState.colonIndex + emojiCode.length,
-                end: prevState.colonIndex + emojiCode.length,
+                start: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
+                end: prevState.colonIndex + emojiCode.length + CONST.SPACE_LENGTH,
             },
             suggestedEmojis: [],
         }));

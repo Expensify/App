@@ -101,9 +101,9 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.containsOnlyEmojis('🅃🄴🅂🅃')).toBe(false);
     });
 
-    it('replaces an emoji code with an emoji and a no space', () => {
+    it('replaces an emoji code with an emoji and a space', () => {
         const text = 'Hi :smile:';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄');
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄 ');
     });
 
     it('will not add a space after the last emoji if there is text after it', () => {
