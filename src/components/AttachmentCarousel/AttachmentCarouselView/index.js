@@ -10,7 +10,6 @@ import CarouselButtons from '../CarouselButtons';
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     carouselState: PropTypes.object.isRequired,
-
     updatePage: PropTypes.func.isRequired,
     toggleArrowsVisibility: PropTypes.func.isRequired,
     autoHideArrow: PropTypes.func.isRequired,
@@ -103,7 +102,11 @@ function AttachmentCarouselView(props) {
     );
 
     return (
-        <>
+        <View
+            onMouseEnter={() => props.toggleArrowsVisibility(true)}
+            onMouseLeave={() => props.toggleArrowsVisibility(false)}
+            style={styles.flex1}
+        >
             <CarouselButtons
                 carouselState={props.carouselState}
                 onBack={() => {
@@ -146,7 +149,7 @@ function AttachmentCarouselView(props) {
             )}
 
             <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
-        </>
+        </View>
     );
 }
 

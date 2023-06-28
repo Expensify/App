@@ -762,6 +762,7 @@ const pagerPropTypes = {
         }),
     ).isRequired,
     initialIndex: PropTypes.number,
+    onPageScroll: PropTypes.func,
     onTap: PropTypes.func,
     onSwipe: PropTypes.func,
     onSwipeSuccess: PropTypes.func,
@@ -775,6 +776,7 @@ const pagerPropTypes = {
 
 const pagerDefaultProps = {
     initialIndex: 0,
+    onPageScroll: () => {},
     onTap: () => {},
     onSwipe: noopWorklet,
     onSwipeSuccess: () => {},
@@ -786,6 +788,7 @@ const pagerDefaultProps = {
 function Pager({
     items,
     initialIndex = 0,
+    onPageScroll,
     onTap,
     onSwipe = noopWorklet,
     onSwipeSuccess = () => {},
@@ -809,6 +812,8 @@ function Pager({
 
                 activeIndex.value = e.position;
                 isScrolling.value = e.offset !== 0;
+
+                runOnJS(onPageScroll)(e);
             },
         },
         [],

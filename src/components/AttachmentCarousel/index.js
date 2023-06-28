@@ -52,7 +52,6 @@ class AttachmentCarousel extends React.Component {
         this.autoHideArrow = this.autoHideArrow.bind(this);
         this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
         this.updatePage = this.updatePage.bind(this);
-        this.updatePageByIndex = this.updatePageByIndex.bind(this);
         this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
         this.createInitialState = this.createInitialState.bind(this);
 
@@ -174,15 +173,6 @@ class AttachmentCarousel extends React.Component {
         this.setState({page, activeSource: entry.item.source});
     }
 
-    /**
-     * Updates the page state by index when the user navigates between attachments
-     * @param {number} index
-     */
-    updatePageByIndex(index) {
-        // eslint-disable-next-line react/no-unused-state
-        this.setState({page: index});
-    }
-
     render() {
         return (
             <View
@@ -191,13 +181,10 @@ class AttachmentCarousel extends React.Component {
                     // eslint-disable-next-line react/no-unused-state
                     this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), containerHeight: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
                 }
-                onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
-                onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
             >
                 <AttachmentCarouselView
                     carouselState={this.state}
                     updatePage={this.updatePage}
-                    updatePageByIndex={this.updatePageByIndex}
                     toggleArrowsVisibility={this.toggleArrowsVisibility}
                     autoHideArrow={this.autoHideArrow}
                     cancelAutoHideArrow={this.cancelAutoHideArrow}
