@@ -43,13 +43,14 @@ function LogOutPreviousUserPage(props) {
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
         });
-    }, [props]);
+    });
 
     return <FullScreenLoadingIndicator />;
 }
 
 LogOutPreviousUserPage.propTypes = propTypes;
 LogOutPreviousUserPage.defaultProps = defaultProps;
+LogOutPreviousUserPage.displayName = LogOutPreviousUserPage;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
