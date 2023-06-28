@@ -225,11 +225,13 @@ function ReportActionItemMessageEdit(props) {
      * @param {String} emoji
      */
     const addEmojiToTextBox = (emoji) => {
+        const isEmojiAtEnd = selection.start === draft.length;
+
         setSelection((prevSelection) => ({
-            start: prevSelection.start + emoji.length,
-            end: prevSelection.start + emoji.length,
+            start: prevSelection.start + emoji.length + (isEmojiAtEnd ? CONST.SPACE_LENGTH : 0),
+            end: prevSelection.start + emoji.length + (isEmojiAtEnd ? CONST.SPACE_LENGTH : 0),
         }));
-        updateDraft(ComposerUtils.insertText(draft, selection, emoji));
+        updateDraft(ComposerUtils.insertText(draft, selection, isEmojiAtEnd ? `${emoji} ` : emoji));
     };
 
     /**
