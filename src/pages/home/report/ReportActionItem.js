@@ -159,7 +159,6 @@ function ReportActionItem(props) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision);
-
     }, [latestDecision, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
