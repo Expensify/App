@@ -19,26 +19,6 @@ function print_version {
   < package.json jq -r .version
 }
 
-function init_git_server {
-  info "Initializing git server..."
-  cd "$HOME" || exit 1
-  rm -rf "$GIT_REMOTE" || exit 1
-  mkdir -p "$GIT_REMOTE"
-  cd "$GIT_REMOTE" || exit 1
-  git init -b main
-  npm init -y
-  npm version 1.0.0-0
-  npm install underscore
-  echo "node_modules/" >> .gitignore
-  git add -A
-  git commit -m "Initial commit"
-  git switch -c staging
-  git tag "$(print_version)"
-  git branch production
-  git config --local receive.denyCurrentBranch ignore
-  success "Initialized git server in $GIT_REMOTE"
-}
-
 function setup_git_as_human {
   info "Switching to human git user"
   git config --local user.name test
@@ -49,6 +29,28 @@ function setup_git_as_osbotify {
   info "Switching to OSBotify git user"
   git config --local user.name OSBotify
   git config --local user.email infra+osbotify@expensify.com
+}
+
+
+function init_git_server {
+  info "Initializing git server..."
+  cd "$HOME" || exit 1
+  rm -rf "$GIT_REMOTE" || exit 1
+  mkdir -p "$GIT_REMOTE"
+  cd "$GIT_REMOTE" || exit 1
+  git init -b main
+  setup_git_as_human
+  npm init -y
+  npm version --no-git-tag-version 1.0.0-0
+  npm install underscore
+  echo "node_modules/" >> .gitignore
+  git add -A
+  git commit -m "Initial commit"
+  git switch -c staging
+  git tag "$(print_version)"
+  git branch production
+  git config --local receive.denyCurrentBranch ignore
+  success "Initialized git server in $GIT_REMOTE"
 }
 
 function remove_local_repo {
