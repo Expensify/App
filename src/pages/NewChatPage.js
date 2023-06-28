@@ -44,6 +44,8 @@ const defaultProps = {
     reports: {},
 };
 
+const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
+
 function NewChatPage(props) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
@@ -51,7 +53,6 @@ function NewChatPage(props) {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState();
     const [selectedOptions, setSelectedOptions] = useState([]);
 
-    const excludedGroupEmails = _.without(CONST.EXPENSIFY_EMAILS, CONST.EMAIL.CONCIERGE);
     const maxParticipantsReached = selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
     const headerMessage = OptionsListUtils.getHeaderMessage(
         filteredPersonalDetails.length + filteredRecentReports.length !== 0,
@@ -114,21 +115,6 @@ function NewChatPage(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filteredPersonalDetails, filteredRecentReports, filteredUserToInvite, maxParticipantsReached, props.isGroupChat, selectedOptions]);
 
-    const updateOptionsWithSearchTerm = (newSearchTerm = '') => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            newSearchTerm,
-            [],
-            props.isGroupChat ? excludedGroupEmails : [],
-        );
-        setSearchTerm(newSearchTerm);
-        setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
-        setFilteredUserToInvite(userToInvite);
-    };
-
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
@@ -178,12 +164,20 @@ function NewChatPage(props) {
     };
 
     useEffect(() => {
-        updateOptionsWithSearchTerm(searchTerm);
-        // all dependencies are not added below -
-        // 1. searchTerm - when searchTerm changes updateOptionsWithSearchTerm is called by OptionsSelector's onChangeText prop
-        // 2. updateOptionsWithSearchTerm - it will change its reference upon each rerender unnecessarily
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            searchTerm,
+            [],
+            props.isGroupChat ? excludedGroupEmails : [],
+        );
+        setFilteredRecentReports(recentReports);
+        setFilteredPersonalDetails(personalDetails);
+        setFilteredUserToInvite(userToInvite);
+        // props.betas and props.isGroupChat are not added as dependencies since they don't change during the component lifecycle
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.reports, props.personalDetails]);
+    }, [props.reports, props.personalDetails, searchTerm]);
 
     return (
         <ScreenWrapper
@@ -200,7 +194,7 @@ function NewChatPage(props) {
                             selectedOptions={selectedOptions}
                             value={searchTerm}
                             onSelectRow={(option) => (props.isGroupChat ? toggleOption(option) : createChat(option))}
-                            onChangeText={updateOptionsWithSearchTerm}
+                            onChangeText={setSearchTerm}
                             headerMessage={headerMessage}
                             boldStyle
                             shouldFocusOnSelectRow={props.isGroupChat && !Browser.isMobile()}
