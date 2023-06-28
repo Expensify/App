@@ -53,6 +53,11 @@ function ReportActionItemCreated(props) {
 
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
 
+    const errors = lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat');
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const hideComposer = ReportUtils.shouldHideComposer(props.report, errors);
+    const shouldOmitBottomSpace = props.report.lastMessageText === '' && (isArchivedRoom || hideComposer);
+
     return (
         <OfflineWithFeedback
             pendingAction={lodashGet(props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(props.report, 'pendingFields.createChat')}
@@ -68,7 +73,7 @@ function ReportActionItemCreated(props) {
                 />
                 <View
                     accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
-                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
+                    style={[styles.p5, shouldOmitBottomSpace && styles.pb0, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
                     <PressableWithoutFeedback
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
