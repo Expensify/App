@@ -39,11 +39,36 @@ We've found that the best way to avoid this pitfall is to always wrap any refere
 
 **Note:** Action inputs and outputs aren't the only thing that's JSON-encoded! Any data passed between jobs via a `needs` parameter is also JSON-encoded!
 
+## Fast fetch
+Due to the large, ever-growing history of this repo, do not do any full-fetches of the repo:
+
+```yaml
+# Bad
+- uses: actions/checkout@v3
+  with:
+    fetch-depth: 0
+
+# Good
+- uses: actions/checkout@v3
+```
+
+```sh
+# Bad
+git fetch origin # This will fetch all history of all branches and tags
+git fetch origin main # This will fetch the full history of the main branch, plus all tags
+
+# Good
+git fetch origin main --no-tags --depth=1 # This will just fetch the latest commit from main
+git fetch origin tag 1.0.0-0 --no-tags --depth=1 # This will fetch the latest commit from the 1.0.0-0 tag and create a local tag to match
+git fetch origin staging --no-tags --shallow-since="$(( $(date -%s) - 3600 ))" # This will fetch all commits made to the staging branch in the last hour
+git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fetch all commits from the 1.0.1-0 tag, except for those that are reachable from the 1.0.0-0 tag.
+```
+
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.
 1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v2`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
 1. **Do use** the `pull_request` trigger as it does not send internal secrets and only grants a _read_ `GITHUB_TOKEN`.
-1. If an external action needs access to any secret (`GITHUB_TOKEN` or internal secret), use the commit hash of the workflow to prevent a modification of underlying source code at that version. For example:
+1. If an untrusted (i.e: not maintained by GitHub) external action needs access to any secret (`GITHUB_TOKEN` or internal secret), use the commit hash of the workflow to prevent a modification of underlying source code at that version. For example:
     1. **Bad:** `hmarr/auto-approve-action@v2.0.0` Relies on the tag
     1. **Good:** `hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd` Explicit Git hash
 1. When creating secrets, use tightly scoped secrets that only allow access to that specific action's requirement
