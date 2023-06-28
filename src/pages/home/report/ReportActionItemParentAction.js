@@ -48,7 +48,7 @@ function ReportActionItemParentAction(props) {
     const parentReportAction = props.parentReportActions[`${props.report.parentReportActionID}`];
 
     // In case of transaction threads, we do not want to render the parent report action.
-    if (ReportActionsUtils.isTransactionThread(props.report)) {
+    if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
         return null;
     }
     return (
