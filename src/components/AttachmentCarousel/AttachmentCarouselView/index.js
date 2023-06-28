@@ -1,6 +1,7 @@
 import React, {useRef, useCallback} from 'react';
 import {View, FlatList, PixelRatio} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles from '../../../styles/styles';
 import CarouselActions from '../CarouselActions';
 import AttachmentView from '../../AttachmentView';
@@ -144,7 +145,12 @@ function AttachmentCarouselView(props) {
                     getItemLayout={getItemLayout}
                     keyExtractor={(item) => item.source}
                     viewabilityConfig={viewabilityConfig}
-                    onViewableItemsChanged={props.updatePage}
+                    onViewableItemsChanged={({viewableItems}) => {
+                        // Since we can have only one item in view at a time, we can use the first item in the array
+                        // to get the index of the current page
+                        const entry = _.first(viewableItems);
+                        props.updatePage({item: entry.item, index: entry.index});
+                    }}
                 />
             )}
 

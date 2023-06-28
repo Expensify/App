@@ -26,11 +26,11 @@ function AttachmentCarouselView(props) {
     const reversedAttachments = useMemo(() => props.carouselState.attachments.reverse(), [props.carouselState.attachments]);
 
     const reversePage = useCallback(
-        () => Math.max(0, Math.min(props.carouselState.attachments.length - props.carouselState.page - 1, props.carouselState.attachments.length)),
-        [props.carouselState.attachments.length, props.carouselState.page],
+        (page) => Math.max(0, Math.min(props.carouselState.attachments.length - page - 1, props.carouselState.attachments.length)),
+        [props.carouselState.attachments.length],
     );
 
-    const reversedPage = useMemo(() => reversePage(), [reversePage]);
+    const reversedPage = useMemo(() => reversePage(props.carouselState.page), [props.carouselState.page, reversePage]);
 
     /**
      * Update carousel page based on next page index
@@ -39,17 +39,13 @@ function AttachmentCarouselView(props) {
     const updatePage = useCallback(
         (newPageIndex) => {
             const nextItem = reversedAttachments[newPageIndex];
-
-            console.log('updatePage', newPageIndex);
-
             if (!nextItem) {
                 return;
             }
 
-            // pagerRef.current.setPage(nextPagerIndex);
-            props.updatePage([nextItem]);
+            props.updatePage({item: nextItem, index: reversePage(newPageIndex)});
         },
-        [props, reversedAttachments],
+        [props, reversePage, reversedAttachments],
     );
 
     /**
@@ -58,10 +54,13 @@ function AttachmentCarouselView(props) {
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide) => {
-            const nextPageIndex = props.carouselState.page - deltaSlide;
+            const nextPageIndex = reversedPage + deltaSlide;
             updatePage(nextPageIndex);
+            pagerRef.current.setPage(nextPageIndex);
+
+            props.autoHideArrow();
         },
-        [props.carouselState.page, updatePage],
+        [props, reversedPage, updatePage],
     );
 
     return (
@@ -84,10 +83,7 @@ function AttachmentCarouselView(props) {
                 <Pager
                     items={reversedAttachments}
                     initialIndex={reversedPage}
-                    onPageScroll={({position: newPage}) => {
-                        console.log(newPage);
-                        updatePage(reversePage(newPage));
-                    }}
+                    onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                     onTap={() => props.toggleArrowsVisibility(!props.carouselState.shouldShowArrow)}
                     onPinchGestureChange={(isPinchGestureRunning) => props.toggleArrowsVisibility(!isPinchGestureRunning)}
                     onSwipeDown={props.onClose}

@@ -154,23 +154,22 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Updates the page state when the user navigates between attachments
-     * @param {Array<{item: {source, file}, index: Number}>} viewableItems
+     * @param {Object} item
+     * @param {number} index
      */
-    updatePage({viewableItems}) {
+    updatePage({item, index}) {
         Keyboard.dismiss();
-        // Since we can have only one item in view at a time, we can use the first item in the array
-        // to get the index of the current page
-        const entry = _.first(viewableItems);
-        if (!entry) {
+
+        if (!item) {
             // eslint-disable-next-line react/no-unused-state
             this.setState({activeSource: null});
             return;
         }
 
-        const page = entry.index;
-        this.props.onNavigate(entry.item);
+        const page = index;
+        this.props.onNavigate(item);
         // eslint-disable-next-line react/no-unused-state
-        this.setState({page, activeSource: entry.item.source});
+        this.setState({page, activeSource: item.source});
     }
 
     render() {
