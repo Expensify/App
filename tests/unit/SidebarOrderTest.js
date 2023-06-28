@@ -145,8 +145,8 @@ describe('Sidebar', () => {
             };
             const report2 = LHNTestUtils.getFakeReport([3, 4], 2);
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
-            const reportIDFromRoute = report1.reportID;
-            LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
+            const currentReportId = report1.reportID;
+            LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
             return (
                 waitForPromisesToResolve()
                     // When Onyx is updated with the data and the sidebar re-renders
@@ -227,8 +227,8 @@ describe('Sidebar', () => {
                 hasDraft: true,
             };
             const report3 = LHNTestUtils.getFakeReport([5, 6], 1);
-            const reportIDFromRoute = report2.reportID;
-            LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
+            const currentReportId = report2.reportID;
+            LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
 
             return (
                 waitForPromisesToResolve()
@@ -367,9 +367,9 @@ describe('Sidebar', () => {
                 chatReportID: report3.reportID,
             };
             report3.iouReportID = iouReport.reportID;
-            const reportIDFromRoute = report2.reportID;
+            const currentReportId = report2.reportID;
             const currentlyLoggedInUserAccountID = 9;
-            LHNTestUtils.getDefaultRenderedSidebarLinks(reportIDFromRoute);
+            LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
 
             return (
                 waitForPromisesToResolve()
