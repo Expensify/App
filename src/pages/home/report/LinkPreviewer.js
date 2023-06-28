@@ -106,8 +106,7 @@ function LinkPreviewer(props) {
                         {!_.isEmpty(title) && (
                             <TextLink
                                 fontSize={variables.fontSizeNormal}
-                                style={styles.pv2}
-                                color={colors.blueLinkPreview}
+                                style={[styles.pv2, {color: colors.blueLinkPreview}]}
                                 href={url}
                             >
                                 {title}
