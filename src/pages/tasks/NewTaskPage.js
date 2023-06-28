@@ -86,7 +86,6 @@ function NewTaskPage(props) {
             setAssignee(displayDetails);
         }
 
-
         // We only set the parentReportID if we are creating a task from a report
         // this allows us to go ahead and set that report as the share destination
         // and disable the share destination selector
