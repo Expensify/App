@@ -845,5 +845,30 @@ describe('Migrations', () => {
                         },
                     });
                 }));
+
+        it('Should succeed in removing the personalDetails object if found in Onyx', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing personalDetails');
+                    const connectionID = Onyx.connect({
+                        key: DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS,
+                        callback: (allPersonalDetails) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allPersonalDetails).toBeNull();
+                        },
+                    });
+                }));
     });
 });
