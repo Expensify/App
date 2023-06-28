@@ -1,6 +1,6 @@
+import React from 'react';
 import {PortalHost} from '@gorhom/portal';
 import {createStackNavigator} from '@react-navigation/stack';
-import React from 'react';
 
 import * as ModalStackNavigators from '../ModalStackNavigators';
 import defaultModalScreenOptions from '../defaultModalScreenOptions';

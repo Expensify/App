@@ -1,7 +1,7 @@
-import {fireEvent, render, within} from '@testing-library/react-native';
+import {render, fireEvent, within} from '@testing-library/react-native';
 import moment from 'moment';
-import CONST from '../../src/CONST';
 import CalendarPicker from '../../src/components/NewDatePicker/CalendarPicker';
+import CONST from '../../src/CONST';
 
 moment.locale(CONST.LOCALES.EN);
 const monthNames = moment.localeData().months();

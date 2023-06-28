@@ -1,21 +1,21 @@
-import Str from 'expensify-common/lib/str';
-import moment from 'moment';
+import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
+import moment from 'moment';
+import Str from 'expensify-common/lib/str';
+import Text from '../../Text';
+import ScreenSlideAnimation from './ScreenSlideAnimation';
+import YearPickerPage from './YearPickerPage';
+import ArrowIcon from './ArrowIcon';
+import styles from '../../../styles/styles';
+import {propTypes as calendarPickerPropType, defaultProps as defaultCalendarPickerPropType} from './calendarPickerPropTypes';
+import generateMonthMatrix from './generateMonthMatrix';
+import withLocalize from '../../withLocalize';
 import CONST from '../../../CONST';
 import getButtonState from '../../../libs/getButtonState';
 import * as StyleUtils from '../../../styles/StyleUtils';
-import styles from '../../../styles/styles';
 import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import Text from '../../Text';
-import withLocalize from '../../withLocalize';
-import ArrowIcon from './ArrowIcon';
-import ScreenSlideAnimation from './ScreenSlideAnimation';
-import YearPickerPage from './YearPickerPage';
-import {propTypes as calendarPickerPropType, defaultProps as defaultCalendarPickerPropType} from './calendarPickerPropTypes';
-import generateMonthMatrix from './generateMonthMatrix';
 
 class CalendarPicker extends React.PureComponent {
     constructor(props) {

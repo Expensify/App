@@ -1,14 +1,14 @@
-import React from 'react';
 import _ from 'underscore';
-import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
-import HeaderWithBackButton from '../../HeaderWithBackButton';
-import * as Expensicons from '../../Icon/Expensicons';
-import OptionsSelector from '../../OptionsSelector';
-import ScreenWrapper from '../../ScreenWrapper';
+import React from 'react';
 import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../withCurrentUserPersonalDetails';
+import ScreenWrapper from '../../ScreenWrapper';
+import HeaderWithBackButton from '../../HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
+import styles from '../../../styles/styles';
+import OptionsSelector from '../../OptionsSelector';
+import themeColors from '../../../styles/themes/default';
+import * as Expensicons from '../../Icon/Expensicons';
+import CONST from '../../../CONST';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
