@@ -245,6 +245,10 @@ class ReportActionCompose extends React.Component {
                 showPopoverMenu: this.showPopoverMenu,
             });
         }
+
+        if (this.props.comment.length !== 0) {
+            Report.setReportWithDraft(this.props.reportID, true);
+        }
     }
 
     componentDidUpdate(prevProps) {
