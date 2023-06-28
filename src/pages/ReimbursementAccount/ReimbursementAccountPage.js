@@ -418,6 +418,7 @@ class ReimbursementAccountPage extends React.Component {
                     reimbursementAccountDraft={this.props.reimbursementAccountDraft}
                     onBackButtonPress={this.goBack}
                     getDefaultStateForField={this.getDefaultStateForField}
+                    navigation={this.props.navigation}
                 />
             );
         }

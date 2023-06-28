@@ -14,6 +14,12 @@ const propTypes = {
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
     onFieldChange: PropTypes.func,
 
+    /** Callback fired when a Address search changes the Country. */
+    onCountryChange: PropTypes.func,
+
+    /** Callback fired when a Address search changes the State.  */
+    onStateChange: PropTypes.func,
+
     /** Default values */
     defaultValues: PropTypes.shape({
         /** Address street field */
@@ -89,6 +95,8 @@ const defaultProps = {
     },
     shouldSaveDraft: false,
     onFieldChange: () => {},
+    onCountryChange: () => {},
+    onStateChange: () => {},
 };
 
 function AddressForm(props) {
@@ -103,6 +111,8 @@ function AddressForm(props) {
                     value={props.values.street}
                     defaultValue={props.defaultValues.street}
                     onInputChange={props.onFieldChange}
+                    onCountryChange={props.onCountryChange}
+                    onStateChange={props.onStateChange}
                     errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
                     hint={props.translate('common.noPO')}
                     renamedInputKeys={props.inputKeys}
@@ -125,7 +135,7 @@ function AddressForm(props) {
                     inputID={props.inputKeys.state}
                     shouldSaveDraft={props.shouldSaveDraft}
                     value={props.values.state}
-                    defaultValue={props.defaultValues.state}
+                    defaultValue={props.defaultValues.state || ''}
                     onInputChange={(value) => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                 />

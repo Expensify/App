@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import StatePicker from '../../components/StatePicker';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
@@ -15,7 +16,6 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
-import StatePicker from '../../components/StatePicker';
 import withLocalize from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
@@ -25,6 +25,7 @@ import AddressForm from './AddressForm';
 import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
+import * as NavigationStorage from '../../hooks/useNavigationStorage';
 
 const propTypes = {
     ...StepPropTypes,
@@ -54,6 +55,7 @@ class CompanyStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.onCountryStateUpdate = this.onCountryStateUpdate.bind(this);
         this.validate = this.validate.bind(this);
 
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
@@ -61,6 +63,10 @@ class CompanyStep extends React.Component {
 
     componentWillUnmount() {
         BankAccounts.resetReimbursementAccount();
+    }
+
+    onCountryStateUpdate(selectedCountryState) {
+        NavigationStorage.saveIntoStorage('addressState', selectedCountryState);
     }
 
     /**
@@ -197,6 +203,7 @@ class CompanyStep extends React.Component {
                             state: 'addressState',
                             zipCode: 'addressZipCode',
                         }}
+                        onStateChange={this.onCountryStateUpdate}
                         shouldSaveDraft
                         streetTranslationKey="common.companyAddress"
                     />

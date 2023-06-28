@@ -21,6 +21,7 @@ import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import useNavigationStorage from '../../../../hooks/useNavigationStorage';
 
 const propTypes = {
     /* Onyx Props */
@@ -62,6 +63,7 @@ function updateAddress(values) {
 
 function AddressPage({translate, route, navigation, privatePersonalDetails}) {
     const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
+    const [, saveIntoStorage] = useNavigationStorage('state');
     const isUSAForm = countryISO === CONST.COUNTRY.US;
 
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [countryISO, 'samples'], '');
@@ -74,7 +76,7 @@ function AddressPage({translate, route, navigation, privatePersonalDetails}) {
         setCountryISO(newCountry);
     };
     const onCountryStateUpdate = (selectedCountryState) => {
-        navigation.setParams({stateISO: selectedCountryState});
+        saveIntoStorage(selectedCountryState);
     };
 
     useEffect(() => {
@@ -83,6 +85,7 @@ function AddressPage({translate, route, navigation, privatePersonalDetails}) {
             setCountryISO(currentCountryISO);
         }
     }, [route, navigation]);
+
     /**
      * @param {Function} translate - translate function
      * @param {Boolean} isUSAForm - selected country ISO code is US
@@ -92,7 +95,6 @@ function AddressPage({translate, route, navigation, privatePersonalDetails}) {
     const validate = useCallback(
         (values) => {
             const errors = {};
-
             const requiredFields = ['addressLine1', 'city', 'country', 'state'];
 
             // Check "State" dropdown is a valid state if selected Country is USA.

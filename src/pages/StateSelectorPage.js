@@ -1,9 +1,8 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React, {useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import ROUTES from '../ROUTES';
+import useNavigationStorage from '../hooks/useNavigationStorage';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Navigation from '../libs/Navigation/Navigation';
 import compose from '../libs/compose';
@@ -39,7 +38,8 @@ const defaultProps = {
 function StateSelectorPage(props) {
     const translate = props.translate;
     const route = props.route;
-    const currentCountryState = !_.isEmpty(route.params) ? route.params.stateISO : lodashGet(props.privatePersonalDetails, 'address.state');
+    const [collect, dispatch] = useNavigationStorage(route.params.key, null, 'page selector');
+    const currentCountryState = collect();
     const allStates = translate('allStates');
     const selectedSearchState = !_.isEmpty(currentCountryState) ? allStates[currentCountryState].stateName : '';
 
@@ -54,9 +54,13 @@ function StateSelectorPage(props) {
         [translate, currentCountryState],
     );
 
-    const updateCountryState = useCallback((selectedState) => {
-        Navigation.goBack(`${ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS}?stateISO=${selectedState.value}`, true);
-    }, []);
+    const updateCountryState = useCallback(
+        (selectedState) => {
+            dispatch(selectedState.value);
+            Navigation.goBack(`${decodeURIComponent(route.params.backTo)}`, true);
+        },
+        [dispatch, route.params.backTo],
+    );
 
     return (
         <OptionsSelectorWithSearch

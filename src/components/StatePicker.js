@@ -1,8 +1,8 @@
-import lodashGet from 'lodash/get';
 import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import PropTypes from 'prop-types';
+import useNavigationStorage from '../hooks/useNavigationStorage';
 import compose from '../libs/compose';
 import withNavigation from './withNavigation';
 import sizes from '../styles/variables';
@@ -34,28 +34,30 @@ const defaultProps = {
 
 function BaseStatePicker(props) {
     const route = useRoute();
-    const stateISO = props.stateISO;
-    const [stateTitle, setStateTitle] = useState(stateISO);
-    const paramStateISO = lodashGet(route, 'params.stateISO');
-    const navigation = props.navigation;
-    const onInputChange = props.onInputChange;
     const defaultValue = props.defaultValue;
+    const [collect] = useNavigationStorage(props.inputID, defaultValue);
+    const stateISO = props.stateISO;
+    const paramStateISO = collect();
+    const [stateTitle, setStateTitle] = useState(stateISO || paramStateISO);
+    const onInputChange = props.onInputChange;
     const translate = props.translate;
 
     useEffect(() => {
-        if (!paramStateISO || paramStateISO === stateTitle) {
+        if (!paramStateISO) {
             return;
         }
-
         setStateTitle(paramStateISO);
 
         // Needed to call onInputChange, so Form can update the validation and values
         onInputChange(paramStateISO);
-    }, [paramStateISO, stateTitle, onInputChange, navigation]);
+        // onInputChange isn't a stable function, so we can't add it to the dependency array
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [paramStateISO]);
 
     const navigateToCountrySelector = useCallback(() => {
-        Navigation.navigate(ROUTES.getUsaStateSelectionRoute(stateTitle || stateISO, Navigation.getActiveRoute()));
-    }, [stateTitle, stateISO]);
+        // Try first using the route.path so I can keep any query params
+        Navigation.navigate(ROUTES.getUsaStateSelectionRoute(stateTitle || stateISO, props.inputID, route.path || Navigation.getActiveRoute()));
+    }, [stateTitle, stateISO, route.path, props.inputID]);
 
     const title = useMemo(() => {
         const allStates = translate('allStates');

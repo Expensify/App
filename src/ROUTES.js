@@ -72,7 +72,7 @@ export default {
     SETTINGS_SELECT_COUNTRY: 'select-country',
     getCountrySelectionRoute: (countryISO, backTo) => `select-country?countryISO=${countryISO}&backTo=${backTo}`,
     SETTINGS_USA_STATES: 'select-usa-states',
-    getUsaStateSelectionRoute: (stateISO, backTo) => `select-usa-states?stateISO=${stateISO}&backTo=${backTo}`,
+    getUsaStateSelectionRoute: (stateISO, key, backTo) => `select-usa-states?stateISO=${stateISO}&key=${key}&backTo=${encodeURIComponent(backTo)}`,
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
 

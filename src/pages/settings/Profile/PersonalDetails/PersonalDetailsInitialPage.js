@@ -14,6 +14,7 @@ import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDe
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import {withNetwork} from '../../../../components/OnyxProvider';
+import * as NavigationStorage from '../../../../hooks/useNavigationStorage';
 
 const propTypes = {
     /* Onyx Props */
@@ -60,6 +61,10 @@ function PersonalDetailsInitialPage(props) {
         }
         PersonalDetails.openPersonalDetailsPage();
     }, [props.network.isOffline]);
+
+    useEffect(() => {
+        NavigationStorage.clearNavigationStorage();
+    }, []);
 
     const privateDetails = props.privatePersonalDetails || {};
     const address = privateDetails.address || {};
