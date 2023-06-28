@@ -21,7 +21,7 @@ jobs:
         run: |
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          git fetch origin "$BASELINE_BRANCH" --depth=1
+          git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
           npm install --force
           npx reassure --baseline

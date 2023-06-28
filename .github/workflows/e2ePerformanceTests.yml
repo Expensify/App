@@ -22,9 +22,7 @@ jobs:
     outputs:
       VERSION: ${{ steps.getMostRecentRelease.outputs.VERSION }}
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v3
 
       - name: Get most recent release version
         id: getMostRecentRelease
@@ -44,7 +42,9 @@ jobs:
 
       - name: Checkout "Baseline" commit (last release)
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
-        run: git checkout ${{ steps.getMostRecentRelease.outputs.VERSION }}
+        run: |
+          git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
+          git switch ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
       - name: Build APK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
@@ -58,9 +58,7 @@ jobs:
     outputs:
       DELTA_REF: ${{ steps.getDeltaRef.outputs.DELTA_REF }}
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v3
 
       - name: Get pull request details
         id: getPullRequestDetails
@@ -74,7 +72,9 @@ jobs:
         if: ${{ fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitShaIfMergedPR
         run: |
-          echo "MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}" >> "$GITHUB_OUTPUT"
+          MERGE_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.MERGE_COMMIT_SHA }}
+          git fetch origin "$MERGE_COMMIT_SHA" --no-tags --depth=1
+          echo "MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -82,7 +82,7 @@ jobs:
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '') }}
         run: |
           git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
-          git fetch pr_remote
+          git fetch pr_remote ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
 
       - name: Unmerged PR - Set dummy git credentials before merging
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
@@ -119,7 +119,7 @@ jobs:
     needs: [buildBaseline, buildDelta]
     name: Run E2E tests in AWS device farm
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - uses: actions/checkout@v3
 
       - name: Make zip directory for everything to send to AWS Device Farm
         run: mkdir zip
