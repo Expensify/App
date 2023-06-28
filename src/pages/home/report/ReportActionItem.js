@@ -92,13 +92,13 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** All of the personalDetails */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 };
 
 const defaultProps = {
     draftMessage: '',
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    personalDetails: {},
+    personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
 };
@@ -441,7 +441,7 @@ function ReportActionItem(props) {
     const isWhisper = whisperedToAccountIDs.length > 0;
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
-    const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetails, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
+    const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetailsList, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
     return (
         <PressableWithSecondaryInteraction
