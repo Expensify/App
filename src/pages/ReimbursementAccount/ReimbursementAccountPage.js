@@ -332,11 +332,13 @@ class ReimbursementAccountPage extends React.Component {
 
         if (_.isEmpty(this.props.policy)) {
             return (
-                <FullPageNotFoundView
-                    shouldShow
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShowLink
-                />
+                <ScreenWrapper>
+                    <FullPageNotFoundView
+                        shouldShow
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                        shouldShowLink
+                    />
+                </ScreenWrapper>
             );
         }
 
