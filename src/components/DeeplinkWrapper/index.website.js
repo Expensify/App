@@ -9,6 +9,7 @@ import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Authentication from '../../libs/Authentication';
 import DeeplinkRedirectLoadingIndicator from './DeeplinkRedirectLoadingIndicator';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Children to render. */
@@ -61,6 +62,12 @@ class DeeplinkWrapper extends PureComponent {
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
             return;
         }
+
+        // There's no support for anonymous users on desktop
+        if (Session.isAnonymousUser()) {
+            return;
+        }
+
         Authentication.getShortLivedAuthToken()
             .then((shortLivedAuthToken) => {
                 params.set('email', this.props.session.email);
