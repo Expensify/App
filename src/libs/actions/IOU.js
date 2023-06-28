@@ -852,6 +852,11 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
                       value: null,
                   },
+                  {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                    value: null,
+                },
               ]
             : []),
         {
