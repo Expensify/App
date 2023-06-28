@@ -3,7 +3,7 @@
 # Fail immediately if there is an error thrown
 set -e
 
-declare -r TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1; pwd)/$(basename "$0")")")
+TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1; pwd)/$(basename "$0")")")
 declare -r SCRIPTS_DIR="$TEST_DIR/../scripts"
 declare -r DUMMY_DIR="$HOME/DumDumRepo"
 declare -r REPO_SLUG="roryabraham/DumDumRepo"
@@ -203,6 +203,11 @@ fi
 
 if ! command -v npm &> /dev/null; then
   error "command npm could not be found, install it and re-run this script"
+  exit 1
+fi
+
+if [[ -z "$GITHUB_TOKEN" ]]; then
+  error "GITHUB_TOKEN environment variable must be set in order for this to work"
   exit 1
 fi
 
