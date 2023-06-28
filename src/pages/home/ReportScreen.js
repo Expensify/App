@@ -315,7 +315,11 @@ class ReportScreen extends React.Component {
                             nativeID={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                             onLayout={(event) => {
-                                const skeletonViewContainerHeight = event.nativeEvent.layout.height;
+                                // Rounding this value for comparison because they can look like this: 411.9999694824219
+                                const skeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
+
+                                // Only set state when the height changes to avoid unnecessary renders
+                                if (reportActionsListViewHeight === skeletonViewContainerHeight) return;
 
                                 // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
                                 // takes up so we can set the skeleton view container height.
