@@ -273,6 +273,11 @@ function getOptionData(reportID) {
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
+    result.isExpenseReport = ReportUtils.isExpenseReport(report);
+    result.isControlPolicyExpenseReport = result.isExpenseReport && ReportUtils.getPolicyType(report, policies) === CONST.POLICY.TYPE.CORPORATE;
+    if (result.isControlPolicyExpenseReport) {
+        result.isExpenseReportApproved = ReportUtils.isExpenseReportApproved(report);
+    }
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);

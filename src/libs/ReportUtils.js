@@ -129,6 +129,10 @@ function isExpenseReport(report) {
     return lodashGet(report, 'type') === CONST.REPORT.TYPE.EXPENSE;
 }
 
+function isExpenseReportApproved(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE.APPROVED;
+}
+
 /**
  * Checks if a report is an IOU report.
  *
@@ -2405,6 +2409,7 @@ export {
     getDisplayNameForParticipant,
     isChatReport,
     isExpenseReport,
+    isExpenseReportApproved,
     isIOUReport,
     isTaskReport,
     isTaskCompleted,

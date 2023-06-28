@@ -91,7 +91,7 @@ function MoneyRequestHeader(props) {
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
     const shouldShowSettlementButton =
         (policyType !== CONST.POLICY.TYPE.CORPORATE && !isSettled && !props.isSingleTransactionView && isPayer) ||
-        (isExpenseReport && policyType === CONST.POLICY.TYPE.CORPORATE && Policy.isAdminOfControlPolicy([policy]));
+        (policyType === CONST.POLICY.TYPE.CORPORATE && isExpenseReport && ReportUtils.isExpenseReportApproved(moneyRequestReport) && Policy.isAdminOfControlPolicy([policy]));
     const shouldShowApproveButton =
         isExpenseReport &&
         policyType === CONST.POLICY.TYPE.CORPORATE &&
