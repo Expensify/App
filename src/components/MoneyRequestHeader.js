@@ -20,6 +20,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import SettlementButton from './SettlementButton';
+import Button from './Button';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
@@ -85,9 +86,18 @@ function MoneyRequestHeader(props) {
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
         : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
+    const policyType = lodashGet(policy, 'type', '');
     const isPayer =
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
+    const shouldShowSettlementButton =
+        (policyType !== CONST.POLICY.TYPE.CORPORATE && !isSettled && !props.isSingleTransactionView && isPayer) ||
+        (isExpenseReport && policyType === CONST.POLICY.TYPE.CORPORATE && Policy.isAdminOfControlPolicy([policy]));
+    const shouldShowApproveButton =
+        isExpenseReport &&
+        policyType === CONST.POLICY.TYPE.CORPORATE &&
+        moneyRequestReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING &&
+        moneyRequestReport.statusNum === CONST.REPORT.STATUS.SUBMITTED &&
+        lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     return (
@@ -163,6 +173,14 @@ function MoneyRequestHeader(props) {
                                 />
                             </View>
                         )}
+                        {shouldShowApproveButton && !props.isSmallScreenWidth && (
+                            <View style={[styles.ml4]}>
+                                <Button
+                                    success
+                                    text="Approve"
+                                />
+                            </View>
+                        )}
                     </View>
                 </View>
                 {shouldShowSettlementButton && props.isSmallScreenWidth && (
@@ -177,6 +195,14 @@ function MoneyRequestHeader(props) {
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                     />
+                )}
+                {shouldShowApproveButton && props.isSmallScreenWidth && (
+                    <View style={[styles.ml4]}>
+                        <Button
+                            success
+                            text="Approve"
+                        />
+                    </View>
                 )}
             </View>
             {props.isSingleTransactionView && (
