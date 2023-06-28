@@ -459,7 +459,6 @@ function WorkspaceMembersPage(props) {
                                             checked: !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID))),
                                         }}
                                         accessibilityLabel={props.translate('workspace.people.selectAll')}
-                                        // Disable hover dimming
                                         hoverDimmingValue={1}
                                         pressDimmingValue={0.7}
                                     >
