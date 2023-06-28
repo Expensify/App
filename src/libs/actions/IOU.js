@@ -934,7 +934,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         true,
     );
 
-    let reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
+    const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
     // First, add data that will be used in all cases
     const optimisticChatReportData = {
@@ -1046,18 +1046,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
                 value: {
                     [optimisticIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError(null),
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: {
-                    [chatCreatedAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
-                    },
-                    [reportPreviewAction.reportActionID]: {
                         errors: ErrorUtils.getMicroSecondOnyxError(null),
                     },
                 },
