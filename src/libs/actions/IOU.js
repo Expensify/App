@@ -958,25 +958,25 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
     const optimisticReportActionsData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
-        value: {
-            [optimisticIOUReportAction.reportActionID]: {
-                ...optimisticIOUReportAction,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    ...optimisticIOUReportAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
-    },
-    {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-        value: {
-            [reportPreviewAction.reportActionID]: {
-                ...reportPreviewAction,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: {
+                    ...reportPreviewAction,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
             },
         },
-    },
-];
+    ];
 
     const successData = [
         {
@@ -998,8 +998,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [reportPreviewAction.reportActionID]: {
-                              pendingAction: null,
-                          },
+                    pendingAction: null,
+                },
             },
         },
     ];
@@ -1140,7 +1140,12 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         login: recipient.login,
     };
 
-    const optimisticReportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID), true);
+    const optimisticReportPreviewAction = ReportUtils.buildOptimisticReportPreview(
+        chatReport,
+        iouReport,
+        ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID),
+        true,
+    );
 
     const optimisticData = [
         {
