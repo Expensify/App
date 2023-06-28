@@ -223,9 +223,12 @@ class ReportActionsView extends React.Component {
         if (this.props.reportActions.length > 0 && this.props.reportActions[0].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !this.props.network.isOffline) {
             const reportActionsWithoutPendingOne = lodashCloneDeep(this.props.reportActions);
             reportActionsWithoutPendingOne.shift();
-            this.setState({
-                newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, reportActionsWithoutPendingOne),
-            });
+            const newMarkerReportActionID = ReportUtils.getNewMarkerReportActionID(this.props.report, reportActionsWithoutPendingOne);
+            if (newMarkerReportActionID !== this.state.newMarkerReportActionID) {
+                this.setState({
+                    newMarkerReportActionID: newMarkerReportActionID,
+                });
+            }
         }
 
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
