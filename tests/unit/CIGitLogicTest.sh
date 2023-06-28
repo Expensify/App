@@ -116,9 +116,7 @@ function update_staging_from_main {
   info "Recreating staging from main..."
   git switch main
   if ! git rev-parse --verify staging 2>/dev/null; then
-    git fetch origin staging --depth=1
-    git switch staging
-    git switch main
+    git fetch origin staging:staging --depth=1
   fi
   git branch -D staging
   git switch -c staging
@@ -134,9 +132,7 @@ function update_production_from_staging {
 
   git switch staging
   if ! git rev-parse --verify production 2>/dev/null; then
-    git fetch origin production --depth=1
-    git switch production
-    git switch staging
+    git fetch origin production:production --depth=1
   fi
   git branch -D production
   git switch -c production
@@ -171,7 +167,6 @@ function cherry_pick_pr {
   git cherry-pick -x --mainline 1 "$VERSION_BUMP_COMMIT"
 
   git switch staging
-  # TODO: test CPs with and without a PR involved
   git merge cherry-pick-staging --no-ff -m "Merge pull request #$(($1 + 1)) from Expensify/cherry-pick-staging"
   git branch -d cherry-pick-staging
   git push origin staging
