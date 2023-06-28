@@ -106,6 +106,7 @@ function ProfilePage(props) {
     }, [accountID]);
 
     const details = lodashGet(props.personalDetails, accountID, {isLoading: ValidationUtils.isValidAccountRoute(accountID)});
+    const isExistingReport = ReportUtils.getChatByParticipantInclude(accountID);
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
@@ -178,7 +179,7 @@ function ProfilePage(props) {
                                     {displayName}
                                 </Text>
                             )}
-                            {login ? (
+                            {login && isExistingReport ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mb1]}
@@ -193,7 +194,7 @@ function ProfilePage(props) {
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
-                            {pronouns ? (
+                            {pronouns && isExistingReport ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mb1]}
@@ -204,7 +205,7 @@ function ProfilePage(props) {
                                     <Text numberOfLines={1}>{pronouns}</Text>
                                 </View>
                             ) : null}
-                            {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
+                            {shouldShowLocalTime && isExistingReport && <AutoUpdateTime timezone={timezone} />}
                         </View>
                         {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
