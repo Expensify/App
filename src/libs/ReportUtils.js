@@ -2261,11 +2261,11 @@ function getParentReport(report) {
 /**
  * Return true if the composer should be hidden
  * @param {Object} report
- * @param {Object} errors
+ * @param {Object} reportErrors
  * @returns {Boolean}
  */
-function shouldHideComposer(report, errors) {
-    return isArchivedRoom(report) || !_.isEmpty(errors) || !isAllowedToComment(report);
+function shouldHideComposer(report, reportErrors) {
+    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report);
 }
 
 /**
