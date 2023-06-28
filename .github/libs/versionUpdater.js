@@ -95,7 +95,7 @@ const incrementVersion = (version, level) => {
 /**
  * @param {String} currentVersion
  * @param {String} level
- * @returns {String}
+ * @returns {String }
  */
 function getPreviousVersion(currentVersion, level) {
     const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
