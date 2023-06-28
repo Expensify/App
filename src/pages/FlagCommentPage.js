@@ -20,6 +20,8 @@ import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as Session from '../libs/actions/Session';
+import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
+import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Array of report actions for this report */
@@ -39,12 +41,16 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reportActions: {},
     report: {},
+    isLoadingReportData: true,
 };
 
 /**
@@ -61,6 +67,11 @@ function getReportID(route) {
 
 function FlagCommentPage(props) {
     let reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
+
+    // Handle threads if needed
+    if (reportAction === undefined || reportAction.reportActionID === undefined) {
+        reportAction = ReportActionsUtils.getParentReportAction(props.report);
+    }
     const severities = [
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
@@ -118,7 +129,6 @@ function FlagCommentPage(props) {
         // Handle threads if needed
         if (reportAction === undefined || reportAction.reportActionID === undefined) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
-            reportAction = ReportActionsUtils.getParentReportAction(props.report);
         }
         Report.flagComment(reportID, reportAction, severity);
         Navigation.dismissModal();
@@ -138,10 +148,15 @@ function FlagCommentPage(props) {
         />
     ));
 
+    const shouldShowLoading = props.isLoadingReportData || props.report.isLoadingReportActions;
+    if (shouldShowLoading) {
+        return <FullscreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
-                <>
+                <FullPageNotFoundView shouldShow={!shouldShowLoading && !ReportUtils.shouldShowFlagComment(reportAction, props.report)}>
                     <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
@@ -155,7 +170,7 @@ function FlagCommentPage(props) {
                         <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{props.translate('moderation.chooseAReason')}</Text>
                         {severityMenuItems}
                     </ScrollView>
-                </>
+                </FullPageNotFoundView>
             )}
         </ScreenWrapper>
     );
@@ -174,6 +189,9 @@ export default compose(
         },
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(FlagCommentPage);

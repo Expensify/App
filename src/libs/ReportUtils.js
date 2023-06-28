@@ -40,6 +40,12 @@ Onyx.connect({
     },
 });
 
+let loginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: (val) => (loginList = _.isEmpty(val) ? [] : _.keys(val)),
+});
+
 let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -220,7 +226,7 @@ function canEditReportAction(reportAction) {
  */
 function canFlagReportAction(reportAction) {
     return (
-        reportAction.actorEmail !== sessionEmail &&
+        !loginList.includes(reportAction.actorEmail) &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
@@ -2030,6 +2036,24 @@ function chatIncludesChronos(report) {
 }
 
 /**
+ * Whether flag comment page should show
+ *
+ * @param {Object} reportAction
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+
+function shouldShowFlagComment(reportAction, report) {
+    return (
+        canFlagReportAction(reportAction) &&
+        !isArchivedRoom(report) &&
+        !chatIncludesChronos(report) &&
+        !isConciergeChatReport(report.reportID) &&
+        reportAction.actorEmail !== CONST.EMAIL.CONCIERGE
+    );
+}
+
+/**
  * @param {Object} report
  * @param {String} report.lastReadTime
  * @param {Array} sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only those that should be visible
@@ -2275,6 +2299,7 @@ export {
     findLastAccessedReport,
     canEditReportAction,
     canFlagReportAction,
+    shouldShowFlagComment,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,
