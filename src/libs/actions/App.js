@@ -361,6 +361,11 @@ function openProfile() {
 }
 
 function beginDeepLinkRedirect() {
+    // There's no support for anonymous users on desktop
+    if (Session.isAnonymousUser()) {
+        return;
+    }
+
     if (!currentUserAccountID) {
         Browser.openRouteInDesktopApp();
         return;
