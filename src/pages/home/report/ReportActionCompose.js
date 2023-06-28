@@ -255,6 +255,10 @@ class ReportActionCompose extends React.Component {
                 showPopoverMenu: this.showPopoverMenu,
             });
         }
+
+        if (this.props.comment.length !== 0) {
+            Report.setReportWithDraft(this.props.reportID, true);
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -673,11 +677,11 @@ class ReportActionCompose extends React.Component {
      * @param {String} text
      */
     replaceSelectionWithText(text) {
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, text));
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, `${text} `));
         this.setState((prevState) => ({
             selection: {
-                start: prevState.selection.start + text.length,
-                end: prevState.selection.start + text.length,
+                start: prevState.selection.start + text.length + CONST.SPACE_LENGTH,
+                end: prevState.selection.start + text.length + CONST.SPACE_LENGTH,
             },
         }));
     }
@@ -768,7 +772,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.preferredSkinTone);
 
         if (!_.isEmpty(emojis)) {
             User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
