@@ -73,11 +73,11 @@ module.exports = {
                 '@typescript-eslint/naming-convention': [
                     'error',
                     {
-                        selector: 'variable',
+                        selector: ['variable', 'property'],
                         format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
                     },
                     {
-                        selector: ['property', 'function'],
+                        selector: 'function',
                         format: ['camelCase', 'PascalCase'],
                     },
                     {
