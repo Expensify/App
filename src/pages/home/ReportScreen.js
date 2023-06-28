@@ -257,7 +257,10 @@ class ReportScreen extends React.Component {
                     reactionListRef: this.reactionListRef,
                 }}
             >
-                <ScreenWrapper style={screenWrapperStyle}>
+                <ScreenWrapper
+                    style={screenWrapperStyle}
+                    shouldEnableKeyboardAvoidingView={this.props.isFocused}
+                >
                     <FullPageNotFoundView
                         shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
                         subtitleKey="notFound.noAccess"

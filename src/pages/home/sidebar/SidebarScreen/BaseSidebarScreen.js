@@ -41,6 +41,7 @@ function BaseSidebarScreen(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
         >
             {({insets}) => (
