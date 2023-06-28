@@ -60,6 +60,14 @@ function isMoneyRequestAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isReportPreviewAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function hasCommentThread(reportAction) {
     return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
 }
@@ -421,6 +429,16 @@ function getReportPreviewAction(chatReportID, iouReportID) {
     );
 }
 
+/**
+ * Get the iouReportID for a given report action.
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getIOUReportIDFromReportActionPreview(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
+}
+
 function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
@@ -461,6 +479,8 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isReportPreviewAction,
+    getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
 };

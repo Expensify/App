@@ -988,6 +988,35 @@ function getTransactionReportName(reportAction) {
 }
 
 /**
+ * Get money request message for an IOU report
+ *
+ * @param {Object} report
+ * @param {Object} reportAction
+ * @returns  {String}
+ */
+function getReportPreviewMessage(report, reportAction) {
+    const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
+
+    if (_.isEmpty(report) || !report.reportID) {
+        // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
+        // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
+        return reportActionMessage;
+    }
+
+    const totalAmount = getMoneyRequestTotal(report);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
+
+    if (isSettled(report.reportID)) {
+        // A settled message is in the format of either "paid $1.00 elsewhere" or "paid $1.00 using Paypal.me"
+        const isSettledPaypalMe = Boolean(reportActionMessage.match(/ Paypal.me$/));
+        const translatePhraseKey = isSettledPaypalMe ? 'iou.settledPaypalMeWithAmount' : 'iou.settledElsewhereWithAmount';
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
+    }
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+}
+
+/**
  * Get the title for a report.
  *
  * @param {Object} report
@@ -2376,6 +2405,7 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getReportPreviewMessage,
     shouldHideComposer,
     getOriginalReportID,
 };
