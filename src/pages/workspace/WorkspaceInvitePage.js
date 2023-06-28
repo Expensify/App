@@ -174,7 +174,7 @@ class WorkspaceInvitePage extends React.Component {
     updateOptionsWithSearchTerm(searchTerm = '') {
         const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, searchTerm, this.getExcludedUsers());
 
-        // update selectedOptions as well
+        // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
         _.forEach(personalDetails, (detail) => (detailsMap[detail.login] = detail));
         const selectedOptions = [];
