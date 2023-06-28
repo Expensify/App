@@ -3,15 +3,17 @@
 # Fail immediately if there is an error thrown
 set -e
 
-TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1; pwd)/$(basename "$0")")")
-SCRIPTS_DIR="$TEST_DIR/../scripts"
-DUMMY_DIR="$HOME/DumDumRepo"
-REPO_URL="https://github.com/roryabraham/DumDumRepo"
-bumpVersion="$TEST_DIR/utils/bumpVersion.mjs"
-getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
-INITIAL_COMMIT_HASH="6a473fcb1a7792e503ca3f2a5873fcb7b9c607f3"
-SEMVER_LEVEL_BUILD='BUILD'
-SEMVER_LEVEL_PATCH='PATCH'
+declare -r TEST_DIR=$(dirname "$(dirname "$(cd "$(dirname "$0")" || exit 1; pwd)/$(basename "$0")")")
+declare -r SCRIPTS_DIR="$TEST_DIR/../scripts"
+declare -r DUMMY_DIR="$HOME/DumDumRepo"
+declare -r REPO_SLUG="roryabraham/DumDumRepo"
+declare -r REPO_URL="https://github.com/$REPO_SLUG"
+declare -r INITIAL_COMMIT_HASH="6a473fcb1a7792e503ca3f2a5873fcb7b9c607f3"
+declare -r SEMVER_LEVEL_BUILD='BUILD'
+declare -r SEMVER_LEVEL_PATCH='PATCH'
+
+declare -r bumpVersion="$TEST_DIR/utils/bumpVersion.mjs"
+declare -r getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
 
@@ -19,7 +21,7 @@ function setup_git_authorization {
   if [[ -n "$(git remote -v)" ]]; then
     git remote remove origin
   fi
-  git remote add origin "https://$GITHUB_TOKEN@github.com/roryabraham/DumDumRepo"
+  git remote add origin "https://$GITHUB_TOKEN@github.com/$REPO_SLUG"
 }
 
 function setup_git_as_human {
