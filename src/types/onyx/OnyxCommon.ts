@@ -1,23 +1,23 @@
 import * as React from 'react';
 
-type RedBrickRoadPendingAction = 'add' | 'delete' | 'update';
+type PendingAction = 'add' | 'delete' | 'update';
 
 type BaseState = {
-    success: string;
+    success?: string;
 
     /** An error message to display to the user */
     errors?: Record<string, string>;
 
     /** Whether or not data is loading */
-    isLoading: boolean;
+    isLoading?: boolean;
 
-    pendingAction: RedBrickRoadPendingAction;
+    pendingAction?: PendingAction;
 };
 
 type Icon = {
-    source: string | React.ReactNode;
+    source: React.ReactNode | string;
     type: 'avatar' | 'workspace';
     name: string;
 };
 
-export type {RedBrickRoadPendingAction, BaseState, Icon};
+export type {BaseState, Icon};
