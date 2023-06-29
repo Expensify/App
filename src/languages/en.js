@@ -297,6 +297,9 @@ export default {
         sayHello: 'Say hello!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
+    reportAction: {
+        asCopilot: 'as copilot for',
+    },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone online in this room',
     },
