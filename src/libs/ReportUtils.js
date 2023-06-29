@@ -1995,7 +1995,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    // Hide chats between two users that haven't been commented on
+    // Hide chats between two users that haven't been commented on from the LNH
     if (excludeEmptyChats && _.isEmpty(report.lastMessageText) && isChatReport(report) && !isChatRoom(report)) {
         return false;
     }

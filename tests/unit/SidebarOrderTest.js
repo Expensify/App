@@ -102,15 +102,15 @@ describe('Sidebar', () => {
             // Given three unread reports in the recently updated order of 3, 2, 1
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
-                lastMessageHtml: 'unread message from report 1',
+                lastMessageText: 'unread message from report 1',
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
-                lastMessageHtml: 'unread message from report 2',
+                lastMessageText: 'unread message from report 2',
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                lastMessageHtml: 'unread message from report 3',
+                lastMessageText: 'unread message from report 3',
             };
 
             return (
@@ -144,16 +144,16 @@ describe('Sidebar', () => {
             // And the currently viewed report is the first report
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
-                lastMessageHtml: 'unread message from report 1',
+                lastMessageText: 'unread message from report 1',
                 hasDraft: true,
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
-                lastMessageHtml: 'unread message from report 2',
+                lastMessageText: 'unread message from report 2',
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                lastMessageHtml: 'unread message from report 3',
+                lastMessageText: 'unread message from report 3',
             };
             const currentReportId = report1.reportID;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
@@ -193,15 +193,15 @@ describe('Sidebar', () => {
             // Given three reports in the recently updated order of 3, 2, 1
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
-                lastMessageHtml: 'unread message from report 1',
+                lastMessageText: 'unread message from report 1',
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
-                lastMessageHtml: 'unread message from report 2',
+                lastMessageText: 'unread message from report 2',
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                lastMessageHtml: 'unread message from report 3',
+                lastMessageText: 'unread message from report 3',
             };
 
             return (
@@ -243,16 +243,16 @@ describe('Sidebar', () => {
             // And the currently viewed report is the second report
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
-                lastMessageHtml: 'unread message from report 1'
+                lastMessageText: 'unread message from report 1'
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
-                lastMessageHtml: 'unread message from report 2',
+                lastMessageText: 'unread message from report 2',
                 hasDraft: true,
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6], 1),
-                lastMessageHtml: 'unread message from report 3',
+                lastMessageText: 'unread message from report 3',
             };
             const currentReportId = report2.reportID;
             LHNTestUtils.getDefaultRenderedSidebarLinks(currentReportId);
@@ -552,18 +552,18 @@ describe('Sidebar', () => {
             // Given three reports, with the first report being archived
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
-                lastMessageHtml: 'message from report 1',
+                lastMessageText: 'message from report 1',
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 statusNum: CONST.REPORT.STATUS.CLOSED,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4]),
-                lastMessageHtml: 'message from report 2'
+                lastMessageText: 'message from report 2'
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6]),
-                lastMessageHtml: 'message from report 3'
+                lastMessageText: 'message from report 3'
             };
 
             // Given the user is in all betas
@@ -781,17 +781,17 @@ describe('Sidebar', () => {
             const lastVisibleActionCreated = DateUtils.getDBTime();
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2]),
-                lastMessageHtml: 'message from report 1',
+                lastMessageText: 'message from report 1',
                 lastVisibleActionCreated,
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4]),
-                lastMessageHtml: 'message from report 2',
+                lastMessageText: 'message from report 2',
                 lastVisibleActionCreated,
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6]),
-                lastMessageHtml: 'message from report 3',
+                lastMessageText: 'message from report 3',
                 lastVisibleActionCreated,
             };
 
