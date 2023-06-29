@@ -182,7 +182,7 @@ class ReportActionCompose extends React.Component {
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
-        this.debouncedUpdateFrequentlyUsedEmojis = this.debouncedUpdateFrequentlyUsedEmojis.bind(this);
+        this.debouncedUpdateFrequentlyUsedEmojis = _.debounce(this.debouncedUpdateFrequentlyUsedEmojis.bind(this), 1000, false);
         this.comment = props.comment;
         this.insertedEmojis = [];
 
