@@ -2014,7 +2014,7 @@ function getChatByParticipants(newParticipantList) {
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads
  * @param {String} accountID
- * @returns {boolean|undefined}
+ * @returns {boolean}
  */
 function getChatByParticipantInclude(accountID) {
     return !_.isEmpty(
