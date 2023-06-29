@@ -54,7 +54,7 @@ function NavigationRoot(props) {
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
 
-    const {updateCurrentReportId} = useCurrentReportID();
+    const {updateCurrentReportID} = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
 
     const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
@@ -95,7 +95,7 @@ function NavigationRoot(props) {
             return;
         }
         navigationStateRef.current = state;
-        updateCurrentReportId(state);
+        updateCurrentReportID(state);
         parseAndLogRoute(state);
         animateStatusBarBackgroundColor();
     };
