@@ -12,6 +12,7 @@ type OnyxValues = {
     // TODO: Type persisted requests properly
     [ONYXKEYS.PERSISTED_REQUESTS]: unknown[];
     [ONYXKEYS.QUEUED_ONYX_UPDATES]: QueuedOnyxUpdates;
+    [ONYXKEYS.CURRENT_DATE]?: string;
 };
 
 export default OnyxValues;
