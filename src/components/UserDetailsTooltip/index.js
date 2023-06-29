@@ -15,8 +15,8 @@ import * as UserUtils from '../../libs/UserUtils';
 
 function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
-    let userDisplayName = userDetails.displayName ? userDetails.displayName.trim() : '';
-    let userLogin = (userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
+    let userDisplayName = (userDetails.displayName || '').trim();
+    let userLogin = (userDetails.login || '').trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
     let userAvatar = userDetails.avatar;
     let userAccountID = props.accountID;
 
@@ -24,7 +24,7 @@ function UserDetailsTooltip(props) {
     // the Copilot feature is implemented.
     if (props.delegateAccountID) {
         const delegateUserDetails = lodashGet(props.personalDetailsList, props.delegateAccountID, {});
-        const delegateUserDisplayName = delegateUserDetails.displayName ? delegateUserDetails.displayName.trim() : '';
+        const delegateUserDisplayName = (delegateUserDetails.displayName || '').trim();
         userDisplayName = `${delegateUserDisplayName} (${props.translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails.login;
         userAvatar = delegateUserDetails.avatar;
