@@ -65,7 +65,7 @@ function getReportID(route) {
 
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const participantAccountIDs = reportAction.originalMessage.participantAccountIDs || PersonalDetailsUtils.getAccountIDsByLogins(reportAction.originalMessage.participants);
+    const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
     const participants = OptionsListUtils.getParticipantsOptions(
         _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
         props.personalDetails,
