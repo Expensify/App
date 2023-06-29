@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
+import findKey from 'lodash/findKey';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -142,7 +143,15 @@ function AddressSearch(props) {
 
         // Make sure that the order of keys remains such that the country is always set above the state.
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
-        const {state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+        const {
+            country: countryAutoCompleteFallback = '',
+            state: stateAutoCompleteFallback = '',
+            city: cityAutocompleteFallback = '',
+        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+
+        const autoCompleteFallbackCountryCode = findKey(CONST.ALL_COUNTRIES, (country) => country === countryAutoCompleteFallback);
+
+        const countryWithFallback = country || autoCompleteFallbackCountryCode;
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
@@ -162,13 +171,13 @@ function AddressSearch(props) {
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
         // state / province in a TextInput instead of in a picker.
-        if (country !== CONST.COUNTRY.US) {
+        if (countryWithFallback !== CONST.COUNTRY.US) {
             values.state = longStateName;
         }
 
         // UK addresses return countries (e.g. England) in the state field (administrative_area_level_1)
         // So we use a secondary field (administrative_area_level_2) as a fallback
-        if (country === CONST.COUNTRY.GB) {
+        if (countryWithFallback === CONST.COUNTRY.GB) {
             values.state = stateFallback;
         }
 
@@ -178,9 +187,10 @@ function AddressSearch(props) {
             values.street += `, ${subpremise}`;
         }
 
-        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
+        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, countryWithFallback);
+
         if (isValidCountryCode) {
-            values.country = country;
+            values.country = countryWithFallback;
         }
 
         if (props.inputID) {
