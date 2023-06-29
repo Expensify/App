@@ -188,7 +188,6 @@ function AddressSearch(props) {
         }
 
         const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
-
         if (isValidCountryCode) {
             values.country = country;
         }
