@@ -758,6 +758,7 @@ function getWorkspaceIcon(report) {
         source: policyExpenseChatAvatarSource,
         type: CONST.ICON_TYPE_WORKSPACE,
         name: workspaceName,
+        id: -1,
     };
     return workspaceIcon;
 }
@@ -797,7 +798,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
-        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', '');
+        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', -1);
         const actorIcon = {
             id: actorAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
@@ -829,6 +830,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             source: policyExpenseChatAvatarSource,
             type: CONST.ICON_TYPE_WORKSPACE,
             name: domainName,
+            id: -1,
         };
         return [domainIcon];
     }
