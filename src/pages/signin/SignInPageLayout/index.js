@@ -11,8 +11,7 @@ import SignInPageHero from '../SignInPageHero';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import scrollViewContentContainerStyles from './signInPageStyles';
 import themeColors from '../../../styles/themes/default';
-import SignInHeroBackgroundImage from '../../../../assets/images/home-background--desktop.svg';
-import MobileBackgroundImage from './MobileBackgroundImage';
+import BackgroundImage from './BackgroundImage';
 import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';
 
@@ -78,7 +77,8 @@ function SignInPageLayout(props) {
                     >
                         <View style={[styles.flex1]}>
                             <View style={styles.signInPageHeroCenter}>
-                                <SignInHeroBackgroundImage
+                                <BackgroundImage
+                                    isSmallScreen={props.isSmallScreenWidth}
                                     pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
                                 />
@@ -112,7 +112,8 @@ function SignInPageLayout(props) {
                     ref={scrollViewRef}
                 >
                     <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
-                        <MobileBackgroundImage
+                        <BackgroundImage
+                            isSmallScreen={props.isSmallScreenWidth}
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
                             style={styles.signInBackgroundMobile}
