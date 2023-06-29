@@ -29,6 +29,8 @@ import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -49,6 +51,11 @@ const propTypes = {
         guideCalendarLink: PropTypes.string,
     }),
 
+    /** Current user session */
+    session: PropTypes.shape({
+        accountID: PropTypes.number,
+    }),
+
     /** The report actions from the parent report */
     // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
     // eslint-disable-next-line react/no-unused-prop-types
@@ -66,22 +73,25 @@ const defaultProps = {
         guideCalendarLink: null,
     },
     parentReport: {},
+    session: {
+        accountID: 0,
+    },
 };
 
-const HeaderView = (props) => {
-    const participants = lodashGet(props.report, 'participants', []);
-    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails);
+function HeaderView(props) {
+    const participants = lodashGet(props.report, 'participantAccountIDs', []);
+    const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
     const isThread = ReportUtils.isThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const reportHeaderData = (isTaskReport || !isThread) && props.report.parentReportID ? props.parentReport : props.report;
+    const reportHeaderData = !isTaskReport && !isThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
-    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData, props.parentReport);
-    const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
-    const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyEmails(participants);
+    const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
+    const isConcierge = participants.length === 1 && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
+    const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
@@ -89,7 +99,8 @@ const HeaderView = (props) => {
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
     if (isTaskReport) {
-        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN) {
+        const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID);
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsDone'),
@@ -98,7 +109,7 @@ const HeaderView = (props) => {
         }
 
         // Task is marked as completed
-        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED) {
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
                 text: props.translate('newTaskPage.markAsIncomplete'),
@@ -107,7 +118,7 @@ const HeaderView = (props) => {
         }
 
         // Task is not closed
-        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED) {
+        if (props.report.stateNum !== CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum !== CONST.REPORT.STATUS.CLOSED && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Trashcan,
                 text: props.translate('common.cancel'),
@@ -176,12 +187,31 @@ const HeaderView = (props) => {
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
                                 {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
-                                    <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
-                                        numberOfLines={1}
-                                    >
-                                        {subtitle}
-                                    </Text>
+                                    <>
+                                        {isThread ? (
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                                                }}
+                                                accessibilityLabel={subtitle}
+                                                accessibilityRole="link"
+                                            >
+                                                <Text
+                                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {subtitle}
+                                                </Text>
+                                            </PressableWithoutFeedback>
+                                        ) : (
+                                            <Text
+                                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                numberOfLines={1}
+                                            >
+                                                {subtitle}
+                                            </Text>
+                                        )}
+                                    </>
                                 )}
                             </View>
                             {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
@@ -213,7 +243,7 @@ const HeaderView = (props) => {
             </View>
         </View>
     );
-};
+}
 HeaderView.propTypes = propTypes;
 HeaderView.displayName = 'HeaderView';
 HeaderView.defaultProps = defaultProps;
@@ -236,6 +266,9 @@ export default compose(
         },
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID || report.reportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(HeaderView);

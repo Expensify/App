@@ -65,11 +65,11 @@ const defaultProps = {
     shouldUseCardBackground: false,
 };
 
-const MultipleAvatars = (props) => {
+function MultipleAvatars(props) {
     let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
     const singleAvatarStyles = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
-    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [];
+    const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
 
     if (!props.icons.length) {
         return null;
@@ -78,7 +78,7 @@ const MultipleAvatars = (props) => {
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
         return (
             <UserDetailsTooltip
-                accountID={ReportUtils.getAccountIDForLogin(props.icons[0].name)}
+                accountID={props.icons[0].id}
                 fallbackUserDetails={{
                     displayName: ReportUtils.getDisplayNameForParticipant(props.icons[0].name),
                     login: lodashGet(props.icons[0], 'name', tooltipTexts[0]),
@@ -124,7 +124,7 @@ const MultipleAvatars = (props) => {
                     {_.map([...props.icons].splice(0, 4), (icon, index) => (
                         <UserDetailsTooltip
                             key={`stackedAvatars-${index}`}
-                            accountID={ReportUtils.getAccountIDForLogin(icon.name)}
+                            accountID={icon.id}
                         >
                             <View
                                 style={[
@@ -183,7 +183,7 @@ const MultipleAvatars = (props) => {
                 </>
             ) : (
                 <View style={singleAvatarStyles}>
-                    <UserDetailsTooltip accountID={ReportUtils.getAccountIDForLogin(props.icons[0].name)}>
+                    <UserDetailsTooltip accountID={props.icons[0].id}>
                         {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                         <View>
                             <Avatar
@@ -198,7 +198,7 @@ const MultipleAvatars = (props) => {
                     </UserDetailsTooltip>
                     <View style={secondAvatarStyles}>
                         {props.icons.length === 2 ? (
-                            <UserDetailsTooltip accountID={ReportUtils.getAccountIDForLogin(props.icons[1].name)}>
+                            <UserDetailsTooltip accountID={props.icons[1].id}>
                                 <View>
                                     <Avatar
                                         source={props.icons[1].source || props.fallbackIcon}
@@ -227,7 +227,7 @@ const MultipleAvatars = (props) => {
             )}
         </View>
     );
-};
+}
 
 MultipleAvatars.defaultProps = defaultProps;
 MultipleAvatars.propTypes = propTypes;

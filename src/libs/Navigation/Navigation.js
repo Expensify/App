@@ -17,11 +17,6 @@ const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
-let resolveReportScreenIsReadyPromise;
-let reportScreenIsReadyPromise = new Promise((resolve) => {
-    resolveReportScreenIsReadyPromise = resolve;
-});
-
 let pendingRoute = null;
 
 /**
@@ -141,7 +136,7 @@ function dismissModal(targetReportID) {
             action.type = 'REPLACE';
             navigationRef.current.dispatch(action);
         } else {
-            navigationRef.current.dispatch(StackActions.pop());
+            navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
         }
     } else {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
@@ -153,7 +148,8 @@ function dismissModal(targetReportID) {
  * @returns {String}
  */
 function getActiveRoute() {
-    const currentRouteHasName = navigationRef.current && navigationRef.current.getCurrentRoute().name;
+    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
     if (!currentRouteHasName) {
         return '';
     }
@@ -219,20 +215,6 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-function resetIsReportScreenReadyPromise() {
-    reportScreenIsReadyPromise = new Promise((resolve) => {
-        resolveReportScreenIsReadyPromise = resolve;
-    });
-}
-
-function isReportScreenReady() {
-    return reportScreenIsReadyPromise;
-}
-
-function setIsReportScreenIsReady() {
-    resolveReportScreenIsReadyPromise();
-}
-
 export default {
     canNavigate,
     navigate,
@@ -244,9 +226,6 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getReportIDFromRoute,
-    resetIsReportScreenReadyPromise,
-    isReportScreenReady,
-    setIsReportScreenIsReady,
     getTopmostReportId,
 };
 

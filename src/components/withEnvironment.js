@@ -7,6 +7,9 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 const environmentPropTypes = {
     /** The string value representing the current environment */
     environment: PropTypes.string.isRequired,
+
+    /** The string value representing the URL of the current environment */
+    environmentURL: PropTypes.string.isRequired,
 };
 
 export default function (WrappedComponent) {
@@ -16,12 +19,16 @@ export default function (WrappedComponent) {
 
             this.state = {
                 environment: CONST.ENVIRONMENT.PRODUCTION,
+                environmentURL: CONST.NEW_EXPENSIFY_URL,
             };
         }
 
         componentDidMount() {
             Environment.getEnvironment().then((environment) => {
                 this.setState({environment});
+            });
+            Environment.getEnvironmentURL().then((environmentURL) => {
+                this.setState({environmentURL});
             });
         }
 
@@ -32,6 +39,7 @@ export default function (WrappedComponent) {
                     {...this.props}
                     ref={this.props.forwardedRef}
                     environment={this.state.environment}
+                    environmentURL={this.state.environmentURL}
                 />
             );
         }

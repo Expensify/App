@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-// eslint-disable-next-line no-restricted-imports
-import {View, TouchableOpacity, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -22,15 +21,13 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withNetwork} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -53,6 +50,8 @@ import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
+import * as IOU from '../../../libs/actions/IOU';
+import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Beta features list */
@@ -146,13 +145,14 @@ const {RNTextInputReset} = NativeModules;
  * @returns {Number}
  */
 const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
-    // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
-    const emojiRowCount = isAutoSuggestionPickerLarge
-        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+    // rowCount is number of emoji/mention suggestions. For small screen we can fit 3 items
+    // and for large we show up to 20 items for mentions/emojis
+    const rowCount = isAutoSuggestionPickerLarge
+        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS)
+        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_SUGGESTIONS);
 
     // -1 because we start at 0
-    return emojiRowCount - 1;
+    return rowCount - 1;
 };
 
 class ReportActionCompose extends React.Component {
@@ -244,6 +244,10 @@ class ReportActionCompose extends React.Component {
                 routes: lodashGet(this.props.navigation.getState(), 'routes', []),
                 showPopoverMenu: this.showPopoverMenu,
             });
+        }
+
+        if (this.props.comment.length !== 0) {
+            Report.setReportWithDraft(this.props.reportID, true);
         }
     }
 
@@ -370,20 +374,20 @@ class ReportActionCompose extends React.Component {
             [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: this.props.translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: this.props.translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
         };
-        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), (option) => options[option]);
+        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), (option) => ({
+            ...options[option],
+            onSelected: () => IOU.startMoneyRequest(option, this.props.report.reportID),
+        }));
     }
 
     /**
@@ -415,7 +419,7 @@ class ReportActionCompose extends React.Component {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
         if (
             !Permissions.canUseTasks(this.props.betas) ||
-            (lodashGet(this.props.report, 'participants', []).length === 1 && _.some(reportParticipants, (email) => _.contains(CONST.EXPENSIFY_EMAILS, email)))
+            (lodashGet(this.props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
         ) {
             return [];
         }
@@ -452,6 +456,10 @@ class ReportActionCompose extends React.Component {
         }
 
         const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+            // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
+            if (!detail.login) {
+                return false;
+            }
             if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
                 return false;
             }
@@ -459,7 +467,7 @@ class ReportActionCompose extends React.Component {
         });
 
         const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
-        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
+        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
             suggestions.push({
                 text: detail.displayName,
                 alternateText: detail.login,
@@ -659,11 +667,11 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, `${emoji} `));
         this.setState((prevState) => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
+                end: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
             },
         }));
     }
@@ -718,7 +726,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.preferredSkinTone);
 
         if (!_.isEmpty(emojis)) {
             User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
@@ -893,11 +901,11 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
-        const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
-        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participantAccountIDs', []), this.props.currentUserPersonalDetails.accountID);
+        const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
+        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
         const shouldShowReportRecipientLocalTime =
-            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.login) && !this.props.isComposerFullSize;
+            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.accountID) && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
@@ -949,12 +957,12 @@ class ReportActionCompose extends React.Component {
                                                     style={[
                                                         styles.dFlex,
                                                         styles.flexColumn,
-                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
                                                     ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
                                                         <Tooltip text={this.props.translate('reportActionCompose.collapse')}>
-                                                            <TouchableOpacity
+                                                            <PressableWithFeedback
                                                                 onPress={(e) => {
                                                                     e.preventDefault();
                                                                     this.setShouldShowSuggestionMenuToFalse();
@@ -964,14 +972,16 @@ class ReportActionCompose extends React.Component {
                                                                 onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
+                                                                accessibilityRole="button"
+                                                                accessibilityLabel={this.props.translate('reportActionCompose.collapse')}
                                                             >
                                                                 <Icon src={Expensicons.Collapse} />
-                                                            </TouchableOpacity>
+                                                            </PressableWithFeedback>
                                                         </Tooltip>
                                                     )}
                                                     {!this.props.isComposerFullSize && isFullComposerAvailable && (
                                                         <Tooltip text={this.props.translate('reportActionCompose.expand')}>
-                                                            <TouchableOpacity
+                                                            <PressableWithFeedback
                                                                 onPress={(e) => {
                                                                     e.preventDefault();
                                                                     this.setShouldShowSuggestionMenuToFalse();
@@ -981,13 +991,15 @@ class ReportActionCompose extends React.Component {
                                                                 onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
+                                                                accessibilityRole="button"
+                                                                accessibilityLabel={this.props.translate('reportActionCompose.expand')}
                                                             >
                                                                 <Icon src={Expensicons.Expand} />
-                                                            </TouchableOpacity>
+                                                            </PressableWithFeedback>
                                                         </Tooltip>
                                                     )}
                                                     <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
-                                                        <TouchableOpacity
+                                                        <PressableWithFeedback
                                                             ref={(el) => (this.actionButton = el)}
                                                             onPress={(e) => {
                                                                 e.preventDefault();
@@ -998,9 +1010,11 @@ class ReportActionCompose extends React.Component {
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
+                                                            accessibilityRole="button"
+                                                            accessibilityLabel={this.props.translate('reportActionCompose.addAction')}
                                                         >
                                                             <Icon src={Expensicons.Plus} />
-                                                        </TouchableOpacity>
+                                                        </PressableWithFeedback>
                                                     </Tooltip>
                                                 </View>
                                                 <PopoverMenu
@@ -1121,22 +1135,18 @@ class ReportActionCompose extends React.Component {
                             onMouseDown={(e) => e.preventDefault()}
                         >
                             <Tooltip text={this.props.translate('common.send')}>
-                                <TouchableOpacity
+                                <PressableWithFeedback
                                     style={[styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                     onPress={this.submitForm}
                                     disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
-                                    hitSlop={{
-                                        top: 3,
-                                        right: 3,
-                                        bottom: 3,
-                                        left: 3,
-                                    }}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={this.props.translate('common.send')}
                                 >
                                     <Icon
                                         src={Expensicons.Send}
                                         fill={this.state.isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
                                     />
-                                </TouchableOpacity>
+                                </PressableWithFeedback>
                             </Tooltip>
                         </View>
                     </View>
@@ -1218,7 +1228,6 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withNetwork(),
-    withPersonalDetails(),
     withCurrentUserPersonalDetails,
     withKeyboardState,
     withOnyx({
@@ -1242,7 +1251,7 @@ export default compose(
             selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
