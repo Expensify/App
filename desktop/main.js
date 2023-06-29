@@ -282,14 +282,14 @@ const mainWindow = () => {
                 const initialMenuTemplate = [
                     {
                         id: 'mainMenu',
-                        label: 'New Expensify',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
                         submenu: [
                             {id: 'about', role: 'about'},
-                            {id: 'update', label: 'Update new Expensify', click: quitAndInstallWithUpdate, visible: false},
-                            {id: 'checkForUpdates', label: 'Check for updates', click: manuallyCheckForUpdates},
+                            {id: 'update', label: Localize.translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
+                            {id: 'checkForUpdates', label: Localize.translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
-                                label: 'View keyboard shortcuts',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
                                 accelerator: 'CmdOrCtrl+I',
                                 click: () => {
                                     showKeyboardShortcutsModal(browserWindow);
@@ -307,12 +307,12 @@ const mainWindow = () => {
                     },
                     {
                         id: 'fileMenu',
-                        label: 'File',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.fileMenu`),
                         submenu: [{id: 'closeWindow', role: 'close', accelerator: 'Cmd+w'}],
                     },
                     {
                         id: 'editMenu',
-                        label: 'Edit',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.editMenu`),
                         submenu: [
                             {id: 'undo', role: 'undo'},
                             {id: 'redo', role: 'redo'},
@@ -326,7 +326,7 @@ const mainWindow = () => {
                             {type: 'separator'},
                             {
                                 id: 'speechSubmenu',
-                                label: 'Speech',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.speechSubmenu`),
                                 submenu: [
                                     {id: 'startSpeaking', role: 'startSpeaking'},
                                     {id: 'stopSpeaking', role: 'stopSpeaking'},
@@ -336,7 +336,7 @@ const mainWindow = () => {
                     },
                     {
                         id: 'viewMenu',
-                        label: 'View',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewMenu`),
                         submenu: [
                             {id: 'reload', role: 'reload'},
                             {id: 'forceReload', role: 'forceReload'},
@@ -350,7 +350,7 @@ const mainWindow = () => {
                     },
                     {
                         id: 'historyMenu',
-                        label: 'History',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.historyMenu`),
                         submenu: [
                             {
                                 id: 'back',
@@ -376,13 +376,13 @@ const mainWindow = () => {
                     },
                     {
                         id: 'helpMenu',
-                        label: 'Help',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
                         role: 'help',
                         submenu: [
-                            {id: 'learnMore', label: 'Learn more'},
-                            {id: 'documentation', label: 'Documentation'},
-                            {id: 'communityDiscissions', label: 'Community Discussions'},
-                            {id: 'searchIssues', label: 'Search Issues'},
+                            {id: 'learnMore', label: Localize.translate(preferredLocale, `desktopApplicationMenu.learnMore`)},
+                            {id: 'documentation', label: Localize.translate(preferredLocale, `desktopApplicationMenu.documentation`)},
+                            {id: 'communityDiscissions', label: Localize.translate(preferredLocale, `desktopApplicationMenu.communityDiscissions`)},
+                            {id: 'searchIssues', label: Localize.translate(preferredLocale, `desktopApplicationMenu.searchIssues`)},
                         ],
                     },
                 ];
