@@ -147,24 +147,55 @@ module.exports = CONST;
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(3571);
-const {spawn} = __nccwpck_require__(3129);
+const {spawn, execSync} = __nccwpck_require__(3129);
+const CONST = __nccwpck_require__(4097);
 const sanitizeStringForJSONParse = __nccwpck_require__(9338);
 
 /**
- * Get merge logs between two refs (inclusive) as a JavaScript object.
- *
- * @param {String} fromRef
- * @param {String} toRef
- * @returns {Promise<Object<{commit: String, subject: String}>>}
+ * @param {String} tag
  */
-function getMergeLogsAsJSON(fromRef, toRef) {
-    const command = `git log --format='{"commit": "%H", "subject": "%s"},' ${fromRef}...${toRef}`;
-    console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
-    console.log('Running command: ', command);
+// eslint-disable-next-line no-unused-vars
+function fetchTagIfNeeded(tag) {
+    try {
+        console.log(`Checking if tag ${tag} exists locally`);
+        const command = `git rev-parse --verify ${tag}`;
+        console.log(`Running command: ${command}`);
+        const result = execSync(command).toString();
+        console.log(result);
+    } catch (e) {
+        console.log(`Tag ${tag} not found locally, attempting to fetch it.`);
+        let command = `git fetch origin tag ${tag} --no-tags`;
+        console.log(`Running command: ${command}`);
+        let result = execSync(command).toString();
+        console.log(result);
+        console.log('Verifying that the tag is now available...');
+        command = `git rev-parse --verify ${tag}`;
+        console.log(`Running command: ${command}`);
+        result = execSync(command).toString();
+        console.log(result);
+    }
+}
+
+/**
+ * Get merge logs between two tags (inclusive) as a JavaScript object.
+ *
+ * @param {String} fromTag
+ * @param {String} toTag
+ * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
+ */
+function getCommitHistoryAsJSON(fromTag, toTag) {
+    // fetchTagIfNeeded(fromTag);
+    // fetchTagIfNeeded(toTag);
+    // Note: this is a temporary measure until we can figure out a faster way to fetch only what's needed
+    execSync('git fetch --all --tags');
+
+    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
         let stdout = '';
         let stderr = '';
-        const spawnedProcess = spawn('git', ['log', '--format={"commit": "%H", "subject": "%s"},', `${fromRef}...${toRef}`]);
+        const args = ['log', '--format={"commit": "%H", "authorName": "%an", "subject": "%s"},', `${fromTag}...${toTag}`];
+        console.log(`Running command: git ${args.join(' ')}`);
+        const spawnedProcess = spawn('git', args);
         spawnedProcess.on('message', console.log);
         spawnedProcess.stdout.on('data', (chunk) => {
             console.log(chunk.toString());
@@ -196,65 +227,52 @@ function getMergeLogsAsJSON(fromRef, toRef) {
 /**
  * Parse merged PRs, excluding those from irrelevant branches.
  *
- * @param {Array<String>} commitMessages
+ * @param {Array<Object<{commit: String, subject: String, authorName: String}>>} commits
  * @returns {Array<String>}
  */
-function getValidMergedPRs(commitMessages) {
-    return _.reduce(
-        commitMessages,
-        (mergedPRs, commitMessage) => {
-            if (!_.isString(commitMessage)) {
-                return mergedPRs;
-            }
+function getValidMergedPRs(commits) {
+    const mergedPRs = new Set();
+    _.each(commits, (commit) => {
+        const author = commit.authorName;
+        if (author === CONST.OS_BOTIFY) {
+            return;
+        }
 
-            const match = commitMessage.match(/Merge pull request #(\d+) from (?!Expensify\/(?:main|version-|update-staging-from-main|update-production-from-staging))/);
-            if (!_.isNull(match) && match[1]) {
-                mergedPRs.push(match[1]);
-            }
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        if (!_.isArray(match) || match.length < 2) {
+            return;
+        }
 
-            return mergedPRs;
-        },
-        [],
-    );
+        const pr = match[1];
+        if (mergedPRs.has(pr)) {
+            // If a PR shows up in the log twice, that means that the PR was deployed in the previous checklist.
+            // That also means that we don't want to include it in the current checklist, so we remove it now.
+            mergedPRs.delete(pr);
+            return;
+        }
+
+        mergedPRs.add(pr);
+    });
+
+    return Array.from(mergedPRs);
 }
 
 /**
- * Takes in two git refs and returns a list of PR numbers of all PRs merged between those two refs
+ * Takes in two git tags and returns a list of PR numbers of all PRs merged between those two tags
  *
- * @param {String} fromRef
- * @param {String} toRef
+ * @param {String} fromTag
+ * @param {String} toTag
  * @returns {Promise<Array<String>>} – Pull request numbers
  */
-function getPullRequestsMergedBetween(fromRef, toRef) {
-    let targetMergeList;
-    return getMergeLogsAsJSON(fromRef, toRef)
-        .then((mergeList) => {
-            console.log(`Commits made between ${fromRef} and ${toRef}:`, mergeList);
-            targetMergeList = mergeList;
+function getPullRequestsMergedBetween(fromTag, toTag) {
+    return getCommitHistoryAsJSON(fromTag, toTag).then((commitList) => {
+        console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
-            // Get the full history on this branch, inclusive of the oldest commit from our target comparison
-            const oldestCommit = _.last(mergeList).commit;
-            return getMergeLogsAsJSON(oldestCommit, 'HEAD');
-        })
-        .then((fullMergeList) => {
-            // Remove from the final merge list any commits whose message appears in the full merge list more than once.
-            // This indicates that the PR should not be included in our list because it is a duplicate, and thus has already been processed by our CI
-            // See https://github.com/Expensify/App/issues/4977 for details
-            const duplicateMergeList = _.chain(fullMergeList)
-                .groupBy('subject')
-                .values()
-                .filter((i) => i.length > 1)
-                .flatten()
-                .pluck('commit')
-                .value();
-            const finalMergeList = _.filter(targetMergeList, (i) => !_.contains(duplicateMergeList, i.commit));
-            console.log('Filtered out the following commits which were duplicated in the full git log:', _.difference(targetMergeList, finalMergeList));
-
-            // Find which commit messages correspond to merged PR's
-            const pullRequestNumbers = getValidMergedPRs(_.pluck(finalMergeList, 'subject'));
-            console.log(`List of pull requests merged between ${fromRef} and ${toRef}`, pullRequestNumbers);
-            return pullRequestNumbers;
-        });
+        // Find which commit messages correspond to merged PR's
+        const pullRequestNumbers = getValidMergedPRs(commitList);
+        console.log(`List of pull requests merged between ${fromTag} and ${toTag}`, pullRequestNumbers);
+        return pullRequestNumbers;
+    });
 }
 
 module.exports = {
@@ -503,9 +521,6 @@ class GithubUtils {
     ) {
         return this.fetchAllPullRequests(_.map(PRList, this.getPullRequestNumberFromURL))
             .then((data) => {
-                const automatedPRs = _.pluck(_.filter(data, GithubUtils.isAutomatedPullRequest), 'html_url');
-                console.log('Filtering out the following automated pull requests:', automatedPRs);
-
                 // The format of this map is following:
                 // {
                 //    'https://github.com/Expensify/App/pull/9641': [ 'PauloGasparSv', 'kidroca' ],
@@ -529,7 +544,7 @@ class GithubUtils {
                 console.log('Found the following NO QA PRs:', noQAPRs);
                 const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
 
-                const sortedPRList = _.chain(PRList).difference(automatedPRs).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
+                const sortedPRList = _.chain(PRList).difference(_.keys(internalQAPRMap)).unique().sortBy(GithubUtils.getPullRequestNumberFromURL).value();
                 const sortedDeployBlockers = _.sortBy(_.unique(deployBlockers), GithubUtils.getIssueOrPullRequestNumberFromURL);
 
                 // Tag version and comparison URL
@@ -586,7 +601,7 @@ class GithubUtils {
                 issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;
             })
-            .catch((err) => console.warn('Error generating StagingDeployCash issue body!', 'Automated PRs may not be properly filtered out. Continuing...', err));
+            .catch((err) => console.warn('Error generating StagingDeployCash issue body! Continuing...', err));
     }
 
     /**
@@ -764,16 +779,6 @@ class GithubUtils {
             throw new Error(`Provided URL ${URL} is not a valid Github Issue or Pull Request!`);
         }
         return Number.parseInt(matches[1], 10);
-    }
-
-    /**
-     * Determine if a given pull request is an automated PR.
-     *
-     * @param {Object} pullRequest
-     * @returns {Boolean}
-     */
-    static isAutomatedPullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), CONST.OS_BOTIFY);
     }
 
     /**

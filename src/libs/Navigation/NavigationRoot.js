@@ -8,7 +8,7 @@ import AppNavigator from './AppNavigator';
 import themeColors from '../../styles/themes/default';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
-import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../components/withCurrentReportId';
+import withCurrentReportID, {withCurrentReportIDPropTypes} from '../../components/withCurrentReportID';
 import compose from '../compose';
 
 // https://reactnavigation.org/docs/themes
@@ -28,7 +28,7 @@ const propTypes = {
 
     /** Fired when react-navigation is ready */
     onReady: PropTypes.func.isRequired,
-    ...withCurrentReportIdPropTypes,
+    ...withCurrentReportIDPropTypes,
 };
 
 /**
@@ -61,7 +61,7 @@ function NavigationRoot(props) {
             return;
         }
         navigationStateRef.current = state;
-        props.updateCurrentReportId(state);
+        props.updateCurrentReportID(state);
         parseAndLogRoute(state);
     };
 
@@ -85,4 +85,4 @@ function NavigationRoot(props) {
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;
-export default compose(withWindowDimensions, withCurrentReportId)(NavigationRoot);
+export default compose(withWindowDimensions, withCurrentReportID)(NavigationRoot);
