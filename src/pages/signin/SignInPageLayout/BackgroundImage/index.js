@@ -5,15 +5,14 @@ import DesktopBackgroundImage from '../../../../../assets/images/home-background
 
 const defaultProps = {
     isSmallScreen: false,
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: [],
 };
 
 const propTypes = {
     isSmallScreen: PropTypes.bool,
     pointerEvents: PropTypes.string.isRequired,
     width: PropTypes.number.isRequired,
-    // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
 };
 function BackgroundImage(props) {
     return props.isSmallScreen ? (
