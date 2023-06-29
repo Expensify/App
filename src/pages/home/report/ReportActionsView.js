@@ -353,7 +353,7 @@ class ReportActionsView extends React.Component {
                     isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
                     loadMoreChats={this.loadMoreChats}
                     newMarkerReportActionID={this.state.newMarkerReportActionID}
-                	policy={this.props.policy}
+                    policy={this.props.policy}
                 />
 
                 <PopoverReactionList

@@ -348,7 +348,7 @@ class ReportScreen extends React.Component {
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
-                                        policies={this.props.policies}
+                                        policy={policy}
                                     />
                                 </>
                             )}
