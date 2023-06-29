@@ -235,4 +235,4 @@ export default {
 
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
-};
+} as const;
