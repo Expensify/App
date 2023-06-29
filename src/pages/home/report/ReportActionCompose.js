@@ -211,6 +211,9 @@ class ReportActionCompose extends React.Component {
         // so we need to ensure that it is only updated after focus.
         const isMobileSafari = Browser.isMobileSafari();
 
+        this.unsubscribeBlur = () => null;
+        this.unsubscribeFocus = () => null;
+
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible && this.props.shouldShowComposeInput,
             isFullComposerAvailable: props.isComposerFullSize,
@@ -244,8 +247,10 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
+        this.unsubscribeFocus = this.props.navigation.addListener('focus', () => KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress));
+        this.unsubscribeBlur = this.props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress));
+        
         KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
-
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -284,7 +289,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+        
         KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress);
+        this.unsubscribeBlur();
+        this.unsubscribeFocus();
     }
 
     onSelectionChange(e) {
@@ -691,9 +699,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Boolean}
      */
     checkComposerVisibility() {
-        const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(Navigation.getActiveRoute());
-        const isMainReportScreen = Boolean(reportID) && !isSubReportPageRoute;
-        const isComposerCoveredUp = !isMainReportScreen || EmojiPickerActions.isEmojiPickerVisible() || this.state.isMenuVisible;
+        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || this.state.isMenuVisible;
         return !isComposerCoveredUp;
     }
 

@@ -16,6 +16,7 @@ import styles from '../../styles/styles';
 import Text from '../Text';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 import CONST from '../../CONST';
+import withNavigation from '../withNavigation';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -137,7 +138,6 @@ class Composer extends React.Component {
                 end: initialValue.length,
             },
             valueBeforeCaret: '',
-            isFocused: false,
         };
 
         this.paste = this.paste.bind(this);
@@ -148,6 +148,8 @@ class Composer extends React.Component {
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
         this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
         this.textRef = React.createRef(null);
+        this.unsubscribeBlur = () => null;
+        this.unsubscribeFocus = () => null;
     }
 
     componentDidMount() {
@@ -164,8 +166,15 @@ class Composer extends React.Component {
         // There is no onPaste or onDrag for TextInput in react-native so we will add event
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
-            document.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
+            
+            // we need to handle listeners on navigation focus/blur as Composer is not unmounting
+            // when navigating away to different report 
+            this.unsubscribeFocus = this.props.navigation.addListener('focus', () => document.addEventListener('paste', this.handlePaste));
+            this.unsubscribeBlur = this.props.navigation.addListener('blur', () => document.removeEventListener('paste', this.handlePaste));
+            
+            // focus is not triggered on component mount so we need to add listener manually
+            document.addEventListener('paste', this.handlePaste);
         }
     }
 
@@ -198,7 +207,9 @@ class Composer extends React.Component {
             return;
         }
 
-        this.textInput.removeEventListener('paste', this.handlePaste);
+        document.removeEventListener('paste', this.handlePaste);
+        this.unsubscribeFocus();
+        this.unsubscribeBlur();
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
@@ -471,18 +482,6 @@ class Composer extends React.Component {
                     numberOfLines={this.state.numberOfLines}
                     disabled={this.props.isDisabled}
                     onKeyPress={this.handleKeyPress}
-                    onFocus={() => {
-                        if (this.props.onFocus) {
-                            this.props.onFocus();
-                        }
-                        this.setState({isFocused: true});
-                    }}
-                    onBlur={() => {
-                        if (this.props.onBlur) {
-                            this.props.onBlur();
-                        }
-                        this.setState({isFocused: false});
-                    }}
                 />
                 {this.props.shouldCalculateCaretPosition && renderElementForCaretPosition}
             </>
@@ -496,6 +495,7 @@ Composer.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNavigation,
 )(
     React.forwardRef((props, ref) => (
         <Composer
