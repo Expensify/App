@@ -23,7 +23,7 @@ export default function (WrappedComponent) {
             PropTypes.shape({
                 /** The policy name */
                 name: PropTypes.string,
-    
+
                 /** The type of the policy */
                 type: PropTypes.string,
             }),
