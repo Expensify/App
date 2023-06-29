@@ -40,6 +40,12 @@ Onyx.connect({
     },
 });
 
+let loginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: (val) => (loginList = _.isEmpty(val) ? [] : _.keys(val)),
+});
+
 let preferredLocale = CONST.LOCALES.DEFAULT;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -220,7 +226,7 @@ function canEditReportAction(reportAction) {
  */
 function canFlagReportAction(reportAction) {
     return (
-        reportAction.actorEmail !== sessionEmail &&
+        !loginList.includes(reportAction.actorEmail) &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
@@ -376,13 +382,23 @@ function getBankAccountRoute(report) {
 }
 
 /**
+ * Returns true if report has a parent and is therefore a Thread.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isThread(report) {
+    return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
+}
+
+/**
  * Only returns true if this is our main 1:1 DM report with Concierge
  *
  * @param {Object} report
  * @returns {Boolean}
  */
 function isConciergeChatReport(report) {
-    return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE;
+    return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isThread(report);
 }
 
 /**
@@ -522,16 +538,6 @@ function isPolicyExpenseChatAdmin(report, policies) {
     const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']);
 
     return policyRole === CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
- * Returns true if report has a parent and is therefore a Thread.
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isThread(report) {
-    return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
 }
 
 /**
@@ -711,9 +717,11 @@ function getIconsForParticipants(participants, personalDetails) {
  * @param {Object} personalDetails
  * @param {*} [defaultIcon]
  * @param {Boolean} [isPayer]
+ * @param {String} [defaultName]
+ * @param {Number} [defaultAccountID]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) {
+function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '', defaultAccountID = undefined) {
     const result = {
         source: '',
         type: CONST.ICON_TYPE_AVATAR,
@@ -722,6 +730,8 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 
     if (_.isEmpty(report)) {
         result.source = defaultIcon || Expensicons.FallbackAvatar;
+        result.name = defaultName || '';
+        result.id = defaultAccountID;
         return [result];
     }
     if (isArchivedRoom(report)) {
@@ -985,6 +995,35 @@ function getTransactionReportName(reportAction) {
         formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
         comment: lodashGet(reportAction, 'originalMessage.comment'),
     });
+}
+
+/**
+ * Get money request message for an IOU report
+ *
+ * @param {Object} report
+ * @param {Object} reportAction
+ * @returns  {String}
+ */
+function getReportPreviewMessage(report, reportAction) {
+    const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
+
+    if (_.isEmpty(report) || !report.reportID) {
+        // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
+        // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
+        return reportActionMessage;
+    }
+
+    const totalAmount = getMoneyRequestTotal(report);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
+
+    if (isSettled(report.reportID)) {
+        // A settled message is in the format of either "paid $1.00 elsewhere" or "paid $1.00 using Paypal.me"
+        const isSettledPaypalMe = Boolean(reportActionMessage.match(/ Paypal.me$/));
+        const translatePhraseKey = isSettledPaypalMe ? 'iou.settledPaypalMeWithAmount' : 'iou.settledElsewhereWithAmount';
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
+    }
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
 
 /**
@@ -2041,6 +2080,24 @@ function chatIncludesChronos(report) {
 }
 
 /**
+ * Whether flag comment page should show
+ *
+ * @param {Object} reportAction
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+
+function shouldShowFlagComment(reportAction, report) {
+    return (
+        canFlagReportAction(reportAction) &&
+        !isArchivedRoom(report) &&
+        !chatIncludesChronos(report) &&
+        !isConciergeChatReport(report.reportID) &&
+        reportAction.actorEmail !== CONST.EMAIL.CONCIERGE
+    );
+}
+
+/**
  * @param {Object} report
  * @param {String} report.lastReadTime
  * @param {Array} sortedAndFilteredReportActions - reportActions for the report, sorted newest to oldest, and filtered for only those that should be visible
@@ -2296,6 +2353,7 @@ export {
     findLastAccessedReport,
     canEditReportAction,
     canFlagReportAction,
+    shouldShowFlagComment,
     canDeleteReportAction,
     canLeaveRoom,
     sortReportsByLastRead,
@@ -2382,6 +2440,7 @@ export {
     getMoneyRequestAction,
     getBankAccountRoute,
     getParentReport,
+    getReportPreviewMessage,
     shouldHideComposer,
     getOriginalReportID,
 };
