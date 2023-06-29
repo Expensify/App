@@ -1,4 +1,4 @@
-import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef, useContext} from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -13,6 +13,7 @@ import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
 import * as Browser from '../libs/Browser';
+import SafeToFocusContext from '../pages/home/ReportScreenContext';
 
 const propTypes = {
     /** Information about the network */
@@ -96,6 +97,8 @@ const composeToString = (value) => _.map(value, (v) => (v === undefined || v ===
 const getInputPlaceholderSlots = (length) => Array.from(Array(length).keys());
 
 function MagicCodeInput(props) {
+    const {isSafeToAutoFocus} = useContext(SafeToFocusContext);
+
     const inputRefs = useRef([]);
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
@@ -346,6 +349,7 @@ function MagicCodeInput(props) {
                                 onFocus={onFocus}
                                 caretHidden={isMobileSafari}
                                 inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                                isSafeToAutoFocus={isSafeToAutoFocus}
                             />
                         </View>
                     </View>

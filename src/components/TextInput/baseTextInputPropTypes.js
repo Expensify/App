@@ -85,6 +85,8 @@ const propTypes = {
 
     /** Set the default value to the input if there is a valid saved value */
     shouldUseDefaultValue: PropTypes.bool,
+
+    isSafeToAutoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -121,6 +123,7 @@ const defaultProps = {
     icon: null,
     shouldUseDefaultValue: false,
     multiline: false,
+    isSafeToAutoFocus:true,
 };
 
 export {propTypes, defaultProps};

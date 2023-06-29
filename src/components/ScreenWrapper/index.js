@@ -19,6 +19,8 @@ import withWindowDimensions from '../withWindowDimensions';
 import withEnvironment from '../withEnvironment';
 import toggleTestToolsModal from '../../libs/actions/TestTool';
 import CustomDevMenu from '../CustomDevMenu';
+import SafeToFocusContext from '../../pages/home/ReportScreenContext';
+
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -81,53 +83,60 @@ class ScreenWrapper extends React.Component {
         const maxHeight = this.props.shouldEnableMaxHeight ? this.props.windowHeight : undefined;
 
         return (
-            <SafeAreaConsumer>
-                {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
-                    const paddingStyle = {};
-
-                    if (this.props.includePaddingTop) {
-                        paddingStyle.paddingTop = paddingTop;
-                    }
-
-                    // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                    if (this.props.includeSafeAreaPaddingBottom || this.props.network.isOffline) {
-                        paddingStyle.paddingBottom = paddingBottom;
-                    }
-
-                    return (
-                        <View
-                            style={[...this.props.style, styles.flex1, paddingStyle]}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
-                        >
-                            <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}]}
-                                behavior={this.props.keyboardAvoidingViewBehavior}
-                            >
-                                <PickerAvoidingView
-                                    style={styles.flex1}
-                                    enabled={this.props.shouldEnablePickerAvoiding}
-                                >
-                                    <HeaderGap />
-                                    {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
-                                    {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
-                                    {
-                                        // If props.children is a function, call it to provide the insets to the children.
-                                        _.isFunction(this.props.children)
-                                            ? this.props.children({
-                                                  insets,
-                                                  safeAreaPaddingBottomStyle,
-                                                  didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                              })
-                                            : this.props.children
-                                    }
-                                    {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator />}
-                                </PickerAvoidingView>
-                            </KeyboardAvoidingView>
-                        </View>
-                    );
+            <SafeToFocusContext.Provider
+                value={{
+                    isSafeToAutoFocus: this.state.didScreenTransitionEnd,
                 }}
-            </SafeAreaConsumer>
+            >
+                <SafeAreaConsumer>
+                    {({insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle}) => {
+                        const paddingStyle = {};
+
+                        if (this.props.includePaddingTop) {
+                            paddingStyle.paddingTop = paddingTop;
+                        }
+
+                        // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
+                        if (this.props.includeSafeAreaPaddingBottom || this.props.network.isOffline) {
+                            paddingStyle.paddingBottom = paddingBottom;
+                        }
+
+                        return (
+                            <View
+                                style={[...this.props.style, styles.flex1, paddingStyle]}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
+                            >
+                                <KeyboardAvoidingView
+                                    style={[styles.w100, styles.h100, {maxHeight}]}
+                                    behavior={this.props.keyboardAvoidingViewBehavior}
+                                >
+                                    <PickerAvoidingView
+                                        style={styles.flex1}
+                                        enabled={this.props.shouldEnablePickerAvoiding}
+                                    >
+                                        <HeaderGap />
+                                        {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
+                                        {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
+                                        {
+                                            // If props.children is a function, call it to provide the insets to the children.
+                                            _.isFunction(this.props.children)
+                                                ? this.props.children({
+                                                    insets,
+                                                    safeAreaPaddingBottomStyle,
+                                                    didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                                })
+                                                : this.props.children
+                                        }
+                                        {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator />}
+                                    </PickerAvoidingView>
+                                </KeyboardAvoidingView>
+                            </View>
+                        );
+                    }}
+                </SafeAreaConsumer>
+
+            </SafeToFocusContext.Provider>
         );
     }
 }

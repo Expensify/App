@@ -48,6 +48,8 @@ class BaseTextInput extends Component {
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
+        this.handleAutoFocus = this.handleAutoFocus.bind(this);
+
         this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
         this.dismissKeyboardWhenBackgrounded = this.dismissKeyboardWhenBackgrounded.bind(this);
         this.storePrefixLayoutDimensions = this.storePrefixLayoutDimensions.bind(this);
@@ -58,19 +60,15 @@ class BaseTextInput extends Component {
             this.appStateSubscription = AppState.addEventListener('change', this.dismissKeyboardWhenBackgrounded);
         }
 
-        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!this.props.autoFocus || !this.input) {
-            return;
-        }
-
-        if (this.props.shouldDelayFocus) {
-            this.focusTimeout = setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
-            return;
-        }
-        this.input.focus();
+        this.handleAutoFocus()
     }
 
     componentDidUpdate(prevProps) {
+
+        if (!prevProps.isSafeToAutoFocus && this.props.isSafeToAutoFocus) {
+            this.handleAutoFocus()
+        }
+
         // Activate or deactivate the label when value is changed programmatically from outside
         const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
         if ((_.isUndefined(inputValue) || this.state.value === inputValue) && _.isEqual(prevProps.selection, this.props.selection)) {
@@ -152,6 +150,24 @@ class BaseTextInput extends Component {
         this.setState({value});
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
+    }
+
+    handleAutoFocus() {
+        // this part is added
+        if (!this.props.isSafeToAutoFocus) {
+            return;
+        }
+        
+        // this part is the same as previous logic
+        if (!this.props.autoFocus || !this.input) {
+            return;
+        }
+    
+        if (this.props.shouldDelayFocus) {
+            this.focusTimeout = setTimeout(() => this.input.focus(), CONST.ANIMATED_TRANSITION);
+            return;
+        }
+        this.input.focus();
     }
 
     activateLabel() {
