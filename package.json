@@ -100,7 +100,7 @@
     "react-native-dev-menu": "^4.1.1",
     "react-native-device-info": "^10.6.0",
     "react-native-document-picker": "github:WoLewicki/react-native-document-picker#80b0ae1d0584ad8b3449955ff1f9a1ceb94552ed",
-    "react-native-fast-image": "github:WoLewicki/react-native-fast-image#09c56cec63d2951ba8692b3878151ee9423a6638",
+    "react-native-fast-image": "github:WoLewicki/react-native-fast-image#a22883fef5b2cce5b97bca8491a35ae0046b6c49",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "2.12.0",
     "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#6f436a06a3018cb49750bb110b89df75f6a865d5",
