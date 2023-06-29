@@ -101,7 +101,7 @@ function ProfilePage(props) {
         }
     }, [accountID]);
 
-    const details = lodashGet(props.personalDetails, accountID, {isLoading: ValidationUtils.isValidAccountRoute(accountID)});
+    const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
