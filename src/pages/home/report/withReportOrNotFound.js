@@ -18,6 +18,17 @@ export default function (WrappedComponent) {
         /** The report currently being looked at */
         report: reportPropTypes,
 
+        /** The policies which the user has access to */
+        policies: PropTypes.objectOf(
+            PropTypes.shape({
+                /** The policy name */
+                name: PropTypes.string,
+    
+                /** The type of the policy */
+                type: PropTypes.string,
+            }),
+        ),
+
         /** Beta features list */
         betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -28,6 +39,7 @@ export default function (WrappedComponent) {
     const defaultProps = {
         forwardedRef: () => {},
         report: {},
+        policies: {},
         betas: [],
         isLoadingReportData: true,
     };
@@ -74,6 +86,9 @@ export default function (WrappedComponent) {
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     })(withReportOrNotFound);
 }
