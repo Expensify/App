@@ -149,7 +149,8 @@ function ReportActionItem(props) {
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
 
-    const latestDecision = _.get(props, ['action', 'message', 0, 'moderationDecisions', 0, 'decision'], '');
+    const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
+    const latestDecision = lodashGet(_.last(decisions), 'decision', '');
     useEffect(() => {
         if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
             return;
