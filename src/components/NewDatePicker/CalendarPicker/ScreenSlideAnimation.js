@@ -21,9 +21,9 @@ const defaultProps = {
     testID: undefined,
 };
 
-const ScreenSlideAnimation = React.forwardRef(({children, testID, isSmallScreenWidth, windowHeight}, ref) => {
+const ScreenSlideAnimation = React.forwardRef(({children, testID, isSmallScreenWidth, windowWidth}, ref) => {
     const [visible, setVisible] = React.useState(false);
-    const width = isSmallScreenWidth ? windowHeight : variables.sideBarWidth;
+    const width = isSmallScreenWidth ? windowWidth : variables.sideBarWidth;
     const translateX = useSharedValue(width);
 
     React.useImperativeHandle(
@@ -53,7 +53,9 @@ const ScreenSlideAnimation = React.forwardRef(({children, testID, isSmallScreenW
 
     const animatedStyle = useAnimatedStyle(() => ({width, transform: [{translateX: translateX.value}]}), [translateX.value, width]);
 
-    if (!visible) return null;
+    if (!visible) {
+        return null;
+    }
 
     return (
         <Portal hostName="RigthModalNavigator">
