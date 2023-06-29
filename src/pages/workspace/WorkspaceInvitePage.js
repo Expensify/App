@@ -25,6 +25,7 @@ import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
 import * as Browser from '../../libs/Browser';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import SelectionListRadio from '../../components/SelectionListRadio/index';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -301,19 +302,49 @@ class WorkspaceInvitePage extends React.Component {
                             shouldFocusOnSelectRow={!Browser.isMobile()}
                             textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                         />
-                    </View>
-                    <View style={[styles.flexShrink0]}>
-                        <FormAlertWithSubmitButton
-                            isDisabled={!this.state.selectedOptions.length}
-                            isAlertVisible={this.getShouldShowAlertPrompt()}
-                            buttonText={this.props.translate('common.next')}
-                            onSubmit={this.inviteUser}
-                            message={this.props.policy.alertMessage}
-                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                            enabledWhenOffline
-                            disablePressOnEnter
-                        />
-                    </View>
+                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
+                            <SelectionListRadio
+                                canSelectMultiple
+                                sections={sections}
+                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                textInputValue={this.state.searchTerm}
+                                onChangeText={this.updateOptionsWithSearchTerm}
+                                headerMessage={headerMessage}
+                                onSelectRow={this.toggleOption}
+                                onSelectAll={() => {}}
+                            />
+
+                            {/* <OptionsSelector */}
+                            {/*     contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]} */}
+                            {/*     listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]} */}
+                            {/*     canSelectMultipleOptions */}
+                            {/*     sections={sections} */}
+                            {/*     selectedOptions={this.state.selectedOptions} */}
+                            {/*     value={this.state.searchTerm} */}
+                            {/*     shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)} */}
+                            {/*     onSelectRow={this.toggleOption} */}
+                            {/*     onChangeText={this.updateOptionsWithSearchTerm} */}
+                            {/*     onConfirmSelection={this.inviteUser} */}
+                            {/*     headerMessage={headerMessage} */}
+                            {/*     hideSectionHeaders */}
+                            {/*     boldStyle */}
+                            {/*     shouldFocusOnSelectRow={!Browser.isMobile()} */}
+                            {/*     textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')} */}
+                            {/* /> */}
+                        </View>
+                        <View style={[styles.flexShrink0]}>
+                            <FormAlertWithSubmitButton
+                                isDisabled={!this.state.selectedOptions.length}
+                                isAlertVisible={this.getShouldShowAlertPrompt()}
+                                buttonText={this.props.translate('common.next')}
+                                onSubmit={this.inviteUser}
+                                message={this.props.policy.alertMessage}
+                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                                enabledWhenOffline
+                                disablePressOnEnter
+                            />
+                        </View>
+                    </FormSubmit>
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );
