@@ -2017,7 +2017,7 @@ function getChatByParticipants(newParticipantList) {
  * @returns {boolean|undefined}
  */
 function getChatByParticipantInclude(accountID) {
-    return !!_.find(allReports, (report) => {
+    return !_.isEmpty(_.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
         if (!report || !report.participantAccountIDs || isThread(report) || isArchivedRoom(report)) {
             return false;
@@ -2025,7 +2025,7 @@ function getChatByParticipantInclude(accountID) {
 
         // Only return the room if it has all the participants and is not a policy room
         return report.participantAccountIDs.includes(accountID);
-    });
+    }));
 }
 
 /**
