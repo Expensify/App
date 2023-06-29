@@ -10,20 +10,16 @@ import Tooltip from '../Tooltip';
 import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
 import ThreeDotsMenu from '../ThreeDotsMenu';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from '../withDelayToggleButtonState';
 import AvatarWithDisplayName from '../AvatarWithDisplayName';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import PinButton from '../PinButton';
-import {propTypes as headerWithBackButtonPropTypes, defaultProps as headerWithBackButtonDefaultProps} from './headerWithBackButtonPropTypes';
+import {propTypes, defaultProps} from './headerWithBackButtonPropTypes';
+import useDelayToggleButtonState from '../../hooks/useDelayToggleButtonState';
 import useLocalize from '../../hooks/useLocalize';
 import useKeyboardState from '../../hooks/useKeyboardState';
 
-const propTypes = {
-    ...headerWithBackButtonPropTypes,
-    ...withDelayToggleButtonStatePropTypes,
-};
-
 function HeaderWithBackButton(props) {
+    const [isDelayButtonStateComplete, toggleDelayButtonState] = useDelayToggleButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     return (
@@ -68,12 +64,12 @@ function HeaderWithBackButton(props) {
                                     // We do not want to overlap Growl with the Tooltip (#15271)
                                     e.currentTarget.blur();
 
-                                    if (props.isDelayButtonStateComplete) {
+                                    if (isDelayButtonStateComplete) {
                                         return;
                                     }
 
                                     props.onDownloadButtonPress();
-                                    props.toggleDelayButtonState(true);
+                                    toggleDelayButtonState(true);
                                 }}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
@@ -81,7 +77,7 @@ function HeaderWithBackButton(props) {
                             >
                                 <Icon
                                     src={Expensicons.Download}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(false, false, props.isDelayButtonStateComplete))}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(false, false, isDelayButtonStateComplete))}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
@@ -130,6 +126,7 @@ function HeaderWithBackButton(props) {
 }
 
 HeaderWithBackButton.propTypes = propTypes;
-HeaderWithBackButton.defaultProps = headerWithBackButtonDefaultProps;
+HeaderWithBackButton.defaultProps = defaultProps;
+HeaderWithBackButton.displayName = 'HeaderWithBackButton';
 
-export default withDelayToggleButtonState(HeaderWithBackButton);
+export default HeaderWithBackButton;
