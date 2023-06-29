@@ -36,17 +36,11 @@ const propTypes = {
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
-    /** The policies which the user has access to */
-    policies: PropTypes.objectOf(
-        PropTypes.shape({
-            /** The policy name */
-            name: PropTypes.string,
-
-            /** The type of the policy */
-            type: PropTypes.string,
-        }),
-    ),
-
+    /** The policies which the user has access to and which the report could be tied to */
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }).isRequired,
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
