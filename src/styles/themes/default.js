@@ -80,6 +80,7 @@ const darkTheme = {
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
+    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
 };
 
 const oldTheme = {
