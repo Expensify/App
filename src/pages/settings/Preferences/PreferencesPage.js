@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
@@ -13,13 +12,12 @@ import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 import * as User from '../../../libs/actions/User';
 import Switch from '../../../components/Switch';
-import compose from '../../../libs/compose';
-import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
 import TestToolMenu from '../../../components/TestToolMenu';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../../components/LottieAnimations';
 import SCREENS from '../../../SCREENS';
+import useEnvironment from '../../../hooks/useEnvironment';
 import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
@@ -31,8 +29,6 @@ const propTypes = {
         /** Whether or not the user is subscribed to news updates */
         isSubscribedToNewsletter: PropTypes.bool,
     }),
-
-    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -41,13 +37,11 @@ const defaultProps = {
 };
 
 function PreferencesPage(props) {
+    const {isProduction} = useEnvironment();
     const {translate, preferredLocale} = useLocalize();
 
     const priorityModes = translate('priorityModePage.priorityModes');
     const languages = translate('languagePage.languages');
-
-    // Enable additional test features in the staging or dev environments
-    const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.ADHOC, CONST.ENVIRONMENT.DEV], props.environment);
 
     return (
         <IllustratedHeaderPageLayout
@@ -88,7 +82,8 @@ function PreferencesPage(props) {
                     description={translate('languagePage.language')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                 />
-                {shouldShowTestToolMenu && (
+                {/* Enable additional test features in non-production environments */}
+                {!isProduction && (
                     <View style={[styles.ml5, styles.mr8, styles.mt6]}>
                         <TestToolMenu />
                     </View>
@@ -102,14 +97,11 @@ PreferencesPage.propTypes = propTypes;
 PreferencesPage.defaultProps = defaultProps;
 PreferencesPage.displayName = 'PreferencesPage';
 
-export default compose(
-    withEnvironment,
-    withOnyx({
-        priorityMode: {
-            key: ONYXKEYS.NVP_PRIORITY_MODE,
-        },
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-)(PreferencesPage);
+export default withOnyx({
+    priorityMode: {
+        key: ONYXKEYS.NVP_PRIORITY_MODE,
+    },
+    user: {
+        key: ONYXKEYS.USER,
+    },
+})(PreferencesPage);
