@@ -1384,7 +1384,7 @@ export default {
         helpMenu: 'Ayuda',
         learnMore: 'Más información',
         documentation: 'Documentación',
-        communityDiscissions: 'Debates de la comunidad',
+        communityDiscussions: 'Debates de la comunidad',
         searchIssues: 'Buscar problemas',
     },
     historyMenu: {

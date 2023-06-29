@@ -1375,7 +1375,7 @@ export default {
         helpMenu: 'Help',
         learnMore: 'Learn more',
         documentation: 'Documentation',
-        communityDiscissions: 'Community Discussions',
+        communityDiscussions: 'Community Discussions',
         searchIssues: 'Search Issues',
     },
     historyMenu: {
