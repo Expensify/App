@@ -2249,7 +2249,7 @@ function canLeaveRoom(report, isPolicyMember) {
 }
 
 /**
- * @param {number[]} participantAccountIDs
+ * @param {Number[]} participantAccountIDs
  * @returns {Boolean}
  */
 function isCurrentUserTheOnlyParticipant(participantAccountIDs) {
@@ -2260,18 +2260,18 @@ function isCurrentUserTheOnlyParticipant(participantAccountIDs) {
  * Returns display names for those that can see the whisper.
  * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
  *
- * @param {number[]} participantAccountIDs
+ * @param {Number[]} participantAccountIDs
  * @returns {string}
  */
 function getWhisperDisplayNames(participantAccountIDs) {
-    const isWhisperOnlyVisibleToCurrentUSer = isCurrentUserTheOnlyParticipant(participantAccountIDs);
+    const isWhisperOnlyVisibleToCurrentUser = isCurrentUserTheOnlyParticipant(participantAccountIDs);
 
     // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
-    if (isWhisperOnlyVisibleToCurrentUSer) {
+    if (isWhisperOnlyVisibleToCurrentUser) {
         return Localize.translateLocal('common.youAfterPreposition');
     }
 
-    return _.map(participantAccountIDs, (accountID) => getDisplayNameForParticipant(accountID, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
+    return _.map(participantAccountIDs, (accountID) => getDisplayNameForParticipant(accountID, !isWhisperOnlyVisibleToCurrentUser)).join(', ');
 }
 
 /**
