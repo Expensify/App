@@ -26,7 +26,7 @@ const propTypes = {
             oldAccountID: PropTypes.number,
 
             /** (For accountMerged reason only), the accountID of the account the previous owner was merged into */
-            newLogin: PropTypes.number,
+            newAccountID: PropTypes.number,
         }).isRequired,
     }),
 
