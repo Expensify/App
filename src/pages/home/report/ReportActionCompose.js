@@ -182,8 +182,9 @@ class ReportActionCompose extends React.Component {
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
-        this.debounceReducedUpdateFrequentlyUsedEmojis = this.debounceReducedUpdateFrequentlyUsedEmojis().bind(this);
+        this.debouncedUpdateFrequentlyUsedEmojis = this.debouncedUpdateFrequentlyUsedEmojis.bind(this);
         this.comment = props.comment;
+        this.insertedEmojis = [];
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -630,7 +631,7 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        this.debounceReducedUpdateFrequentlyUsedEmojis(emojiObject);
+        this.debouncedUpdateFrequentlyUsedEmojis(emojiObject);
     }
 
     /**
@@ -715,19 +716,10 @@ class ReportActionCompose extends React.Component {
         Report.broadcastUserIsTyping(this.props.reportID);
     }
 
-    debounceReducedUpdateFrequentlyUsedEmojis() {
-        let insertedEmojis = [];
-
-        const wrapper = _.debounce(() => {
-            const args = insertedEmojis;
-            insertedEmojis = [];
-            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(args));
-        }, 1000);
-
-        return (emojis) => {
-            insertedEmojis = [...insertedEmojis, ...emojis];
-            wrapper();
-        };
+    debouncedUpdateFrequentlyUsedEmojis(emojis) {
+        this.insertedEmojis = [...this.insertedEmojis, ...emojis];
+        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(this.insertedEmojis));
+        this.insertedEmojis = [];
     }
 
     /**
@@ -740,7 +732,7 @@ class ReportActionCompose extends React.Component {
         const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
 
         if (!_.isEmpty(emojis)) {
-            this.debounceReducedUpdateFrequentlyUsedEmojis(emojis);
+            this.debouncedUpdateFrequentlyUsedEmojis(emojis);
         }
 
         this.setState((prevState) => {
