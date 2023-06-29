@@ -78,7 +78,7 @@ function SignInPageLayout(props) {
                         <View style={[styles.flex1]}>
                             <View style={styles.signInPageHeroCenter}>
                                 <BackgroundImage
-                                    isSmallScreen={props.isSmallScreenWidth}
+                                    isSmallScreen={false}
                                     pointerEvents="none"
                                     width={variables.signInHeroBackgroundWidth}
                                 />
@@ -113,7 +113,7 @@ function SignInPageLayout(props) {
                 >
                     <View style={[styles.flex1, styles.flexColumn, StyleUtils.getMinimumHeight(Math.max(variables.signInContentMinHeight, containerHeight))]}>
                         <BackgroundImage
-                            isSmallScreen={props.isSmallScreenWidth}
+                            isSmallScreen
                             pointerEvents="none"
                             width={variables.signInHeroBackgroundWidthMobile}
                             style={styles.signInBackgroundMobile}
