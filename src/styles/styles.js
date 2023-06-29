@@ -3445,6 +3445,8 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+
+    illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [flex.flex1, flex.flexColumn, spacing.pt5, safeAreaPaddingBottomStyle],
 };
 
 export default styles;
