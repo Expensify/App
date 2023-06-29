@@ -50,7 +50,8 @@ function LogOutPreviousUserPage(props) {
 
 LogOutPreviousUserPage.propTypes = propTypes;
 LogOutPreviousUserPage.defaultProps = defaultProps;
-LogOutPreviousUserPage.displayName = LogOutPreviousUserPage;
+LogOutPreviousUserPage.displayName = 'LogOutPreviousUserPage';
+
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
