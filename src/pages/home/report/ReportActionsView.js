@@ -230,9 +230,7 @@ class ReportActionsView extends React.Component {
             reportActionsWithoutPendingOne.shift();
             const newMarkerReportActionID = ReportUtils.getNewMarkerReportActionID(this.props.report, reportActionsWithoutPendingOne);
             if (newMarkerReportActionID !== this.state.newMarkerReportActionID) {
-                this.setState({
-                    newMarkerReportActionID: newMarkerReportActionID,
-                });
+                this.setState({newMarkerReportActionID});
             }
         }
 
