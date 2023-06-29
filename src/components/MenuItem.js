@@ -74,7 +74,7 @@ function MenuItem(props) {
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
         [
-            styles.flexShrink1,
+            styles.flex1,
             styles.popoverMenuText,
             props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
@@ -90,7 +90,7 @@ function MenuItem(props) {
         styles.textLabelSupporting,
         props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
         styles.lineHeightNormal,
-        props.title ? descriptionVerticalMargin : undefined,
+        props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         props.descriptionTextStyle,
         isDeleted ? styles.offlineFeedback.deleted : undefined,
     ]);

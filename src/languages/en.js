@@ -45,6 +45,7 @@ export default {
         details: 'Details',
         privacy: 'Privacy',
         hidden: 'Hidden',
+        visible: 'Visible',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
@@ -195,8 +196,6 @@ export default {
         signInHere: 'just sign in here',
         expiredCodeTitle: 'Magic code expired',
         expiredCodeDescription: 'Go back to the original device and request a new code.',
-        requestNewCode: 'You can also',
-        requestNewCodeLink: 'request a new code here',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
         tfaRequiredTitle: 'Two-factor authentication\nrequired',
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
@@ -298,6 +297,9 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
+    },
+    reportAction: {
+        asCopilot: 'as copilot for',
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone online in this room',
