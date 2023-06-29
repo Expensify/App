@@ -49,7 +49,7 @@ function isEmojiPickerVisible() {
     if (!emojiPickerRef.current) {
         return;
     }
-    return emojiPickerRef.current.state.isEmojiPickerVisible;
+    return emojiPickerRef.current.isEmojiPickerVisible;
 }
 
 export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActiveReportAction, isEmojiPickerVisible};
