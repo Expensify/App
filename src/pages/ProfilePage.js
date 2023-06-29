@@ -108,7 +108,7 @@ function ProfilePage(props) {
     const isExistingReport = ReportUtils.getChatByParticipantInclude(accountID);
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
-    const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
+    const displayName = (details.displayName && isExistingReport) ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const originalFileName = lodashGet(details, 'originalFileName', '');
     const login = lodashGet(details, 'login', '');
