@@ -103,6 +103,7 @@ function NewTaskPage(props) {
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
+                        submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
                         value={taskDescription}

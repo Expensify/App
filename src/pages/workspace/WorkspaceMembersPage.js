@@ -292,6 +292,7 @@ function WorkspaceMembersPage(props) {
      */
     const renderItem = useCallback(
         ({item}) => {
+            const disabled = props.session.email === item.login || item.role === 'admin';
             const hasError = !_.isEmpty(item.errors) || errors[item.accountID];
             const isChecked = _.contains(selectedEmployees, Number(item.accountID));
             return (
@@ -302,23 +303,25 @@ function WorkspaceMembersPage(props) {
                 >
                     <PressableWithFeedback
                         style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
+                        disabled={disabled}
                         onPress={() => toggleUser(item.accountID, item.pendingAction)}
                         accessibilityRole="checkbox"
                         accessibilityState={{
                             checked: isChecked,
                         }}
                         accessibilityLabel={props.formatPhoneNumber(item.displayName)}
-                        // disable hover dimming
                         hoverDimmingValue={1}
                         pressDimmingValue={0.7}
                     >
                         <Checkbox
+                            disabled={disabled}
                             isChecked={isChecked}
                             onPress={() => toggleUser(item.accountID, item.pendingAction)}
                         />
                         <View style={styles.flex1}>
                             <OptionRow
                                 boldStyle
+                                isDisabled={disabled}
                                 option={{
                                     text: props.formatPhoneNumber(item.displayName),
                                     alternateText: props.formatPhoneNumber(item.login),
@@ -448,10 +451,23 @@ function WorkspaceMembersPage(props) {
                         {data.length > 0 ? (
                             <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                 <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                    <Checkbox
-                                        isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
+                                    <PressableWithFeedback
+                                        disabled={_.isEmpty(removableMembers)}
                                         onPress={() => toggleAllUsers(removableMembers)}
-                                    />
+                                        accessibilityRole="checkbox"
+                                        accessibilityState={{
+                                            checked: !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID))),
+                                        }}
+                                        accessibilityLabel={props.translate('workspace.people.selectAll')}
+                                        hoverDimmingValue={1}
+                                        pressDimmingValue={0.7}
+                                    >
+                                        <Checkbox
+                                            disabled={_.isEmpty(removableMembers)}
+                                            isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
+                                            onPress={() => toggleAllUsers(removableMembers)}
+                                        />
+                                    </PressableWithFeedback>
                                     <View style={[styles.flex1]}>
                                         <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>
                                     </View>
