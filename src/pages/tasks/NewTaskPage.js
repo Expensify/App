@@ -121,8 +121,6 @@ function NewTaskPage(props) {
         }
 
         TaskUtils.createTaskAndNavigate(
-            props.session.email,
-            props.session.accountID,
             parentReport.reportID,
             props.task.title,
             props.task.description,
