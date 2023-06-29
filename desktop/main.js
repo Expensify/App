@@ -264,127 +264,31 @@ const mainWindow = () => {
                     browserWindow.setTitle('New Expensify');
                 }
 
-                const setLabelsInMenuTemplate = (submenu, labels) =>
+                const setLabelsInMenuTemplate = (submenu, updatedLocale) =>
                     _.map(submenu, (menu) => {
                         const newMenu = _.clone(menu);
-                        const labelTranslation = _.find(labels, (translation) => translation.id === menu.id);
-                        if (labelTranslation && labelTranslation.label) {
-                            newMenu.label = labelTranslation.label;
+                        if (menu.id) {
+                            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}`);
+                            if (labelTranslation) {
+                                newMenu.label = labelTranslation;
+                            }
                         }
                         if (menu.submenu) {
-                            newMenu.submenu = setLabelsInMenuTemplate(menu.submenu, labels);
+                            newMenu.submenu = setLabelsInMenuTemplate(menu.submenu, updatedLocale);
                         }
                         return newMenu;
                     });
 
-                const labelsEng = [
-                    {id: 'main-menu', label: 'New Expensify'},
-                    {id: 'about', label: 'About New Expensify'},
-                    {id: 'update', label: 'Update New Expensify'},
-                    {id: 'check-for-updates', label: 'Check for updates'},
-                    {id: 'view-shortcuts', label: 'View keyboard shortcuts'},
-                    {id: 'services', label: 'Services'},
-                    {id: 'hide', label: 'Hide New Expensify'},
-                    {id: 'hide-others', label: 'Hide Others'},
-                    {id: 'show-all', label: 'Show All'},
-                    {id: 'quit', label: 'Quit New Expensify'},
-
-                    {id: 'file-menu', label: 'File'},
-                    {id: 'close-window', label: 'Close Window'},
-
-                    {id: 'edit-menu', label: 'Edit'},
-                    {id: 'undo', label: 'Undo'},
-                    {id: 'redo', label: 'Redo'},
-                    {id: 'cut', label: 'Cut'},
-                    {id: 'copy', label: 'Copy'},
-                    {id: 'paste', label: 'Paste'},
-                    {id: 'pasteAndMatchStyle', label: 'Paste and Match Style'},
-                    {id: 'delete', label: 'Delete'},
-                    {id: 'selectAll', label: 'Select All'},
-                    {id: 'speech-submenu', label: 'Speech'},
-                    {id: 'startSpeaking', label: 'Start Speaking'},
-                    {id: 'stopSpeaking', label: 'Stop Speaking'},
-
-                    {id: 'view-menu', label: 'View'},
-                    {id: 'reload', label: 'Reload'},
-                    {id: 'forceReload', label: 'Force Reload'},
-                    {id: 'resetZoom', label: 'Actual Size'},
-                    {id: 'zoomIn', label: 'Zoom In'},
-                    {id: 'zoomOut', label: 'Zoom Out'},
-                    {id: 'togglefullscreen', label: 'Toggle Full Screen'},
-
-                    {id: 'history-menu', label: 'History'},
-                    {id: 'back', label: 'Back'},
-                    {id: 'forward', label: 'Forward'},
-
-                    {id: 'window-menu', label: 'Window'},
-
-                    {id: 'help-menu', label: 'Help'},
-                    {id: 'learn-more', label: 'Learn more'},
-                    {id: 'documentation', label: 'Documentation'},
-                    {id: 'community-discissions', label: 'Community Discussions'},
-                    {id: 'search-issues', label: 'Search Issues'},
-                ];
-
-                const labelsEsp = [
-                    {id: 'main-menu', label: 'Nuevo Expensify'},
-                    {id: 'about', label: 'Sobre Nuevo Expensify'},
-                    {id: 'update', label: 'Actualizar Nuevo Expensify'},
-                    {id: 'check-for-updates', label: 'Buscar actualizaciones'},
-                    {id: 'view-shortcuts', label: 'Ver atajos de teclado'},
-                    {id: 'services', label: 'Servicios'},
-                    {id: 'hide', label: 'Ocultar Nuevo Expensify'},
-                    {id: 'hide-others', label: 'Ocultar otros'},
-                    {id: 'show-all', label: 'Mostrar todos'},
-                    {id: 'quit', label: 'Salir de Nuevo Expensify'},
-
-                    {id: 'file-menu', label: 'Archivo'},
-                    {id: 'close-window', label: 'Cerrar ventana'},
-
-                    {id: 'edit-menu', label: 'Editar'},
-                    {id: 'undo', label: 'Deshacer'},
-                    {id: 'redo', label: 'Rehacer'},
-                    {id: 'cut', label: 'Cortar'},
-                    {id: 'copy', label: 'Copiar'},
-                    {id: 'paste', label: 'Pegar'},
-                    {id: 'pasteAndMatchStyle', label: 'Pegar adaptando el estilo'},
-                    {id: 'delete', label: 'Eliminar'},
-                    {id: 'selectAll', label: 'Seleccionar todo'},
-                    {id: 'speech-submenu', label: 'Voz'},
-                    {id: 'startSpeaking', label: 'Empezar a hablar'},
-                    {id: 'stopSpeaking', label: 'Dejar de Hablar'},
-
-                    {id: 'view-menu', label: 'Ver'},
-                    {id: 'reload', label: 'Cargar de nuevo'},
-                    {id: 'forceReload', label: 'Forzar recarga'},
-                    {id: 'resetZoom', label: 'Tamaño real'},
-                    {id: 'zoomIn', label: 'Acercar'},
-                    {id: 'zoomOut', label: 'Alejar'},
-                    {id: 'togglefullscreen', label: 'Alternar pantalla completa'},
-
-                    {id: 'history-menu', label: 'Historial'},
-                    {id: 'back', label: 'Atrás'},
-                    {id: 'forward', label: 'Adelante'},
-
-                    {id: 'window-menu', label: 'Ventana'},
-
-                    {id: 'help-menu', label: 'Ayuda'},
-                    {id: 'learn-more', label: 'Más información'},
-                    {id: 'documentation', label: 'Documentación'},
-                    {id: 'community-discissions', label: 'Debates de la comunidad'},
-                    {id: 'search-issues', label: 'Buscar problemas'},
-                ];
-
                 const initialMenuTemplate = [
                     {
-                        id: 'main-menu',
+                        id: 'mainMenu',
                         label: 'New Expensify',
                         submenu: [
                             {id: 'about', role: 'about'},
                             {id: 'update', label: 'Update new Expensify', click: quitAndInstallWithUpdate, visible: false},
-                            {id: 'check-for-updates', label: 'Check for updates', click: manuallyCheckForUpdates},
+                            {id: 'checkForUpdates', label: 'Check for updates', click: manuallyCheckForUpdates},
                             {
-                                id: 'view-shortcuts',
+                                id: 'viewShortcuts',
                                 label: 'View keyboard shortcuts',
                                 accelerator: 'CmdOrCtrl+I',
                                 click: () => {
@@ -395,19 +299,19 @@ const mainWindow = () => {
                             {id: 'services', role: 'services'},
                             {type: 'separator'},
                             {id: 'hide', role: 'hide'},
-                            {id: 'hide-others', role: 'hideOthers'},
-                            {id: 'show-all', role: 'unhide'},
+                            {id: 'hideOthers', role: 'hideOthers'},
+                            {id: 'showAll', role: 'unhide'},
                             {type: 'separator'},
                             {id: 'quit', role: 'quit'},
                         ],
                     },
                     {
-                        id: 'file-menu',
+                        id: 'fileMenu',
                         label: 'File',
-                        submenu: [{id: 'close-window', role: 'close', accelerator: 'Cmd+w'}],
+                        submenu: [{id: 'closeWindow', role: 'close', accelerator: 'Cmd+w'}],
                     },
                     {
-                        id: 'edit-menu',
+                        id: 'editMenu',
                         label: 'Edit',
                         submenu: [
                             {id: 'undo', role: 'undo'},
@@ -421,7 +325,7 @@ const mainWindow = () => {
                             {id: 'selectAll', role: 'selectAll'},
                             {type: 'separator'},
                             {
-                                id: 'speech-submenu',
+                                id: 'speechSubmenu',
                                 label: 'Speech',
                                 submenu: [
                                     {id: 'startSpeaking', role: 'startSpeaking'},
@@ -431,7 +335,7 @@ const mainWindow = () => {
                         ],
                     },
                     {
-                        id: 'view-menu',
+                        id: 'viewMenu',
                         label: 'View',
                         submenu: [
                             {id: 'reload', role: 'reload'},
@@ -445,7 +349,7 @@ const mainWindow = () => {
                         ],
                     },
                     {
-                        id: 'history-menu',
+                        id: 'historyMenu',
                         label: 'History',
                         submenu: [
                             {
@@ -467,23 +371,23 @@ const mainWindow = () => {
                         ],
                     },
                     {
-                        id: 'window-menu',
+                        id: 'windowMenu',
                         role: 'windowMenu',
                     },
                     {
-                        id: 'help-menu',
+                        id: 'helpMenu',
                         label: 'Help',
                         role: 'help',
                         submenu: [
-                            {id: 'learn-more', label: 'Learn more'},
+                            {id: 'learnMore', label: 'Learn more'},
                             {id: 'documentation', label: 'Documentation'},
-                            {id: 'community-discissions', label: 'Community Discussions'},
-                            {id: 'search-issues', label: 'Search Issues'},
+                            {id: 'communityDiscissions', label: 'Community Discussions'},
+                            {id: 'searchIssues', label: 'Search Issues'},
                         ],
                     },
                 ];
 
-                const translatedMenu = setLabelsInMenuTemplate(initialMenuTemplate, labelsEng);
+                const translatedMenu = setLabelsInMenuTemplate(initialMenuTemplate, preferredLocale);
 
                 // Build and set the initial menu
                 const initialMenu = Menu.buildFromTemplate(translatedMenu);
@@ -564,11 +468,7 @@ const mainWindow = () => {
                 }
 
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
-                    if (updatedLocale === 'en') {
-                        Menu.setApplicationMenu(Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, labelsEng)));
-                    } else if (updatedLocale === 'es') {
-                        Menu.setApplicationMenu(Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, labelsEsp)));
-                    }
+                    Menu.setApplicationMenu(Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, updatedLocale)));
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
