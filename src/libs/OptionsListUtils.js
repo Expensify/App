@@ -959,6 +959,36 @@ function getShareDestinationOptions(reports, personalDetails, betas = [], search
 }
 
 /**
+ * Format personalDetails or userToInvite to be shown in the list
+ *
+ * @param {Object} member - personalDetails or userToInvite
+ * @param {Boolean} isSelected - whether the item is selected
+ * @returns {Object}
+ */
+function formatMemberForList(member, isSelected) {
+    if (!member) {
+        return undefined;
+    }
+
+    return {
+        text: lodashGet(member, 'text', ''),
+        alternateText: lodashGet(member, 'alternateText', ''),
+        keyForList: lodashGet(member, 'keyForList', ''),
+        isSelected,
+        isDisabled: false,
+        accountID: lodashGet(member, 'accountID', ''),
+        login: lodashGet(member, 'login', ''),
+        isAdmin: false,
+        avatar: {
+            source: lodashGet(member, 'participantsList[0].avatar', ''),
+            name: lodashGet(member, 'participantsList[0].login', ''),
+            type: 'avatar',
+        },
+        pendingAction: lodashGet(member, 'pendingAction'),
+    };
+}
+
+/**
  * Build the options for the Workspace Member Invite view
  *
  * @param {Object} personalDetails
@@ -1044,4 +1074,5 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    formatMemberForList,
 };

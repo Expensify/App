@@ -29,6 +29,7 @@ function BaseSelectionListRadio(props) {
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(props.textInputLabel);
+    const shouldShowSelectAll = Boolean(props.onSelectAll);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -263,7 +264,7 @@ function BaseSelectionListRadio(props) {
                                 <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
                             </View>
                         )}
-                        {!props.headerMessage && props.canSelectMultiple && (
+                        {!props.headerMessage && props.canSelectMultiple && shouldShowSelectAll && (
                             <PressableWithFeedback
                                 style={[styles.peopleRow, styles.ph5, styles.pb3]}
                                 onPress={props.onSelectAll}

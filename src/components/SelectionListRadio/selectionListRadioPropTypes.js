@@ -3,13 +3,13 @@ import CONST from '../../CONST';
 
 const checkboxListItemPropTypes = {
     /** Text to display */
-    text: PropTypes.string,
+    text: PropTypes.string.isRequired,
 
     /** Alternate text to display */
     alternateText: PropTypes.string,
 
     /** Key used internally by React */
-    keyForList: PropTypes.string,
+    keyForList: PropTypes.string.isRequired,
 
     /** Whether this option is selected */
     isSelected: PropTypes.bool,
@@ -17,12 +17,18 @@ const checkboxListItemPropTypes = {
     /** Whether this option is disabled for selection */
     isDisabled: PropTypes.bool,
 
+    /** User accountID */
+    accountID: PropTypes.number,
+
+    /** User login */
+    login: PropTypes.string,
+
     /** Whether this user is an admin */
     isAdmin: PropTypes.bool,
 
     /** Avatar for the user */
     avatar: PropTypes.shape({
-        source: PropTypes.string,
+        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
         name: PropTypes.string,
         type: PropTypes.string,
     }),
@@ -36,13 +42,13 @@ const checkboxListItemPropTypes = {
 
 const radioListItemPropTypes = {
     /** Text to display */
-    text: PropTypes.string,
+    text: PropTypes.string.isRequired,
 
     /** Alternate text to display */
     alternateText: PropTypes.string,
 
     /** Key used internally by React */
-    keyForList: PropTypes.string,
+    keyForList: PropTypes.string.isRequired,
 
     /** Whether this option is selected */
     isSelected: PropTypes.bool,
@@ -115,7 +121,7 @@ const propTypes = {
 const defaultProps = {
     canSelectMultiple: false,
     onSelectRow: () => {},
-    onSelectAll: () => {},
+    onSelectAll: undefined,
     onDismissError: () => {},
     textInputLabel: '',
     textInputPlaceholder: '',

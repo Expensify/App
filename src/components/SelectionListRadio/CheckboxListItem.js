@@ -5,7 +5,7 @@ import _ from 'underscore';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import styles from '../../styles/styles';
 import Text from '../Text';
-import {radioListItemPropTypes} from './selectionListRadioPropTypes';
+import {checkboxListItemPropTypes} from './selectionListRadioPropTypes';
 import Checkbox from '../Checkbox';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Avatar from '../Avatar';
@@ -13,7 +13,7 @@ import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
     /** The section list item */
-    item: PropTypes.shape(radioListItemPropTypes),
+    item: PropTypes.shape(checkboxListItemPropTypes),
 
     /** Whether this item is focused (for arrow key controls) */
     isFocused: PropTypes.bool,
@@ -61,12 +61,14 @@ function CheckboxListItem(props) {
                     isChecked={props.item.isSelected}
                     onPress={() => props.onSelectRow(props.item)}
                 />
-                <Avatar
-                    containerStyles={styles.pl5}
-                    source={props.item.avatar.source}
-                    name={props.item.avatar.name}
-                    type={props.item.avatar.type}
-                />
+                {props.item.avatar && (
+                    <Avatar
+                        containerStyles={styles.pl5}
+                        source={props.item.avatar.source}
+                        name={props.item.avatar.name}
+                        type={props.item.avatar.type}
+                    />
+                )}
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStart, styles.pl3, styles.optionRow]}>
                     <Text
                         style={[styles.optionDisplayName, props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, props.item.isSelected && styles.sidebarLinkTextBold]}

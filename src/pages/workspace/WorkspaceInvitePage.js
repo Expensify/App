@@ -14,6 +14,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
+import FormSubmit from '../../components/FormSubmit';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
@@ -23,7 +24,6 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
-import * as Browser from '../../libs/Browser';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import SelectionListRadio from '../../components/SelectionListRadio/index';
 
@@ -148,16 +148,19 @@ class WorkspaceInvitePage extends React.Component {
 
         // Filtering out selected users from the search results
         const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
+
         const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
+        const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
+
         const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
 
         sections.push({
             title: this.props.translate('common.contacts'),
-            data: personalDetailsWithoutSelected,
-            shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
+            data: personalDetailsFormatted,
+            shouldShow: !_.isEmpty(personalDetailsFormatted),
             indexOffset,
         });
-        indexOffset += personalDetailsWithoutSelected.length;
+        indexOffset += personalDetailsFormatted.length;
 
         if (hasUnselectedUserToInvite) {
             sections.push({
@@ -182,11 +185,16 @@ class WorkspaceInvitePage extends React.Component {
             selectedOptions.push(_.has(detailsMap, option.login) ? detailsMap[option.login] : option);
         });
 
-        this.setState({
-            searchTerm,
-            userToInvite,
-            personalDetails,
-            selectedOptions,
+        this.setState((prevState) => {
+            const isSelected = _.find(prevState.selectedOptions, {login: lodashGet(userToInvite, 'login', '')});
+            const formattedUserToInvite = OptionsListUtils.formatMemberForList(userToInvite, isSelected);
+
+            return {
+                searchTerm,
+                userToInvite,
+                personalDetails,
+                selectedOptions,
+            };
         });
     }
 
@@ -215,15 +223,17 @@ class WorkspaceInvitePage extends React.Component {
             if (isOptionInList) {
                 newSelectedOptions = _.reject(prevState.selectedOptions, (selectedOption) => selectedOption.login === option.login);
             } else {
-                newSelectedOptions = [...prevState.selectedOptions, option];
+                newSelectedOptions = [...prevState.selectedOptions, {...option, isSelected: true}];
             }
 
             const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, prevState.searchTerm, this.getExcludedUsers());
 
+            const formattedUserToInvite = OptionsListUtils.formatMemberForList(userToInvite, !isOptionInList);
+
             return {
                 selectedOptions: newSelectedOptions,
                 personalDetails,
-                userToInvite,
+                userToInvite: formattedUserToInvite,
                 searchTerm: prevState.searchTerm,
             };
         });
@@ -240,7 +250,7 @@ class WorkspaceInvitePage extends React.Component {
         const invitedEmailsToAccountIDs = {};
         _.each(this.state.selectedOptions, (option) => {
             const login = option.login || '';
-            const accountID = lodashGet(option, 'participantsList[0].accountID');
+            const accountID = lodashGet(option, 'accountID', '');
             if (!login.toLowerCase().trim() || !accountID) {
                 return;
             }
@@ -285,66 +295,28 @@ class WorkspaceInvitePage extends React.Component {
                         }}
                     />
                     <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
-                        <OptionsSelector
-                            contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}
-                            listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
-                            canSelectMultipleOptions
+                        <SelectionListRadio
+                            canSelectMultiple
                             sections={sections}
-                            selectedOptions={this.state.selectedOptions}
-                            value={this.state.searchTerm}
-                            shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
-                            onSelectRow={this.toggleOption}
-                            onChangeText={this.updateOptionsWithSearchTerm}
-                            onConfirmSelection={this.inviteUser}
-                            headerMessage={headerMessage}
-                            hideSectionHeaders
-                            boldStyle
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
                             textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputValue={this.state.searchTerm}
+                            onChangeText={this.updateOptionsWithSearchTerm}
+                            headerMessage={headerMessage}
+                            onSelectRow={this.toggleOption}
                         />
-                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
-                            <SelectionListRadio
-                                canSelectMultiple
-                                sections={sections}
-                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                textInputValue={this.state.searchTerm}
-                                onChangeText={this.updateOptionsWithSearchTerm}
-                                headerMessage={headerMessage}
-                                onSelectRow={this.toggleOption}
-                                onSelectAll={() => {}}
-                            />
-
-                            {/* <OptionsSelector */}
-                            {/*     contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]} */}
-                            {/*     listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]} */}
-                            {/*     canSelectMultipleOptions */}
-                            {/*     sections={sections} */}
-                            {/*     selectedOptions={this.state.selectedOptions} */}
-                            {/*     value={this.state.searchTerm} */}
-                            {/*     shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)} */}
-                            {/*     onSelectRow={this.toggleOption} */}
-                            {/*     onChangeText={this.updateOptionsWithSearchTerm} */}
-                            {/*     onConfirmSelection={this.inviteUser} */}
-                            {/*     headerMessage={headerMessage} */}
-                            {/*     hideSectionHeaders */}
-                            {/*     boldStyle */}
-                            {/*     shouldFocusOnSelectRow={!Browser.isMobile()} */}
-                            {/*     textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')} */}
-                            {/* /> */}
-                        </View>
-                        <View style={[styles.flexShrink0]}>
-                            <FormAlertWithSubmitButton
-                                isDisabled={!this.state.selectedOptions.length}
-                                isAlertVisible={this.getShouldShowAlertPrompt()}
-                                buttonText={this.props.translate('common.next')}
-                                onSubmit={this.inviteUser}
-                                message={this.props.policy.alertMessage}
-                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                                enabledWhenOffline
-                                disablePressOnEnter
-                            />
-                        </View>
-                    </FormSubmit>
+                    </View>
+                    <View style={[styles.flexShrink0]}>
+                        <FormAlertWithSubmitButton
+                            isDisabled={!this.state.selectedOptions.length}
+                            isAlertVisible={this.getShouldShowAlertPrompt()}
+                            buttonText={this.props.translate('common.next')}
+                            onSubmit={this.inviteUser}
+                            message={this.props.policy.alertMessage}
+                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                            enabledWhenOffline
+                            disablePressOnEnter
+                        />
+                    </View>
                 </FullPageNotFoundView>
             </ScreenWrapper>
         );
