@@ -73,7 +73,7 @@ class DebitCardPage extends Component {
     validate(values) {
         const errors = {};
 
-        if (!values.nameOnCard || !ValidationUtils.isValidCardName(values.nameOnCard)) {
+        if (!values.nameOnCard || !ValidationUtils.isValidLegalName(values.nameOnCard)) {
             errors.nameOnCard = 'addDebitCardPage.error.invalidName';
         }
 
