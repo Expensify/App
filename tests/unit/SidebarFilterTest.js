@@ -83,9 +83,9 @@ describe('Sidebar', () => {
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        expect(optionRows).toHaveLength(0);
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(displayNames).toHaveLength(0);
                     })
             );
         });
@@ -94,8 +94,8 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a new report
-            const report = {
-                ...LHNTestUtils.getFakeReport(['emptychat+1@test.com', 'emptychat+2@test.com'], 0),
+            const report =  {
+                ...LHNTestUtils.getFakeReport([1, 2], 0),
                 hasDraft: true,
             };
 
@@ -105,15 +105,15 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                            [ONYXKEYS.PERSONAL_DETAILS]: LHNTestUtils.fakePersonalDetails,
+                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
                         }),
                     )
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
-                        const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        expect(optionRows).toHaveLength(1);
+                        const hintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                        const displayNames = screen.queryAllByLabelText(hintText);
+                        expect(displayNames).toHaveLength(1);
                     })
             );
         });
