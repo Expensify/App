@@ -356,6 +356,18 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
+ * Returns a style for text color
+ *
+ * @param {String} linkPreviewColor
+ * @returns {Object}
+ */
+function getTextColorStyle(textColor) {
+    return {
+        color: textColor,
+    };
+}
+
+/**
  * Returns a style with the specified borderColor
  *
  * @param {String} borderColor
@@ -1230,6 +1242,7 @@ export {
     getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getTextColorStyle,
     getBorderColorStyle,
     getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
