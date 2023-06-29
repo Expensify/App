@@ -71,13 +71,6 @@ Onyx.connect({
     },
 });
 
-let policies;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (val) => (policies = val),
-});
-
 let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -125,7 +118,7 @@ function getOrderedReportIDs(currentReportId) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReports, betas, policies));
+    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReports, betas));
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
         const conciergeChatReport = _.find(allReports, ReportUtils.isConciergeChatReport);

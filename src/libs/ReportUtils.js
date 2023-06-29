@@ -1884,18 +1884,17 @@ function isIOUOwnedByCurrentUser(report, iouReports = {}) {
  * the various subsets of users we've allowed to use default rooms.
  *
  * @param {Object} report
- * @param {Array<Object>} policies
  * @param {Array<String>} betas
  * @return {Boolean}
  */
-function canSeeDefaultRoom(report, policies, betas) {
+function canSeeDefaultRoom(report, betas) {
     // Include archived rooms
     if (isArchivedRoom(report)) {
         return true;
     }
 
     // Include default rooms for free plan policies (domain rooms aren't included in here because they do not belong to a policy)
-    if (getPolicyType(report, policies) === CONST.POLICY.TYPE.FREE) {
+    if (getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.FREE) {
         return true;
     }
 
@@ -1919,6 +1918,24 @@ function canSeeDefaultRoom(report, policies, betas) {
 }
 
 /**
+ * @param {Object} report
+ * @param {Object} betas
+ * @returns {Boolean}
+ */
+function canAccessReport(report, betas) {
+    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report))) {
+        return false;
+    }
+
+    // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, betas)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
@@ -1930,10 +1947,9 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Boolean} isInGSDMode
  * @param {Object} iouReports
  * @param {String[]} betas
- * @param {Object} policies
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -1947,7 +1963,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
+    if (!canAccessReport(report, betas)) {
         return false;
     }
 
@@ -2433,4 +2449,5 @@ export {
     getReportPreviewMessage,
     shouldHideComposer,
     getOriginalReportID,
+    canAccessReport,
 };
