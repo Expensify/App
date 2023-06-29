@@ -5,7 +5,6 @@ const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
 const {machineId} = require('node-machine-id');
-const {Link} = require('@react-navigation/native');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
@@ -387,28 +386,28 @@ const mainWindow = () => {
                                 id: 'learnMore',
                                 label: Localize.translate(preferredLocale, `desktopApplicationMenu.learnMore`),
                                 click: () => {
-                                    Link.openExternalLink(CONST.MENU_HELP_URLS.LEARN_MORE);
+                                    shell.openExternal(CONST.MENU_HELP_URLS.LEARN_MORE);
                                 },
                             },
                             {
                                 id: 'documentation',
                                 label: Localize.translate(preferredLocale, `desktopApplicationMenu.documentation`),
                                 click: () => {
-                                    Link.openExternalLink(CONST.MENU_HELP_URLS.DOCUMENTATION);
+                                    shell.openExternal(CONST.MENU_HELP_URLS.DOCUMENTATION);
                                 },
                             },
                             {
                                 id: 'communityDiscussions',
                                 label: Localize.translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
                                 click: () => {
-                                    Link.openExternalLink(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
+                                    shell.openExternal(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
                                 },
                             },
                             {
                                 id: 'searchIssues',
                                 label: Localize.translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
                                 click: () => {
-                                    Link.openExternalLink(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
+                                    shell.openExternal(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
                                 },
                             },
                         ],
