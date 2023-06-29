@@ -187,7 +187,7 @@ function AddressSearch(props) {
             values.street += `, ${subpremise}`;
         }
 
-        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, countryFallback);
+        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
 
         if (isValidCountryCode) {
             values.country = country;
