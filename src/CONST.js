@@ -730,7 +730,7 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: {}, success: '', isLoading: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -844,10 +844,11 @@ const CONST = {
     AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         SUGGESTER_INNER_PADDING: 8,
-        ITEM_HEIGHT: 40,
+        SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
-        MIN_AMOUNT_OF_ITEMS: 3,
-        MAX_AMOUNT_OF_ITEMS: 5,
+        MIN_AMOUNT_OF_SUGGESTIONS: 3,
+        MAX_AMOUNT_OF_SUGGESTIONS: 20,
+        MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
@@ -1151,7 +1152,7 @@ const CONST = {
 
         SPECIAL_CHAR_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+            /[\n\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         SPACE_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
@@ -1160,7 +1161,7 @@ const CONST = {
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
         MENTION_REPLACER:
             // eslint-disable-next-line no-misleading-character-class
-            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
+            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 
@@ -1264,7 +1265,11 @@ const CONST = {
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
     },
-
+    EDIT_REQUEST_FIELD: {
+        AMOUNT: 'amount',
+        DATE: 'date',
+        DESCRIPTION: 'description',
+    },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
@@ -2485,6 +2490,7 @@ const CONST = {
     MODERATION: {
         MODERATOR_DECISION_PENDING: 'pending',
         MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        MODERATOR_DECISION_PENDING_REMOVE: 'pendingRemove',
         MODERATOR_DECISION_APPROVED: 'approved',
         MODERATOR_DECISION_HIDDEN: 'hidden',
         FLAG_SEVERITY_SPAM: 'spam',
@@ -2500,6 +2506,16 @@ const CONST = {
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
+    },
+    ACCESSIBILITY_ROLE: {
+        BUTTON: 'button',
+        LINK: 'link',
+        MENUITEM: 'menuitem',
+        TEXT: 'text',
+        RADIO: 'radio',
+    },
+    SETTINGS_LOUNGE_ACCESS: {
+        HEADER_IMAGE_ASPECT_RATIO: 0.64,
     },
 };
 

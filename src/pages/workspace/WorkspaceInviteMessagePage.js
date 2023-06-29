@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -114,8 +114,9 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     sendInvitation() {
+        Keyboard.dismiss();
         Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
-        Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, []);
+        Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
     }
 
