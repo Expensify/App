@@ -16,6 +16,7 @@ import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -92,7 +93,7 @@ class MoneyRequestDescriptionPage extends Component {
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 shouldEnableMaxHeight
-                onEntryTransitionEnd={() => this.descriptionInputRef && this.descriptionInputRef.focus()}
+                onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(this.descriptionInputRef)}
             >
                 <HeaderWithBackButton
                     title={this.props.translate('common.description')}
@@ -115,6 +116,7 @@ class MoneyRequestDescriptionPage extends Component {
                             autoGrowHeight
                             containerStyles={[styles.autoGrowHeightMultilineInput]}
                             textAlignVertical="top"
+                            submitOnEnter
                         />
                     </View>
                 </Form>
