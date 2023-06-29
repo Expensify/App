@@ -858,17 +858,17 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
 }
 
 /**
- * @param {Object} participants
+ * @param {Object} personalDetailsList
  * @param {Boolean} isMultipleParticipantReport
  * @returns {Array}
  */
-function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
-    return _.map(participants, (participant) => {
-        const accountID = Number(participant.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || participant.login;
+function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
+    return _.map(personalDetailsList, (user) => {
+        const accountID = Number(user.accountID);
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
         const avatar = UserUtils.getDefaultAvatar(accountID);
 
-        let pronouns = participant.pronouns;
+        let pronouns = user.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
             const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
             pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
@@ -877,7 +877,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
         return {
             displayName,
             avatar,
-            login: participant.login,
+            login: user.login || '',
             accountID,
             pronouns,
         };
