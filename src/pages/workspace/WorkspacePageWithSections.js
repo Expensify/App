@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -82,70 +82,73 @@ const defaultProps = {
     backButtonRoute: '',
 };
 
-class WorkspacePageWithSections extends React.Component {
-    componentDidMount() {
-        this.fetchData();
-    }
+function WorkspacePageWithSections(props) {
+    // eslint-disable-next-line no-console
+    console.log("here!!!")
+    const {network, shouldSkipVBBACall} = props;
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
-
-        this.fetchData();
-    }
-
-    fetchData() {
-        if (this.props.shouldSkipVBBACall) {
+    const fetchData = useCallback(() => {
+        if (shouldSkipVBBACall) {
             return;
         }
 
         BankAccounts.openWorkspaceView();
-    }
+    }, [shouldSkipVBBACall])
 
-    render() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        const hasVBA = achState === BankAccount.STATE.OPEN;
-        const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
-        const policyID = lodashGet(this.props.route, 'params.policyID');
-        const policyName = lodashGet(this.props.policy, 'name');
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
-        return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
+    useEffect(() => {
+        if (network.isOffline) {
+            return;
+        }
+
+        fetchData();
+    }, [fetchData, network]);
+
+    const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
+    const hasVBA = achState === BankAccount.STATE.OPEN;
+    const isUsingECard = lodashGet(props.user, 'isUsingExpensifyCard', false);
+    const policyID = lodashGet(props.route, 'params.policyID');
+    const policyName = lodashGet(props.policy, 'name');
+
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+        >
+            <FullPageNotFoundView
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
             >
-                <FullPageNotFoundView
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
-                    subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                >
-                    <HeaderWithBackButton
-                        title={this.props.headerText}
-                        subtitle={policyName}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={this.props.guidesCallTaskID}
-                        onBackButtonPress={() => Navigation.goBack(this.props.backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
-                    />
-                    {this.props.shouldUseScrollView ? (
-                        <ScrollViewWithContext
-                            keyboardShouldPersistTaps="handled"
-                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                        >
-                            <View style={[styles.w100, styles.flex1]}>{this.props.children(hasVBA, policyID, isUsingECard)}</View>
-                        </ScrollViewWithContext>
-                    ) : (
-                        this.props.children(hasVBA, policyID, isUsingECard)
-                    )}
-                    {this.props.footer}
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        );
-    }
+                <HeaderWithBackButton
+                    title={props.headerText}
+                    subtitle={policyName}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={props.guidesCallTaskID}
+                    onBackButtonPress={() => Navigation.goBack(props.backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
+                />
+                {props.shouldUseScrollView ? (
+                    <ScrollViewWithContext
+                        keyboardShouldPersistTaps="handled"
+                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                    >
+                        <View style={[styles.w100, styles.flex1]}>{props.children(hasVBA, policyID, isUsingECard)}</View>
+                    </ScrollViewWithContext>
+                ) : (
+                    props.children(hasVBA, policyID, isUsingECard)
+                )}
+                {props.footer}
+            </FullPageNotFoundView>
+        </ScreenWrapper>
+    );
 }
 
 WorkspacePageWithSections.propTypes = propTypes;
 WorkspacePageWithSections.defaultProps = defaultProps;
+WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default compose(
     withLocalize,
