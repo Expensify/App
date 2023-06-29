@@ -631,6 +631,7 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
+        this.insertedEmojis = [...this.insertedEmojis, emojiObject];
         this.debouncedUpdateFrequentlyUsedEmojis(emojiObject);
     }
 
@@ -716,8 +717,7 @@ class ReportActionCompose extends React.Component {
         Report.broadcastUserIsTyping(this.props.reportID);
     }
 
-    debouncedUpdateFrequentlyUsedEmojis(emojis) {
-        this.insertedEmojis = [...this.insertedEmojis, ...emojis];
+    debouncedUpdateFrequentlyUsedEmojis() {
         User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(this.insertedEmojis));
         this.insertedEmojis = [];
     }
@@ -732,7 +732,8 @@ class ReportActionCompose extends React.Component {
         const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
 
         if (!_.isEmpty(emojis)) {
-            this.debouncedUpdateFrequentlyUsedEmojis(emojis);
+            this.insertedEmojis = [...this.insertedEmojis, ...emojis];
+            this.debouncedUpdateFrequentlyUsedEmojis();
         }
 
         this.setState((prevState) => {
