@@ -196,7 +196,6 @@ function setPersonalDetails(login, accountID) {
 }
 
 /**
- * @param {String} actorEmail
  * @param {String} created
  * @param {Number} actorAccountID
  * @param {String} actionID
