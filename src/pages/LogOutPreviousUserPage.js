@@ -43,7 +43,9 @@ function LogOutPreviousUserPage(props) {
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
         });
-    },[]);
+    },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        []);
 
     return <FullScreenLoadingIndicator />;
 }
