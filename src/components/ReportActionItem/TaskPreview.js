@@ -64,7 +64,7 @@ function TaskPreview(props) {
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
     const taskAssigneeAccountID = TaskUtils.getTaskAssigneeAccountID(props.taskReport);
-    const taskAssignee = lodashGet(allPersonalDetails, [taskAssigneeAccountID, 'login'], '');
+    const taskAssignee = lodashGet(props.allPersonalDetails, [taskAssigneeAccountID, 'login'], '');
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
