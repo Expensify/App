@@ -208,7 +208,6 @@ function removeMembers(accountIDs, policyID) {
     if (accountIDs.length === 0) {
         return;
     }
-
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const optimisticData = [
         {
