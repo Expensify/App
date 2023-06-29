@@ -240,7 +240,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
 
-    return currentAction.actorEmail === previousAction.actorEmail;
+    return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
 /**
