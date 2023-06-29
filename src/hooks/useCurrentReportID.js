@@ -1,6 +1,6 @@
 import {useContext} from 'react';
-import {CurrentReportIdContext} from '../components/withCurrentReportId';
+import {CurrentReportIDContext} from '../components/withCurrentReportID';
 
 export default function useCurrentReportID() {
-    return useContext(CurrentReportIdContext);
+    return useContext(CurrentReportIDContext);
 }
