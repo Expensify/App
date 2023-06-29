@@ -193,6 +193,7 @@ function HeaderView(props) {
                                                 onPress={() => {
                                                     Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
                                                 }}
+                                                style={[styles.alignSelfStart, styles.mw100]}
                                                 accessibilityLabel={subtitle}
                                                 accessibilityRole="link"
                                             >
