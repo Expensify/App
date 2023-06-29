@@ -243,7 +243,7 @@ describe('Sidebar', () => {
             // And the currently viewed report is the second report
             const report1 = {
                 ...LHNTestUtils.getFakeReport([1, 2], 3),
-                lastMessageText: 'unread message from report 1'
+                lastMessageText: 'unread message from report 1',
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4], 2),
@@ -559,11 +559,11 @@ describe('Sidebar', () => {
             };
             const report2 = {
                 ...LHNTestUtils.getFakeReport([3, 4]),
-                lastMessageText: 'message from report 2'
+                lastMessageText: 'message from report 2',
             };
             const report3 = {
                 ...LHNTestUtils.getFakeReport([5, 6]),
-                lastMessageText: 'message from report 3'
+                lastMessageText: 'message from report 3',
             };
 
             // Given the user is in all betas

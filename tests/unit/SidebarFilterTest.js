@@ -94,7 +94,7 @@ describe('Sidebar', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
 
             // Given a new report
-            const report =  {
+            const report = {
                 ...LHNTestUtils.getFakeReport([1, 2], 0),
                 hasDraft: true,
             };
