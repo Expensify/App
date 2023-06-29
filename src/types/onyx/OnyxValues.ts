@@ -7,6 +7,7 @@ type OnyxValues = {
     [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]?: boolean;
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
+    [ONYXKEYS.IS_SIDEBAR_LOADED]?: boolean;
 };
 
 export default OnyxValues;
