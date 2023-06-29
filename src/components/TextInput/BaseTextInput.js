@@ -78,17 +78,17 @@ class BaseTextInput extends Component {
         }
 
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({value: inputValue, selection: this.props.selection});
+        this.setState({value: inputValue, selection: this.props.selection}, () => {
+            if (this.state.value) {
+                this.activateLabel();
+            } else if (!this.state.isFocused) {
+                this.deactivateLabel();
+            }
+        });
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
         if (inputValue === '') {
             this.input.clear();
-        }
-
-        if (inputValue) {
-            this.activateLabel();
-        } else if (!this.state.isFocused) {
-            this.deactivateLabel();
         }
     }
 
