@@ -249,7 +249,7 @@ class ReportActionCompose extends React.Component {
 
         this.unsubscribeFocus = this.props.navigation.addListener('focus', () => KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress));
         this.unsubscribeBlur = this.props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress));
-        
+
         KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
         this.updateComment(this.comment);
 
@@ -289,7 +289,7 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-        
+
         KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress);
         this.unsubscribeBlur();
         this.unsubscribeFocus();

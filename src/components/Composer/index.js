@@ -167,12 +167,12 @@ class Composer extends React.Component {
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
             this.textInput.addEventListener('wheel', this.handleWheel);
-            
+
             // we need to handle listeners on navigation focus/blur as Composer is not unmounting
-            // when navigating away to different report 
+            // when navigating away to different report
             this.unsubscribeFocus = this.props.navigation.addListener('focus', () => document.addEventListener('paste', this.handlePaste));
             this.unsubscribeBlur = this.props.navigation.addListener('blur', () => document.removeEventListener('paste', this.handlePaste));
-            
+
             // focus is not triggered on component mount so we need to add listener manually
             document.addEventListener('paste', this.handlePaste);
         }
