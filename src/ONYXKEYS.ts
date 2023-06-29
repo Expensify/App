@@ -227,4 +227,4 @@ export default {
 
     // Report ID of the last report the user viewed as anonymous user
     LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
-};
+} as const;
