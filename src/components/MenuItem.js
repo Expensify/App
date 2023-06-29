@@ -122,6 +122,8 @@ function MenuItem(props) {
             ]}
             disabled={props.disabled}
             ref={props.forwardedRef}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
+            accessibilityLabel={props.title}
         >
             {({hovered, pressed}) => (
                 <>
@@ -213,7 +215,7 @@ function MenuItem(props) {
                                     </Text>
                                 )}
                                 {Boolean(props.furtherDetails) && (
-                                    <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
+                                    <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                         <Icon
                                             src={props.furtherDetailsIcon}
                                             height={variables.iconSizeNormal}

@@ -248,7 +248,7 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             children = (
                 <ReportPreview
-                    iouReportID={props.action.originalMessage.linkedReportID}
+                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
                     action={props.action}
                     isHovered={hovered}
@@ -452,10 +452,11 @@ function ReportActionItem(props) {
             onSecondaryInteraction={showPopover}
             preventDefaultContextMenu={!props.draftMessage && !hasErrors}
             withoutFocusOnSecondaryInteraction
+            accessibilityLabel={props.translate('accessibilityHints.chatMessage')}
         >
             <Hoverable disabled={Boolean(props.draftMessage)}>
                 {(hovered) => (
-                    <View accessibilityLabel={props.translate('accessibilityHints.chatMessage')}>
+                    <View>
                         {props.shouldDisplayNewMarker && <UnreadActionIndicator reportActionID={props.action.reportActionID} />}
                         <MiniReportActionContextMenu
                             reportID={props.report.reportID}
