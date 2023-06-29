@@ -5,7 +5,7 @@ const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
 const {machineId} = require('node-machine-id');
-const { Link } = require('@react-navigation/native');
+const {Link} = require('@react-navigation/native');
 const ELECTRON_EVENTS = require('./ELECTRON_EVENTS');
 const checkForUpdates = require('../src/libs/checkForUpdates');
 const CONFIG = require('../src/CONFIG').default;
@@ -171,20 +171,20 @@ const electronUpdater = (browserWindow) => ({
 /*
  * @param {Menu} systemMenu
  */
-const setLabelsInMenuTemplate = (submenu, updatedLocale) =>
-_.map(submenu, (menu) => {
-    const newMenu = _.clone(menu);
-    if (menu.id) {
-        const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}`);
-        if (labelTranslation) {
-            newMenu.label = labelTranslation;
+const localizeMenuItems = (submenu, updatedLocale) =>
+    _.map(submenu, (menu) => {
+        const newMenu = _.clone(menu);
+        if (menu.id) {
+            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}`);
+            if (labelTranslation) {
+                newMenu.label = labelTranslation;
+            }
         }
-    }
-    if (menu.submenu) {
-        newMenu.submenu = setLabelsInMenuTemplate(menu.submenu, updatedLocale);
-    }
-    return newMenu;
-});
+        if (menu.submenu) {
+            newMenu.submenu = localizeMenuItems(menu.submenu, updatedLocale);
+        }
+        return newMenu;
+    });
 
 const mainWindow = () => {
     let deeplinkUrl;
@@ -282,7 +282,6 @@ const mainWindow = () => {
                 if (__DEV__) {
                     browserWindow.setTitle('New Expensify');
                 }
-
 
                 const initialMenuTemplate = [
                     {
@@ -384,24 +383,40 @@ const mainWindow = () => {
                         label: Localize.translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
                         role: 'help',
                         submenu: [
-                            {id: 'learnMore', label: Localize.translate(preferredLocale, `desktopApplicationMenu.learnMore`), click: () => {
-                                Link.openExternalLink(CONST.MENU_HELP_URLS.LEARN_MORE);
-                            }, },
-                            {id: 'documentation', label: Localize.translate(preferredLocale, `desktopApplicationMenu.documentation`), click: () => {
-                                Link.openExternalLink(CONST.MENU_HELP_URLS.DOCUMENTATION);
-                            },},
-                            {id: 'communityDiscussions', label: Localize.translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`), click: () => {
-                                Link.openExternalLink(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
-                            },},
-                            {id: 'searchIssues', label: Localize.translate(preferredLocale, `desktopApplicationMenu.searchIssues`), click: () => {
-                                Link.openExternalLink(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
-                            },},
+                            {
+                                id: 'learnMore',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.learnMore`),
+                                click: () => {
+                                    Link.openExternalLink(CONST.MENU_HELP_URLS.LEARN_MORE);
+                                },
+                            },
+                            {
+                                id: 'documentation',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.documentation`),
+                                click: () => {
+                                    Link.openExternalLink(CONST.MENU_HELP_URLS.DOCUMENTATION);
+                                },
+                            },
+                            {
+                                id: 'communityDiscussions',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
+                                click: () => {
+                                    Link.openExternalLink(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
+                                },
+                            },
+                            {
+                                id: 'searchIssues',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
+                                click: () => {
+                                    Link.openExternalLink(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
+                                },
+                            },
                         ],
                     },
                 ];
 
                 // Build and set the initial menu
-                const initialMenu = Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, preferredLocale));
+                const initialMenu = Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, preferredLocale));
                 Menu.setApplicationMenu(initialMenu);
 
                 // When the user clicks a link that has target="_blank" (which is all external links)
@@ -479,7 +494,7 @@ const mainWindow = () => {
                 }
 
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
-                    Menu.setApplicationMenu(Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, updatedLocale)));
+                    Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
