@@ -107,7 +107,7 @@ function RigthModalNavigator() {
                     component={ModalStackNavigators.EditRequestStackNavigator}
                 />
             </Stack.Navigator>
-            <PortalHost name="RigthModalNavigator" />
+            <PortalHost name="RightModalNavigator" />
         </>
     );
 }

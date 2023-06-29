@@ -57,7 +57,7 @@ const ScreenSlideAnimation = React.forwardRef(({children, testID, isSmallScreenW
     }
 
     return (
-        <Portal hostName="RigthModalNavigator">
+        <Portal hostName="RightModalNavigator">
             <Animated.View
                 testID={testID}
                 style={[styles.sidebarAnimatedWrapperContainer, animatedStyle]}
