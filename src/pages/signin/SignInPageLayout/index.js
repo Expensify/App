@@ -1,5 +1,5 @@
 import React, {useRef, useEffect} from 'react';
-import {View, ScrollView, Platform} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import compose from '../../../libs/compose';
@@ -12,8 +12,7 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import scrollViewContentContainerStyles from './signInPageStyles';
 import themeColors from '../../../styles/themes/default';
 import SignInHeroBackgroundImage from '../../../../assets/images/home-background--desktop.svg';
-import SignInHeroBackgroundImageMobile from '../../../../assets/images/home-background--mobile.svg';
-import SignInHeroBackgroundImageMobileAndroid from '../../../../assets/images/home-background--mobile.android.svg';
+import MobileBackgroundImage from './MobileBackgroundImage';
 import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';
 
@@ -57,8 +56,6 @@ function SignInPageLayout(props) {
         }
         scrollViewRef.current.scrollTo({y: 0, animated});
     };
-
-    const MobileBackgroundImage = Platform.OS === 'android' ? SignInHeroBackgroundImageMobileAndroid : SignInHeroBackgroundImageMobile;
 
     useEffect(scrollPageToTop, [props.welcomeHeader, props.welcomeText]);
 
