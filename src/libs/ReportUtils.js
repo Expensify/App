@@ -21,8 +21,6 @@ import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAva
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 
-let sessionEmail;
-let sessionAccountID;
 let currentUserEmail;
 let currentUserAccountID;
 Onyx.connect({
@@ -33,8 +31,6 @@ Onyx.connect({
             return;
         }
 
-        sessionEmail = val.email;
-        sessionAccountID = val.accountID;
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
     },
@@ -200,7 +196,7 @@ function sortReportsByLastRead(reports) {
  */
 function canEditReportAction(reportAction) {
     return (
-        reportAction.actorEmail === sessionEmail &&
+        reportAction.actorEmail === currentUserEmail &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
@@ -220,7 +216,7 @@ function canEditReportAction(reportAction) {
  */
 function canFlagReportAction(reportAction) {
     return (
-        reportAction.actorEmail !== sessionEmail &&
+        reportAction.actorEmail !== currentUserEmail &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
@@ -254,7 +250,7 @@ function canDeleteReportAction(reportAction, reportID) {
     ) {
         return false;
     }
-    if (reportAction.actorEmail === sessionEmail) {
+    if (reportAction.actorEmail === currentUserEmail) {
         return true;
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
@@ -1030,7 +1026,7 @@ function getReportName(report) {
 
     // Not a room or PolicyExpenseChat, generate title from participants
     const participants = (report && report.participantAccountIDs) || [];
-    const participantsWithoutCurrentUser = _.without(participants, sessionAccountID);
+    const participantsWithoutCurrentUser = _.without(participants, currentUserAccountID);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
     return _.map(participantsWithoutCurrentUser, (accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
@@ -2204,7 +2200,7 @@ function canLeaveRoom(report, isPolicyMember) {
  * @returns {Boolean}
  */
 function isCurrentUserTheOnlyParticipant(participantAccountIDs) {
-    return participantAccountIDs && participantAccountIDs.length === 1 && participantAccountIDs[0] === sessionAccountID;
+    return participantAccountIDs && participantAccountIDs.length === 1 && participantAccountIDs[0] === currentUserAccountID;
 }
 
 /**
