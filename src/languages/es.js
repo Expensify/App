@@ -361,7 +361,7 @@ export default {
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
         payerSettled: ({amount}) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} agregue una `,
-        settledAfterAddedBankAccount: ({submitterDisplayName}) => `Pago realizado cuando ${submitterDisplayName} agregó su cuenta bancaria`,
+        settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} agregó una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,

@@ -362,7 +362,7 @@ export default {
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerSettled: ({amount}) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a `,
-        settledAfterAddedBankAccount: ({submitterDisplayName}) => `Payment settled after ${submitterDisplayName} added a bank account`,
+        settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
