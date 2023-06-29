@@ -13,7 +13,6 @@ import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 import * as User from '../../../libs/actions/User';
 import Switch from '../../../components/Switch';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
 import TestToolMenu from '../../../components/TestToolMenu';
@@ -21,6 +20,7 @@ import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescr
 import IllustratedHeaderPageLayout from '../../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../../components/LottieAnimations';
 import SCREENS from '../../../SCREENS';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
     /** The chat priority mode */
@@ -32,10 +32,6 @@ const propTypes = {
         isSubscribedToNewsletter: PropTypes.bool,
     }),
 
-    /** The preferred language of the App */
-    preferredLocale: PropTypes.string.isRequired,
-
-    ...withLocalizePropTypes,
     ...environmentPropTypes,
 };
 
@@ -45,18 +41,19 @@ const defaultProps = {
 };
 
 function PreferencesPage(props) {
-    const priorityModes = props.translate('priorityModePage.priorityModes');
-    const languages = props.translate('languagePage.languages');
+    const {translate, preferredLocale} = useLocalize();
+
+    const priorityModes = translate('priorityModePage.priorityModes');
+    const languages = translate('languagePage.languages');
 
     // Enable additional test features in the staging or dev environments
     const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.ADHOC, CONST.ENVIRONMENT.DEV], props.environment);
 
     return (
         <IllustratedHeaderPageLayout
-            title={props.translate('common.preferences')}
+            title={translate('common.preferences')}
             shouldShowBackButton
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            // TODO: finish this piece
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.PreferencesDJ}
         >
@@ -65,15 +62,15 @@ function PreferencesPage(props) {
                     style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]}
                     numberOfLines={1}
                 >
-                    {props.translate('common.notifications')}
+                    {translate('common.notifications')}
                 </Text>
                 <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
                     <View style={styles.flex4}>
-                        <Text>{props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
+                        <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
                     </View>
                     <View style={[styles.flex1, styles.alignItemsEnd]}>
                         <Switch
-                            accessibilityLabel={props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                            accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                             isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
                             onToggle={User.updateNewsletterSubscription}
                         />
@@ -82,13 +79,13 @@ function PreferencesPage(props) {
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
                     title={priorityModes[props.priorityMode].label}
-                    description={props.translate('priorityModePage.priorityMode')}
+                    description={translate('priorityModePage.priorityMode')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                 />
                 <MenuItemWithTopDescription
                     shouldShowRightIcon
-                    title={languages[props.preferredLocale].label}
-                    description={props.translate('languagePage.language')}
+                    title={languages[preferredLocale].label}
+                    description={translate('languagePage.language')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                 />
                 {shouldShowTestToolMenu && (
@@ -107,7 +104,6 @@ PreferencesPage.displayName = 'PreferencesPage';
 
 export default compose(
     withEnvironment,
-    withLocalize,
     withOnyx({
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
