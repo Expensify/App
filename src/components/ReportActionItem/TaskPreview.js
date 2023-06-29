@@ -64,11 +64,11 @@ function TaskPreview(props) {
     return (
         <PressableWithoutFeedback
             onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
-            style={[styles.flexRow, styles.justifyContentBetween]}
+            style={[styles.flexRow, styles.justifyContentBetween, styles.chatItemMessage]}
             accessibilityRole="button"
             accessibilityLabel={props.translate('newTaskPage.task')}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
                 <Checkbox
                     style={[styles.mr2]}
                     containerStyle={[styles.taskCheckbox]}

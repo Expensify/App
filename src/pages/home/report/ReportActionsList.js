@@ -4,7 +4,6 @@ import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-nati
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -21,6 +20,7 @@ import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import MoneyRequestHeader from '../../../components/MoneyRequestHeader';
 
 const propTypes = {
@@ -53,7 +53,7 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
-
+    
     /** The policy object for the current route */
     policy: PropTypes.shape({
         /** The name of the policy */
@@ -88,6 +88,7 @@ function keyExtractor(item) {
 }
 
 function ReportActionsList(props) {
+    const reportScrollManager = useReportScrollManager();
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -166,7 +167,7 @@ function ReportActionsList(props) {
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
                 accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
-                ref={ReportScrollManager.flatListRef}
+                ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
                 contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0, showMoneyRequestHeader && styles.pb0]}
