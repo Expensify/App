@@ -1949,6 +1949,7 @@ function canAccessReport(report, policies, betas) {
  * @param {Boolean} isInGSDMode
  * @param {Object} iouReports
  * @param {String[]} betas
+ * @param {Object} policies
  * @returns {boolean}
  */
 function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies) {
