@@ -6,6 +6,7 @@ import compose from '../../../libs/compose';
 import SignInPageContent from './SignInPageContent';
 import Footer from './Footer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import styles from '../../../styles/styles';
 import SignInPageHero from '../SignInPageHero';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -15,6 +16,7 @@ import SignInHeroBackgroundImage from '../../../../assets/images/home-background
 import SignInHeroBackgroundImageMobile from '../../../../assets/images/home-background--mobile.svg';
 import SignInGradient from '../../../../assets/images/home-fade-gradient.svg';
 import variables from '../../../styles/variables';
+import usePrevious from '../../../hooks/usePrevious';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -35,10 +37,12 @@ const propTypes = {
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 function SignInPageLayout(props) {
     const scrollViewRef = useRef();
+    const prevPreferredLocale = usePrevious(props.preferredLocale);
     let containerStyles = [styles.flex1, styles.signInPageInner];
     let contentContainerStyles = [styles.flex1, styles.flexRow];
 
@@ -57,7 +61,13 @@ function SignInPageLayout(props) {
         scrollViewRef.current.scrollTo({y: 0, animated});
     };
 
-    useEffect(scrollPageToTop, [props.welcomeHeader, props.welcomeText]);
+    useEffect(() => {
+        if (prevPreferredLocale !== props.preferredLocale) {
+            return;
+        }
+
+        scrollPageToTop();
+    }, [props.welcomeHeader, props.welcomeText, prevPreferredLocale, props.preferredLocale]);
 
     return (
         <View style={containerStyles}>
@@ -138,4 +148,4 @@ function SignInPageLayout(props) {
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
 
-export default compose(withWindowDimensions, withSafeAreaInsets)(SignInPageLayout);
+export default compose(withWindowDimensions, withSafeAreaInsets, withLocalize)(SignInPageLayout);

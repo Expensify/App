@@ -76,7 +76,7 @@ function MenuItem(props) {
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
         [
-            styles.flexShrink1,
+            styles.flex1,
             styles.popoverMenuText,
             props.icon && !_.isArray(props.icon) && (props.avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
@@ -92,7 +92,7 @@ function MenuItem(props) {
         styles.textLabelSupporting,
         props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
         styles.lineHeightNormal,
-        props.title ? descriptionVerticalMargin : undefined,
+        props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         props.descriptionTextStyle,
         isDeleted ? styles.offlineFeedback.deleted : undefined,
     ]);
@@ -218,7 +218,7 @@ function MenuItem(props) {
                                     </Text>
                                 )}
                                 {Boolean(props.furtherDetails) && (
-                                    <View style={[styles.flexRow, styles.mt2, styles.alignItemsCenter]}>
+                                    <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                         <Icon
                                             src={props.furtherDetailsIcon}
                                             height={variables.iconSizeNormal}
