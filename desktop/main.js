@@ -151,7 +151,7 @@ const electronUpdater = (browserWindow) => ({
             const systemMenu = Menu.getApplicationMenu();
             downloadedVersion = info.version;
             systemMenu.getMenuItemById(`update`).visible = true;
-            systemMenu.getMenuItemById(`check-for-updates`).visible = false;
+            systemMenu.getMenuItemById(`checkForUpdates`).visible = false;
             if (browserWindow.isVisible()) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
