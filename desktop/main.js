@@ -168,6 +168,24 @@ const electronUpdater = (browserWindow) => ({
     },
 });
 
+/*
+ * @param {Menu} systemMenu
+ */
+const setLabelsInMenuTemplate = (submenu, updatedLocale) =>
+_.map(submenu, (menu) => {
+    const newMenu = _.clone(menu);
+    if (menu.id) {
+        const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}`);
+        if (labelTranslation) {
+            newMenu.label = labelTranslation;
+        }
+    }
+    if (menu.submenu) {
+        newMenu.submenu = setLabelsInMenuTemplate(menu.submenu, updatedLocale);
+    }
+    return newMenu;
+});
+
 const mainWindow = () => {
     let deeplinkUrl;
     let browserWindow;
@@ -265,20 +283,6 @@ const mainWindow = () => {
                     browserWindow.setTitle('New Expensify');
                 }
 
-                const setLabelsInMenuTemplate = (submenu, updatedLocale) =>
-                    _.map(submenu, (menu) => {
-                        const newMenu = _.clone(menu);
-                        if (menu.id) {
-                            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}`);
-                            if (labelTranslation) {
-                                newMenu.label = labelTranslation;
-                            }
-                        }
-                        if (menu.submenu) {
-                            newMenu.submenu = setLabelsInMenuTemplate(menu.submenu, updatedLocale);
-                        }
-                        return newMenu;
-                    });
 
                 const initialMenuTemplate = [
                     {
