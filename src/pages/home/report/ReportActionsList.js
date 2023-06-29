@@ -21,7 +21,7 @@ import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import MoneyRequestHeader from '../../../components/MoneyRequestHeader';
+import MoneyRequestDetails from '../../../components/MoneyRequestDetails';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -162,7 +162,7 @@ function ReportActionsList(props) {
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
-    const showMoneyRequestHeader = ReportUtils.isMoneyRequestReport(props.report) || isSingleTransactionView;
+    const showMoneyRequestDetails = ReportUtils.isMoneyRequestReport(props.report) || isSingleTransactionView;
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
@@ -170,13 +170,13 @@ function ReportActionsList(props) {
                 ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
-                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0, showMoneyRequestHeader && styles.pb0]}
+                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0, showMoneyRequestDetails && styles.pb0]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={calculateInitialNumToRender()}
                 onEndReached={props.loadMoreChats}
                 onEndReachedThreshold={0.75}
-                ListFooterComponentStyle={showMoneyRequestHeader && styles.chatFooterAtTheTop}
+                ListFooterComponentStyle={showMoneyRequestDetails && styles.chatFooterAtTheTop}
                
                 ListFooterComponent={() => {
                     if (props.report.isLoadingMoreReportActions) {
@@ -195,9 +195,9 @@ function ReportActionsList(props) {
                             />
                         );
                     }
-                    if(showMoneyRequestHeader) {
+                    if(showMoneyRequestDetails) {
                         return (
-                            <MoneyRequestHeader
+                            <MoneyRequestDetails
                                 report={props.report}
                                 policy={props.policy}
                                 personalDetails={props.personalDetailsList}
