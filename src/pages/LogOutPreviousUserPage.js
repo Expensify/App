@@ -43,7 +43,7 @@ function LogOutPreviousUserPage(props) {
                 Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             }
         });
-    });
+    },[]);
 
     return <FullScreenLoadingIndicator />;
 }
