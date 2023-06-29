@@ -358,12 +358,12 @@ function getBackgroundColorStyle(backgroundColor) {
 /**
  * Returns a style for text color
  *
- * @param {String} linkPreviewColor
+ * @param {String} color
  * @returns {Object}
  */
-function getTextColorStyle(textColor) {
+function getTextColorStyle(color) {
     return {
-        color: textColor,
+        color,
     };
 }
 
