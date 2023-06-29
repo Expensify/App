@@ -396,10 +396,8 @@ const mainWindow = () => {
                     },
                 ];
 
-                const translatedMenu = setLabelsInMenuTemplate(initialMenuTemplate, preferredLocale);
-
                 // Build and set the initial menu
-                const initialMenu = Menu.buildFromTemplate(translatedMenu);
+                const initialMenu = Menu.buildFromTemplate(setLabelsInMenuTemplate(initialMenuTemplate, preferredLocale));
                 Menu.setApplicationMenu(initialMenu);
 
                 // When the user clicks a link that has target="_blank" (which is all external links)
