@@ -45,11 +45,50 @@ const defaultProps = {
 };
 
 function PasswordPage(props) {
-    const [currentPassword, setCurrentPassword] = useState('')
-    const [newPassword, setNewPassword] = useState(''),
-    const [errors, setErrors] = ({
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [errors, setErrors] = useState({
+        currentPassword: false,
+        newPassword: false,
+        newPasswordSameAsOld: false,
+    });
+
+    errorKeysMap = {
+        currentPassword: 'passwordPage.errors.currentPassword',
+        newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
+        newPassword: 'passwordPage.errors.newPassword',
+    }
+
+    useEffect(() => {
+      return () => {
+        Session.clearAccountMessages();
+      }
+    }, [])
+
+    /**
+     * @param {String} field
+     * @returns {String}
+     */
+    const getErrorText = (field) => {
+        return errors[field] ? errorKeysMap[field] : ''
+    }
+    
+    /**
+     * @param {String} field
+     * @param {String} value
+     * @param {String[]} additionalErrorsToClear
+     */
+    const clearErrorAndSetValue = (field, value, additionalErrorsToClear) => {
+        const errorsToReset = {
+            [field]: false
+        }
+        if (additionalErrorsToClear) {
+            _.each(additionalErrorsToClear, (errorFlag) => {
+                errorsToReset[errorFlag] = false;
+            });
+        }
         
-    })
+    }
 
 }
 // class PasswordPage extends Component {
@@ -58,37 +97,37 @@ function PasswordPage(props) {
 
     //     this.state = {
     //         currentPassword: '',
-            newPassword: '',
-            errors: {
-                currentPassword: false,
-                newPassword: false,
-                newPasswordSameAsOld: false,
-            },
-        };
+        //     newPassword: '',
+        //     errors: {
+        //         currentPassword: false,
+        //         newPassword: false,
+        //         newPasswordSameAsOld: false,
+        //     },
+        // };
 
-        this.submit = this.submit.bind(this);
-        this.getErrorText = this.getErrorText.bind(this);
-        this.validate = this.validate.bind(this);
-        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
+        // this.submit = this.submit.bind(this);
+        // this.getErrorText = this.getErrorText.bind(this);
+        // this.validate = this.validate.bind(this);
+        // this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
 
-        this.errorKeysMap = {
-            currentPassword: 'passwordPage.errors.currentPassword',
-            newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
-            newPassword: 'passwordPage.errors.newPassword',
-        };
-    }
+        // this.errorKeysMap = {
+        //     currentPassword: 'passwordPage.errors.currentPassword',
+        //     newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
+        //     newPassword: 'passwordPage.errors.newPassword',
+        // };
+    // }
 
-    componentWillUnmount() {
-        Session.clearAccountMessages();
-    }
+    // componentWillUnmount() {
+    //     Session.clearAccountMessages();
+    // }
 
-    /**
-     * @param {String} field
-     * @returns {String}
-     */
-    getErrorText(field) {
-        return this.state.errors[field] ? this.errorKeysMap[field] : '';
-    }
+    // /**
+    //  * @param {String} field
+    //  * @returns {String}
+    //  */
+    // getErrorText(field) {
+    //     return this.state.errors[field] ? this.errorKeysMap[field] : '';
+    // }
 
     /**
      * @param {String} field
