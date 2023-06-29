@@ -328,7 +328,7 @@ class ReportScreen extends React.Component {
                                     report={this.props.report}
                                     isComposerFullSize={this.props.isComposerFullSize}
                                     parentViewHeight={this.state.skeletonViewContainerHeight}
-                                    policies={this.props.policies}
+                                    policy={policy}
                                 />
                             )}
 
@@ -348,7 +348,7 @@ class ReportScreen extends React.Component {
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
-                                        policy={policy}
+                                        policies={this.props.policies}
                                     />
                                 </>
                             )}
