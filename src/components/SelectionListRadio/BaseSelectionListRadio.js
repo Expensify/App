@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -13,12 +13,14 @@ import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListR
 import RadioListItem from './RadioListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
+import useIsFirstRender from '../../hooks/useIsFirstRender';
 
 function SelectionListRadio(props) {
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(props.textInputLabel);
+    const isFirstRender = useIsFirstRender();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -151,9 +153,9 @@ function SelectionListRadio(props) {
         };
     }, [props.shouldDelayFocus, shouldShowTextInput]);
 
-    /** Scrolls to the focused index within the SectionList */
+    /** Scrolls to the focused index without animation on mount, and with animation when focused item changes */
     useEffect(() => {
-        const scrollToIndex = (index) => {
+        const scrollToIndex = (index, animated) => {
             const item = flattenedSections.allOptions[index];
 
             if (!listRef.current || !item) {
@@ -173,11 +175,11 @@ function SelectionListRadio(props) {
                 }
             }
 
-            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated: true});
+            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
         };
 
-        scrollToIndex(focusedIndex);
-    }, [flattenedSections.allOptions, focusedIndex, props.sections]);
+        scrollToIndex(focusedIndex, !isFirstRender);
+    }, [flattenedSections.allOptions, focusedIndex, props.sections, isFirstRender]);
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
