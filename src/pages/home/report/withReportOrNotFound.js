@@ -49,7 +49,7 @@ export default function (WrappedComponent) {
             if (this.props.isLoadingReportData && (_.isEmpty(this.props.report) || !this.props.report.reportID)) {
                 return <FullscreenLoadingIndicator />;
             }
-            if (_.isEmpty(this.props.report) || !this.props.report.reportID || !ReportUtils.canAccessReport(this.props.report, this.props.betas)) {
+            if (_.isEmpty(this.props.report) || !this.props.report.reportID || !ReportUtils.canAccessReport(this.props.report, this.props.policies, this.props.betas)) {
                 return <NotFoundPage />;
             }
 
