@@ -18,14 +18,14 @@ const propTypes = {
 };
 
 /**
- * Method called when avatar is clicked
+ * Function called when avatar is clicked
  */
 const navigateToSettings = () => {
     Navigation.navigate(ROUTES.SETTINGS);
 };
 
 /**
- * Method called when a pinned chat is selected.
+ * Function called when a pinned chat is selected.
  */
 const startTimer = () => {
     Timing.start(CONST.TIMING.SWITCH_REPORT);
