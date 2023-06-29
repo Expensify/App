@@ -23,7 +23,7 @@ import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 const propTypes = {
     /** All personal details asssociated with user */
-    allPersonalDetails: personalDetailsPropType,
+    personalDetailsList: personalDetailsPropType,
 
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
@@ -51,6 +51,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    personalDetailsList: {},
     taskReport: {},
     isHovered: false,
 };
@@ -64,7 +65,7 @@ function TaskPreview(props) {
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
     const taskAssigneeAccountID = TaskUtils.getTaskAssigneeAccountID(props.taskReport);
-    const taskAssignee = lodashGet(props.allPersonalDetails, [taskAssigneeAccountID, 'login'], '');
+    const taskAssignee = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
@@ -108,7 +109,7 @@ export default compose(
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
         },
-        allPersonalDetails: {
+        personalDetailsList: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
