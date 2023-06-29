@@ -2,8 +2,8 @@ name: 'Upstream Sync'
 
 on:
   schedule:
-    - cron:  '0 7 * * 1,4'
-    # scheduled at 07:00 every Monday and Thursday
+    - cron:  '0 7 * * 1,2,3,4,5'
+    # scheduled at 07:00 every Monday through Friday
 
   workflow_dispatch:  # click the button on Github repo!
 
@@ -20,7 +20,7 @@ jobs:
       with:
         # optional: set the branch to checkout,
         # sync action checks out your 'target_sync_branch' anyway
-        ref:  my-branch
+        ref:  main
         # REQUIRED if your upstream repo is private (see wiki)
         persist-credentials: false
 
@@ -30,12 +30,11 @@ jobs:
       id: sync
       uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
       with:
-        target_sync_branch: my-branch
+        target_sync_branch: main
         # REQUIRED 'target_repo_token' exactly like this!
         target_repo_token: ${{ secrets.GITHUB_TOKEN }}
         upstream_sync_branch: main
-        upstream_sync_repo: aormsby/Fork-Sync-With-Upstream-action
-        upstream_repo_access_token: ${{ secrets.UPSTREAM_REPO_SECRET }}
+        upstream_sync_repo: Expensify/App
 
         # Set test_mode true to run tests instead of the true action!!
         test_mode: true
