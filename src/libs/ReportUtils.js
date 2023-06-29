@@ -1923,6 +1923,25 @@ function canSeeDefaultRoom(report, policies, betas) {
 }
 
 /**
+ * @param {Object} report
+ * @param {Array<Object>} policies
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canAccessReport(report, policies, betas) {
+    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report))) {
+        return false;
+    }
+
+    // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
+    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Takes several pieces of data from Onyx and evaluates if a report should be shown in the option list (either when searching
  * for reports or the reports shown in the LHN).
  *
@@ -1951,7 +1970,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
+    if (!canAccessReport(report, policies, betas)) {
         return false;
     }
 
@@ -2437,4 +2456,5 @@ export {
     getReportPreviewMessage,
     shouldHideComposer,
     getOriginalReportID,
+    canAccessReport,
 };
