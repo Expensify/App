@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {Component} from 'react';
+import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
@@ -27,30 +27,28 @@ export default function (WrappedComponent) {
         isLoadingReportData: true,
     };
 
-    class WithReportOrNotFound extends Component {
-        render() {
-            if (this.props.isLoadingReportData && (_.isEmpty(this.props.report) || !this.props.report.reportID)) {
-                return <FullscreenLoadingIndicator />;
-            }
-            if (_.isEmpty(this.props.report) || !this.props.report.reportID) {
-                return <NotFoundPage />;
-            }
-
-            const rest = _.omit(this.props, ['forwardedRef']);
-
-            return (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
-                    ref={this.props.forwardedRef}
-                />
-            );
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    function WithReportOrNotFound(props) {
+        if (props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID)) {
+            return <FullscreenLoadingIndicator />;
         }
+        if (_.isEmpty(props.report) || !props.report.reportID) {
+            return <NotFoundPage />;
+        }
+        const rest = _.omit(props, ['forwardedRef']);
+        return (
+            <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...rest}
+                ref={props.forwardedRef}
+            />
+        );
     }
 
     WithReportOrNotFound.propTypes = propTypes;
     WithReportOrNotFound.defaultProps = defaultProps;
     WithReportOrNotFound.displayName = `withReportOrNotFound(${getComponentDisplayName(WrappedComponent)})`;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const withReportOrNotFound = React.forwardRef((props, ref) => (
         <WithReportOrNotFound
