@@ -75,7 +75,7 @@ function ReportActionItemSingle(props) {
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
     const actorDetails = props.personalDetailsList[actorAccountID] || {};
     const displayName = isWorkspaceActor ? ReportUtils.getPolicyName(props.report) : actorDetails.displayName;
-    const actorHint = isWorkspaceActor ? displayName : lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const actorHint = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const pendingFields = isWorkspaceActor ? {} : actorDetails.pendingFields;
     const avatarSource = isWorkspaceActor ? ReportUtils.getWorkspaceAvatar(props.report) : UserUtils.getAvatar(actorDetails.avatar, actorAccountID);
 
