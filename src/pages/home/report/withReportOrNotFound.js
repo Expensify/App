@@ -7,6 +7,7 @@ import NotFoundPage from '../../ErrorPage/NotFoundPage';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
 import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
+import * as ReportUtils from '../../../libs/ReportUtils';
 
 export default function (WrappedComponent) {
     const propTypes = {
@@ -17,6 +18,9 @@ export default function (WrappedComponent) {
         /** The report currently being looked at */
         report: reportPropTypes,
 
+        /** Beta features list */
+        betas: PropTypes.arrayOf(PropTypes.string),
+
         /** Indicated whether the report data is loading */
         isLoadingReportData: PropTypes.bool,
     };
@@ -24,6 +28,7 @@ export default function (WrappedComponent) {
     const defaultProps = {
         forwardedRef: () => {},
         report: {},
+        betas: [],
         isLoadingReportData: true,
     };
 
@@ -32,7 +37,7 @@ export default function (WrappedComponent) {
             if (this.props.isLoadingReportData && (_.isEmpty(this.props.report) || !this.props.report.reportID)) {
                 return <FullscreenLoadingIndicator />;
             }
-            if (_.isEmpty(this.props.report) || !this.props.report.reportID) {
+            if (_.isEmpty(this.props.report) || !this.props.report.reportID || !ReportUtils.canAccessReport(this.props.report, this.props.betas)) {
                 return <NotFoundPage />;
             }
 
@@ -66,6 +71,9 @@ export default function (WrappedComponent) {
         },
         isLoadingReportData: {
             key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     })(withReportOrNotFound);
 }
