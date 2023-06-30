@@ -48,13 +48,13 @@ const errorKeysMap = {
     currentPassword: 'passwordPage.errors.currentPassword',
     newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
     newPassword: 'passwordPage.errors.newPassword',
-}
+};
 
 function PasswordPage(props) {
     const [passwordFields, setPasswordFields] = useState({
         currentPassword: '',
-        newPassword: ''
-    })
+        newPassword: '',
+    });
     const [errors, setErrors] = useState({
         currentPassword: false,
         newPassword: false,
@@ -63,16 +63,19 @@ function PasswordPage(props) {
 
     const currentPasswordInputRef = useRef(null);
 
-    useEffect(() => () => {
-        Session.clearAccountMessages();
-      }, [])
+    useEffect(
+        () => () => {
+            Session.clearAccountMessages();
+        },
+        [],
+    );
 
     /**
      * @param {String} field
      * @returns {String}
      */
-    const getErrorText = (field) => errors[field] ? errorKeysMap[field] : ''
-    
+    const getErrorText = (field) => (errors[field] ? errorKeysMap[field] : '');
+
     /**
      * @param {String} field
      * @param {String} value
@@ -87,15 +90,15 @@ function PasswordPage(props) {
                 errorsToReset[errorFlag] = false;
             });
         }
-        setPasswordFields((prev) => ({ ...prev, [field]: value}))
-        setErrors((prev) => ({ ...prev, ...errorsToReset}))   
-    }
+        setPasswordFields((prev) => ({...prev, [field]: value}));
+        setErrors((prev) => ({...prev, ...errorsToReset}));
+    };
 
     /**
      * @returns {Boolean}
      */
     const validate = () => {
-        const error = {}
+        const error = {};
 
         if (!passwordFields.currentPassword) {
             error.currentPassword = true;
@@ -111,7 +114,7 @@ function PasswordPage(props) {
 
         setErrors(() => ({...error}));
         return _.size(error) === 0;
-    }
+    };
 
     /**
      * Submit the form
@@ -121,7 +124,7 @@ function PasswordPage(props) {
             return;
         }
         User.updatePassword(passwordFields.currentPassword, passwordFields.newPassword);
-    }
+    };
 
     const shouldShowNewPasswordPrompt = !errors.newPassword && !errors.newPasswordSameAsOld;
     return (
