@@ -102,7 +102,7 @@ function PasswordPage(props) {
     /**
      * @returns {Boolean}
      */
-    const validate = useCallback(() => {
+    const validate = () => {
         const errors = {}
 
         if (!passwordFields.currentPassword) {
@@ -121,7 +121,7 @@ function PasswordPage(props) {
             return {...errors}
         });
         return _.size(errors) === 0;
-    }, [submit])
+    }
 
     /**
      * Submit the form
