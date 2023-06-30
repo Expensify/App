@@ -730,7 +730,7 @@ const CONST = {
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: {}, success: '', isLoading: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -752,7 +752,7 @@ const CONST = {
 
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
-    VALIDATE_FOR_HTML_TAG_REGEX: /<(.|\n)*?>/g,
+    VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
     PASSWORD_PAGE: {
         ERROR: {
