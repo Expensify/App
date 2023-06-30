@@ -1101,7 +1101,7 @@ function getReportName(report) {
  * @returns {String|*}
  */
 function getDMRootReportName(report) {
-    if ((isThread(report) || isTaskReport(report)) && !getChatType(report)) {
+    if (isChildReport(report) && !getChatType(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         return getDMRootReportName(parentReport);
     }
