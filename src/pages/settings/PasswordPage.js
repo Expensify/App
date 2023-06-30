@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -64,9 +64,7 @@ function PasswordPage(props) {
     const currentPasswordInputRef = useRef(null);
 
     useEffect(() => {
-      return () => {
-        Session.clearAccountMessages();
-      }
+      return () => Session.clearAccountMessages();
     }, [])
 
     /**
@@ -74,7 +72,7 @@ function PasswordPage(props) {
      * @returns {String}
      */
     const getErrorText = (field) => {
-        return errors[field] ? errorKeysMap[field] : ''
+        return errors[field] ? errorKeysMap[field] : '';
     }
     
     /**
@@ -103,24 +101,24 @@ function PasswordPage(props) {
      * @returns {Boolean}
      */
     const validate = () => {
-        const errors = {}
+        const error = {}
 
         if (!passwordFields.currentPassword) {
-            errors.currentPassword = true;
+            error.currentPassword = true;
         }
 
         if (!passwordFields.newPassword || !ValidationUtils.isValidPassword(passwordFields.newPassword)) {
-            errors.newPassword = true;
+            error.newPassword = true;
         }
 
         if (passwordFields.currentPassword && passwordFields.newPassword && _.isEqual(passwordFields.currentPassword, passwordFields.newPassword)) {
-            errors.newPasswordSameAsOld = true;
+            error.newPasswordSameAsOld = true;
         }
 
         setErrors(() => {
-            return {...errors}
+            return {...error}
         });
-        return _.size(errors) === 0;
+        return _.size(error) === 0;
     }
 
     /**
