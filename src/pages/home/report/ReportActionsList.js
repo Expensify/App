@@ -53,7 +53,7 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
-    
+
     /** The policy object for the current route */
     policy: PropTypes.shape({
         /** The name of the policy */
@@ -177,7 +177,6 @@ function ReportActionsList(props) {
                 onEndReached={props.loadMoreChats}
                 onEndReachedThreshold={0.75}
                 ListFooterComponentStyle={showMoneyRequestDetails && styles.chatFooterAtTheTop}
-               
                 ListFooterComponent={() => {
                     if (props.report.isLoadingMoreReportActions) {
                         return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;

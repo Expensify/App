@@ -59,29 +59,28 @@ function MoneyRequestHeader(props) {
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer =
-    Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
+        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
-            
-                <HeaderWithBackButton
-                    shouldShowAvatarWithDisplay
-                    shouldShowPinButton={props.isSingleTransactionView}
-                    shouldShowThreeDotsButton={!isPayer && !isSettled && props.isSingleTransactionView}
-                    threeDotsMenuItems={[
-                        {
-                            icon: Expensicons.Trashcan,
-                            text: props.translate('common.delete'),
-                            onSelected: () => {},
-                        },
-                    ]}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                    report={props.report}
-                    parentReport={moneyRequestReport}
-                    policies={props.policies}
-                    personalDetails={props.personalDetails}
-                    shouldShowBackButton={props.isSmallScreenWidth}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
-                />
+            <HeaderWithBackButton
+                shouldShowAvatarWithDisplay
+                shouldShowPinButton={props.isSingleTransactionView}
+                shouldShowThreeDotsButton={!isPayer && !isSettled && props.isSingleTransactionView}
+                threeDotsMenuItems={[
+                    {
+                        icon: Expensicons.Trashcan,
+                        text: props.translate('common.delete'),
+                        onSelected: () => {},
+                    },
+                ]}
+                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
+                report={props.report}
+                parentReport={moneyRequestReport}
+                policies={props.policies}
+                personalDetails={props.personalDetails}
+                shouldShowBackButton={props.isSmallScreenWidth}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+            />
         </View>
     );
 }

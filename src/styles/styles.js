@@ -1581,7 +1581,7 @@ const styles = {
     chatItemReactionsDraftRight: {
         marginLeft: 52,
     },
-    chatFooterAtTheTop : {
+    chatFooterAtTheTop: {
         flexGrow: 1,
         justifyContent: 'flex-start',
     },
