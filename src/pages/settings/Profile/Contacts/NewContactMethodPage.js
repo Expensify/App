@@ -94,7 +94,7 @@ function NewContactMethodPage(props) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
             }
 
-            if (!_.isEmpty(values.phoneOrEmail) && !(parsePhoneNumber(phoneLogin).possible || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 

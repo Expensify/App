@@ -261,10 +261,6 @@ describe('Migrations', () => {
             PERSONAL_DETAILS: 'personalDetails',
         };
 
-        // Warning: this test has to come before the others in this suite because Onyx.clear leaves traces and keys with null values aren't cleared out between tests
-        it("Should skip the migration if there's no reportAction data in Onyx", () =>
-            PersonalDetailsByAccountID().then(() => expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration PersonalDetailsByAccountID because there were no reportActions')));
-
         it('Should skip any zombie reportAction collections that have no reportAction data in Onyx', () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
@@ -808,6 +804,44 @@ describe('Migrations', () => {
                                 childOldestFourAccountIDs: '100,101',
                             };
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`][1]).toMatchObject(expectedReportAction);
+                        },
+                    });
+                }));
+
+        it('Should succeed in removing any policyMemberList objects it finds in Onyx', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}1`]: {
+                    'admin@company1.com': {
+                        role: 'admin',
+                    },
+                    'employee@company1.com': {
+                        role: 'user',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}2`]: {
+                    'admin@company2.com': {
+                        role: 'admin',
+                    },
+                    'employee@company2.com': {
+                        role: 'user',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        `[Migrate Onyx] PersonalDetailsByAccountID migration: removing policyMemberList ${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}1`,
+                    );
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        `[Migrate Onyx] PersonalDetailsByAccountID migration: removing policyMemberList ${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}2`,
+                    );
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST,
+                        waitForCollectionCallback: true,
+                        callback: (allPolicyMemberLists) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allPolicyMemberLists[`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}1`]).toBeNull();
+                            expect(allPolicyMemberLists[`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}2`]).toBeNull();
                         },
                     });
                 }));
