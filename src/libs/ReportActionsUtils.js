@@ -248,6 +248,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
 
+    // Do not group if the delegate account ID is different
+    if (previousAction.delegateAccountID !== currentAction.delegateAccountID) {
+        return false;
+    }
+
     return currentAction.actorEmail === previousAction.actorEmail;
 }
 
