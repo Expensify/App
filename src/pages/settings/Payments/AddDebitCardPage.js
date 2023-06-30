@@ -187,6 +187,7 @@ class DebitCardPage extends Component {
                         </View>
                     )}
                     <CheckboxWithLabel
+                        accessibilityLabel={`${this.props.translate('common.iAcceptThe')} ${this.props.translate('common.expensifyTermsOfService')}`}
                         inputID="acceptTerms"
                         LabelComponent={() => (
                             <Text>
