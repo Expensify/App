@@ -1,24 +1,5 @@
 const utils = require('../utils/utils');
 
-const assertValidateJobExecuted = (workflowResult, didExecute = true) => {
-    const steps = [
-        utils.createStepAssertion('Get merged pull request', true, null, 'VALIDATE', 'Getting merged PR', [{key: 'github_token', value: '***'}]),
-        {
-            name: 'Main Check if merged pull request was an automatic version bump PR',
-            status: 0,
-            output: '',
-        },
-    ];
-
-    steps.forEach((expectedStep) => {
-        if (didExecute) {
-            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
-        } else {
-            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
-        }
-    });
-};
-
 const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         utils.createStepAssertion('Checkout staging branch', true, null, 'DEPLOY_STAGING', 'Checking out staging branch', [
@@ -78,7 +59,6 @@ const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) =>
 };
 
 module.exports = {
-    assertValidateJobExecuted,
     assertDeployStagingJobExecuted,
     assertDeployProductionJobExecuted,
 };

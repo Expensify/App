@@ -39,7 +39,7 @@ describe('test workflow deploy', () => {
     afterEach(async () => {
         await mockGithub.teardown();
     });
-    describe('push as OSBotify', () => {
+    describe('push', () => {
         it('to main - nothing triggered', async () => {
             const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
             const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
@@ -57,7 +57,6 @@ describe('test workflow deploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
@@ -67,7 +66,6 @@ describe('test workflow deploy', () => {
                 actor: 'OSBotify',
                 logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
             });
-            assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result, false);
         });
@@ -89,7 +87,6 @@ describe('test workflow deploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
@@ -99,7 +96,6 @@ describe('test workflow deploy', () => {
                 actor: 'OSBotify',
                 logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
             });
-            assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result);
             assertions.assertDeployProductionJobExecuted(result, false);
         });
@@ -121,7 +117,6 @@ describe('test workflow deploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
                 deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
                 deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
             };
@@ -131,106 +126,8 @@ describe('test workflow deploy', () => {
                 actor: 'OSBotify',
                 logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
             });
-            assertions.assertValidateJobExecuted(result);
             assertions.assertDeployStagingJobExecuted(result, false);
             assertions.assertDeployProductionJobExecuted(result);
-        });
-    });
-    describe('push as user', () => {
-        it('to main - nothing triggered', async () => {
-            const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
-            const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                'push',
-                {
-                    ref: 'refs/heads/main',
-                },
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
-                'dummy_github_token',
-            );
-            const testMockSteps = {
-                validate: mocks.VALIDATE_STEP_MOCKS,
-                deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
-                deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
-            };
-            const result = await act.runEvent('push', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Author',
-                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-            });
-            assertions.assertValidateJobExecuted(result);
-            assertions.assertDeployStagingJobExecuted(result, false);
-            assertions.assertDeployProductionJobExecuted(result, false);
-        });
-
-        it('to staging - nothing triggered', async () => {
-            const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
-            const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                'push',
-                {
-                    ref: 'refs/heads/staging',
-                },
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
-                'dummy_github_token',
-            );
-            const testMockSteps = {
-                validate: mocks.VALIDATE_STEP_MOCKS,
-                deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
-                deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
-            };
-            const result = await act.runEvent('push', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Author',
-                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-            });
-            assertions.assertValidateJobExecuted(result);
-            assertions.assertDeployStagingJobExecuted(result, false);
-            assertions.assertDeployProductionJobExecuted(result, false);
-        });
-
-        it('to production - nothing triggered', async () => {
-            const repoPath = mockGithub.repo.getPath('testDeployWorkflowRepo') || '';
-            const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
-            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-            act = utils.setUpActParams(
-                act,
-                'push',
-                {
-                    ref: 'refs/heads/production',
-                },
-                {
-                    OS_BOTIFY_TOKEN: 'dummy_token',
-                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                },
-                'dummy_github_token',
-            );
-            const testMockSteps = {
-                validate: mocks.VALIDATE_STEP_MOCKS,
-                deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
-                deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
-            };
-            const result = await act.runEvent('push', {
-                workflowFile: path.join(repoPath, '.github', 'workflows', 'deploy.yml'),
-                mockSteps: testMockSteps,
-                actor: 'Dummy Author',
-                logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
-            });
-            assertions.assertValidateJobExecuted(result);
-            assertions.assertDeployStagingJobExecuted(result, false);
-            assertions.assertDeployProductionJobExecuted(result, false);
         });
     });
 
@@ -239,7 +136,6 @@ describe('test workflow deploy', () => {
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'deploy.yml');
         let act = new eAct.ExtendedAct(repoPath, workflowPath);
         const testMockSteps = {
-            validate: mocks.VALIDATE__OSBOTIFY__STEP_MOCKS,
             deployStaging: mocks.DEPLOY_STAGING_STEP_MOCKS,
             deployProduction: mocks.DEPLOY_PRODUCTION_STEP_MOCKS,
         };
@@ -261,7 +157,6 @@ describe('test workflow deploy', () => {
             actor: 'Dummy Author',
             logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
         });
-        assertions.assertValidateJobExecuted(result, false);
         assertions.assertDeployStagingJobExecuted(result, false);
         assertions.assertDeployProductionJobExecuted(result, false);
 
@@ -282,7 +177,6 @@ describe('test workflow deploy', () => {
             actor: 'Dummy Author',
             logFile: utils.getLogFilePath('deploy', expect.getState().currentTestName),
         });
-        assertions.assertValidateJobExecuted(result, false);
         assertions.assertDeployStagingJobExecuted(result, false);
         assertions.assertDeployProductionJobExecuted(result, false);
     });

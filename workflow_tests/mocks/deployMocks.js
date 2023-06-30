@@ -1,19 +1,5 @@
 const utils = require('../utils/utils');
 
-const VALIDATE__GET_MERGED_PR__STEP_MOCK = utils.createMockStep('Get merged pull request', 'Getting merged PR', 'VALIDATE', ['github_token'], [], {author: 'Dummy Author'});
-const VALIDATE__GET_MERGED_PR__OSBOTIFY__STEP_MOCK = utils.createMockStep('Get merged pull request', 'Getting merged PR', 'VALIDATE', ['github_token'], [], {author: 'OSBotify'});
-
-const VALIDATE_STEP_MOCKS = [
-    VALIDATE__GET_MERGED_PR__STEP_MOCK,
-
-    // 2nd step normal
-];
-const VALIDATE__OSBOTIFY__STEP_MOCKS = [
-    VALIDATE__GET_MERGED_PR__OSBOTIFY__STEP_MOCK,
-
-    // 2nd step normal
-];
-
 const DEPLOY_STAGING__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout staging branch', 'Checking out staging branch', 'DEPLOY_STAGING', ['ref', 'token']);
 const DEPLOY_STAGING__SETUP_GIT__STEP_MOCK = utils.createMockStep('Setup git for OSBotify', 'Setting up git for OSBotify', 'DEPLOY_STAGING', ['GPG_PASSPHRASE']);
 const DEPLOY_STAGING__TAG_VERSION__STEP_MOCK = utils.createMockStep('Tag version', 'Tagging new version', 'DEPLOY_STAGING');
@@ -55,8 +41,6 @@ const DEPLOY_PRODUCTION_STEP_MOCKS = [
 ];
 
 module.exports = {
-    VALIDATE_STEP_MOCKS,
-    VALIDATE__OSBOTIFY__STEP_MOCKS,
     DEPLOY_STAGING_STEP_MOCKS,
     DEPLOY_PRODUCTION_STEP_MOCKS,
 };
