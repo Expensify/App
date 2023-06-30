@@ -690,23 +690,60 @@ function convertRGBToUnitValues(red, green, blue) {
 }
 
 /**
+ * Converts RGB values to a hexadecimal color representation.
+ * @param {number} red - The red component of the RGB color (0-255).
+ * @param {number} green - The green component of the RGB color (0-255).
+ * @param {number} blue - The blue component of the RGB color (0-255).
+ * @returns {string} The hexadecimal representation of the RGB color.
+ */
+function convertRGBToHex(red, green, blue) {
+    // Convert individual RGB components to hexadecimal
+    const redHex = red.toString(16).padStart(2, '0');
+    const greenHex = green.toString(16).padStart(2, '0');
+    const blueHex = blue.toString(16).padStart(2, '0');
+
+    // Combine the hexadecimal components
+    const hexColor = `#${redHex}${greenHex}${blueHex}`;
+
+    return hexColor;
+}
+
+/**
+ * Matches an RGBA or RGB color value and extracts the color components.
+ * @param {string} color - The RGBA or RGB color value to match and extract components from.
+ * @returns {Array} An array containing the extracted color components [red, green, blue, alpha].
+ * Returns null if the input string does not match the pattern.
+ */
+function extractValuesFromRGB(color) {
+    const rgbaPattern = /rgba?\((?<r>[.\d]+)[, ]+(?<g>[.\d]+)[, ]+(?<b>[.\d]+)(?:\s?[,/]\s?(?<a>[.\d]+%?))?\)$/i;
+
+    const matchRGBA = color.match(rgbaPattern);
+    if (matchRGBA) {
+        const [, red, green, blue, alpha] = matchRGBA;
+        return [parseInt(red, 10), parseInt(green, 10), parseInt(blue, 10), alpha ? parseFloat(alpha) : 1];
+    }
+
+    return null;
+}
+
+/**
  * Determines the theme color for a modal based on the app's background color,
  * the modal's backdrop, and the backdrop's opacity.
  *
  * @param {String} bgColor - theme background color
- * @returns {String} The theme color as an RGB value.
+ * @returns {String} The theme color as an hex value.
  */
 function getThemeBackgroundColor(bgColor = themeColors.appBG) {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(bgColor);
+    const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) || hexadecimalToRGBArray(bgColor);
     const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
     const themeRGBNormalized = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
     const themeRGB = convertUnitValuesToRGB(...themeRGBNormalized);
-
-    return `rgb(${themeRGB.join(', ')})`;
+    const themeHex = convertRGBToHex(...themeRGB);
+    return themeHex;
 }
 
 /**
