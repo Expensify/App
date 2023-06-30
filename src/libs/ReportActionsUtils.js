@@ -426,6 +426,20 @@ function getLinkedTransactionID(reportID, reportActionID) {
 }
 
 /**
+ * Returns the parentReportAction if the given report is a thread/task.
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {Object}
+ */
+function getReportAction(reportID, reportActionID) {
+    if (!reportID || !reportActionID) {
+        return {};
+    }
+    return lodashGet(allReportActions, [reportID, reportActionID], {});
+}
+
+/**
  * @param {*} chatReportID
  * @param {*} iouReportID
  * @returns {Object} The report preview action or `null` if one couldn't be found
@@ -492,4 +506,5 @@ export {
     isMessageDeleted,
     isWhisperAction,
     isPendingRemove,
+    getReportAction,
 };
