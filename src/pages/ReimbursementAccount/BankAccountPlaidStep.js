@@ -111,6 +111,7 @@ function BankAccountPlaidStep(props) {
                 />
                 {Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(plaidData, 'bankAccounts')) && (
                     <CheckboxWithLabel
+                        accessibilityLabel={`${props.translate('common.iAcceptThe')} ${props.translate('common.expensifyTermsOfService')}`}
                         style={styles.mt4}
                         inputID="acceptTerms"
                         LabelComponent={() => (
