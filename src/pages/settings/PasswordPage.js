@@ -80,8 +80,8 @@ function PasswordPage(props) {
      */
     const clearErrorAndSetValue = (field, value, additionalErrorsToClear) => {
         const errorsToReset = {
-            [field]: false
-        }
+            [field]: false,
+        };
         if (additionalErrorsToClear) {
             _.each(additionalErrorsToClear, (errorFlag) => {
                 errorsToReset[errorFlag] = false;
