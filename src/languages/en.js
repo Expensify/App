@@ -45,6 +45,7 @@ export default {
         details: 'Details',
         privacy: 'Privacy',
         hidden: 'Hidden',
+        visible: 'Visible',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
@@ -594,7 +595,7 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Please enter a valid name',
+            invalidName: 'Name can only include latin letters and numbers.',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',

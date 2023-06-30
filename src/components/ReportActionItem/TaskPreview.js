@@ -82,6 +82,7 @@ function TaskPreview(props) {
                             Task.completeTask(props.taskReportID, taskTitle);
                         }
                     }}
+                    accessibilityLabel={props.translate('newTaskPage.task')}
                 />
                 <RenderHTML html={htmlForTaskPreview} />
             </View>

@@ -243,8 +243,7 @@ class ReportScreen extends React.Component {
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
-        // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
-        const shouldHideReport = ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas);
+        const shouldHideReport = !ReportUtils.canAccessReport(this.props.report, this.props.policies, this.props.betas);
 
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.firstRenderRef.current;
         this.firstRenderRef.current = true;

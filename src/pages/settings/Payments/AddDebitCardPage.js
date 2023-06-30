@@ -73,7 +73,7 @@ class DebitCardPage extends Component {
     validate(values) {
         const errors = {};
 
-        if (!values.nameOnCard || !ValidationUtils.isValidCardName(values.nameOnCard)) {
+        if (!values.nameOnCard || !ValidationUtils.isValidLegalName(values.nameOnCard)) {
             errors.nameOnCard = 'addDebitCardPage.error.invalidName';
         }
 
@@ -187,6 +187,7 @@ class DebitCardPage extends Component {
                         </View>
                     )}
                     <CheckboxWithLabel
+                        accessibilityLabel={`${this.props.translate('common.iAcceptThe')} ${this.props.translate('common.expensifyTermsOfService')}`}
                         inputID="acceptTerms"
                         LabelComponent={() => (
                             <Text>
