@@ -13,8 +13,8 @@ import * as UserUtils from '../UserUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 
-let currentUserEmail = '';
-let currentUserAccountID = 0;
+let currentUserEmail;
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
