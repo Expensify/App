@@ -1,5 +1,5 @@
 # See https://github.com/rhysd/actionlint/blob/main/docs/config.md
 self-hosted-runner:
   labels:
-    - ubuntu-latest-xl
+    - ubuntu-20.04-64core
     - macos-12-xl
