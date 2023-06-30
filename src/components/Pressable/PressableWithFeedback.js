@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useState} from 'react';
+import React, {forwardRef, useState} from 'react';
 import _ from 'underscore';
 import propTypes from 'prop-types';
 import {InteractionManager} from 'react-native';
@@ -39,17 +39,14 @@ const PressableWithFeedbackDefaultProps = {
 
 const PressableWithFeedback = forwardRef((props, ref) => {
     const propsWithoutWrapperStyles = _.omit(props, omittedProps);
-    const [disabled, setDisabled] = useState(props.disabled);
+    const [isExecuting, setIsExecuting] = useState(false);
     const [isPressed, setIsPressed] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
-
-    useEffect(() => {
-        setDisabled(props.disabled);
-    }, [props.disabled]);
+    const isDisabled = props.disabled || isExecuting;
 
     return (
         <OpacityView
-            shouldDim={Boolean(!disabled && (isPressed || isHovered))}
+            shouldDim={Boolean(!isDisabled && (isPressed || isHovered))}
             dimmingValue={isPressed ? props.pressDimmingValue : props.hoverDimmingValue}
             style={props.wrapperStyle}
         >
@@ -57,7 +54,7 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                 ref={ref}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...propsWithoutWrapperStyles}
-                disabled={disabled}
+                disabled={isDisabled}
                 onHoverIn={() => {
                     setIsHovered(true);
                     if (props.onHoverIn) props.onHoverIn();
@@ -75,15 +72,15 @@ const PressableWithFeedback = forwardRef((props, ref) => {
                     if (props.onPressOut) props.onPressOut();
                 }}
                 onPress={(e) => {
-                    setDisabled(true);
+                    setIsExecuting(true);
                     const onPress = props.onPress(e);
                     InteractionManager.runAfterInteractions(() => {
                         if (!(onPress instanceof Promise)) {
-                            setDisabled(props.disabled);
+                            setIsExecuting(false);
                             return;
                         }
                         onPress.finally(() => {
-                            setDisabled(props.disabled);
+                            setIsExecuting(false);
                         });
                     });
                 }}

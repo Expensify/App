@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View, Keyboard} from 'react-native';
@@ -61,11 +60,10 @@ const defaultProps = {
 function ReportFooter(props) {
     const chatFooterStyles = {...styles.chatFooter, minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
-    const isAllowedToComment = ReportUtils.isAllowedToComment(props.report);
     const isAnonymousUser = Session.isAnonymousUser();
-    const hideComposer = isArchivedRoom || !_.isEmpty(props.errors) || !isAllowedToComment || isAnonymousUser;
 
     const isSmallSizeLayout = props.windowWidth - (props.isSmallScreenWidth ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
+    const hideComposer = ReportUtils.shouldHideComposer(props.report, props.errors);
 
     return (
         <>
