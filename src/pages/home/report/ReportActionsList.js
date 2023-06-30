@@ -195,7 +195,7 @@ function ReportActionsList(props) {
                             />
                         );
                     }
-                    if(showMoneyRequestDetails) {
+                    if (showMoneyRequestDetails) {
                         return (
                             <MoneyRequestDetails
                                 report={props.report}
