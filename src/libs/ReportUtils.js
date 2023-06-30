@@ -465,6 +465,27 @@ function isArchivedRoom(report) {
 }
 
 /**
+ * Returns true if report has a parent
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isThread(report) {
+    return Boolean(report && report.parentReportID && report.parentReportActionID);
+}
+
+/**
+ * Returns true if report is of type chat and has a parent and is therefore a Thread.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isChatThread(report) {
+    return isThread(report) && report.type === CONST.REPORT.TYPE.CHAT;
+}
+
+
+/**
  * Get the policy name from a given report
  * @param {Object} report
  * @param {String} report.policyID
@@ -530,26 +551,6 @@ function isPolicyExpenseChatAdmin(report, policies) {
     const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']);
 
     return policyRole === CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
- * Returns true if report has a parent
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isThread(report) {
-    return Boolean(report && report.parentReportID && report.parentReportActionID);
-}
-
-/**
- * Returns true if report is of type chat and has a parent and is therefore a Thread.
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isChatThread(report) {
-    return isThread(report) && report.type === CONST.REPORT.TYPE.CHAT;
 }
 
 /**
