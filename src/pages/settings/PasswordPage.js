@@ -106,7 +106,7 @@ function PasswordPage(props) {
         const errors = {}
 
         if (!passwordFields.currentPassword) {
-            errors``.currentPassword = true;
+            errors.currentPassword = true;
         }
 
         if (!passwordFields.newPassword || !ValidationUtils.isValidPassword(passwordFields.newPassword)) {
