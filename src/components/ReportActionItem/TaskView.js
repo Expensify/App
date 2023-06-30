@@ -73,6 +73,7 @@ function TaskView(props) {
                                 containerSize={24}
                                 containerBorderRadius={8}
                                 caretSize={16}
+                                accessibilityLabel={taskTitle}
                             />
                             <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
