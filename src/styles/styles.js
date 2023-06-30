@@ -2466,17 +2466,6 @@ const styles = {
         alignItems: 'center',
     },
 
-    checkboxContainer: {
-        backgroundColor: themeColors.componentBG,
-        borderRadius: 4,
-        height: 20,
-        width: 20,
-        borderColor: themeColors.borderLighter,
-        borderWidth: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
     checkedContainer: {
         backgroundColor: themeColors.checkBox,
     },
