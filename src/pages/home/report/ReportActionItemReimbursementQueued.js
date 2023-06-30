@@ -16,17 +16,20 @@ const propTypes = {
 function ReportActionItemReimbursementQueued(props) {
     const shouldSubmitterAddBankAccount = props.isCurrentUserSubmitter && !store.hasCreditBankAccount();
 
-    return (
-        <Text style={[styles.chatItemMessage, styles.colorMuted]}>
-            {props.translate('iou.waitingOnBankAccount', {submitterDisplayName: props.submitterDisplayName})}
-            {shouldSubmitterAddBankAccount ? (
+    if (shouldSubmitterAddBankAccount) {
+        return (
+            <Text style={[styles.chatItemMessage, styles.colorMuted]}>
+                {props.translate('iou.paymentWaitingOnSubmitter', {submitterDisplayName: props.submitterDisplayName})}
                 <TextLink onPress={BankAccounts.openPersonalBankAccountSetupView}>
                     <Text style={[styles.textStrong, styles.cursorPointer, styles.link]}>{props.translate('common.bankAccount')}</Text>
                 </TextLink>
-            ) : (
-                props.translate('common.bankAccount')
-            )}
-            .
+            </Text>
+        );
+    }
+
+    return (
+        <Text style={[styles.chatItemMessage, styles.colorMuted]}>
+            {props.translate('iou.waitingOnBankAccount', {submitterDisplayName: props.submitterDisplayName})}
         </Text>
     );
 }

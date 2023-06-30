@@ -377,15 +377,20 @@ function getAllReportErrors(report, reportActions) {
  * @returns {String}
  */
 function getLastMessageTextForReport(report) {
+    const lastReportAction = lastReportActions[report.reportID];
     let lastMessageTextFromReport = '';
+
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
+        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
         const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
-        if (lodashGet(lastNonWhisper, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+        if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
             const latestVisibleAction =
                 _.find(
                     allSortedReportActions[report.reportID],
@@ -517,7 +522,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID));
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), false, personalDetail.login, personalDetail.accountID);
     result.subtitle = subtitle;
 
     return result;
@@ -595,6 +600,7 @@ function getOptions(
         includeOwnedWorkspaceChats = false,
         includeThreads = false,
         includeTasks = false,
+        includeMoneyRequests = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -619,9 +625,7 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, Navigation.getReportIDFromRoute(), false, currentUserLogin, iouReports, betas, policies),
-    );
+    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getReportIDFromRoute(), false, iouReports, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -645,6 +649,7 @@ function getOptions(
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         const accountIDs = report.participantAccountIDs || [];
 
         if (isPolicyExpenseChat && report.isOwnPolicyExpenseChat && !includeOwnedWorkspaceChats) {
@@ -656,6 +661,10 @@ function getOptions(
         }
 
         if (isTaskReport && !includeTasks) {
+            return;
+        }
+
+        if (isMoneyRequestReport && !includeMoneyRequests) {
             return;
         }
 
@@ -854,6 +863,7 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         forcePolicyNamePreview: true,
         includeOwnedWorkspaceChats: true,
         includeThreads: true,
+        includeMoneyRequests: true,
     });
 }
 
@@ -936,9 +946,7 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  */
 
 function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true) {
-    // We want to filter out any IOUs or expense reports
-    const filteredReports = _.filter(reports, (report) => !ReportUtils.isMoneyRequestReport(report));
-    return getOptions(filteredReports, personalDetails, {
+    return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),
         selectedOptions,
