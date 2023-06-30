@@ -1441,7 +1441,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, existingReportPrevi
     reportPreviewAction.accountID = iouReport.managerID;
 
     const reportAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(iouReport), iouReport.currency);
-    const payerName = isPolicyExpenseChat(chatReport) ? getPolicyName(chatReport) : getDisplayNameForParticipant(iouReport.managerID || '', true);
+    const payerName = isPolicyExpenseChat(chatReport) ? getPolicyName(chatReport) : getDisplayNameForParticipant(iouReport.managerID, true);
     const message =
         iouReport.hasOutstandingIOU && !justPaidOutstandingIOU
             ? Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: reportAmount})
