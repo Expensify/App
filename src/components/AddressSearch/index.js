@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {LogBox, ScrollView, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import lodashGet from 'lodash/get';
-import findKey from 'lodash/findKey';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
@@ -149,7 +148,7 @@ function AddressSearch(props) {
             city: cityAutocompleteFallback = '',
         } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
 
-        const countryFallback = findKey(CONST.ALL_COUNTRIES, (country) => country === countryFallbackLongName);
+        const countryFallback = _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryFallbackLongName);
 
         const country = countryPrimary || countryFallback;
 
