@@ -462,7 +462,7 @@ function isMessageDeleted(reportAction) {
 }
 
 function isWhisperAction(action) {
-    return (action.whisperedTo || []).length > 0;
+    return (action.whisperedToAccountIDs || []).length > 0;
 }
 
 export {

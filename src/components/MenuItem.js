@@ -74,7 +74,7 @@ function MenuItem(props) {
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
         [
-            styles.flex1,
+            styles.flexShrink1,
             styles.popoverMenuText,
             props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,

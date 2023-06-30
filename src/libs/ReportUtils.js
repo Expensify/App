@@ -21,8 +21,6 @@ import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAva
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
 
-let sessionEmail;
-let sessionAccountID;
 let currentUserEmail;
 let currentUserAccountID;
 Onyx.connect({
@@ -33,8 +31,6 @@ Onyx.connect({
             return;
         }
 
-        sessionEmail = val.email;
-        sessionAccountID = val.accountID;
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
     },
@@ -206,7 +202,7 @@ function sortReportsByLastRead(reports) {
  */
 function canEditReportAction(reportAction) {
     return (
-        reportAction.actorEmail === sessionEmail &&
+        reportAction.actorEmail === currentUserEmail &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
@@ -260,7 +256,7 @@ function canDeleteReportAction(reportAction, reportID) {
     ) {
         return false;
     }
-    if (reportAction.actorEmail === sessionEmail) {
+    if (reportAction.actorEmail === currentUserEmail) {
         return true;
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
@@ -780,9 +776,9 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         return [result];
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
-        const workspaceName = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name']);
+        const workspaceName = getPolicyName(report);
 
-        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
+        const policyExpenseChatAvatarSource = getWorkspaceAvatar(report);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
@@ -868,17 +864,17 @@ function getDisplayNameForParticipant(accountID, shouldUseShortForm = false) {
 }
 
 /**
- * @param {Object} participants
+ * @param {Object} personalDetailsList
  * @param {Boolean} isMultipleParticipantReport
  * @returns {Array}
  */
-function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) {
-    return _.map(participants, (participant) => {
-        const accountID = Number(participant.accountID);
-        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || participant.login;
+function getDisplayNamesWithTooltips(personalDetailsList, isMultipleParticipantReport) {
+    return _.map(personalDetailsList, (user) => {
+        const accountID = Number(user.accountID);
+        const displayName = getDisplayNameForParticipant(accountID, isMultipleParticipantReport) || user.login || '';
         const avatar = UserUtils.getDefaultAvatar(accountID);
 
-        let pronouns = participant.pronouns;
+        let pronouns = user.pronouns;
         if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
             const pronounTranslationKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
             pronouns = Localize.translateLocal(`pronouns.${pronounTranslationKey}`);
@@ -887,7 +883,7 @@ function getDisplayNamesWithTooltips(participants, isMultipleParticipantReport) 
         return {
             displayName,
             avatar,
-            login: participant.login,
+            login: user.login || '',
             accountID,
             pronouns,
         };
@@ -1069,7 +1065,7 @@ function getReportName(report) {
 
     // Not a room or PolicyExpenseChat, generate title from participants
     const participants = (report && report.participantAccountIDs) || [];
-    const participantsWithoutCurrentUser = _.without(participants, sessionAccountID);
+    const participantsWithoutCurrentUser = _.without(participants, currentUserAccountID);
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
 
     return _.map(participantsWithoutCurrentUser, (accountID) => getDisplayNameForParticipant(accountID, isMultipleParticipantReport)).join(', ');
@@ -2276,29 +2272,29 @@ function canLeaveRoom(report, isPolicyMember) {
 }
 
 /**
- * @param {string[]} participants
+ * @param {Number[]} participantAccountIDs
  * @returns {Boolean}
  */
-function isCurrentUserTheOnlyParticipant(participants) {
-    return participants && participants.length === 1 && participants[0] === sessionEmail;
+function isCurrentUserTheOnlyParticipant(participantAccountIDs) {
+    return participantAccountIDs && participantAccountIDs.length === 1 && participantAccountIDs[0] === currentUserAccountID;
 }
 
 /**
  * Returns display names for those that can see the whisper.
  * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
  *
- * @param {string[]} participants
+ * @param {Number[]} participantAccountIDs
  * @returns {string}
  */
-function getWhisperDisplayNames(participants) {
-    const isWhisperOnlyVisibleToCurrentUSer = isCurrentUserTheOnlyParticipant(participants);
+function getWhisperDisplayNames(participantAccountIDs) {
+    const isWhisperOnlyVisibleToCurrentUser = isCurrentUserTheOnlyParticipant(participantAccountIDs);
 
     // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
-    if (isWhisperOnlyVisibleToCurrentUSer) {
+    if (isWhisperOnlyVisibleToCurrentUser) {
         return Localize.translateLocal('common.youAfterPreposition');
     }
 
-    return _.map(participants, (login) => getDisplayNameForParticipant(login, !isWhisperOnlyVisibleToCurrentUSer)).join(', ');
+    return _.map(participantAccountIDs, (accountID) => getDisplayNameForParticipant(accountID, !isWhisperOnlyVisibleToCurrentUser)).join(', ');
 }
 
 /**
