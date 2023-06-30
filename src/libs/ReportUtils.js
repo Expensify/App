@@ -776,9 +776,9 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         return [result];
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
-        const workspaceName = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name']);
+        const workspaceName = getPolicyName(report);
 
-        const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
+        const policyExpenseChatAvatarSource = getWorkspaceAvatar(report);
 
         // Return the workspace avatar if the user is the owner of the policy expense chat
         if (report.isOwnPolicyExpenseChat && !isExpenseReport(report)) {
