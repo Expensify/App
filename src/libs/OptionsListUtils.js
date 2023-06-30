@@ -973,7 +973,7 @@ function formatMemberForList(member, isSelected) {
     return {
         text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
         alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
-        keyForList: lodashGet(member, 'keyForList', '') || lodashGet(member, 'accountID', ''),
+        keyForList: lodashGet(member, 'keyForList', '') || String(lodashGet(member, 'accountID', '')),
         isSelected,
         isDisabled: false,
         accountID: lodashGet(member, 'accountID', ''),

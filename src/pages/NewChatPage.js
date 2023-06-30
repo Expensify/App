@@ -18,6 +18,7 @@ import * as Browser from '../libs/Browser';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
+import SelectionListRadio from '../components/SelectionListRadio/index';
 
 const propTypes = {
     /** Whether screen is used to create group chat */
