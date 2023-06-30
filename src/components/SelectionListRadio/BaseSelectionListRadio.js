@@ -18,6 +18,8 @@ import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import Checkbox from '../Checkbox';
 import withLocalize from '../withLocalize';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import FixedFooter from '../FixedFooter';
+import Button from '../Button';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -30,6 +32,8 @@ function BaseSelectionListRadio(props) {
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(props.textInputLabel);
     const shouldShowSelectAll = Boolean(props.onSelectAll);
+    const confirmButtonText = props.confirmButtonText || props.translate('common.confirm');
+    const shouldShowConfirmButton = Boolean(props.onConfirm);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -174,6 +178,22 @@ function BaseSelectionListRadio(props) {
         };
     };
 
+    const renderSectionHeader = ({section}) => {
+        if (!section.title || !section.shouldShow) {
+            return null;
+        }
+
+        return (
+            // Note: The `optionsListSectionHeader` style provides an explicit height to section headers.
+            // We do this so that we can reference the height in `getItemLayout` –
+            // we need to know the heights of all list items up-front in order to synchronously compute the layout of any given list item.
+            // So be aware that if you adjust the content of the section header (for example, change the font size), you may need to adjust this explicit height as well.
+            <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                <Text style={[styles.ph5, styles.textLabelSupporting]}>{section.title}</Text>
+            </View>
+        );
+    };
+
     const renderItem = ({item, index, section}) => {
         const isFocused = focusedIndex === index + lodashGet(section, 'indexOffset', 0);
 
@@ -215,6 +235,7 @@ function BaseSelectionListRadio(props) {
         };
     }, [props.shouldDelayFocus, shouldShowTextInput]);
 
+    /** Selects row when pressing enter */
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         () => {
@@ -284,6 +305,7 @@ function BaseSelectionListRadio(props) {
                         <SectionList
                             ref={listRef}
                             sections={props.sections}
+                            renderSectionHeader={renderSectionHeader}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
                             onScroll={props.onScroll}
@@ -300,6 +322,19 @@ function BaseSelectionListRadio(props) {
                             viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                             onLayout={() => scrollToIndex(focusedIndex, false)}
                         />
+
+                        {shouldShowConfirmButton && (
+                            <FixedFooter>
+                                <Button
+                                    success
+                                    style={[styles.w100]}
+                                    text={confirmButtonText}
+                                    onPress={props.onConfirm}
+                                    pressOnEnter
+                                    enterKeyEventListenerPriority={1}
+                                />
+                            </FixedFooter>
+                        )}
                     </View>
                 )}
             </SafeAreaConsumer>

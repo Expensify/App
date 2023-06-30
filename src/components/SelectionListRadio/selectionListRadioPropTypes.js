@@ -116,6 +116,12 @@ const propTypes = {
 
     /** Message to display at the top of the list */
     headerMessage: PropTypes.string,
+
+    /** Text to display on the confirm button */
+    confirmButtonText: PropTypes.string,
+
+    /** Callback to fire when the confirm button is pressed */
+    onConfirm: PropTypes.func,
 };
 
 const defaultProps = {
@@ -134,6 +140,8 @@ const defaultProps = {
     onScroll: () => {},
     onScrollBeginDrag: () => {},
     headerMessage: '',
+    confirmButtonText: '',
+    onConfirm: undefined,
 };
 
 export {propTypes, defaultProps, radioListItemPropTypes, checkboxListItemPropTypes};

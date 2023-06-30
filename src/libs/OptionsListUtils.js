@@ -971,17 +971,17 @@ function formatMemberForList(member, isSelected) {
     }
 
     return {
-        text: lodashGet(member, 'text', ''),
-        alternateText: lodashGet(member, 'alternateText', ''),
-        keyForList: lodashGet(member, 'keyForList', ''),
+        text: lodashGet(member, 'text', '') || lodashGet(member, 'displayName', ''),
+        alternateText: lodashGet(member, 'alternateText', '') || lodashGet(member, 'login', ''),
+        keyForList: lodashGet(member, 'keyForList', '') || lodashGet(member, 'accountID', ''),
         isSelected,
         isDisabled: false,
         accountID: lodashGet(member, 'accountID', ''),
         login: lodashGet(member, 'login', ''),
         isAdmin: false,
         avatar: {
-            source: lodashGet(member, 'participantsList[0].avatar', ''),
-            name: lodashGet(member, 'participantsList[0].login', ''),
+            source: lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', ''),
+            name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
             type: 'avatar',
         },
         pendingAction: lodashGet(member, 'pendingAction'),

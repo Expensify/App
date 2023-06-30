@@ -5,14 +5,14 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
-import OptionsSelector from '../../../../components/OptionsSelector';
 import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
-import * as ReportUtils from '../../../../libs/ReportUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 import reportPropTypes from '../../../reportPropTypes';
+import OptionsSelector from '../../../../components/OptionsSelector';
+import * as ReportUtils from '../../../../libs/ReportUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -66,7 +66,7 @@ function MoneyRequestParticipantsSplitSelector({betas, participants, personalDet
     const maxParticipantsReached = participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
 
     /**
-     * Returns the sections needed for the OptionsSelector
+     * Returns the sections needed for the SelectionList
      *
      * @param {Boolean} maxParticipantsReached
      * @returns {Array}
