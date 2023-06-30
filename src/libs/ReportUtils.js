@@ -378,13 +378,33 @@ function getBankAccountRoute(report) {
 }
 
 /**
+ * Returns true if report has a parent
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isThread(report) {
+    return Boolean(report && report.parentReportID && report.parentReportActionID);
+}
+
+/**
+ * Returns true if report is of type chat and has a parent and is therefore a Thread.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isChatThread(report) {
+    return isThread(report) && report.type === CONST.REPORT.TYPE.CHAT;
+}
+
+/**
  * Only returns true if this is our main 1:1 DM report with Concierge
  *
  * @param {Object} report
  * @returns {Boolean}
  */
 function isConciergeChatReport(report) {
-    return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isThread(report);
+    return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
 /**
@@ -463,27 +483,6 @@ function findLastAccessedReport(reports, ignoreDomainRooms, policies, isFirstTim
 function isArchivedRoom(report) {
     return lodashGet(report, ['statusNum']) === CONST.REPORT.STATUS.CLOSED && lodashGet(report, ['stateNum']) === CONST.REPORT.STATE_NUM.SUBMITTED;
 }
-
-/**
- * Returns true if report has a parent
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isThread(report) {
-    return Boolean(report && report.parentReportID && report.parentReportActionID);
-}
-
-/**
- * Returns true if report is of type chat and has a parent and is therefore a Thread.
- *
- * @param {Object} report
- * @returns {Boolean}
- */
-function isChatThread(report) {
-    return isThread(report) && report.type === CONST.REPORT.TYPE.CHAT;
-}
-
 
 /**
  * Get the policy name from a given report
