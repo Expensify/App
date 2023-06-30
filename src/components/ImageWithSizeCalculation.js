@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {useState, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
@@ -32,64 +32,50 @@ const defaultProps = {
  * Image size must be provided by parent via width and height props. Useful for
  * performing some calculation on a network image after fetching dimensions so
  * it can be appropriately resized.
+ *
+ * @param {Object} props
+ * @returns {React.Component}
+ *
  */
-class ImageWithSizeCalculation extends PureComponent {
-    constructor(props) {
-        super(props);
+function ImageWithSizeCalculation(props) {
+    const [isLoading, setIsLoading] = useState(false);
+    const isLoadedRef = useRef(null);
 
-        this.state = {
-            isLoading: false,
-        };
+    const onError = () => {
+        Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
+    };
 
-        this.imageLoadingStart = this.imageLoadingStart.bind(this);
-        this.imageLoadingEnd = this.imageLoadingEnd.bind(this);
-        this.onError = this.onError.bind(this);
-        this.imageLoadedSuccessfully = this.imageLoadedSuccessfully.bind(this);
-    }
-
-    onError() {
-        Log.hmmm('Unable to fetch image to calculate size', {url: this.props.url});
-    }
-
-    imageLoadingStart() {
-        // Return early if the image has already loaded (this can happen when uploading the same image twice on Android)
-        if (this.isLoaded) {
-            return;
-        }
-        this.setState({isLoading: true});
-    }
-
-    imageLoadingEnd() {
-        this.setState({isLoading: false});
-    }
-
-    imageLoadedSuccessfully(event) {
-        this.isLoaded = true;
-        this.props.onMeasure({
+    const imageLoadedSuccessfully = (event) => {
+        isLoadedRef.current = true;
+        props.onMeasure({
             width: event.nativeEvent.width,
             height: event.nativeEvent.height,
         });
-    }
+    };
 
-    render() {
-        return (
-            <View style={[styles.w100, styles.h100, this.props.style]}>
-                <Image
-                    style={[styles.w100, styles.h100]}
-                    source={{uri: this.props.url}}
-                    isAuthTokenRequired={this.props.isAuthTokenRequired}
-                    resizeMode={Image.resizeMode.cover}
-                    onLoadStart={this.imageLoadingStart}
-                    onLoadEnd={this.imageLoadingEnd}
-                    onError={this.onError}
-                    onLoad={this.imageLoadedSuccessfully}
-                />
-                {this.state.isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
-            </View>
-        );
-    }
+    return (
+        <View style={[styles.w100, styles.h100, props.style]}>
+            <Image
+                style={[styles.w100, styles.h100]}
+                source={{uri: props.url}}
+                isAuthTokenRequired={props.isAuthTokenRequired}
+                resizeMode={Image.resizeMode.cover}
+                onLoadStart={() => {
+                    if (isLoadedRef.current || isLoading) {
+                        return;
+                    }
+                    setIsLoading(true);
+                }}
+                onLoadEnd={() => setIsLoading(false)}
+                onError={onError}
+                onLoad={imageLoadedSuccessfully}
+            />
+            {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+        </View>
+    );
 }
 
 ImageWithSizeCalculation.propTypes = propTypes;
 ImageWithSizeCalculation.defaultProps = defaultProps;
-export default ImageWithSizeCalculation;
+ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
+export default React.memo(ImageWithSizeCalculation);

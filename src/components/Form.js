@@ -345,8 +345,10 @@ function Form(props) {
                             const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
                             const focusInput = inputRefs.current[focusKey];
 
-                            // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
-                            Keyboard.dismiss();
+                            // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
+                            if (typeof focusInput.isFocused !== 'function') {
+                                Keyboard.dismiss();
+                            }
 
                             // We subtract 10 to scroll slightly above the input
                             if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
