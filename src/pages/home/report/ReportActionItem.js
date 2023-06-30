@@ -248,7 +248,7 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             children = (
                 <ReportPreview
-                    iouReportID={props.action.originalMessage.linkedReportID}
+                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
                     action={props.action}
                     isHovered={hovered}
@@ -346,7 +346,7 @@ function ReportActionItem(props) {
         return (
             <>
                 {children}
-                {!_.isEmpty(props.action.linkMetadata) && (
+                {!isHidden && !_.isEmpty(props.action.linkMetadata) && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
                     </View>
