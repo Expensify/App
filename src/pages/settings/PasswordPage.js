@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useCallback} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -63,7 +63,7 @@ function PasswordPage(props) {
 
     const currentPasswordInputRef = useRef(null);
 
-    useEffect(() => { return () => Session.clearAccountMessages(); }, [])
+    useEffect(() => () => Session.clearAccountMessages(), [])
 
     /**
      * @param {String} field
@@ -92,7 +92,7 @@ function PasswordPage(props) {
     /**
      * @returns {Boolean}
      */
-    const validate = () => {
+    const validate = useCallback(() => {
         const error = {}
 
         if (!passwordFields.currentPassword) {
@@ -107,9 +107,9 @@ function PasswordPage(props) {
             error.newPasswordSameAsOld = true;
         }
 
-        setErrors(() => { return {...error} });
+        setErrors(error);
         return _.size(error) === 0;
-    }
+    }, [])
 
     /**
      * Submit the form
