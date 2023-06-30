@@ -1,21 +1,7 @@
 const utils = require('../utils/utils');
 
-const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', issueNumber = '', didExecute = true, isTeamMember = true, hasBlockers = false) => {
-    const steps = [
-        utils.createStepAssertion(
-            'Validate actor is deployer',
-            true,
-            null,
-            'VALIDATE',
-            'Validating if actor is deployer',
-            [
-                {key: 'GITHUB_TOKEN', value: '***'},
-                {key: 'username', value: username},
-                {key: 'team', value: 'mobile-deployers'},
-            ],
-            [],
-        ),
-    ];
+const assertValidateJobExecuted = (workflowResult, issueNumber = '', didExecute = true, isTeamMember = true, hasBlockers = false, isSuccessful = true) => {
+    const steps = [utils.createStepAssertion('Validate actor is deployer', true, null, 'VALIDATE', 'Validating if actor is deployer', [], [{key: 'GITHUB_TOKEN', value: '***'}])];
     if (isTeamMember) {
         steps.push(
             utils.createStepAssertion(
@@ -88,27 +74,52 @@ const assertValidateJobExecuted = (workflowResult, username = 'Dummy Author', is
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
         }
     });
+
+    const failedSteps = [
+        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'VALIDATE', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ];
+
+    failedSteps.forEach((expectedStep) => {
+        if (didExecute && !isSuccessful) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
 };
 
-const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true) => {
+const assertUpdateProductionJobExecuted = (workflowResult, didExecute = true, isSuccessful = true) => {
     const steps = [
         utils.createStepAssertion(
-            'Update production branch',
+            'Checkout',
             true,
             null,
             'UPDATEPRODUCTION',
-            'Updating production branch',
+            'Checkout',
             [
-                {key: 'TARGET_BRANCH', value: 'production'},
-                {key: 'OS_BOTIFY_TOKEN', value: '***'},
-                {key: 'GPG_PASSPHRASE', value: '***'},
+                {key: 'ref', value: 'staging'},
+                {key: 'token', value: '***'},
             ],
             [],
         ),
+        utils.createStepAssertion('Setup Git for OSBotify', true, null, 'UPDATEPRODUCTION', 'Setup Git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        utils.createStepAssertion('Update production branch', true, null, 'UPDATEPRODUCTION', 'Updating production branch', [], []),
     ];
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
+
+    const failedSteps = [
+        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'UPDATEPRODUCTION', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ];
+
+    failedSteps.forEach((expectedStep) => {
+        if (didExecute && !isSuccessful) {
             expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
         } else {
             expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
@@ -128,18 +139,56 @@ const assertCreateNewPatchVersionJobExecuted = (workflowResult, didExecute = tru
     });
 };
 
+const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, isSuccessful = true) => {
+    const steps = [
+        utils.createStepAssertion(
+            'Checkout',
+            true,
+            null,
+            'UPDATESTAGING',
+            'Checkout',
+            [
+                {key: 'ref', value: 'main'},
+                {key: 'token', value: '***'},
+            ],
+            [],
+        ),
+        utils.createStepAssertion('Setup Git for OSBotify', true, null, 'UPDATESTAGING', 'Setup Git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        utils.createStepAssertion('Update staging branch to trigger staging deploy', true, null, 'UPDATESTAGING', 'Updating staging branch', [], []),
+    ];
+
+    steps.forEach((expectedStep) => {
+        if (didExecute) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
+
+    const failedSteps = [
+        utils.createStepAssertion('Announce failed workflow in Slack', true, null, 'UPDATESTAGING', 'Announce failed workflow in Slack', [{key: 'SLACK_WEBHOOK', value: '***'}], []),
+    ];
+
+    failedSteps.forEach((expectedStep) => {
+        if (didExecute && !isSuccessful) {
+            expect(workflowResult).toEqual(expect.arrayContaining([expectedStep]));
+        } else {
+            expect(workflowResult).not.toEqual(expect.arrayContaining([expectedStep]));
+        }
+    });
+};
+
 const assertCreateNewStagingDeployCashJobExecuted = (workflowResult, newVersion = '', didExecute = true, isSuccessful = true) => {
     const steps = [
         utils.createStepAssertion(
-            'Update staging branch to trigger staging deploy',
+            'Checkout',
             true,
             null,
             'CREATENEWSTAGINGDEPLOYCASH',
-            'Updating staging branch',
+            'Checkout',
             [
-                {key: 'TARGET_BRANCH', value: 'staging'},
-                {key: 'OS_BOTIFY_TOKEN', value: '***'},
-                {key: 'GPG_PASSPHRASE', value: '***'},
+                {key: 'ref', value: 'staging'},
+                {key: 'token', value: '***'},
             ],
             [],
         ),
@@ -187,5 +236,6 @@ module.exports = {
     assertValidateJobExecuted,
     assertUpdateProductionJobExecuted,
     assertCreateNewPatchVersionJobExecuted,
+    assertUpdateStagingJobExecuted,
     assertCreateNewStagingDeployCashJobExecuted,
 };

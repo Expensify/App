@@ -66,6 +66,7 @@ describe('test workflow finishReleaseCycle', () => {
                         const testMockSteps = {
                             validate: mocks.FINISHRELEASECYCLE__VALIDATE__TEAM_MEMBER_NO_BLOCKERS__STEP_MOCKS,
                             updateProduction: mocks.FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS,
+                            updateStaging: mocks.FINISHRELEASECYCLE__UPDATESTAGING__STEP_MOCKS,
                             createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                         };
                         const testMockJobs = {
@@ -85,9 +86,10 @@ describe('test workflow finishReleaseCycle', () => {
                             logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                             mockJobs: testMockJobs,
                         });
-                        assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234');
+                        assertions.assertValidateJobExecuted(result, '1234');
                         assertions.assertUpdateProductionJobExecuted(result);
                         assertions.assertCreateNewPatchVersionJobExecuted(result);
+                        assertions.assertUpdateStagingJobExecuted(result);
                         assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3');
                     });
                     describe('createNewStagingDeployCash fails', () => {
@@ -115,6 +117,7 @@ describe('test workflow finishReleaseCycle', () => {
                             const testMockSteps = {
                                 validate: mocks.FINISHRELEASECYCLE__VALIDATE__TEAM_MEMBER_NO_BLOCKERS__STEP_MOCKS,
                                 updateProduction: mocks.FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS,
+                                updateStaging: mocks.FINISHRELEASECYCLE__UPDATESTAGING__STEP_MOCKS,
                                 createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                             };
                             testMockSteps.createNewStagingDeployCash[2] = utils.createMockStep(
@@ -144,9 +147,10 @@ describe('test workflow finishReleaseCycle', () => {
                                 logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                                 mockJobs: testMockJobs,
                             });
-                            assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234');
+                            assertions.assertValidateJobExecuted(result, '1234');
                             assertions.assertUpdateProductionJobExecuted(result);
                             assertions.assertCreateNewPatchVersionJobExecuted(result);
+                            assertions.assertUpdateStagingJobExecuted(result);
                             assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3', true, false);
                         });
                     });
@@ -176,6 +180,7 @@ describe('test workflow finishReleaseCycle', () => {
                         const testMockSteps = {
                             validate: mocks.FINISHRELEASECYCLE__VALIDATE__TEAM_MEMBER_BLOCKERS__STEP_MOCKS,
                             updateProduction: mocks.FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS,
+                            updateStaging: mocks.FINISHRELEASECYCLE__UPDATESTAGING__STEP_MOCKS,
                             createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                         };
                         const testMockJobs = {
@@ -195,9 +200,10 @@ describe('test workflow finishReleaseCycle', () => {
                             logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                             mockJobs: testMockJobs,
                         });
-                        assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234', true, true, true);
+                        assertions.assertValidateJobExecuted(result, '1234', true, true, true);
                         assertions.assertUpdateProductionJobExecuted(result, false);
                         assertions.assertCreateNewPatchVersionJobExecuted(result, false);
+                        assertions.assertUpdateStagingJobExecuted(result, false);
                         assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3', false);
                     });
                 });
@@ -227,6 +233,7 @@ describe('test workflow finishReleaseCycle', () => {
                     const testMockSteps = {
                         validate: mocks.FINISHRELEASECYCLE__VALIDATE__NOT_TEAM_MEMBER_NO_BLOCKERS__STEP_MOCKS,
                         updateProduction: mocks.FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS,
+                        updateStaging: mocks.FINISHRELEASECYCLE__UPDATESTAGING__STEP_MOCKS,
                         createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                     };
                     const testMockJobs = {
@@ -246,9 +253,10 @@ describe('test workflow finishReleaseCycle', () => {
                         logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                         mockJobs: testMockJobs,
                     });
-                    assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234', true, false, false);
+                    assertions.assertValidateJobExecuted(result, '1234', true, false, false);
                     assertions.assertUpdateProductionJobExecuted(result, false);
                     assertions.assertCreateNewPatchVersionJobExecuted(result, false);
+                    assertions.assertUpdateStagingJobExecuted(result, false);
                     assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3', false);
                 });
             });
@@ -278,6 +286,7 @@ describe('test workflow finishReleaseCycle', () => {
                 const testMockSteps = {
                     validate: mocks.FINISHRELEASECYCLE__VALIDATE__TEAM_MEMBER_NO_BLOCKERS__STEP_MOCKS,
                     updateProduction: mocks.FINISHRELEASECYCLE__UPDATEPRODUCTION__STEP_MOCKS,
+                    updateStaging: mocks.FINISHRELEASECYCLE__UPDATESTAGING__STEP_MOCKS,
                     createNewStagingDeployCash: mocks.FINISHRELEASECYCLE__CREATENEWSTAGINGDEPLOYCASH__STEP_MOCKS,
                 };
                 const testMockJobs = {
@@ -297,9 +306,10 @@ describe('test workflow finishReleaseCycle', () => {
                     logFile: utils.getLogFilePath('finishReleaseCycle', expect.getState().currentTestName),
                     mockJobs: testMockJobs,
                 });
-                assertions.assertValidateJobExecuted(result, 'Dummy Author', '1234', false);
+                assertions.assertValidateJobExecuted(result, '1234', false);
                 assertions.assertUpdateProductionJobExecuted(result, false);
                 assertions.assertCreateNewPatchVersionJobExecuted(result, false);
+                assertions.assertUpdateStagingJobExecuted(result, false);
                 assertions.assertCreateNewStagingDeployCashJobExecuted(result, '1.2.3', false);
             });
         });
