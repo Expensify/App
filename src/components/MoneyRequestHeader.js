@@ -17,11 +17,6 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import DateUtils from '../libs/DateUtils';
-import reportPropTypes from '../pages/reportPropTypes';
-import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -59,12 +54,12 @@ const defaultProps = {
     parentReport: {},
 };
 
-const MoneyRequestHeader = (props) => {
+function MoneyRequestHeader(props) {
     const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer =
-        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
+    Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             
@@ -89,7 +84,7 @@ const MoneyRequestHeader = (props) => {
                 />
         </View>
     );
-};
+}
 
 MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 MoneyRequestHeader.propTypes = propTypes;
