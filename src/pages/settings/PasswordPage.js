@@ -51,12 +51,10 @@ const errorKeysMap = {
 }
 
 function PasswordPage(props) {
-    const [password, setPassword] = useState({
+    const [passwordFields, setPasswordFields] = useState({
         currentPassword: '',
         newPassword: ''
     })
-    // const [currentPassword, setCurrentPassword] = useState('');
-    // const [newPassword, setNewPassword] = useState('');
     const [errors, setErrors] = useState({
         currentPassword: false,
         newPassword: false,
@@ -64,7 +62,6 @@ function PasswordPage(props) {
     });
 
     const currentPasswordInputRef = useRef(null);
-
 
     useEffect(() => {
       return () => {
@@ -94,7 +91,7 @@ function PasswordPage(props) {
                 errorsToReset[errorFlag] = false;
             });
         }
-        setPassword((prev) => {
+        setPasswordFields((prev) => {
             return { ...prev, [field]: value}
         })
         setErrors((prev) => {
@@ -105,29 +102,26 @@ function PasswordPage(props) {
     /**
      * @returns {Boolean}
      */
-    const validate = () => {
+    const validate = useCallback(() => {
         const errors = {}
 
-        if (!password.currentPassword) {
-            console.log('a');
-            errors.currentPassword = true;
+        if (!passwordFields.currentPassword) {
+            errors``.currentPassword = true;
         }
 
-        if (!password.newPassword || !ValidationUtils.isValidPassword(password.newPassword)) {
-            console.log('b');
+        if (!passwordFields.newPassword || !ValidationUtils.isValidPassword(passwordFields.newPassword)) {
             errors.newPassword = true;
         }
 
-        if (password.currentPassword && password.newPassword && _.isEqual(password.currentPassword, password.newPassword)) {
-            console.log('c');
+        if (passwordFields.currentPassword && passwordFields.newPassword && _.isEqual(passwordFields.currentPassword, passwordFields.newPassword)) {
             errors.newPasswordSameAsOld = true;
         }
 
-        setErrors((prev) => {
+        setErrors(() => {
             return {...errors}
         });
         return _.size(errors) === 0;
-    }
+    }, [submit])
 
     /**
      * Submit the form
@@ -136,7 +130,7 @@ function PasswordPage(props) {
         if (!validate()) {
             return;
         }
-        User.updatePassword(password.currentPassword, password.newPassword);
+        User.updatePassword(passwordFields.currentPassword, passwordFields.newPassword);
     }
 
     const shouldShowNewPasswordPrompt = !errors.newPassword && !errors.newPasswordSameAsOld;
@@ -179,7 +173,7 @@ function PasswordPage(props) {
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
-                                value={password.currentPassword}
+                                value={passwordFields.currentPassword}
                                 onChangeText={(text) => clearErrorAndSetValue('currentPassword', text)}
                                 returnKeyType="done"
                                 hasError={errors.currentPassword}
@@ -193,7 +187,7 @@ function PasswordPage(props) {
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
-                                value={password.newPassword}
+                                value={passwordFields.newPassword}
                                 hasError={errors.newPassword || errors.newPasswordSameAsOld}
                                 errorText={errors.newPasswordSameAsOld ? getErrorText('newPasswordSameAsOld') : getErrorText('newPassword')}
                                 onChangeText={(text) => clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
