@@ -2252,7 +2252,7 @@ const styles = {
     },
 
     anonymousRoomFooterSignInButton: {
-        width: 125,
+        width: 110,
     },
 
     roomHeaderAvatarSize: {
