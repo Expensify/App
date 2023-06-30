@@ -52,6 +52,14 @@ function isDeletedAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isPendingRemove(reportAction) {
+    return lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isMoneyRequestAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
@@ -333,7 +341,7 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+    if (isPendingRemove(reportAction)) {
         return false;
     }
 
@@ -454,7 +462,7 @@ function isMessageDeleted(reportAction) {
 }
 
 function isWhisperAction(action) {
-    return (action.whisperedTo || []).length > 0;
+    return (action.whisperedToAccountIDs || []).length > 0;
 }
 
 export {
@@ -483,4 +491,5 @@ export {
     getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
+    isPendingRemove,
 };
