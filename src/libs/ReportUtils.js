@@ -275,7 +275,7 @@ function isAdminRoom(report) {
 }
 
 /**
- *
+ * Whether the provided report is an Admin-only posting room
  * @param {Object} report
  * @param {String} report.writeCapability
  * @returns {Boolean}
@@ -2023,12 +2023,12 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    // TODO: Add description
+    // Exclude reports that are admin-only posting rooms, when the user tries to share something to the room,
+    // because, the user isn't an admin for a linked workspace.
     if (isShareDestination && report.writeCapability === CONST.REPORT.WRITE_CAPABILITIES.ADMINS) {
         const linkedWorkspace = _.find(policies, (policy) => policy && policy.id === report.policyID);
-        const shouldAllowShare = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
 
-        return shouldAllowShare;
+        return lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
     }
 
     // Hide thread reports that haven't been commented on
