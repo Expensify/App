@@ -71,7 +71,7 @@ function openOldDotLink(url) {
         API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
             .then((response) => buildOldDotURL(url, response.shortLivedAuthToken))
             .catch(() => buildOldDotURL(url)),
-        (urlRes) => urlRes,
+        (oldDotURL) => oldDotURL,
     );
 }
 
