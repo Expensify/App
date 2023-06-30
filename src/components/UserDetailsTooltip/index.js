@@ -15,23 +15,6 @@ import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
 
-    /**
-     * Converts user login to formatted phone number if login is SMS login
-     * @param {String} login
-     * @returns {String}
-     */
-    const formatLoginIdAsDisplayName = useCallback((login) => {
-        if (!login) {
-            return null;
-        }
-
-        if (!Str.isSMSLogin(login)) {
-            return login;
-        }
-
-        return LocalePhoneNumber.formatPhoneNumber(Str.removeSMSDomain(login));
-    }, []);
-
     const renderTooltipContent = useCallback(
         () => (
             <View style={[styles.alignItemsCenter, styles.ph2, styles.pv2]}>
@@ -47,13 +30,13 @@ function UserDetailsTooltip(props) {
                 </Text>
 
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
-                    {String(userDetails.login || '').trim() && !_.isEqual(formatLoginIdAsDisplayName(String(userDetails.login || '')), userDetails.displayName)
+                    {String(userDetails.login || '').trim() && !_.isEqual(LocalePhoneNumber.formatPhoneNumber(userDetails.login || ''), userDetails.displayName)
                         ? Str.removeSMSDomain(userDetails.login)
                         : ''}
                 </Text>
             </View>
         ),
-        [userDetails.avatar, userDetails.displayName, userDetails.login, userDetails.accountID, formatLoginIdAsDisplayName],
+        [userDetails.avatar, userDetails.displayName, userDetails.login, userDetails.accountID],
     );
 
     if (!userDetails.displayName && !userDetails.login) {
