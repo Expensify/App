@@ -136,9 +136,7 @@ function InitialSettingsPage(props) {
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
      */
-    const getWalletBalance = (isPaymentItem) => {
-        return isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined;
-    }
+    const getWalletBalance = (isPaymentItem) => isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined
 
     /**
      * Retuns a list of default menu items
@@ -240,6 +238,7 @@ function InitialSettingsPage(props) {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
                 action: () => {
+                    // eslint-disable-next-line no-use-before-define
                     signOut(false);
                 },
             },
