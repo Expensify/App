@@ -261,6 +261,7 @@ type OnyxValues = {
     [ONYXKEYS.CURRENT_DATE]?: string;
     [ONYXKEYS.CREDENTIALS]?: OnyxTypes.Credentials;
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
+    [ONYXKEYS.MODAL]: OnyxTypes.Modal;
 };
 
 export default ONYXKEYS;
