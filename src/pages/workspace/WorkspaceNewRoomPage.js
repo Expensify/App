@@ -101,24 +101,24 @@ class WorkspaceNewRoomPage extends React.Component {
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
-    validate(values) {
+    validate({policyID, roomName}) {
         const errors = {};
 
-        if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
+        if (!roomName || roomName === CONST.POLICY.ROOM_PREFIX) {
             // We error if the user doesn't enter a room name or left blank
             ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.pleaseEnterRoomName');
-        } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
+        } else if (roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(roomName)) {
             // We error if the room name has invalid characters
             ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomNameInvalidError');
-        } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
+        } else if (ValidationUtils.isReservedRoomName(roomName)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
-        } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
+            ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: roomName}]);
+        } else if (ValidationUtils.isExistingRoomName(roomName, this.props.reports, policyID)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
             ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
         }
 
-        if (!values.policyID) {
+        if (!policyID) {
             errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
         }
 
