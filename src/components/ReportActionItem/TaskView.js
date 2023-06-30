@@ -101,22 +101,33 @@ function TaskView(props) {
                 disabled={!isOpen}
                 wrapperStyle={[styles.pv2]}
             />
-            <MenuItem
-                label={props.translate('task.assignee')}
-                title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                icon={UserUtils.getAvatar(
-                    PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID)[0].avatar,
-                    props.report.managerID,
-                )}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                avatarSize={CONST.AVATAR_SIZE.SMALLER}
-                titleStyle={styles.assigneeTextStyle}
-                onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
-                shouldShowRightIcon
-                disabled={!isOpen}
-                wrapperStyle={[styles.pv2]}
-                isSmallAvatarSubscriptMenu
-            />
+            {props.report.managerID ? (
+                <MenuItem
+                    label={props.translate('task.assignee')}
+                    title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
+                    icon={UserUtils.getAvatar(
+                        PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID)[0].avatar,
+                        props.report.managerID,
+                    )}
+                    iconType={CONST.ICON_TYPE_AVATAR}
+                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                    titleStyle={styles.assigneeTextStyle}
+                    onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                    shouldShowRightIcon
+                    disabled={!isOpen}
+                    wrapperStyle={[styles.pv2]}
+                    isSmallAvatarSubscriptMenu
+                />
+            ) : (
+                <MenuItemWithTopDescription
+                    description={props.translate('task.assignee')}
+                    onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                    shouldShowRightIcon
+                    disabled={!isOpen}
+                    wrapperStyle={[styles.pv2]}
+                />
+            )}
+            
             {props.shouldShowHorizontalRule && <View style={styles.taskHorizontalRule} />}
         </>
     );
