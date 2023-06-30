@@ -19,9 +19,9 @@ import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import ReactionListRefContext from './ReactionList/ReactionListRefContext';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
+import ReportScreenContext from '../ReportScreenContext';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -63,10 +63,6 @@ class ReportActionsView extends React.Component {
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
         this.reactionListRef = React.createRef();
-        this.state = {
-            isFloatingMessageCounterVisible: false,
-            newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
-        };
 
         this.currentScrollOffset = 0;
         this.mostRecentIOUReportActionID = ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions);
@@ -245,23 +241,18 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
-                <FloatingMessageCounter
-                    isActive={this.state.isFloatingMessageCounterVisible && !_.isEmpty(this.state.newMarkerReportActionID)}
-                    onClick={this.scrollToBottomAndMarkReportAsRead}
+                <ReportActionsList
+                    report={this.props.report}
+                    onScroll={this.trackScroll}
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                    sortedReportActions={this.props.reportActions}
+                    mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
+                    isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
+                    loadMoreChats={this.loadMoreChats}
                 />
-                <ReactionListRefContext.Provider value={this.reactionListRef}>
-                    <ReportActionsList
-                        report={this.props.report}
-                        onScroll={this.trackScroll}
-                        onLayout={this.recordTimeToMeasureItemLayout}
-                        sortedReportActions={this.props.reportActions}
-                        mostRecentIOUReportActionID={this.mostRecentIOUReportActionID}
-                        isLoadingMoreReportActions={this.props.report.isLoadingMoreReportActions}
-                        loadMoreChats={this.loadMoreChats}
-                    />
-                </ReactionListRefContext.Provider>
                 <PopoverReactionList
-                    ref={this.reactionListRef}
+                    // Check if this is needed seems that is being used when the FloatingMessageCounter is clickd and wanna scroll to the bottom
+                    ref={this.context.reactionListRef}
                     report={this.props.report}
                 />
                 <CopySelectionHelper />
@@ -272,5 +263,6 @@ class ReportActionsView extends React.Component {
 
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
+ReportActionsView.contextType = ReportScreenContext;
 
 export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withNavigationFocus, withLocalize, withNetwork())(ReportActionsView);

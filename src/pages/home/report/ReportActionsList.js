@@ -4,7 +4,6 @@ import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-nati
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as Report from '../../../libs/actions/Report';
@@ -24,6 +23,7 @@ import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 import DateUtils from '../../../libs/DateUtils';
 import FloatingMessageCounter from './FloatingMessageCounter';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -89,11 +89,13 @@ function isUnreadMsg(message, lastRead) {
 }
 
 function ReportActionsList(props) {
+    const reportScrollManager = useReportScrollManager();
     const opacity = useSharedValue(0);
     const userActiveSince = useRef(null);
     const currentUnreadMarker = useRef(null);
     const scrollingVerticalOffset = useRef(0);
     const readActionSkipped = useRef(false);
+    const context = useRef(null);
     const [messageManuallyMarked, setMessageManuallyMarked] = useState(false);
     const report = props.report;
     const sortedReportActions = props.sortedReportActions;
@@ -172,7 +174,7 @@ function ReportActionsList(props) {
     };
 
     const scrollToBottomAndMarkReportAsRead = () => {
-        ReportScrollManager.scrollToBottom();
+        reportScrollManager.scrollToBottom();
         readActionSkipped.current = false;
         Report.readNewestAction(report.reportID);
     };
@@ -258,11 +260,10 @@ function ReportActionsList(props) {
                 isActive={isFloatingMessageCounterVisible && !!currentUnreadMarker.current}
                 onClick={scrollToBottomAndMarkReportAsRead}
             />
-
             <Animated.View style={[animatedStyles, styles.flex1]}>
                 <InvertedFlatList
                     accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
-                    ref={ReportScrollManager.flatListRef}
+                    ref={reportScrollManager.ref}
                     data={props.sortedReportActions}
                     renderItem={renderItem}
                     contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
