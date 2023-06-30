@@ -433,9 +433,6 @@ function getLinkedTransactionID(reportID, reportActionID) {
  * @returns {Object}
  */
 function getReportAction(reportID, reportActionID) {
-    if (!reportID || !reportActionID) {
-        return {};
-    }
     return lodashGet(allReportActions, [reportID, reportActionID], {});
 }
 
