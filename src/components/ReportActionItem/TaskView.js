@@ -127,7 +127,7 @@ function TaskView(props) {
                     wrapperStyle={[styles.pv2]}
                 />
             )}
-            
+
             {props.shouldShowHorizontalRule && <View style={styles.taskHorizontalRule} />}
         </>
     );
