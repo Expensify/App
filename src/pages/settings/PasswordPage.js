@@ -63,17 +63,13 @@ function PasswordPage(props) {
 
     const currentPasswordInputRef = useRef(null);
 
-    useEffect(() => {
-      return () => Session.clearAccountMessages();
-    }, [])
+    useEffect(() => { return () => Session.clearAccountMessages(); }, [])
 
     /**
      * @param {String} field
      * @returns {String}
      */
-    const getErrorText = (field) => {
-        return errors[field] ? errorKeysMap[field] : '';
-    }
+    const getErrorText = (field) => { return errors[field] ? errorKeysMap[field] : ''; }
     
     /**
      * @param {String} field
@@ -89,12 +85,8 @@ function PasswordPage(props) {
                 errorsToReset[errorFlag] = false;
             });
         }
-        setPasswordFields((prev) => {
-            return { ...prev, [field]: value}
-        })
-        setErrors((prev) => {
-            return { ...prev, ...errorsToReset}
-        })   
+        setPasswordFields((prev) => {return { ...prev, [field]: value}});
+        setErrors((prev) => {return { ...prev, ...errorsToReset}});   
     }
 
     /**
@@ -115,9 +107,7 @@ function PasswordPage(props) {
             error.newPasswordSameAsOld = true;
         }
 
-        setErrors(() => {
-            return {...error}
-        });
+        setErrors(() => { return {...error} });
         return _.size(error) === 0;
     }
 
