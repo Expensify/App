@@ -1,4 +1,4 @@
-import {ValueOf} from 'react-native-gesture-handler/lib/typescript/typeUtils';
+import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 

@@ -1,7 +1,11 @@
+import {ValueOf} from 'type-fest';
+import * as UtilTypes from './types/utils';
+import * as OnyxTypes from './types/onyx';
+
 /**
  * This is a file containing constants for all the top level keys in our store
  */
-export default {
+const ONYXKEYS = {
     /** Holds information about the users account that is logging in */
     ACCOUNT: 'account',
 
@@ -239,3 +243,24 @@ export default {
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 } as const;
+
+type OnyxKeysMap = typeof ONYXKEYS;
+type CollectionKey = `${ValueOf<OnyxKeysMap['COLLECTION']>}${string}`;
+type OnyxKey = UtilTypes.DeepValueOf<Omit<OnyxKeysMap, 'COLLECTION'>> | CollectionKey;
+
+type OnyxValues = {
+    [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
+    [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]?: string;
+    [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]?: boolean;
+    [ONYXKEYS.ACTIVE_CLIENTS]: string[];
+    [ONYXKEYS.DEVICE_ID]: string;
+    [ONYXKEYS.IS_SIDEBAR_LOADED]?: boolean;
+    // TODO: Type persisted requests properly
+    [ONYXKEYS.PERSISTED_REQUESTS]: unknown[];
+    [ONYXKEYS.QUEUED_ONYX_UPDATES]: OnyxTypes.QueuedOnyxUpdates;
+    [ONYXKEYS.CURRENT_DATE]?: string;
+    [ONYXKEYS.CREDENTIALS]?: OnyxTypes.Credentials;
+};
+
+export default ONYXKEYS;
+export type {OnyxKey, OnyxValues};
