@@ -81,8 +81,7 @@ function BaseValidateCodeForm(props) {
             return;
         }
         inputValidateCodeRef.current.focus();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [inputValidateCodeRef.current]);
+    }, []);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
