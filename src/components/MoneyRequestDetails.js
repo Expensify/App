@@ -3,7 +3,6 @@ import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -16,7 +15,6 @@ import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
-import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import SettlementButton from './SettlementButton';
@@ -70,9 +68,10 @@ const defaultProps = {
         email: null,
     },
     parentReport: {},
+    policy: null,
 };
 
-function MoneyRequestHeader(props) {
+function MoneyRequestDetails(props) {
     // These are only used for the single transaction view and not for expense and iou reports
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
@@ -194,9 +193,9 @@ function MoneyRequestHeader(props) {
     );
 }
 
-MoneyRequestHeader.displayName = 'MoneyRequestHeader';
-MoneyRequestHeader.propTypes = propTypes;
-MoneyRequestHeader.defaultProps = defaultProps;
+MoneyRequestDetails.displayName = 'MoneyRequestDetails';
+MoneyRequestDetails.propTypes = propTypes;
+MoneyRequestDetails.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
@@ -212,4 +211,4 @@ export default compose(
             key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
         },
     }),
-)(MoneyRequestHeader);
+)(MoneyRequestDetails);

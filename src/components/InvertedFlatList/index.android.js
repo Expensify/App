@@ -2,6 +2,16 @@ import React, {forwardRef} from 'react';
 import {View} from 'react-native';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import styles from '../../styles/styles';
+import PropTypes from 'prop-types';
+import stylePropTypes from '../../styles/stylePropTypes';
+
+const propTypes = {
+    ListFooterComponentStyle: stylePropTypes,
+};
+
+const defaultProps = {
+    ListFooterComponentStyle: {},
+};
 
 function InvertedCell(props) {
     return (
