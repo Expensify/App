@@ -119,12 +119,17 @@ android {
         production {
         }
         e2e {
+            // If  are building a version that won't be uploaded to the play store, we don't have to use production keys
+            // applies all non-production flavors
+            signingConfig signingConfigs.debug
         }
         adhoc {
             applicationIdSuffix ".adhoc"
+            signingConfig signingConfigs.debug
         }
         development {
             applicationIdSuffix ".dev"
+            signingConfig signingConfigs.debug
         }
     }
 
@@ -138,12 +143,10 @@ android {
     }
     signingConfigs {
         release {
-            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-                storeFile file(MYAPP_UPLOAD_STORE_FILE)
-                storePassword System.getenv('MYAPP_UPLOAD_STORE_PASSWORD')
-                keyAlias MYAPP_UPLOAD_KEY_ALIAS
-                keyPassword System.getenv('MYAPP_UPLOAD_KEY_PASSWORD')
-            }
+            storeFile file(MYAPP_UPLOAD_STORE_FILE)
+            storePassword System.getenv('MYAPP_UPLOAD_STORE_PASSWORD')
+            keyAlias MYAPP_UPLOAD_KEY_ALIAS
+            keyPassword System.getenv('MYAPP_UPLOAD_KEY_PASSWORD')
         }
         debug {
             storeFile file('debug.keystore')
@@ -157,8 +160,8 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.release
-            productFlavors.e2e.signingConfig signingConfigs.release
+            signingConfig signingConfigs.debug
+            productFlavors.production.signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
