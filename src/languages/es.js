@@ -44,6 +44,7 @@ export default {
         details: 'Detalles',
         privacy: 'Privacidad',
         hidden: 'Oculto',
+        visible: 'Visible',
         delete: 'Eliminar',
         archived: 'archivado',
         contacts: 'Contactos',
@@ -194,8 +195,6 @@ export default {
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',
         expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo.',
-        requestNewCode: '¡También puedes',
-        requestNewCodeLink: 'solicitar un nuevo código aquí',
         successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba tu dispositivo.',
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
@@ -298,6 +297,9 @@ export default {
         sayHello: '¡Saluda!',
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
     },
+    reportAction: {
+        asCopilot: 'como copiloto de',
+    },
     mentionSuggestions: {
         hereAlternateText: 'Notificar a todos los que estén en linea de esta sala',
     },
@@ -358,7 +360,8 @@ export default {
         amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
-        payerSettled: ({amount}) => `pagó ${amount}`,
+        settledElsewhereWithAmount: ({amount}) => `pagó ${amount} de otra forma`,
+        settledPaypalMeWithAmount: ({amount}) => `pagó ${amount} con PayPal.me`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -407,6 +410,15 @@ export default {
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
+    },
+    loungeAccessPage: {
+        loungeAccess: 'Acceso a la sala vip',
+        headline: 'Podrás acceder a nuestras salas vip exclusivas.',
+        description:
+            'La sala vip Expensify es el punto de encuentro entre una "sala vip de aeropuerto de alta gama" y un vibrante "espacio de co-working" optimizado para personas con ideas afines.',
+        coffeePromo: 'Buen café y buenos cócteles',
+        networkingPromo: 'Conecta con otros miembros',
+        viewsPromo: 'Increíbles vistas de San Francisco',
     },
     pronounsPage: {
         pronouns: 'Pronombres',
