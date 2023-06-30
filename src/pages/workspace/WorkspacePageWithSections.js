@@ -83,8 +83,6 @@ const defaultProps = {
 };
 
 function WorkspacePageWithSections(props) {
-    // eslint-disable-next-line no-console
-    console.log("here!!!")
     const {network, shouldSkipVBBACall} = props;
 
     const fetchData = useCallback(() => {
