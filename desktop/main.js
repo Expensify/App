@@ -219,7 +219,7 @@ const localizeMenuItems = (browserWindow, systemMenu) => {
     const keyboardShortcutsMenuItem = new MenuItem({
         id: `keyboardShortcutsMenuItem-${preferredLocale}`,
         label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
-        accelerator: 'CmdOrCtrl+I',
+        accelerator: 'CmdOrCtrl+J',
         click: () => {
             showKeyboardShortcutsModal(browserWindow);
         },
