@@ -95,6 +95,7 @@ function ReportActionItemMessageEdit(props) {
 
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
+    const insertedEmojis = useRef([]);
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
