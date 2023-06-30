@@ -34,7 +34,7 @@ function EmojiPickerButton(props) {
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
                 onPress={() => {
-                    if (!EmojiPickerAction.emojiPickerRef.current.state.isEmojiPickerVisible) {
+                    if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
                         EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor.current);
                     } else {
                         EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();

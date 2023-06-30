@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -66,6 +66,7 @@ const defaultProps = {
 function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
+    const popoverAnchor = useRef(null);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
@@ -79,7 +80,6 @@ function OptionRowLHN(props) {
         return null;
     }
 
-    let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
@@ -140,7 +140,7 @@ function OptionRowLHN(props) {
             <Hoverable>
                 {(hovered) => (
                     <PressableWithSecondaryInteraction
-                        ref={(el) => (popoverAnchor = el)}
+                        ref={popoverAnchor}
                         onPress={(e) => {
                             if (e) {
                                 e.preventDefault();

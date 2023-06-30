@@ -69,7 +69,7 @@ function AddReactionBubble(props) {
             );
         };
 
-        if (!EmojiPickerAction.emojiPickerRef.current.state.isEmojiPickerVisible) {
+        if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
             if (props.onPressOpenPicker) {
                 props.onPressOpenPicker(openPicker);
             } else {

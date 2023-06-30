@@ -130,7 +130,7 @@ const EmojiPicker = forwardRef((props, ref) => {
      */
     const isActiveReportAction = (actionID) => Boolean(actionID) && reportAction.reportActionID === actionID;
 
-    useImperativeHandle(ref, () => ({showEmojiPicker, isActiveReportAction, hideEmojiPicker}));
+    useImperativeHandle(ref, () => ({showEmojiPicker, isActiveReportAction, hideEmojiPicker, isEmojiPickerVisible}));
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out

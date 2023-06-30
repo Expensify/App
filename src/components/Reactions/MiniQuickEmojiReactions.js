@@ -85,7 +85,7 @@ function MiniQuickEmojiReactions(props) {
             <BaseMiniContextMenuItem
                 ref={ref}
                 onPress={Session.checkIfActionIsAllowed(() => {
-                    if (!EmojiPickerAction.emojiPickerRef.current.state.isEmojiPickerVisible) {
+                    if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
                         openEmojiPicker();
                     } else {
                         EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
