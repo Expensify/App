@@ -95,6 +95,7 @@ function ReportActionItemMessageEdit(props) {
 
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
+    const insertedEmojis = useRef([]);
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -138,6 +139,15 @@ function ReportActionItemMessageEdit(props) {
         [props.reportID, props.action.reportActionID],
     );
 
+    const debouncedUpdateFrequentlyUsedEmojis = useMemo(
+        () =>
+            _.debounce(() => {
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis.current));
+                insertedEmojis.current = [];
+            }, 1000),
+        [],
+    );
+
     /**
      * Update the value of the draft in Onyx
      *
@@ -148,7 +158,8 @@ function ReportActionItemMessageEdit(props) {
             const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, isSmallScreenWidth, props.preferredSkinTone);
 
             if (!_.isEmpty(emojis)) {
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+                insertedEmojis.current = [...insertedEmojis.current, ...emojis];
+                debouncedUpdateFrequentlyUsedEmojis();
             }
             setDraft((prevDraft) => {
                 if (newDraftInput !== newDraft) {
@@ -172,7 +183,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, isSmallScreenWidth, props.preferredSkinTone],
+        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, isSmallScreenWidth, props.preferredSkinTone],
     );
 
     /**
