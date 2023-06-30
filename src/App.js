@@ -18,7 +18,7 @@ import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import {KeyboardStateProvider} from './components/withKeyboardState';
-import {CurrentReportIdContextProvider} from './components/withCurrentReportId';
+import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
@@ -48,7 +48,7 @@ function App() {
                     WindowDimensionsProvider,
                     KeyboardStateProvider,
                     PopoverContextProvider,
-                    CurrentReportIdContextProvider,
+                    CurrentReportIDContextProvider,
                     PickerStateProvider,
                 ]}
             >

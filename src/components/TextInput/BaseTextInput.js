@@ -19,6 +19,7 @@ import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as Pressables from '../Pressable';
+import withLocalize from '../withLocalize';
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 class BaseTextInput extends Component {
@@ -78,17 +79,17 @@ class BaseTextInput extends Component {
         }
 
         // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({value: inputValue, selection: this.props.selection});
+        this.setState({value: inputValue, selection: this.props.selection}, () => {
+            if (this.state.value) {
+                this.activateLabel();
+            } else if (!this.state.isFocused) {
+                this.deactivateLabel();
+            }
+        });
 
         // In some cases, When the value prop is empty, it is not properly updated on the TextInput due to its uncontrolled nature, thus manually clearing the TextInput.
         if (inputValue === '') {
             this.input.clear();
-        }
-
-        if (inputValue) {
-            this.activateLabel();
-        } else if (!this.state.isFocused) {
-            this.deactivateLabel();
         }
     }
 
@@ -343,9 +344,10 @@ class BaseTextInput extends Component {
                                 />
                                 {Boolean(this.props.secureTextEntry) && (
                                     <Checkbox
-                                        style={styles.textInputIconContainer}
+                                        style={[styles.flex1, styles.textInputIconContainer]}
                                         onPress={this.togglePasswordVisibility}
                                         onMouseDown={(e) => e.preventDefault()}
+                                        accessibilityLabel={this.props.translate('common.visible')}
                                     >
                                         <Icon
                                             src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
@@ -399,4 +401,4 @@ class BaseTextInput extends Component {
 BaseTextInput.propTypes = baseTextInputPropTypes.propTypes;
 BaseTextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
-export default BaseTextInput;
+export default withLocalize(BaseTextInput);
