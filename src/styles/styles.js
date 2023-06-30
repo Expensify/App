@@ -2165,14 +2165,14 @@ const styles = {
     },
 
     twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
-        let paddingHorizontal = styles.ph15;
+        let paddingHorizontal = styles.ph9;
 
         if (isSmallScreenWidth) {
-            paddingHorizontal = styles.ph10;
+            paddingHorizontal = styles.ph4;
         }
 
         if (isExtraSmallScreenWidth) {
-            paddingHorizontal = styles.ph4;
+            paddingHorizontal = styles.ph2;
         }
 
         return {
@@ -2198,12 +2198,11 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
-        height: 148,
     },
 
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
-        width: 100,
+        width: 112,
         textAlign: 'center',
     },
 
@@ -2212,10 +2211,15 @@ const styles = {
         justifyContent: 'center',
         gap: 12,
         marginTop: 20,
+        flexWrap: 'wrap',
     },
 
     twoFactorAuthCodesButton: {
-        minWidth: 100,
+        minWidth: 112,
+    },
+
+    twoFactorAuthCopyCodeButton: {
+        minWidth: 110,
     },
 
     anonymousRoomFooter: {

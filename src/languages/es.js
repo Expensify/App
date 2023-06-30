@@ -561,7 +561,6 @@ export default {
         stepSuccess: 'Finalizado',
         enabled: '¡La autenticación de dos factores ahora está habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
-        copyCodes: 'Copiar códigos',
         copy: 'Copiar',
         disable: 'Deshabilitar',
     },

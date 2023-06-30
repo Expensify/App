@@ -560,7 +560,6 @@ export default {
         stepSuccess: 'Finished',
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
-        copyCodes: 'Copy codes',
         copy: 'Copy',
         disable: 'Disable',
     },
