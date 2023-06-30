@@ -93,14 +93,10 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** All of the personalDetails */
-<<<<<<< HEAD
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** Is this the only report action on the report? */
     isOnlyReportAction: PropTypes.bool,
-=======
-    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
->>>>>>> 5a713dd3057e1c3bd09ec9687cef93dcdb5900ff
 };
 
 const defaultProps = {
@@ -568,6 +564,7 @@ export default compose(
             prevProps.report.description === nextProps.report.description &&
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
-            prevProps.report.managerEmail === nextProps.report.managerEmail,
+            prevProps.report.managerEmail === nextProps.report.managerEmail &&
+            prevProps.isOnlyReportAction === nextProps.isOnlyReportAction,
     ),
 );
