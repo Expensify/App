@@ -260,6 +260,7 @@ type OnyxValues = {
     [ONYXKEYS.QUEUED_ONYX_UPDATES]: OnyxTypes.QueuedOnyxUpdates;
     [ONYXKEYS.CURRENT_DATE]?: string;
     [ONYXKEYS.CREDENTIALS]?: OnyxTypes.Credentials;
+    [ONYXKEYS.IOU]: OnyxTypes.IOU;
 };
 
 export default ONYXKEYS;
