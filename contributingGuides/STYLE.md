@@ -210,7 +210,7 @@ const {name, accountID, email} = data;
 
 **React Components**
 
-Always use destructing to get prop values. Destructing is necessary to assign default values to props. 
+Always use destructuring to get prop values. Destructuring is necessary to assign default values to props. 
 
 ```javascript
 // Bad
