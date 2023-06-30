@@ -27,11 +27,7 @@ function ReportActionItemReimbursementQueued(props) {
         );
     }
 
-    return (
-        <Text style={[styles.chatItemMessage, styles.colorMuted]}>
-            {props.translate('iou.waitingOnBankAccount', {submitterDisplayName: props.submitterDisplayName})}
-        </Text>
-    );
+    return <Text style={[styles.chatItemMessage, styles.colorMuted]}>{props.translate('iou.waitingOnBankAccount', {submitterDisplayName: props.submitterDisplayName})}</Text>;
 }
 
 ReportActionItemReimbursementQueued.propTypes = propTypes;

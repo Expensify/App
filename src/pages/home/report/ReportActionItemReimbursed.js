@@ -15,7 +15,9 @@ const propTypes = {
 function ReportActionItemReimbursed(props) {
     return (
         <Text style={[styles.chatItemMessage, styles.colorMuted]}>
-            {props.isFromSubmitterAddingBankAccount ? props.translate('iou.settledAfterAddedBankAccount', {submitterDisplayName: props.submitterDisplayName, amount: props.amount}) : props.translate('iou.payerSettled', {amount: props.amount})}
+            {props.isFromSubmitterAddingBankAccount
+                ? props.translate('iou.settledAfterAddedBankAccount', {submitterDisplayName: props.submitterDisplayName, amount: props.amount})
+                : props.translate('iou.payerSettled', {amount: props.amount})}
         </Text>
     );
 }
