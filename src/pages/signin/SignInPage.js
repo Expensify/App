@@ -167,7 +167,7 @@ class SignInPage extends Component {
                         isVisible={showLoginForm}
                         blurOnSubmit={this.props.account.validated === false}
                     />
-                    {showValidateCodeForm ? <ValidateCodeForm isVisible={showValidateCodeForm} /> : <PasswordForm isVisible={showPasswordForm} />}
+                    {showValidateCodeForm ? <ValidateCodeForm isVisible={showValidateCodeForm} isInModal={this.props.isInModal}/> : <PasswordForm isVisible={showPasswordForm} />}
                     {showResendValidationForm && <ResendValidationForm />}
                     {showUnlinkLoginForm && <UnlinkLoginForm />}
                 </SignInPageLayout>
