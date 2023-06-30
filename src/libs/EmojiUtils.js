@@ -220,11 +220,10 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  *
  * @param {String} text
- * @param {Boolean} isSmallScreenWidth
  * @param {Number} preferredSkinTone
  * @returns {Object}
  */
-function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
+function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
     let newText = text;
     const emojis = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
@@ -244,9 +243,10 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
 
             // If this is the last emoji in the message and it's the end of the message so far,
             // add a space after it so the user can keep typing easily.
-            if (isSmallScreenWidth && i === emojiData.length - 1 && text.endsWith(emojiData[i])) {
+            if (i === emojiData.length - 1) {
                 emojiReplacement += ' ';
             }
+
             newText = newText.replace(emojiData[i], emojiReplacement);
         }
     }
@@ -260,7 +260,7 @@ function replaceEmojis(text, isSmallScreenWidth = false, preferredSkinTone = CON
  * @param {Number} [limit] - matching emojis limit
  * @returns {Array}
  */
-function suggestEmojis(text, limit = 5) {
+function suggestEmojis(text, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS) {
     const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
     if (emojiData) {
         const matching = [];

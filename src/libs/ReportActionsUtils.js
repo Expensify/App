@@ -52,8 +52,24 @@ function isDeletedAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isPendingRemove(reportAction) {
+    return lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isMoneyRequestAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isReportPreviewAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
 /**
@@ -65,7 +81,7 @@ function hasCommentThread(reportAction) {
 }
 
 /**
- * Returns the parentReportAction if the given report is a thread.
+ * Returns the parentReportAction if the given report is a thread/task.
  *
  * @param {Object} report
  * @returns {Object}
@@ -182,7 +198,7 @@ function getMostRecentIOURequestActionID(reportActions) {
  * Returns array of links inside a given report action
  *
  * @param {Object} reportAction
- * @returns {Boolean}
+ * @returns {Array}
  */
 function extractLinksFromMessageHtml(reportAction) {
     const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
@@ -191,7 +207,7 @@ function extractLinksFromMessageHtml(reportAction) {
     const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
 
     if (!htmlContent) {
-        return;
+        return [];
     }
 
     return _.map([...htmlContent.matchAll(regex)], (match) => match[1]);
@@ -325,6 +341,10 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
+    if (isPendingRemove(reportAction)) {
+        return false;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
@@ -417,6 +437,16 @@ function getReportPreviewAction(chatReportID, iouReportID) {
     );
 }
 
+/**
+ * Get the iouReportID for a given report action.
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getIOUReportIDFromReportActionPreview(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
+}
+
 function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
@@ -429,6 +459,10 @@ function isCreatedTaskReportAction(reportAction) {
  */
 function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
+}
+
+function isWhisperAction(action) {
+    return (action.whisperedToAccountIDs || []).length > 0;
 }
 
 export {
@@ -453,5 +487,9 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isReportPreviewAction,
+    getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
+    isWhisperAction,
+    isPendingRemove,
 };

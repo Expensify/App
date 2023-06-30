@@ -153,6 +153,7 @@ function signInAndGetAppWithUnreadChat() {
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
+                participantAccountIDs: [USER_B_ACCOUNT_ID],
                 type: CONST.REPORT.TYPE.CHAT,
             });
             const createdReportActionID = NumberUtils.rand64();
@@ -185,8 +186,8 @@ function signInAndGetAppWithUnreadChat() {
                 8: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
                 9: TestHelper.buildTestReportComment(USER_B_EMAIL, reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
-                [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
             });
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
@@ -305,6 +306,7 @@ describe('Unread Indicators', () => {
                             lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
                             lastMessageText: 'Comment 1',
                             participants: [USER_C_EMAIL],
+                            participantAccountIDs: [USER_C_ACCOUNT_ID],
                         },
                     },
                     {
@@ -331,9 +333,9 @@ describe('Unread Indicators', () => {
                     },
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                         value: {
-                            [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
+                            [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
                         },
                     },
                 ]);
