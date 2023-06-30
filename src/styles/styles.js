@@ -2198,7 +2198,6 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
-        minHeight: 148,
     },
 
     twoFactorAuthCode: {
