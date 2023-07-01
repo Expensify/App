@@ -86,8 +86,8 @@ function WorkspaceNewRoomPage(props) {
                 return;
             }
             setVisibilityDescription({newVisibilityDescription});
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [visibilityDescription],
     );
 
