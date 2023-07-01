@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState,useCallback} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -65,43 +65,34 @@ const defaultProps = {
     allPolicyMembers: {},
 };
 
-class WorkspaceNewRoomPage extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            visibilityDescription: this.props.translate('newRoomPage.restrictedDescription'),
-        };
-
-        this.validate = this.validate.bind(this);
-        this.submit = this.submit.bind(this);
-        this.updateVisibilityDescription = this.updateVisibilityDescription.bind(this);
-    }
+function WorkspaceNewRoomPage(props) {
+    const [visibilityDescription, setVisibilityDescription] = useState(props.translate('newRoomPage.restrictedDescription'));
 
     /**
      * @param {Object} values - form input values passed by the Form component
      */
-    submit(values) {
-        const policyMembers = _.map(_.keys(this.props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
+    const submit = (values) => {
+        const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
         Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers);
-    }
+    };
 
     /**
      * @param {String} visibility - form input value passed by the Form component
      */
-    updateVisibilityDescription(visibility) {
-        const visibilityDescription = this.props.translate(`newRoomPage.${visibility}Description`);
-        if (visibilityDescription === this.state.visibilityDescription) {
+    const updateVisibilityDescription = useCallback((visibility) => {
+        const newVisibilityDescription = props.translate(`newRoomPage.${visibility}Description`);
+        if (newVisibilityDescription === visibilityDescription) {
             return;
         }
-        this.setState({visibilityDescription});
-    }
+        setVisibilityDescription({newVisibilityDescription});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    },[visibilityDescription]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
-    validate(values) {
+    const validate = useCallback((values) => {
         const errors = {};
 
         if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
@@ -113,7 +104,7 @@ class WorkspaceNewRoomPage extends React.Component {
         } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
             ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
-        } else if (ValidationUtils.isExistingRoomName(values.roomName, this.props.reports, values.policyID)) {
+        } else if (ValidationUtils.isExistingRoomName(values.roomName, props.reports, values.policyID)) {
             // Certain names are reserved for default rooms and should not be used for policy rooms.
             ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
         }
@@ -123,78 +114,77 @@ class WorkspaceNewRoomPage extends React.Component {
         }
 
         return errors;
+    },[props.reports]);
+
+    if (!Permissions.canUsePolicyRooms(props.betas)) {
+        Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
+        Navigation.dismissModal();
+        return null;
     }
 
-    render() {
-        if (!Permissions.canUsePolicyRooms(this.props.betas)) {
-            Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
-            Navigation.dismissModal();
-            return null;
-        }
+    // Workspaces are policies with type === 'free'
+    const workspaceOptions = _.map(
+        _.filter(props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
+        (policy) => ({label: policy.name, key: policy.id, value: policy.id}),
+    );
 
-        // Workspaces are policies with type === 'free'
-        const workspaceOptions = _.map(
-            _.filter(this.props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
-            (policy) => ({label: policy.name, key: policy.id, value: policy.id}),
-        );
+    const visibilityOptions = _.map(
+        _.filter(_.values(CONST.REPORT.VISIBILITY), (visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE),
+        (visibilityOption) => ({
+            label: props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
+            value: visibilityOption,
+            description: props.translate(`newRoomPage.${visibilityOption}Description`),
+        }),
+    );
 
-        const visibilityOptions = _.map(
-            _.filter(_.values(CONST.REPORT.VISIBILITY), (visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE),
-            (visibilityOption) => ({
-                label: this.props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
-                value: visibilityOption,
-                description: this.props.translate(`newRoomPage.${visibilityOption}Description`),
-            }),
-        );
-
-        return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+        >
+            <HeaderWithBackButton title={props.translate('newRoomPage.newRoom')} />
+            <Form
+                formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
+                submitButtonText={props.translate('newRoomPage.createRoom')}
+                scrollContextEnabled
+                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                validate={validate}
+                onSubmit={submit}
+                enabledWhenOffline
             >
-                <HeaderWithBackButton title={this.props.translate('newRoomPage.newRoom')} />
-                <Form
-                    formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                    submitButtonText={this.props.translate('newRoomPage.createRoom')}
-                    scrollContextEnabled
-                    style={[styles.mh5, styles.mt5, styles.flexGrow1]}
-                    validate={this.validate}
-                    onSubmit={this.submit}
-                    enabledWhenOffline
-                >
-                    <View style={styles.mb5}>
-                        <RoomNameInput
-                            inputID="roomName"
-                            autoFocus
-                            shouldDelayFocus={shouldDelayFocus}
-                        />
-                    </View>
-                    <View style={styles.mb5}>
-                        <Picker
-                            inputID="policyID"
-                            label={this.props.translate('workspace.common.workspace')}
-                            placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                            items={workspaceOptions}
-                        />
-                    </View>
-                    <View style={styles.mb2}>
-                        <Picker
-                            inputID="visibility"
-                            label={this.props.translate('newRoomPage.visibility')}
-                            items={visibilityOptions}
-                            onValueChange={this.updateVisibilityDescription}
-                            defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
-                        />
-                    </View>
-                    <Text style={[styles.textLabel, styles.colorMuted]}>{this.state.visibilityDescription}</Text>
-                </Form>
-            </ScreenWrapper>
-        );
-    }
+                <View style={styles.mb5}>
+                    <RoomNameInput
+                        inputID="roomName"
+                        autoFocus
+                        shouldDelayFocus={shouldDelayFocus}
+                    />
+                </View>
+                <View style={styles.mb5}>
+                    <Picker
+                        inputID="policyID"
+                        label={props.translate('workspace.common.workspace')}
+                        placeholder={{value: '', label: props.translate('newRoomPage.selectAWorkspace')}}
+                        items={workspaceOptions}
+                    />
+                </View>
+                <View style={styles.mb2}>
+                    <Picker
+                        inputID="visibility"
+                        label={props.translate('newRoomPage.visibility')}
+                        items={visibilityOptions}
+                        onValueChange={updateVisibilityDescription}
+                        defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
+                    />
+                </View>
+                <Text style={[styles.textLabel, styles.colorMuted]}>{visibilityDescription}</Text>
+            </Form>
+        </ScreenWrapper>
+    );
 }
 
 WorkspaceNewRoomPage.propTypes = propTypes;
 WorkspaceNewRoomPage.defaultProps = defaultProps;
+WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
 export default compose(
     withOnyx({
