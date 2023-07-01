@@ -65,7 +65,6 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
-        lastActorEmail: currentUserEmail,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
@@ -136,7 +135,6 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
             lastMessageText: lastAssigneeCommentText,
-            lastActorEmail: currentUserEmail,
             lastActorAccountID: currentUserAccountID,
             lastReadTime: currentTime,
         };
@@ -250,7 +248,6 @@ function reopenTask(taskReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.OPEN,
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: reopenedTaskReportAction.actorEmail,
                 lastActorAccountID: reopenedTaskReportAction.actorAccountID,
                 lastReadTime: reopenedTaskReportAction.created,
             },
@@ -585,7 +582,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: optimisticCancelReportAction.actorEmail,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
             },
         },

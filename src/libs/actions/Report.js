@@ -251,7 +251,6 @@ function addActions(reportID, text = '', file) {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
-        lastActorEmail: currentUserEmail,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };

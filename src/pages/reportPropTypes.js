@@ -25,9 +25,6 @@ export default PropTypes.shape({
     /** Indicates if the report is pinned to the LHN or not */
     isPinned: PropTypes.bool,
 
-    /** The email of the last message's actor */
-    lastActorEmail: PropTypes.string,
-
     /** The accountID of the last message's actor */
     lastActorAccountID: PropTypes.number,
 
