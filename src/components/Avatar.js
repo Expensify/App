@@ -73,7 +73,7 @@ function Avatar(props) {
     const isWorkspace = props.type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(props.size);
 
-    const imageStyle = props.imageStyles && props.imageStyles.length > 0 ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, StyleUtils.getAvatarBorderRadius(props.size, props.type)] : [StyleUtils.getAvatarStyle(props.size), StyleUtils.getAvatarBorderRadius(props.size, props.type)];
+    const imageStyle = props.imageStyles && props.imageStyles.length > 0 ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, StyleUtils.getAvatarBorderRadius(props.size, props.type)] : [StyleUtils.getAvatarStyle(props.size), { borderRadius: 0 }];
 
     const iconStyle = props.imageStyles && props.imageStyles.length > 0 ? [StyleUtils.getAvatarStyle(props.size), styles.bgTransparent, ...props.imageStyles] : undefined;
 
@@ -101,7 +101,7 @@ function Avatar(props) {
                     />
                 </View>
             ) : (
-                <View style={[iconStyle, ...props.iconAdditionalStyles]}>
+                <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
                         source={{uri: props.source}}
                         style={imageStyle}
