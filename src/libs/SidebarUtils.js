@@ -12,6 +12,7 @@ import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -308,7 +309,6 @@ function getOptionData(reportID) {
         lastActorDetails = lastActorDisplayName
             ? {
                   displayName: lastActorDisplayName,
-                  login: report.lastActorEmail,
                   accountID: report.lastActorAccountID,
               }
             : null;
@@ -322,7 +322,7 @@ function getOptionData(reportID) {
             (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
             CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: archiveReason.displayName || report.lastActorEmail,
+            displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
             policyName: ReportUtils.getPolicyName(report),
         });
     }
