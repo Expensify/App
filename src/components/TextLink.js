@@ -76,4 +76,10 @@ function TextLink(props) {
 TextLink.defaultProps = defaultProps;
 TextLink.propTypes = propTypes;
 TextLink.displayName = 'TextLink';
-export default TextLink;
+export default React.forwardRef((props, ref) => (
+    <TextLink
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
