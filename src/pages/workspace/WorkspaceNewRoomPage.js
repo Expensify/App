@@ -1,4 +1,4 @@
-import React, {useState,useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -79,42 +79,48 @@ function WorkspaceNewRoomPage(props) {
     /**
      * @param {String} visibility - form input value passed by the Form component
      */
-    const updateVisibilityDescription = useCallback((visibility) => {
-        const newVisibilityDescription = props.translate(`newRoomPage.${visibility}Description`);
-        if (newVisibilityDescription === visibilityDescription) {
-            return;
-        }
-        setVisibilityDescription({newVisibilityDescription});
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    },[visibilityDescription]);
+    const updateVisibilityDescription = useCallback(
+        (visibility) => {
+            const newVisibilityDescription = props.translate(`newRoomPage.${visibility}Description`);
+            if (newVisibilityDescription === visibilityDescription) {
+                return;
+            }
+            setVisibilityDescription({newVisibilityDescription});
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        },
+        [visibilityDescription],
+    );
 
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Boolean}
      */
-    const validate = useCallback((values) => {
-        const errors = {};
+    const validate = useCallback(
+        (values) => {
+            const errors = {};
 
-        if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
-            // We error if the user doesn't enter a room name or left blank
-            ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.pleaseEnterRoomName');
-        } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
-            // We error if the room name has invalid characters
-            ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomNameInvalidError');
-        } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
-            // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
-        } else if (ValidationUtils.isExistingRoomName(values.roomName, props.reports, values.policyID)) {
-            // Certain names are reserved for default rooms and should not be used for policy rooms.
-            ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
-        }
+            if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
+                // We error if the user doesn't enter a room name or left blank
+                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.pleaseEnterRoomName');
+            } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !ValidationUtils.isValidRoomName(values.roomName)) {
+                // We error if the room name has invalid characters
+                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomNameInvalidError');
+            } else if (ValidationUtils.isReservedRoomName(values.roomName)) {
+                // Certain names are reserved for default rooms and should not be used for policy rooms.
+                ErrorUtils.addErrorMessage(errors, 'roomName', ['newRoomPage.roomNameReservedError', {reservedName: values.roomName}]);
+            } else if (ValidationUtils.isExistingRoomName(values.roomName, props.reports, values.policyID)) {
+                // Certain names are reserved for default rooms and should not be used for policy rooms.
+                ErrorUtils.addErrorMessage(errors, 'roomName', 'newRoomPage.roomAlreadyExistsError');
+            }
 
-        if (!values.policyID) {
-            errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
-        }
+            if (!values.policyID) {
+                errors.policyID = 'newRoomPage.pleaseSelectWorkspace';
+            }
 
-        return errors;
-    },[props.reports]);
+            return errors;
+        },
+        [props.reports],
+    );
 
     if (!Permissions.canUsePolicyRooms(props.betas)) {
         Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
