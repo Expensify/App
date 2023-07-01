@@ -15,7 +15,7 @@ export default () => ({
                 lastVisibleActionCreated: '2022-08-01 20:49:11',
                 lastMessageTimestamp: 1659386951000,
                 lastMessageText: 'Say hello\ud83d\ude10',
-                lastActorEmail: 'fake3@gmail.com',
+                lastActorAccountID: 10773236,
                 notificationPreference: 'always',
                 stateNum: 0,
                 statusNum: 0,

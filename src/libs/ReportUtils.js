@@ -1560,7 +1560,6 @@ function buildOptimisticChatReport(
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
         isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-        lastActorEmail: '',
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: null,

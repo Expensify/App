@@ -1080,9 +1080,10 @@ export default () => ({
         },
         {
             onyxMethod: 'merge',
-            key: 'personalDetails',
+            key: 'personalDetailsList',
             value: {
-                'fake2@gmail.com': {
+                1: {
+                    accountID: 1,
                     login: 'fake2@gmail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/7a1fd3cdd41564cf04f4305140372b59d1dcd495_128.jpeg',
                     displayName: 'fake2@gmail.com',
@@ -1097,7 +1098,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'fake1@gmail.com': {
+                2: {
+                    accountID: 2,
                     login: 'fake1@gmail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/d76dfb6912a0095cbfd2a02f64f4d9d2d9c33c29_128.jpeg',
                     displayName: '"Chat N Laz"',
@@ -1112,7 +1114,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'fake4@gmail.com': {
+                3: {
+                    accountID: 3,
                     login: 'fake4@gmail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/e769e0edf5fd0bc11cfa7c39ec2605c5310d26de_128.jpeg',
                     displayName: 'fake4@gmail.com',
@@ -1127,7 +1130,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'fake3@gmail.com': {
+                4: {
+                    accountID: 4,
                     login: 'fake3@gmail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/301e37631eca9e3127d6b668822e3a53771551f6_128.jpeg',
                     displayName: '123 Ios',
@@ -1142,7 +1146,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'fake5@gmail.com': {
+                5: {
+                    accountID: 5,
                     login: 'fake5@gmail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/2810a38b66d9a60fe41a9cf39c9fd6ecbe2cb35f_128.jpeg',
                     displayName: 'Qqq Qqq',
@@ -1157,7 +1162,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'andreylazutkinutest@gmail.com': {
+                6: {
+                    accountID: 6,
                     login: 'andreylazutkinutest@gmail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/2af13161ffcc95fc807769bb22c013c32280f338_128.jpeg',
                     displayName: 'Main Ios🏴󠁧󠁢󠁳󠁣󠁴󠁿ios',
@@ -1172,7 +1178,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester+0604lsn@applause.expensifail.com': {
+                7: {
+                    accountID: 7,
                     login: 'applausetester+0604lsn@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/ad20184a011ed54383d69e4fe68658522583cbb8_128.jpeg',
                     displayName: '0604 Lsn',
@@ -1187,7 +1194,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester+0704sveta@applause.expensifail.com': {
+                8: {
+                    accountID: 8,
                     login: 'applausetester+0704sveta@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/63cc4a392cc64ba1c8f6a1b90d5f1441a23270d1_128.jpeg',
                     displayName: '07 04 0704 Lsn lsn',
@@ -1202,7 +1210,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester+0707abb@applause.expensifail.com': {
+                9: {
+                    accountID: 9,
                     login: 'applausetester+0707abb@applause.expensifail.com',
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_5.png',
                     displayName: 'Katya Becciv',
@@ -1217,7 +1226,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester+0901abb@applause.expensifail.com': {
+                10: {
+                    accountID: 10,
                     login: 'applausetester+0901abb@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/0f6e999ba61695599f092b7652c1e159aee62c65_128.jpeg',
                     displayName: 'Katie Becciv',
@@ -1232,7 +1242,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester+1904lsn@applause.expensifail.com': {
+                11: {
+                    accountID: 11,
                     login: 'applausetester+1904lsn@applause.expensifail.com',
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_5.png',
                     displayName: '11 11',
@@ -1247,7 +1258,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester+42222abb@applause.expensifail.com': {
+                12: {
+                    accountID: 12,
                     login: 'applausetester+42222abb@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/d166c112f300a6e30bc70752cd394c3fde099e4f_128.jpeg',
                     displayName: '"First"',
@@ -1262,7 +1274,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester+bernardo@applause.expensifail.com': {
+                13: {
+                    accountID: 13,
                     login: 'applausetester+bernardo@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/803733b7038bbd5e543315fa9c6c0118eda227af_128.jpeg',
                     displayName: 'bernardo utest',
@@ -1277,7 +1290,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: false,
                 },
-                'applausetester+ihchat4@applause.expensifail.com': {
+                14: {
+                    accountID: 14,
                     login: 'applausetester+ihchat4@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/1008dcaadc12badbddf4720dcb7ad99b7384c613_128.jpeg',
                     displayName: 'Chat HT',
@@ -1292,7 +1306,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester+pd1005@applause.expensifail.com': {
+                15: {
+                    accountID: 15,
                     login: 'applausetester+pd1005@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/86c9b7dce35aea83b69c6e825a4b3d00a87389b7_128.jpeg',
                     displayName: 'applausetester+pd1005@applause.expensifail.com',
@@ -1307,7 +1322,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'fake6@gmail.com': {
+                16: {
+                    accountID: 16,
                     login: 'fake6@gmail.com',
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_7.png',
                     displayName: 'fake6@gmail.com',
@@ -1322,7 +1338,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester+perf2@applause.expensifail.com': {
+                17: {
+                    accountID: 17,
                     login: 'applausetester+perf2@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/1486f9cc6367d8c399ee453ad5b686d157bb4dda_128.jpeg',
                     displayName: 'applausetester+perf2@applause.expensifail.com',
@@ -1338,7 +1355,8 @@ export default () => ({
                     validated: true,
                     localCurrencyCode: 'USD',
                 },
-                'fake7@gmail.com': {
+                18: {
+                    accountID: 18,
                     login: 'fake7@gmail.com',
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_2.png',
                     displayName: 'fake7@gmail.com',
@@ -1353,7 +1371,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'fake8@gmail.com': {
+                19: {
+                    accountID: 19,
                     login: 'fake8@gmail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/7b0a9cf9c93987053be9d6cc707cb1f091a1ef46_128.jpeg',
                     displayName: 'fake8@gmail.com',
@@ -1368,7 +1387,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'applausetester@applause.expensifail.com': {
+                20: {
+                    accountID: 20,
                     login: 'applausetester@applause.expensifail.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/8ddbb1a4675883ea12b3021f698a8b2dcfc18d42_128.jpeg',
                     displayName: 'Applause Main Account',
@@ -1383,7 +1403,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'christoph+hightraffic@margelo.io': {
+                21: {
+                    accountID: 21,
                     login: 'christoph+hightraffic@margelo.io',
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_1.png',
                     displayName: 'Christoph Pader',
@@ -1398,7 +1419,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'concierge@expensify.com': {
+                22: {
+                    accountID: 22,
                     login: 'concierge@expensify.com',
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/icons/concierge_2022.png',
                     displayName: 'Concierge',
@@ -1413,7 +1435,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'svetlanalazutkinautest+0211@gmail.com': {
+                23: {
+                    accountID: 23,
                     login: 'svetlanalazutkinautest+0211@gmail.com',
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_6.png',
                     displayName: 'Chat S',
@@ -1428,7 +1451,8 @@ export default () => ({
                     phoneNumber: '',
                     validated: true,
                 },
-                'tayla.lay@team.expensify.com': {
+                24: {
+                    accountID: 24,
                     login: 'tayla.lay@team.expensify.com',
                     avatar: 'https://d1wpcgnaa73g0y.cloudfront.net/d3196c27ed6bdb2df741af29a3ccfdb0f9919c41_128.jpeg',
                     displayName: 'Tayla Simmons',
@@ -1581,7 +1605,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-08-03 06:45:00',
                     lastMessageTimestamp: 1659509100000,
                     lastMessageText: 'You can easily track, approve, and pay bills in Expensify with your custom compa',
-                    lastActorEmail: 'concierge@expensify.com',
+                    lastActorAccountID: 22,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1607,7 +1631,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-11-03 20:30:55.599',
                     lastMessageTimestamp: 1667507455599,
                     lastMessageText: '',
-                    lastActorEmail: 'applausetester@applause.expensifail.com',
+                    lastActorAccountID: 20,
                     notificationPreference: 'always',
                     stateNum: 2,
                     statusNum: 2,
@@ -1629,7 +1653,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-08-02 20:03:42',
                     lastMessageTimestamp: 1659470622000,
                     lastMessageText: 'Requested \u20b41.67 from applausetester+perf2@applause.expensifail.com',
-                    lastActorEmail: 'applausetester+ihchat4@applause.expensifail.com',
+                    lastActorAccountID: 14,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1651,7 +1675,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-11-04 21:18:00.038',
                     lastMessageTimestamp: 1667596680038,
                     lastMessageText: 'Cancelled the \u20b440.00 request',
-                    lastActorEmail: 'fake3@gmail.com',
+                    lastActorAccountID: 4,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1673,7 +1697,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-08-01 20:48:16',
                     lastMessageTimestamp: 1659386896000,
                     lastMessageText: 'applausetester+perf2@applause.expensifail.com',
-                    lastActorEmail: 'fake3@gmail.com',
+                    lastActorAccountID: 4,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1695,7 +1719,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-08-01 20:49:11',
                     lastMessageTimestamp: 1659386951000,
                     lastMessageText: 'Say hello\ud83d\ude10',
-                    lastActorEmail: 'fake3@gmail.com',
+                    lastActorAccountID: 4,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1717,7 +1741,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-08-16 12:30:57',
                     lastMessageTimestamp: 1660653057000,
                     lastMessageText: '',
-                    lastActorEmail: 'fake3@gmail.com',
+                    lastActorAccountID: 4,
                     notificationPreference: 'always',
                     stateNum: 2,
                     statusNum: 2,
@@ -1739,7 +1763,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-08-02 20:03:41',
                     lastMessageTimestamp: 1659470621000,
                     lastMessageText: 'Split \u20b45.00 with applausetester+perf2@applause.expensifail.com and applauseteste',
-                    lastActorEmail: 'applausetester+ihchat4@applause.expensifail.com',
+                    lastActorAccountID: 14,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1761,7 +1785,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-12-09 10:17:18.362',
                     lastMessageTimestamp: 1670581038362,
                     lastMessageText: 'RR',
-                    lastActorEmail: 'applausetester+perf2@applause.expensifail.com',
+                    lastActorAccountID: 17,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1784,7 +1808,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-10-12 17:47:45.228',
                     lastMessageTimestamp: 1665596865228,
                     lastMessageText: 'STAGING_CHAT_MESSAGE_A2C534B7-3509-416E-A0AD-8463831C29DD',
-                    lastActorEmail: 'applausetester+fachat1@applause.expensifail.com',
+                    lastActorAccountID: 25,
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
@@ -1806,7 +1830,7 @@ export default () => ({
                     lastVisibleActionCreated: '',
                     lastMessageTimestamp: 0,
                     lastMessageText: '',
-                    lastActorEmail: '',
+                    lastActorAccountID: 0,
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
@@ -1828,7 +1852,7 @@ export default () => ({
                     lastVisibleActionCreated: '',
                     lastMessageTimestamp: 0,
                     lastMessageText: '',
-                    lastActorEmail: '',
+                    lastActorAccountID: 0,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1856,7 +1880,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-11-03 20:48:58.815',
                     lastMessageTimestamp: 1667508538815,
                     lastMessageText: 'Hi there, thanks for reaching out! How may I help?',
-                    lastActorEmail: 'concierge@expensify.com',
+                    lastActorAccountID: 22,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1878,7 +1902,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-12-01 08:05:11.009',
                     lastMessageTimestamp: 1669881911009,
                     lastMessageText: 'Test',
-                    lastActorEmail: 'applausetester+perf2@applause.expensifail.com',
+                    lastActorAccountID: 17,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1900,7 +1924,7 @@ export default () => ({
                     lastVisibleActionCreated: '',
                     lastMessageTimestamp: 0,
                     lastMessageText: '',
-                    lastActorEmail: '',
+                    lastActorAccountID: 0,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1922,7 +1946,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-10-12 12:20:00.668',
                     lastMessageTimestamp: 1665577200668,
                     lastMessageText: 'Room renamed to #jack',
-                    lastActorEmail: 'applausetester+pd1005@applause.expensifail.com',
+                    lastActorAccountID: 15,
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
@@ -1944,7 +1968,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-12-16 18:14:00.208',
                     lastMessageTimestamp: 1671214440208,
                     lastMessageText: 'Requested \u20ac200.00 from Christoph for Essen mit Kunden',
-                    lastActorEmail: 'applausetester+perf2@applause.expensifail.com',
+                    lastActorAccountID: 17,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -1967,7 +1991,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-11-29 12:38:15.985',
                     lastMessageTimestamp: 1669725495985,
                     lastMessageText: 'fff',
-                    lastActorEmail: 'fake6@gmail.com',
+                    lastActorAccountID: 16,
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
@@ -1991,7 +2015,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-11-29 21:08:00.793',
                     lastMessageTimestamp: 1669756080793,
                     lastMessageText: 'Iviviviv8b',
-                    lastActorEmail: 'applausetester+0901abb@applause.expensifail.com',
+                    lastActorAccountID: 10,
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
@@ -2022,7 +2046,7 @@ export default () => ({
                     lastVisibleActionCreated: '',
                     lastMessageTimestamp: 0,
                     lastMessageText: '',
-                    lastActorEmail: '',
+                    lastActorAccountID: 0,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -2044,7 +2068,7 @@ export default () => ({
                     lastVisibleActionCreated: '',
                     lastMessageTimestamp: 0,
                     lastMessageText: '',
-                    lastActorEmail: '',
+                    lastActorAccountID: 0,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -2075,7 +2099,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-09-15 12:57:59.526',
                     lastMessageTimestamp: 1663246679526,
                     lastMessageText: "\ud83d\udc4b Welcome to Expensify! I'm Concierge. Is there anything I can help with? Click ",
-                    lastActorEmail: 'concierge@expensify.com',
+                    lastActorAccountID: 22,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -2105,7 +2129,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-09-16 11:12:46.739',
                     lastMessageTimestamp: 1663326766739,
                     lastMessageText: 'Hi there! How can I help?\u00a0',
-                    lastActorEmail: 'concierge@expensify.com',
+                    lastActorAccountID: 22,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
@@ -2127,7 +2151,7 @@ export default () => ({
                     lastVisibleActionCreated: '2022-10-12 12:46:43.577',
                     lastMessageTimestamp: 1665578803577,
                     lastMessageText: 'Room renamed to #jackd23',
-                    lastActorEmail: 'applausetester+pd1005@applause.expensifail.com',
+                    lastActorAccountID: 15,
                     notificationPreference: 'daily',
                     stateNum: 0,
                     statusNum: 0,
@@ -2149,7 +2173,7 @@ export default () => ({
                     lastVisibleActionCreated: '',
                     lastMessageTimestamp: 0,
                     lastMessageText: '',
-                    lastActorEmail: '',
+                    lastActorAccountID: 0,
                     notificationPreference: 'always',
                     stateNum: 0,
                     statusNum: 0,
