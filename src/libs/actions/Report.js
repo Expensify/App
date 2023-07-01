@@ -27,7 +27,6 @@ import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 
-let currentUserEmail;
 let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -37,7 +36,6 @@ Onyx.connect({
             return;
         }
 
-        currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
     },
 });
