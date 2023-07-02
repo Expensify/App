@@ -702,25 +702,6 @@ function convertRGBToUnitValues(red, green, blue) {
 }
 
 /**
- * Converts RGB values to a hexadecimal color representation.
- * @param {number} red - The red component of the RGB color (0-255).
- * @param {number} green - The green component of the RGB color (0-255).
- * @param {number} blue - The blue component of the RGB color (0-255).
- * @returns {string} The hexadecimal representation of the RGB color.
- */
-function convertRGBToHex(red, green, blue) {
-    // Convert individual RGB components to hexadecimal
-    const redHex = red.toString(16).padStart(2, '0');
-    const greenHex = green.toString(16).padStart(2, '0');
-    const blueHex = blue.toString(16).padStart(2, '0');
-
-    // Combine the hexadecimal components
-    const hexColor = `#${redHex}${greenHex}${blueHex}`;
-
-    return hexColor;
-}
-
-/**
  * Matches an RGBA or RGB color value and extracts the color components.
  * @param {string} color - The RGBA or RGB color value to match and extract components from.
  * @returns {Array} An array containing the extracted color components [red, green, blue, alpha].
@@ -743,7 +724,7 @@ function extractValuesFromRGB(color) {
  * the modal's backdrop, and the backdrop's opacity.
  *
  * @param {String} bgColor - theme background color
- * @returns {String} The theme color as an hex value.
+ * @returns {String} The theme color as an RGB value.
  */
 function getThemeBackgroundColor(bgColor = themeColors.appBG) {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
@@ -754,8 +735,8 @@ function getThemeBackgroundColor(bgColor = themeColors.appBG) {
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
     const themeRGBNormalized = convertRGBAToRGB(normalizedBackdropRGB, normalizedBackgroundRGB, backdropOpacity);
     const themeRGB = convertUnitValuesToRGB(...themeRGBNormalized);
-    const themeHex = convertRGBToHex(...themeRGB);
-    return themeHex;
+
+    return `rgb(${themeRGB.join(', ')})`;
 }
 
 /**
