@@ -274,9 +274,10 @@ function getOptionData(reportID) {
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.isExpenseReport = ReportUtils.isExpenseReport(report);
-    result.isControlPolicyExpenseReport = result.isExpenseReport && ReportUtils.getPolicyType(report, policies) === CONST.POLICY.TYPE.CORPORATE;
-    if (result.isControlPolicyExpenseReport) {
+    result.policyType = ReportUtils.getPolicyType(report, policies);
+    if (result.policyType === CONST.POLICY.TYPE.CORPORATE) {
         result.isExpenseReportApproved = ReportUtils.isExpenseReportApproved(report);
+        result.isExpenseReportManager = ReportUtils.isExpenseReportManager(report);
     }
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;

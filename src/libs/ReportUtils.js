@@ -129,8 +129,23 @@ function isExpenseReport(report) {
     return lodashGet(report, 'type') === CONST.REPORT.TYPE.EXPENSE;
 }
 
+/**
+ * Checks if an expense report is approved
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
 function isExpenseReportApproved(report) {
     return lodashGet(report, 'stateNum') === CONST.REPORT.STATE.APPROVED;
+}
+
+/** Checks whether the current user is the manager of the control policy expense report
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isExpenseReportManager(report) {
+    return lodashGet(report, 'managerID') === currentUserAccountID;
 }
 
 /**
@@ -2410,6 +2425,7 @@ export {
     isChatReport,
     isExpenseReport,
     isExpenseReportApproved,
+    isExpenseReportManager,
     isIOUReport,
     isTaskReport,
     isTaskCompleted,
