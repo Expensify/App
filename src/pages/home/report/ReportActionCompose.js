@@ -352,7 +352,7 @@ function ReportActionCompose({translate, ...props}) {
      */
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
-            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, props.preferredSkinTone);
+            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, props.preferredSkinTone);
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
