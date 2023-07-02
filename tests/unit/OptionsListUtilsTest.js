@@ -283,7 +283,6 @@ describe('OptionsListUtils', () => {
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: 2, email: 'tonystark@expensify.com'},
                 [`${ONYXKEYS.COLLECTION.REPORT}100`]: {
-                    ownerEmail: 'mistersinister@marauders.com',
                     ownerAccountID: 8,
                     total: '1000',
                 },

@@ -749,11 +749,10 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         return [actorIcon];
     }
     if (isTaskReport(report)) {
-        const ownerEmail = report.ownerEmail || '';
         const ownerIcon = {
             id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
-            name: ownerEmail,
+            name: lodashGet(personalDetails, [report.ownerAccountID, 'login'], ''),
             type: CONST.ICON_TYPE_AVATAR,
         };
 
@@ -791,7 +790,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         const adminIcon = {
             id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
-            name: report.ownerEmail,
+            name: lodashGet(personalDetails, [report.ownerAccountID, 'login'], ''),
             type: CONST.ICON_TYPE_AVATAR,
         };
 
@@ -806,7 +805,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         return [adminIcon, workspaceIcon];
     }
     if (isIOUReport(report)) {
-        const email = isPayer ? report.managerEmail : report.ownerEmail;
+        const email = isPayer ? report.managerEmail : lodashGet(personalDetails, [report.ownerAccountID, 'login'], '');
         const accountID = isPayer ? report.managerID : report.ownerAccountID;
         return [
             {
@@ -944,7 +943,7 @@ function getMoneyRequestTotal(report, moneyRequestReports = {}) {
  * @returns {String}
  */
 function getPolicyExpenseChatName(report) {
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || report.ownerEmail || report.reportName;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || lodashGet(allPersonalDetails, [report.ownerAccountID, 'login']) || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
