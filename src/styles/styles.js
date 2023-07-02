@@ -742,6 +742,10 @@ const styles = {
         borderColor: themeColors.border,
     },
 
+    br0: {
+        borderRadius: 0,
+    },
+
     borderColorFocus: {
         borderColor: themeColors.borderFocus,
     },
