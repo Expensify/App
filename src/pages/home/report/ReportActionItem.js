@@ -148,26 +148,18 @@ function ReportActionItem(props) {
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-
+    const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
+    const latestDecision = lodashGet(_.last(decisions), 'decision', '');
     useEffect(() => {
-        if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(props.action.message[0].moderationDecisions)) {
+        if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
             return;
         }
 
-        // Right now we are only sending the latest moderationDecision to the frontend even though it is an array
-        let decisions = props.action.message[0].moderationDecisions;
-        if (decisions.length > 1) {
-            decisions = decisions.slice(-1);
-        }
-        const latestDecision = decisions[0];
-        if (latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
+        if (latestDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
             setIsHidden(true);
         }
-        setModerationDecision(latestDecision.decision);
-
-        // props.action.message doesn't need to be a dependency, we only need to check the change of props.action.message[0].moderationDecisions
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.action.message[0].moderationDecisions, props.action.actionName]);
+        setModerationDecision(latestDecision);
+    }, [latestDecision, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));

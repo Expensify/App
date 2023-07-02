@@ -432,6 +432,9 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                     pendingFields: {
                         validateLogin: null,
                     },
+                    errorFields: {
+                        validateCodeSent: null,
+                    },
                 },
             },
         },
