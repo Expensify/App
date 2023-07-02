@@ -153,7 +153,7 @@ function WorkspaceNewRoomPage(props) {
                 formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                 submitButtonText={props.translate('newRoomPage.createRoom')}
                 scrollContextEnabled
-                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                style={[styles.mh5, styles.flexGrow1]}
                 validate={validate}
                 onSubmit={submit}
                 enabledWhenOffline
