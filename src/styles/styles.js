@@ -1274,7 +1274,7 @@ const styles = {
 
     createMenuPositionReportActionCompose: (windowHeight) => ({
         horizontal: 18 + variables.sideBarWidth,
-        vertical: windowHeight - 75,
+        vertical: windowHeight - 83,
     }),
 
     createMenuPositionRightSidepane: {
@@ -1550,7 +1550,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusRounded,
-        minHeight: variables.componentSizeNormal,
+        minHeight: variables.componentSizeMedium,
     },
 
     chatItemFullComposeBox: {
@@ -1636,8 +1636,8 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: variables.componentBorderRadiusRounded,
         backgroundColor: themeColors.transparent,
-        height: 32,
-        padding: 6,
+        height: 40,
+        padding: 10,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1704,9 +1704,9 @@ const styles = {
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
-        height: 32,
+        height: 40,
         marginVertical: 3,
-        paddingHorizontal: 6,
+        paddingHorizontal: 10,
         justifyContent: 'center',
     },
 
@@ -1727,6 +1727,7 @@ const styles = {
         margin: 3,
         borderRadius: variables.componentBorderRadiusRounded,
         backgroundColor: themeColors.transparent,
+        justifyContent: 'center',
     },
 
     chatItemAttachmentPlaceholder: {
@@ -2164,14 +2165,14 @@ const styles = {
     },
 
     twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
-        let paddingHorizontal = styles.ph15;
+        let paddingHorizontal = styles.ph9;
 
         if (isSmallScreenWidth) {
-            paddingHorizontal = styles.ph10;
+            paddingHorizontal = styles.ph4;
         }
 
         if (isExtraSmallScreenWidth) {
-            paddingHorizontal = styles.ph4;
+            paddingHorizontal = styles.ph2;
         }
 
         return {
@@ -2197,12 +2198,11 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
-        height: 148,
     },
 
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
-        width: 100,
+        width: 112,
         textAlign: 'center',
     },
 
@@ -2211,10 +2211,15 @@ const styles = {
         justifyContent: 'center',
         gap: 12,
         marginTop: 20,
+        flexWrap: 'wrap',
     },
 
     twoFactorAuthCodesButton: {
-        minWidth: 100,
+        minWidth: 112,
+    },
+
+    twoFactorAuthCopyCodeButton: {
+        minWidth: 110,
     },
 
     anonymousRoomFooter: {
@@ -2294,6 +2299,11 @@ const styles = {
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
+        padding: 20,
+    },
+
+    pageWrapperNotCentered: {
+        width: '100%',
         padding: 20,
     },
 
@@ -2449,13 +2459,20 @@ const styles = {
         alignItems: 'center',
     },
 
+    checkboxPressable: {
+        borderRadius: 6,
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     checkboxContainer: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: 2,
+        borderRadius: 4,
         height: 20,
         width: 20,
-        borderColor: themeColors.icon,
-        borderWidth: 1,
+        borderColor: themeColors.borderLighter,
+        borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -2542,8 +2559,8 @@ const styles = {
         marginBottom: 0,
     },
 
-    iouPreviewBoxCheckmark: {
-        marginLeft: 4,
+    defaultCheckmarkWrapper: {
+        marginLeft: 8,
         alignSelf: 'center',
     },
 
@@ -2890,6 +2907,14 @@ const styles = {
         marginTop: 12,
     },
 
+    shortTermsHeadline: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
+    },
+
     longTermsRow: {
         flexDirection: 'row',
         marginTop: 20,
@@ -2976,8 +3001,7 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flexShrink: 0,
-        flexGrow: 0,
+        flex: 0,
         flexBasis: 'auto',
     },
 
@@ -3331,11 +3355,6 @@ const styles = {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
         lineHeight: variables.lineHeightXXLarge,
-    },
-
-    moneyRequestHeaderCheckmark: {
-        marginLeft: 5,
-        alignSelf: 'center',
     },
 
     loginHeroBody: {

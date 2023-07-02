@@ -19,6 +19,7 @@ import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import withLocalize from '../withLocalize';
 
 function BaseTextInput(props) {
     const inputValue = props.value || props.defaultValue || '';
@@ -400,4 +401,4 @@ BaseTextInput.displayName = 'BaseTextInput';
 BaseTextInput.propTypes = baseTextInputPropTypes.propTypes;
 BaseTextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
-export default BaseTextInput;
+export default withLocalize(BaseTextInput);

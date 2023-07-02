@@ -58,7 +58,7 @@ function NewTaskTitlePage(props) {
     // the response
     function onSubmit(values) {
         TaskUtils.setTitleValue(values.taskTitle);
-        Navigation.navigate(ROUTES.getNewTaskRoute());
+        Navigation.navigate(ROUTES.NEW_TASK);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
