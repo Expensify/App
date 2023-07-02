@@ -45,6 +45,7 @@ export default {
         details: 'Details',
         privacy: 'Privacy',
         hidden: 'Hidden',
+        visible: 'Visible',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
@@ -296,6 +297,9 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
+    },
+    reportAction: {
+        asCopilot: 'as copilot for',
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone online in this room',
@@ -556,7 +560,6 @@ export default {
         stepSuccess: 'Finished',
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
-        copyCodes: 'Copy codes',
         copy: 'Copy',
         disable: 'Disable',
     },
@@ -591,7 +594,7 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Please enter a valid name',
+            invalidName: 'Name can only include latin letters and numbers.',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',

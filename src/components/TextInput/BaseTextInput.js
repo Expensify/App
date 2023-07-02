@@ -19,6 +19,7 @@ import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as Pressables from '../Pressable';
+import withLocalize from '../withLocalize';
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 class BaseTextInput extends Component {
@@ -34,6 +35,7 @@ class BaseTextInput extends Component {
             labelScale: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE),
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
+            textInputHeight: 0,
             prefixWidth: 0,
             selection: props.selection,
             height: variables.componentSizeLarge,
@@ -343,9 +345,10 @@ class BaseTextInput extends Component {
                                 />
                                 {Boolean(this.props.secureTextEntry) && (
                                     <Checkbox
-                                        style={styles.textInputIconContainer}
+                                        style={[styles.flex1, styles.textInputIconContainer]}
                                         onPress={this.togglePasswordVisibility}
                                         onMouseDown={(e) => e.preventDefault()}
+                                        accessibilityLabel={this.props.translate('common.visible')}
                                     >
                                         <Icon
                                             src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
@@ -399,4 +402,4 @@ class BaseTextInput extends Component {
 BaseTextInput.propTypes = baseTextInputPropTypes.propTypes;
 BaseTextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
-export default BaseTextInput;
+export default withLocalize(BaseTextInput);
