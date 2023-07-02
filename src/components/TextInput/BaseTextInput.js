@@ -350,6 +350,7 @@ function BaseTextInput(props) {
                                     style={styles.textInputIconContainer}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(e) => e.preventDefault()}
+                                    accessibilityLabel={props.translate('common.visible')}
                                 >
                                     <Icon
                                         src={passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
