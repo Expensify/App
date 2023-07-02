@@ -28,7 +28,7 @@ function BaseTextInput(props) {
     const [isFocused, setIsFocused] = useState(false);
     const [passwordHidden, setPasswordHidden] = useState(props.secureTextEntry);
     const [textInputWidth, setTextInputWidth] = useState(0);
-    const [textInputHeight, setTextInputHeight] = useState();
+    const [textInputHeight, setTextInputHeight] = useState(0);
     const [prefixWidth, setPrefixWidth] = useState(0);
     const [height, setHeight] = useState(variables.componentSizeLarge);
     const [width, setWidth] = useState();
