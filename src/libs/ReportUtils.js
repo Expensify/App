@@ -162,7 +162,7 @@ function isTaskCompleted(report) {
  * @returns {Boolean}
  */
 function isTaskAssignee(report) {
-    return lodashGet(report, 'managerEmail') === currentUserEmail;
+    return lodashGet(report, 'managerID') === currentUserAccountID;
 }
 
 /**
@@ -806,7 +806,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         return [adminIcon, workspaceIcon];
     }
     if (isIOUReport(report)) {
-        const email = isPayer ? report.managerEmail : report.ownerEmail;
+        const email = isPayer ? lodashGet(personalDetails, [report.managerID, 'login']) : report.ownerEmail;
         const accountID = isPayer ? report.managerID : report.ownerAccountID;
         return [
             {
@@ -1799,7 +1799,6 @@ function buildOptimisticTaskReport(ownerEmail, ownerAccountID, assigneeAccountID
         description,
         ownerEmail,
         ownerAccountID,
-        // managerEmail: assignee,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,

@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -18,6 +19,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import * as TaskUtils from '../../libs/actions/Task';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 const propTypes = {
     /** The ID of the associated taskReport */
@@ -35,12 +37,15 @@ const propTypes = {
         /** Title of the task */
         reportName: PropTypes.string,
 
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** AccountID of the manager in this iou report */
+        managerID: PropTypes.number,
 
         /** Email address of the creator of this iou report */
         ownerEmail: PropTypes.string,
     }),
+
+    /** Personal details of all users */
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
     ...withLocalizePropTypes,
 };
@@ -48,6 +53,7 @@ const propTypes = {
 const defaultProps = {
     taskReport: {},
     isHovered: false,
+    personalDetails: {},
 };
 
 function TaskPreview(props) {
@@ -58,7 +64,7 @@ function TaskPreview(props) {
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
-    const taskAssignee = props.taskReport.managerEmail || props.action.childManagerEmail;
+    const taskAssignee = lodashGet(props.personalDetails, [props.taskReport.managerID, 'login']) || props.action.childManagerEmail;
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
@@ -102,6 +108,9 @@ export default compose(
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(TaskPreview);

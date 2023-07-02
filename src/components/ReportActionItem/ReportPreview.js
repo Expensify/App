@@ -47,8 +47,8 @@ const propTypes = {
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** AccountID of the manager in this iou report */
+        managerID: PropTypes.number,
 
         /** Email address of the creator of this iou report */
         ownerEmail: PropTypes.string,
@@ -93,8 +93,8 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
-    const managerEmail = props.iouReport.managerEmail || '';
-    const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
+    const managerID = props.iouReport.managerID || 0;
+    const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const displayingMessage = ReportUtils.getReportPreviewMessage(props.iouReport, props.action);
     return (

@@ -22,8 +22,8 @@ const propTypes = {
         /** Title of the task */
         reportName: PropTypes.string,
 
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** AccountID of the manager in this iou report */
+        managerID: PropTypes.number,
 
         /** Email address of the creator of this iou report */
         ownerEmail: PropTypes.string,
