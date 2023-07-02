@@ -1,11 +1,10 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import * as Report from '../../libs/actions/Report';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
+import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -55,8 +54,6 @@ const propTypes = {
 
     /** A collection of objects for all policies which key policy member objects by accountIDs */
     allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
-
-    ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
@@ -66,7 +63,9 @@ const defaultProps = {
 };
 
 function WorkspaceNewRoomPage(props) {
-    const [visibilityDescription, setVisibilityDescription] = useState(props.translate('newRoomPage.restrictedDescription'));
+    const {translate} = useLocalize();
+    const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
+    const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -75,21 +74,6 @@ function WorkspaceNewRoomPage(props) {
         const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
         Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers);
     };
-
-    /**
-     * @param {String} visibility - form input value passed by the Form component
-     */
-    const updateVisibilityDescription = useCallback(
-        (visibility) => {
-            const newVisibilityDescription = props.translate(`newRoomPage.${visibility}Description`);
-            if (newVisibilityDescription === visibilityDescription) {
-                return;
-            }
-            setVisibilityDescription({newVisibilityDescription});
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [visibilityDescription],
-    );
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -122,36 +106,44 @@ function WorkspaceNewRoomPage(props) {
         [props.reports],
     );
 
+    // Workspaces are policies with type === 'free'
+    const workspaceOptions = useMemo(
+        () =>
+            _.map(
+                _.filter(props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
+                (policy) => ({label: policy.name, key: policy.id, value: policy.id}),
+            ),
+        [props.policies],
+    );
+
+    const visibilityOptions = useMemo(
+        () =>
+            _.map(
+                _.filter(_.values(CONST.REPORT.VISIBILITY), (visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE),
+                (visibilityOption) => ({
+                    label: translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
+                    value: visibilityOption,
+                    description: translate(`newRoomPage.${visibilityOption}Description`),
+                }),
+            ),
+        [translate],
+    );
+
     if (!Permissions.canUsePolicyRooms(props.betas)) {
         Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
         Navigation.dismissModal();
         return null;
     }
 
-    // Workspaces are policies with type === 'free'
-    const workspaceOptions = _.map(
-        _.filter(props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
-        (policy) => ({label: policy.name, key: policy.id, value: policy.id}),
-    );
-
-    const visibilityOptions = _.map(
-        _.filter(_.values(CONST.REPORT.VISIBILITY), (visibilityOption) => visibilityOption !== CONST.REPORT.VISIBILITY.PUBLIC_ANNOUNCE),
-        (visibilityOption) => ({
-            label: props.translate(`newRoomPage.visibilityOptions.${visibilityOption}`),
-            value: visibilityOption,
-            description: props.translate(`newRoomPage.${visibilityOption}Description`),
-        }),
-    );
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
         >
-            <HeaderWithBackButton title={props.translate('newRoomPage.newRoom')} />
+            <HeaderWithBackButton title={translate('newRoomPage.newRoom')} />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
-                submitButtonText={props.translate('newRoomPage.createRoom')}
+                submitButtonText={translate('newRoomPage.createRoom')}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
                 validate={validate}
@@ -168,17 +160,17 @@ function WorkspaceNewRoomPage(props) {
                 <View style={styles.mb5}>
                     <Picker
                         inputID="policyID"
-                        label={props.translate('workspace.common.workspace')}
-                        placeholder={{value: '', label: props.translate('newRoomPage.selectAWorkspace')}}
+                        label={translate('workspace.common.workspace')}
+                        placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
                         items={workspaceOptions}
                     />
                 </View>
                 <View style={styles.mb2}>
                     <Picker
                         inputID="visibility"
-                        label={props.translate('newRoomPage.visibility')}
+                        label={translate('newRoomPage.visibility')}
                         items={visibilityOptions}
-                        onValueChange={updateVisibilityDescription}
+                        onValueChange={setVisibility}
                         defaultValue={CONST.REPORT.VISIBILITY.RESTRICTED}
                     />
                 </View>
@@ -192,20 +184,17 @@ WorkspaceNewRoomPage.propTypes = propTypes;
 WorkspaceNewRoomPage.defaultProps = defaultProps;
 WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
-export default compose(
-    withOnyx({
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        allPolicyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
-        },
-    }),
-    withLocalize,
-)(WorkspaceNewRoomPage);
+export default withOnyx({
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    reports: {
+        key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    allPolicyMembers: {
+        key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
+    },
+})(WorkspaceNewRoomPage);
