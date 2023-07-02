@@ -352,7 +352,7 @@ function ReportActionCompose({translate, ...props}) {
      */
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
-            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, props.isSmallScreenWidth, props.preferredSkinTone);
+            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, props.preferredSkinTone);
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
@@ -388,7 +388,7 @@ function ReportActionCompose({translate, ...props}) {
                 debouncedBroadcastUserIsTyping(props.reportID);
             }
         },
-        [props.isSmallScreenWidth, props.preferredSkinTone, props.reportID, selection.end, value],
+        [props.preferredSkinTone, props.reportID, selection.end, value],
     );
 
     /**
@@ -419,6 +419,10 @@ function ReportActionCompose({translate, ...props}) {
                 routes: lodashGet(props.navigation.getState(), 'routes', []),
                 showPopoverMenu,
             });
+        }
+
+        if (props.comment.length !== 0) {
+            Report.setReportWithDraft(props.reportID, true);
         }
 
         return () => {
@@ -744,10 +748,10 @@ function ReportActionCompose({translate, ...props}) {
      */
     const addEmojiToTextBox = useCallback(
         (emoji) => {
-            updateComment(ComposerUtils.insertText(comment.current, selection, emoji));
+            updateComment(ComposerUtils.insertText(comment.current, selection, `${emoji} `));
             setSelection({
-                start: selection.start + emoji.length,
-                end: selection.start + emoji.length,
+                start: selection.start + emoji.length + CONST.SPACE_LENGTH,
+                end: selection.start + emoji.length + CONST.SPACE_LENGTH,
             });
         },
         [selection, updateComment],

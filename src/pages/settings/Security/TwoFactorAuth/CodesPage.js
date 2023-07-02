@@ -25,7 +25,6 @@ import Clipboard from '../../../../libs/Clipboard';
 import themeColors from '../../../../styles/themes/default';
 import localFileDownload from '../../../../libs/localFileDownload';
 import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
-import * as StyleUtils from '../../../../styles/StyleUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -96,9 +95,9 @@ function CodesPage(props) {
                                                 </Text>
                                             ))}
                                     </View>
-                                    <View style={[styles.twoFactorAuthCodesButtonsContainer, StyleUtils.getWrappingStyle(props.isExtraSmallScreenWidth)]}>
+                                    <View style={[styles.twoFactorAuthCodesButtonsContainer]}>
                                         <PressableWithDelayToggle
-                                            text={props.translate('twoFactorAuth.copyCodes')}
+                                            text={props.translate('twoFactorAuth.copy')}
                                             textChecked={props.translate('common.copied')}
                                             icon={Expensicons.Copy}
                                             inline={false}

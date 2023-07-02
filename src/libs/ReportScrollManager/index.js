@@ -1,34 +1,30 @@
-import React from 'react';
-
-// This ref is created using React.createRef here because this function is used by a component that doesn't have access
-// to the original ref.
-const flatListRef = React.createRef();
-
 /**
  * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
  * we are editing a comment.
  *
+ * @param {Object} ref
  * @param {Object} index
  * @param {Boolean} isEditing
  */
-function scrollToIndex(index, isEditing) {
-    if (isEditing) {
+function scrollToIndex(ref, index, isEditing) {
+    if (!ref.current || isEditing) {
         return;
     }
 
-    flatListRef.current.scrollToIndex(index);
+    ref.current.scrollToIndex(index);
 }
 
 /**
  * Scroll to the bottom of the flatlist.
  *
+ * @param {Object} ref
  */
-function scrollToBottom() {
-    if (!flatListRef.current) {
+function scrollToBottom(ref) {
+    if (!ref.current) {
         return;
     }
 
-    flatListRef.current.scrollToOffset({animated: false, offset: 0});
+    ref.current.scrollToOffset({animated: false, offset: 0});
 }
 
-export {flatListRef, scrollToIndex, scrollToBottom};
+export {scrollToIndex, scrollToBottom};
