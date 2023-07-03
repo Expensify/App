@@ -34,12 +34,15 @@ const baseQuickEmojiReactionsPropTypes = {
      * ReportAction for EmojiPicker.
      */
     reportAction: PropTypes.object,
+
+    preferredLocale: PropTypes.string,
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
     reportAction: {},
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 const propTypes = {
