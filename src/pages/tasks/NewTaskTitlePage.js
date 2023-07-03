@@ -59,7 +59,7 @@ function NewTaskTitlePage(props) {
     // the response
     function onSubmit(values) {
         TaskUtils.setTitleValue(values.taskTitle);
-        Navigation.navigate(ROUTES.getNewTaskRoute());
+        Navigation.navigate(ROUTES.NEW_TASK);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -86,7 +86,7 @@ function NewTaskTitlePage(props) {
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
-                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                style={[styles.mh5, styles.flexGrow1]}
                 validate={(values) => validate(values)}
                 onSubmit={(values) => onSubmit(values)}
                 enabledWhenOffline
