@@ -551,6 +551,10 @@ const styles = {
         marginVertical: 1,
     },
 
+    noBorderRadius: {
+        borderRadius: 0,
+    },
+
     noRightBorderRadius: {
         borderTopRightRadius: 0,
         borderBottomRightRadius: 0,
@@ -740,10 +744,6 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadius,
         borderColor: themeColors.border,
-    },
-
-    br0: {
-        borderRadius: 0,
     },
 
     borderColorFocus: {
