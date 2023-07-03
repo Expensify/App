@@ -384,9 +384,17 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         },
     };
 
-    let reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
-    const isNewReportPreviewAction = Boolean(!reportPreviewAction);
-    reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, reportPreviewAction);
+    let isNewReportPreviewAction = false;
+    let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    if (reportPreviewAction) {
+        reportPreviewAction.created = DateUtils.getDBTime();
+        const message = ReportUtils.getReportPreviewMessage(iouReport, reportPreviewAction);
+        reportPreviewAction.message.html = message;
+        reportPreviewAction.message.text = message;
+    } else {
+        isNewReportPreviewAction = true;
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
+    }
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(

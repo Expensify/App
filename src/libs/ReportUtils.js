@@ -1461,8 +1461,8 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
-function buildOptimisticReportPreview(chatReport, iouReport, existingReportPreviewAction) {
-    const reportPreviewAction = existingReportPreviewAction || {
+function buildOptimisticReportPreview(chatReport, iouReport) {
+    const reportPreviewAction = {
         reportActionID: NumberUtils.rand64(),
         reportID: chatReport.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
@@ -1470,12 +1470,10 @@ function buildOptimisticReportPreview(chatReport, iouReport, existingReportPrevi
         originalMessage: {
             linkedReportID: iouReport.reportID,
         },
+        created: DateUtils.getDBTime(),
+        accountID: iouReport.managerID,
+        actorAccountID: iouReport.managerID,
     };
-
-    reportPreviewAction.created = DateUtils.getDBTime();
-    reportPreviewAction.accountID = iouReport.managerID;
-    reportPreviewAction.actorEmail = iouReport.managerEmail;
-    reportPreviewAction.actorAccountID = iouReport.managerID;
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     reportPreviewAction.message = [
         {
