@@ -1461,7 +1461,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
-function buildOptimisticReportPreview(chatReport, iouReport, existingReportPreviewAction, justPaidOutstandingIOU) {
+function buildOptimisticReportPreview(chatReport, iouReport, existingReportPreviewAction) {
     const reportPreviewAction = existingReportPreviewAction || {
         reportActionID: NumberUtils.rand64(),
         reportID: chatReport.reportID,

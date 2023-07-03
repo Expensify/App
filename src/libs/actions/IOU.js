@@ -1144,7 +1144,6 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         chatReport,
         iouReport,
         ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID),
-        true,
     );
 
     const optimisticData = [
