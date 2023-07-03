@@ -27,11 +27,15 @@ const assertTestJobExecuted = (workflowResult, didExecute = true) => {
 const assertIsExpensifyEmployeeJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         utils.createStepAssertion('Get merged pull request', true, null, 'IS_EXPENSIFY_EMPLOYEE', 'Getting merged pull request', [{key: 'github_token', value: '***'}]),
-        utils.createStepAssertion('Check whether the actor is member of Expensify/expensify team', true, null, 'IS_EXPENSIFY_EMPLOYEE', 'Checking actors Expensify membership', [
-            {key: 'GITHUB_TOKEN', value: '***'},
-            {key: 'username', value: 'Dummy Author'},
-            {key: 'team', value: 'Expensify/expensify'},
-        ]),
+        utils.createStepAssertion(
+            'Check whether the PR author is member of Expensify/expensify team',
+            true,
+            null,
+            'IS_EXPENSIFY_EMPLOYEE',
+            'Checking actors Expensify membership',
+            [],
+            [{key: 'GITHUB_TOKEN', value: '***'}],
+        ),
     ];
 
     steps.forEach((expectedStep) => {
@@ -109,8 +113,6 @@ const assertChooseDeployActionsJobExecuted = (workflowResult, didExecute = true)
     const steps = [
         utils.createStepAssertion('Get merged pull request', true, null, 'CHOOSE_DEPLOY_ACTIONS', 'Getting merged pull request', [{key: 'github_token', value: '***'}]),
         utils.createStepAssertion('Check if StagingDeployCash is locked', true, null, 'CHOOSE_DEPLOY_ACTIONS', 'Checking StagingDeployCash', [{key: 'GITHUB_TOKEN', value: '***'}]),
-        utils.createStepAssertion('Check if merged pull request was an automated PR', true, ''),
-        utils.createStepAssertion('Check if merged pull request has `CP Staging` label', true, ''),
         utils.createStepAssertion('Check if merged pull request should trigger a deploy', true, ''),
     ];
 
@@ -154,68 +156,26 @@ const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) =>
     });
 };
 
-const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true, shouldCp = false) => {
+const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         utils.createStepAssertion('Run turnstyle', true, null, 'UPDATE_STAGING', 'Running turnstyle', [
             {key: 'poll-interval-seconds', value: '10'},
             {key: 'GITHUB_TOKEN', value: '***'},
         ]),
-    ];
-    if (shouldCp) {
-        steps.push(
-            utils.createStepAssertion('Cherry-pick PR to staging', true, null, 'UPDATE_STAGING', 'Cherry picking', [
-                {key: 'GITHUB_TOKEN', value: '***'},
-                {key: 'WORKFLOW', value: 'cherryPick.yml'},
-                {key: 'INPUTS', value: '{ PULL_REQUEST_NUMBER: 123, NEW_VERSION: 1.2.3 }'},
-            ]),
-        );
-    } else {
-        steps.push(
-            utils.createStepAssertion('Update staging branch from main', true, null, 'UPDATE_STAGING', 'Updating staging branch', [
-                {key: 'TARGET_BRANCH', value: 'staging'},
-                {key: 'OS_BOTIFY_TOKEN', value: '***'},
-                {key: 'GPG_PASSPHRASE', value: '***'},
-            ]),
-        );
-    }
-    steps.push(
-        utils.createStepAssertion('Checkout staging', true, null, 'UPDATE_STAGING', 'Checking out staging', [
-            {key: 'ref', value: 'staging'},
+        utils.createStepAssertion('Checkout main', true, null, 'UPDATE_STAGING', 'Checkout main', [
+            {key: 'ref', value: 'main'},
             {key: 'fetch-depth', value: '0'},
+            {key: 'token', value: '***'},
         ]),
+        utils.createStepAssertion('Setup Git for OSBotify', true, null, 'UPDATE_STAGING', 'Setup Git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}]),
+        utils.createStepAssertion('Update staging branch from main', true, null, 'UPDATE_STAGING', 'Update staging branch from main'),
         utils.createStepAssertion('Tag staging', true, null, 'UPDATE_STAGING', 'Tagging staging'),
         utils.createStepAssertion('Update StagingDeployCash', true, null, 'UPDATE_STAGING', 'Updating StagingDeployCash', [
             {key: 'GITHUB_TOKEN', value: '***'},
             {key: 'NPM_VERSION', value: '1.2.3'},
         ]),
         utils.createStepAssertion('Find open StagingDeployCash', true, null, 'UPDATE_STAGING', 'Finding open StagingDeployCash', null, [{key: 'GITHUB_TOKEN', value: '***'}]),
-    );
-    if (shouldCp) {
-        steps.push(
-            utils.createStepAssertion(
-                'Comment in StagingDeployCash to alert Applause that a new pull request has been cherry-picked',
-                true,
-                null,
-                'UPDATE_STAGING',
-                'Commenting in StagingDeployCash',
-                null,
-                [{key: 'GITHUB_TOKEN', value: '***'}],
-            ),
-            utils.createStepAssertion('Wait for staging deploys to finish', true, null, 'UPDATE_STAGING', 'Waiting for staging deploy to finish', [
-                {key: 'GITHUB_TOKEN', value: '***'},
-                {key: 'TAG', value: '1.2.3'},
-            ]),
-            utils.createStepAssertion(
-                'Comment in StagingDeployCash to alert Applause that cherry-picked pull request has been deployed.',
-                true,
-                null,
-                'UPDATE_STAGING',
-                'Commenting in StagingDeployCash',
-                null,
-                [{key: 'GITHUB_TOKEN', value: '***'}],
-            ),
-        );
-    }
+    ];
 
     steps.forEach((expectedStep) => {
         if (didExecute) {

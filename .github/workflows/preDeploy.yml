@@ -7,16 +7,10 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run lint workflow
-        uses: Expensify/App/.github/workflows/lint.yml@main
+    uses: Expensify/App/.github/workflows/lint.yml@main
 
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run test workflow
-        uses: Expensify/App/.github/workflows/test.yml@main
+    uses: Expensify/App/.github/workflows/test.yml@main
 
   confirmPassingBuild:
     runs-on: ubuntu-latest
@@ -95,7 +89,8 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+      - name: Setup Git for OSBotify
+        uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 

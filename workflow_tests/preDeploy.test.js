@@ -64,16 +64,22 @@ describe('test workflow preDeploy', () => {
 
         // set up mocks
         const testMockSteps = {
-            lint: mocks.LINT_JOB_MOCK_STEPS,
-            test: mocks.TEST_JOB_MOCK_STEPS,
             confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-            chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+            chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
             skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
             updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
             isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
             newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
         };
         const testMockJobs = {
+            lint: {
+                steps: mocks.LINT_JOB_MOCK_STEPS,
+                runsOn: 'ubuntu-latest',
+            },
+            test: {
+                steps: mocks.TEST_JOB_MOCK_STEPS,
+                runsOn: 'ubuntu-latest',
+            },
             createNewVersion: {
                 steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                 outputs: {
@@ -84,7 +90,7 @@ describe('test workflow preDeploy', () => {
             },
             e2ePerformanceTests: {
                 steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                runsOn: 'ubuntu-20.04-64core',
+                runsOn: 'ubuntu-latest',
             },
         };
 
@@ -113,16 +119,22 @@ describe('test workflow preDeploy', () => {
         const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
         let act = new eAct.ExtendedAct(repoPath, workflowPath);
         const testMockSteps = {
-            lint: mocks.LINT_JOB_MOCK_STEPS,
-            test: mocks.TEST_JOB_MOCK_STEPS,
             confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-            chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+            chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
             skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
             updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
             isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
             newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
         };
         const testMockJobs = {
+            lint: {
+                steps: mocks.LINT_JOB_MOCK_STEPS,
+                runsOn: 'ubuntu-latest',
+            },
+            test: {
+                steps: mocks.TEST_JOB_MOCK_STEPS,
+                runsOn: 'ubuntu-latest',
+            },
             createNewVersion: {
                 steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                 outputs: {
@@ -133,7 +145,7 @@ describe('test workflow preDeploy', () => {
             },
             e2ePerformanceTests: {
                 steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                runsOn: 'ubuntu-20.04-64core',
+                runsOn: 'ubuntu-latest',
             },
         };
 
@@ -209,16 +221,22 @@ describe('test workflow preDeploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                lint: [utils.createMockStep('Run lint workflow', 'Running lint workflow - Lint workflow failed', 'LINT', null, null, null, null, false)],
-                test: mocks.TEST_JOB_MOCK_STEPS,
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             const testMockJobs = {
+                lint: {
+                    steps: [utils.createMockStep('Run lint workflow', 'Running lint workflow - Lint workflow failed', 'LINT', null, null, null, null, false)],
+                    runsOn: 'ubuntu-latest',
+                },
+                test: {
+                    steps: mocks.TEST_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
                 createNewVersion: {
                     steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                     outputs: {
@@ -229,7 +247,7 @@ describe('test workflow preDeploy', () => {
                 },
                 e2ePerformanceTests: {
                     steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-20.04-64core',
+                    runsOn: 'ubuntu-latest',
                 },
             };
             const result = await act.runEvent('push', {
@@ -272,16 +290,22 @@ describe('test workflow preDeploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                lint: mocks.LINT_JOB_MOCK_STEPS,
-                test: [utils.createMockStep('Run test workflow', 'Running test workflow - Test workflow failed', 'TEST', null, null, null, null, false)],
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             const testMockJobs = {
+                lint: {
+                    steps: mocks.LINT_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
+                test: {
+                    steps: [utils.createMockStep('Run test workflow', 'Running test workflow - Test workflow failed', 'TEST', null, null, null, null, false)],
+                    runsOn: 'ubuntu-latest',
+                },
                 createNewVersion: {
                     steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                     outputs: {
@@ -292,7 +316,7 @@ describe('test workflow preDeploy', () => {
                 },
                 e2ePerformanceTests: {
                     steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-20.04-64core',
+                    runsOn: 'ubuntu-latest',
                 },
             };
             const result = await act.runEvent('push', {
@@ -335,16 +359,22 @@ describe('test workflow preDeploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                lint: mocks.LINT_JOB_MOCK_STEPS,
-                test: mocks.TEST_JOB_MOCK_STEPS,
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             const testMockJobs = {
+                lint: {
+                    steps: mocks.LINT_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
+                test: {
+                    steps: mocks.TEST_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
                 createNewVersion: {
                     steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                     outputs: {
@@ -355,7 +385,7 @@ describe('test workflow preDeploy', () => {
                 },
                 e2ePerformanceTests: {
                     steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-20.04-64core',
+                    runsOn: 'ubuntu-latest',
                 },
             };
             const result = await act.runEvent('push', {
@@ -392,16 +422,22 @@ describe('test workflow preDeploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                lint: mocks.LINT_JOB_MOCK_STEPS,
-                test: mocks.TEST_JOB_MOCK_STEPS,
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE,
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
             };
             const testMockJobs = {
+                lint: {
+                    steps: mocks.LINT_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
+                test: {
+                    steps: mocks.TEST_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
                 createNewVersion: {
                     steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                     outputs: {
@@ -412,7 +448,7 @@ describe('test workflow preDeploy', () => {
                 },
                 e2ePerformanceTests: {
                     steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-20.04-64core',
+                    runsOn: 'ubuntu-latest',
                 },
             };
             const result = await act.runEvent('push', {
@@ -445,16 +481,22 @@ describe('test workflow preDeploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                lint: mocks.LINT_JOB_MOCK_STEPS,
-                test: mocks.TEST_JOB_MOCK_STEPS,
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             const testMockJobs = {
+                lint: {
+                    steps: mocks.LINT_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
+                test: {
+                    steps: mocks.TEST_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
                 createNewVersion: {
                     steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                     outputs: {
@@ -465,7 +507,7 @@ describe('test workflow preDeploy', () => {
                 },
                 e2ePerformanceTests: {
                     steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-20.04-64core',
+                    runsOn: 'ubuntu-latest',
                 },
             };
             const result = await act.runEvent('push', {
@@ -498,16 +540,22 @@ describe('test workflow preDeploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                lint: mocks.LINT_JOB_MOCK_STEPS,
-                test: mocks.TEST_JOB_MOCK_STEPS,
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE,
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
             };
             const testMockJobs = {
+                lint: {
+                    steps: mocks.LINT_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
+                test: {
+                    steps: mocks.TEST_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
                 createNewVersion: {
                     steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                     outputs: {
@@ -518,7 +566,7 @@ describe('test workflow preDeploy', () => {
                 },
                 e2ePerformanceTests: {
                     steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-20.04-64core',
+                    runsOn: 'ubuntu-latest',
                 },
             };
             const result = await act.runEvent('push', {
@@ -551,16 +599,22 @@ describe('test workflow preDeploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                lint: mocks.LINT_JOB_MOCK_STEPS,
-                test: mocks.TEST_JOB_MOCK_STEPS,
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__FALSE,
                 newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__ONE_PR,
             };
             const testMockJobs = {
+                lint: {
+                    steps: mocks.LINT_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
+                test: {
+                    steps: mocks.TEST_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
                 createNewVersion: {
                     steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                     outputs: {
@@ -571,7 +625,7 @@ describe('test workflow preDeploy', () => {
                 },
                 e2ePerformanceTests: {
                     steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-20.04-64core',
+                    runsOn: 'ubuntu-latest',
                 },
             };
             const result = await act.runEvent('push', {
@@ -590,442 +644,234 @@ describe('test workflow preDeploy', () => {
     });
 
     describe('choose deploy actions', () => {
-        describe('no CP label', () => {
-            describe('staging locked', () => {
-                it('not automated PR - deploy skipped and comment left', async () => {
-                    const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-                    const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                    let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
-                    const testMockSteps = {
-                        lint: mocks.LINT_JOB_MOCK_STEPS,
-                        test: mocks.TEST_JOB_MOCK_STEPS,
-                        confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                        chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED,
-                        skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                        updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                        isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                        newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
-                    };
-                    const testMockJobs = {
-                        createNewVersion: {
-                            steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                            outputs: {
-                                // eslint-disable-next-line no-template-curly-in-string
-                                NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                            },
-                            runsOn: 'ubuntu-latest',
+        describe('staging locked', () => {
+            it('not automated PR - deploy skipped and comment left', async () => {
+                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+                const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
+                const testMockSteps = {
+                    confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
+                    chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED,
+                    skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
+                    updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
+                    isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
+                    newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
+                };
+                const testMockJobs = {
+                    lint: {
+                        steps: mocks.LINT_JOB_MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                    test: {
+                        steps: mocks.TEST_JOB_MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                    createNewVersion: {
+                        steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
+                        outputs: {
+                            // eslint-disable-next-line no-template-curly-in-string
+                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                         },
-                        e2ePerformanceTests: {
-                            steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                            runsOn: 'ubuntu-20.04-64core',
-                        },
-                    };
-                    const result = await act.runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Tester',
-                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        mockJobs: testMockJobs,
-                    });
-                    assertions.assertLintJobExecuted(result);
-                    assertions.assertTestJobExecuted(result);
-                    assertions.assertIsExpensifyEmployeeJobExecuted(result);
-                    assertions.assertChooseDeployActionsJobExecuted(result);
-                    assertions.assertSkipDeployJobExecuted(result);
-                    assertions.assertCreateNewVersionJobExecuted(result, false);
-                    assertions.assertUpdateStagingJobExecuted(result, false, false);
-                    assertions.assertUpdateStagingJobFailed(result, false);
+                        runsOn: 'ubuntu-latest',
+                    },
+                    e2ePerformanceTests: {
+                        steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                };
+                const result = await act.runEvent('push', {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'Dummy Tester',
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
-
-                it('automated PR - deploy skipped, but no comment left', async () => {
-                    const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-                    const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                    let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
-                    const testMockSteps = {
-                        lint: mocks.LINT_JOB_MOCK_STEPS,
-                        test: mocks.TEST_JOB_MOCK_STEPS,
-                        confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                        chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED,
-                        skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                        updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                        isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                        newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
-                    };
-                    const testMockJobs = {
-                        createNewVersion: {
-                            steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                            outputs: {
-                                // eslint-disable-next-line no-template-curly-in-string
-                                NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                            },
-                            runsOn: 'ubuntu-latest',
-                        },
-                        e2ePerformanceTests: {
-                            steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                            runsOn: 'ubuntu-20.04-64core',
-                        },
-                    };
-                    const result = await act.runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'OSBotify',
-                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        mockJobs: testMockJobs,
-                    });
-                    assertions.assertLintJobExecuted(result);
-                    assertions.assertTestJobExecuted(result);
-                    assertions.assertIsExpensifyEmployeeJobExecuted(result);
-                    assertions.assertChooseDeployActionsJobExecuted(result);
-                    assertions.assertSkipDeployJobExecuted(result, false);
-                    assertions.assertCreateNewVersionJobExecuted(result, false);
-                    assertions.assertUpdateStagingJobExecuted(result, false, false);
-                    assertions.assertUpdateStagingJobFailed(result, false);
-                });
+                assertions.assertLintJobExecuted(result);
+                assertions.assertTestJobExecuted(result);
+                assertions.assertIsExpensifyEmployeeJobExecuted(result);
+                assertions.assertChooseDeployActionsJobExecuted(result);
+                assertions.assertSkipDeployJobExecuted(result);
+                assertions.assertCreateNewVersionJobExecuted(result, false);
+                assertions.assertUpdateStagingJobExecuted(result, false);
+                assertions.assertUpdateStagingJobFailed(result, false);
             });
 
-            describe('staging not locked', () => {
-                it('not automated PR - proceed with deploy', async () => {
-                    const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-                    const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                    let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        'push',
-                        {ref: 'refs/heads/main'},
-                        {
-                            OS_BOTIFY_TOKEN: 'dummy_token',
-                            SLACK_WEBHOOK: 'dummy_slack_webhook',
-                            LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+            it('automated PR - deploy skipped, but no comment left', async () => {
+                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+                const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                act = utils.setUpActParams(act, 'push', {ref: 'refs/heads/main'}, {OS_BOTIFY_TOKEN: 'dummy_token', SLACK_WEBHOOK: 'dummy_slack_webhook'}, 'dummy_github_token');
+                const testMockSteps = {
+                    confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
+                    chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_LOCKED,
+                    skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
+                    updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
+                    isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
+                    newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
+                };
+                const testMockJobs = {
+                    lint: {
+                        steps: mocks.LINT_JOB_MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                    test: {
+                        steps: mocks.TEST_JOB_MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                    createNewVersion: {
+                        steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
+                        outputs: {
+                            // eslint-disable-next-line no-template-curly-in-string
+                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                         },
-                        'dummy_github_token',
-                    );
-                    const testMockSteps = {
-                        lint: mocks.LINT_JOB_MOCK_STEPS,
-                        test: mocks.TEST_JOB_MOCK_STEPS,
-                        confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                        chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
-                        skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                        updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                        isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                        newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
-                    };
-                    const testMockJobs = {
-                        createNewVersion: {
-                            steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                            outputs: {
-                                // eslint-disable-next-line no-template-curly-in-string
-                                NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                            },
-                            runsOn: 'ubuntu-latest',
-                        },
-                        e2ePerformanceTests: {
-                            steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                            runsOn: 'ubuntu-20.04-64core',
-                        },
-                    };
-                    const result = await act.runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Tester',
-                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        mockJobs: testMockJobs,
-                    });
-                    assertions.assertLintJobExecuted(result);
-                    assertions.assertTestJobExecuted(result);
-                    assertions.assertIsExpensifyEmployeeJobExecuted(result);
-                    assertions.assertChooseDeployActionsJobExecuted(result);
-                    assertions.assertSkipDeployJobExecuted(result, false);
-                    assertions.assertCreateNewVersionJobExecuted(result);
-                    assertions.assertUpdateStagingJobExecuted(result, true, false);
-                    assertions.assertUpdateStagingJobFailed(result, false);
+                        runsOn: 'ubuntu-latest',
+                    },
+                    e2ePerformanceTests: {
+                        steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                };
+                const result = await act.runEvent('push', {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'OSBotify',
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
-
-                it('automated PR - deploy skipped, but no comment left', async () => {
-                    const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-                    const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                    let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        'push',
-                        {ref: 'refs/heads/main'},
-                        {
-                            OS_BOTIFY_TOKEN: 'dummy_token',
-                            SLACK_WEBHOOK: 'dummy_slack_webhook',
-                        },
-                        'dummy_github_token',
-                    );
-                    const testMockSteps = {
-                        lint: mocks.LINT_JOB_MOCK_STEPS,
-                        test: mocks.TEST_JOB_MOCK_STEPS,
-                        confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                        chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
-                        skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                        updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                        isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                        newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
-                    };
-                    const testMockJobs = {
-                        createNewVersion: {
-                            steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                            outputs: {
-                                // eslint-disable-next-line no-template-curly-in-string
-                                NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                            },
-                            runsOn: 'ubuntu-latest',
-                        },
-                        e2ePerformanceTests: {
-                            steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                            runsOn: 'ubuntu-20.04-64core',
-                        },
-                    };
-                    const result = await act.runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'OSBotify',
-                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        mockJobs: testMockJobs,
-                    });
-                    assertions.assertLintJobExecuted(result);
-                    assertions.assertTestJobExecuted(result);
-                    assertions.assertIsExpensifyEmployeeJobExecuted(result);
-                    assertions.assertChooseDeployActionsJobExecuted(result);
-                    assertions.assertSkipDeployJobExecuted(result, false);
-                    assertions.assertCreateNewVersionJobExecuted(result, false);
-                    assertions.assertUpdateStagingJobExecuted(result, false, false);
-                    assertions.assertUpdateStagingJobFailed(result, false);
-                });
+                assertions.assertLintJobExecuted(result);
+                assertions.assertTestJobExecuted(result);
+                assertions.assertIsExpensifyEmployeeJobExecuted(result);
+                assertions.assertChooseDeployActionsJobExecuted(result);
+                assertions.assertSkipDeployJobExecuted(result, false);
+                assertions.assertCreateNewVersionJobExecuted(result, false);
+                assertions.assertUpdateStagingJobExecuted(result, false);
+                assertions.assertUpdateStagingJobFailed(result, false);
             });
         });
 
-        describe('CP label', () => {
-            describe('staging locked', () => {
-                it('not automated PR - proceed with deploy', async () => {
-                    const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-                    const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                    let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        'push',
-                        {ref: 'refs/heads/main'},
-                        {
-                            OS_BOTIFY_TOKEN: 'dummy_token',
-                            SLACK_WEBHOOK: 'dummy_slack_webhook',
-                            LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+        describe('staging not locked', () => {
+            it('not automated PR - proceed with deploy', async () => {
+                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+                const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                act = utils.setUpActParams(
+                    act,
+                    'push',
+                    {ref: 'refs/heads/main'},
+                    {
+                        OS_BOTIFY_TOKEN: 'dummy_token',
+                        SLACK_WEBHOOK: 'dummy_slack_webhook',
+                        LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                    },
+                    'dummy_github_token',
+                );
+                const testMockSteps = {
+                    confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
+                    chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
+                    skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
+                    updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
+                    isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
+                    newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
+                };
+                const testMockJobs = {
+                    lint: {
+                        steps: mocks.LINT_JOB_MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                    test: {
+                        steps: mocks.TEST_JOB_MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                    createNewVersion: {
+                        steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
+                        outputs: {
+                            // eslint-disable-next-line no-template-curly-in-string
+                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                         },
-                        'dummy_github_token',
-                    );
-                    const testMockSteps = {
-                        lint: mocks.LINT_JOB_MOCK_STEPS,
-                        test: mocks.TEST_JOB_MOCK_STEPS,
-                        confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                        chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_LOCKED,
-                        skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                        updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                        isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                        newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
-                    };
-                    const testMockJobs = {
-                        createNewVersion: {
-                            steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                            outputs: {
-                                // eslint-disable-next-line no-template-curly-in-string
-                                NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                            },
-                            runsOn: 'ubuntu-latest',
-                        },
-                        e2ePerformanceTests: {
-                            steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                            runsOn: 'ubuntu-20.04-64core',
-                        },
-                    };
-                    const result = await act.runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Tester',
-                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        mockJobs: testMockJobs,
-                    });
-                    assertions.assertLintJobExecuted(result);
-                    assertions.assertTestJobExecuted(result);
-                    assertions.assertIsExpensifyEmployeeJobExecuted(result);
-                    assertions.assertChooseDeployActionsJobExecuted(result);
-                    assertions.assertSkipDeployJobExecuted(result, false);
-                    assertions.assertCreateNewVersionJobExecuted(result);
-                    assertions.assertUpdateStagingJobExecuted(result, true, true);
-                    assertions.assertUpdateStagingJobFailed(result, false);
+                        runsOn: 'ubuntu-latest',
+                    },
+                    e2ePerformanceTests: {
+                        steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                };
+                const result = await act.runEvent('push', {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'Dummy Tester',
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
-
-                it('automated PR - proceed with deploy', async () => {
-                    const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-                    const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                    let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        'push',
-                        {ref: 'refs/heads/main'},
-                        {
-                            OS_BOTIFY_TOKEN: 'dummy_token',
-                            SLACK_WEBHOOK: 'dummy_slack_webhook',
-                            LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                        },
-                        'dummy_github_token',
-                    );
-                    const testMockSteps = {
-                        lint: mocks.LINT_JOB_MOCK_STEPS,
-                        test: mocks.TEST_JOB_MOCK_STEPS,
-                        confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                        chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_LOCKED,
-                        skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                        updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                        isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                        newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
-                    };
-                    const testMockJobs = {
-                        createNewVersion: {
-                            steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                            outputs: {
-                                // eslint-disable-next-line no-template-curly-in-string
-                                NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                            },
-                            runsOn: 'ubuntu-latest',
-                        },
-                        e2ePerformanceTests: {
-                            steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                            runsOn: 'ubuntu-20.04-64core',
-                        },
-                    };
-                    const result = await act.runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'OSBotify',
-                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        mockJobs: testMockJobs,
-                    });
-                    assertions.assertLintJobExecuted(result);
-                    assertions.assertTestJobExecuted(result);
-                    assertions.assertIsExpensifyEmployeeJobExecuted(result);
-                    assertions.assertChooseDeployActionsJobExecuted(result);
-                    assertions.assertSkipDeployJobExecuted(result, false);
-                    assertions.assertCreateNewVersionJobExecuted(result);
-                    assertions.assertUpdateStagingJobExecuted(result, true, true);
-                    assertions.assertUpdateStagingJobFailed(result, false);
-                });
+                assertions.assertLintJobExecuted(result);
+                assertions.assertTestJobExecuted(result);
+                assertions.assertIsExpensifyEmployeeJobExecuted(result);
+                assertions.assertChooseDeployActionsJobExecuted(result);
+                assertions.assertSkipDeployJobExecuted(result, false);
+                assertions.assertCreateNewVersionJobExecuted(result);
+                assertions.assertUpdateStagingJobExecuted(result, true);
+                assertions.assertUpdateStagingJobFailed(result, false);
             });
 
-            describe('staging not locked', () => {
-                it('not automated PR - proceed with deploy', async () => {
-                    const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-                    const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                    let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        'push',
-                        {ref: 'refs/heads/main'},
-                        {
-                            OS_BOTIFY_TOKEN: 'dummy_token',
-                            SLACK_WEBHOOK: 'dummy_slack_webhook',
-                            LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+            it('automated PR - deploy skipped, but no comment left', async () => {
+                const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
+                const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
+                let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                act = utils.setUpActParams(
+                    act,
+                    'push',
+                    {ref: 'refs/heads/main'},
+                    {
+                        OS_BOTIFY_TOKEN: 'dummy_token',
+                        SLACK_WEBHOOK: 'dummy_slack_webhook',
+                    },
+                    'dummy_github_token',
+                );
+                const testMockSteps = {
+                    confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
+                    chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
+                    skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
+                    updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
+                    isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
+                    newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__OSBOTIFY,
+                };
+                const testMockJobs = {
+                    lint: {
+                        steps: mocks.LINT_JOB_MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                    test: {
+                        steps: mocks.TEST_JOB_MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                    createNewVersion: {
+                        steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
+                        outputs: {
+                            // eslint-disable-next-line no-template-curly-in-string
+                            NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                         },
-                        'dummy_github_token',
-                    );
-                    const testMockSteps = {
-                        lint: mocks.LINT_JOB_MOCK_STEPS,
-                        test: mocks.TEST_JOB_MOCK_STEPS,
-                        confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                        chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
-                        skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                        updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                        isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                        newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
-                    };
-                    const testMockJobs = {
-                        createNewVersion: {
-                            steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                            outputs: {
-                                // eslint-disable-next-line no-template-curly-in-string
-                                NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                            },
-                            runsOn: 'ubuntu-latest',
-                        },
-                        e2ePerformanceTests: {
-                            steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                            runsOn: 'ubuntu-20.04-64core',
-                        },
-                    };
-                    const result = await act.runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'Dummy Tester',
-                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        mockJobs: testMockJobs,
-                    });
-                    assertions.assertLintJobExecuted(result);
-                    assertions.assertTestJobExecuted(result);
-                    assertions.assertIsExpensifyEmployeeJobExecuted(result);
-                    assertions.assertChooseDeployActionsJobExecuted(result);
-                    assertions.assertSkipDeployJobExecuted(result, false);
-                    assertions.assertCreateNewVersionJobExecuted(result);
-                    assertions.assertUpdateStagingJobExecuted(result, true, false);
-                    assertions.assertUpdateStagingJobFailed(result, false);
+                        runsOn: 'ubuntu-latest',
+                    },
+                    e2ePerformanceTests: {
+                        steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
+                        runsOn: 'ubuntu-latest',
+                    },
+                };
+                const result = await act.runEvent('push', {
+                    workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
+                    mockSteps: testMockSteps,
+                    actor: 'OSBotify',
+                    logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
+                    mockJobs: testMockJobs,
                 });
-
-                it('automated PR - proceed with deploy', async () => {
-                    const repoPath = mockGithub.repo.getPath('testPreDeployWorkflowRepo') || '';
-                    const workflowPath = path.join(repoPath, '.github', 'workflows', 'preDeploy.yml');
-                    let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                    act = utils.setUpActParams(
-                        act,
-                        'push',
-                        {ref: 'refs/heads/main'},
-                        {
-                            OS_BOTIFY_TOKEN: 'dummy_token',
-                            SLACK_WEBHOOK: 'dummy_slack_webhook',
-                            LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                        },
-                        'dummy_github_token',
-                    );
-                    const testMockSteps = {
-                        lint: mocks.LINT_JOB_MOCK_STEPS,
-                        test: mocks.TEST_JOB_MOCK_STEPS,
-                        confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                        chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
-                        skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
-                        updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
-                        isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
-                        newContributorWelcomeMessage: mocks.NEW_CONTRIBUTOR_WELCOME_MESSAGE_JOB_MOCK_STEPS__MANY_PRS,
-                    };
-                    const testMockJobs = {
-                        createNewVersion: {
-                            steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
-                            outputs: {
-                                // eslint-disable-next-line no-template-curly-in-string
-                                NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                            },
-                            runsOn: 'ubuntu-latest',
-                        },
-                        e2ePerformanceTests: {
-                            steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                            runsOn: 'ubuntu-20.04-64core',
-                        },
-                    };
-                    const result = await act.runEvent('push', {
-                        workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
-                        mockSteps: testMockSteps,
-                        actor: 'OSBotify',
-                        logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
-                        mockJobs: testMockJobs,
-                    });
-                    assertions.assertLintJobExecuted(result);
-                    assertions.assertTestJobExecuted(result);
-                    assertions.assertIsExpensifyEmployeeJobExecuted(result);
-                    assertions.assertChooseDeployActionsJobExecuted(result);
-                    assertions.assertSkipDeployJobExecuted(result, false);
-                    assertions.assertCreateNewVersionJobExecuted(result);
-                    assertions.assertUpdateStagingJobExecuted(result, true, false);
-                    assertions.assertUpdateStagingJobFailed(result, false);
-                });
+                assertions.assertLintJobExecuted(result);
+                assertions.assertTestJobExecuted(result);
+                assertions.assertIsExpensifyEmployeeJobExecuted(result);
+                assertions.assertChooseDeployActionsJobExecuted(result);
+                assertions.assertSkipDeployJobExecuted(result, false);
+                assertions.assertCreateNewVersionJobExecuted(result, false);
+                assertions.assertUpdateStagingJobExecuted(result, false);
+                assertions.assertUpdateStagingJobFailed(result, false);
             });
         });
 
@@ -1045,10 +891,8 @@ describe('test workflow preDeploy', () => {
                 'dummy_github_token',
             );
             const testMockSteps = {
-                lint: mocks.LINT_JOB_MOCK_STEPS,
-                test: mocks.TEST_JOB_MOCK_STEPS,
                 confirmPassingBuild: mocks.CONFIRM_PASSING_BUILD_JOB_MOCK_STEPS,
-                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__CP_LABEL__STAGING_UNLOCKED,
+                chooseDeployActions: mocks.CHOOSE_DEPLOY_ACTIONS_JOB_MOCK_STEPS__STAGING_UNLOCKED,
                 skipDeploy: mocks.SKIP_DEPLOY_JOB_MOCK_STEPS,
                 updateStaging: mocks.UPDATE_STAGING_JOB_MOCK_STEPS,
                 isExpensifyEmployee: mocks.IS_EXPENSIFY_EMPLOYEE_JOB_MOCK_STEPS__TRUE,
@@ -1056,6 +900,14 @@ describe('test workflow preDeploy', () => {
             };
             testMockSteps.updateStaging[3].mockWith = 'exit 1';
             const testMockJobs = {
+                lint: {
+                    steps: mocks.LINT_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
+                test: {
+                    steps: mocks.TEST_JOB_MOCK_STEPS,
+                    runsOn: 'ubuntu-latest',
+                },
                 createNewVersion: {
                     steps: mocks.CREATE_NEW_VERSION_JOB_MOCK_STEPS,
                     outputs: {
@@ -1066,13 +918,13 @@ describe('test workflow preDeploy', () => {
                 },
                 e2ePerformanceTests: {
                     steps: mocks.PREDEPLOY__E2EPERFORMANCETESTS__MOCK_STEPS,
-                    runsOn: 'ubuntu-20.04-64core',
+                    runsOn: 'ubuntu-latest',
                 },
             };
             const result = await act.runEvent('push', {
                 workflowFile: path.join(repoPath, '.github', 'workflows', 'preDeploy.yml'),
                 mockSteps: testMockSteps,
-                actor: 'OSBotify',
+                actor: 'Dummy Tester',
                 logFile: utils.getLogFilePath('preDeploy', expect.getState().currentTestName),
                 mockJobs: testMockJobs,
             });
