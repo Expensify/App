@@ -8,12 +8,12 @@ import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
 
-const AnimatedPressable = Animated.createAnimatedComponent(PressableWithoutFeedback);
+const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
 
 const propTypes = {
@@ -78,6 +78,7 @@ class FloatingActionButton extends PureComponent {
                         ref={(el) => (this.fabPressable = el)}
                         accessibilityLabel={this.props.accessibilityLabel}
                         accessibilityRole={this.props.accessibilityRole}
+                        pressDimmingValue={1}
                         onPress={(e) => {
                             // Drop focus to avoid blue focus ring.
                             this.fabPressable.blur();
