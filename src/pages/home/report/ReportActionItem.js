@@ -155,7 +155,8 @@ function ReportActionItem(props) {
             return;
         }
 
-        if (_.contains([CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE, CONST.MODERATION.MODERATOR_DECISION_HIDDEN], latestDecision)) {            setIsHidden(true);
+        if (_.contains([CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE, CONST.MODERATION.MODERATOR_DECISION_HIDDEN], latestDecision)) {
+            setIsHidden(true);
         }
         setModerationDecision(latestDecision);
     }, [latestDecision, props.action.actionName]);
