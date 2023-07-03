@@ -125,18 +125,18 @@ const defaultProps = {
 
 function InitialSettingsPage(props) {
     const popoverAnchor = useRef(null);
-    
+
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
     useEffect(() => {
         Wallet.openInitialSettingsPage();
-    }, [])
+    }, []);
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
      */
-    const getWalletBalance = (isPaymentItem) => isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined
+    const getWalletBalance = (isPaymentItem) => (isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
 
     /**
      * Retuns a list of default menu items
@@ -211,9 +211,7 @@ function InitialSettingsPage(props) {
                     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
                 },
                 brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) ||
-                    !_.isEmpty(props.userWallet.errors) ||
-                    !_.isEmpty(props.walletTerms.errors)
+                    PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList) || !_.isEmpty(props.userWallet.errors) || !_.isEmpty(props.walletTerms.errors)
                         ? 'error'
                         : null,
             },
@@ -243,7 +241,7 @@ function InitialSettingsPage(props) {
                 },
             },
         ];
-    }
+    };
 
     const getMenuItem = (item, index) => {
         const keyTitle = item.translationKey ? props.translate(item.translationKey) : item.title;
@@ -270,13 +268,13 @@ function InitialSettingsPage(props) {
                 onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined}
             />
         );
-    }
+    };
 
     const toggleSignoutConfirmModal = (value) => {
-        setShouldShowSignoutConfirmModal(value)
-    }
+        setShouldShowSignoutConfirmModal(value);
+    };
 
-    const signOut = (shouldForceSignout = false) =>  {
+    const signOut = (shouldForceSignout = false) => {
         if (props.network.isOffline || shouldForceSignout) {
             Session.signOutAndRedirectToSignIn();
             return;
@@ -284,11 +282,11 @@ function InitialSettingsPage(props) {
 
         // When offline, warn the user that any actions they took while offline will be lost if they sign out
         toggleSignoutConfirmModal(true);
-    }
+    };
 
     const openProfileSettings = () => {
         Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-    }
+    };
 
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -335,9 +333,7 @@ function InitialSettingsPage(props) {
                                             style={[styles.textHeadline, styles.pre]}
                                             numberOfLines={1}
                                         >
-                                            {props.currentUserPersonalDetails.displayName
-                                                ? props.currentUserPersonalDetails.displayName
-                                                : props.formatPhoneNumber(props.session.email)}
+                                            {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
                                         </Text>
                                     </Tooltip>
                                 </PressableWithoutFeedback>
