@@ -11,6 +11,7 @@ function CheckboxWithTooltip(props) {
             onPress={props.onPress}
             text={props.text}
             toggleTooltip={props.toggleTooltip}
+            accessibilityLabel={props.accessibilityLabel || props.text}
         />
     );
 }
