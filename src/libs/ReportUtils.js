@@ -1474,13 +1474,9 @@ function buildOptimisticReportPreview(chatReport, iouReport, existingReportPrevi
 
     reportPreviewAction.created = DateUtils.getDBTime();
     reportPreviewAction.accountID = iouReport.managerID;
-
-    const reportAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(iouReport), iouReport.currency);
-    const payerName = isPolicyExpenseChat(chatReport) ? getPolicyName(chatReport) : getDisplayNameForParticipant(iouReport.managerID, true);
-    const message =
-        iouReport.hasOutstandingIOU && !justPaidOutstandingIOU
-            ? Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: reportAmount})
-            : Localize.translateLocal('iou.payerSettled', {amount: reportAmount});
+    reportPreviewAction.actorEmail = iouReport.managerEmail;
+    reportPreviewAction.actorAccountID = iouReport.managerID;
+    const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     reportPreviewAction.message = [
         {
             html: message,
@@ -1489,9 +1485,6 @@ function buildOptimisticReportPreview(chatReport, iouReport, existingReportPrevi
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
     ];
-
-    reportPreviewAction.actorEmail = iouReport.managerEmail;
-    reportPreviewAction.actorAccountID = iouReport.managerID;
 
     return reportPreviewAction;
 }
