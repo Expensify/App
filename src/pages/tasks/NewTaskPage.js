@@ -144,7 +144,7 @@ function NewTaskPage(props) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK_DETAILS)}
             />
-            <View style={[styles.mt5, styles.containerWithSpaceBetween]}>
+            <View style={[styles.containerWithSpaceBetween]}>
                 <View style={styles.mb5}>
                     <MenuItemWithTopDescription
                         description={props.translate('newTaskPage.title')}
