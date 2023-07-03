@@ -87,6 +87,9 @@ export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     },
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    },
 })(BaseQuickEmojiReactions);
 
 export {baseQuickEmojiReactionsPropTypes};
