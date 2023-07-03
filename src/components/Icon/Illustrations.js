@@ -2,6 +2,8 @@ import Abracadabra from '../../../assets/images/product-illustrations/abracadabr
 import BankArrowPink from '../../../assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '../../../assets/images/product-illustrations/bank-mouse--green.svg';
 import BankUserGreen from '../../../assets/images/product-illustrations/bank-user--green.svg';
+import ChatBubbles from '../../../assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
+import CoffeeMug from '../../../assets/images/simple-illustrations/simple-illustration__coffeemug.svg';
 import ConciergeBlue from '../../../assets/images/product-illustrations/concierge--blue.svg';
 import ConciergeExclamation from '../../../assets/images/product-illustrations/concierge--exclamation.svg';
 import CreditCardsBlue from '../../../assets/images/product-illustrations/credit-cards--blue.svg';
@@ -18,6 +20,7 @@ import ReceiptYellow from '../../../assets/images/product-illustrations/receipt-
 import RocketBlue from '../../../assets/images/product-illustrations/rocket--blue.svg';
 import RocketOrange from '../../../assets/images/product-illustrations/rocket--orange.svg';
 import SafeBlue from '../../../assets/images/product-illustrations/safe.svg';
+import SanFrancisco from '../../../assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg';
 import TadaYellow from '../../../assets/images/product-illustrations/tada--yellow.svg';
 import TadaBlue from '../../../assets/images/product-illustrations/tada--blue.svg';
 import ToddBehindCloud from '../../../assets/images/product-illustrations/todd-behind-cloud.svg';
@@ -28,6 +31,7 @@ import PinkBill from '../../../assets/images/simple-illustrations/simple-illustr
 import CreditCardsNew from '../../../assets/images/simple-illustrations/simple-illustration__credit-cards.svg';
 import InvoiceBlue from '../../../assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LockOpen from '../../../assets/images/simple-illustrations/simple-illustration__lockopen.svg';
+import Lounge from '../../../assets/images/product-illustrations/lounge.svg';
 import Luggage from '../../../assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MoneyIntoWallet from '../../../assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '../../../assets/images/simple-illustrations/simple-illustration__moneywings.svg';
@@ -46,6 +50,8 @@ export {
     BankArrowPink,
     BankMouseGreen,
     BankUserGreen,
+    ChatBubbles,
+    CoffeeMug,
     ConciergeBlue,
     ConciergeExclamation,
     CreditCardsBlue,
@@ -61,6 +67,7 @@ export {
     ReceiptYellow,
     RocketBlue,
     RocketOrange,
+    SanFrancisco,
     SafeBlue,
     TadaYellow,
     TadaBlue,
@@ -72,6 +79,7 @@ export {
     CreditCardsNew,
     InvoiceBlue,
     LockOpen,
+    Lounge,
     Luggage,
     MoneyIntoWallet,
     MoneyWings,

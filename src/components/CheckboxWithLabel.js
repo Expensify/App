@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
@@ -63,6 +63,9 @@ const propTypes = {
     /** Saves a draft of the input value when used in a form */
     /* eslint-disable-next-line react/no-unused-prop-types */
     shouldSaveDraft: PropTypes.bool,
+
+    /** An accessibility label for the checkbox */
+    accessibilityLabel: PropTypes.string,
 };
 
 const defaultProps = {
@@ -76,9 +79,10 @@ const defaultProps = {
     value: false,
     defaultValue: false,
     forwardedRef: () => {},
+    accessibilityLabel: undefined,
 };
 
-const CheckboxWithLabel = (props) => {
+function CheckboxWithLabel(props) {
     // We need to pick the first value that is strictly a boolean
     // https://github.com/Expensify/App/issues/16885#issuecomment-1520846065
     const [isChecked, setIsChecked] = useState(_.find([props.value, props.defaultValue, props.isChecked], (value) => _.isBoolean(value)));
@@ -88,10 +92,6 @@ const CheckboxWithLabel = (props) => {
         props.onInputChange(newState);
         setIsChecked(newState);
     };
-
-    useEffect(() => {
-        setIsChecked(props.isChecked);
-    }, [props.isChecked]);
 
     const LabelComponent = props.LabelComponent;
 
@@ -104,6 +104,7 @@ const CheckboxWithLabel = (props) => {
                     label={props.label}
                     hasError={Boolean(props.errorText)}
                     forwardedRef={props.forwardedRef}
+                    accessibilityLabel={props.accessibilityLabel || props.label}
                 />
                 <PressableWithFeedback
                     focusable={false}
@@ -122,7 +123,7 @@ const CheckboxWithLabel = (props) => {
             <FormHelpMessage message={props.errorText} />
         </View>
     );
-};
+}
 
 CheckboxWithLabel.propTypes = propTypes;
 CheckboxWithLabel.defaultProps = defaultProps;

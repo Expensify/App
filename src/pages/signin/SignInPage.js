@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -16,11 +16,11 @@ import * as App from '../../libs/actions/App';
 import UnlinkLoginForm from './UnlinkLoginForm';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import * as Localize from '../../libs/Localize';
+import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
 import usePermissions from '../../hooks/usePermissions';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
-import * as StyleUtils from '../../styles/StyleUtils';
 
 const propTypes = {
     /** The details about the account that the user is signing in with */
@@ -92,7 +92,7 @@ function getRenderOptions({hasLogin, hasPassword, hasValidateCode, isPrimaryLogi
     };
 }
 
-function SignInPage({account, credentials}) {
+function SignInPage({credentials, account}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {canUsePasswordlessLogins} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -116,7 +116,7 @@ function SignInPage({account, credentials}) {
         hasLogin: Boolean(credentials.login),
         hasPassword: Boolean(credentials.password),
         hasValidateCode: Boolean(credentials.validateCode),
-        isPrimaryLogin: account.primaryLogin && account.primaryLogin === credentials.login,
+        isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
         isAccountValidated: Boolean(account.validated),
         didForgetPassword: Boolean(account.forgotPassword),
         canUsePasswordlessLogins,

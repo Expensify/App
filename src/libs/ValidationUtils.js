@@ -5,7 +5,6 @@ import {parsePhoneNumber} from 'awesome-phonenumber';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
-import * as Localize from './Localize';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -142,19 +141,6 @@ function isValidDebitCard(string) {
 }
 
 /**
- *
- * @param {String} nameOnCard
- * @returns {Boolean}
- */
-function isValidCardName(nameOnCard) {
-    if (!CONST.REGEX.ALPHABETIC_CHARS.test(nameOnCard)) {
-        return false;
-    }
-
-    return !_.isEmpty(nameOnCard.trim());
-}
-
-/**
  * @param {String} code
  * @returns {Boolean}
  */
@@ -225,22 +211,22 @@ function meetsMaximumAgeRequirement(date) {
  * @param {String} date
  * @param {Number} minimumAge
  * @param {Number} maximumAge
- * @returns {String}
+ * @returns {String|Array}
  */
 function getAgeRequirementError(date, minimumAge, maximumAge) {
     const recentDate = moment().startOf('day').subtract(minimumAge, 'years');
     const longAgoDate = moment().startOf('day').subtract(maximumAge, 'years');
     const testDate = moment(date);
     if (!testDate.isValid()) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return 'common.error.dateInvalid';
     }
     if (testDate.isBetween(longAgoDate, recentDate, undefined, '[]')) {
         return '';
     }
     if (testDate.isSameOrAfter(recentDate)) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+        return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)}];
     }
-    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+    return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)}];
 }
 
 /**
@@ -449,13 +435,22 @@ function isNumeric(value) {
     return /^\d*$/.test(value);
 }
 
+/**
+ * Checks that the provided accountID is a number and bigger than 0.
+ *
+ * @param {Number} accountID
+ * @returns {Boolean}
+ */
+function isValidAccountRoute(accountID) {
+    return CONST.REGEX.NUMBER.test(accountID) && accountID > 0;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
     isValidAddress,
     isValidDate,
-    isValidCardName,
     isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
@@ -482,4 +477,5 @@ export {
     isValidLegalName,
     doesContainReservedWord,
     isNumeric,
+    isValidAccountRoute,
 };

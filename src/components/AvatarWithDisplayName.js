@@ -17,6 +17,9 @@ import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -49,13 +52,14 @@ const defaultProps = {
     size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
-const AvatarWithDisplayName = (props) => {
-    const title = props.isAnonymous ? props.report.displayName : ReportUtils.getDisplayNameForParticipant(props.report.ownerEmail, true);
+function AvatarWithDisplayName(props) {
+    const title = props.isAnonymous ? props.report.displayName : ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
+    const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
-    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForLogins([props.report.ownerEmail], props.personalDetails);
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(ownerPersonalDetails, false);
+    const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
+    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const avatarContainerStyle = StyleUtils.getEmptyAvatarStyle(props.size) || styles.emptyAvatar;
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
@@ -88,6 +92,22 @@ const AvatarWithDisplayName = (props) => {
                             textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
                             shouldUseFullTitle={isExpenseReport || props.isAnonymous}
                         />
+                        {!_.isEmpty(parentNavigationSubtitle) && (
+                            <PressableWithoutFeedback
+                                onPress={() => {
+                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                                }}
+                                accessibilityLabel={subtitle}
+                                accessibilityRole="link"
+                            >
+                                <Text
+                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
+                                    numberOfLines={1}
+                                >
+                                    {parentNavigationSubtitle}
+                                </Text>
+                            </PressableWithoutFeedback>
+                        )}
                         {!_.isEmpty(subtitle) && (
                             <Text
                                 style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre]}
@@ -101,7 +121,7 @@ const AvatarWithDisplayName = (props) => {
             )}
         </View>
     );
-};
+}
 AvatarWithDisplayName.propTypes = propTypes;
 AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 AvatarWithDisplayName.defaultProps = defaultProps;

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
@@ -17,6 +17,7 @@ import ROUTES from '../../ROUTES';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
 import RenderHTML from '../RenderHTML';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** The ID of the associated taskReport */
@@ -49,7 +50,7 @@ const defaultProps = {
     isHovered: false,
 };
 
-const TaskPreview = (props) => {
+function TaskPreview(props) {
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
     // Other linked reportActions will only contain the taskReportID and we will grab the details from there
@@ -61,11 +62,13 @@ const TaskPreview = (props) => {
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
-        <Pressable
+        <PressableWithoutFeedback
             onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
-            style={[styles.flexRow, styles.justifyContentBetween]}
+            style={[styles.flexRow, styles.justifyContentBetween, styles.chatItemMessage]}
+            accessibilityRole="button"
+            accessibilityLabel={props.translate('newTaskPage.task')}
         >
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
                 <Checkbox
                     style={[styles.mr2]}
                     containerStyle={[styles.taskCheckbox]}
@@ -78,6 +81,7 @@ const TaskPreview = (props) => {
                             TaskUtils.completeTask(props.taskReportID, taskTitle);
                         }
                     }}
+                    accessibilityLabel={props.translate('newTaskPage.task')}
                 />
                 <RenderHTML html={htmlForTaskPreview} />
             </View>
@@ -85,9 +89,9 @@ const TaskPreview = (props) => {
                 src={Expensicons.ArrowRight}
                 fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
             />
-        </Pressable>
+        </PressableWithoutFeedback>
     );
-};
+}
 
 TaskPreview.propTypes = propTypes;
 TaskPreview.defaultProps = defaultProps;

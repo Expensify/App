@@ -91,7 +91,7 @@ const defaultProps = {
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
 // Relevant thread: https://expensify.slack.com/archives/C03TQ48KC/p1634088400387400
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
-const AddressSearch = (props) => {
+function AddressSearch(props) {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const containerRef = useRef();
     const query = useMemo(
@@ -120,7 +120,7 @@ const AddressSearch = (props) => {
             postal_code: zipCode,
             administrative_area_level_1: state,
             administrative_area_level_2: stateFallback,
-            country,
+            country: countryPrimary,
         } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             street_number: 'long_name',
             route: 'long_name',
@@ -142,7 +142,15 @@ const AddressSearch = (props) => {
 
         // Make sure that the order of keys remains such that the country is always set above the state.
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
-        const {state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+        const {
+            country: countryFallbackLongName = '',
+            state: stateAutoCompleteFallback = '',
+            city: cityAutocompleteFallback = '',
+        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
+
+        const countryFallback = _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryFallbackLongName);
+
+        const country = countryPrimary || countryFallback;
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),
@@ -291,7 +299,7 @@ const AddressSearch = (props) => {
             </View>
         </ScrollView>
     );
-};
+}
 
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;

@@ -35,7 +35,6 @@ const GenericPressable = forwardRef((props, ref) => {
         onKeyPress,
         disabled,
         style,
-        accessibilityHint,
         shouldUseHapticsOnLongPress,
         shouldUseHapticsOnPress,
         nextFocusRef,
