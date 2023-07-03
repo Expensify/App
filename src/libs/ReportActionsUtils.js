@@ -425,6 +425,12 @@ function getLinkedTransactionID(reportID, reportActionID) {
     return reportAction.originalMessage.IOUTransactionID;
 }
 
+/**
+ * 
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {Object}
+ */
 function getReportAction(reportID, reportActionID) {
     return lodashGet(allReportActions, [reportID, reportActionID], {});
 }
