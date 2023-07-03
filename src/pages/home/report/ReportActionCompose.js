@@ -237,11 +237,12 @@ class ReportActionCompose extends React.Component {
         });
 
         // This listener is used for focusing the composer again after going back to a report without remounting it.
-        // eslint-disable-next-line rulesdir/prefer-early-return
         this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
-            if (this.willBlurTextInputOnTapOutside && !this.props.isFocused && !this.props.modal.isVisible) {
-                this.focus();
+            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
+                return;
             }
+            this.focus();
+
         });
 
         this.updateComment(this.comment);
