@@ -89,6 +89,27 @@ function getLatestErrorField(onyxData, fieldName) {
 }
 
 /**
+ * Get the first error in the errorFields ordering by its key
+ *
+ * @param {Object} onyxData
+ * @param {String} fieldName
+ * @returns {Object}
+ */
+function getFirstErrorField(onyxData, fieldName) {
+    const errorsForField = lodashGet(onyxData, ['errorFields', fieldName], {});
+
+    if (_.isEmpty(errorsForField)) {
+        return {};
+    }
+    return _.chain(errorsForField)
+        .keys()
+        .sortBy()
+        .map((key) => ({[key]: errorsForField[key]}))
+        .first()
+        .value();
+}
+
+/**
  * Method used to generate error message for given inputID
  * @param {Object} errors - An object containing current errors in the form
  * @param {String} inputID
@@ -112,4 +133,4 @@ function addErrorMessage(errors, inputID, message) {
     }
 }
 
-export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getLatestErrorMessage, getLatestErrorField, addErrorMessage};
+export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getLatestErrorMessage, getLatestErrorField, getFirstErrorField, addErrorMessage};
