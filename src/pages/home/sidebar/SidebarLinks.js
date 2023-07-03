@@ -145,6 +145,8 @@ class SidebarLinks extends React.Component {
     showReportPage(option) {
         if (this.props.isCreateMenuOpen || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
             // Prevent opening Report page when click LHN row quickly after clicking FAB icon
+            // or when continuously click different LHNs, only apply to small screen since
+            // getTopmostReportId always returns on other devices
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
