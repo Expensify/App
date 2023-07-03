@@ -59,12 +59,12 @@ function EmojiReactionBubble(props) {
             ref={props.forwardedRef}
             enableLongPressWithHover={props.isSmallScreenWidth}
             onMouseDown={(e) => {
-                // Allow text input blur when right click on emoji reaction to open context menu
+                // Allow text input blur when emoji reaction is right clicked
                 if (e && e.button === 2) {
                     return;
                 }
 
-                // Prevent text input blur when emoji reaction is clicked
+                // Prevent text input blur when emoji reaction is left clicked
                 e.preventDefault();
             }}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
