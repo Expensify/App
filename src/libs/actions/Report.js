@@ -1316,6 +1316,8 @@ function deleteReport(reportID) {
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
+    // Dismiss the current report screen and replace it with Concierge Chat
+    Navigation.goBack();
     navigateToConciergeChat();
     deleteReport(reportID);
 }

@@ -13,6 +13,7 @@ import withLocalize from '../withLocalize';
 import compose from '../../libs/compose';
 import * as UserUtils from '../../libs/UserUtils';
 import CONST from '../../CONST';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
@@ -33,7 +34,7 @@ function UserDetailsTooltip(props) {
     }
 
     let title = String(userDisplayName).trim() ? userDisplayName : '';
-    const subtitle = String(userLogin || '').trim() && !_.isEqual(userLogin, userDisplayName) ? Str.removeSMSDomain(userLogin) : '';
+    const subtitle = (userLogin || '').trim() && !_.isEqual(LocalePhoneNumber.formatPhoneNumber(userLogin || ''), userDisplayName) ? Str.removeSMSDomain(userLogin) : '';
     if (props.icon && props.icon.type === CONST.ICON_TYPE_WORKSPACE) {
         title = props.icon.name;
     }
@@ -48,9 +49,7 @@ function UserDetailsTooltip(props) {
                         name={props.icon ? props.icon.name : userLogin}
                     />
                 </View>
-
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
-
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{subtitle}</Text>
             </View>
         ),

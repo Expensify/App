@@ -2853,10 +2853,6 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
-        menuItemErrorPadding: {
-            paddingLeft: 44,
-            paddingRight: 20,
-        },
     },
 
     dotIndicatorMessage: {
