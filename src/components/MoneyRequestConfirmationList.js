@@ -132,6 +132,7 @@ function MoneyRequestConfirmationList(props) {
 
     const selectedParticipants = useMemo(() => _.filter(props.participants, (participant) => participant.selected), [props.participants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
+    const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -152,6 +153,7 @@ function MoneyRequestConfirmationList(props) {
                     data: [formattedPayeeOption],
                     shouldShow: true,
                     indexOffset: 0,
+                    isDisabled: canModifyParticipants,
                 },
                 {
                     title: translate('moneyRequestConfirmationList.whoWasThere'),
@@ -228,7 +230,6 @@ function MoneyRequestConfirmationList(props) {
         [selectedParticipants, onSendMoney, onConfirm, props.iouType],
     );
 
-    const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode);
 
     const footerContent = useMemo(() => {
