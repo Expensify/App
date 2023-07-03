@@ -426,6 +426,7 @@ function updateWorkspaceAvatar(policyID, file) {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 avatar: file.uri,
+                originalFileName: file.name,
                 errorFields: {
                     avatar: null,
                 },
