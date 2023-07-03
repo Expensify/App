@@ -9,6 +9,7 @@
 - [1.5 Render Prop](#render-prop)
 - [1.6 Type Narrowing](#type-narrowing)
 - [1.7 Errors in Try-Catch Clauses](#try-catch-clauses)
+- [1.8 Const Assertion](#const-assertion)
 
 ## CheatSheet
 
@@ -194,4 +195,21 @@
           console.error(e.message);
       }
   }
+  ```
+
+<a name="const-assertion"></a><a name="1.8"></a>
+
+- [1.8](#const-assersion) **Use const assertions for rigorous typing**
+
+  Use `as const` when you want to ensure that the types and values are as exact as possible and prevent unwanted mutations.
+
+  ```ts
+  const greeting1 = "hello"; // type: string
+  const greeting2 = "goodbye" as const; // type: "goodbye"
+
+  const person1 = { name: "Alice", age: 20 }; // type: { name: string, age: number }
+  const person2 = { name: "Bob", age: 30 } as const; // type: { readonly name: "Bob", readonly age; 30 }
+
+  const array1 = ["hello", 1]; // type: (string | number)[]
+  const array2 = ["goodbye", 2]; // type: readonly ["goodbye", 2]
   ```
