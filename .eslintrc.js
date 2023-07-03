@@ -89,6 +89,15 @@ module.exports = {
                         format: ['camelCase'],
                     },
                 ],
+                '@typescript-eslint/ban-types': [
+                    'error',
+                    {
+                        types: {
+                            object: "Use 'Record<string, T>' instead.",
+                        },
+                        extendDefaults: true,
+                    },
+                ],
                 '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
                 '@typescript-eslint/no-unsafe-enum-comparison': 'error',
                 '@typescript-eslint/prefer-enum-initializers': 'error',
