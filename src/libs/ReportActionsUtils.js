@@ -425,13 +425,6 @@ function getLinkedTransactionID(reportID, reportActionID) {
     return reportAction.originalMessage.IOUTransactionID;
 }
 
-/**
- * Returns the parentReportAction if the given report is a thread/task.
- *
- * @param {String} reportID
- * @param {String} reportActionID
- * @returns {Object}
- */
 function getReportAction(reportID, reportActionID) {
     return lodashGet(allReportActions, [reportID, reportActionID], {});
 }
