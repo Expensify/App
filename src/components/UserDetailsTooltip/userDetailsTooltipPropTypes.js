@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
 import avatarPropTypes from '../avatarPropTypes';
+import {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** User's Account ID */
@@ -22,12 +23,19 @@ const propTypes = {
     children: PropTypes.node.isRequired,
     /** List of personalDetails (keyed by accountID)  */
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
+
+    /** The accountID of the copilot who took this action on behalf of the user */
+    delegateAccountID: PropTypes.number,
+
+    /** Localization props */
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     accountID: '',
     fallbackUserDetails: {displayName: '', login: '', avatar: '', type: ''},
     personalDetailsList: {},
+    delegateAccountID: 0,
     icon: undefined,
 };
 

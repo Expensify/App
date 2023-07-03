@@ -72,12 +72,25 @@ const showWorkspaceDetails = (reportID) => {
 
 function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actorAccountID;
+    let {displayName} = props.personalDetailsList[actorAccountID] || {};
+    const {avatar, pendingFields} = props.personalDetailsList[actorAccountID] || {};
+    let actorHint = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
-    const actorDetails = props.personalDetailsList[actorAccountID] || {};
-    const displayName = isWorkspaceActor ? ReportUtils.getPolicyName(props.report) : actorDetails.displayName;
-    const actorHint = isWorkspaceActor ? displayName : lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    const pendingFields = isWorkspaceActor ? {} : actorDetails.pendingFields;
-    const avatarSource = isWorkspaceActor ? ReportUtils.getWorkspaceAvatar(props.report) : UserUtils.getAvatar(actorDetails.avatar, actorAccountID);
+    let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
+
+    if (isWorkspaceActor) {
+        displayName = ReportUtils.getPolicyName(props.report);
+        actorHint = displayName;
+        avatarSource = ReportUtils.getWorkspaceAvatar(props.report);
+    } else if (props.action.delegateAccountID) {
+        // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
+        // the Copilot feature is implemented.
+        const delegateDetails = props.personalDetailsList[props.action.delegateAccountID];
+        const delegateDisplayName = delegateDetails.displayName;
+        actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;
+        displayName = actorHint;
+        avatarSource = UserUtils.getAvatar(delegateDetails.avatar, props.action.delegateAccountID);
+    }
     const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName, id: actorAccountID};
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
@@ -96,9 +109,9 @@ function ReportActionItemSingle(props) {
         if (isWorkspaceActor) {
             showWorkspaceDetails(props.report.reportID);
         } else {
-            showUserDetails(actorAccountID);
+            showUserDetails(props.action.delegateAccountID ? props.action.delegateAccountID : actorAccountID);
         }
-    }, [isWorkspaceActor, props.report.reportID, actorAccountID]);
+    }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID]);
 
     return (
         <View style={props.wrapperStyles}>
@@ -122,6 +135,7 @@ function ReportActionItemSingle(props) {
                     ) : (
                         <UserDetailsTooltip
                             accountID={actorAccountID}
+                            delegateAccountID={props.action.delegateAccountID}
                             icon={icon}
                         >
                             <View>
@@ -154,6 +168,7 @@ function ReportActionItemSingle(props) {
                                     fragment={fragment}
                                     isAttachment={props.action.isAttachment}
                                     isLoading={props.action.isLoading}
+                                    delegateAccountID={props.action.delegateAccountID}
                                     isSingleLine
                                 />
                             ))}

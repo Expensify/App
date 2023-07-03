@@ -9,13 +9,31 @@ import Tooltip from '../Tooltip';
 import {propTypes, defaultProps} from './userDetailsTooltipPropTypes';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
+import withLocalize from '../withLocalize';
+import compose from '../../libs/compose';
 import * as UserUtils from '../../libs/UserUtils';
 import CONST from '../../CONST';
 
 function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
-    let title = String(userDetails.displayName).trim() ? userDetails.displayName : '';
-    const subtitle = String(userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
+    let userDisplayName = userDetails.displayName ? userDetails.displayName.trim() : '';
+    let userLogin = (userDetails.login || '').trim() && !_.isEqual(userDetails.login, userDetails.displayName) ? Str.removeSMSDomain(userDetails.login) : '';
+    let userAvatar = userDetails.avatar;
+    let userAccountID = props.accountID;
+
+    // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
+    // the Copilot feature is implemented.
+    if (props.delegateAccountID) {
+        const delegateUserDetails = lodashGet(props.personalDetailsList, props.delegateAccountID, {});
+        const delegateUserDisplayName = delegateUserDetails.displayName ? delegateUserDetails.displayName.trim() : '';
+        userDisplayName = `${delegateUserDisplayName} (${props.translate('reportAction.asCopilot')} ${userDisplayName})`;
+        userLogin = delegateUserDetails.login;
+        userAvatar = delegateUserDetails.avatar;
+        userAccountID = props.delegateAccountID;
+    }
+
+    let title = String(userDisplayName).trim() ? userDisplayName : '';
+    const subtitle = String(userLogin || '').trim() && !_.isEqual(userLogin, userDisplayName) ? Str.removeSMSDomain(userLogin) : '';
     if (props.icon && props.icon.type === CONST.ICON_TYPE_WORKSPACE) {
         title = props.icon.name;
     }
@@ -25,9 +43,9 @@ function UserDetailsTooltip(props) {
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={props.icon ? props.icon.source : UserUtils.getAvatar(userDetails.avatar, userDetails.accountID)}
+                        source={props.icon ? props.icon.source : UserUtils.getAvatar(userAvatar, userAccountID)}
                         type={props.icon ? props.icon.type : CONST.ICON_TYPE_AVATAR}
-                        name={props.icon ? props.icon.name : userDetails.login}
+                        name={props.icon ? props.icon.name : userLogin}
                     />
                 </View>
 
@@ -36,10 +54,10 @@ function UserDetailsTooltip(props) {
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{subtitle}</Text>
             </View>
         ),
-        [props.icon, userDetails.avatar, userDetails.accountID, userDetails.login, title, subtitle],
+        [props.icon, userAvatar, userAccountID, userLogin, title, subtitle],
     );
 
-    if (!props.icon && !userDetails.displayName && !userDetails.login) {
+    if (!props.icon && !userDisplayName && !userLogin) {
         return props.children;
     }
 
@@ -50,8 +68,11 @@ UserDetailsTooltip.propTypes = propTypes;
 UserDetailsTooltip.defaultProps = defaultProps;
 UserDetailsTooltip.displayName = 'UserDetailsTooltip';
 
-export default withOnyx({
-    personalDetailsList: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(UserDetailsTooltip);
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetailsList: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+    }),
+)(UserDetailsTooltip);

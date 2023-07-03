@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -64,6 +64,7 @@ const defaultProps = {
 
 function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
+    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
@@ -111,6 +112,7 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+        setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
             event,
@@ -120,7 +122,7 @@ function OptionRowLHN(props) {
             {},
             '',
             () => {},
-            () => {},
+            () => setIsContextMenuActive(false),
             false,
             false,
             optionItem.isPinned,
@@ -156,7 +158,7 @@ function OptionRowLHN(props) {
                             styles.sidebarLinkInner,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
-                            hovered && !props.isFocused ? props.hoverStyle : null,
+                            (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
