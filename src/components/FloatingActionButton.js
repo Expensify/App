@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {Pressable, Animated, Easing, View} from 'react-native';
+import {Animated, Easing, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -8,11 +8,12 @@ import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedPressable = Animated.createAnimatedComponent(PressableWithoutFeedback);
 AnimatedPressable.displayName = 'AnimatedPressable';
 
 const propTypes = {
