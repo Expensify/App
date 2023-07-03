@@ -56,8 +56,8 @@ const defaultProps = {
         start: 0,
         end: 0,
     },
+    maxLines: undefined,
     isFullComposerAvailable: false,
-    maxLines: -1,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
     style: null,
@@ -102,7 +102,11 @@ class Composer extends React.Component {
                 onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
-                maximumNumberOfLines={!this.props.isComposerFullSize ? this.props.maxLines : undefined}
+                // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
+                // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)
+                // @Szymon20000 is working on fixing this (android-only) issue in the in the upstream PR (https://github.com/facebook/react-native/pulls?q=is%3Apr+is%3Aopen+maxNumberOfLines)
+                // TODO: remove this commend once upstream PR is merged
+                maximumNumberOfLines={this.props.isComposerFullSize ? 1000000 : this.props.maxLines}
                 style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}

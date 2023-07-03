@@ -30,7 +30,7 @@ const story = {
     },
 };
 
-const Template = (args) => {
+function Template(args) {
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
     NetworkConnection.setOfflineStatus(false);
     FormActions.setIsLoading(args.formID, args.formState.isLoading);
@@ -117,14 +117,14 @@ const Template = (args) => {
             />
         </Form>
     );
-};
+}
 
 /**
  * Story to exhibit the native event handlers for TextInput in the Form Component
  * @param {Object} args
  * @returns {JSX}
  */
-const WithNativeEventHandler = (args) => {
+function WithNativeEventHandler(args) {
     const [log, setLog] = useState('');
 
     // Form consumes data from Onyx, so we initialize Onyx with the necessary data here
@@ -145,7 +145,7 @@ const WithNativeEventHandler = (args) => {
             <Text>{`Entered routing number: ${log}`}</Text>
         </Form>
     );
-};
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args

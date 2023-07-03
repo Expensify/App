@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity, View, StyleSheet, InteractionManager} from 'react-native';
+import {View, StyleSheet, InteractionManager} from 'react-native';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import optionPropTypes from './optionPropTypes';
@@ -19,6 +19,8 @@ import SubscriptAvatar from './SubscriptAvatar';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import CONST from '../CONST';
 import * as ReportUtils from '../libs/ReportUtils';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -66,7 +68,7 @@ const defaultProps = {
     isSelected: false,
     boldStyle: false,
     showTitleTooltip: false,
-    onSelectRow: () => {},
+    onSelectRow: undefined,
     isDisabled: false,
     optionIsFocused: false,
     style: null,
@@ -114,7 +116,7 @@ class OptionRow extends Component {
     }
 
     render() {
-        let touchableRef = null;
+        let pressableRef = null;
         const textStyle = this.props.optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
         const textUnreadStyle = this.props.boldStyle || this.props.option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
         const displayNameStyle = StyleUtils.combineStyles(styles.optionDisplayName, textUnreadStyle, this.props.style, styles.pre);
@@ -132,7 +134,10 @@ class OptionRow extends Component {
         const isMultipleParticipant = lodashGet(this.props.option, 'participantsList.length', 0) > 1;
 
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((this.props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
+        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+            (this.props.option.participantsList || (this.props.option.accountID ? [this.props.option] : [])).slice(0, 10),
+            isMultipleParticipant,
+        );
         let subscriptColor = themeColors.appBG;
         if (this.props.optionIsFocused) {
             subscriptColor = focusedBackgroundColor;
@@ -146,14 +151,18 @@ class OptionRow extends Component {
             >
                 <Hoverable>
                     {(hovered) => (
-                        <TouchableOpacity
-                            ref={(el) => (touchableRef = el)}
+                        <PressableWithFeedback
+                            ref={(el) => (pressableRef = el)}
                             onPress={(e) => {
+                                if (!this.props.onSelectRow) {
+                                    return;
+                                }
+
                                 this.setState({isDisabled: true});
                                 if (e) {
                                     e.preventDefault();
                                 }
-                                let result = this.props.onSelectRow(this.props.option, touchableRef);
+                                let result = this.props.onSelectRow(this.props.option, pressableRef);
                                 if (!(result instanceof Promise)) {
                                     result = Promise.resolve();
                                 }
@@ -162,7 +171,6 @@ class OptionRow extends Component {
                                 });
                             }}
                             disabled={this.state.isDisabled}
-                            activeOpacity={0.8}
                             style={[
                                 styles.flexRow,
                                 styles.alignItemsCenter,
@@ -170,10 +178,13 @@ class OptionRow extends Component {
                                 styles.sidebarLink,
                                 this.props.shouldDisableRowInnerPadding ? null : styles.sidebarLinkInner,
                                 this.props.optionIsFocused ? styles.sidebarLinkActive : null,
-                                hovered && !this.props.optionIsFocused ? this.props.hoverStyle : null,
-                                this.props.isDisabled && styles.cursorDisabled,
                                 this.props.shouldHaveOptionSeparator && styles.borderTop,
+                                !this.props.onSelectRow && !this.props.isDisabled ? styles.cursorDefault : null,
                             ]}
+                            accessibilityLabel={this.props.option.text}
+                            accessibilityRole="button"
+                            hoverDimmingValue={1}
+                            hoverStyle={this.props.hoverStyle}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -195,7 +206,7 @@ class OptionRow extends Component {
                                                     this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor) : undefined,
                                                     hovered && !this.props.optionIsFocused ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor) : undefined,
                                                 ]}
-                                                shouldShowTooltip={this.props.showTitleTooltip && !this.props.option.isChatRoom && !this.props.option.isArchivedRoom}
+                                                shouldShowTooltip={this.props.showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(this.props.option)}
                                             />
                                         ))}
                                     <View style={contentContainerStyles}>
@@ -248,7 +259,7 @@ class OptionRow extends Component {
                                     </View>
                                 </View>
                             )}
-                        </TouchableOpacity>
+                        </PressableWithFeedback>
                     )}
                 </Hoverable>
             </OfflineWithFeedback>

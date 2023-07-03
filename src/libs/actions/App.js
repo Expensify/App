@@ -260,14 +260,9 @@ function setUpPoliciesAndNavigate(session) {
     }
     if (!isLoggingInAsNewUser && exitTo) {
         Navigation.isNavigationReady().then(() => {
-            // The drawer navigation is only created after we have fetched reports from the server.
-            // Thus, if we use the standard navigation and try to navigate to a drawer route before
-            // the reports have been fetched, we will fail to navigate.
-            Navigation.isDrawerReady().then(() => {
-                // We must call dismissModal() to remove the /transition route from history
-                Navigation.dismissModal();
-                Navigation.navigate(exitTo);
-            });
+            // We must call goBack() to remove the /transition route from history
+            Navigation.goBack();
+            Navigation.navigate(exitTo);
         });
     }
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashCloneDeep from 'lodash/cloneDeep';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
 import Visibility from '../../../libs/Visibility';
@@ -9,7 +10,6 @@ import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import {withDrawerPropTypes} from '../../../components/withDrawerState';
 import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Performance from '../../../libs/Performance';
@@ -21,9 +21,10 @@ import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
-import * as ReactionList from './ReactionList/ReactionList';
+import withNavigationFocus from '../../../components/withNavigationFocus';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
+import ReportScreenContext from '../ReportScreenContext';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -48,7 +49,6 @@ const propTypes = {
     }),
 
     ...windowDimensionsPropTypes,
-    ...withDrawerPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -66,6 +66,7 @@ class ReportActionsView extends React.Component {
         this.unsubscribeVisibilityListener = null;
         this.hasCachedActions = _.size(props.reportActions) > 0;
 
+        this.reactionListRef = React.createRef();
         this.state = {
             isFloatingMessageCounterVisible: false,
             newMarkerReportActionID: ReportUtils.getNewMarkerReportActionID(this.props.report, props.reportActions),
@@ -95,9 +96,7 @@ class ReportActionsView extends React.Component {
             }
         });
 
-        if (this.isReportFullyVisible()) {
-            this.openReportIfNecessary();
-        }
+        this.openReportIfNecessary();
 
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
@@ -107,7 +106,7 @@ class ReportActionsView extends React.Component {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
-                ReportScrollManager.scrollToBottom();
+                ReportScrollManager.scrollToBottom(this.context.flatListRef);
 
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 this.setState({newMarkerReportActionID: ''});
@@ -163,10 +162,6 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (this.props.isDrawerOpen !== nextProps.isDrawerOpen) {
-            return true;
-        }
-
         if (lodashGet(this.props.report, 'hasOutstandingIOU') !== lodashGet(nextProps.report, 'hasOutstandingIOU')) {
             return true;
         }
@@ -205,11 +200,10 @@ class ReportActionsView extends React.Component {
             }
         }
 
-        // If the report was previously hidden by the side bar, or the view is expanded from mobile to desktop layout
+        // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
-        const didSidebarClose = prevProps.isDrawerOpen && !this.props.isDrawerOpen;
         const didScreenSizeIncrease = prevProps.isSmallScreenWidth && !this.props.isSmallScreenWidth;
-        const didReportBecomeVisible = isReportFullyVisible && (didSidebarClose || didScreenSizeIncrease);
+        const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             this.setState({
                 newMarkerReportActionID: ReportUtils.isUnread(this.props.report) ? ReportUtils.getNewMarkerReportActionID(this.props.report, this.props.reportActions) : '',
@@ -225,12 +219,19 @@ class ReportActionsView extends React.Component {
             });
         }
 
-        // When the user navigates to the LHN the ReportActionsView doesn't unmount and just remains hidden.
-        // The next time we navigate to the same report (e.g. by swiping or tapping the LHN row) we want the new marker to clear.
-        const didSidebarOpen = !prevProps.isDrawerOpen && this.props.isDrawerOpen;
-        const didUserNavigateToSidebarAfterReadingReport = didSidebarOpen && !ReportUtils.isUnread(this.props.report);
-        if (didUserNavigateToSidebarAfterReadingReport) {
-            this.setState({newMarkerReportActionID: ''});
+        // If the last unread message was deleted, remove the *New* green marker and the *New Messages* notification at scroll just as the deletion starts.
+        if (
+            ReportUtils.isUnread(this.props.report) &&
+            this.props.reportActions.length > 0 &&
+            this.props.reportActions[0].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !this.props.network.isOffline
+        ) {
+            const reportActionsWithoutPendingOne = lodashCloneDeep(this.props.reportActions);
+            reportActionsWithoutPendingOne.shift();
+            const newMarkerReportActionID = ReportUtils.getNewMarkerReportActionID(this.props.report, reportActionsWithoutPendingOne);
+            if (newMarkerReportActionID !== this.state.newMarkerReportActionID) {
+                this.setState({newMarkerReportActionID});
+            }
         }
 
         // Checks to see if a report comment has been manually "marked as unread". All other times when the lastReadTime
@@ -267,7 +268,7 @@ class ReportActionsView extends React.Component {
      * @returns {Boolean}
      */
     isReportFullyVisible() {
-        return getIsReportFullyVisible(this.props.isDrawerOpen, this.props.isSmallScreenWidth);
+        return getIsReportFullyVisible(this.props.isFocused);
     }
 
     // If the report is optimistic (AKA not yet created) we don't need to call openReport again
@@ -301,7 +302,7 @@ class ReportActionsView extends React.Component {
     }
 
     scrollToBottomAndMarkReportAsRead() {
-        ReportScrollManager.scrollToBottom();
+        ReportScrollManager.scrollToBottom(this.context.flatListRef);
         Report.readNewestAction(this.props.report.reportID);
     }
 
@@ -370,8 +371,8 @@ class ReportActionsView extends React.Component {
                     newMarkerReportActionID={this.state.newMarkerReportActionID}
                 />
                 <PopoverReactionList
-                    ref={ReactionList.reactionListRef}
-                    reportID={this.props.report.reportID}
+                    ref={this.context.reactionListRef}
+                    report={this.props.report}
                 />
                 <CopySelectionHelper />
             </>
@@ -381,5 +382,6 @@ class ReportActionsView extends React.Component {
 
 ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
+ReportActionsView.contextType = ReportScreenContext;
 
-export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withLocalize, withNetwork())(ReportActionsView);
+export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withNavigationFocus, withLocalize, withNetwork())(ReportActionsView);
