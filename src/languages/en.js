@@ -45,6 +45,7 @@ export default {
         details: 'Details',
         privacy: 'Privacy',
         hidden: 'Hidden',
+        visible: 'Visible',
         delete: 'Delete',
         archived: 'archived',
         contacts: 'Contacts',
@@ -195,8 +196,6 @@ export default {
         signInHere: 'just sign in here',
         expiredCodeTitle: 'Magic code expired',
         expiredCodeDescription: 'Go back to the original device and request a new code.',
-        requestNewCode: 'You can also',
-        requestNewCodeLink: 'request a new code here',
         successfulNewCodeRequest: 'Code requested. Please check your device.',
         tfaRequiredTitle: 'Two-factor authentication\nrequired',
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
@@ -298,6 +297,9 @@ export default {
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
+    },
+    reportAction: {
+        asCopilot: 'as copilot for',
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone online in this room',
@@ -558,7 +560,6 @@ export default {
         stepSuccess: 'Finished',
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
-        copyCodes: 'Copy codes',
         copy: 'Copy',
         disable: 'Disable',
     },
@@ -593,7 +594,7 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Please enter a valid name',
+            invalidName: 'Name can only include latin letters and numbers.',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -705,6 +706,7 @@ export default {
         enterAuthenticatorCode: 'Please enter your authenticator code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: 'Request a new code in ',
+        requestNewCodeAfterErrorOccurred: 'Request a new code',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
@@ -1422,7 +1424,7 @@ export default {
         lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
-        from: 'From',
+        parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copyUrlToClipboard: 'Copy URL to clipboard',

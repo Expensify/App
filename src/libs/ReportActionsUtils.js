@@ -65,6 +65,14 @@ function isDeletedAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isPendingRemove(reportAction) {
+    return lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isMoneyRequestAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
@@ -253,6 +261,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
 
+    // Do not group if the delegate account ID is different
+    if (previousAction.delegateAccountID !== currentAction.delegateAccountID) {
+        return false;
+    }
+
     return currentAction.actorEmail === previousAction.actorEmail;
 }
 
@@ -346,7 +359,7 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+    if (isPendingRemove(reportAction)) {
         return false;
     }
 
@@ -431,42 +444,52 @@ function getLinkedTransactionID(reportID, reportActionID) {
 }
 
 /**
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {Object}
+ */
+function getReportAction(reportID, reportActionID) {
+    return lodashGet(allReportActions, [reportID, reportActionID], {});
+}
+
+/**
  * @returns {string}
  */
 function getMostRecentReportActionLastModified() {
-    // Start with the oldest date possible
-    let mostRecentReportActionLastModified = new Date(0).toISOString();
+   // Start with the oldest date possible
+   let mostRecentReportActionLastModified = new Date(0).toISOString();
 
-    // Flatten all the actions
-    // Loop over them all to find the one that is the most recent
-    const flatReportActions = _.flatten(_.map(allReportActions, (actions) => _.values(actions)));
-    _.each(flatReportActions, (action) => {
-        // Pending actions should not be counted here as a user could create a comment or some other action while offline and the server might know about
-        // messages they have not seen yet.
-        if (!_.isEmpty(action.pendingAction)) {
-            return;
-        }
+   // Flatten all the actions
+   // Loop over them all to find the one that is the most recent
+   const flatReportActions = _.flatten(_.map(allReportActions, (actions) => _.values(actions)));
+   _.each(flatReportActions, (action) => {
+       // Pending actions should not be counted here as a user could create a comment or some other action while offline and the server might know about
+       // messages they have not seen yet.
+       if (!_.isEmpty(action.pendingAction)) {
+           return;
+       }
 
-        const lastModified = action.lastModified || action.created;
-        if (lastModified < mostRecentReportActionLastModified) {
-            return;
-        }
+       const lastModified = action.lastModified || action.created;
+       if (lastModified < mostRecentReportActionLastModified) {
+           return;
+       }
 
-        mostRecentReportActionLastModified = lastModified;
-    });
+       mostRecentReportActionLastModified = lastModified;
+   });
 
-    // We might not have actions so we also look at the report objects to see if any have a lastVisibleActionLastModified that is more recent. We don't need to get
-    // any reports that have been updated before either a recently updated report or reportAction as we should be up to date on these
-    _.each(allReports, (report) => {
-        const reportLastVisibleActionLastModified = report.lastVisibleActionLastModified || report.lastVisibleActionCreated;
-        if (!reportLastVisibleActionLastModified || reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
-            return;
-        }
+   // We might not have actions so we also look at the report objects to see if any have a lastVisibleActionLastModified that is more recent. We don't need to get
+   // any reports that have been updated before either a recently updated report or reportAction as we should be up to date on these
+   _.each(allReports, (report) => {
+       const reportLastVisibleActionLastModified = report.lastVisibleActionLastModified || report.lastVisibleActionCreated;
+       if (!reportLastVisibleActionLastModified || reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
+           return;
+       }
 
-        mostRecentReportActionLastModified = reportLastVisibleActionLastModified;
-    });
+       mostRecentReportActionLastModified = reportLastVisibleActionLastModified;
+   });
 
-    return mostRecentReportActionLastModified;
+   return mostRecentReportActionLastModified;
 }
 
 /**
@@ -506,7 +529,7 @@ function isMessageDeleted(reportAction) {
 }
 
 function isWhisperAction(action) {
-    return (action.whisperedTo || []).length > 0;
+    return (action.whisperedToAccountIDs || []).length > 0;
 }
 
 export {
@@ -536,4 +559,6 @@ export {
     getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
+    isPendingRemove,
+    getReportAction,
 };
