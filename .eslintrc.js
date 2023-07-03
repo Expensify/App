@@ -126,8 +126,7 @@ module.exports = {
                             },
                             {
                                 name: 'underscore',
-                                importNames: ['get'],
-                                message: 'Please use optional chaining and nullish coalescing instead.',
+                                message: 'Please use corresponding method from lodash instead',
                             },
                         ],
                     },
