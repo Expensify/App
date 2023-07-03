@@ -1148,11 +1148,11 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         login: recipient.login,
     };
 
-    const optimisticReportPreviewAction = ReportUtils.buildOptimisticReportPreview(
-        chatReport,
-        iouReport,
-        ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID),
-    );
+    const optimisticReportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    optimisticReportPreviewAction.created = DateUtils.getDBTime();
+    const message = ReportUtils.getReportPreviewMessage(iouReport, optimisticReportPreviewAction);
+    optimisticReportPreviewAction.message.html = message;
+    optimisticReportPreviewAction.message.text = message;
 
     const optimisticData = [
         {
