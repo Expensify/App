@@ -242,7 +242,6 @@ class ReportActionCompose extends React.Component {
                 return;
             }
             this.focus();
-
         });
 
         this.updateComment(this.comment);
