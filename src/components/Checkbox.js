@@ -1,11 +1,12 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Whether checkbox is checked */
@@ -34,6 +35,9 @@ const propTypes = {
 
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+
+    /** An accessibility label for the checkbox */
+    accessibilityLabel: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -67,7 +71,7 @@ function Checkbox(props) {
     };
 
     return (
-        <Pressable
+        <PressableWithFeedback
             disabled={props.disabled}
             onPress={firePressHandlerOnClick}
             onMouseDown={props.onMouseDown}
@@ -76,6 +80,8 @@ function Checkbox(props) {
             onKeyDown={handleSpaceKey}
             accessibilityRole="checkbox"
             accessibilityState={{checked: props.isChecked}}
+            accessibilityLabel={props.accessibilityLabel}
+            pressDimmingValue={1}
         >
             {props.children ? (
                 props.children
@@ -100,7 +106,7 @@ function Checkbox(props) {
                     )}
                 </View>
             )}
-        </Pressable>
+        </PressableWithFeedback>
     );
 }
 
