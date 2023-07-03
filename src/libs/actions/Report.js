@@ -309,37 +309,11 @@ function addActions(reportID, text = '', file) {
     const report = ReportUtils.getReport(reportID);
     if (ReportUtils.isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        const childVisibleActionCount = parentReportAction.childVisibleActionCount ? parentReportAction.childVisibleActionCount + 1 : 1;
-        const childCommenterCount = parentReportAction.childCommenterCount ? parentReportAction.childCommenterCount : 1;
-        const childLastVisibleActionCreated = currentTime;
-        let childOldestFourAccountIDs = parentReportAction.childOldestFourAccountIDs;
-        if (!childOldestFourAccountIDs) {
-            childOldestFourAccountIDs = currentUserAccountID;
-        } else {
-            const oldestFourAccountIDs = childOldestFourAccountIDs.split(',');
-            const index = _.findIndex(oldestFourAccountIDs, (accountID) => accountID === currentUserAccountID);
-            if (index !== -1) {
-                oldestFourAccountIDs.splice(index, 1);
-            }
-            oldestFourAccountIDs.push(currentUserAccountID);
-            if (oldestFourAccountIDs.length > 4) {
-                oldestFourAccountIDs.splice(0, 1);
-            }
-            childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
-        }
-
-        const optimisticParentReportAction = {
-            childVisibleActionCount,
-            childCommenterCount,
-            childLastVisibleActionCreated,
-            childOldestFourAccountIDs,
-        };
-
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
             value: {
-                [parentReportAction.reportActionID]: optimisticParentReportAction,
+                [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(parentReportAction, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
             },
         });
     }
@@ -946,6 +920,22 @@ function deleteReportComment(reportID, reportAction) {
             value: optimisticReport,
         },
     ];
+
+    const report = ReportUtils.getReport(reportID);
+    if (ReportUtils.isThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+            value: {
+                [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(
+                    parentReportAction,
+                    optimisticReport.lastVisibleActionCreated,
+                    CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                ),
+            },
+        });
+    }
 
     const parameters = {
         reportID: originalReportID,

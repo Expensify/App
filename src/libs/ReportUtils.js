@@ -1237,6 +1237,53 @@ function buildOptimisticAddCommentReportAction(text, file) {
 }
 
 /**
+ * update optimistic reportAction for the parent report when a comment is added or remove in thread
+ * @param {String} parentReportAction - Parent report action of thread
+ * @param {String} lastVisibleActionCreated - Last visible action created of thread
+ * @param {String} type - The type of action in thread
+ * @returns {Object}
+ */
+
+function updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type) {
+    let childVisibleActionCount = parentReportAction.childVisibleActionCount ? parentReportAction.childVisibleActionCount : 1;
+    let childCommenterCount = parentReportAction.childCommenterCount ? parentReportAction.childCommenterCount : 1;
+    const childLastVisibleActionCreated = lastVisibleActionCreated;
+    let childOldestFourAccountIDs = parentReportAction.childOldestFourAccountIDs;
+
+    if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        childVisibleActionCount += 1;
+        if (!childOldestFourAccountIDs) {
+            childOldestFourAccountIDs = currentUserAccountID.toString();
+        } else {
+            const oldestFourAccountIDs = childOldestFourAccountIDs.split(',');
+            const index = _.findIndex(oldestFourAccountIDs, (accountID) => accountID === currentUserAccountID.toString());
+            if (index !== -1) {
+                oldestFourAccountIDs.splice(index, 1);
+            }
+
+            oldestFourAccountIDs.push(currentUserAccountID);
+            if (oldestFourAccountIDs.length > 4) {
+                oldestFourAccountIDs.splice(0, 1);
+            }
+            childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
+        }
+    } else {
+        childVisibleActionCount -= 1;
+        if (childVisibleActionCount === 0) {
+            childCommenterCount = 0;
+            childOldestFourAccountIDs = '';
+        }
+    }
+
+    return {
+        childVisibleActionCount,
+        childCommenterCount,
+        childLastVisibleActionCreated,
+        childOldestFourAccountIDs,
+    };
+}
+
+/**
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param {String} taskReportID - Report ID of the task
  * @param {String} taskTitle - Title of the task
@@ -2415,6 +2462,7 @@ export {
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
+    updateOptimisticParentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsByLoginList,
