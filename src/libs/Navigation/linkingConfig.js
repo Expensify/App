@@ -14,6 +14,7 @@ export default {
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
             AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
+            [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -128,6 +129,9 @@ export default {
                             },
                             Settings_ContactMethodDetails: {
                                 path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS,
+                            },
+                            Settings_Lounge_Access: {
+                                path: ROUTES.SETTINGS_LOUNGE_ACCESS,
                             },
                             Settings_NewContactMethod: {
                                 path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,

@@ -10,7 +10,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import * as IOU from '../../../libs/actions/IOU';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -196,14 +195,8 @@ function MoneyRequestConfirmPage(props) {
                         iouAmount={props.iou.amount}
                         iouComment={props.iou.comment}
                         iouCurrencyCode={props.iou.currency}
-                        onConfirm={(selectedParticipants) => {
-                            createTransaction(selectedParticipants);
-                            ReportScrollManager.scrollToBottom();
-                        }}
-                        onSendMoney={(paymentMethodType) => {
-                            sendMoney(paymentMethodType);
-                            ReportScrollManager.scrollToBottom();
-                        }}
+                        onConfirm={createTransaction}
+                        onSendMoney={sendMoney}
                         onSelectParticipant={(option) => {
                             const newParticipants = _.map(props.iou.participants, (participant) => {
                                 if (participant.accountID === option.accountID) {

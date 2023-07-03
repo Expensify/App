@@ -73,10 +73,6 @@ function ReportDetailsPage(props) {
     const participants = useMemo(() => lodashGet(props.report, 'participantAccountIDs', []), [props.report]);
 
     const menuItems = useMemo(() => {
-        if (isArchivedRoom) {
-            return [];
-        }
-
         const items = [
             {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
@@ -85,6 +81,10 @@ function ReportDetailsPage(props) {
                 action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(props.report.reportID)),
             },
         ];
+
+        if (isArchivedRoom) {
+            return items;
+        }
 
         if (participants.length) {
             items.push({

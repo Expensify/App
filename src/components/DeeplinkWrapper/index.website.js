@@ -9,6 +9,7 @@ import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Authentication from '../../libs/Authentication';
 import DeeplinkRedirectLoadingIndicator from './DeeplinkRedirectLoadingIndicator';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Children to render. */
@@ -56,6 +57,11 @@ class DeeplinkWrapper extends PureComponent {
         const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
         const params = new URLSearchParams();
         params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
+
+        // There's no support for anonymous users on desktop
+        if (Session.isAnonymousUser()) {
+            return;
+        }
 
         Authentication.getShortLivedAuthToken()
             .then((shortLivedAuthToken) => {
