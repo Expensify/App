@@ -148,17 +148,17 @@ function SignInPage({credentials, account}) {
         Log.warn('SignInPage in unexpected state!');
     }
 
-        return (
-            // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
-            // The SVG should flow under the Home Indicator on iOS.
-            <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...this.props.insets, bottom: 0}, 1)]}>
-                <SignInPageLayout
-                    welcomeHeader={welcomeHeader}
-                    welcomeText={welcomeText}
-                    shouldShowWelcomeHeader={showLoginForm || showPasswordForm || showValidateCodeForm || showUnlinkLoginForm || !this.props.isSmallScreenWidth}
-                    shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm}
-                >
-                    {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
+    return (
+        // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
+        // The SVG should flow under the Home Indicator on iOS.
+        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0}, 1)]}>
+            <SignInPageLayout
+                welcomeHeader={welcomeHeader}
+                welcomeText={welcomeText}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
+                shouldShowWelcomeText={shouldShowWelcomeText}
+            >
+                {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering these components will break this feature. */}
                 <LoginForm
                     isVisible={shouldShowLoginForm}
