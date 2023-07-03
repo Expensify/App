@@ -20,6 +20,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import * as ReportUtils from './ReportUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -218,14 +219,16 @@ function canEditReportAction(reportAction) {
  * - It's an ADDCOMMENT that is not an attachment
  *
  * @param {Object} reportAction
+ * @param {number} reportID
  * @returns {Boolean}
  */
-function canFlagReportAction(reportAction) {
+function canFlagReportAction(reportAction, reportID) {
     return (
         !loginList.includes(reportAction.actorEmail) &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        ReportUtils.isAllowedToComment(ReportUtils.getReport(reportID))
     );
 }
 
