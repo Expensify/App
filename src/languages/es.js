@@ -1303,6 +1303,7 @@ export default {
             completed: 'tarea completada',
             canceled: 'tarea cancelada',
             reopened: 'tarea reabrir',
+            error: 'No tiene permiso para realizar la acción solicitada.',
         },
     },
     statementPage: {

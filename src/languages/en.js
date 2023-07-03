@@ -1294,6 +1294,7 @@ export default {
             completed: 'completed task',
             canceled: 'canceled task',
             reopened: 'reopened task',
+            error: 'You do not have the permission to do the requested action.',
         },
     },
     statementPage: {
