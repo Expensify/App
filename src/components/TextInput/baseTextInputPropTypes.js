@@ -85,6 +85,9 @@ const propTypes = {
 
     /** Set the default value to the input if there is a valid saved value */
     shouldUseDefaultValue: PropTypes.bool,
+
+    /** Indicate whether input should wait until getting calculated width based on value */
+    shouldWaitWidthCalculation: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -121,6 +124,7 @@ const defaultProps = {
     icon: null,
     shouldUseDefaultValue: false,
     multiline: false,
+    shouldWaitWidthCalculation: false,
 };
 
 export {propTypes, defaultProps};

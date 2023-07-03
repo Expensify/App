@@ -4,6 +4,7 @@ import styles from '../../styles/styles';
 import * as styleConst from './styleConst';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
+import * as BrowserUtils from '../../libs/Browser';
 
 class TextInput extends React.Component {
     componentDidMount() {
@@ -28,6 +29,7 @@ class TextInput extends React.Component {
             <BaseTextInput
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
+                shouldWaitWidthCalculation={BrowserUtils.isMobile()}
                 innerRef={(el) => {
                     this.textInput = el;
                     if (!this.props.innerRef) {

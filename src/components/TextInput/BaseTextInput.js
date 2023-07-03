@@ -42,6 +42,7 @@ class BaseTextInput extends Component {
 
             // Value should be kept in state for the autoGrow feature to work - https://github.com/Expensify/App/pull/8232#issuecomment-1077282006
             value,
+            hiddenInputValue: value,
         };
 
         this.input = null;
@@ -72,11 +73,21 @@ class BaseTextInput extends Component {
         this.input.focus();
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         // Activate or deactivate the label when value is changed programmatically from outside
         const inputValue = _.isUndefined(this.props.value) ? this.input.value : this.props.value;
         if ((_.isUndefined(inputValue) || this.state.value === inputValue) && _.isEqual(prevProps.selection, this.props.selection)) {
             return;
+        }
+
+        if (this.props.autoGrow && this.props.shouldWaitWidthCalculation) {
+            if (inputValue !== this.state.hiddenInputValue) {
+                this.setState({hiddenInputValue: inputValue, selection: this.props.selection});
+            }
+
+            if (prevState.textInputWidth === this.state.textInputWidth) {
+                return;
+            }
         }
 
         // eslint-disable-next-line react/no-did-update-set-state
@@ -151,7 +162,9 @@ class BaseTextInput extends Component {
         if (this.props.onInputChange) {
             this.props.onInputChange(value);
         }
-        this.setState({value});
+        if (!this.props.autoGrow || !this.props.shouldWaitWidthCalculation) {
+            this.setState({value});
+        }
         Str.result(this.props.onChangeText, value);
         this.activateLabel();
     }
@@ -226,6 +239,8 @@ class BaseTextInput extends Component {
             {},
         );
         const isMultiline = this.props.multiline || this.props.autoGrowHeight;
+        const inputValue = this.state.value || this.props.placeholder;
+        const hiddenInputValue = this.state.hiddenInputValue || this.props.placeholder;
 
         return (
             <>
@@ -389,9 +404,14 @@ class BaseTextInput extends Component {
                             styles.hiddenElementOutsideOfWindow,
                             styles.visibilityHidden,
                         ]}
-                        onLayout={(e) => this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height})}
+                        onLayout={(e) =>
+                            this.setState({textInputWidth: e.nativeEvent.layout.width + 2, textInputHeight: e.nativeEvent.layout.height}, () => {
+                                if (!this.props.shouldWaitWidthCalculation) return;
+                                this.setState((prevState) => ({value: prevState.hiddenInputValue, selection: this.props.selection}));
+                            })
+                        }
                     >
-                        {this.state.value || this.props.placeholder}
+                        {this.props.autoGrowHeight || !this.props.shouldWaitWidthCalculation ? inputValue : hiddenInputValue}
                     </Text>
                 )}
             </>
