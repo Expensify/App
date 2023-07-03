@@ -35,6 +35,7 @@ class BaseTextInput extends Component {
             labelScale: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE),
             passwordHidden: props.secureTextEntry,
             textInputWidth: 0,
+            textInputHeight: 0,
             prefixWidth: 0,
             selection: props.selection,
             height: variables.componentSizeLarge,

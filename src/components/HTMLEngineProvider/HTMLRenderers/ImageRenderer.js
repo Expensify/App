@@ -1,6 +1,6 @@
 import React from 'react';
+import Navigation from '../../../libs/Navigation/Navigation';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
-import AttachmentModal from '../../AttachmentModal';
 import styles from '../../../styles/styles';
 import ThumbnailImage from '../../ThumbnailImage';
 import PressableWithoutFocus from '../../Pressable/PressableWithoutFocus';
@@ -9,6 +9,7 @@ import {ShowContextMenuContext, showContextMenuForReport} from '../../ShowContex
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {...htmlRendererPropTypes, ...withLocalizePropTypes};
 
@@ -33,7 +34,6 @@ function ImageRenderer(props) {
     //           control and thus require no authToken to verify access.
     //
     const isAttachment = Boolean(htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
-    const originalFileName = htmlAttribs['data-name'];
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
     const previewSource = tryResolveUrlFromApiRoot(htmlAttribs.src);
@@ -54,31 +54,24 @@ function ImageRenderer(props) {
     ) : (
         <ShowContextMenuContext.Consumer>
             {({anchor, report, action, checkIfContextMenuActive}) => (
-                <AttachmentModal
-                    allowDownload
-                    report={report}
-                    source={source}
-                    isAuthTokenRequired={isAttachment}
-                    originalFileName={originalFileName}
+                <PressableWithoutFocus
+                    style={[styles.noOutline]}
+                    onPress={() => {
+                        const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
+                        Navigation.navigate(route);
+                    }}
+                    onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    accessibilityRole="imagebutton"
+                    accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
                 >
-                    {({show}) => (
-                        <PressableWithoutFocus
-                            style={[styles.noOutline]}
-                            onPress={show}
-                            onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
-                            accessibilityRole="imagebutton"
-                            accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
-                        >
-                            <ThumbnailImage
-                                previewSourceURL={previewSource}
-                                style={styles.webViewStyles.tagStyles.img}
-                                isAuthTokenRequired={isAttachment}
-                                imageWidth={imageWidth}
-                                imageHeight={imageHeight}
-                            />
-                        </PressableWithoutFocus>
-                    )}
-                </AttachmentModal>
+                    <ThumbnailImage
+                        previewSourceURL={previewSource}
+                        style={styles.webViewStyles.tagStyles.img}
+                        isAuthTokenRequired={isAttachment}
+                        imageWidth={imageWidth}
+                        imageHeight={imageHeight}
+                    />
+                </PressableWithoutFocus>
             )}
         </ShowContextMenuContext.Consumer>
     );
