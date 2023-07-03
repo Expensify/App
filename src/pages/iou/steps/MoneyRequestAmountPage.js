@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -168,16 +168,15 @@ const replaceAllDigits = (text, convertFn) =>
         .value();
 
 function MoneyRequestAmountPage(props) {
-    const route = useRoute();
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
     const prevMoneyRequestId = useRef(lodashGet(props.iou, 'id', ''));
     const prevProps = useRef(props);
     const textInput = useRef(null);
-    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
-    const isEditing = useRef(lodashGet(route, 'path', '').includes('amount'));
+    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(() => props.iou.currency);
@@ -249,7 +248,7 @@ function MoneyRequestAmountPage(props) {
     useEffect(() => {
         if (isEditing.current) {
             // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-            if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || prevMoneyRequestId !== props.iou.id) {
+            if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || prevMoneyRequestId.current !== props.iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
                 if (props.iou.id) {
                     Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
@@ -258,7 +257,7 @@ function MoneyRequestAmountPage(props) {
             }
         }
 
-        const currencyParam = lodashGet(route.params, 'currency', '');
+        const currencyParam = lodashGet(props.route.params, 'currency', '');
         const prevCurrencyParam = lodashGet(prevProps.current.route.params, 'currency', '');
         if (currencyParam !== '' && prevCurrencyParam !== currencyParam) {
             setSelectedCurrencyCode(currencyParam);
@@ -272,7 +271,7 @@ function MoneyRequestAmountPage(props) {
             prevProps.current = props;
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props, route]);
+    }, [props, props.route]);
 
     useEffect(() => {
         const selectedAmountAsStringForState = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
@@ -315,26 +314,29 @@ function MoneyRequestAmountPage(props) {
      *
      * @param {String} key
      */
-    const updateAmountNumberPad = (key) => {
-        if (shouldUpdateSelection && !textInput.current.isFocused()) {
-            textInput.current.focus();
-        }
-        // Backspace button is pressed
-        if (key === '<' || key === 'Backspace') {
-            if (amount.length > 0) {
-                const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
-                const newAmount = `${amount.substring(0, selectionStart)}${amount.substring(selection.end)}`;
-                const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
-                setAmount(amountValueForState);
-                setSelection(selectionValueForState);
+    const updateAmountNumberPad = useCallback(
+        (key) => {
+            if (shouldUpdateSelection && !textInput.current.isFocused()) {
+                textInput.current.focus();
             }
-            return;
-        }
-        const newAmount = addLeadingZero(`${amount.substring(0, selection.start)}${key}${amount.substring(selection.end)}`);
-        const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
-        setAmount(amountValueForState);
-        setSelection(selectionValueForState);
-    };
+            // Backspace button is pressed
+            if (key === '<' || key === 'Backspace') {
+                if (amount.length > 0) {
+                    const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
+                    const newAmount = `${amount.substring(0, selectionStart)}${amount.substring(selection.end)}`;
+                    const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
+                    setAmount(amountValueForState);
+                    setSelection(selectionValueForState);
+                }
+                return;
+            }
+            const newAmount = addLeadingZero(`${amount.substring(0, selection.start)}${key}${amount.substring(selection.end)}`);
+            const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
+            setAmount(amountValueForState);
+            setSelection(selectionValueForState);
+        },
+        [amount, selection, shouldUpdateSelection],
+    );
 
     /**
      * Update long press value, to remove items pressing on <
