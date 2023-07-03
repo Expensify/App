@@ -620,9 +620,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
-                [optimisticReportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
-                },
+                [optimisticReportActionID]: null,
             },
         },
     ];
