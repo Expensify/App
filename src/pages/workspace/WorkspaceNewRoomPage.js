@@ -129,9 +129,15 @@ function WorkspaceNewRoomPage(props) {
         [translate],
     );
 
-    if (!Permissions.canUsePolicyRooms(props.betas)) {
+    useEffect(() => {
+        if (Permissions.canUsePolicyRooms(props.betas)) {
+            return;
+        }
         Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
         Navigation.dismissModal();
+    }, [props.betas]);
+
+    if (!Permissions.canUsePolicyRooms(props.betas)) {
         return null;
     }
 
