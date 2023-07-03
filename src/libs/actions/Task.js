@@ -551,8 +551,9 @@ function getAssignee(details) {
  * */
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
+    const personalDetail = personalDetails[0] || {};
     return {
-        icons: ReportUtils.getIcons(report, personalDetails),
+        icons: ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), true),
         displayName: ReportUtils.getReportName(report),
         subtitle: ReportUtils.getChatRoomSubtitle(report),
     };
