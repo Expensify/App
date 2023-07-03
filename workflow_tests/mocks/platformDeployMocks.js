@@ -5,17 +5,17 @@ const PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__TEAM_MEMBER__STEP_MO
     'Check if user is deployer',
     'Checking if the user is a deployer',
     'VALIDATE_ACTOR',
-    ['GITHUB_TOKEN', 'username', 'team'],
-    null,
-    {isTeamMember: true},
+    [],
+    ['GITHUB_TOKEN'],
+    {IS_DEPLOYER: true},
 );
 const PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__OUTSIDER__STEP_MOCK = utils.createMockStep(
     'Check if user is deployer',
     'Checking if the user is a deployer',
     'VALIDATE_ACTOR',
-    ['GITHUB_TOKEN', 'username', 'team'],
-    null,
-    {isTeamMember: false},
+    [],
+    ['GITHUB_TOKEN'],
+    {IS_DEPLOYER: false},
 );
 const PLATFORM_DEPLOY__VALIDATE_ACTOR__TEAM_MEMBER__STEP_MOCKS = [PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__TEAM_MEMBER__STEP_MOCK];
 const PLATFORM_DEPLOY__VALIDATE_ACTOR__OUTSIDER__STEP_MOCKS = [PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__OUTSIDER__STEP_MOCK];
@@ -144,7 +144,8 @@ const PLATFORM_DEPLOY__WEB__AWS_CREDENTIALS__STEP_MOCK = utils.createMockStep('C
 ]);
 const PLATFORM_DEPLOY__WEB__BUILD_PRODUCTION__STEP_MOCK = utils.createMockStep('Build web for production', 'Building web for production', 'WEB');
 const PLATFORM_DEPLOY__WEB__BUILD_STAGING__STEP_MOCK = utils.createMockStep('Build web for staging', 'Building web for staging', 'WEB');
-const PLATFORM_DEPLOY__WEB__BUILD_DOCS__STEP_MOCK = utils.createMockStep('Build docs', 'Building docs', 'WEB');
+const PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_PRODUCTION__STEP_MOCK = utils.createMockStep('Build storybook docs for production', 'Build storybook docs for production', 'WEB');
+const PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_STAGING__STEP_MOCK = utils.createMockStep('Build storybook docs for staging', 'Build storybook docs for staging', 'WEB');
 const PLATFORM_DEPLOY__WEB__DEPLOY_PRODUCTION_S3__STEP_MOCK = utils.createMockStep('Deploy production to S3', 'Deploying production to S3', 'WEB');
 const PLATFORM_DEPLOY__WEB__DEPLOY_STAGING_S3__STEP_MOCK = utils.createMockStep('Deploy staging to S3', 'Deploying staging to S3', 'WEB');
 const PLATFORM_DEPLOY__WEB__PURGE_PRODUCTION_CACHE__STEP_MOCK = utils.createMockStep('Purge production Cloudflare cache', 'Purging production Cloudflare cache', 'WEB', null, ['CF_API_KEY']);
@@ -156,7 +157,8 @@ const PLATFORM_DEPLOY__WEB__STEP_MOCKS = [
     PLATFORM_DEPLOY__WEB__AWS_CREDENTIALS__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__BUILD_PRODUCTION__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__BUILD_STAGING__STEP_MOCK,
-    PLATFORM_DEPLOY__WEB__BUILD_DOCS__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_PRODUCTION__STEP_MOCK,
+    PLATFORM_DEPLOY__WEB__BUILD_STORYBOOK_DOCS_FOR_STAGING__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__DEPLOY_PRODUCTION_S3__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__DEPLOY_STAGING_S3__STEP_MOCK,
     PLATFORM_DEPLOY__WEB__PURGE_PRODUCTION_CACHE__STEP_MOCK,

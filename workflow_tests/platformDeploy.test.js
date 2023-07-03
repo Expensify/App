@@ -83,6 +83,8 @@ describe('test workflow platformDeploy', () => {
                     {
                         desktop: 'ubuntu-latest',
                         iOS: 'ubuntu-latest',
+                        android: 'ubuntu-latest',
+                        web: 'ubuntu-latest',
                     },
                     workflowPath,
                 );
@@ -155,6 +157,8 @@ describe('test workflow platformDeploy', () => {
                     {
                         desktop: 'ubuntu-latest',
                         iOS: 'ubuntu-latest',
+                        android: 'ubuntu-latest',
+                        web: 'ubuntu-latest',
                     },
                     workflowPath,
                 );
@@ -227,6 +231,8 @@ describe('test workflow platformDeploy', () => {
                     {
                         desktop: 'ubuntu-latest',
                         iOS: 'ubuntu-latest',
+                        android: 'ubuntu-latest',
+                        web: 'ubuntu-latest',
                     },
                     workflowPath,
                 );

@@ -1,13 +1,7 @@
 const utils = require('../utils/utils');
 
 const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = true) => {
-    const steps = [
-        utils.createStepAssertion('Check if user is deployer', true, null, 'VALIDATE_ACTOR', 'Checking if the user is a deployer', [
-            {key: 'GITHUB_TOKEN', value: '***'},
-            {key: 'username', value: username},
-            {key: 'team', value: 'mobile-deployers'},
-        ]),
-    ];
+    const steps = [utils.createStepAssertion('Check if user is deployer', true, null, 'VALIDATE_ACTOR', 'Checking if the user is a deployer', [], [{key: 'GITHUB_TOKEN', value: '***'}])];
 
     steps.forEach((expectedStep) => {
         if (didExecute) {
@@ -212,18 +206,16 @@ const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = 
         ]),
     ];
     if (isProduction) {
-        steps.push(utils.createStepAssertion('Build web for production', true, null, 'WEB', 'Building web for production'));
-    } else {
-        steps.push(utils.createStepAssertion('Build web for staging', true, null, 'WEB', 'Building web for staging'));
-    }
-    steps.push(utils.createStepAssertion('Build docs', true, null, 'WEB', 'Building docs'));
-    if (isProduction) {
         steps.push(
+            utils.createStepAssertion('Build web for production', true, null, 'WEB', 'Building web for production'),
+            utils.createStepAssertion('Build storybook docs for production', true, null, 'WEB', 'Build storybook docs for production'),
             utils.createStepAssertion('Deploy production to S3', true, null, 'WEB', 'Deploying production to S3'),
             utils.createStepAssertion('Purge production Cloudflare cache', true, null, 'WEB', 'Purging production Cloudflare cache', null, [{key: 'CF_API_KEY', value: '***'}]),
         );
     } else {
         steps.push(
+            utils.createStepAssertion('Build web for staging', true, null, 'WEB', 'Building web for staging'),
+            utils.createStepAssertion('Build storybook docs for staging', true, null, 'WEB', 'Build storybook docs for staging'),
             utils.createStepAssertion('Deploy staging to S3', true, null, 'WEB', 'Deploying staging to S3'),
             utils.createStepAssertion('Purge staging Cloudflare cache', true, null, 'WEB', 'Purging staging Cloudflare cache', null, [{key: 'CF_API_KEY', value: '***'}]),
         );
