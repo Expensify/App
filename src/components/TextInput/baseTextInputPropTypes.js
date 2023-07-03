@@ -40,10 +40,18 @@ const propTypes = {
     /** Disable the virtual keyboard  */
     disableKeyboard: PropTypes.bool,
 
-    /** Autogrow input container length based on the entered text  */
+    /**
+     * Autogrow input container length based on the entered text.
+     * Note: If you use this prop, the text input has to be controlled
+     * by a value prop.
+     */
     autoGrow: PropTypes.bool,
 
-    /** Autogrow input container height based on the entered text  */
+    /**
+     * Autogrow input container height based on the entered text
+     * Note: If you use this prop, the text input has to be controlled
+     * by a value prop.
+     */
     autoGrowHeight: PropTypes.bool,
 
     /** Hide the focus styles on TextInput */

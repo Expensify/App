@@ -93,10 +93,7 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (!_.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
-            this.updateOptionsWithSearchTerm(this.props.searchTerm);
-        }
-        if (!_.isEqual(prevProps.policyMembers, this.props.policyMembers)) {
+        if (!_.isEqual(prevProps.personalDetails, this.props.personalDetails) || !_.isEqual(prevProps.policyMembers, this.props.policyMembers)) {
             this.updateOptionsWithSearchTerm(this.state.searchTerm);
         }
 
@@ -176,10 +173,23 @@ class WorkspaceInvitePage extends React.Component {
 
     updateOptionsWithSearchTerm(searchTerm = '') {
         const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, searchTerm, this.getExcludedUsers());
+
+        // Update selectedOptions with the latest personalDetails and policyMembers information
+        const detailsMap = {};
+        _.forEach(personalDetails, (detail) => (detailsMap[detail.login] = detail));
+        const selectedOptions = [];
+        _.forEach(this.state.selectedOptions, (option) => {
+            if (!_.has(detailsMap, option.login)) {
+                return;
+            }
+            selectedOptions.push(detailsMap[option.login]);
+        });
+
         this.setState({
             searchTerm,
             userToInvite,
             personalDetails,
+            selectedOptions,
         });
     }
 

@@ -59,7 +59,12 @@ function MoneyRequestHeader(props) {
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer =
-        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'email', null) === moneyRequestReport.managerEmail);
+        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
+    const report = props.report;
+    if (props.isSingleTransactionView) {
+        report.ownerAccountID = lodashGet(props, ['parentReport', ''], null);
+        report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
+    }
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithBackButton
@@ -74,7 +79,7 @@ function MoneyRequestHeader(props) {
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={props.report}
+                report={report}
                 parentReport={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}

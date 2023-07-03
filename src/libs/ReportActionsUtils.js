@@ -248,6 +248,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
 
+    // Do not group if the delegate account ID is different
+    if (previousAction.delegateAccountID !== currentAction.delegateAccountID) {
+        return false;
+    }
+
     return currentAction.actorEmail === previousAction.actorEmail;
 }
 
@@ -426,6 +431,16 @@ function getLinkedTransactionID(reportID, reportActionID) {
 }
 
 /**
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {Object}
+ */
+function getReportAction(reportID, reportActionID) {
+    return lodashGet(allReportActions, [reportID, reportActionID], {});
+}
+
+/**
  * @param {*} chatReportID
  * @param {*} iouReportID
  * @returns {Object} The report preview action or `null` if one couldn't be found
@@ -462,7 +477,7 @@ function isMessageDeleted(reportAction) {
 }
 
 function isWhisperAction(action) {
-    return (action.whisperedTo || []).length > 0;
+    return (action.whisperedToAccountIDs || []).length > 0;
 }
 
 export {
@@ -492,4 +507,5 @@ export {
     isMessageDeleted,
     isWhisperAction,
     isPendingRemove,
+    getReportAction,
 };
