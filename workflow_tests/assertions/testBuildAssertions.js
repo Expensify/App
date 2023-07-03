@@ -1,20 +1,8 @@
 const utils = require('../utils/utils');
 
-const assertValidateActorJobExecuted = (workflowResult, actor = 'Dummy Actor', pullRequestNumber = '1234', didExecute = true) => {
+const assertValidateActorJobExecuted = (workflowResult, pullRequestNumber = '1234', didExecute = true) => {
     const steps = [
-        utils.createStepAssertion(
-            'Is team member',
-            true,
-            null,
-            'VALIDATEACTOR',
-            'Is team member',
-            [
-                {key: 'GITHUB_TOKEN', value: '***'},
-                {key: 'username', value: actor},
-                {key: 'team', value: 'Expensify/expensify'},
-            ],
-            [],
-        ),
+        utils.createStepAssertion('Is Expensify employee', true, null, 'VALIDATEACTOR', 'Is Expensify employee', [], [{key: 'GITHUB_TOKEN', value: '***'}]),
         utils.createStepAssertion(
             'Set HAS_READY_TO_BUILD_LABEL flag',
             true,

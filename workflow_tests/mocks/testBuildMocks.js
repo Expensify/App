@@ -1,11 +1,11 @@
 const utils = require('../utils/utils');
 
 // validateactor
-const TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__TRUE__STEP_MOCK = utils.createMockStep('Is team member', 'Is team member', 'VALIDATEACTOR', ['GITHUB_TOKEN', 'username', 'team'], [], {
-    isTeamMember: true,
+const TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__TRUE__STEP_MOCK = utils.createMockStep('Is Expensify employee', 'Is Expensify employee', 'VALIDATEACTOR', [], ['GITHUB_TOKEN'], {
+    IS_EXPENSIFY_EMPLOYEE: true,
 });
-const TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__FALSE__STEP_MOCK = utils.createMockStep('Is team member', 'Is team member', 'VALIDATEACTOR', ['GITHUB_TOKEN', 'username', 'team'], [], {
-    isTeamMember: false,
+const TESTBUILD__VALIDATEACTOR__IS_TEAM_MEMBER__FALSE__STEP_MOCK = utils.createMockStep('Is Expensify employee', 'Is Expensify employee', 'VALIDATEACTOR', [], ['GITHUB_TOKEN'], {
+    IS_EXPENSIFY_EMPLOYEE: false,
 });
 const TESTBUILD__VALIDATEACTOR__SET_HAS_READY_TO_BUILD_LABEL_FLAG__TRUE__STEP_MOCK = utils.createMockStep(
     'Set HAS_READY_TO_BUILD_LABEL flag',
