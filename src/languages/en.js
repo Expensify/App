@@ -391,6 +391,7 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
+        viewPhoto: 'View photo',
         imageUploadFailed: 'Image upload failed',
         deleteWorkspaceError: 'Sorry, there was an unexpected problem deleting your workspace avatar.',
         sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
@@ -411,6 +412,7 @@ export default {
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',
+        profileAvatar: 'Profile avatar',
     },
     loungeAccessPage: {
         loungeAccess: 'Lounge access',
@@ -1090,6 +1092,7 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}) => `Go to ${roomName} room`,
+            workspaceAvatar: 'Workspace avatar',
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
