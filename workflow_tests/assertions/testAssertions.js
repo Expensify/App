@@ -40,7 +40,7 @@ const assertShellTestsJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         utils.createStepAssertion('Checkout', true, null, 'SHELLTESTS', 'Checkout', [], []),
         utils.createStepAssertion('Setup Node', true, null, 'SHELLTESTS', 'Setup Node', [], []),
-        utils.createStepAssertion('getPullRequestsMergedBetween', true, null, 'SHELLTESTS', 'getPullRequestsMergedBetween', [], []),
+        utils.createStepAssertion('Test CI git logic', true, null, 'SHELLTESTS', 'Test CI git logic', [], []),
     ];
 
     steps.forEach((expectedStep) => {
