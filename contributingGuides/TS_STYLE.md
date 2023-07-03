@@ -416,7 +416,7 @@ export default Report;
 
 - I think types definitions in a third party library is incomplete or incorrect
 
-When the library indeed contains incorrect type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `global.d.ts`.
+When the library indeed contains incorrect type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/global.d.ts`.
 
 ```ts
 declare module "external-library-name" {
