@@ -171,7 +171,7 @@ function MoneyRequestConfirmationList(props) {
             });
         }
         return sections;
-    }, [selectedParticipants, getParticipantsWithAmount, props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, props.participants, translate, payeePersonalDetails]);
+    }, [props.participants, props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, getParticipantsWithAmount, selectedParticipants, payeePersonalDetails, translate, canModifyParticipants]);
 
     const selectedOptions = useMemo(() => {
         if (!props.hasMultipleParticipants) {
