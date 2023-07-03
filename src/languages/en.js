@@ -560,7 +560,6 @@ export default {
         stepSuccess: 'Finished',
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
-        copyCodes: 'Copy codes',
         copy: 'Copy',
         disable: 'Disable',
     },
@@ -595,7 +594,7 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Please enter a valid name',
+            invalidName: 'Name can only include latin letters and numbers.',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -707,6 +706,7 @@ export default {
         enterAuthenticatorCode: 'Please enter your authenticator code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: 'Request a new code in ',
+        requestNewCodeAfterErrorOccurred: 'Request a new code',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
@@ -1424,7 +1424,7 @@ export default {
         lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
-        from: 'From',
+        parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copyUrlToClipboard: 'Copy URL to clipboard',
