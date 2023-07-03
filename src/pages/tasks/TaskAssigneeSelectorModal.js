@@ -95,13 +95,12 @@ function TaskAssigneeSelectorModal(props) {
         setFilteredCurrentUserOption(currentUserOption);
     }, [props, searchValue]);
 
-
     useEffect(() => {
         const debouncedSearch = _.debounce(updateOptions, 200);
         debouncedSearch();
         return () => {
             debouncedSearch.cancel();
-        }
+        };
     }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
