@@ -1,6 +1,6 @@
 import * as React from 'react';
 import _ from 'underscore';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import SCREENS from '../../../../SCREENS';
 import themeColors from '../../../../styles/themes/default';
@@ -9,6 +9,8 @@ import * as StyleUtils from '../../../../styles/StyleUtils';
 import {withNavigationPropTypes} from '../../../../components/withNavigation';
 import styles from '../../../../styles/styles';
 import CONST from '../../../../CONST';
+import PressableWithoutFeedback from '../../../../components/Pressable/PressableWithoutFeedback';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 
 const propTypes = {
     /* State from useNavigationBuilder */
@@ -20,6 +22,7 @@ const propTypes = {
     descriptors: PropTypes.object.isRequired,
 
     ...withNavigationPropTypes,
+    ...withLocalizePropTypes,
 };
 
 function ThreePaneView(props) {
@@ -61,9 +64,11 @@ function ThreePaneView(props) {
                                 StyleUtils.displayIfTrue(props.state.index === i),
                             ]}
                         >
-                            <Pressable
+                            <PressableWithoutFeedback
                                 style={[styles.flex1]}
                                 onPress={() => props.navigation.goBack()}
+                                accessibilityLabel={props.translate('common.close')}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             />
                             <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
                         </View>
@@ -85,4 +90,4 @@ function ThreePaneView(props) {
 ThreePaneView.propTypes = propTypes;
 ThreePaneView.displayName = 'ThreePaneView';
 
-export default ThreePaneView;
+export default withLocalize(ThreePaneView);
