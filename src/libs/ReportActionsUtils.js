@@ -426,7 +426,7 @@ function getLinkedTransactionID(reportID, reportActionID) {
 }
 
 /**
- * 
+ *
  * @param {String} reportID
  * @param {String} reportActionID
  * @returns {Object}
