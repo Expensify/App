@@ -123,6 +123,12 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 ...(isNewChatReport ? {[chatCreatedAction.reportActionID]: chatCreatedAction} : {}),
+            },
+        },
+        {
+            onyxMethod:Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
             },
         },
@@ -651,9 +657,17 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             },
         };
 
+        let isNewOneOnOneReportPreviewAction = false;
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
-        const isNewOneOnOneReportPreviewAction = Boolean(!oneOnOneReportPreviewAction);
-        oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, oneOnOneReportPreviewAction);
+        if (oneOnOneReportPreviewAction) {
+            oneOnOneReportPreviewAction.created = DateUtils.getDBTime();
+            const message = ReportUtils.getReportPreviewMessage(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction.message.html = message;
+            oneOnOneReportPreviewAction.message.text = message;
+        } else {
+            isNewOneOnOneReportPreviewAction = true;
+            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
+        }
 
         // STEP 5: Build Onyx Data
         const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
@@ -975,13 +989,10 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [reportPreviewAction.reportActionID]: {
-                    ...reportPreviewAction,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
             },
         },
     ];
@@ -1077,26 +1088,15 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         // Add an optimistic created action to the optimistic reportActions data
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
     } else {
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
-                value: {
-                    [optimisticIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
-                    },
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
                 },
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: {
-                    [reportPreviewAction.reportActionID]: {
-                        created: reportPreviewAction.created,
-                    },
-                },
-            },
-        );
+        });
     }
 
     const optimisticData = [optimisticChatReportData, optimisticIOUReportData, ...optimisticReportActionsData, optimisticTransactionData];
@@ -1179,7 +1179,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
