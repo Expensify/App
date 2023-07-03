@@ -6,8 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import withLocalize from '../../components/withLocalize';
-import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
@@ -19,6 +17,7 @@ import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as PlaidDataProps from './plaidDataPropTypes';
 import StepPropTypes from './StepPropTypes';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     ...StepPropTypes,
@@ -41,6 +40,7 @@ const defaultProps = {
 
 function BankAccountPlaidStep(props) {
     const {plaidData, receivedRedirectURI, plaidLinkOAuthToken} = props;
+    const {translate} = useLocalize();
 
     const validate = useCallback((values) => {
         const errorFields = {};
@@ -81,7 +81,7 @@ function BankAccountPlaidStep(props) {
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton
-                title={props.translate('workspace.common.connectBankAccount')}
+                title={translate('workspace.common.connectBankAccount')}
                 stepCounter={{step: 1, total: 5}}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
@@ -92,12 +92,12 @@ function BankAccountPlaidStep(props) {
                 validate={validate}
                 onSubmit={submit}
                 scrollContextEnabled
-                submitButtonText={props.translate('common.saveAndContinue')}
+                submitButtonText={translate('common.saveAndContinue')}
                 style={[styles.mh5, styles.flexGrow1]}
                 isSubmitButtonVisible={Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(plaidData, 'bankAccounts'))}
             >
                 <AddPlaidBankAccount
-                    text={props.translate('bankAccount.plaidBodyCopy')}
+                    text={translate('bankAccount.plaidBodyCopy')}
                     onSelect={(plaidAccountID) => {
                         ReimbursementAccount.updateReimbursementAccountDraft({plaidAccountID});
                     }}
@@ -111,13 +111,13 @@ function BankAccountPlaidStep(props) {
                 />
                 {Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(plaidData, 'bankAccounts')) && (
                     <CheckboxWithLabel
-                        accessibilityLabel={`${props.translate('common.iAcceptThe')} ${props.translate('common.expensifyTermsOfService')}`}
+                        accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                         style={styles.mt4}
                         inputID="acceptTerms"
                         LabelComponent={() => (
                             <Text>
-                                {props.translate('common.iAcceptThe')}
-                                <TextLink href={CONST.TERMS_URL}>{props.translate('common.expensifyTermsOfService')}</TextLink>
+                                {translate('common.iAcceptThe')}
+                                <TextLink href={CONST.TERMS_URL}>{translate('common.expensifyTermsOfService')}</TextLink>
                             </Text>
                         )}
                         defaultValue={props.getDefaultStateForField('acceptTerms', false)}
@@ -132,11 +132,8 @@ function BankAccountPlaidStep(props) {
 BankAccountPlaidStep.propTypes = propTypes;
 BankAccountPlaidStep.defaultProps = defaultProps;
 BankAccountPlaidStep.displayName = 'BankAccountPlaidStep';
-export default compose(
-    withLocalize,
-    withOnyx({
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
-        },
-    }),
-)(BankAccountPlaidStep);
+export default withOnyx({
+    plaidData: {
+        key: ONYXKEYS.PLAID_DATA,
+    },
+})(BankAccountPlaidStep);
