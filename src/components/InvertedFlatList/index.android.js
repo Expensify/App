@@ -13,7 +13,8 @@ const propTypes = {
     }).isRequired,
 
     /** The style of the footer of the list */
-    ListFooterComponentStyle: stylePropTypes,
+    // eslint-disable-next-line react/forbid-prop-types
+    ListFooterComponentStyle: PropTypes.any,
 };
 
 const defaultProps = {
