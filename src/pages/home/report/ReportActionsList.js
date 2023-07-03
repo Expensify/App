@@ -176,7 +176,7 @@ function ReportActionsList(props) {
                 initialNumToRender={calculateInitialNumToRender()}
                 onEndReached={props.loadMoreChats}
                 onEndReachedThreshold={0.75}
-                ListFooterComponentStyle={showMoneyRequestDetails && styles.chatFooterAtTheTop}
+                ListFooterComponentStyle={showMoneyRequestDetails ? styles.chatFooterAtTheTop : {}}
                 ListFooterComponent={() => {
                     if (props.report.isLoadingMoreReportActions) {
                         return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;

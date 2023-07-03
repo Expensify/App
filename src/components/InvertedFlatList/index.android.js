@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import styles from '../../styles/styles';
+import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** Passed via forwardRef so we can access the FlatList ref */
@@ -12,8 +13,7 @@ const propTypes = {
     }).isRequired,
 
     /** The style of the footer of the list */
-    // eslint-disable-next-line react/forbid-prop-types
-    ListFooterComponentStyle: PropTypes.any,
+    ListFooterComponentStyle: stylePropTypes,
 };
 
 const defaultProps = {
