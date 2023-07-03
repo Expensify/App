@@ -23,6 +23,7 @@
   - [1.14 Export Prop Types](#export-prop-types)
   - [1.15 File Organization](#file-organization)
   - [1.16 Reusable Types](#reusable-types)
+  - [1.17 `.tsx`](#tsx)
 - [Communication Items](#items)
 - [Migration Guidelines](#migration-guidelines)
 
@@ -409,6 +410,12 @@ type Report = {...};
 
 export default Report;
 ```
+
+<a name="tsx"></a><a name="1.17"></a>
+
+- [1.17](#tsx) **tsx** Use `.tsx` extension for files that contain React syntax.
+
+> Why? It is a widely adopted convention to mark any files that contain React specific syntax with `.jsx` or `.tsx`.
 
 ## Communication Items
 
