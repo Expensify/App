@@ -86,4 +86,17 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidWebsite('www.expensify😄.com')).toBe(false);
         });
     });
+
+    describe('ValidateAccountRoute', () => {
+        test('Valid account route', () => {
+            expect(ValidationUtils.isValidAccountRoute(123123)).toBe(true);
+            expect(ValidationUtils.isValidAccountRoute(5612)).toBe(true);
+        });
+
+        test('Invalid account route', () => {
+            expect(ValidationUtils.isValidAccountRoute(undefined)).toBe(false);
+            expect(ValidationUtils.isValidAccountRoute(0)).toBe(false);
+            expect(ValidationUtils.isValidAccountRoute('123aaa')).toBe(false);
+        });
+    });
 });

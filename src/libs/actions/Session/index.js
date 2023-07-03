@@ -24,6 +24,7 @@ import ROUTES from '../../../ROUTES';
 import * as ErrorUtils from '../../ErrorUtils';
 import * as ReportUtils from '../../ReportUtils';
 import * as Report from '../Report';
+import {hideContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 
 let authTokenType = '';
 Onyx.connect({
@@ -89,6 +90,7 @@ function isAnonymousUser() {
 }
 
 function signOutAndRedirectToSignIn() {
+    hideContextMenu(false);
     signOut();
     redirectToSignIn();
     Log.info('Redirecting to Sign In because signOut() was called');
@@ -170,7 +172,6 @@ function resendValidateCode(login = credentials.login) {
             value: {
                 isLoading: true,
                 errors: null,
-                message: null,
                 loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
             },
         },
@@ -181,7 +182,6 @@ function resendValidateCode(login = credentials.login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: 'validateCodeForm.codeSent',
                 loadingForm: null,
             },
         },
@@ -192,7 +192,6 @@ function resendValidateCode(login = credentials.login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: null,
                 loadingForm: null,
             },
         },

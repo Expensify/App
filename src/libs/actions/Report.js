@@ -25,6 +25,7 @@ import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -194,6 +195,21 @@ function subscribeToNewActionEvent(reportID, callback) {
 }
 
 /**
+ * Notify the ReportActionsView that a new comment has arrived
+ *
+ * @param {String} reportID
+ * @param {Number} accountID
+ * @param {String} reportActionID
+ */
+function notifyNewAction(reportID, accountID, reportActionID) {
+    if (reportID !== newActionSubscriber.reportID) {
+        return;
+    }
+    const isFromCurrentUser = accountID === currentUserAccountID;
+    newActionSubscriber.callback(isFromCurrentUser, reportActionID);
+}
+
+/**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
  * - Adding one comment
@@ -345,12 +361,7 @@ function addActions(reportID, text = '', file) {
         successData,
         failureData,
     });
-
-    // Notify the ReportActionsView that a new comment has arrived
-    if (reportID === newActionSubscriber.reportID) {
-        const isFromCurrentUser = lastAction.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, lastAction.reportActionID);
-    }
+    notifyNewAction(reportID, lastAction.actorAccountID, lastAction.reportActionID);
 }
 
 /**
@@ -384,8 +395,9 @@ function addComment(reportID, text) {
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
+ * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
-function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
+function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -426,6 +438,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
     const params = {
         reportID,
         emailList: participantLoginList ? participantLoginList.join(',') : '',
+        accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
 
@@ -518,7 +531,26 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  * @param {Array} userLogins list of user logins to start a chat report with.
  */
 function navigateToAndOpenReport(userLogins) {
-    const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+    let newChat = {};
+    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+    const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
+    if (!chat) {
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    }
+    const reportID = chat ? chat.reportID : newChat.reportID;
+
+    // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
+    openReport(reportID, userLogins, newChat);
+    Navigation.dismissModal(reportID);
+}
+
+/**
+ * This will find an existing chat, or create a new one if none exists, for the given accountID or set of accountIDs. It will then navigate to this chat.
+ *
+ * @param {Array} participantAccountIDs of user logins to start a chat report with.
+ */
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
     let newChat = {};
     const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
     if (!chat) {
@@ -527,7 +559,7 @@ function navigateToAndOpenReport(userLogins) {
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, userLogins, newChat);
+    openReport(reportID, [], newChat, '0', false, participantAccountIDs);
     Navigation.dismissModal(reportID);
 }
 
@@ -838,6 +870,7 @@ Onyx.connect({
  * @param {Object} reportAction
  */
 function deleteReportComment(reportID, reportAction) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
     const deletedMessage = [
         {
@@ -863,9 +896,9 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(originalReportID, optimisticReportActions);
     if (lastMessageText.length > 0) {
-        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
+        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions).created;
         optimisticReport = {
             lastMessageText,
             lastVisibleActionCreated,
@@ -877,7 +910,7 @@ function deleteReportComment(reportID, reportAction) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     message: reportAction.message,
@@ -891,7 +924,7 @@ function deleteReportComment(reportID, reportAction) {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: null,
@@ -904,19 +937,19 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: optimisticReportActions,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
             value: optimisticReport,
         },
     ];
 
     const parameters = {
-        reportID,
-        reportActionID: reportAction.reportActionID,
+        reportID: originalReportID,
+        reportActionID,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
@@ -936,7 +969,7 @@ const removeLinksFromHtml = (html, links) => {
     let htmlCopy = html.slice();
     _.forEach(links, (link) => {
         // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
-        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
+        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'g');
         htmlCopy = htmlCopy.replace(regex, '$4');
     });
     return htmlCopy;
@@ -969,6 +1002,7 @@ const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
  */
 function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parser = new ExpensiMark();
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
@@ -987,7 +1021,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
-        deleteReportComment(reportID, originalReportAction);
+        deleteReportComment(originalReportID, originalReportAction);
         return;
     }
 
@@ -1016,12 +1050,12 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: optimisticReportActions,
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
     if (reportActionID === lastVisibleAction.reportActionID) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
@@ -1029,7 +1063,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
             value: optimisticReport,
         });
     }
@@ -1037,7 +1071,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     ...originalReportAction,
@@ -1050,7 +1084,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: null,
@@ -1060,7 +1094,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     ];
 
     const parameters = {
-        reportID,
+        reportID: originalReportID,
         reportComment: htmlForNewComment,
         reportActionID,
     };
@@ -1133,7 +1167,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {welcomeMessage: newValue},
+            value: {welcomeMessage: parsedWelcomeMessage},
         },
     ];
     const failureData = [
@@ -1475,12 +1509,7 @@ function showReportActionNotification(reportID, action) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
-
-    // Notify the ReportActionsView that a new comment has arrived
-    if (reportID === newActionSubscriber.reportID) {
-        const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
-    }
+    notifyNewAction(reportID, action.actorAccountID, action.reportActionID);
 }
 
 /**
@@ -1545,6 +1574,7 @@ function hasAccountIDReacted(accountID, users, skinTone) {
  * @param {number} [skinTone] Optional.
  */
 function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
     const message = originalReportAction.message[0];
     let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const needToInsertReactionObject = !reactionObject;
@@ -1576,10 +1606,10 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
     };
 
     // Optimistically update the reportAction with the reaction
-    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
+    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, originalReportID);
 
     const parameters = {
-        reportID,
+        reportID: originalReportID,
         skinTone,
         emojiCode: emoji.name,
         sequenceNumber: originalReportAction.sequenceNumber,
@@ -1595,6 +1625,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
  * @param {{ name: string, code: string, types: string[] }} emoji
  */
 function removeEmojiReaction(reportID, originalReportAction, emoji) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
     const message = originalReportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     if (!reactionObject) {
@@ -1627,10 +1658,10 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
     };
 
     // Optimistically update the reportAction with the reaction
-    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
+    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, originalReportID);
 
     const parameters = {
-        reportID,
+        reportID: originalReportID,
         sequenceNumber: originalReportAction.sequenceNumber,
         reportActionID: originalReportAction.reportActionID,
         emojiCode: emoji.name,
@@ -1756,6 +1787,7 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
  * @param {String} severity
  */
 function flagComment(reportID, reportAction, severity) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const message = reportAction.message[0];
     let updatedDecision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
@@ -1790,7 +1822,7 @@ function flagComment(reportID, reportAction, severity) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -1803,7 +1835,7 @@ function flagComment(reportID, reportAction, severity) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     ...reportAction,
@@ -1816,7 +1848,7 @@ function flagComment(reportID, reportAction, severity) {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: null,
@@ -1864,11 +1896,13 @@ export {
     openReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
+    navigateToAndOpenReportWithAccountIDs,
     navigateToAndOpenChildReport,
     updatePolicyRoomNameAndNavigate,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
+    notifyNewAction,
     showReportActionNotification,
     addEmojiReaction,
     removeEmojiReaction,
