@@ -90,7 +90,7 @@ function MenuItem(props) {
         styles.textLabelSupporting,
         props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
         styles.lineHeightNormal,
-        props.title ? descriptionVerticalMargin : undefined,
+        props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         props.descriptionTextStyle,
         isDeleted ? styles.offlineFeedback.deleted : undefined,
     ]);

@@ -134,7 +134,7 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 text: 'Email One',
             },
         ],
-        whisperedTo: [],
+        whisperedToAccountIDs: [],
         automatic: false,
     };
 }

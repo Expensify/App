@@ -37,6 +37,9 @@ const propTypes = {
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
 
+    /** Whether the modal should be open by default */
+    defaultOpen: PropTypes.bool,
+
     /** Optional callback to fire when we want to do something after modal show. */
     onModalShow: PropTypes.func,
 
@@ -47,7 +50,7 @@ const propTypes = {
     originalFileName: PropTypes.string,
 
     /** A function as a child to pass modal launching methods to */
-    children: PropTypes.func.isRequired,
+    children: PropTypes.func,
 
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
@@ -69,7 +72,9 @@ const propTypes = {
 const defaultProps = {
     source: '',
     onConfirm: null,
+    defaultOpen: false,
     originalFileName: '',
+    children: null,
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
@@ -79,7 +84,7 @@ const defaultProps = {
 };
 
 function AttachmentModal(props) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isAuthTokenRequired] = useState(props.isAuthTokenRequired);
@@ -343,10 +348,11 @@ function AttachmentModal(props) {
                 shouldShowCancelButton={false}
             />
 
-            {props.children({
-                displayFileInModal: validateAndDisplayFileToUpload,
-                show: openModal,
-            })}
+            {props.children &&
+                props.children({
+                    displayFileInModal: validateAndDisplayFileToUpload,
+                    show: openModal,
+                })}
         </>
     );
 }
