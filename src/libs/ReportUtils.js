@@ -865,7 +865,6 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 
         return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
     }
-
     return getIconsForParticipants(report.participantAccountIDs, personalDetails);
 }
 
