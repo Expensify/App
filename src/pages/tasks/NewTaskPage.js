@@ -47,11 +47,6 @@ const propTypes = {
         }),
     ),
 
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -63,7 +58,6 @@ const defaultProps = {
     task: {},
     personalDetails: {},
     reports: {},
-    session: {},
 };
 
 function NewTaskPage(props) {
@@ -197,9 +191,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
     withLocalize,
