@@ -62,7 +62,7 @@ function MoneyRequestHeader(props) {
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
     const report = props.report;
     if (props.isSingleTransactionView) {
-        report.ownerAccountID = lodashGet(props, ['parentReport', ''], null);
+        report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
         report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
     }
     return (
