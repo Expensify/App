@@ -721,6 +721,10 @@ class ReportActionCompose extends React.Component {
         Report.broadcastUserIsTyping(this.props.reportID);
     }
 
+    /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
     debouncedUpdateFrequentlyUsedEmojis() {
         User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(this.insertedEmojis));
         this.insertedEmojis = [];

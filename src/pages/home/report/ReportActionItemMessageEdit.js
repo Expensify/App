@@ -139,6 +139,10 @@ function ReportActionItemMessageEdit(props) {
         [props.reportID, props.action.reportActionID],
     );
 
+    /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
     const debouncedUpdateFrequentlyUsedEmojis = useMemo(
         () =>
             _.debounce(() => {
