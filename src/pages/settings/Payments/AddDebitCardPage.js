@@ -49,7 +49,7 @@ function DebitCardPage(props) {
 
     useEffect(() => {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
-    }, [])
+    }, []);
 
     useEffect(() => {
         if (prevFormDataSetupComplete || !props.formData.setupComplete) {
@@ -60,8 +60,8 @@ function DebitCardPage(props) {
 
         return () => {
             PaymentMethods.clearDebitCardFormErrorAndSubmit();
-        }
-    }, [prevFormDataSetupComplete, props.formData.setupComplete])
+        };
+    }, [prevFormDataSetupComplete, props.formData.setupComplete]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -107,7 +107,7 @@ function DebitCardPage(props) {
         }
 
         return errors;
-    }
+    };
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
