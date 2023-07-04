@@ -97,7 +97,6 @@ class BaseModal extends PureComponent {
             this.props.innerContainerStyle,
             this.props.outerStyle,
         );
-
         return (
             <ReactNativeModal
                 onBackdropPress={(e) => {
