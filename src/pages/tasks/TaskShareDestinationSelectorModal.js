@@ -1,5 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
+import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -46,15 +47,7 @@ function TaskShareDestinationSelectorModal(props) {
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
-    useEffect(() => {
-        const results = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
-
-        setFilteredUserToInvite(results.userToInvite);
-        setFilteredRecentReports(results.recentReports);
-        setFilteredPersonalDetails(results.personalDetails);
-    }, [props]);
-
-    useEffect(() => {
+    const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
             props.reports,
             props.personalDetails,
@@ -71,6 +64,15 @@ function TaskShareDestinationSelectorModal(props) {
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
     }, [props, searchValue]);
+
+    useEffect(() => {
+        const debouncedSearch = _.debounce(updateOptions, 150);
+        debouncedSearch();
+        return () => {
+            debouncedSearch.cancel();
+        }
+        
+    }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
