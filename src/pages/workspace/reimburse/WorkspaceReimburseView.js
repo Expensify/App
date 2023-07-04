@@ -197,7 +197,6 @@ function WorkspaceReimburseView(props) {
         </>
     );
 }
-
 WorkspaceReimburseView.defaultProps = defaultProps;
 WorkspaceReimburseView.propTypes = propTypes;
 WorkspaceReimburseView.displayName = 'WorkspaceReimburseView';
