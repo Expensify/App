@@ -551,6 +551,10 @@ const styles = {
         marginVertical: 1,
     },
 
+    noBorderRadius: {
+        borderRadius: 0,
+    },
+
     noRightBorderRadius: {
         borderTopRightRadius: 0,
         borderBottomRightRadius: 0,
