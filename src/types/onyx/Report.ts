@@ -1,4 +1,4 @@
-import * as CommonTypes from './OnyxCommon';
+import * as OnyxCommon from './OnyxCommon';
 
 type Report = {
     /** The specific type of chat */
@@ -8,7 +8,7 @@ type Report = {
     hasOutstandingIOU: boolean;
 
     /** List of icons for report participants */
-    icons: CommonTypes.Icon[];
+    icons: OnyxCommon.Icon[];
 
     /** Are we loading more report actions? */
     isLoadingMoreReportActions: boolean;

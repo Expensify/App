@@ -272,6 +272,7 @@ type OnyxValues = {
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.USER]: OnyxTypes.User;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.Login;
+    [ONYXKEYS.SESSION]: OnyxTypes.Session;
 };
 
 export default ONYXKEYS;

@@ -11,5 +11,6 @@ import Currency from './Currency';
 import ScreenShareRequest from './ScreenShareRequest';
 import User from './User';
 import Login from './Login';
+import Session from './Session';
 
-export type {Account, Credentials, QueuedOnyxUpdates, IOU, Modal, Network, PersonalDetails, PrivatePersonalDetails, Task, Currency, ScreenShareRequest, User, Login};
+export type {Account, Credentials, QueuedOnyxUpdates, IOU, Modal, Network, PersonalDetails, PrivatePersonalDetails, Task, Currency, ScreenShareRequest, User, Login, Session};
