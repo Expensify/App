@@ -61,6 +61,7 @@ class BaseModal extends PureComponent {
 
         // To prevent closing any modal already unmounted when this modal still remains as visible state
         Modal.setCloseModal(null);
+        Modal.setModalVisibility(false);
     }
 
     /**
@@ -72,6 +73,7 @@ class BaseModal extends PureComponent {
             this.props.onModalHide();
         }
         Modal.onModalDidClose();
+
     }
 
     render() {
@@ -108,7 +110,12 @@ class BaseModal extends PureComponent {
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
-                onModalShow={this.props.onModalShow}
+                onModalShow={() => {
+                    if (this.props.shouldSetModalVisibility) {
+                        Modal.setModalVisibility(true);
+                    }
+                    this.props.onModalShow();
+                }}
                 propagateSwipe={this.props.propagateSwipe}
                 onModalHide={this.hideModal}
                 onSwipeComplete={this.props.onClose}
