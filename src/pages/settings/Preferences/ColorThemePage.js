@@ -1,4 +1,4 @@
-import _, {compose} from 'underscore';
+import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -14,6 +14,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as App from '../../../libs/actions/App';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
+import compose from '../../../libs/compose';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
