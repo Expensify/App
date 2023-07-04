@@ -363,7 +363,7 @@ export default {
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
         payerSettled: ({amount}) => `pagó ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} agregue una Cuenta bancaria`,
-        paymentWaitingOnSubmitter: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} agregue una `,
+        waitingOnBankAccountPrefix: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} agregue una `,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} agregó una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         settledElsewhereWithAmount: ({amount}) => `pagó ${amount} de otra forma`,
         settledPaypalMeWithAmount: ({amount}) => `pagó ${amount} con PayPal.me`,

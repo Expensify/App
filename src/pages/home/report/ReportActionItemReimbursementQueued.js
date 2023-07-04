@@ -19,7 +19,7 @@ function ReportActionItemReimbursementQueued(props) {
     if (shouldSubmitterAddBankAccount) {
         return (
             <Text style={[styles.chatItemMessage, styles.colorMuted]}>
-                {props.translate('iou.paymentWaitingOnSubmitter', {submitterDisplayName: props.submitterDisplayName})}
+                {props.translate('iou.waitingOnBankAccountPrefix', {submitterDisplayName: props.submitterDisplayName})}
                 <TextLink onPress={BankAccounts.openPersonalBankAccountSetupView}>
                     <Text style={[styles.textStrong, styles.cursorPointer, styles.link]}>{props.translate('common.bankAccount')}</Text>
                 </TextLink>
