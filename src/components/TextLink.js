@@ -21,9 +21,13 @@ const propTypes = {
 
     /** Callback that is called when mousedown is triggered */
     onMouseDown: PropTypes.func,
+
+    /** A ref to forward to text */
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 };
 
 const defaultProps = {
+    forwardedRef: undefined,
     href: undefined,
     style: [],
     onPress: undefined,
@@ -65,6 +69,7 @@ function TextLink(props) {
             onPress={openLink}
             onMouseDown={props.onMouseDown}
             onKeyDown={openLinkIfEnterKeyPressed}
+            ref={props.forwardedRef}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
