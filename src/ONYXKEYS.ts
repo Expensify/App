@@ -270,6 +270,7 @@ type OnyxValues = {
     [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
     [ONYXKEYS.COUNTRY_CODE]: number;
+    [ONYXKEYS.USER]: OnyxTypes.User;
 };
 
 export default ONYXKEYS;
