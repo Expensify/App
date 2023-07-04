@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAnimatedRef } from 'react-native-reanimated';
+import {useAnimatedRef} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 

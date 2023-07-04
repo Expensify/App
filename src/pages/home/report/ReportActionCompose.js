@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
-import { runOnJS } from 'react-native-reanimated'
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {runOnJS} from 'react-native-reanimated';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -990,14 +990,16 @@ class ReportActionCompose extends React.Component {
         const submit = this.submitForm;
         const viewTag = this.textInputViewTag;
 
-        const Tap = Gesture.Tap().enabled(!(this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength)).onEnd(() => {
-            'worklet';
+        const Tap = Gesture.Tap()
+            .enabled(!(this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength))
+            .onEnd(() => {
+                'worklet';
 
-            const viewName = 'RCTSinglelineTextInputView';
-            const updates = {text: ''};
-            _updatePropsPaper(viewTag, viewName, updates); // clears native text input on the UI thread
-            runOnJS(submit)();
-          });
+                const viewName = 'RCTSinglelineTextInputView';
+                const updates = {text: ''};
+                _updatePropsPaper(viewTag, viewName, updates); // clears native text input on the UI thread
+                runOnJS(submit)();
+            });
 
         return (
             <View
@@ -1219,7 +1221,7 @@ class ReportActionCompose extends React.Component {
                             onMouseDown={(e) => e.preventDefault()}
                         >
                             <Tooltip text={this.props.translate('common.send')}>
-                                <GestureDetector gesture={Tap} >
+                                <GestureDetector gesture={Tap}>
                                     <PressableWithFeedback
                                         style={[styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                         accessibilityRole="button"
