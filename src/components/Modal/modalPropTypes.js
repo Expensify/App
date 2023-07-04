@@ -14,6 +14,9 @@ const propTypes = {
     /** Should we announce the Modal visibility changes? */
     shouldSetModalVisibility: PropTypes.bool,
 
+    /** Should we use coverScreen prop for ReactNativeModal? */
+    coverScreen: PropTypes.bool,
+
     /** Callback method fired when the user requests to close the modal */
     onClose: PropTypes.func.isRequired,
 

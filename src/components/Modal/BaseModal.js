@@ -66,9 +66,6 @@ class BaseModal extends PureComponent {
      * @param {Boolean} [callHideCallback=true] Should we call the onModalHide callback
      */
     hideModal(callHideCallback = true) {
-        if (this.props.shouldSetModalVisibility) {
-            Modal.setModalVisibility(false);
-        }
         if (callHideCallback) {
             this.props.onModalHide();
         }
@@ -109,12 +106,7 @@ class BaseModal extends PureComponent {
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
-                onModalShow={() => {
-                    if (this.props.shouldSetModalVisibility) {
-                        Modal.setModalVisibility(true);
-                    }
-                    this.props.onModalShow();
-                }}
+                onModalShow={this.props.onModalShow}
                 propagateSwipe={this.props.propagateSwipe}
                 onModalHide={this.hideModal}
                 onSwipeComplete={this.props.onClose}
@@ -124,7 +116,7 @@ class BaseModal extends PureComponent {
                 backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
                 backdropTransitionOutTiming={0}
                 hasBackdrop={this.props.fullscreen}
-                coverScreen={this.props.fullscreen}
+                coverScreen={this.props.coverScreen && this.props.fullscreen}
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
                 deviceWidth={this.props.windowWidth}

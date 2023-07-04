@@ -223,7 +223,6 @@ class NewChatPage extends Component {
             maxParticipantsReached,
         );
         const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
-
         return (
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}

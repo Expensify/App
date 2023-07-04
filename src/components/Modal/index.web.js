@@ -41,6 +41,7 @@ function Modal(props) {
             onModalHide={hideModal}
             onModalShow={showModal}
             avoidKeyboard={false}
+            coverScreen={false}
         >
             {props.children}
         </BaseModal>
