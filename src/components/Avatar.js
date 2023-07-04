@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, forwardRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -12,10 +12,13 @@ import RNImage from './Image';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
-import compose from '../libs/compose';
-import {withNetwork} from '../components/OnyxProvider';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
 
 const propTypes = {
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     /** Source for the avatar. Can be a URL or an icon. */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
@@ -68,19 +71,19 @@ function Avatar(props) {
 
     useOnNetworkReconnect(() => setImageError(false));
 
+    useEffect(() => {
+        if (_.isFunction(props.source) || !props.network.isOffline) return;
+
+        const cachedImage = new Image();
+        cachedImage.src = props.source;
+        if (!cachedImage.complete) {
+            setImageError(true);
+        }
+    }, [props.source, props.network.isOffline]);
+
     if (!props.source) {
         return null;
     }
-
-    useEffect(() => {
-        if (!_.isFunction(props.source) && props.network.isOffline) {
-            const cachedImage = new Image();
-            cachedImage.src = props.source;
-            if (!cachedImage.complete) {
-                setImageError(true);
-            }
-        }
-    }, []);
 
     const isWorkspace = props.type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(props.size);
@@ -129,6 +132,12 @@ function Avatar(props) {
 }
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
-export default compose(
-    withNetwork(),
-)(Avatar);
+export default withNetwork()(
+    forwardRef((props, ref) => (
+        <Avatar
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);
