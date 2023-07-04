@@ -250,16 +250,16 @@ type OnyxKey = UtilTypes.DeepValueOf<Omit<OnyxKeysMap, 'COLLECTION'>> | Collecti
 
 type OnyxValues = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
-    [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]?: string;
-    [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]?: boolean;
+    [ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID]: string;
+    [ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER]: boolean;
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
-    [ONYXKEYS.IS_SIDEBAR_LOADED]?: boolean;
+    [ONYXKEYS.IS_SIDEBAR_LOADED]: boolean;
     // TODO: Type persisted requests properly
     [ONYXKEYS.PERSISTED_REQUESTS]: unknown[];
     [ONYXKEYS.QUEUED_ONYX_UPDATES]: OnyxTypes.QueuedOnyxUpdates;
-    [ONYXKEYS.CURRENT_DATE]?: string;
-    [ONYXKEYS.CREDENTIALS]?: OnyxTypes.Credentials;
+    [ONYXKEYS.CURRENT_DATE]: string;
+    [ONYXKEYS.CREDENTIALS]: OnyxTypes.Credentials;
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
@@ -271,6 +271,7 @@ type OnyxValues = {
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
     [ONYXKEYS.COUNTRY_CODE]: number;
     [ONYXKEYS.USER]: OnyxTypes.User;
+    [ONYXKEYS.LOGIN_LIST]: OnyxTypes.Login;
 };
 
 export default ONYXKEYS;
