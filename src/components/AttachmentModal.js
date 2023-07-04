@@ -46,6 +46,9 @@ const propTypes = {
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
+    /** Optional callback to fire when we want to do something after attachment carousel changes. */
+    onCarouselAttachmentChange: PropTypes.func,
+
     /** Optional original filename when uploading */
     originalFileName: PropTypes.string,
 
@@ -81,6 +84,7 @@ const defaultProps = {
     report: {},
     onModalShow: () => {},
     onModalHide: () => {},
+    onCarouselAttachmentChange: () => {},
 };
 
 function AttachmentModal(props) {
@@ -102,6 +106,8 @@ function AttachmentModal(props) {
             : undefined,
     );
 
+    const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
+
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
      * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
@@ -109,7 +115,8 @@ function AttachmentModal(props) {
     const onNavigate = useCallback((attachment) => {
         setSource(attachment.source);
         setFile(attachment.file);
-    }, []);
+        onCarouselAttachmentChange(attachment);
+    }, [onCarouselAttachmentChange]);
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
