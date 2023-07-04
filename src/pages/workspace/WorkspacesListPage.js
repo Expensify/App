@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -109,31 +109,6 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     }
 
     /**
-     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
-     * @returns {Array} the menu item list
-     */
-    function getWorkspaces() {
-        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        return _.chain(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, network.isOffline))
-            .map((policy) => ({
-                title: policy.name,
-                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconFill: themeColors.textLight,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
-                pendingAction: policy.pendingAction,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            }))
-            .sortBy((policy) => policy.title.toLowerCase())
-            .value();
-    }
-
-    /**
      * Gets the menu item for each workspace
      *
      * @param {Object} item
@@ -169,7 +144,30 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
         );
     }
 
-    const workspaces = getWorkspaces();
+    /**
+     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
+     * @returns {Array} the menu item list
+     */
+    const workspaces = useMemo(() => {
+        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        return _.chain(policies)
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, network.isOffline))
+            .map((policy) => ({
+                title: policy.name,
+                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
+                iconFill: themeColors.textLight,
+                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
+                pendingAction: policy.pendingAction,
+                errors: policy.errors,
+                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            }))
+            .sortBy((policy) => policy.title.toLowerCase())
+            .value();
+    }, [reimbursementAccount.errors, policies, network.isOffline, allPolicyMembers]);
 
     return (
         <ScreenWrapper>
