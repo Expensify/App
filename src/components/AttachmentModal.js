@@ -91,7 +91,7 @@ function AttachmentModal(props) {
     const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [isAuthTokenRequired] = useState(props.isAuthTokenRequired);
+    const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
     const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState(null);
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
@@ -115,6 +115,7 @@ function AttachmentModal(props) {
     const onNavigate = useCallback((attachment) => {
         setSource(attachment.source);
         setFile(attachment.file);
+        setIsAuthTokenRequired(attachment.isAuthTokenRequired);
         onCarouselAttachmentChange(attachment);
     }, [onCarouselAttachmentChange]);
 
