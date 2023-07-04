@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
@@ -53,6 +53,21 @@ function parseAndLogRoute(state) {
 function NavigationRoot(props) {
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
+    const firstRenderRef = useRef(true);
+
+    useEffect(() => {
+        if (firstRenderRef.current) {
+            // we don't want to make the report back button go back to LHN if the user
+            // started on the small screen so we don't set it on the first render
+            // making it only work on consecutive changes of the screen size
+            firstRenderRef.current = false;
+            return;
+        }
+        if (!props.isSmallScreenWidth) {
+            return;
+        }
+        Navigation.setShouldPopAllStateOnUP();
+    }, [props.isSmallScreenWidth]);
 
     const {updateCurrentReportID} = useCurrentReportID();
     const {isSmallScreenWidth} = useWindowDimensions();
