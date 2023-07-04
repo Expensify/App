@@ -61,7 +61,9 @@ class BaseModal extends PureComponent {
 
         // To prevent closing any modal already unmounted when this modal still remains as visible state
         Modal.setCloseModal(null);
-        Modal.setModalVisibility(false);
+        if (this.props.shouldSetModalVisibility) {
+            Modal.setModalVisibility(false);
+        }
     }
 
     /**
