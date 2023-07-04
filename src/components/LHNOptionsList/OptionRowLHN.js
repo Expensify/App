@@ -28,7 +28,6 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Report from '../../libs/actions/Report';
-import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** Style for hovered state */
