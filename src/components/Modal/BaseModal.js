@@ -75,7 +75,6 @@ class BaseModal extends PureComponent {
             this.props.onModalHide();
         }
         Modal.onModalDidClose();
-
     }
 
     render() {
