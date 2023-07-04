@@ -31,18 +31,6 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
-let myPersonalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        if (!val || !currentUserAccountID) {
-            return;
-        }
-
-        myPersonalDetails = val[currentUserAccountID];
-    },
-});
-
 let allPolicies = [];
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -267,8 +255,8 @@ function setUpPoliciesAndNavigate(session) {
     }
 }
 
-function openProfile() {
-    const oldTimezoneData = myPersonalDetails.timezone || {};
+function openProfile(personalDetails) {
+    const oldTimezoneData = personalDetails.timezone || {};
     let newTimezoneData = oldTimezoneData;
 
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
@@ -308,8 +296,6 @@ function openProfile() {
             ],
         },
     );
-
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp, confirmReadyToOpenApp};
