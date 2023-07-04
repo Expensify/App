@@ -70,8 +70,7 @@ function TaskShareDestinationSelectorModal(props) {
         debouncedSearch();
         return () => {
             debouncedSearch.cancel();
-        }
-        
+        };
     }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
