@@ -269,6 +269,7 @@ type OnyxValues = {
     [ONYXKEYS.CURRENCY_LIST]: Record<string, OnyxTypes.Currency>;
     [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
     [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
+    [ONYXKEYS.COUNTRY_CODE]: number;
 };
 
 export default ONYXKEYS;
