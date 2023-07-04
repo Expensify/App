@@ -337,12 +337,6 @@ class BaseOptionsSelector extends Component {
                 contentContainerStyles={[safeAreaPaddingBottomStyle, ...this.props.contentContainerStyles]}
                 listContainerStyles={this.props.listContainerStyles}
                 isLoading={!this.props.shouldShowOptions}
-                onRowMouseDown={(e) => {
-                    if (!e || !this.textInput.isFocused()) {
-                        return;
-                    }
-                    e.preventDefault();
-                }}
             />
         );
         return (
