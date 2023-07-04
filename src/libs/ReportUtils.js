@@ -983,7 +983,7 @@ function getMoneyRequestReportName(report) {
     const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
 
     if (report.isWaitingOnBankAccount) {
-        return  `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
+        return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (report.hasOutstandingIOU) {
