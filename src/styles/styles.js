@@ -133,6 +133,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+            '-webkit-touch-callout': 'none',
         },
 
         p: {
