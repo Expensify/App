@@ -334,7 +334,7 @@ function WorkspaceMembersPage(props) {
                                             type: CONST.ICON_TYPE_AVATAR,
                                         },
                                     ],
-                                    keyForList: item.accountID,
+                                    keyForList: String(item.accountID),
                                 }}
                                 onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
