@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -13,14 +13,12 @@ import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListR
 import RadioListItem from './RadioListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
-import useIsFirstRender from '../../hooks/useIsFirstRender';
 
 function BaseSelectionListRadio(props) {
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(props.textInputLabel);
-    const isFirstRender = useIsFirstRender();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -98,6 +96,35 @@ function BaseSelectionListRadio(props) {
     });
 
     /**
+     * Scrolls to the desired item index in the section list
+     *
+     * @param {Number} index - the index of the item to scroll to
+     * @param {Boolean} animated - whether to animate the scroll
+     */
+    const scrollToIndex = (index, animated) => {
+        const item = flattenedSections.allOptions[index];
+
+        if (!listRef.current || !item) {
+            return;
+        }
+
+        const itemIndex = item.index;
+        const sectionIndex = item.sectionIndex;
+
+        // Note: react-native's SectionList automatically strips out any empty sections.
+        // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
+        // Otherwise, it will cause an index-out-of-bounds error and crash the app.
+        let adjustedSectionIndex = sectionIndex;
+        for (let i = 0; i < sectionIndex; i++) {
+            if (_.isEmpty(lodashGet(props.sections, `[${i}].data`))) {
+                adjustedSectionIndex--;
+            }
+        }
+
+        listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
+    };
+
+    /**
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
      *
@@ -153,39 +180,6 @@ function BaseSelectionListRadio(props) {
         };
     }, [props.shouldDelayFocus, shouldShowTextInput]);
 
-    /** Scrolls to the focused index without animation on mount, and with animation when focused item changes */
-    useEffect(() => {
-        const scrollToIndex = (index, animated) => {
-            const item = flattenedSections.allOptions[index];
-
-            if (!listRef.current || !item) {
-                return;
-            }
-
-            const itemIndex = item.index;
-            const sectionIndex = item.sectionIndex;
-
-            // Note: react-native's SectionList automatically strips out any empty sections.
-            // So we need to reduce the sectionIndex to remove any empty sections in front of the one we're trying to scroll to.
-            // Otherwise, it will cause an index-out-of-bounds error and crash the app.
-            let adjustedSectionIndex = sectionIndex;
-            for (let i = 0; i < sectionIndex; i++) {
-                if (_.isEmpty(lodashGet(props.sections, `[${i}].data`))) {
-                    adjustedSectionIndex--;
-                }
-            }
-
-            listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
-        };
-
-        scrollToIndex(focusedIndex, !isFirstRender);
-
-        // `flattenedSections.allOptions` is removed from the deps array because it changes on every render,
-        // causing issues with scrolling on mWeb iOS. More finesse approaches like separating useEffects, memoing,
-        // etc., brought in different issues, so this seems like the best solution for now.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [focusedIndex, isFirstRender, props.sections]);
-
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         () => {
@@ -208,7 +202,10 @@ function BaseSelectionListRadio(props) {
             disabledIndexes={flattenedSections.disabledOptionsIndexes}
             focusedIndex={focusedIndex}
             maxIndex={flattenedSections.allOptions.length - 1}
-            onFocusedIndexChanged={setFocusedIndex}
+            onFocusedIndexChanged={(newFocusedIndex) => {
+                setFocusedIndex(newFocusedIndex);
+                scrollToIndex(newFocusedIndex, true);
+            }}
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
@@ -248,6 +245,7 @@ function BaseSelectionListRadio(props) {
                             maxToRenderPerBatch={5}
                             windowSize={5}
                             viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                            onLayout={() => scrollToIndex(focusedIndex, false)}
                         />
                     </View>
                 )}
