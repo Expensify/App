@@ -64,7 +64,7 @@ function TaskPreview(props) {
     return (
         <PressableWithoutFeedback
             onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
-            style={[styles.flexRow, styles.justifyContentBetween]}
+            style={[styles.flexRow, styles.justifyContentBetween, styles.chatItemMessage]}
             accessibilityRole="button"
             accessibilityLabel={props.translate('newTaskPage.task')}
         >
@@ -81,6 +81,7 @@ function TaskPreview(props) {
                             TaskUtils.completeTask(props.taskReportID, taskTitle);
                         }
                     }}
+                    accessibilityLabel={props.translate('newTaskPage.task')}
                 />
                 <RenderHTML html={htmlForTaskPreview} />
             </View>
