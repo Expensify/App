@@ -255,10 +255,9 @@ function ReportActionsView(props) {
     }, [props.report, props.reportActions]);
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
-        console.log('hello');
         ReportScrollManager.scrollToBottom(context.flatListRef);
         Report.readNewestAction(props.report.reportID);
-    }, [props.report]);
+    }, [props.report, context.flatListRef]);
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
