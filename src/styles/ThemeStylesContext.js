@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './styles';
 
-const StylesContext = React.createContext(styles);
+const ThemeStylesContext = React.createContext(styles);
 
-export default StylesContext;
+export default ThemeStylesContext;
