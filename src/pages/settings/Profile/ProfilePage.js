@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -23,6 +23,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import userPropTypes from '../userPropTypes';
+import * as App from '../../../libs/actions/App';
 
 const propTypes = {
     /* Onyx Props */
@@ -83,6 +84,10 @@ function ProfilePage(props) {
             pageRoute: ROUTES.SETTINGS_TIMEZONE,
         },
     ];
+
+    useEffect(() => {
+        App.openProfile(props.currentUserPersonalDetails);
+    }, [props.currentUserPersonalDetails]);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>

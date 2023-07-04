@@ -58,7 +58,7 @@ export default [
             };
 
             const onEmojiSelected = (emoji) => {
-                Report.toggleEmojiReaction(reportID, reportAction, emoji);
+                Report.toggleEmojiReaction(reportID, reportAction.reportActionID, emoji);
                 closeContextMenu();
             };
 
