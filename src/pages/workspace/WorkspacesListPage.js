@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
