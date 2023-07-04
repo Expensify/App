@@ -122,6 +122,9 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
+
+        // This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init
+        DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
     // Indicates which locale should be used

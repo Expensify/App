@@ -15,6 +15,8 @@ import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
+import * as ReportActionsUtils from '../ReportActionsUtils';
+import Timing from './Timing';
 import * as Browser from '../Browser';
 
 let currentUserAccountID;
@@ -32,25 +34,6 @@ Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
-});
-
-let myPersonalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        if (!val || !currentUserAccountID) {
-            return;
-        }
-
-        myPersonalDetails = val[currentUserAccountID];
-    },
-});
-
-let allPolicies = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (policies) => (allPolicies = policies),
 });
 
 let preferredLocale;
@@ -140,42 +123,52 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
+ * @param {boolean} [isReconnecting]
  */
-function openApp() {
+function openApp(isReconnecting = false) {
     isReadyToOpenApp.then(() => {
-        // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.POLICY,
             waitForCollectionCallback: true,
             callback: (policies) => {
+                // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+                // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+                //
+                // - Look through the local report actions and reports to find the most recently modified report action or report.
+                // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
+                const params = {policyIDList: getNonOptimisticPolicyIDs(policies)};
+                if (isReconnecting) {
+                    Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+                    params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+                    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+                }
                 Onyx.disconnect(connectionID);
-                API.read(
-                    'OpenApp',
-                    {policyIDList: getNonOptimisticPolicyIDs(policies)},
-                    {
-                        optimisticData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: true,
-                            },
-                        ],
-                        successData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: false,
-                            },
-                        ],
-                        failureData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: false,
-                            },
-                        ],
-                    },
-                );
+
+                // eslint-disable-next-line rulesdir/no-multiple-api-calls
+                const apiMethod = isReconnecting ? API.write : API.read;
+                apiMethod(isReconnecting ? 'ReconnectApp' : 'OpenApp', params, {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: true,
+                        },
+                    ],
+                    successData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                    failureData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                });
             },
         });
     });
@@ -185,33 +178,7 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.write(
-        CONST.NETWORK.COMMAND.RECONNECT_APP,
-        {policyIDList: getNonOptimisticPolicyIDs(allPolicies)},
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                    value: true,
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                    value: false,
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                    value: false,
-                },
-            ],
-        },
-    );
+    openApp(true);
 }
 
 /**
@@ -315,8 +282,8 @@ function setUpPoliciesAndNavigate(session) {
     }
 }
 
-function openProfile() {
-    const oldTimezoneData = myPersonalDetails.timezone || {};
+function openProfile(personalDetails) {
+    const oldTimezoneData = personalDetails.timezone || {};
     let newTimezoneData = oldTimezoneData;
 
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
@@ -356,8 +323,6 @@ function openProfile() {
             ],
         },
     );
-
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 function beginDeepLinkRedirect() {
