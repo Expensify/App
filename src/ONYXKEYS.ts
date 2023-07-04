@@ -267,6 +267,7 @@ type OnyxValues = {
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
     [ONYXKEYS.TASK]: OnyxTypes.Task;
     [ONYXKEYS.CURRENCY_LIST]: Record<string, OnyxTypes.Currency>;
+    [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
 };
 
 export default ONYXKEYS;
