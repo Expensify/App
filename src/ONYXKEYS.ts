@@ -263,6 +263,7 @@ type OnyxValues = {
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
+    [ONYXKEYS.PERSONAL_DETAILS_LIST]: Record<string, OnyxTypes.PersonalDetails>;
 };
 
 export default ONYXKEYS;
