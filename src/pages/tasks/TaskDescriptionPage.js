@@ -12,6 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     /** Current user session */
@@ -41,7 +42,7 @@ function TaskDescriptionPage(props) {
         (values) => {
             // Set the description of the report in the store and then call TaskUtils.editTaskReport
             // to update the description of the report on the server
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, '', values.description, '');
+            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {description: values.description});
         },
         [props],
     );
@@ -51,7 +52,7 @@ function TaskDescriptionPage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
             <Form
@@ -69,6 +70,10 @@ function TaskDescriptionPage(props) {
                         label={props.translate('newTaskPage.descriptionOptional')}
                         defaultValue={(props.task.report && props.task.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
+                        autoGrowHeight
+                        submitOnEnter
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
                     />
                 </View>
             </Form>

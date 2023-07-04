@@ -99,7 +99,7 @@ function ValidateLoginPage(props) {
             {autoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
             {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired />}
             {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
-            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isSignedIn && (
+            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
                 <ValidateCodeModal
                     accountID={accountID}
                     code={validateCode}

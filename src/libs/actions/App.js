@@ -17,12 +17,10 @@ import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
 
 let currentUserAccountID;
-let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
-        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -31,18 +29,6 @@ Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
-});
-
-let myPersonalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: (val) => {
-        if (!val || !currentUserEmail) {
-            return;
-        }
-
-        myPersonalDetails = val[currentUserEmail];
-    },
 });
 
 let allPolicies = [];
@@ -269,8 +255,8 @@ function setUpPoliciesAndNavigate(session) {
     }
 }
 
-function openProfile() {
-    const oldTimezoneData = myPersonalDetails.timezone || {};
+function openProfile(personalDetails) {
+    const oldTimezoneData = personalDetails.timezone || {};
     let newTimezoneData = oldTimezoneData;
 
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
@@ -289,9 +275,9 @@ function openProfile() {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             timezone: newTimezoneData,
                         },
                     },
@@ -300,9 +286,9 @@ function openProfile() {
             failureData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             timezone: oldTimezoneData,
                         },
                     },
@@ -310,8 +296,6 @@ function openProfile() {
             ],
         },
     );
-
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
 export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp, confirmReadyToOpenApp};

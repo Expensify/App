@@ -57,7 +57,7 @@ const getItemLayout = (_, index) => ({
     offset: variables.listItemHeightNormal * index,
 });
 
-const BaseReactionList = (props) => {
+function BaseReactionList(props) {
     if (!props.isVisible) {
         return null;
     }
@@ -83,16 +83,16 @@ const BaseReactionList = (props) => {
             }}
             option={{
                 text: Str.removeSMSDomain(item.displayName),
-                alternateText: Str.removeSMSDomain(item.login),
+                alternateText: Str.removeSMSDomain(item.login || ''),
                 participantsList: [item],
                 icons: [
                     {
-                        source: UserUtils.getAvatar(item.avatar, item.login),
+                        source: UserUtils.getAvatar(item.avatar, item.accountID),
                         name: item.login,
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                keyForList: item.login,
+                keyForList: item.login || String(item.accountID),
             }}
         />
     );
@@ -116,7 +116,7 @@ const BaseReactionList = (props) => {
             />
         </>
     );
-};
+}
 
 BaseReactionList.propTypes = propTypes;
 BaseReactionList.defaultProps = defaultProps;

@@ -14,6 +14,7 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as TaskUtils from '../../libs/actions/Task';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     /** Beta features list */
@@ -35,17 +36,8 @@ const defaultProps = {
     },
 };
 
-const NewTaskDescriptionPage = (props) => {
+function NewTaskDescriptionPage(props) {
     const inputRef = useRef(null);
-
-    /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Object}
-     */
-    function validate() {
-        // This field is optional and can be left blank, so we should not require validation for its value.
-        return {};
-    }
 
     // On submit, we want to call the assignTask function and wait to validate
     // the response
@@ -61,13 +53,7 @@ const NewTaskDescriptionPage = (props) => {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => {
-                if (!inputRef.current) {
-                    return;
-                }
-
-                inputRef.current.focus();
-            }}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.description')}
@@ -77,9 +63,8 @@ const NewTaskDescriptionPage = (props) => {
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
-                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                style={[styles.mh5, styles.flexGrow1]}
                 onSubmit={(values) => onSubmit(values)}
-                validate={() => validate()}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
@@ -88,12 +73,16 @@ const NewTaskDescriptionPage = (props) => {
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
                         ref={(el) => (inputRef.current = el)}
+                        autoGrowHeight
+                        submitOnEnter
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        textAlignVertical="top"
                     />
                 </View>
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskDescriptionPage.displayName = 'NewTaskDescriptionPage';
 NewTaskDescriptionPage.propTypes = propTypes;

@@ -36,7 +36,7 @@ const defaultProps = {
     },
 };
 
-const NewTaskTitlePage = (props) => {
+function NewTaskTitlePage(props) {
     const inputRef = useRef(null);
 
     /**
@@ -48,7 +48,7 @@ const NewTaskTitlePage = (props) => {
 
         if (!values.taskTitle) {
             // We error if the user doesn't enter a task name
-            ErrorUtils.addErrorMessage(errors, 'taskTitle', props.translate('newTaskPage.pleaseEnterTaskName'));
+            ErrorUtils.addErrorMessage(errors, 'taskTitle', 'newTaskPage.pleaseEnterTaskName');
         }
 
         return errors;
@@ -58,7 +58,7 @@ const NewTaskTitlePage = (props) => {
     // the response
     function onSubmit(values) {
         TaskUtils.setTitleValue(values.taskTitle);
-        Navigation.navigate(ROUTES.getNewTaskRoute());
+        Navigation.navigate(ROUTES.NEW_TASK);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -85,7 +85,7 @@ const NewTaskTitlePage = (props) => {
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
-                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                style={[styles.mh5, styles.flexGrow1]}
                 validate={(values) => validate(values)}
                 onSubmit={(values) => onSubmit(values)}
                 enabledWhenOffline
@@ -101,7 +101,7 @@ const NewTaskTitlePage = (props) => {
             </Form>
         </ScreenWrapper>
     );
-};
+}
 
 NewTaskTitlePage.displayName = 'NewTaskTitlePage';
 NewTaskTitlePage.propTypes = propTypes;
