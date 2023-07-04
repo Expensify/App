@@ -72,9 +72,9 @@ const showWorkspaceDetails = (reportID) => {
 
 function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actorAccountID;
-    let {displayName} = props.personalDetailsList[actorAccountID] || {};
+    let {displayName, login} = props.personalDetailsList[actorAccountID] || {};
     const {avatar, pendingFields} = props.personalDetailsList[actorAccountID] || {};
-    let actorHint = displayName.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    let actorHint = (login || displayName).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
     let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
 
