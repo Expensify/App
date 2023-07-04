@@ -126,6 +126,10 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
+            Navigation.dismissModal(this.reportID);
+        }
+
         if (this.isEditing) {
             // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
             if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || prevProps.iou.id !== this.props.iou.id) {
