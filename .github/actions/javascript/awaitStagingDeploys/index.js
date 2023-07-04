@@ -109,9 +109,21 @@ function getStringInput(name, options, defaultValue = undefined) {
     return input;
 }
 
+/**
+ * Simple implementation of a sleep method.
+ *
+ * @param {Number} milliseconds - Number of milliseconds the execution should sleep for
+ *
+ * @returns {Promise}
+ */
+function sleep(milliseconds) {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 module.exports = {
     getJSONInput,
     getStringInput,
+    sleep,
 };
 
 
