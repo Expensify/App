@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -8,10 +8,12 @@ import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
-import Image from './Image';
+import RNImage from './Image';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
+import compose from '../libs/compose';
+import {withNetwork} from '../components/OnyxProvider';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -70,6 +72,16 @@ function Avatar(props) {
         return null;
     }
 
+    useEffect(() => {
+        if (!_.isFunction(props.source) && props.network.isOffline) {
+            const cachedImage = new Image();
+            cachedImage.src = props.source;
+            if (!cachedImage.complete) {
+                setImageError(true);
+            }
+        }
+    }, []);
+
     const isWorkspace = props.type === CONST.ICON_TYPE_WORKSPACE;
     const iconSize = StyleUtils.getAvatarSize(props.size);
 
@@ -105,7 +117,7 @@ function Avatar(props) {
                 </View>
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
-                    <Image
+                    <RNImage
                         source={{uri: props.source}}
                         style={imageStyle}
                         onError={() => setImageError(true)}
@@ -117,4 +129,6 @@ function Avatar(props) {
 }
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
-export default Avatar;
+export default compose(
+    withNetwork(),
+)(Avatar);
