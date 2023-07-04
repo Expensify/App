@@ -29,7 +29,7 @@ const defaultProps = {
     credentials: {},
 };
 
-const EmailDeliveryFailurePage = (props) => {
+function EmailDeliveryFailurePage(props) {
     const login = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
     return (
         <>
@@ -77,7 +77,7 @@ const EmailDeliveryFailurePage = (props) => {
             </View>
         </>
     );
-};
+}
 
 EmailDeliveryFailurePage.propTypes = propTypes;
 EmailDeliveryFailurePage.defaultProps = defaultProps;
