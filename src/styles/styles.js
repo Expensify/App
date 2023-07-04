@@ -22,6 +22,7 @@ import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
+import callout from './utilities/callout';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 
@@ -133,7 +134,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
-            '-webkit-touch-callout': 'none',
+            ...callout.calloutNone,
         },
 
         p: {
