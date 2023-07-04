@@ -19,6 +19,7 @@ import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
+import usePrevious from '../../../hooks/usePrevious';
 import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 import networkPropTypes from '../../../components/networkPropTypes';
@@ -66,6 +67,10 @@ const defaultProps = {
 
 function WorkspaceReimburseView(props) {
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
+    const prevIsOffline = usePrevious(props.network.isOffline);
+    const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
+    const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === 'Distance');
+    const distanceCustomRate = _.find(lodashGet(props.distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
 
     const getNumericValue = useCallback(
         (value) => {
@@ -93,20 +98,22 @@ function WorkspaceReimburseView(props) {
 
     const getRateLabel = useCallback((customUnitRate) => getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET), [getRateDisplayValue]);
 
-    const getUnitLabel = useCallback((value) => {
-        const propsTranslate = props.translate;
-        return propsTranslate(`common.${value}`);
-    }, [props.translate]);
+    const getUnitLabel = useCallback(
+        (value) => {
+            const propsTranslate = props.translate;
+            return propsTranslate(`common.${value}`);
+        },
+        [props.translate],
+    );
 
     const getCurrentRatePerUnitLabel = useCallback(() => {
         const propsTranslate = props.translate;
-        const distanceCustomUnit = _.find(props.policy.customUnits, unit => unit && unit.name === 'Distance');
-        const customUnitRate = _.find(distanceCustomUnit && distanceCustomUnit.rates, rate => rate && rate.name === 'Default Rate');
+        const customUnitRate = _.find(distanceCustomUnit && distanceCustomUnit.rates, (rate) => rate && rate.name === 'Default Rate');
         const currentUnit = getUnitLabel((distanceCustomUnit && distanceCustomUnit.attributes && distanceCustomUnit.attributes.unit) || 'mi');
         const currentRate = getRateLabel(customUnitRate);
         const perWord = propsTranslate('common.per');
         return `${currentRate} ${perWord} ${currentUnit}`;
-    }, [props.policy.customUnits, props.translate, getUnitLabel, getRateLabel]);
+    }, [props.translate, distanceCustomUnit, getUnitLabel, getRateLabel]);
 
     const fetchData = useCallback(() => {
         // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
@@ -122,19 +129,13 @@ function WorkspaceReimburseView(props) {
     }, [fetchData]);
 
     useEffect(() => {
-        setCurrentRatePerUnit(getCurrentRatePerUnitLabel()); // TODO: find out if it is necessary. what happens when you pass a function to useState()
-    }, [props.policy.customUnits, props.preferredLocale, getCurrentRatePerUnitLabel]);
-
-    useEffect(() => {
-        if (props.network.isOffline) {
+        setCurrentRatePerUnit(getCurrentRatePerUnitLabel());
+        const isReconnecting = prevIsOffline && !props.network.isOffline;
+        if (!isReconnecting) {
             return;
         }
         fetchData();
-    }, [props.network.isOffline, fetchData]);
-
-    const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
-    const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === 'Distance');
-    const distanceCustomRate = _.find(lodashGet(props.distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
+    }, [props.policy.customUnits, props.preferredLocale, props.network.isOffline, prevIsOffline, getCurrentRatePerUnitLabel, fetchData]);
 
     return (
         <>
