@@ -60,7 +60,6 @@ import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemReimbursed from './ReportActionItemReimbursed';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import {getMoneyRequestTotal} from "../../../libs/ReportUtils";
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -281,7 +280,7 @@ function ReportActionItem(props) {
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED) {
-            const totalAmount = getMoneyRequestTotal(props.report);
+            const totalAmount = ReportUtils.getMoneyRequestTotal(props.report);
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
             children = (
                 <ReportActionItemReimbursed
