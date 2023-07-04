@@ -178,7 +178,7 @@ function MoneyRequestParticipantsSplitSelector({betas, participants, personalDet
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
-                shouldFocusOnSelectRow
+                shouldFocusOnSelectRow={!Browser.isMobile()}
             />
         </View>
     );
