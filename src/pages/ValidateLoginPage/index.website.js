@@ -60,6 +60,7 @@ function ValidateLoginPage(props) {
     const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
     const {canUsePasswordlessLogins} = usePermissions();
     const {preferredLocale} = useLocalize();
+    const cachedAccountID = lodashGet(props, 'credentials.accountID', null);
 
     useEffect(() => {
         // A fresh session will not have credentials.login and user permission betas available.
@@ -86,13 +87,13 @@ function ValidateLoginPage(props) {
     }, []);
 
     useEffect(() => {
-        if (login || !lodashGet(props, 'credentials.accountID', null) || !is2FARequired) {
+        if (login || !cachedAccountID || !is2FARequired) {
             return;
         }
 
         // The user clicked the option to sign in the current tab
         Navigation.navigate(ROUTES.REPORT);
-    }, [login, props.credentials, is2FARequired]);
+    }, [login, cachedAccountID, is2FARequired]);
 
     return (
         <>
