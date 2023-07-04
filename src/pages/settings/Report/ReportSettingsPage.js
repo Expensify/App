@@ -119,6 +119,7 @@ class ReportSettingsPage extends Component {
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
                                 errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
+                                errorRowStyles={[styles.ph5]}
                                 onClose={() => Report.clearPolicyRoomNameErrors(this.props.report.reportID)}
                             >
                                 {shouldDisableRename ? (
