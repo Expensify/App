@@ -8,5 +8,6 @@ import PersonalDetails from './PersonalDetails';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
 import Task from './Task';
 import Currency from './Currency';
+import ScreenShareRequest from './ScreenShareRequest';
 
-export type {Account, Credentials, QueuedOnyxUpdates, IOU, Modal, Network, PersonalDetails, PrivatePersonalDetails, Task, Currency};
+export type {Account, Credentials, QueuedOnyxUpdates, IOU, Modal, Network, PersonalDetails, PrivatePersonalDetails, Task, Currency, ScreenShareRequest};

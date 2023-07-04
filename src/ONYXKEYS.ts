@@ -268,6 +268,7 @@ type OnyxValues = {
     [ONYXKEYS.TASK]: OnyxTypes.Task;
     [ONYXKEYS.CURRENCY_LIST]: Record<string, OnyxTypes.Currency>;
     [ONYXKEYS.UPDATE_AVAILABLE]: boolean;
+    [ONYXKEYS.SCREEN_SHARE_REQUEST]: OnyxTypes.ScreenShareRequest;
 };
 
 export default ONYXKEYS;
