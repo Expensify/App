@@ -20,6 +20,15 @@ const navigationIsReadyPromise = new Promise((resolve) => {
 
 let pendingRoute = null;
 
+let shouldPopAllStateOnUP = false;
+
+/**
+ * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
+ */
+function setShouldPopAllStateOnUP() {
+    shouldPopAllStateOnUP = true;
+}
+
 /**
  * @param {String} methodName
  * @param {Object} params
@@ -85,10 +94,19 @@ function navigate(route = ROUTES.HOME, type) {
 /**
  * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
+ * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false) {
+function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
+    }
+
+    if (shouldPopToTop) {
+        if (shouldPopAllStateOnUP) {
+            shouldPopAllStateOnUP = false;
+            navigationRef.current.dispatch(StackActions.popToTop());
+            return;
+        }
     }
 
     if (!navigationRef.current.canGoBack()) {
@@ -222,6 +240,7 @@ function setIsNavigationReady() {
 }
 
 export default {
+    setShouldPopAllStateOnUP,
     canNavigate,
     navigate,
     setParams,
