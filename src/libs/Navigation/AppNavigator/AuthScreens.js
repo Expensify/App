@@ -262,6 +262,18 @@ class AuthScreens extends React.Component {
                     }}
                 />
                 <RootStack.Screen
+                    name={SCREENS.REPORT_ATTACHMENTS}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={() => {
+                        const ReportAttachments = require('../../../pages/home/report/ReportAttachments').default;
+                        return ReportAttachments;
+                    }}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
                     options={defaultScreenOptions}
                     component={FullScreenNavigator}
