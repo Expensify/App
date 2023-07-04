@@ -86,12 +86,6 @@ function NewTaskPage(props) {
             setAssignee(displayDetails);
         }
 
-        // If we don't have an assignee and we are creating a task from a report
-        // this allows us to auto assign a participant of the report.
-        if (!props.task.assignee && props.task.parentReportID) {
-            TaskUtils.setAssigneeValueWithParentReportID(props.task.parentReportID);
-        }
-
         // We only set the parentReportID if we are creating a task from a report
         // this allows us to go ahead and set that report as the share destination
         // and disable the share destination selector
@@ -150,7 +144,7 @@ function NewTaskPage(props) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK_DETAILS)}
             />
-            <View style={[styles.mt5, styles.containerWithSpaceBetween]}>
+            <View style={[styles.containerWithSpaceBetween]}>
                 <View style={styles.mb5}>
                     <MenuItemWithTopDescription
                         description={props.translate('newTaskPage.title')}

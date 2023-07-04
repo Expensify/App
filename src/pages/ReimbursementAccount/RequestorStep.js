@@ -172,6 +172,7 @@ class RequestorStep extends React.Component {
                         shouldSaveDraft
                     />
                     <CheckboxWithLabel
+                        accessibilityLabel={this.props.translate('requestorStep.isControllingOfficer')}
                         inputID="isControllingOfficer"
                         defaultValue={this.props.getDefaultStateForField('isControllingOfficer', false)}
                         LabelComponent={() => (

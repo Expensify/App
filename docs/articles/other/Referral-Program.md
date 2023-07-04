@@ -1,20 +1,20 @@
 ---
 title: Expensify Referral Program
-description: using joining links to track them, we'll pay referrers if their referral adopts Expensify.
+description: Send your joining link, submit a receipt or invoice, and we'll pay you if your referral adopts Expensify.
 ---
 <!-- The lines above are required by Jekyll to process the .md file -->
 
 # About
 
-Expensify has grown thanks to our users who love Expensify so much that they tell their friends, colleagues, managers, and fellow business founders to use it, too. This is how we’ve acquired more customers than all other expense management companies combined.
+Expensify has grown thanks to our users who love Expensify so much that they tell their friends, colleagues, managers, and fellow business founders to use it, too. 
 
 As a thank you, every time you bring a new user into the platform who directly or indirectly leads to the adoption of a paid annual plan on Expensify, you will earn $250. 
 
-# How-to get paid for referring people to Expensify
+# How to get paid for referring people to Expensify
 
 1. Submit a report or invoice, or share your referral link with anyone you know who is spending too much time on expenses, or works at a company that could benefit from using Expensify. 
 
-2. You’ll get $250 for any referred business that commits to an annual subscription, has 2 or more active users, and makes two monthly payments.
+2. You will get $250 for any referred business that commits to an annual subscription, has 2 or more active users, and makes two monthly payments.
 
 That’s right! You can refer anyone working at any company you know. 
 
@@ -50,4 +50,4 @@ Please send a message to concierge@expensify.com with the billing owner of the c
 
 Expensify members who are opted-in for our newsletters will have received an email containing their unique referral link. 
 
-On the mobile app, go to Settings > Invite a Friend > Share Invite Link to retrieve your referral link.  
+On the mobile app, go to **Settings** > **Invite a Friend** > **Share Invite Link** to retrieve your referral link.  
