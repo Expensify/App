@@ -96,7 +96,6 @@ function ReportPreview(props) {
         (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerAccountID, true)) || managerEmail;
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const displayingMessage = ReportUtils.getReportPreviewMessage(props.iouReport, props.action);
     return (
         <View style={styles.chatItemMessage}>
             {_.map(props.action.message, (message, index) => (
@@ -136,28 +135,6 @@ function ReportPreview(props) {
                     </View>
                 </PressableWithoutFeedback>
             ))}
-=======
-        <View style={[styles.chatItemMessage]}>
-            <PressableWithoutFeedback
-                onPress={() => {
-                    Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
-                }}
-                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                style={[styles.flexRow, styles.justifyContentBetween]}
-                accessibilityRole="button"
-                accessibilityLabel={props.translate('iou.viewDetails')}
-            >
-                <View style={[styles.flexShrink1]}>
-                    <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>{displayingMessage}</Text>
-                </View>
-                <Icon
-                    src={Expensicons.ArrowRight}
-                    fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-                />
-            </PressableWithoutFeedback>
->>>>>>> main
             {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
                 <SettlementButton
                     currency={props.iouReport.currency}
