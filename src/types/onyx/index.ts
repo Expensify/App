@@ -6,5 +6,6 @@ import Modal from './Modal';
 import Network from './Network';
 import PersonalDetails from './PersonalDetails';
 import PrivatePersonalDetails from './PrivatePersonalDetails';
+import Task from './Task';
 
-export type {Account, Credentials, QueuedOnyxUpdates, IOU, Modal, Network, PersonalDetails, PrivatePersonalDetails};
+export type {Account, Credentials, QueuedOnyxUpdates, IOU, Modal, Network, PersonalDetails, PrivatePersonalDetails, Task};

@@ -265,6 +265,7 @@ type OnyxValues = {
     [ONYXKEYS.NETWORK]: OnyxTypes.Network;
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: Record<string, OnyxTypes.PersonalDetails>;
     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: OnyxTypes.PrivatePersonalDetails;
+    [ONYXKEYS.TASK]: OnyxTypes.Task;
 };
 
 export default ONYXKEYS;
