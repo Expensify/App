@@ -113,7 +113,7 @@ function MoneyRequestHeader(props) {
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
             />
             <View style={[styles.ph5, styles.pb2]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
