@@ -364,7 +364,6 @@ export default {
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerSettled: ({amount}) => `paid ${amount}`,
         waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
-        waitingOnBankAccountPrefix: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a `,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         settledElsewhereWithAmount: ({amount}) => `paid ${amount} elsewhere`,
         settledPaypalMeWithAmount: ({amount}) => `paid ${amount} using Paypal.me`,
