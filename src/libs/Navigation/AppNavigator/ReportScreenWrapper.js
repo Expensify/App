@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -72,62 +72,41 @@ const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstT
 };
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
-class ReportScreenWrapper extends Component {
-    constructor(props) {
-        super(props);
+function ReportScreenWrapper(props) {
+    useEffect(() => {
+        // Don't update if there is a reportID in the params already
+        if (lodashGet(props.route, 'params.reportID', null)) {
+            App.confirmReadyToOpenApp();
+            return;
+        }
 
         // If there is no reportID in route, try to find last accessed and use it for setParams
-        if (!lodashGet(this.props.route, 'params.reportID', null)) {
-            const reportID = getLastAccessedReportID(
-                this.props.reports,
-                !Permissions.canUseDefaultRooms(this.props.betas),
-                this.props.policies,
-                this.props.isFirstTimeNewExpensifyUser,
-                this.props.route.params.openOnAdminRoom,
-            );
-
-            // It's possible that props.reports aren't fully loaded yet
-            // in that case the reportID is undefined
-            if (reportID) {
-                this.props.navigation.setParams({reportID: String(reportID)});
-            } else {
-                App.confirmReadyToOpenApp();
-            }
-        }
-    }
-
-    shouldComponentUpdate(nextProps) {
-        // Don't update if there is a reportID in the params already
-        if (lodashGet(this.props.route, 'params.reportID', null)) {
-            App.confirmReadyToOpenApp();
-            return false;
-        }
-
-        // If the reports weren't fully loaded in the constructor,
-        // try to get and set reportID again
         const reportID = getLastAccessedReportID(
-            nextProps.reports,
-            !Permissions.canUseDefaultRooms(nextProps.betas),
-            nextProps.policies,
-            lodashGet(nextProps, 'route.params.openOnAdminRoom', false),
+            props.reports,
+            !Permissions.canUseDefaultRooms(props.betas),
+            props.policies,
+            props.isFirstTimeNewExpensifyUser,
+            lodashGet(props.route, 'params.openOnAdminRoom', false),
         );
 
+        // It's possible that props.reports aren't fully loaded yet
+        // in that case the reportID is undefined
         if (reportID) {
-            this.props.navigation.setParams({reportID: String(reportID)});
-            return true;
+            props.navigation.setParams({reportID: String(reportID)});
+        } else {
+            App.confirmReadyToOpenApp();
         }
-        return false;
+    }, [props.route, props.navigation, props.reports, props.betas, props.policies, props.isFirstTimeNewExpensifyUser]);
+
+    // Wait until there is reportID in the route params
+    if (lodashGet(props.route, 'params.reportID', null)) {
+        return <ReportScreen route={props.route} />;
     }
 
-    render() {
-        // Wait until there is reportID in the route params
-        if (lodashGet(this.props.route, 'params.reportID', null)) {
-            return <ReportScreen route={this.props.route} />;
-        }
+    return <FullScreenLoadingIndicator initialParams={props.route.params} />;
+};
 
-        return <FullScreenLoadingIndicator initialParams={this.props.route.params} />;
-    }
-}
+
 
 ReportScreenWrapper.propTypes = propTypes;
 ReportScreenWrapper.defaultProps = defaultProps;
