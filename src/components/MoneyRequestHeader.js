@@ -74,6 +74,11 @@ const defaultProps = {
 function MoneyRequestHeader(props) {
     // These are only used for the single transaction view and not for expense and iou reports
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+
+    const deleteTransaction = useCallback(() => {
+        IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
+    }, [parentReportAction]);
+
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const transactionDate = lodashGet(parentReportAction, ['created']);
@@ -94,10 +99,11 @@ function MoneyRequestHeader(props) {
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
-
-    const deleteTransaction = useCallback(() => {
-        IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
-    }, [parentReportAction]);
+    const report = props.report;
+    if (props.isSingleTransactionView) {
+        report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
+        report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
+    }
 
     if (props.isSingleTransactionView && isDeletedParentAction) {
         return (
@@ -123,12 +129,11 @@ function MoneyRequestHeader(props) {
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={props.report}
-                parentReport={moneyRequestReport}
+                report={report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
             />
             <View style={[styles.ph5, styles.pb2]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>

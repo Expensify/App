@@ -236,6 +236,14 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
+        // This listener is used for focusing the composer again after going back to a report without remounting it.
+        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
+            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
+                return;
+            }
+            this.focus();
+        });
+
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -274,6 +282,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+        if (!this.unsubscribeNavFocus) {
+            return;
+        }
+        this.unsubscribeNavFocus();
     }
 
     onSelectionChange(e) {
