@@ -431,6 +431,16 @@ function getLinkedTransactionID(reportID, reportActionID) {
 }
 
 /**
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {Object}
+ */
+function getReportAction(reportID, reportActionID) {
+    return lodashGet(allReportActions, [reportID, reportActionID], {});
+}
+
+/**
  * @param {*} chatReportID
  * @param {*} iouReportID
  * @returns {Object} The report preview action or `null` if one couldn't be found
@@ -497,4 +507,5 @@ export {
     isMessageDeleted,
     isWhisperAction,
     isPendingRemove,
+    getReportAction,
 };
