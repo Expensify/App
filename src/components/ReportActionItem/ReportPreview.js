@@ -90,6 +90,7 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
+    const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerEmail = props.iouReport.managerEmail || '';
     const managerAccountID = props.iouReport.managerID || 0;
     const managerName =
@@ -115,14 +116,14 @@ function ReportPreview(props) {
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                    {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerOwes' : 'iou.payerPaid', {payer: managerName})}
+                                    {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
                                 </Text>
                             </View>
                         </View>
                         <View style={styles.flexRow}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                                 <Text style={styles.textHeadline}>{reportAmount}</Text>
-                                {!props.iouReport.hasOutstandingIOU && (
+                                {ReportUtils.isSettled(props.iouReportID) && (
                                     <View style={styles.iouPreviewBoxCheckmark}>
                                         <Icon
                                             src={Expensicons.Checkmark}

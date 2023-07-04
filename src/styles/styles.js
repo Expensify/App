@@ -2540,8 +2540,8 @@ const styles = {
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
-        borderRadius: variables.componentBorderRadiusCard,
-        padding: 20,
+        borderRadius: variables.componentBorderRadiusLarge,
+        padding: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
