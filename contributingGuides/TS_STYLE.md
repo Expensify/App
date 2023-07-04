@@ -41,7 +41,7 @@
   - [TypeScript playground](https://www.typescriptlang.org/play?q=231#example)
     - Go though all examples on the playground. Click on "Example" tab on the top
 - Handy Reference
-  - [TypeScript CheatSheet](https://www.typescriptlang.org/static/TypeScript%20Types-ae199d69aeecf7d4a2704a528d0fd3f9.png)
+  - [TypeScript CheatSheet](https://www.typescriptlang.org/cheatsheets)
     - [Type](https://www.typescriptlang.org/static/TypeScript%20Types-ae199d69aeecf7d4a2704a528d0fd3f9.png)
     - [Control Flow Analysis](https://www.typescriptlang.org/static/TypeScript%20Control%20Flow%20Analysis-8a549253ad8470850b77c4c5c351d457.png)
 - TypeScript with React
@@ -88,7 +88,7 @@ type Foo = {
 
     ```ts
     // bad
-      type PersonType = ...;
+    type PersonType = ...;
 
     // good
     type Person = ...;
@@ -455,7 +455,7 @@ type Foo = {
 
   <a name="no-inline-prop-types"></a><a name="1.18"></a>
 
-- [1.18](#no-inline-prop-types) **No inline prop tpe**: Do not define prop types inline for components that are exported.
+- [1.18](#no-inline-prop-types) **No inline prop types**: Do not define prop types inline for components that are exported.
 
   > Why? Prop types might need to be exported from component files. //TODO: link to the export component types section. If the component is only used inside a file or module and not exported, then inline prop types can be used.
 
