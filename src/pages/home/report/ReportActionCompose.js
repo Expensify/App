@@ -681,13 +681,16 @@ class ReportActionCompose extends React.Component {
     /**
      * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
      * @param {String} text
+     * @param {Boolean} shouldAddTrailSpace
      */
-    replaceSelectionWithText(text) {
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, `${text} `));
+    replaceSelectionWithText(text, shouldAddTrailSpace = true) {
+        const updatedText = shouldAddTrailSpace ? `${text} ` : text;
+        const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, updatedText));
         this.setState((prevState) => ({
             selection: {
-                start: prevState.selection.start + text.length + CONST.SPACE_LENGTH,
-                end: prevState.selection.start + text.length + CONST.SPACE_LENGTH,
+                start: prevState.selection.start + text.length + selectionSpaceLength,
+                end: prevState.selection.start + text.length + selectionSpaceLength,
             },
         }));
     }
@@ -723,7 +726,7 @@ class ReportActionCompose extends React.Component {
         }
 
         this.focus();
-        this.replaceSelectionWithText(e.key);
+        this.replaceSelectionWithText(e.key, false);
     }
 
     /**
