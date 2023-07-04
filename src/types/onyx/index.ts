@@ -5,5 +5,6 @@ import IOU from './IOU';
 import Modal from './Modal';
 import Network from './Network';
 import PersonalDetails from './PersonalDetails';
+import PrivatePersonalDetails from './PrivatePersonalDetails';
 
-export type {Account, Credentials, QueuedOnyxUpdates, IOU, Modal, Network, PersonalDetails};
+export type {Account, Credentials, QueuedOnyxUpdates, IOU, Modal, Network, PersonalDetails, PrivatePersonalDetails};
