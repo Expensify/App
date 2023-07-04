@@ -1,4 +1,4 @@
-import React, {useState, useEffect, forwardRef} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -12,13 +12,9 @@ import RNImage from './Image';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
-import {withNetwork} from './OnyxProvider';
-import networkPropTypes from './networkPropTypes';
+import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     /** Source for the avatar. Can be a URL or an icon. */
     source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
 
@@ -67,19 +63,10 @@ const defaultProps = {
 };
 
 function Avatar(props) {
-    const [imageError, setImageError] = useState(false);
-
+    const {isOffline} = useNetwork();
+    const [imageError, setImageError] = useState(isOffline);
+    
     useOnNetworkReconnect(() => setImageError(false));
-
-    useEffect(() => {
-        if (_.isFunction(props.source) || !props.network.isOffline) return;
-
-        const cachedImage = new Image();
-        cachedImage.src = props.source;
-        if (!cachedImage.complete) {
-            setImageError(true);
-        }
-    }, [props.source, props.network.isOffline]);
 
     if (!props.source) {
         return null;
@@ -132,12 +119,4 @@ function Avatar(props) {
 }
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
-export default withNetwork()(
-    forwardRef((props, ref) => (
-        <Avatar
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+export default Avatar;
