@@ -21,7 +21,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
-import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
@@ -200,7 +199,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
                 action: () => {
-                    App.openProfile();
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
                 },
                 brickRoadIndicator: profileBrickRoadIndicator,
             },

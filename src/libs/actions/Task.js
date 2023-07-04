@@ -57,6 +57,7 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Created a task: ${title}`, parentReportID);
+    optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
 
@@ -648,6 +649,11 @@ function getTaskAssigneeAccountID(taskReport) {
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
     const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
+
+    if (!childManagerEmail) {
+        return null;
+    }
+
     return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
 }
 

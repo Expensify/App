@@ -52,8 +52,24 @@ function isDeletedAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isPendingRemove(reportAction) {
+    return lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isMoneyRequestAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function isReportPreviewAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
 /**
@@ -232,6 +248,11 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
 
+    // Do not group if the delegate account ID is different
+    if (previousAction.delegateAccountID !== currentAction.delegateAccountID) {
+        return false;
+    }
+
     return currentAction.actorEmail === previousAction.actorEmail;
 }
 
@@ -325,7 +346,7 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+    if (isPendingRemove(reportAction)) {
         return false;
     }
 
@@ -410,6 +431,16 @@ function getLinkedTransactionID(reportID, reportActionID) {
 }
 
 /**
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {Object}
+ */
+function getReportAction(reportID, reportActionID) {
+    return lodashGet(allReportActions, [reportID, reportActionID], {});
+}
+
+/**
  * @param {*} chatReportID
  * @param {*} iouReportID
  * @returns {Object} The report preview action or `null` if one couldn't be found
@@ -419,6 +450,16 @@ function getReportPreviewAction(chatReportID, iouReportID) {
         allReportActions[chatReportID],
         (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lodashGet(reportAction, 'originalMessage.linkedReportID') === iouReportID,
     );
+}
+
+/**
+ * Get the iouReportID for a given report action.
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getIOUReportIDFromReportActionPreview(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
 }
 
 function isCreatedTaskReportAction(reportAction) {
@@ -436,7 +477,7 @@ function isMessageDeleted(reportAction) {
 }
 
 function isWhisperAction(action) {
-    return (action.whisperedTo || []).length > 0;
+    return (action.whisperedToAccountIDs || []).length > 0;
 }
 
 export {
@@ -461,6 +502,10 @@ export {
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isReportPreviewAction,
+    getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
+    isPendingRemove,
+    getReportAction,
 };
