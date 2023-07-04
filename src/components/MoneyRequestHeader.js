@@ -97,6 +97,12 @@ function MoneyRequestHeader(props) {
         description += ` • ${props.translate('iou.pending')}`;
     }
 
+    const report = props.report;
+    if (props.isSingleTransactionView) {
+        report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
+        report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
+    }
+
     return (
         <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
             <HeaderWithBackButton
@@ -111,8 +117,7 @@ function MoneyRequestHeader(props) {
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={props.report}
-                parentReport={moneyRequestReport}
+                report={report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}

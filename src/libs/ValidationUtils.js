@@ -141,19 +141,6 @@ function isValidDebitCard(string) {
 }
 
 /**
- *
- * @param {String} nameOnCard
- * @returns {Boolean}
- */
-function isValidCardName(nameOnCard) {
-    if (!CONST.REGEX.ALPHABETIC_CHARS.test(nameOnCard)) {
-        return false;
-    }
-
-    return !_.isEmpty(nameOnCard.trim());
-}
-
-/**
  * @param {String} code
  * @returns {Boolean}
  */
@@ -464,7 +451,6 @@ export {
     getAgeRequirementError,
     isValidAddress,
     isValidDate,
-    isValidCardName,
     isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
