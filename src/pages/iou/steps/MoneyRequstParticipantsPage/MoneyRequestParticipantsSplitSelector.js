@@ -12,7 +12,9 @@ import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import personalDetailsPropType from '../../../personalDetailsPropType';
+import * as Browser from '../../../../libs/Browser';
 import reportPropTypes from '../../../reportPropTypes';
+
 
 const propTypes = {
     /** Beta features list */
