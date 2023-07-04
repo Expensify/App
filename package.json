@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.3.36-1",
+  "version": "1.3.36-2",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -106,7 +106,7 @@
     "react-native-fast-image": "^8.6.3",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "2.9.0",
-    "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#6f436a06a3018cb49750bb110b89df75f6a865d5",
+    "react-native-google-places-autocomplete": "git+https://github.com/Expensify/react-native-google-places-autocomplete.git#ee87343c3e827ff7818abc71b6bb04fcc1f120e0",
     "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^5.1.0",
