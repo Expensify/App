@@ -5,7 +5,7 @@ function useThemeStyles() {
     const contextValue = useContext(ThemeStylesContext);
 
     if (contextValue == null) {
-        throw new Error('StylesContext was null! Are you sure that you wrapped the component under a <StylesProvider>?');
+        throw new Error('StylesContext was null! Are you sure that you wrapped the component under a <ThemeStylesProvider>?');
     }
 
     return contextValue;
