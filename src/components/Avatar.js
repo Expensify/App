@@ -8,7 +8,7 @@ import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as Expensicons from './Icon/Expensicons';
-import RNImage from './Image';
+import Image from './Image';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
@@ -107,7 +107,7 @@ function Avatar(props) {
                 </View>
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
-                    <RNImage
+                    <Image
                         source={{uri: props.source}}
                         style={imageStyle}
                         onError={() => setImageError(true)}
