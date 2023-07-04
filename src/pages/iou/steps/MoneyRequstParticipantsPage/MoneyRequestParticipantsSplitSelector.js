@@ -15,7 +15,6 @@ import personalDetailsPropType from '../../../personalDetailsPropType';
 import * as Browser from '../../../../libs/Browser';
 import reportPropTypes from '../../../reportPropTypes';
 
-
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
