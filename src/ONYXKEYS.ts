@@ -1,6 +1,7 @@
 import {ValueOf} from 'type-fest';
 import * as UtilTypes from './types/utils';
 import * as OnyxTypes from './types/onyx';
+import CONST from './CONST';
 
 /**
  * This is a file containing constants for all the top level keys in our store
@@ -273,6 +274,7 @@ type OnyxValues = {
     [ONYXKEYS.USER]: OnyxTypes.User;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.Login;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
+    [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
 };
 
 export default ONYXKEYS;
