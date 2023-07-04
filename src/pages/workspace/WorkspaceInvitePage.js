@@ -298,6 +298,7 @@ class WorkspaceInvitePage extends React.Component {
                             headerMessage={headerMessage}
                             hideSectionHeaders
                             boldStyle
+                            shouldDelayFocus
                             shouldFocusOnSelectRow={!Browser.isMobile()}
                             textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                         />
