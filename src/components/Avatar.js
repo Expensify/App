@@ -119,4 +119,5 @@ function Avatar(props) {
 }
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
+
 export default Avatar;
