@@ -24,6 +24,7 @@
   - [1.15 File Organization](#file-organization)
   - [1.16 Reusable Types](#reusable-types)
   - [1.17 `.tsx`](#tsx)
+  - [1.18 No inline prop types](#no-inline-prop-types)
 - [Communication Items](#items)
 - [Migration Guidelines](#migration-guidelines)
 
@@ -69,21 +70,56 @@ type Foo = {
 
 <a name="naming-conventions"></a><a name="1.1"></a>
 
-- [1.1](#naming-conventions) **Naming Conventions**: Use PascalCase for type names. Do not postfix type aliases with `Type`. Use singular name for union types. eslint: [`@typescript-eslint/naming-convention`](https://typescript-eslint.io/rules/naming-convention/)
+- [1.1](#naming-conventions) **Naming Conventions**: Follow naming conventions specified below
 
-  ```ts
-  // bad
-  type foo = ...;
-  type BAR = ...;
-  type PersonType = ...;
-  type Colors = 'red' | 'blue' | 'green';
+  - Use PascalCase for type names. eslint: [`@typescript-eslint/naming-convention`](https://typescript-eslint.io/rules/naming-convention/)
 
-  // good
-  type Foo = ...;
-  type Bar = ...;
-  type Person = ...;
-  type Color = 'red' | 'blue' | 'green';
-  ```
+    ```ts
+    // bad
+    type foo = ...;
+    type BAR = ...;
+
+    // good
+    type Foo = ...;
+    type Bar = ...;
+    ```
+
+  - Do not postfix type aliases with `Type`.
+
+    ```ts
+    // bad
+      type PersonType = ...;
+
+    // good
+    type Person = ...;
+    ```
+
+  - Use singular name for union types.
+
+    ```ts
+    // bad
+    type Colors = "red" | "blue" | "green";
+
+    // good
+    type Color = "red" | "blue" | "green";
+    ```
+
+  - For generic type parameters, use `T` if you have only one type parameter. Don't use the `T`, `U`, `V`... sequence. Make type parameter names descriptive, each prefixed with `T`.
+
+    > Prefix each type parameter name to distinguish them from other types.
+
+    ```ts
+    // bad
+    type KeyValuePair<T, U> = { key: K; value: U };
+
+    type Keys<Key> = Array<Key>;
+
+    // good
+    type KeyValuePair<TKey, TValue> = { key: TKey; value: TValue };
+
+    type Keys<T> = Array<T>;
+    type Keys<TKey> = Array<TKey>;
+    ```
 
 <a name="d-ts-extension"></a><a name="1.2"></a>
 
@@ -311,9 +347,9 @@ type Foo = {
 
 <a name="export-prop-types"></a><a name="1.14"></a>
 
-- [1.14](#export-prop-types) **Prop Types**: Define and export prop types for components. Use exported prop types instead of grabbing the prop type from a component.
+- [1.14](#export-prop-types) **Prop Types**: Don't use `ComponentProps` to grab a component's prop types. Go to the source file for the component and export prop types from there. Import and use the exported prop types.
 
-  > Why? Exporting prop types aids reusability.
+  > Don't export prop types from component files by default. Only export it when there is a code that needs to access the prop type directly.
 
   ```tsx
   // MyComponent.tsx
@@ -403,19 +439,38 @@ type Foo = {
 
 - [1.16](#reusable-types) **Reusable Types**: Reusable type definitions, such as models (e.g. Report), must have their own file and be placed under `src/types/`. The type should be exported as a default export.
 
-```ts
-// src/types/Report.ts
+  ```ts
+  // src/types/Report.ts
 
-type Report = {...};
+  type Report = {...};
 
-export default Report;
-```
+  export default Report;
+  ```
 
-<a name="tsx"></a><a name="1.17"></a>
+  <a name="tsx"></a><a name="1.17"></a>
 
-- [1.17](#tsx) **tsx** Use `.tsx` extension for files that contain React syntax.
+- [1.17](#tsx) **tsx**: Use `.tsx` extension for files that contain React syntax.
 
-> Why? It is a widely adopted convention to mark any files that contain React specific syntax with `.jsx` or `.tsx`.
+  > Why? It is a widely adopted convention to mark any files that contain React specific syntax with `.jsx` or `.tsx`.
+
+  <a name="no-inline-prop-types"></a><a name="1.18"></a>
+
+- [1.18](#no-inline-prop-types) **No inline prop tpe**: Do not define prop types inline for components that are exported.
+
+  > Why? Prop types might need to be exported from component files. //TODO: link to the export component types section. If the component is only used inside a file or module and not exported, then inline prop types can be used.
+
+  ```ts
+  // bad
+  export default function MyComponent({ foo, bar }: { foo: string, bar: number }){
+    // component implementation
+  };
+
+  // good
+  type MyComponentProp = { foo: string, bar: number };
+  export default MyComponent({ foo, bar }: MyComponentProp){
+    // component implementation
+  }
+  ```
 
 ## Communication Items
 
