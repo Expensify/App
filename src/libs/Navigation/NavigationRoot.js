@@ -55,6 +55,13 @@ function NavigationRoot(props) {
     const navigationStateRef = useRef(undefined);
     const firstRenderRef = useRef(true);
 
+    const {updateCurrentReportID} = useCurrentReportID();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
+    const statusBarBackgroundColor = useRef(themeColors.appBG);
+    const statusBarAnimation = useSharedValue(0);
+
     useEffect(() => {
         if (firstRenderRef.current) {
             // we don't want to make the report back button go back to LHN if the user
@@ -63,18 +70,11 @@ function NavigationRoot(props) {
             firstRenderRef.current = false;
             return;
         }
-        if (!props.isSmallScreenWidth) {
+        if (!isSmallScreenWidth) {
             return;
         }
         Navigation.setShouldPopAllStateOnUP();
-    }, [props.isSmallScreenWidth]);
-
-    const {updateCurrentReportID} = useCurrentReportID();
-    const {isSmallScreenWidth} = useWindowDimensions();
-
-    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarAnimation = useSharedValue(0);
+    }, [isSmallScreenWidth]);
 
     const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
     useAnimatedReaction(
