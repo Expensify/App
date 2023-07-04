@@ -592,6 +592,7 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+            BILLING: 3,
         },
         STATUS: {
             OPEN: 0,
