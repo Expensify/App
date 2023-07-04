@@ -659,7 +659,7 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -668,7 +668,7 @@ describe('actions/Report', () => {
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
                 // should get removed instead of added again.
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, 2);
+                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI, 2);
                 return waitForPromisesToResolve();
             })
             .then(() => {
