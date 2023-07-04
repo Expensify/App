@@ -31,6 +31,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -328,6 +329,18 @@ class ReimbursementAccountPage extends React.Component {
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const policyName = lodashGet(this.props.policy, 'name');
+
+        if (_.isEmpty(this.props.policy)) {
+            return (
+                <ScreenWrapper>
+                    <FullPageNotFoundView
+                        shouldShow
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                        shouldShowLink
+                    />
+                </ScreenWrapper>
+            );
+        }
 
         const isLoading = this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading;
 

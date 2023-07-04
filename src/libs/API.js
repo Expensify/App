@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import Log from './Log';
 import * as Request from './Request';
 import * as Middleware from './Middleware';
 import * as SequentialQueue from './Network/SequentialQueue';
@@ -37,6 +38,8 @@ Request.use(Middleware.SaveResponseInOnyx);
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function write(command, apiCommandParameters = {}, onyxData = {}) {
+    Log.info('Called API write', false, {command, ...apiCommandParameters});
+
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);
@@ -91,6 +94,8 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  * @returns {Promise}
  */
 function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+    Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);
