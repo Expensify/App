@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import * as Environment from './Environment/Environment';
 import CONST from '../CONST';
 
 /**
@@ -8,7 +7,7 @@ import CONST from '../CONST';
  * @returns {Boolean}
  */
 function canUseAllBetas(betas) {
-    return Environment.isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
@@ -75,7 +74,7 @@ function canUseCommentLinking(betas) {
  * @returns {Boolean}
  */
 function canUsePolicyRooms(betas) {
-    return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || canUseAllBetas(betas);
 }
 
 /**
@@ -91,7 +90,7 @@ function canUsePolicyExpenseChat(betas) {
  * @returns {Boolean}
  */
 function canUsePasswordlessLogins(betas) {
-    return _.contains(betas, CONST.BETAS.PASSWORDLESS) || _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.PASSWORDLESS) || canUseAllBetas(betas);
 }
 
 /**
@@ -99,7 +98,7 @@ function canUsePasswordlessLogins(betas) {
  * @returns {Boolean}
  */
 function canUseTasks(betas) {
-    return _.contains(betas, CONST.BETAS.TASKS) || _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.TASKS) || canUseAllBetas(betas);
 }
 
 export default {

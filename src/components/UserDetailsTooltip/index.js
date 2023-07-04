@@ -12,6 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize from '../withLocalize';
 import compose from '../../libs/compose';
 import * as UserUtils from '../../libs/UserUtils';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 function UserDetailsTooltip(props) {
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
@@ -44,7 +45,7 @@ function UserDetailsTooltip(props) {
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{userDisplayName}</Text>
 
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
-                    {(userLogin || '').trim() && !_.isEqual(userLogin, userDisplayName) ? Str.removeSMSDomain(userLogin) : ''}
+                    {(userLogin || '').trim() && !_.isEqual(LocalePhoneNumber.formatPhoneNumber(userLogin || ''), userDisplayName) ? Str.removeSMSDomain(userLogin) : ''}
                 </Text>
             </View>
         ),

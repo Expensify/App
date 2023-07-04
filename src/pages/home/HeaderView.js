@@ -83,13 +83,14 @@ function HeaderView(props) {
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
-    const isThread = ReportUtils.isThread(props.report);
+    const isChatThread = ReportUtils.isChatThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const reportHeaderData = !isTaskReport && !isThread && props.report.parentReportID ? props.parentReport : props.report;
+    const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
+    const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -174,7 +175,7 @@ function HeaderView(props) {
                             ) : (
                                 <MultipleAvatars
                                     icons={icons}
-                                    shouldShowTooltip={!isChatRoom || isThread}
+                                    shouldShowTooltip={!isChatRoom || isChatThread}
                                 />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
@@ -184,35 +185,31 @@ function HeaderView(props) {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
-                                {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
-                                    <>
-                                        {isThread ? (
-                                            <PressableWithoutFeedback
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
-                                                }}
-                                                style={[styles.alignSelfStart, styles.mw100]}
-                                                accessibilityLabel={subtitle}
-                                                accessibilityRole="link"
-                                            >
-                                                <Text
-                                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {subtitle}
-                                                </Text>
-                                            </PressableWithoutFeedback>
-                                        ) : (
-                                            <Text
-                                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
-                                                numberOfLines={1}
-                                            >
-                                                {subtitle}
-                                            </Text>
-                                        )}
-                                    </>
+                                {!_.isEmpty(parentNavigationSubtitle) && (
+                                    <PressableWithoutFeedback
+                                        onPress={() => {
+                                            Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                                        }}
+                                        accessibilityLabel={parentNavigationSubtitle}
+                                        accessibilityRole="link"
+                                    >
+                                        <Text
+                                            style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
+                                            numberOfLines={1}
+                                        >
+                                            {parentNavigationSubtitle}
+                                        </Text>
+                                    </PressableWithoutFeedback>
+                                )}
+                                {!_.isEmpty(subtitle) && (
+                                    <Text
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                        numberOfLines={1}
+                                    >
+                                        {subtitle}
+                                    </Text>
                                 )}
                             </View>
                             {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
