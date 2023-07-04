@@ -28,6 +28,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Report from '../../libs/actions/Report';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -101,12 +102,12 @@ function OptionRowLHN(props) {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+
     const shouldShowGreenDotIndicator =
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
-            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
             (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted) ||
-            (optionItem.isWaitingOnBankAccount && optionItem.isIOUReportOwner));
+            (ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem)));
 
     /**
      * Show the ReportActionContextMenu modal popover.

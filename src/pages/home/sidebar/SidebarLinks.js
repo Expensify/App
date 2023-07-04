@@ -294,6 +294,7 @@ const chatReportSelector = (report) =>
         lastVisibleActionCreated: report.lastVisibleActionCreated,
         iouReportID: report.iouReportID,
         hasOutstandingIOU: report.hasOutstandingIOU,
+        isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
         stateNum: report.stateNum,
         chatType: report.chatType,

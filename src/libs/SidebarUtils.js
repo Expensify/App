@@ -125,7 +125,7 @@ function getOrderedReportIDs(currentReportId) {
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReports, betas, policies));
+    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies));
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
         const conciergeChatReport = _.find(allReports, ReportUtils.isConciergeChatReport);
@@ -302,6 +302,7 @@ function getOptionData(reportID) {
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
+    result.shouldShowGreenDotIndicator = report.shouldShowGreenDotIndicator;
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);

@@ -998,8 +998,17 @@ function getPolicyExpenseChatName(report) {
 function getMoneyRequestReportName(report) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID);
+    const payerPaidAmountMsg = Localize.translateLocal('iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
 
-    return Localize.translateLocal(report.hasOutstandingIOU ? 'iou.payerOwesAmount' : 'iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
+    if (report.isWaitingOnBankAccount) {
+        return  `${payerPaidAmountMsg} • ${Localize.translateLocal('iou.pending')}`;
+    }
+
+    if (report.hasOutstandingIOU) {
+        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+    }
+
+    return payerPaidAmountMsg;
 }
 
 /**
@@ -1888,41 +1897,54 @@ function isUnreadWithMention(report) {
 }
 
 /**
- * Determines if a report has an outstanding IOU that doesn't belong to the currently logged in user
+ * Determines if a report has an outstanding IOU that is waiting for an action from the current user
  *
  * @param {Object} report
  * @param {String} report.iouReportID
- * @param {Object} iouReports
  * @returns {boolean}
  */
-function hasOutstandingIOU(report, iouReports) {
+function isWaitingForIOUActionFromCurrentUser(report) {
+    let reportToLook = report;
+
     if (report.iouReportID) {
-        const iouReport = iouReports && iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (!iouReport || !iouReport.ownerAccountID) {
+        const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+        if (!iouReport) {
             return false;
         }
 
-        return iouReport.ownerAccountID === currentUserAccountID ? iouReport.isWaitingOnBankAccount : iouReport.hasOutstandingIOU;
+        reportToLook = iouReport;
     }
 
-    return report.ownerAccountID === currentUserAccountID ? report.isWaitingOnBankAccount : report.hasOutstandingIOU;
+    if (!reportToLook.ownerAccountID) {
+        return false;
+    }
+
+    if (reportToLook.ownerAccountID === currentUserAccountID && reportToLook.isWaitingOnBankAccount) {
+        return true;
+    }
+
+    if (reportToLook.ownerAccountID !== currentUserAccountID && reportToLook.hasOutstandingIOU) {
+        return true;
+    }
+
+    return false;
 }
 
 /**
  * @param {Object} report
  * @param {String} report.iouReportID
- * @param {Object} iouReports
  * @returns {Boolean}
  */
-function isIOUOwnedByCurrentUser(report, iouReports = {}) {
+function isIOUOwnedByCurrentUser(report) {
+    let reportToLook = report;
     if (report.iouReportID) {
-        const iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+        const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
-            return iouReport.ownerAccountID === currentUserAccountID;
+            reportToLook = iouReport;
         }
     }
 
-    return report.ownerAccountID === currentUserAccountID;
+    return reportToLook.ownerAccountID === currentUserAccountID;
 }
 
 /**
@@ -1993,12 +2015,11 @@ function canAccessReport(report, policies, betas) {
  * @param {Object} report
  * @param {String} currentReportId
  * @param {Boolean} isInGSDMode
- * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2025,7 +2046,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 
     // Include reports if they have a draft, are pinned, or have an outstanding IOU
     // These are always relevant to the user no matter what view mode the user prefers
-    if (report.hasDraft || report.isPinned || hasOutstandingIOU(report, iouReports)) {
+    if (report.hasDraft || report.isPinned || isWaitingForIOUActionFromCurrentUser(report)) {
         return true;
     }
 
@@ -2429,7 +2450,7 @@ export {
     isCurrentUserTheOnlyParticipant,
     hasAutomatedExpensifyAccountIDs,
     hasExpensifyGuidesEmails,
-    hasOutstandingIOU,
+    isWaitingForIOUActionFromCurrentUser,
     isIOUOwnedByCurrentUser,
     getMoneyRequestTotal,
     canShowReportRecipientLocalTime,

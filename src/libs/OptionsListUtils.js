@@ -57,26 +57,6 @@ Onyx.connect({
     },
 });
 
-const expenseReports = {};
-const iouReports = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!report || !key || !report.ownerEmail) {
-            return;
-        }
-
-        if (ReportUtils.isExpenseReport(report)) {
-            expenseReports[key] = report;
-            return;
-        }
-
-        if (ReportUtils.isIOUReport(report)) {
-            iouReports[key] = report;
-        }
-    },
-});
-
 const lastReportActions = {};
 const allSortedReportActions = {};
 Onyx.connect({
@@ -437,6 +417,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isDefaultRoom: false,
         isPinned: false,
         hasOutstandingIOU: false,
+        isWaitingOnBankAccount: false,
         iouReportID: null,
         isIOUReportOwner: null,
         iouReportAmount: 0,
@@ -510,8 +491,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, iouReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -625,7 +606,7 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getReportIDFromRoute(), false, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getReportIDFromRoute(), false, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
