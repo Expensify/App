@@ -151,7 +151,7 @@ class ReportSettingsPage extends Component {
                         )}
                         {shouldAllowWriteCapabilityEditing ? (
                             <MenuItemWithTopDescription
-                                shouldShowRightIcon={!ReportUtils.isAdminRoom(this.props.report)}
+                                shouldShowRightIcon
                                 title={writeCapabilityText}
                                 description={this.props.translate('writeCapabilityPage.label')}
                                 onPress={() => Navigation.navigate(ROUTES.getReportSettingsWriteCapabilityRoute(this.props.report.reportID))}
