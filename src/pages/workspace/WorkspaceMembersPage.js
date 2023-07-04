@@ -455,7 +455,7 @@ function WorkspaceMembersPage(props) {
                                     <PressableWithFeedback
                                         disabled={_.isEmpty(removableMembers)}
                                         onPress={() => toggleAllUsers(removableMembers)}
-                                        accessibilityRole="checkbox"
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                                         accessibilityState={{
                                             checked: !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID))),
                                         }}
