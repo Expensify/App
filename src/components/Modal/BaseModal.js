@@ -97,6 +97,7 @@ class BaseModal extends PureComponent {
             this.props.innerContainerStyle,
             this.props.outerStyle,
         );
+
         return (
             <ReactNativeModal
                 onBackdropPress={(e) => {
@@ -119,7 +120,7 @@ class BaseModal extends PureComponent {
                 backdropTransitionOutTiming={0}
                 hasBackdrop={this.props.fullscreen}
                 customBackdrop={this.props.customBackdrop}
-                coverScreen={this.props.coverScreen && this.props.fullscreen}
+                coverScreen={!this.props.isSmallScreenWidth || this.props.coverScreen}
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
                 deviceWidth={this.props.windowWidth}
