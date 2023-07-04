@@ -551,6 +551,10 @@ const styles = {
         marginVertical: 1,
     },
 
+    noBorderRadius: {
+        borderRadius: 0,
+    },
+
     noRightBorderRadius: {
         borderTopRightRadius: 0,
         borderBottomRightRadius: 0,
@@ -2837,10 +2841,6 @@ const styles = {
         },
         errorDot: {
             marginRight: 12,
-        },
-        menuItemErrorPadding: {
-            paddingLeft: 44,
-            paddingRight: 20,
         },
     },
 

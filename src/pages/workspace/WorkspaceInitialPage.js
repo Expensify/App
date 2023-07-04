@@ -201,7 +201,7 @@ function WorkspaceInitialPage(props) {
                             pendingAction={policy.pendingAction}
                             onClose={() => dismissError(policy.id)}
                             errors={policy.errors}
-                            errorRowStyles={[styles.ph6, styles.pv2]}
+                            errorRowStyles={[styles.ph5, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
                                 <View style={styles.avatarSectionWrapper}>
