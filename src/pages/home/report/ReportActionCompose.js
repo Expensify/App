@@ -209,8 +209,8 @@ class ReportActionCompose extends React.Component {
         // so we need to ensure that it is only updated after focus.
         const isMobileSafari = Browser.isMobileSafari();
 
-        this.unsubscribeBlur = () => null;
-        this.unsubscribeFocus = () => null;
+        this.unsubscribeNavBlur = () => null;
+        this.unsubscribeNavFocus = () => null;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible && this.props.shouldShowComposeInput,
@@ -245,10 +245,18 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
-        this.unsubscribeFocus = this.props.navigation.addListener('focus', () => KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress));
-        this.unsubscribeBlur = this.props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress));
-
+        this.unsubscribeNavBlur = this.props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress));
+  
+        // This listener is used for focusing the composer again after going back to a report without remounting it and to focus on any key press.
+        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
+            KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
+                return;
+            }
+            this.focus();
+        });
         KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -289,8 +297,8 @@ class ReportActionCompose extends React.Component {
         ReportActionComposeFocusManager.clear();
 
         KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress);
-        this.unsubscribeBlur();
-        this.unsubscribeFocus();
+        this.unsubscribeNavBlur();
+        this.unsubscribeNavFocus();
     }
 
     onSelectionChange(e) {
