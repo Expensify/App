@@ -2,6 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 // eslint-disable-next-line no-restricted-imports
 import {TextInput} from 'react-native';
+import Animated from 'react-native-reanimated';
 import PropTypes from 'prop-types';
 
 const propTypes = {
@@ -13,9 +14,11 @@ const defaultProps = {
     forwardedRef: () => {},
 };
 
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
+
 function RNTextInput(props) {
     return (
-        <TextInput
+        <AnimatedTextInput
             allowFontScaling={false}
             ref={(ref) => {
                 if (!_.isFunction(props.forwardedRef)) {
