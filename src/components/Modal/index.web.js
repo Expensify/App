@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {InteractionManager} from 'react-native';
+import {InteractionManager, Pressable} from 'react-native';
 import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './modalPropTypes';
@@ -7,6 +7,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import StatusBar from '../../libs/StatusBar';
 import CONST from '../../CONST';
+import variables from '../../styles/variables';
 
 function Modal(props) {
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState();
@@ -42,6 +43,17 @@ function Modal(props) {
             onModalShow={showModal}
             avoidKeyboard={false}
             coverScreen={false}
+            customBackdrop={
+                <Pressable
+                    onPress={(e) => {
+                        if (e && e.key === 'Enter') {
+                            return;
+                        }
+                        props.onClose();
+                    }}
+                    style={{position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, opacity: variables.overlayOpacity, backgroundColor: themeColors.overlay}}
+                />
+            }
         >
             {props.children}
         </BaseModal>

@@ -21,6 +21,8 @@ const propTypes = {
 const defaultProps = {
     ...modalDefaultProps,
     forwardedRef: () => {},
+    coverScreen: true,
+    customBackdrop: null,
 };
 
 class BaseModal extends PureComponent {
@@ -116,6 +118,7 @@ class BaseModal extends PureComponent {
                 backdropOpacity={hideBackdrop ? 0 : variables.overlayOpacity}
                 backdropTransitionOutTiming={0}
                 hasBackdrop={this.props.fullscreen}
+                customBackdrop={this.props.customBackdrop}
                 coverScreen={this.props.coverScreen && this.props.fullscreen}
                 style={modalStyle}
                 deviceHeight={this.props.windowHeight}
