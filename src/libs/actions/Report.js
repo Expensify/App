@@ -804,6 +804,15 @@ function handleReportChanged(report) {
         return;
     }
 
+    // It is possible that we optimistically created a report for a group of users for which a report already exists.
+    // In this case, the API will return a preexistingReportID, so we should clear out the optimistically created report.
+    // And re-route the user to the preexisting report if they are still looking at the optimistically created report.
+    if (report && report.reportID && report.preexistingReportID) {
+        Navigation.navigate(ROUTES.getReportRoute(report.preexistingReportID));
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+        return;
+    }
+
     if (report && report.reportID) {
         allReports[report.reportID] = report;
 
