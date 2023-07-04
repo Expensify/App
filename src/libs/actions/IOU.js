@@ -389,8 +389,8 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     if (reportPreviewAction) {
         reportPreviewAction.created = DateUtils.getDBTime();
         const message = ReportUtils.getReportPreviewMessage(iouReport, reportPreviewAction);
-        reportPreviewAction.message.html = message;
-        reportPreviewAction.message.text = message;
+        reportPreviewAction.message[0].html = message;
+        reportPreviewAction.message[0].text = message;
     } else {
         isNewReportPreviewAction = true;
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
@@ -656,8 +656,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction.created = DateUtils.getDBTime();
             const message = ReportUtils.getReportPreviewMessage(oneOnOneIOUReport, oneOnOneReportPreviewAction);
-            oneOnOneReportPreviewAction.message.html = message;
-            oneOnOneReportPreviewAction.message.text = message;
+            oneOnOneReportPreviewAction.message[0].html = message;
+            oneOnOneReportPreviewAction.message[0].text = message;
         } else {
             isNewOneOnOneReportPreviewAction = true;
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
@@ -1145,8 +1145,8 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
     const optimisticReportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     optimisticReportPreviewAction.created = DateUtils.getDBTime();
     const message = ReportUtils.getReportPreviewMessage(iouReport, optimisticReportPreviewAction);
-    optimisticReportPreviewAction.message.html = message;
-    optimisticReportPreviewAction.message.text = message;
+    optimisticReportPreviewAction.message[0].html = message;
+    optimisticReportPreviewAction.message[0].text = message;
 
     const optimisticData = [
         {

@@ -1471,8 +1471,8 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
             linkedReportID: iouReport.reportID,
         },
         created: DateUtils.getDBTime(),
-        accountID: iouReport.managerID ?? 0,
-        actorAccountID: iouReport.managerID ?? 0,
+        accountID: iouReport.managerID || 0,
+        actorAccountID: iouReport.managerID || 0,
     };
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     reportPreviewAction.message = [
