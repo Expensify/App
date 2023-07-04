@@ -42,8 +42,6 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The session of the logged in person */
     session: PropTypes.shape({
         /** Email of the logged in person */
