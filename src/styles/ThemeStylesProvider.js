@@ -31,6 +31,6 @@ function ThemeStylesProvider(props) {
     return <StylesContext.Provider value={styles}>{props.children}</StylesContext.Provider>;
 }
 ThemeStylesProvider.propTypes = propTypes;
-ThemeStylesProvider.displayName = 'StylesProvider';
+ThemeStylesProvider.displayName = 'ThemeStylesProvider';
 
 export default ThemeStylesProvider;
