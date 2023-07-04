@@ -236,6 +236,14 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
+        // This listener is used for focusing the composer again after going back to a report without remounting it.
+        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
+            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
+                return;
+            }
+            this.focus();
+        });
+
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -244,6 +252,10 @@ class ReportActionCompose extends React.Component {
                 routes: lodashGet(this.props.navigation.getState(), 'routes', []),
                 showPopoverMenu: this.showPopoverMenu,
             });
+        }
+
+        if (this.props.comment.length !== 0) {
+            Report.setReportWithDraft(this.props.reportID, true);
         }
     }
 
@@ -270,6 +282,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+        if (!this.unsubscribeNavFocus) {
+            return;
+        }
+        this.unsubscribeNavFocus();
     }
 
     onSelectionChange(e) {
@@ -663,11 +679,11 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, `${emoji} `));
         this.setState((prevState) => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
+                end: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
             },
         }));
     }
@@ -722,7 +738,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.preferredSkinTone);
 
         if (!_.isEmpty(emojis)) {
             User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
@@ -953,7 +969,7 @@ class ReportActionCompose extends React.Component {
                                                     style={[
                                                         styles.dFlex,
                                                         styles.flexColumn,
-                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
                                                     ]}
                                                 >
                                                     {this.props.isComposerFullSize && (

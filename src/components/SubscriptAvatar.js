@@ -68,7 +68,6 @@ function SubscriptAvatar(props) {
             <Tooltip text={props.secondaryTooltip}>
                 <View>
                     <Avatar
-                        imageStyles={null}
                         containerStyles={[props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : styles.secondAvatarSubscript]}
                         iconAdditionalStyles={[
                             StyleUtils.getAvatarBorderWidth(props.size === CONST.AVATAR_SIZE.SMALL ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),
