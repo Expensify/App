@@ -998,17 +998,17 @@ function getPolicyExpenseChatName(report) {
 function getMoneyRequestReportName(report) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID);
-    const payerPaidAmountMsg = Localize.translateLocal('iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
+    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
 
     if (report.isWaitingOnBankAccount) {
-        return  `${payerPaidAmountMsg} • ${Localize.translateLocal('iou.pending')}`;
+        return  `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (report.hasOutstandingIOU) {
         return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
-    return payerPaidAmountMsg;
+    return payerPaidAmountMesssage;
 }
 
 /**

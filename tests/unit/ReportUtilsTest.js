@@ -346,7 +346,7 @@ describe('ReportUtils', () => {
         it('returns true when the report has an oustanding IOU', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
-                iouReportID: '1',q
+                iouReportID: '1',
             };
             Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {
                 report_1: {

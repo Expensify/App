@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from "react-native";
+import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
-import Button from "../../../components/Button";
+import Button from '../../../components/Button';
 
 const propTypes = {
     submitterDisplayName: PropTypes.string.isRequired,

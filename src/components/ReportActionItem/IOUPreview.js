@@ -171,13 +171,13 @@ function IOUPreview(props) {
             return props.translate('iou.split');
         }
 
-        let msg = props.translate('iou.cash');
+        let message = props.translate('iou.cash');
         if (props.iouReport.isWaitingOnBankAccount) {
-            msg += ` • ${props.translate('iou.pending')}`;
+            message += ` • ${props.translate('iou.pending')}`;
         } else if (!props.iouReport.hasOutstandingIOU) {
-            msg += ` • ${props.translate('iou.settledExpensify')}`;
+            message += ` • ${props.translate('iou.settledExpensify')}`;
         }
-        return msg;
+        return message;
     };
 
     const childContainer = (
