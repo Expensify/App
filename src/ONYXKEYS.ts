@@ -262,6 +262,7 @@ type OnyxValues = {
     [ONYXKEYS.CREDENTIALS]?: OnyxTypes.Credentials;
     [ONYXKEYS.IOU]: OnyxTypes.IOU;
     [ONYXKEYS.MODAL]: OnyxTypes.Modal;
+    [ONYXKEYS.NETWORK]: OnyxTypes.Network;
 };
 
 export default ONYXKEYS;
