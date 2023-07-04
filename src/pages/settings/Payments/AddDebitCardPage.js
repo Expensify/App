@@ -47,7 +47,6 @@ const defaultProps = {
 function DebitCardPage(props) {
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
 
-    // clear debit card error
     useEffect(() => {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
     }, []);
