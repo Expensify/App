@@ -112,7 +112,7 @@ function PasswordPage(props) {
             error.newPasswordSameAsOld = true;
         }
 
-        setErrors(() => ({...error}));
+        setErrors(error);
         return _.size(error) === 0;
     };
 
@@ -130,7 +130,7 @@ function PasswordPage(props) {
     return (
         <ScreenWrapper
             onEntryTransitionEnd={() => {
-                if (!currentPasswordInputRef) {
+                if (!currentPasswordInputRef.current) {
                     return;
                 }
 
