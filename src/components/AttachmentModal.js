@@ -112,12 +112,15 @@ function AttachmentModal(props) {
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
      * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
      */
-    const onNavigate = useCallback((attachment) => {
-        setSource(attachment.source);
-        setFile(attachment.file);
-        setIsAuthTokenRequired(attachment.isAuthTokenRequired);
-        onCarouselAttachmentChange(attachment);
-    }, [onCarouselAttachmentChange]);
+    const onNavigate = useCallback(
+        (attachment) => {
+            setSource(attachment.source);
+            setFile(attachment.file);
+            setIsAuthTokenRequired(attachment.isAuthTokenRequired);
+            onCarouselAttachmentChange(attachment);
+        },
+        [onCarouselAttachmentChange],
+    );
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
