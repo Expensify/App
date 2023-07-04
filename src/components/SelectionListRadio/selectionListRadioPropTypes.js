@@ -68,6 +68,9 @@ const propTypes = {
 
     /** Message to display at the top of the list */
     headerMessage: PropTypes.string,
+
+    /** Whether the list needs safe area padding. True on native */
+    hasSafeArea: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -83,6 +86,7 @@ const defaultProps = {
     onScroll: () => {},
     onScrollBeginDrag: () => {},
     headerMessage: '',
+    hasSafeArea: false,
 };
 
 export {propTypes, radioListItemPropTypes, defaultProps};

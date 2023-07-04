@@ -7,6 +7,7 @@ const SelectionListRadio = forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         ref={ref}
+        hasSafeArea
         shouldDelayFocus
         onScrollBeginDrag={() => Keyboard.dismiss()}
     />

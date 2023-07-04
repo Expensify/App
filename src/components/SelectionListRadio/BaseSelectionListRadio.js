@@ -1,5 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import SectionList from '../SectionList';
@@ -15,7 +15,7 @@ import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import useIsFirstRender from '../../hooks/useIsFirstRender';
 
-function SelectionListRadio(props) {
+function BaseSelectionListRadio(props) {
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -179,7 +179,12 @@ function SelectionListRadio(props) {
         };
 
         scrollToIndex(focusedIndex, !isFirstRender);
-    }, [flattenedSections.allOptions, focusedIndex, props.sections, isFirstRender]);
+
+        // `flattenedSections.allOptions` is removed from the deps array because it changes on every render,
+        // causing issues with scrolling on mWeb iOS. More finesse approaches like separating useEffects, memoing,
+        // etc., brought in different issues, so this seems like the best solution for now.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [focusedIndex, isFirstRender, props.sections]);
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
@@ -207,7 +212,7 @@ function SelectionListRadio(props) {
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, props.hasSafeArea && !Keyboard.isVisible() && safeAreaPaddingBottomStyle]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pv5]}>
                                 <TextInput
@@ -251,8 +256,8 @@ function SelectionListRadio(props) {
     );
 }
 
-SelectionListRadio.displayName = 'SelectionListRadio';
-SelectionListRadio.propTypes = selectionListRadioPropTypes;
-SelectionListRadio.defaultProps = selectionListRadioDefaultProps;
+BaseSelectionListRadio.displayName = 'BaseSelectionListRadio';
+BaseSelectionListRadio.propTypes = selectionListRadioPropTypes;
+BaseSelectionListRadio.defaultProps = selectionListRadioDefaultProps;
 
-export default SelectionListRadio;
+export default BaseSelectionListRadio;
