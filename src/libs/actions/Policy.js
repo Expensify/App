@@ -12,6 +12,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
+import * as UserUtils from '../UserUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
 
@@ -249,12 +250,34 @@ function removeMembers(accountIDs, policyID) {
  * @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
 function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
+    console.group('createPolicyExpenseChats');
+    console.log('invitedEmailsToAccountIDs', invitedEmailsToAccountIDs);
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
         onyxFailureData: [],
         reportCreationData: {},
     };
+
+    _.each(invitedEmailsToAccountIDs, (accountID, email) => {
+        const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
+        const optimisticPersonalDetails = {
+            [accountID]: personalDetails[accountID] || {
+                login,
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: login,
+            },
+        };
+        console.log('optimisticPersonalDetails', optimisticPersonalDetails);
+        workspaceMembersChats.onyxOptimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetails,
+        });
+    });
+
+    console.groupEnd();
 
     // If the user is not in the beta, we don't want to create any chats
     if (!Permissions.canUsePolicyExpenseChat(betas)) {
@@ -369,6 +392,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...membersChats.onyxOptimisticData,
     ];
+    console.log('addMembersToWorkspace > optimisticData:', optimisticData);
 
     const successData = [
         {
