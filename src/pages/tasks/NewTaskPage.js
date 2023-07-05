@@ -47,11 +47,6 @@ const propTypes = {
         }),
     ),
 
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -63,7 +58,6 @@ const defaultProps = {
     task: {},
     personalDetails: {},
     reports: {},
-    session: {},
 };
 
 function NewTaskPage(props) {
@@ -84,12 +78,6 @@ function NewTaskPage(props) {
             }
             const displayDetails = TaskUtils.getAssignee(assigneeDetails);
             setAssignee(displayDetails);
-        }
-
-        // If we don't have an assignee and we are creating a task from a report
-        // this allows us to auto assign a participant of the report.
-        if (!props.task.assignee && props.task.parentReportID) {
-            TaskUtils.setAssigneeValueWithParentReportID(props.task.parentReportID);
         }
 
         // We only set the parentReportID if we are creating a task from a report
@@ -126,15 +114,7 @@ function NewTaskPage(props) {
             return;
         }
 
-        TaskUtils.createTaskAndNavigate(
-            props.session.email,
-            props.session.accountID,
-            parentReport.reportID,
-            props.task.title,
-            props.task.description,
-            props.task.assignee,
-            props.task.assigneeAccountID,
-        );
+        TaskUtils.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -150,7 +130,7 @@ function NewTaskPage(props) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK_DETAILS)}
             />
-            <View style={[styles.mt5, styles.containerWithSpaceBetween]}>
+            <View style={[styles.containerWithSpaceBetween]}>
                 <View style={styles.mb5}>
                     <MenuItemWithTopDescription
                         description={props.translate('newTaskPage.title')}
@@ -211,9 +191,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
     withLocalize,
