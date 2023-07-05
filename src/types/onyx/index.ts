@@ -29,6 +29,7 @@ import ReimbursementAccount from './ReimbursementAccount';
 import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
 import Download from './Download';
+import PolicyMember from './PolicyMember';
 import Form, {AddDebitCardForm} from './Form';
 
 export type {
@@ -62,7 +63,8 @@ export type {
     ReimbursementAccountDraft,
     FrequentlyUsedEmoji,
     WalletTransfer,
+    Download,
+    PolicyMember,
     Form,
     AddDebitCardForm,
-    Download,
 };

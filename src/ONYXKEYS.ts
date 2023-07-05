@@ -317,9 +317,7 @@ type OnyxValues = {
     // [reportUserIsTyping: `${typeof ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${string}`]: OnyxTypes;
     // [securityGroup: `${typeof ONYXKEYS.COLLECTION.SECURITY_GROUP}${string}`]: OnyxTypes;
     // [transaction: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`]: OnyxTypes;
-
-    /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
-    DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_';
+    [deprecatedPolicyMemberList: `${typeof ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}${string}`]: OnyxTypes.PolicyMember;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
