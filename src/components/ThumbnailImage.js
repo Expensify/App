@@ -65,7 +65,6 @@ function calculateThumbnailImageSize(width, height, windowHeight) {
 }
 
 function ThumbnailImage(props) {
-
     const {initialWidth, initialHeight} = calculateThumbnailImageSize(props.imageWidth, props.imageHeight, props.windowHeight);
     const [imageWidth, setImageWidth] = useState(initialWidth);
     const [imageHeight, setImageHeight] = useState(initialHeight);
