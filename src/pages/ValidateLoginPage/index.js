@@ -64,8 +64,9 @@ function ValidateLoginPage(props) {
     return <FullScreenLoadingIndicator />;
 }
 
-ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
+ValidateLoginPage.displayName = 'ValidateLoginPage';
+ValidateLoginPage.propTypes = propTypes;
 
 export default withOnyx({
     credentials: {key: ONYXKEYS.CREDENTIALS},
