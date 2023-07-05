@@ -107,7 +107,7 @@ function Avatar(props) {
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
-                        source={{uri: `${props.source}?cacheBuster=${cacheBuster}`}}
+                        source={{uri: props.source, params: {cacheBuster}}}
                         style={imageStyle}
                         onError={() => {setImageError(true); setCacheBuster(cacheBuster + 1)}}
                     />

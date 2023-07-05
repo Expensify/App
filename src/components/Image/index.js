@@ -26,16 +26,17 @@ class Image extends React.Component {
      */
     getImageSource() {
         const source = this.props.source;
-        let imageSource = source;
+        const params = new URLSearchParams(source.params);
+
         if (this.props.isAuthTokenRequired) {
             // There is currently a `react-native-web` bug preventing the authToken being passed
             // in the headers of the image request so the authToken is added as a query param.
             // On native the authToken IS passed in the image request headers
             const authToken = lodashGet(this.props, 'session.encryptedAuthToken', null);
-            imageSource = {uri: `${source.uri}?encryptedAuthToken=${encodeURIComponent(authToken)}`};
+            params.set('encryptedAuthToken', encodeURIComponent(authToken));
         }
 
-        return imageSource;
+        return { ...source, uri: `${source.uri}?${params.toString()}` };
     }
 
     /**
