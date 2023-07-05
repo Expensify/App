@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
