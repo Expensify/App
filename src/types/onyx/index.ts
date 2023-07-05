@@ -27,6 +27,7 @@ import PersonalBankAccount from './PersonalBankAccount';
 import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import ReimbursementAccount from './ReimbursementAccount';
 import ReimbursementAccountDraft from './ReimbursementAccountDraft';
+import WalletTransfer from './WalletTransfer';
 
 export type {
     Account,
@@ -55,7 +56,8 @@ export type {
     Card,
     WalletStatement,
     PersonalBankAccount,
-    FrequentlyUsedEmoji,
     ReimbursementAccount,
     ReimbursementAccountDraft,
+    FrequentlyUsedEmoji,
+    WalletTransfer,
 };
