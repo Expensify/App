@@ -178,10 +178,7 @@ class WorkspaceInvitePage extends React.Component {
         _.forEach(personalDetails, (detail) => (detailsMap[detail.login] = detail));
         const selectedOptions = [];
         _.forEach(this.state.selectedOptions, (option) => {
-            if (!_.has(detailsMap, option.login)) {
-                return;
-            }
-            selectedOptions.push(detailsMap[option.login]);
+            selectedOptions.push(_.has(detailsMap, option.login) ? detailsMap[option.login] : option);
         });
 
         this.setState({

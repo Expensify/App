@@ -212,24 +212,6 @@ function canEditReportAction(reportAction) {
 }
 
 /**
- * Can only flag if:
- *
- * - It was written by someone else
- * - It's an ADDCOMMENT that is not an attachment
- *
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function canFlagReportAction(reportAction) {
-    return (
-        !loginList.includes(reportAction.actorEmail) &&
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-        !ReportActionsUtils.isDeletedAction(reportAction) &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
-    );
-}
-
-/**
  * Whether the Money Request report is settled
  *
  * @param {String} reportID
@@ -2124,6 +2106,26 @@ function chatIncludesChronos(report) {
 }
 
 /**
+ * Can only flag if:
+ *
+ * - It was written by someone else
+ * - It's an ADDCOMMENT that is not an attachment
+ *
+ * @param {Object} reportAction
+ * @param {number} reportID
+ * @returns {Boolean}
+ */
+function canFlagReportAction(reportAction, reportID) {
+    return (
+        !loginList.includes(reportAction.actorEmail) &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        isAllowedToComment(getReport(reportID))
+    );
+}
+
+/**
  * Whether flag comment page should show
  *
  * @param {Object} reportAction
@@ -2133,7 +2135,7 @@ function chatIncludesChronos(report) {
 
 function shouldShowFlagComment(reportAction, report) {
     return (
-        canFlagReportAction(reportAction) &&
+        canFlagReportAction(reportAction, report.reportID) &&
         !isArchivedRoom(report) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report.reportID) &&
