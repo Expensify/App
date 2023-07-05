@@ -118,7 +118,7 @@ function ReportActionsView(props) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
-                reportScrollManager.scrollToBottom(context.flatListRef);
+                reportScrollManager.scrollToBottom();
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 setNewMarkerReportActionID('');
             } else if (isReportFullyVisible) {
@@ -257,9 +257,9 @@ function ReportActionsView(props) {
     }, [props.report, props.reportActions]);
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
-        reportScrollManager.scrollToBottom(context.flatListRef);
+        reportScrollManager.scrollToBottom();
         Report.readNewestAction(props.report.reportID);
-    }, [reportScrollManager, props.report, context.flatListRef]);
+    }, [reportScrollManager, props.report]);
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
