@@ -307,7 +307,7 @@ function addActions(reportID, text = '', file) {
 
     // Optimistically update the parent report action if the report is a thread
     const report = ReportUtils.getReport(reportID);
-    if (ReportUtils.isThread(report)) {
+    if (report && report.parentReportActionID) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -922,7 +922,7 @@ function deleteReportComment(reportID, reportAction) {
     ];
 
     const report = ReportUtils.getReport(reportID);
-    if (ReportUtils.isThread(report)) {
+    if (report && report.parentReportActionID) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
