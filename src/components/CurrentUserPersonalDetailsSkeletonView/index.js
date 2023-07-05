@@ -26,31 +26,34 @@ function CurrentUserPersonalDetailsSkeletonView(props) {
     const headlineSize = variables.fontSizeXLarge;
     const labelMarginTop = 4;
     const labelSize = variables.fontSizeLabel;
-    return (<View style={styles.avatarSectionWrapper}>
-        <SkeletonViewContentLoader
-            animate={props.shouldAnimate}
-            backgroundColor={themeColors.highlightBG}
-            foregroundColor={themeColors.border}
-        >
-            <Circle
-                cx="50%"
-                cy={avatarPlaceholderRadius}
-                r={avatarPlaceholderRadius}
-            />
-            <Rect
-                x="20%"
-                y={avatarPlaceholderSize + headlineMarginTop}
-                width="60%"
-                height={headlineSize}
-            />
-            <Rect
-                x="15%"
-                y={avatarPlaceholderSize + headlineMarginTop + headlineSize + labelMarginTop}
-                width="70%"
-                height={labelSize}
-            />
-        </SkeletonViewContentLoader>
-    </View>)
+    return (
+        <View style={styles.avatarSectionWrapperSkeleton}>
+                <SkeletonViewContentLoader
+                    animate={props.shouldAnimate}
+                    backgroundColor={themeColors.highlightBG}
+                    foregroundColor={themeColors.border}
+                    height={avatarPlaceholderSize + headlineMarginTop + headlineSize + labelMarginTop + labelSize}
+                >
+                    <Circle
+                        cx="50%"
+                        cy={avatarPlaceholderRadius}
+                        r={avatarPlaceholderRadius}
+                    />
+                    <Rect
+                        x="20%"
+                        y={avatarPlaceholderSize + headlineMarginTop}
+                        width="60%"
+                        height={headlineSize}
+                    />
+                    <Rect
+                        x="15%"
+                        y={avatarPlaceholderSize + headlineMarginTop + headlineSize + labelMarginTop}
+                        width="70%"
+                        height={labelSize}
+                    />
+                </SkeletonViewContentLoader>
+        </View>
+    );
 }
 
 CurrentUserPersonalDetailsSkeletonView.displayName = 'CurrentUserPersonalDetailsSkeletonView';
