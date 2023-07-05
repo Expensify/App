@@ -91,7 +91,7 @@ function BaseValidateCodeForm(props) {
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
 
     useEffect(() => {
-        if (!(inputValidateCodeRef.current && ((hasError && props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED) || props.account.isLoading))) {
+        if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
             return;
         }
         inputValidateCodeRef.current.blur();
@@ -286,7 +286,7 @@ function BaseValidateCodeForm(props) {
                                 disabled={props.network.isOffline}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>

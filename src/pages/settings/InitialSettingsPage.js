@@ -326,7 +326,7 @@ class InitialSettingsPage extends React.Component {
                                             style={[styles.mb3]}
                                             onPress={this.openProfileSettings}
                                             accessibilityLabel={this.props.translate('common.profile')}
-                                            accessibilityRole="button"
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
@@ -341,7 +341,7 @@ class InitialSettingsPage extends React.Component {
                                         style={[styles.mt1, styles.mw100]}
                                         onPress={this.openProfileSettings}
                                         accessibilityLabel={this.props.translate('common.profile')}
-                                        accessibilityRole="link"
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                     >
                                         <Tooltip text={this.props.translate('common.profile')}>
                                             <Text
