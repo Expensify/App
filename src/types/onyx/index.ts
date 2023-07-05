@@ -31,6 +31,7 @@ import WalletTransfer from './WalletTransfer';
 import Download from './Download';
 import PolicyMember from './PolicyMember';
 import Policy from './Policy';
+import Report from './Report';
 import Form, {AddDebitCardForm} from './Form';
 
 export type {
@@ -67,6 +68,7 @@ export type {
     Download,
     PolicyMember,
     Policy,
+    Report,
     Form,
     AddDebitCardForm,
 };

@@ -1,79 +1,73 @@
+import {ValueOf} from 'type-fest';
+import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 
 type Report = {
     /** The specific type of chat */
-    chatType: '' | 'policyAnnounce' | 'policyAdmins' | 'domainAll' | 'policyRoom' | 'policyExpenseChat';
+    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
     /** Whether there is an outstanding amount in IOU */
-    hasOutstandingIOU: boolean;
+    hasOutstandingIOU?: boolean;
 
     /** List of icons for report participants */
-    icons: OnyxCommon.Icon[];
+    icons?: OnyxCommon.Icon[];
 
     /** Are we loading more report actions? */
-    isLoadingMoreReportActions: boolean;
+    isLoadingMoreReportActions?: boolean;
 
     /** Flag to check if the report actions data are loading */
-    isLoadingReportActions: boolean;
+    isLoadingReportActions?: boolean;
 
     /** Whether the user is not an admin of policyExpenseChat chat */
-    isOwnPolicyExpenseChat: boolean;
+    isOwnPolicyExpenseChat?: boolean;
 
     /** Indicates if the report is pinned to the LHN or not */
-    isPinned: boolean;
+    isPinned?: boolean;
 
     /** The email of the last message's actor */
-    lastActorEmail: string;
+    lastActorEmail?: string;
 
     /** The text of the last message on the report */
-    lastMessageText: string;
+    lastMessageText?: string;
 
     /** The time of the last message on the report */
-    lastVisibleActionCreated: string;
+    lastVisibleActionCreated?: string;
 
     /** The last time the report was visited */
-    lastReadTime: string;
+    lastReadTime?: string;
 
     /** The current user's notification preference for this report */
-    notificationPreference: string | number;
+    notificationPreference?: string | number;
 
     /** The policy name to use for an archived report */
-    oldPolicyName: string;
+    oldPolicyName?: string;
 
     /** The email address of the report owner */
-    ownerEmail: string;
+    ownerEmail?: string;
 
     /** List of primarylogins of participants of the report */
-    participants: string[];
+    participants?: Array<string | number>;
 
     /** Linked policy's ID */
-    policyID: string;
+    policyID?: string;
 
     /** Name of the report */
-    reportName: string;
+    reportName?: string;
 
     /** ID of the report */
-    reportID: string;
+    reportID?: string;
 
     /** The state that the report is currently in */
-    stateNum:
-        | 0 // OPEN
-        | 1 // PROCESSING
-        | 2; // SUBMITTED
+    stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
     /** The status of the current report */
-    statusNum:
-        | 0 // OPEN
-        | 1 // SUBMITTED
-        | 2 // CLOSED
-        | 3 // APPROVED
-        | 4; // REIMBURSED
+    statusNum?: ValueOf<typeof CONST.REPORT.STATUS>;
 
     /** Which user role is capable of posting messages on the report */
-    writeCapability: 'all' | 'admins';
+    writeCapability?: ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>;
 
     /** The report type */
-    type: string;
+    type?: string;
 };
 
 export default Report;

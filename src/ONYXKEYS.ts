@@ -308,7 +308,7 @@ type OnyxValues = {
     [policyMembers: `${typeof ONYXKEYS.COLLECTION.POLICY_MEMBERS}${string}`]: OnyxTypes.PolicyMember;
     [deprecatedPolicyMemberList: `${typeof ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}${string}`]: OnyxTypes.PolicyMember;
     [workspaceInviteMembersDraft: `${typeof ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${string}`]: Record<string, number>;
-    // [report: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`]: OnyxTypes;
+    [report: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`]: OnyxTypes.Report;
     // [ReportActions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`]: OnyxTypes;
     // [ReportActionsDrafts: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`]: OnyxTypes;
     // [ReportActionsReactions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${string}`]: OnyxTypes;
