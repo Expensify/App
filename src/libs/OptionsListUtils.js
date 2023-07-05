@@ -461,7 +461,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        result.isThread = ReportUtils.isThread(report);
+        result.isThread = ReportUtils.isChatThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
         result.allReportErrors = getAllReportErrors(report, reportActions);
@@ -644,7 +644,7 @@ function getOptions(
             return;
         }
 
-        const isThread = ReportUtils.isThread(report);
+        const isThread = ReportUtils.isChatThread(report);
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);

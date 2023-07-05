@@ -204,7 +204,7 @@ function PasswordForm(props) {
                     <PressableWithFeedback
                         style={[styles.mt2]}
                         onPress={resetPassword}
-                        accessibilityRole="link"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                         accessibilityLabel={props.translate('passwordForm.forgot')}
                         hoverDimmingValue={1}
                     >
