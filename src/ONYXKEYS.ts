@@ -310,10 +310,10 @@ type OnyxValues = {
     [report: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`]: OnyxTypes.Report;
     [ReportActions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`]: OnyxTypes.ReportAction;
     [ReportActionsDrafts: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`]: string;
-    // [ReportDraftComment: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}`]: OnyxTypes;
-    // [reportDraftCommentNumberOfLines: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${string}`]: OnyxTypes;
-    // [reportIsComposerFull: `${typeof ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${string}`]: OnyxTypes;
-    // [reportUserIsTyping: `${typeof ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${string}`]: OnyxTypes;
+    [ReportDraftComment: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}`]: string;
+    [reportDraftCommentNumberOfLines: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${string}`]: number;
+    [reportIsComposerFull: `${typeof ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${string}`]: boolean;
+    [reportUserIsTyping: `${typeof ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${string}`]: boolean;
     // [securityGroup: `${typeof ONYXKEYS.COLLECTION.SECURITY_GROUP}${string}`]: OnyxTypes;
     // [transaction: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`]: OnyxTypes;
 
