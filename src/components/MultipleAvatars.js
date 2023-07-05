@@ -98,7 +98,6 @@ function MultipleAvatars(props) {
         setAvatarRows([firstRow, secondRow]);
     };
 
-    // useEffect hook to update avatar rows when props change
     useEffect(() => {
         calculateAvatarRows();
 
