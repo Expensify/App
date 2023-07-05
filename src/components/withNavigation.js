@@ -25,7 +25,7 @@ export default function withNavigation(WrappedComponent) {
         forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
     WithNavigation.defaultProps = {
-        forwardedRef: undefined,
+        forwardedRef: () => {},
     };
     return React.forwardRef((props, ref) => (
         <WithNavigation

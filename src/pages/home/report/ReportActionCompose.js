@@ -119,9 +119,7 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
-    animatedRef: PropTypes.shape({
-        current: PropTypes.instanceOf(View),
-    }).isRequired,
+    animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
