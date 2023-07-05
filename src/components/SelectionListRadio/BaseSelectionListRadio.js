@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import SectionList from '../SectionList';
