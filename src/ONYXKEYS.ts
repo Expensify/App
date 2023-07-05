@@ -198,7 +198,6 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
-        REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
@@ -311,7 +310,6 @@ type OnyxValues = {
     [report: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`]: OnyxTypes.Report;
     [ReportActions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`]: OnyxTypes.ReportAction;
     [ReportActionsDrafts: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`]: string;
-    // [ReportActionsReactions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${string}`]: OnyxTypes;
     // [ReportDraftComment: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}`]: OnyxTypes;
     // [reportDraftCommentNumberOfLines: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${string}`]: OnyxTypes;
     // [reportIsComposerFull: `${typeof ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${string}`]: OnyxTypes;
