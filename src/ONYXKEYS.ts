@@ -272,6 +272,7 @@ type OnyxValues = {
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
+    [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
 };
 
 export default ONYXKEYS;
