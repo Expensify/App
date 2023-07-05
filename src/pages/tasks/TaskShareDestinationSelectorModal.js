@@ -1,5 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
+import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -16,6 +17,7 @@ import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
 import * as TaskUtils from '../../libs/actions/Task';
+import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
@@ -46,17 +48,29 @@ function TaskShareDestinationSelectorModal(props) {
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
+    // Filter out all the reports where user is not allowed to create task
+    const filteredReports = useMemo(() => {
+        const reports = {};
+        _.keys(props.reports).forEach((reportKey) => {
+            if (!ReportUtils.isAllowedToComment(props.reports[reportKey])) {
+                return;
+            }
+            reports[reportKey] = props.reports[reportKey];
+        });
+        return reports;
+    }, [props.reports]);
+
     useEffect(() => {
-        const results = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
+        const results = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
 
         setFilteredUserToInvite(results.userToInvite);
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);
-    }, [props]);
+    }, [props, filteredReports]);
 
     useEffect(() => {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
-            props.reports,
+            filteredReports,
             props.personalDetails,
             props.betas,
             searchValue.trim(),
@@ -70,7 +84,7 @@ function TaskShareDestinationSelectorModal(props) {
         setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
-    }, [props, searchValue]);
+    }, [props, searchValue, filteredReports]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);

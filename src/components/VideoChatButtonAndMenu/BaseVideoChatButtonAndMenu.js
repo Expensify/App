@@ -28,7 +28,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-function BaseVideoChatButtonAndMenu (props) {
+function BaseVideoChatButtonAndMenu(props) {
     const [isVideoChatMenuActive, setMenuVisibility] = useState(false);
     const [videoChatIconPosition, setVideoChatIconPosition] = useState({x: 0, y: 0});
     const videoChatIconWrapperRef = useRef(null);
@@ -65,11 +65,11 @@ function BaseVideoChatButtonAndMenu (props) {
         videoChatIconWrapperRef.current.measureInWindow((x, y) => {
             setVideoChatIconPosition({x, y});
         });
-    },[]);
+    }, []);
 
     const closePopover = useCallback(() => {
         setMenuVisibility(false);
-    }, [])
+    }, []);
 
     useEffect(() => {
         dimensionsEventListenerRef.current = Dimensions.addEventListener('change', measureVideoChatIconPosition);
@@ -105,7 +105,7 @@ function BaseVideoChatButtonAndMenu (props) {
                         })}
                         style={styles.touchableButtonImage}
                         accessibilityLabel={props.translate('videoChatButtonAndMenu.tooltip')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <Icon
                             src={Expensicons.Phone}
@@ -137,7 +137,7 @@ function BaseVideoChatButtonAndMenu (props) {
             </Popover>
         </>
     );
-};
+}
 
 BaseVideoChatButtonAndMenu.propTypes = propTypes;
 BaseVideoChatButtonAndMenu.defaultProps = defaultProps;
