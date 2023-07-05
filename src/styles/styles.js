@@ -254,7 +254,7 @@ const styles = {
     },
 
     darkBG: {
-        backgroundCOlor: themeColors.splashBG,
+        backgroundColor: themeColors.splashBG,
     },
 
     h1: {
