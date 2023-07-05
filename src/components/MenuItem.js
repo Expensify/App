@@ -70,6 +70,7 @@ const defaultProps = {
     furtherDetailsIcon: undefined,
     isSmallAvatarSubscriptMenu: false,
     numberOfLines: 1,
+    title: '',
 };
 
 function MenuItem(props) {

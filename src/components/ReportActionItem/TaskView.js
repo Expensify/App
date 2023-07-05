@@ -43,7 +43,7 @@ function TaskView(props) {
         Task.setTaskReport({...props.report, isExistingTaskReport: true});
     }, [props.report]);
 
-    const taskTitle = convertToLTR(props.report.reportName);
+    const taskTitle = convertToLTR(props.report.reportName || '');
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
 
@@ -60,7 +60,7 @@ function TaskView(props) {
                 style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed), true)]}
                 ref={props.forwardedRef}
                 disabled={!isOpen}
-                accessibilityLabel={taskTitle}
+                accessibilityLabel={taskTitle || props.translate('task.task')}
             >
                 {({hovered, pressed}) => (
                     <>
@@ -73,7 +73,7 @@ function TaskView(props) {
                                 containerSize={24}
                                 containerBorderRadius={8}
                                 caretSize={16}
-                                accessibilityLabel={taskTitle}
+                                accessibilityLabel={taskTitle || props.translate('task.task')}
                             />
                             <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
@@ -96,7 +96,7 @@ function TaskView(props) {
             </PressableWithSecondaryInteraction>
             <MenuItemWithTopDescription
                 description={props.translate('task.description')}
-                title={props.report.description}
+                title={props.report.description || ''}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 shouldShowRightIcon
                 disabled={!isOpen}
