@@ -85,7 +85,7 @@ function ThumbnailImage(props) {
             <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={props.previewSourceURL}
-                    onMeasure={() => updateImageSize()}
+                    onMeasure={(width, height) => updateImageSize(width, height)}
                     isAuthTokenRequired={props.isAuthTokenRequired}
                 />
             </View>
