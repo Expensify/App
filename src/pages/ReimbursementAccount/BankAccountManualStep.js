@@ -23,40 +23,47 @@ const propTypes = {
 };
 
 function BankAccountManualStep(props) {
+    const {translate, reimbursementAccount, reimbursementAccountDraft} = props;
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
      */
-    const validate = useCallback((values) => {
-        const errorFields = {};
-        const routingNumber = values.routingNumber && values.routingNumber.trim();
+    const validate = useCallback(
+        (values) => {
+            const errorFields = {};
+            const routingNumber = values.routingNumber && values.routingNumber.trim();
 
-        if (
-            !values.accountNumber ||
-            (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
-        ) {
-            errorFields.accountNumber = 'bankAccount.error.accountNumber';
-        } else if (values.accountNumber === routingNumber) {
-            errorFields.accountNumber = props.translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
-        }
-        if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
-            errorFields.routingNumber = 'bankAccount.error.routingNumber';
-        }
-        if (!values.acceptTerms) {
-            errorFields.acceptTerms = 'common.error.acceptTerms';
-        }
+            if (
+                !values.accountNumber ||
+                (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
+            ) {
+                errorFields.accountNumber = 'bankAccount.error.accountNumber';
+            } else if (values.accountNumber === routingNumber) {
+                errorFields.accountNumber = props.translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
+            }
+            if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
+                errorFields.routingNumber = 'bankAccount.error.routingNumber';
+            }
+            if (!values.acceptTerms) {
+                errorFields.acceptTerms = 'common.error.acceptTerms';
+            }
 
-        return errorFields;
-    });
+            return errorFields;
+        },
+        [translate],
+    );
 
-    const submit = useCallback((values) => {
-        BankAccounts.connectBankAccountManually(
-            lodashGet(props.reimbursementAccount, 'achData.bankAccountID') || 0,
-            values.accountNumber,
-            values.routingNumber,
-            lodashGet(props, ['reimbursementAccountDraft', 'plaidMask']),
-        );
-    });
+    const submit = useCallback(
+        (values) => {
+            BankAccounts.connectBankAccountManually(
+                lodashGet(props.reimbursementAccount, 'achData.bankAccountID') || 0,
+                values.accountNumber,
+                values.routingNumber,
+                lodashGet(props, ['reimbursementAccountDraft', 'plaidMask']),
+            );
+        },
+        [reimbursementAccount, reimbursementAccountDraft],
+    );
 
     const shouldDisableInputs = Boolean(lodashGet(props.reimbursementAccount, 'achData.bankAccountID'));
 
@@ -87,7 +94,7 @@ function BankAccountManualStep(props) {
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
                     label={props.translate('bankAccount.routingNumber')}
-                    defaultValue={props.getDefaultStateForField('routingNumber', '')}
+                    value={props.getDefaultStateForField('routingNumber', '')}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
@@ -97,7 +104,7 @@ function BankAccountManualStep(props) {
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={props.translate('bankAccount.accountNumber')}
-                    defaultValue={props.getDefaultStateForField('accountNumber', '')}
+                    value={props.getDefaultStateForField('accountNumber', '')}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
