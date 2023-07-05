@@ -60,7 +60,16 @@ function ImageRenderer(props) {
                         const route = ROUTES.getReportAttachmentRoute(report.reportID, source);
                         Navigation.navigate(route);
                     }}
-                    onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
+                    onLongPress={(event) =>
+                        showContextMenuForReport(
+                            {nativeEvent: {...event.nativeEvent, target: {tagName: 'IMG'}}},
+                            anchor,
+                            report.reportID,
+                            action,
+                            checkIfContextMenuActive,
+                            ReportUtils.isArchivedRoom(report),
+                        )
+                    }
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                     accessibilityLabel={props.translate('accessibilityHints.viewAttachment')}
                 >
