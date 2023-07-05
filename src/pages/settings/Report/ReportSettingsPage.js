@@ -65,11 +65,6 @@ class ReportSettingsPage extends Component {
             return true;
         }
 
-        // The remaining checks only apply to public rooms
-        if (!ReportUtils.isPublicRoom(this.props.report)) {
-            return false;
-        }
-
         // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
         // which means this has to be a public room we want to disable renaming for
         if (!linkedWorkspace) {

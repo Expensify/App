@@ -18,6 +18,8 @@ import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
 import RoomNameInput from '../../../components/RoomNameInput';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -67,26 +69,28 @@ function RoomNamePage(props) {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithBackButton
-                title={translate('newRoomPage.roomName')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
-            />
-            <Form
-                style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
-                onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
-                validate={validate}
-                submitButtonText={translate('common.save')}
-                enabledWhenOffline
-            >
-                <View style={styles.mb4}>
-                    <RoomNameInput
-                        inputID="roomName"
-                        autoFocus
-                        defaultValue={report.reportName}
-                    />
-                </View>
-            </Form>
+            <FullPageNotFoundView shouldShow={ReportUtils.isAdminRoom(props.report)}>
+                <HeaderWithBackButton
+                    title={translate('newRoomPage.roomName')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
+                />
+                <Form
+                    style={[styles.flexGrow1, styles.ph5]}
+                    formID={ONYXKEYS.FORMS.ROOM_NAME_FORM}
+                    onSubmit={(values) => Report.updatePolicyRoomNameAndNavigate(report, values.roomName)}
+                    validate={validate}
+                    submitButtonText={translate('common.save')}
+                    enabledWhenOffline
+                >
+                    <View style={styles.mb4}>
+                        <RoomNameInput
+                            inputID="roomName"
+                            autoFocus
+                            defaultValue={report.reportName}
+                        />
+                    </View>
+                </Form>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
