@@ -24,6 +24,7 @@ import BankAccount from './BankAccount';
 import Card from './Card';
 import WalletStatement from './WalletStatement';
 import PersonalBankAccount from './PersonalBankAccount';
+import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 
 export type {
     Account,
@@ -52,4 +53,5 @@ export type {
     Card,
     WalletStatement,
     PersonalBankAccount,
+    FrequentlyUsedEmoji,
 };
