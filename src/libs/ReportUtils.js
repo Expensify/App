@@ -1245,7 +1245,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
  */
 
 function updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type) {
-    let childVisibleActionCount = parentReportAction.childVisibleActionCount ? parentReportAction.childVisibleActionCount : 1;
+    let childVisibleActionCount = parentReportAction.childVisibleActionCount ? parentReportAction.childVisibleActionCount : 0;
     let childCommenterCount = parentReportAction.childCommenterCount ? parentReportAction.childCommenterCount : 1;
     const childLastVisibleActionCreated = lastVisibleActionCreated;
     let childOldestFourAccountIDs = parentReportAction.childOldestFourAccountIDs;
