@@ -273,6 +273,7 @@ type OnyxValues = {
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: string;
     [ONYXKEYS.NVP_LAST_PAYMENT_METHOD]: Record<string, string>;
+    [ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED]: boolean;
 };
 
 export default ONYXKEYS;
