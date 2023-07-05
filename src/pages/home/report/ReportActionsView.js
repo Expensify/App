@@ -107,9 +107,15 @@ function ReportActionsView(props) {
                 setNewMarkerReportActionID('');
             }
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
+    useEffect(() => {
         openReportIfNecessary();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
+    useEffect(() => {
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
         unsubscribeFromNewActionEvent.current = Report.subscribeToNewActionEvent(props.report.reportID, (isFromCurrentUser, newActionID) => {
@@ -139,10 +145,6 @@ function ReportActionsView(props) {
         });
 
         return () => {
-            if (unsubscribeVisibilityListener.current) {
-                unsubscribeVisibilityListener.current();
-            }
-
             if (unsubscribeFromNewActionEvent.current) {
                 unsubscribeFromNewActionEvent.current();
             }
@@ -202,8 +204,9 @@ function ReportActionsView(props) {
                 props.reportActions[0].pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 !props.network.isOffline
             )
-        )
+        ) {
             return;
+        }
         const reportActionsWithoutPendingOne = lodashCloneDeep(props.reportActions);
         reportActionsWithoutPendingOne.shift();
         if (newMarkerReportActionID !== ReportUtils.getNewMarkerReportActionID(props.report, reportActionsWithoutPendingOne)) {
