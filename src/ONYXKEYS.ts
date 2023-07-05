@@ -277,7 +277,7 @@ type OnyxValues = {
     [ONYXKEYS.PLAID_DATA]: OnyxTypes.PlaidData;
     [ONYXKEYS.IS_PLAID_DISABLED]: boolean;
     [ONYXKEYS.PLAID_LINK_TOKEN]: string;
-    // [ONYXKEYS.ONFIDO_TOKEN]: OnyxTypes;
+    [ONYXKEYS.ONFIDO_TOKEN]: string;
     // [ONYXKEYS.NVP_PREFERRED_LOCALE]: OnyxTypes;
     // [ONYXKEYS.TRANSACTIONS_BEING_REJECTED]: OnyxTypes;
     // [ONYXKEYS.USER_WALLET]: OnyxTypes;
