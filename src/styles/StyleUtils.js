@@ -703,7 +703,7 @@ function convertRGBToUnitValues(red, green, blue) {
 
 /**
  * Matches an RGBA or RGB color value and extracts the color components.
- * 
+ *
  * @param {string} color - The RGBA or RGB color value to match and extract components from.
  * @returns {Array} An array containing the extracted color components [red, green, blue, alpha].
  * Returns null if the input string does not match the pattern.
