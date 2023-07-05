@@ -134,7 +134,7 @@ function MoneyRequestConfirmationList(props) {
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const shouldDisableWhoPaidSection = canModifyParticipants;
-    
+
     const optionSelectorSections = useMemo(() => {
         const sections = [];
         const unselectedParticipants = _.filter(props.participants, (participant) => !participant.selected);
@@ -172,7 +172,17 @@ function MoneyRequestConfirmationList(props) {
             });
         }
         return sections;
-    }, [props.participants, props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, getParticipantsWithAmount, selectedParticipants, payeePersonalDetails, translate, shouldDisableWhoPaidSection]);
+    }, [
+        props.participants,
+        props.hasMultipleParticipants,
+        props.iouAmount,
+        props.iouCurrencyCode,
+        getParticipantsWithAmount,
+        selectedParticipants,
+        payeePersonalDetails,
+        translate,
+        shouldDisableWhoPaidSection,
+    ]);
 
     const selectedOptions = useMemo(() => {
         if (!props.hasMultipleParticipants) {
