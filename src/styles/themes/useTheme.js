@@ -2,13 +2,13 @@ import {useContext} from 'react';
 import ThemeContext from './ThemeContext';
 
 function useTheme() {
-    const contextValue = useContext(ThemeContext);
+    const theme = useContext(ThemeContext);
 
-    if (contextValue == null) {
+    if (theme == null) {
         throw new Error('StylesContext was null! Are you sure that you wrapped the component under a <ThemeProvider>?');
     }
 
-    return contextValue;
+    return theme;
 }
 
 export default useTheme;
