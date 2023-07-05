@@ -300,7 +300,7 @@ type OnyxValues = {
     [ONYXKEYS.IS_TOKEN_VALID]: boolean;
     [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
     // [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: OnyxTypes;
-    // [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: OnyxTypes;
+    [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
 };
 
 export default ONYXKEYS;
