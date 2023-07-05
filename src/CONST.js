@@ -671,10 +671,12 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
-    COLOR_THEME: {
+    THEME: {
         LIGHT: 'light',
         DARK: 'dark',
+        SYSTEM: 'system',
     },
+    DEFAULT_THEME: 'dark',
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,

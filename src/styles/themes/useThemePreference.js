@@ -4,31 +4,30 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 
-const DEFAULT_THEME = CONST.COLOR_THEME.DARK;
-
 function useThemePreference() {
-    const [themePreference, setThemePreference] = useState(DEFAULT_THEME);
-    const [systemColorTheme, setSystemColorTheme] = useState();
+    const [themePreference, setThemePreference] = useState(CONST.DEFAULT_THEME);
+    const [systemTheme, setSystemTheme] = useState();
 
     useEffect(() => {
-        const systemThemeSubscription = Appearance.addChangeListener(({colorScheme}) => setSystemColorTheme(colorScheme));
+        // This is used for getting the system theme, that can be set in the OS's theme settings. This will always return either "light" or "dark" and will update automatically if the OS theme changes.
+        const systemThemeSubscription = Appearance.addChangeListener(({colorScheme}) => setSystemTheme(colorScheme));
         return systemThemeSubscription.remove();
     }, []);
 
     useEffect(() => {
         // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
         const connectionId = Onyx.connect({
-            key: ONYXKEYS.COLOR_THEME,
-            callback: (newColorTheme) => {
-                const theme = newColorTheme || DEFAULT_THEME;
+            key: ONYXKEYS.THEME,
+            callback: (newTheme) => {
+                const theme = newTheme || DEFAULT_THEME;
 
-                if (theme === 'system') setThemePreference(systemColorTheme);
+                if (theme === CONST.THEME.SYSTEM) setThemePreference(systemTheme);
                 else setThemePreference(theme);
             },
         });
 
         return () => Onyx.disconnect(connectionId);
-    }, [systemColorTheme]);
+    }, [systemTheme]);
 
     return themePreference;
 }
