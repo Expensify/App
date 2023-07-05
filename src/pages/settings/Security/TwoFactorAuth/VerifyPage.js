@@ -150,6 +150,9 @@ function VerifyPage(props) {
                         text={props.translate('common.next')}
                         isLoading={props.account.isLoading}
                         onPress={() => {
+                            if (!formRef.current) {
+                                return;
+                            }
                             formRef.current.validateAndSubmitForm();
                         }}
                     />

@@ -54,7 +54,9 @@ function BaseTwoFactorAuthForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
-        inputRef.current.blur();
+        if (inputRef.current) {
+            inputRef.current.blur();
+        }
         if (!twoFactorAuthCode.trim()) {
             setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.pleaseFillTwoFactorAuth'});
             return;
