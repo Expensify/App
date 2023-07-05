@@ -360,6 +360,21 @@ function getBankAccountRoute(report) {
 }
 
 /**
+ * Checks if a report is a task report from a policy expense chat.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isWorkspaceTaskReport(report) {
+    if(!isTaskReport(report)){
+        return false;
+    }
+    const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+    return isPolicyExpenseChat(parentReport);
+}
+
+
+/**
  * Returns true if report has a parent
  *
  * @param {Object} report
@@ -816,6 +831,11 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             type: CONST.ICON_TYPE_AVATAR,
             name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
         };
+
+        if(isWorkspaceTaskReport(report)) {
+            const workspaceIcon = getWorkspaceIcon(report);
+            return [ownerIcon, workspaceIcon];
+        }
 
         return [ownerIcon];
     }
@@ -2388,6 +2408,10 @@ function shouldReportShowSubscript(report) {
     }
 
     if (isPolicyExpenseChat(report) && !isThread(report) && !isTaskReport(report)) {
+        return true;
+    }
+
+    if (isWorkspaceTaskReport(report)) {
         return true;
     }
 
