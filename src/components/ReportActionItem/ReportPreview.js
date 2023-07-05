@@ -24,6 +24,7 @@ import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** All the data of the action */
@@ -101,7 +102,6 @@ function ReportPreview(props) {
         <View style={styles.chatItemMessage}>
             {_.map(props.action.message, (message, index) => (
                 <PressableWithoutFeedback
-                    key={`ReportPreview-${props.action.reportActionID}-${index}`}
                     onPress={() => {
                         Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
                     }}
