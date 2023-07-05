@@ -63,7 +63,7 @@ function WalletStatementPage(props) {
 
     useEffect(() => {
         moment.locale(props.preferredLocale);
-    }, [props.preferredLocale])
+    }, [props.preferredLocale]);
 
     const processDownload = () => {
         if (props.walletStatement.isGenerating) {
