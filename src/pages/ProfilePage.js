@@ -105,7 +105,7 @@ function ProfilePage(props) {
         }
     }, [accountID]);
 
-    const isExistingReport = ReportUtils.getChatByParticipantInclude(accountID);
+    const isExistingReport = ReportUtils.isExistReportsWithAccountID(accountID);
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
     const displayName = details.displayName && isExistingReport ? details.displayName : props.translate('common.hidden');

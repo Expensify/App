@@ -2012,11 +2012,11 @@ function getChatByParticipants(newParticipantList) {
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants. Does not include threads
+ * Check if there exists a report in onyx with the provided accountID. Does not include threads
  * @param {String} accountID
  * @returns {boolean}
  */
-function getChatByParticipantInclude(accountID) {
+function isExistReportsWithAccountID(accountID) {
     return !_.isEmpty(
         _.find(allReports, (report) => {
             // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
@@ -2417,7 +2417,7 @@ export {
     buildOptimisticTaskCommentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
-    getChatByParticipantInclude,
+    isExistReportsWithAccountID,
     getChatByParticipantsByLoginList,
     getChatByParticipantsAndPolicy,
     getAllPolicyReports,
