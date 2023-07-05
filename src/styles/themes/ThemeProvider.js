@@ -14,7 +14,7 @@ const propTypes = {
 function ThemeProvider(props) {
     const themePreference = useThemePreference();
 
-    const theme = useMemo(() => (themePreference === 'light' ? lightTheme : darkTheme), [themePreference]);
+    const theme = useMemo(() => (themePreference === 'light' ? /* TODO: replace with light theme */ darkTheme : darkTheme), [themePreference]);
 
     return <ThemeContext.Provider value={theme}>{props.children}</ThemeContext.Provider>;
 }
