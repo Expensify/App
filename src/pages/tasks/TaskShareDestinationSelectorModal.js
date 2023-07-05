@@ -48,7 +48,7 @@ function TaskShareDestinationSelectorModal(props) {
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
-    // Exclude the reports that have permission as `Admins only` before get share destination options
+    // Filter out all the reports where user is not allowed to create task
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
