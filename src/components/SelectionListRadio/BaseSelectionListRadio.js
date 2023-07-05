@@ -13,6 +13,12 @@ import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListR
 import RadioListItem from './RadioListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
+import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
+
+const propTypes = {
+    ...keyboardStatePropTypes,
+    ...selectionListRadioPropTypes,
+};
 
 function BaseSelectionListRadio(props) {
     const listRef = useRef(null);
@@ -209,7 +215,7 @@ function BaseSelectionListRadio(props) {
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, props.hasSafeArea && !Keyboard.isVisible() && safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, !props.isKeyboardShown && safeAreaPaddingBottomStyle]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pv5]}>
                                 <TextInput
@@ -241,6 +247,7 @@ function BaseSelectionListRadio(props) {
                             indicatorStyle="white"
                             keyboardShouldPersistTaps="always"
                             showsVerticalScrollIndicator={false}
+                            OP
                             initialNumToRender={12}
                             maxToRenderPerBatch={5}
                             windowSize={5}
@@ -255,7 +262,7 @@ function BaseSelectionListRadio(props) {
 }
 
 BaseSelectionListRadio.displayName = 'BaseSelectionListRadio';
-BaseSelectionListRadio.propTypes = selectionListRadioPropTypes;
+BaseSelectionListRadio.propTypes = propTypes;
 BaseSelectionListRadio.defaultProps = selectionListRadioDefaultProps;
 
-export default BaseSelectionListRadio;
+export default withKeyboardState(BaseSelectionListRadio);
