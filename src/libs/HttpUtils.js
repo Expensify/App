@@ -22,9 +22,6 @@ Onyx.connect({
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
 let cancellationController = new AbortController();
 
-// To terminate pending ReconnectApp requests https://github.com/Expensify/App/issues/15627
-let reconnectAppCancellationController = new AbortController();
-
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -139,22 +136,15 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     return processHTTPRequest(url, type, formData, command);
 }
 
-function cancelPendingReconnectAppRequest() {
-    reconnectAppCancellationController.abort();
-    reconnectAppCancellationController = new AbortController();
-}
-
 function cancelPendingRequests() {
     cancellationController.abort();
 
     // We create a new instance because once `abort()` is called any future requests using the same controller would
     // automatically get rejected: https://dom.spec.whatwg.org/#abortcontroller-api-integration
     cancellationController = new AbortController();
-    cancelPendingReconnectAppRequest();
 }
 
 export default {
     xhr,
     cancelPendingRequests,
-    cancelPendingReconnectAppRequest,
 };

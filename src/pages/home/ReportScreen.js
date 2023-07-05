@@ -155,6 +155,10 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // If composer should be hidden, hide emoji picker as well
+        if (ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
+            EmojiPickerAction.hideEmojiPicker(true);
+        }
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
@@ -239,8 +243,7 @@ class ReportScreen extends React.Component {
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
         const isLoadingInitialReportActions = _.isEmpty(this.props.reportActions) && this.props.report.isLoadingReportActions;
 
-        // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
-        const shouldHideReport = ReportUtils.isDefaultRoom(this.props.report) && !ReportUtils.canSeeDefaultRoom(this.props.report, this.props.policies, this.props.betas);
+        const shouldHideReport = !ReportUtils.canAccessReport(this.props.report, this.props.policies, this.props.betas);
 
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.firstRenderRef.current;
         this.firstRenderRef.current = true;
@@ -257,7 +260,10 @@ class ReportScreen extends React.Component {
                     reactionListRef: this.reactionListRef,
                 }}
             >
-                <ScreenWrapper style={screenWrapperStyle}>
+                <ScreenWrapper
+                    style={screenWrapperStyle}
+                    shouldEnableKeyboardAvoidingView={this.props.isFocused}
+                >
                     <FullPageNotFoundView
                         shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
                         subtitleKey="notFound.noAccess"
@@ -281,7 +287,7 @@ class ReportScreen extends React.Component {
                             ) : (
                                 <HeaderView
                                     reportID={reportID}
-                                    onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
+                                    onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
                                     personalDetails={this.props.personalDetails}
                                     report={this.props.report}
                                 />
