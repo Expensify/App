@@ -157,7 +157,7 @@ function ReportDetailsPage(props) {
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.report.policyID));

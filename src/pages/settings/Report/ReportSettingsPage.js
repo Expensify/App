@@ -97,9 +97,12 @@ class ReportSettingsPage extends Component {
         const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isChatThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
         const shouldDisableWelcomeMessage = this.shouldDisableWelcomeMessage(linkedWorkspace);
-        const writeCapability = this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+        const writeCapability = ReportUtils.isAdminRoom(this.props.report)
+            ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS
+            : this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+
         const writeCapabilityText = this.props.translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
-        const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
+        const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN && !ReportUtils.isAdminRoom(this.props.report);
 
         return (
             <ScreenWrapper>
