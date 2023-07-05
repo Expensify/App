@@ -134,7 +134,7 @@ function HeaderView(props) {
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     return (
         <View
-            style={[styles.appContentHeader, isTaskReport && {borderBottomWidth: 0}]}
+            style={[styles.appContentHeader]}
             nativeID="drag-area"
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
