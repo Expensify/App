@@ -19,6 +19,7 @@ import PlaidData from './PlaidData';
 import UserWallet from './UserWallet';
 import OnfidoWallet from './OnfidoWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
+import WalletTerms from './WalletTerms';
 
 export type {
     Account,
@@ -42,4 +43,5 @@ export type {
     UserWallet,
     OnfidoWallet,
     WalletAdditionalDetails,
+    WalletTerms,
 };
