@@ -73,12 +73,10 @@ function getRenderOptions({hasLogin, hasPassword, hasValidateCode, isPrimaryLogi
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !shouldShowEmailDeliveryFailurePage;
-    const shouldShowPasswordForm =
-        hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;
-    const shouldShowValidateCodeForm = (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;
-    const shouldShowResendValidationForm =
-        hasLogin && (!isAccountValidated || didForgetPassword) && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin || shouldShowEmailDeliveryFailurePage;
+    const shouldShowPasswordForm = hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;;
+    const shouldShowValidateCodeForm = (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && canUsePasswordlessLogins  && !shouldShowEmailDeliveryFailurePage;
+    const shouldShowResendValidationForm = hasLogin && (!isAccountValidated || didForgetPassword) && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins  && !shouldShowEmailDeliveryFailurePage;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin  || shouldShowEmailDeliveryFailurePage;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || shouldShowEmailDeliveryFailurePage;
     return {
         shouldShowLoginForm,
@@ -152,6 +150,11 @@ function SignInPage({credentials, account}) {
         welcomeText = isSmallScreenWidth ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.enterPassword')}` : translate('welcomeText.enterPassword');
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
+
+        // Don't show any welcome text if we're showing the user the email delivery failed view
+        if (shouldShowEmailDeliveryFailurePage) {
+            welcomeText = '';
+        }
     } else if (!shouldShowResendValidationForm) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
         welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';

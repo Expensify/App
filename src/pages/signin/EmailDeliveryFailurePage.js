@@ -81,7 +81,7 @@ function EmailDeliveryFailurePage(props) {
 
 EmailDeliveryFailurePage.propTypes = propTypes;
 EmailDeliveryFailurePage.defaultProps = defaultProps;
-EmailDeliveryFailurePage.displayName = 'ResendValidationForm';
+EmailDeliveryFailurePage.displayName = 'EmailDeliveryFailurePage';
 
 export default compose(
     withLocalize,
