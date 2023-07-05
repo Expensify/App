@@ -794,7 +794,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
-        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', 0);
+        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', -1);
         const actorDisplayName = lodashGet(allPersonalDetails, [actorAccountID, 'displayName'], '');
         const actorIcon = {
             id: actorAccountID,

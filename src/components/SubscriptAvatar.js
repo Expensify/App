@@ -50,7 +50,7 @@ function SubscriptAvatar(props) {
     return (
         <View style={[containerStyle, marginStyle]}>
             <UserDetailsTooltip
-                accountID={lodashGet(props.mainAvatar, 'id', '')}
+                accountID={lodashGet(props.mainAvatar, 'id', -1)}
                 icon={props.mainAvatar}
             >
                 <View>
@@ -63,7 +63,7 @@ function SubscriptAvatar(props) {
                 </View>
             </UserDetailsTooltip>
             <UserDetailsTooltip
-                accountID={lodashGet(props.secondaryAvatar, 'id', '')}
+                accountID={lodashGet(props.secondaryAvatar, 'id', -1)}
                 icon={props.secondaryAvatar}
             >
                 <View style={props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}}>
