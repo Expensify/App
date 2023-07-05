@@ -75,7 +75,6 @@ class WorkspaceInvitePage extends React.Component {
         this.toggleOption = this.toggleOption.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
-        this.onTransitionEnd = this.onTransitionEnd.bind(this);
 
         const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, '', this.getExcludedUsers());
         this.state = {
@@ -83,7 +82,6 @@ class WorkspaceInvitePage extends React.Component {
             personalDetails,
             selectedOptions: [],
             userToInvite,
-            sections: [],
         };
     }
 
@@ -105,13 +103,6 @@ class WorkspaceInvitePage extends React.Component {
 
         const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
         Policy.openWorkspaceInvitePage(this.props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
-    }
-
-    /**
-     * Handle Lazy rendering for the options
-     */
-    onTransitionEnd() {
-        this.setState({sections: this.getSections()});
     }
 
     getExcludedUsers() {
@@ -276,10 +267,7 @@ class WorkspaceInvitePage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper
-                shouldEnableMaxHeight
-                onEntryTransitionEnd={this.onTransitionEnd}
-            >
+            <ScreenWrapper shouldEnableMaxHeight>
                 {({didScreenTransitionEnd}) => {
                     const sections = didScreenTransitionEnd ? this.getSections() : [];
                     return (
