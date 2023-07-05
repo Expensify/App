@@ -17,7 +17,7 @@ function useThemePreference() {
     useEffect(() => {
         // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
         const connectionId = Onyx.connect({
-            key: ONYXKEYS.THEME,
+            key: ONYXKEYS.PREFERRED_THEME,
             callback: (newTheme) => {
                 const theme = newTheme || DEFAULT_THEME;
 
