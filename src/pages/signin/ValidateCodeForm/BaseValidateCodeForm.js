@@ -286,7 +286,7 @@ function BaseValidateCodeForm(props) {
                                 disabled={props.network.isOffline}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>

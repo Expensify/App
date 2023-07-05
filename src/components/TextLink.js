@@ -5,6 +5,7 @@ import {Linking} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Link to open in new tab */
@@ -60,7 +61,7 @@ function TextLink(props) {
     return (
         <Text
             style={[styles.link, ...additionalStyles]}
-            accessibilityRole="link"
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
             href={props.href}
             onPress={openLink}
             onMouseDown={props.onMouseDown}

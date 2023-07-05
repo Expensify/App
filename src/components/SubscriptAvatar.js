@@ -68,7 +68,6 @@ function SubscriptAvatar(props) {
             >
                 <View style={props.size === CONST.AVATAR_SIZE.SMALL_NORMAL ? styles.flex1 : {}}>
                     <Avatar
-                        imageStyles={null}
                         containerStyles={[props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSubscriptCompact : subscriptSyle]}
                         iconAdditionalStyles={[
                             StyleUtils.getAvatarBorderWidth(isSmall ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.SUBSCRIPT),

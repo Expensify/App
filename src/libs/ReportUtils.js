@@ -202,30 +202,12 @@ function sortReportsByLastRead(reports) {
  */
 function canEditReportAction(reportAction) {
     return (
-        reportAction.actorEmail === currentUserEmail &&
+        reportAction.actorAccountID === currentUserAccountID &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
-}
-
-/**
- * Can only flag if:
- *
- * - It was written by someone else
- * - It's an ADDCOMMENT that is not an attachment
- *
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function canFlagReportAction(reportAction) {
-    return (
-        !loginList.includes(reportAction.actorEmail) &&
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-        !ReportActionsUtils.isDeletedAction(reportAction) &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
     );
 }
 
@@ -256,7 +238,7 @@ function canDeleteReportAction(reportAction, reportID) {
     ) {
         return false;
     }
-    if (reportAction.actorEmail === currentUserEmail) {
+    if (reportAction.actorAccountID === currentUserAccountID) {
         return true;
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
@@ -378,13 +360,23 @@ function getBankAccountRoute(report) {
 }
 
 /**
- * Returns true if report has a parent and is therefore a Thread.
+ * Returns true if report has a parent
  *
  * @param {Object} report
  * @returns {Boolean}
  */
 function isThread(report) {
-    return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
+    return Boolean(report && report.parentReportID && report.parentReportActionID);
+}
+
+/**
+ * Returns true if report is of type chat and has a parent and is therefore a Thread.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isChatThread(report) {
+    return isThread(report) && report.type === CONST.REPORT.TYPE.CHAT;
 }
 
 /**
@@ -394,7 +386,7 @@ function isThread(report) {
  * @returns {Boolean}
  */
 function isConciergeChatReport(report) {
-    return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isThread(report);
+    return lodashGet(report, 'participantAccountIDs', []).length === 1 && Number(report.participantAccountIDs[0]) === CONST.ACCOUNT_ID.CONCIERGE && !isChatThread(report);
 }
 
 /**
@@ -480,9 +472,15 @@ function isArchivedRoom(report) {
  * @param {String} report.policyID
  * @param {String} report.oldPolicyName
  * @param {String} report.policyName
+ * @param {Boolean} [returnEmptyIfNotFound]
  * @returns {String}
  */
-function getPolicyName(report) {
+function getPolicyName(report, returnEmptyIfNotFound = false) {
+    const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
+    if (report === undefined) {
+        return noPolicyFound;
+    }
+
     if ((!allPolicies || _.size(allPolicies) === 0) && !report.policyName) {
         return Localize.translateLocal('workspace.common.unavailable');
     }
@@ -491,7 +489,7 @@ function getPolicyName(report) {
     //     // Public rooms send back the policy name with the reportSummary,
     //     // since they can also be accessed by people who aren't in the workspace
 
-    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || Localize.translateLocal('workspace.common.unavailable');
+    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
 }
 
 /**
@@ -793,15 +791,16 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
 
         return [memberIcon, workspaceIcon];
     }
-    if (isThread(report)) {
+    if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
-        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', -1);
+        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', 0);
+        const actorDisplayName = lodashGet(allPersonalDetails, [actorAccountID, 'displayName'], '');
         const actorIcon = {
             id: actorAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
+            name: actorDisplayName,
             type: CONST.ICON_TYPE_AVATAR,
-            name: lodashGet(personalDetails, [actorAccountID, 'firstName'], ''),
         };
 
         if (isWorkspaceThread(report)) {
@@ -1075,7 +1074,7 @@ function getReportPreviewMessage(report, reportAction) {
  */
 function getReportName(report) {
     let formattedName;
-    if (isThread(report)) {
+    if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
@@ -1117,17 +1116,33 @@ function getReportName(report) {
 }
 
 /**
- * Recursively navigates through parent to get the root reports name only for DM reports.
+ * Recursively navigates through thread parents to get the root report and workspace name.
+ * The recursion stops when we find a non thread or money request report, whichever comes first.
  * @param {Object} report
- * @returns {String|*}
+ * @returns {Object}
  */
-function getDMRootReportName(report) {
-    if (isThread(report) && !getChatType(report)) {
+function getRootReportAndWorkspaceName(report) {
+    if (isThread(report) && !isMoneyRequestReport(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-        return getDMRootReportName(parentReport);
+        return getRootReportAndWorkspaceName(parentReport);
     }
 
-    return getReportName(report);
+    if (isIOUReport(report)) {
+        return {
+            rootReportName: lodashGet(report, 'displayName', ''),
+        };
+    }
+    if (isMoneyRequestReport(report)) {
+        return {
+            rootReportName: lodashGet(report, 'displayName', ''),
+            workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
+        };
+    }
+
+    return {
+        rootReportName: getReportName(report),
+        workspaceName: getPolicyName(report, true),
+    };
 }
 
 /**
@@ -1136,23 +1151,8 @@ function getDMRootReportName(report) {
  * @returns {String}
  */
 function getChatRoomSubtitle(report) {
-    if (isThread(report)) {
-        if (!getChatType(report)) {
-            return `${Localize.translateLocal('threads.from')} ${getDMRootReportName(report)}`;
-        }
-
-        let roomName = '';
-        if (isChatRoom(report)) {
-            const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-            if (parentReport) {
-                roomName = lodashGet(parentReport, 'displayName', '');
-            } else {
-                roomName = lodashGet(report, 'displayName', '');
-            }
-        }
-
-        const workspaceName = getPolicyName(report);
-        return `${Localize.translateLocal('threads.from')} ${roomName ? [roomName, workspaceName].join(' in ') : workspaceName}`;
+    if (isChatThread(report)) {
+        return '';
     }
     if (!isDefaultRoom(report) && !isUserCreatedPolicyRoom(report) && !isPolicyExpenseChat(report)) {
         return '';
@@ -1168,6 +1168,24 @@ function getChatRoomSubtitle(report) {
         return report.oldPolicyName || '';
     }
     return getPolicyName(report);
+}
+
+/**
+ * Gets the parent navigation subtitle for the report
+ * @param {Object} report
+ * @returns {String}
+ */
+function getParentNavigationSubtitle(report) {
+    if (isThread(report)) {
+        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
+        if (_.isEmpty(rootReportName)) {
+            return '';
+        }
+
+        return Localize.translateLocal('threads.parentNavigationSummary', {rootReportName, workspaceName});
+    }
+    return '';
 }
 
 /**
@@ -1188,7 +1206,7 @@ function getReport(reportID) {
 function navigateToDetailsPage(report) {
     const participantAccountIDs = lodashGet(report, 'participantAccountIDs', []);
 
-    if (isChatRoom(report) || isPolicyExpenseChat(report) || isThread(report)) {
+    if (isChatRoom(report) || isPolicyExpenseChat(report) || isChatThread(report)) {
         Navigation.navigate(ROUTES.getReportDetailsRoute(report.reportID));
         return;
     }
@@ -1253,7 +1271,6 @@ function buildOptimisticAddCommentReportAction(text, file) {
         reportAction: {
             reportActionID: NumberUtils.rand64(),
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-            actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
             person: [
                 {
@@ -1486,7 +1503,6 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
         automatic: false,
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
@@ -1525,7 +1541,6 @@ function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
         originalMessage: {
             linkedReportID: iouReportID,
         },
-        actorEmail: currentUserEmail,
         actorAccountID: currentUserAccountID,
     };
 }
@@ -1540,7 +1555,6 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
     return {
         actionName,
         actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
         automatic: false,
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
@@ -1639,7 +1653,6 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1679,7 +1692,6 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
         actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1844,7 +1856,6 @@ function buildOptimisticTaskReport(ownerEmail, ownerAccountID, assigneeAccountID
         description,
         ownerEmail,
         ownerAccountID,
-        // managerEmail: assignee,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
@@ -2006,7 +2017,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
     if (
         !report ||
         !report.reportID ||
-        (_.isEmpty(report.participantAccountIDs) && !isThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
+        (_.isEmpty(report.participantAccountIDs) && !isChatThread(report) && !isPublicRoom(report) && !isArchivedRoom(report) && !isMoneyRequestReport(report) && !isTaskReport(report))
     ) {
         return false;
     }
@@ -2066,7 +2077,7 @@ function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participantAccountIDs || isThread(report)) {
+        if (!report || !report.participantAccountIDs || isChatThread(report)) {
             return false;
         }
 
@@ -2134,6 +2145,26 @@ function chatIncludesChronos(report) {
 }
 
 /**
+ * Can only flag if:
+ *
+ * - It was written by someone else
+ * - It's an ADDCOMMENT that is not an attachment
+ *
+ * @param {Object} reportAction
+ * @param {number} reportID
+ * @returns {Boolean}
+ */
+function canFlagReportAction(reportAction, reportID) {
+    return (
+        !loginList.includes(reportAction.actorEmail) &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        isAllowedToComment(getReport(reportID))
+    );
+}
+
+/**
  * Whether flag comment page should show
  *
  * @param {Object} reportAction
@@ -2143,11 +2174,11 @@ function chatIncludesChronos(report) {
 
 function shouldShowFlagComment(reportAction, report) {
     return (
-        canFlagReportAction(reportAction) &&
+        canFlagReportAction(reportAction, report.reportID) &&
         !isArchivedRoom(report) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report.reportID) &&
-        reportAction.actorEmail !== CONST.EMAIL.CONCIERGE
+        reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE
     );
 }
 
@@ -2246,7 +2277,7 @@ function canRequestMoney(report) {
  */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
     // In any thread, we do not allow any new money requests yet
-    if (isThread(report)) {
+    if (isChatThread(report)) {
         return [];
     }
 
@@ -2352,7 +2383,7 @@ function shouldReportShowSubscript(report) {
         return false;
     }
 
-    if (isExpenseRequest(report)) {
+    if (isPolicyExpenseChat(report) && !isChatThread(report) && !isTaskReport(report) && !report.isOwnPolicyExpenseChat) {
         return true;
     }
 
@@ -2425,6 +2456,7 @@ export {
     isUserCreatedPolicyRoom,
     isChatRoom,
     getChatRoomSubtitle,
+    getParentNavigationSubtitle,
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
@@ -2494,6 +2526,7 @@ export {
     getWhisperDisplayNames,
     getWorkspaceAvatar,
     isThread,
+    isChatThread,
     isThreadParent,
     isThreadFirstChat,
     shouldReportShowSubscript,
