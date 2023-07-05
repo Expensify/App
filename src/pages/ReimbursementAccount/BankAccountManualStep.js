@@ -122,5 +122,5 @@ function BankAccountManualStep(props) {
 }
 
 BankAccountManualStep.propTypes = propTypes;
-BankAccountManualStep.display = 'BankAccountManualStep';
+BankAccountManualStep.displayName = 'BankAccountManualStep';
 export default withLocalize(BankAccountManualStep);
