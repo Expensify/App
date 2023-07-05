@@ -67,6 +67,7 @@ const defaultProps = {
     hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
+    isAnonymousAction: false
 };
 
 function MenuItem(props) {
@@ -109,7 +110,7 @@ function MenuItem(props) {
                 }
 
                 props.onPress(e);
-            })}
+            }, props.isAnonymousAction)}
             onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
             onPressOut={ControlSelection.unblock}
             onSecondaryInteraction={props.onSecondaryInteraction}

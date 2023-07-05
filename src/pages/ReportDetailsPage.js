@@ -78,6 +78,7 @@ function ReportDetailsPage(props) {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
                 translationKey: 'common.shareCode',
                 icon: Expensicons.QrCode,
+                isAnonymousAction: true,
                 action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(props.report.reportID)),
             },
         ];
@@ -120,6 +121,8 @@ function ReportDetailsPage(props) {
 
         return items;
     }, [props.report.reportID, participants, isArchivedRoom, isPolicyExpenseChat, isChatRoom, isThread, isUserCreatedPolicyRoom, canLeaveRoom]);
+
+    console.log("123")
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
@@ -179,7 +182,8 @@ function ReportDetailsPage(props) {
                                 title={props.translate(item.translationKey)}
                                 subtitle={item.subtitle}
                                 icon={item.icon}
-                                onPress={Session.checkIfActionIsAllowed(item.action)}
+                                onPress={item.action}
+                                isAnonymousAction={item.isAnonymousAction || false}
                                 shouldShowRightIcon
                                 brickRoadIndicator={brickRoadIndicator}
                             />
