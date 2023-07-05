@@ -179,7 +179,7 @@ class HeaderWithBackButton extends Component {
                                     this.props.onBackButtonPress();
                                 }}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={this.props.translate('common.back')}
                             >
                                 <Icon src={Expensicons.BackArrow} />
@@ -210,7 +210,7 @@ class HeaderWithBackButton extends Component {
                                         this.triggerButtonCompleteAndDownload();
                                     }}
                                     style={[styles.touchableButtonImage]}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={this.props.translate('common.download')}
                                 >
                                     <Icon
@@ -226,7 +226,7 @@ class HeaderWithBackButton extends Component {
                                 <PressableWithoutFeedback
                                     onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
                                     style={[styles.touchableButtonImage]}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
                                 >
                                     <Icon src={Expensicons.QuestionMark} />
@@ -250,7 +250,7 @@ class HeaderWithBackButton extends Component {
                                 <PressableWithoutFeedback
                                     onPress={this.props.onCloseButtonPress}
                                     style={[styles.touchableButtonImage]}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={this.props.translate('common.close')}
                                 >
                                     <Icon src={Expensicons.Close} />
