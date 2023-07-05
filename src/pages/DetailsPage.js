@@ -148,7 +148,7 @@ function DetailsPage(props) {
                                 >
                                     {({show}) => (
                                         <PressableWithoutFocus
-                                            style={styles.noOutline}
+                                            style={[styles.noOutline]}
                                             onPress={show}
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
