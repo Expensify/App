@@ -1370,7 +1370,8 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, payeeA
  * @returns {Array}
  */
 function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
-    const amount = NumberFormatUtils.format(preferredLocale, total / 100, {style: 'currency', currency});
+    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
+    const amount = NumberFormatUtils.format(preferredLocale, total / currencyUnit, {style: 'currency', currency});
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
