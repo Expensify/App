@@ -1,6 +1,8 @@
+import {ValueOf} from 'type-fest';
 import * as React from 'react';
+import CONST from '../../CONST';
 
-type PendingAction = 'add' | 'delete' | 'update';
+type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 
 type BaseState = {
     success?: string;
@@ -20,4 +22,4 @@ type Icon = {
     name: string;
 };
 
-export type {BaseState, Icon};
+export type {BaseState, Icon, PendingAction};

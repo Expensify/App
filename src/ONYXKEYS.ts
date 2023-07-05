@@ -275,6 +275,7 @@ type OnyxValues = {
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.Login;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
+    [ONYXKEYS.PAYPAL]: OnyxTypes.Paypal;
 };
 
 export default ONYXKEYS;
