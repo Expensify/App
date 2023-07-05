@@ -329,7 +329,6 @@ function ReportActionItem(props) {
                 </ShowContextMenuContext.Provider>
             );
         }
-        const emojiReactions = lodashGet(props, ['emojiReactions'], {});
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
@@ -348,7 +347,7 @@ function ReportActionItem(props) {
                 <View style={draftMessageRightAlign}>
                     <ReportActionItemEmojiReactions
                         reportActionID={props.action.reportActionID}
-                        emojiReactions={emojiReactions}
+                        emojiReactions={props.emojiReactions}
                         toggleReaction={(emoji) => {
                             if (Session.isAnonymousUser()) {
                                 hideContextMenu(false);
