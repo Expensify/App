@@ -98,42 +98,40 @@ function ReportPreview(props) {
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
         <View style={styles.chatItemMessage}>
-            {_.map(props.action.message, (message, index) => (
-                <PressableWithoutFeedback
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
-                    }}
-                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                    onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                    style={[styles.flexRow, styles.justifyContentBetween]}
-                    accessibilityRole="button"
-                    accessibilityLabel={props.translate('iou.viewDetails')}
-                >
-                    <View style={styles.iouPreviewBox}>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLabelSupporting, styles.lh16]}>
-                                    {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
-                                </Text>
-                            </View>
-                        </View>
-                        <View style={styles.flexRow}>
-                            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                                <Text style={styles.textHeadline}>{reportAmount}</Text>
-                                {ReportUtils.isSettled(props.iouReportID) && (
-                                    <View style={styles.iouPreviewBoxCheckmark}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
-                            </View>
+            <PressableWithoutFeedback
+                onPress={() => {
+                    Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
+                }}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+                style={[styles.flexRow, styles.justifyContentBetween]}
+                accessibilityRole="button"
+                accessibilityLabel={props.translate('iou.viewDetails')}
+            >
+                <View style={styles.iouPreviewBox}>
+                    <View style={styles.flexRow}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                                {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
+                            </Text>
                         </View>
                     </View>
-                </PressableWithoutFeedback>
-            ))}
+                    <View style={styles.flexRow}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={styles.textHeadline}>{reportAmount}</Text>
+                            {ReportUtils.isSettled(props.iouReportID) && (
+                                <View style={styles.iouPreviewBoxCheckmark}>
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={themeColors.iconSuccessFill}
+                                    />
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                </View>
+            </PressableWithoutFeedback>
             {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
                 <SettlementButton
                     currency={props.iouReport.currency}
