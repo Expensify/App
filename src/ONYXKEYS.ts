@@ -277,7 +277,7 @@ type OnyxValues = {
     [ONYXKEYS.ONFIDO_TOKEN]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: ValueOf<typeof CONST.LOCALES>;
     [ONYXKEYS.USER_WALLET]: OnyxTypes.UserWallet;
-    // [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes;
+    [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.OnfidoWallet;
     // [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes;
     // [ONYXKEYS.WALLET_TERMS]: OnyxTypes;
     // [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes;

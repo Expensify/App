@@ -17,6 +17,7 @@ import Paypal from './Paypal';
 import BlockedFromConcierge from './BlockedFromConcierge';
 import PlaidData from './PlaidData';
 import UserWallet from './UserWallet';
+import OnfidoWallet from './OnfidoWallet';
 
 export type {
     Account,
@@ -38,4 +39,5 @@ export type {
     BlockedFromConcierge,
     PlaidData,
     UserWallet,
+    OnfidoWallet,
 };
