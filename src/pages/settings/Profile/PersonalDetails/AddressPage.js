@@ -84,7 +84,7 @@ function AddressPage(props) {
             const requiredFields = ['addressLine1', 'city', 'country', 'state'];
 
             // Check "State" dropdown is a valid state if selected Country is USA.
-            if (isUSAForm && !COMMON_CONST.STATES[values.state]) {
+            if (values.country === CONST.COUNTRY.US && !COMMON_CONST.STATES[values.state]) {
                 errors.state = 'common.error.fieldRequired';
             }
 
