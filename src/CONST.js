@@ -652,6 +652,7 @@ const CONST = {
         },
     },
     TIMING: {
+        CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
@@ -724,9 +725,6 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
-        COMMAND: {
-            RECONNECT_APP: 'ReconnectApp',
-        },
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
@@ -1111,6 +1109,10 @@ const CONST = {
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
     },
+    AVATAR_ROW_SIZE: {
+        DEFAULT: 4,
+        LARGE_SCREEN: 8,
+    },
     OPTION_MODE: {
         COMPACT: 'compact',
         DEFAULT: 'default',
@@ -1118,7 +1120,6 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_CHARS: /[a-zA-Z]+/,
         ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
@@ -2513,6 +2514,11 @@ const CONST = {
         MENUITEM: 'menuitem',
         TEXT: 'text',
         RADIO: 'radio',
+        IMAGEBUTTON: 'imagebutton',
+        CHECKBOX: 'checkbox',
+        SWITCH: 'switch',
+        ADJUSTABLE: 'adjustable',
+        IMAGE: 'image',
     },
     SETTINGS_LOUNGE_ACCESS: {
         HEADER_IMAGE_ASPECT_RATIO: 0.64,

@@ -100,6 +100,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] The file is named correctly
     - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [ ] The only data being stored in the state is data necessary for rendering and nothing else
+    - [ ] If we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes
     - [ ] For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)
     - [ ] Any internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)
     - [ ] All JSX used for rendering exists in the render method
