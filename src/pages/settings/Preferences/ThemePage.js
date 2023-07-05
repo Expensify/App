@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import React from 'react';
-import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -51,26 +50,24 @@ function ThemePage(props) {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView style={[styles.flex1, styles.mt3]}>
-                <OptionsList
-                    sections={[{data: localesToThemes}]}
-                    // onSelectRow={(theme) => App.setThemeAndNavigate(theme.value)}
-                    hideSectionHeaders
-                    optionHoveredStyle={{
-                        ...styles.hoveredComponentBG,
-                        ...styles.mhn5,
-                        ...styles.ph5,
-                    }}
-                    shouldHaveOptionSeparator
-                    shouldDisableRowInnerPadding
-                    contentContainerStyles={[styles.ph5]}
-                />
-            </ScrollView>
+            <OptionsList
+                sections={[{data: localesToThemes}]}
+                // onSelectRow={(theme) => App.setThemeAndNavigate(theme.value)}
+                hideSectionHeaders
+                optionHoveredStyle={{
+                    ...styles.hoveredComponentBG,
+                    ...styles.mhn5,
+                    ...styles.ph5,
+                }}
+                shouldHaveOptionSeparator
+                shouldDisableRowInnerPadding
+                contentContainerStyles={[styles.ph5]}
+            />
         </ScreenWrapper>
     );
 }
 
-ThemePage.displayName = 'ColorThemePage';
+ThemePage.displayName = 'ThemePage';
 ThemePage.propTypes = propTypes;
 ThemePage.defaultProps = defaultProps;
 
