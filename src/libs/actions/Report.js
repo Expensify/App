@@ -1635,13 +1635,14 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
 /**
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * @param {String} reportID
- * @param {String} reportActionID
+ * @param {Object} action
  * @param {Object} emoji
  * @param {number} paramSkinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportActionID, emoji, paramSkinTone = preferredSkinTone) {
-    const reportAction = ReportActionsUtils.getReportAction(reportID, reportActionID);
+function toggleEmojiReaction(reportID, action, emoji, paramSkinTone = preferredSkinTone) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
+    const reportAction = ReportActionsUtils.getReportAction(originalReportID, action.reportActionID);
 
     if (_.isEmpty(reportAction)) {
         return;
