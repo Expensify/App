@@ -125,6 +125,9 @@ const propTypes = {
 
     /**  Whether we should use small avatar subscript sizing the for menu item */
     isSmallAvatarSubscriptMenu: PropTypes.bool,
+
+    /** The max number of lines the title text should occupy before ellipses are added */
+    numberOfLines: PropTypes.number,
 };
 
 export default propTypes;

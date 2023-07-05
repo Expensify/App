@@ -69,6 +69,7 @@ const defaultProps = {
     furtherDetails: '',
     furtherDetailsIcon: undefined,
     isSmallAvatarSubscriptMenu: false,
+    numberOfLines: 1,
 };
 
 function MenuItem(props) {
@@ -82,7 +83,7 @@ function MenuItem(props) {
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
             props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
             props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
-            styles.pre,
+            props.numberOfLines === 1 && styles.pre,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
         ],
@@ -196,7 +197,7 @@ function MenuItem(props) {
                                     {Boolean(props.title) && (
                                         <Text
                                             style={titleTextStyle}
-                                            numberOfLines={1}
+                                            numberOfLines={props.numberOfLines}
                                         >
                                             {convertToLTR(props.title)}
                                         </Text>
