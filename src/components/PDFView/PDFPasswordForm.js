@@ -30,6 +30,9 @@ const propTypes = {
     /** Notify parent that a text field has been focused or blurred */
     onPasswordFieldFocused: PropTypes.func,
 
+    /** Should focus to the password input  */
+    isFocused: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -54,6 +57,13 @@ class PDFPasswordForm extends Component {
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
         this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isFocused || !this.props.isFocused || !this.textInputRef) {
+            return;
+        }
+        this.textInputRef.focus();
     }
 
     submitPassword() {
@@ -105,6 +115,7 @@ class PDFPasswordForm extends Component {
                             <Text>{this.props.translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
                         </View>
                         <TextInput
+                            ref={(el) => (this.textInputRef = el)}
                             label={this.props.translate('common.password')}
                             /**
                              * This is a workaround to bypass Safari's autofill odd behaviour.
