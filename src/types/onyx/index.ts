@@ -22,6 +22,7 @@ import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletTerms from './WalletTerms';
 import BankAccount from './BankAccount';
 import Card from './Card';
+import WalletStatement from './WalletStatement';
 
 export type {
     Account,
@@ -48,4 +49,5 @@ export type {
     WalletTerms,
     BankAccount,
     Card,
+    WalletStatement,
 };
