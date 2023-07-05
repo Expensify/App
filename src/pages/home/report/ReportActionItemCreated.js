@@ -18,6 +18,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The id of the report */
@@ -74,7 +75,7 @@ function ReportActionItemCreated(props) {
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                         style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
                         accessibilityLabel={props.translate('common.details')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
                         <RoomHeaderAvatars icons={icons} />
                     </PressableWithoutFeedback>

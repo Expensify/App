@@ -2510,6 +2510,11 @@ const CONST = {
         MENUITEM: 'menuitem',
         TEXT: 'text',
         RADIO: 'radio',
+        IMAGEBUTTON: 'imagebutton',
+        CHECKBOX: 'checkbox',
+        SWITCH: 'switch',
+        ADJUSTABLE: 'adjustable',
+        IMAGE: 'image',
     },
     SETTINGS_LOUNGE_ACCESS: {
         HEADER_IMAGE_ASPECT_RATIO: 0.64,
