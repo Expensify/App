@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import PopoverWithMeasuredContent from '../PopoverWithMeasuredContent';
@@ -12,8 +12,6 @@ import CONST from '../../CONST';
 import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-import * as Modal from '../../libs/actions/Modal';
-
 
 const propTypes = {
     ...createMenuPropTypes,
@@ -45,12 +43,14 @@ function PopoverMenu(props) {
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: props.menuItems.length - 1, isActive: props.isVisible});
 
-    React.useEffect(() => {
-        setFocusedIndex(-1);
-        if (selectedItemIndex !== null) {
-            props.menuItems[selectedItemIndex].onSelected();
-            setSelectedItemIndex(null);
+    useEffect(() => {
+        if (selectedItemIndex == null) {
+            return;
         }
+
+        setFocusedIndex(-1);
+        props.menuItems[selectedItemIndex].onSelected();
+        setSelectedItemIndex(null);
     }, [props.menuItems, selectedItemIndex, setFocusedIndex]);
 
     const selectItem = (index) => {

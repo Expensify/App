@@ -18,7 +18,7 @@ const propTypes = {
     coverScreen: PropTypes.bool,
 
     /** Custom backdrop JSX element */
-    customBackdrop: PropTypes.func,
+    customBackdrop: PropTypes.object,
 
     /** Callback method fired when the user requests to close the modal */
     onClose: PropTypes.func.isRequired,
