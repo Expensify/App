@@ -72,8 +72,10 @@ const showWorkspaceDetails = (reportID) => {
 
 function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actorAccountID;
-    let {displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {avatar, login, pendingFields} = props.personalDetailsList[actorAccountID] || {};
+    let displayName = lodashGet(props.personalDetailsList, [actorAccountID, 'displayName'], '');
+    const avatar = lodashGet(props.personalDetailsList, [actorAccountID, 'avatar'], '');
+    const login = lodashGet(props.personalDetailsList, [actorAccountID, 'login'], '');
+    const isLoadingAvatar = lodashGet(props.personalDetailsList, [actorAccountID, 'pendingFields', 'avatar'], null);
     let actorHint = (login || displayName).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
     let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
@@ -122,7 +124,7 @@ function ReportActionItemSingle(props) {
                 accessibilityLabel={actorHint}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
-                <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
+                <OfflineWithFeedback pendingAction={isLoadingAvatar}>
                     {props.shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
                             mainAvatar={{source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName}}
