@@ -48,7 +48,7 @@ function TaskView(props) {
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
 
     return (
-        <>
+        <View>
             <PressableWithSecondaryInteraction
                 onPress={Session.checkIfActionIsAllowed((e) => {
                     if (e && e.type === 'click') {
@@ -131,7 +131,7 @@ function TaskView(props) {
             )}
 
             {props.shouldShowHorizontalRule && <View style={styles.taskHorizontalRule} />}
-        </>
+        </View>
     );
 }
 
