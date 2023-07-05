@@ -302,6 +302,25 @@ type OnyxValues = {
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
 
+    // Collections
+    [download: `${typeof ONYXKEYS.COLLECTION.DOWNLOAD}${string}`]: OnyxTypes.Download;
+    // [policy: `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`]: OnyxTypes;
+    // [policyMembers: `${typeof ONYXKEYS.COLLECTION.POLICY_MEMBERS}${string}`]: OnyxTypes;
+    // [workspaceInviteMembersDraft: `${typeof ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${string}`]: OnyxTypes;
+    // [report: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`]: OnyxTypes;
+    // [ReportActions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`]: OnyxTypes;
+    // [ReportActionsDrafts: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`]: OnyxTypes;
+    // [ReportActionsReactions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${string}`]: OnyxTypes;
+    // [ReportDraftComment: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}`]: OnyxTypes;
+    // [reportDraftCommentNumberOfLines: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${string}`]: OnyxTypes;
+    // [reportIsComposerFull: `${typeof ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${string}`]: OnyxTypes;
+    // [reportUserIsTyping: `${typeof ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${string}`]: OnyxTypes;
+    // [securityGroup: `${typeof ONYXKEYS.COLLECTION.SECURITY_GROUP}${string}`]: OnyxTypes;
+    // [transaction: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`]: OnyxTypes;
+
+    /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
+    DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_';
+
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
     // [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form; // TODO: REIMBURSEMENT_ACCOUNT_FORM has the same value as REIMBURSEMENT_ACCOUNT

@@ -28,6 +28,7 @@ import FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import ReimbursementAccount from './ReimbursementAccount';
 import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
+import Download from './Download';
 import Form, {AddDebitCardForm} from './Form';
 
 export type {
@@ -63,4 +64,5 @@ export type {
     WalletTransfer,
     Form,
     AddDebitCardForm,
+    Download,
 };
