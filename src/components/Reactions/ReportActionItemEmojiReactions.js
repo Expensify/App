@@ -73,7 +73,7 @@ function ReportActionItemEmojiReactions(props) {
         >
             {_.map(sortedReactions, (reaction) => {
                 const reactionEmojiName = reaction.emojiName;
-                const usersWithReactions = _.filter(reaction.users, (userData) => userData);
+                const usersWithReactions = _.pick(reaction.users, _.identity);
                 let reactionCount = 0;
                 _.forEach(usersWithReactions, (user) => {
                     if (user.skinTones) {
@@ -89,7 +89,8 @@ function ReportActionItemEmojiReactions(props) {
                 const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmojiName);
                 const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emojiAsset, reaction.users);
                 const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
-                const reactionUsers = _.keys(reaction.users);
+                const reactionUsers = _.keys(usersWithReactions);
+                const reactionUsersNumbers = _.map(reactionUsers, Number);
 
                 const onPress = () => {
                     props.toggleReaction(emojiAsset);
@@ -105,7 +106,7 @@ function ReportActionItemEmojiReactions(props) {
                             <ReactionTooltipContent
                                 emojiName={reactionEmojiName}
                                 emojiCodes={emojiCodes}
-                                accountIDs={reactionUsers}
+                                accountIDs={reactionUsersNumbers}
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
