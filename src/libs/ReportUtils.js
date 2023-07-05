@@ -23,6 +23,8 @@ import * as UserUtils from './UserUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
+let isAnonymousUser;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -33,13 +35,8 @@ Onyx.connect({
 
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
+        isAnonymousUser = val.authTokenType === 'anonymousAccount';
     },
-});
-
-let loginList;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => (loginList = _.isEmpty(val) ? [] : _.keys(val)),
 });
 
 let preferredLocale = CONST.LOCALES.DEFAULT;
@@ -2134,7 +2131,7 @@ function chatIncludesChronos(report) {
  */
 function canFlagReportAction(reportAction, reportID) {
     return (
-        !loginList.includes(reportAction.actorEmail) &&
+        reportAction.actorAccountID !== currentUserAccountID &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
@@ -2396,7 +2393,7 @@ function getParentReport(report) {
  * @returns {Boolean}
  */
 function shouldHideComposer(report, reportErrors) {
-    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report);
+    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
 }
 
 /**
