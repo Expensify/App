@@ -11,6 +11,19 @@ import Log from './Log';
 import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
+const allReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (report, key) => {
+        if (!key || !report) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        allReports[reportID] = report;
+    },
+});
+
 const allReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -441,6 +454,45 @@ function getReportAction(reportID, reportActionID) {
 }
 
 /**
+ * @returns {string}
+ */
+function getMostRecentReportActionLastModified() {
+    // Start with the oldest date possible
+    let mostRecentReportActionLastModified = new Date(0).toISOString();
+
+    // Flatten all the actions
+    // Loop over them all to find the one that is the most recent
+    const flatReportActions = _.flatten(_.map(allReportActions, (actions) => _.values(actions)));
+    _.each(flatReportActions, (action) => {
+        // Pending actions should not be counted here as a user could create a comment or some other action while offline and the server might know about
+        // messages they have not seen yet.
+        if (!_.isEmpty(action.pendingAction)) {
+            return;
+        }
+
+        const lastModified = action.lastModified || action.created;
+        if (lastModified < mostRecentReportActionLastModified) {
+            return;
+        }
+
+        mostRecentReportActionLastModified = lastModified;
+    });
+
+    // We might not have actions so we also look at the report objects to see if any have a lastVisibleActionLastModified that is more recent. We don't need to get
+    // any reports that have been updated before either a recently updated report or reportAction as we should be up to date on these
+    _.each(allReports, (report) => {
+        const reportLastVisibleActionLastModified = report.lastVisibleActionLastModified || report.lastVisibleActionCreated;
+        if (!reportLastVisibleActionLastModified || reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
+            return;
+        }
+
+        mostRecentReportActionLastModified = reportLastVisibleActionLastModified;
+    });
+
+    return mostRecentReportActionLastModified;
+}
+
+/**
  * @param {*} chatReportID
  * @param {*} iouReportID
  * @returns {Object} The report preview action or `null` if one couldn't be found
@@ -496,6 +548,7 @@ export {
     isMoneyRequestAction,
     hasCommentThread,
     getLinkedTransactionID,
+    getMostRecentReportActionLastModified,
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,

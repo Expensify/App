@@ -236,6 +236,14 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
+        // This listener is used for focusing the composer again after going back to a report without remounting it.
+        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
+            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
+                return;
+            }
+            this.focus();
+        });
+
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -274,6 +282,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+        if (!this.unsubscribeNavFocus) {
+            return;
+        }
+        this.unsubscribeNavFocus();
     }
 
     onSelectionChange(e) {
@@ -972,7 +984,7 @@ class ReportActionCompose extends React.Component {
                                                                 onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                accessibilityRole="button"
+                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                                 accessibilityLabel={this.props.translate('reportActionCompose.collapse')}
                                                             >
                                                                 <Icon src={Expensicons.Collapse} />
@@ -991,7 +1003,7 @@ class ReportActionCompose extends React.Component {
                                                                 onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                accessibilityRole="button"
+                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                                 accessibilityLabel={this.props.translate('reportActionCompose.expand')}
                                                             >
                                                                 <Icon src={Expensicons.Expand} />
@@ -1010,7 +1022,7 @@ class ReportActionCompose extends React.Component {
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
-                                                            accessibilityRole="button"
+                                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                             accessibilityLabel={this.props.translate('reportActionCompose.addAction')}
                                                         >
                                                             <Icon src={Expensicons.Plus} />
@@ -1139,7 +1151,7 @@ class ReportActionCompose extends React.Component {
                                     style={[styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                     onPress={this.submitForm}
                                     disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={this.props.translate('common.send')}
                                 >
                                     <Icon
