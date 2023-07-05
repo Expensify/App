@@ -25,7 +25,7 @@ const propTypes = {
     priorityMode: PropTypes.string,
 
     /** The app's color theme */
-    colorTheme: PropTypes.string,
+    preferredTheme: PropTypes.string,
 
     /** The details about the user that is signed in */
     user: PropTypes.shape({
@@ -42,14 +42,14 @@ const propTypes = {
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    colorTheme: CONST.COLOR_THEME.DARK,
+    preferredTheme: CONST.DEFAULT_THEME,
     user: {},
 };
 
 function PreferencesPage(props) {
     const priorityModes = props.translate('priorityModePage.priorityModes');
     const languages = props.translate('languagePage.languages');
-    const colorThemes = props.translate('colorThemePage.colorThemes');
+    const themes = props.translate('themePage.themes');
 
     // Enable additional test features in the staging or dev environments
     const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.ADHOC, CONST.ENVIRONMENT.DEV], props.environment);
@@ -94,11 +94,10 @@ function PreferencesPage(props) {
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
-                        title={colorThemes[props.colorTheme].label}
-                        description={props.translate('colorThemePage.colorTheme')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_COLOR_THEME)}
+                        title={themes[props.preferredTheme].label}
+                        description={props.translate('themePage.theme')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
                     />
-
                     {shouldShowTestToolMenu && (
                         <View style={[styles.ml5, styles.mr8, styles.mt6]}>
                             <TestToolMenu />
@@ -121,8 +120,8 @@ export default compose(
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,
         },
-        colorTheme: {
-            key: ONYXKEYS.COLOR_THEME,
+        preferredTheme: {
+            key: ONYXKEYS.PREFERRED_THEME,
         },
         user: {
             key: ONYXKEYS.USER,
