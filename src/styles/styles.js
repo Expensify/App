@@ -3405,7 +3405,7 @@ const styles = {
         ...spacing.flex1,
         fontSize: variables.fontSizeXLarge,
         maxWidth: '100%',
-        wordBreak: 'break-word',
+        ...wordBreak.breakWord,
     },
 
     taskTitleDescription: {
