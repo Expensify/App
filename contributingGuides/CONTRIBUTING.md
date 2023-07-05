@@ -16,18 +16,10 @@ You can create as many accounts as needed in order to test your changes directly
 You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple New Expensify accounts connected to the same email address by using test+123@test.com, test+456@test.com, etc.
 
 ##### High Traffic Accounts
-All internal engineers, contributors, and C+ members are **required** to test with a "high traffic" account against the staging or production web servers. Ask in [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) if someone can turn your account into a High Traffic account. These accounts more closely mirror the accounts used in production by real people. Internal team members can follow [this Stack Overflow](https://stackoverflow.com/c/expensify/questions/14504) to upgrade an account.
 
-All internal engineers, contributors, and C+ members are required to test with a “high traffic” account against the staging or production web servers. Ask in your PR for the assigned Contributor+ team member to turn your account into a High Traffic account. These accounts more closely mirror the accounts used in production by real people.
-You can say:
-
-Hey C+ team member, can you please make xxxxx+xxxx@xxxx.com into a **High Traffic** account following [this process](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts)? Thanks!
-
-###### The process for the C+ to set up an account as a high-traffic account is:
-
-1. Sign in to the Old Expensify web app ([www.expensify.com](https://www.expensify.com)) with your existing high-traffic account
-2. Go to **Settings** > **Policies** > **Group**
-3. For both the _Crowded Policy (Do Not Delete)_ and the _Big Chat (Do Not Delete)_ policies, go to **People** > **Invite** and add the test accounts (with the role _Employee_)
+All internal engineers, contributors, and C+ members are required to test with a “high traffic” account against the staging or production web servers. Use these Google forms to manage your high-traffic accounts. You'll need to authenticate via Google first. 
+1. [Make an account high-traffic](https://docs.google.com/forms/d/e/1FAIpQLScpiS0Mo-HA5xHPsvDow79yTsMBgF0wjuqc0K37lTK5fheB8Q/viewform)
+2. [Remove a high-traffic account](https://docs.google.com/forms/d/e/1FAIpQLSd9_FDav83pnhhtu1KGAKIpf2yttQ_0Bvq1b9nuFM1-wbL11Q/viewform)
 
 
 #### Working on beta features
