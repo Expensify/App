@@ -11,7 +11,7 @@ import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import * as App from '../../../libs/actions/App';
+// import * as App from '../../../libs/actions/App';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
@@ -22,37 +22,37 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** The color theme of the App */
-    colorTheme: PropTypes.string,
+    preferredTheme: PropTypes.string,
 };
 
 const defaultProps = {
-    colorTheme: CONST.COLOR_THEME.LIGHT,
+    preferredTheme: CONST.DEFAULT_THEME,
 };
 
 function ColorThemePage(props) {
-    const localesToColorThemes = _.map(props.translate('colorThemePage.colorThemes'), (colorTheme, key) => ({
+    const localesToColorThemes = _.map(props.translate('themePage.themes'), (theme, key) => ({
         value: key,
-        text: colorTheme.label,
+        text: theme.label,
         keyForList: key,
 
         // Include the green checkmark icon to indicate the currently selected value
-        customIcon: props.colorTheme === key ? greenCheckmark : undefined,
+        customIcon: props.preferredTheme === key ? greenCheckmark : undefined,
 
         // This property will make the currently selected value have bold text
-        boldStyle: props.colorTheme === key,
+        boldStyle: props.preferredTheme === key,
     }));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={props.translate('colorThemePage.colorTheme')}
+                title={props.translate('themePage.theme')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <OptionsList
                 sections={[{data: localesToColorThemes}]}
-                onSelectRow={(colorTheme) => App.setColorThemeAndNavigate(colorTheme.value)}
+                // onSelectRow={(theme) => App.setThemeAndNavigate(theme.value)}
                 hideSectionHeaders
                 optionHoveredStyle={{
                     ...styles.hoveredComponentBG,
@@ -74,8 +74,8 @@ ColorThemePage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        colorTheme: {
-            key: ONYXKEYS.COLOR_THEME,
+        preferredTheme: {
+            key: ONYXKEYS.PREFERRED_THEME,
         },
     }),
 )(ColorThemePage);

@@ -54,8 +54,8 @@ export default {
                                 path: ROUTES.SETTINGS_LANGUAGE,
                                 exact: true,
                             },
-                            Settings_Preferences_ColorTheme: {
-                                path: ROUTES.SETTINGS_COLOR_THEME,
+                            Settings_Preferences_Theme: {
+                                path: ROUTES.SETTINGS_THEME,
                                 exact: true,
                             },
                             Settings_Close: {

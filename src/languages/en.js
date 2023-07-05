@@ -680,9 +680,9 @@ export default {
             },
         },
     },
-    colorThemePage: {
-        colorTheme: 'Color theme',
-        colorThemes: {
+    themePage: {
+        theme: 'Theme',
+        themes: {
             dark: {
                 label: 'Dark',
             },
