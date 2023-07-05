@@ -647,7 +647,6 @@ describe('actions/Report', () => {
                 reportActionsReactions[key] = val;
             },
         });
-        let reportAction;
         let reportActionID;
 
         // Set up Onyx with some test user data
@@ -664,8 +663,7 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                reportAction = _.first(_.values(reportActions));
-                reportActionID = reportAction.reportActionID;
+                const resultAction = _.first(_.values(reportActions));
 
                 // Add a reaction to the comment
                 Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI);
