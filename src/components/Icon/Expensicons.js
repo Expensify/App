@@ -41,6 +41,10 @@ import ExpensifyWordmark from '../../../assets/images/expensify-wordmark.svg';
 import Expand from '../../../assets/images/expand.svg';
 import Eye from '../../../assets/images/eye.svg';
 import EyeDisabled from '../../../assets/images/eye-disabled.svg';
+import Flag from '../../../assets/images/flag.svg';
+import FlagLevelOne from '../../../assets/images/flag_level_01.svg';
+import FlagLevelTwo from '../../../assets/images/flag_level_02.svg';
+import FlagLevelThree from '../../../assets/images/flag_level_03.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Globe from '../../../assets/images/globe.svg';
@@ -56,6 +60,7 @@ import Keyboard from '../../../assets/images/keyboard.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
 import Lock from '../../../assets/images/lock.svg';
+import LoungeAccess from '../../../assets/images/lounge-access.svg';
 import Luggage from '../../../assets/images/luggage.svg';
 import MagnifyingGlass from '../../../assets/images/magnifying-glass.svg';
 import Mail from '../../../assets/images/mail.svg';
@@ -162,6 +167,10 @@ export {
     EyeDisabled,
     FallbackAvatar,
     FallbackWorkspaceAvatar,
+    Flag,
+    FlagLevelOne,
+    FlagLevelTwo,
+    FlagLevelThree,
     Gallery,
     Gear,
     Globe,
@@ -177,6 +186,7 @@ export {
     Link,
     LinkCopy,
     Lock,
+    LoungeAccess,
     Luggage,
     MagnifyingGlass,
     Mail,

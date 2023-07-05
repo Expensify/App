@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useContext} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -7,12 +7,12 @@ import EmojiReactionBubble from './EmojiReactionBubble';
 import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
+import * as Report from '../../libs/actions/Report';
+import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
-import * as Report from '../../libs/actions/Report';
-import * as ReactionList from '../../pages/home/report/ReactionList/ReactionList';
 import * as EmojiUtils from '../../libs/EmojiUtils';
-import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
+import ReportScreenContext from '../../pages/home/ReportScreenContext';
 
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
@@ -32,11 +32,11 @@ const propTypes = {
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
-
     emojiReactions: {},
 };
 
-const ReportActionItemEmojiReactions = (props) => {
+function ReportActionItemEmojiReactions(props) {
+    const {reactionListRef} = useContext(ReportScreenContext);
     const popoverReactionListAnchor = useRef(null);
     let totalReactionCount = 0;
 
@@ -65,6 +65,7 @@ const ReportActionItemEmojiReactions = (props) => {
         // and shift around a little bit.
         return (oldestUserReactionTimestamp || emojiReaction.createdAt) + emojiName;
     });
+
     return (
         <View
             ref={popoverReactionListAnchor}
@@ -86,8 +87,9 @@ const ReportActionItemEmojiReactions = (props) => {
                 const onPress = () => {
                     props.toggleReaction(emojiAsset);
                 };
+
                 const onReactionListOpen = (event) => {
-                    ReactionList.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
+                    reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
                 };
 
                 return (
@@ -100,8 +102,8 @@ const ReportActionItemEmojiReactions = (props) => {
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
+                        renderTooltipContentKey={[..._.map(reactionUsers, (user) => user.toString()), ...emojiCodes]}
                         key={reactionEmojiName}
-                        renderTooltipContentKey={[...reactionUsers, ...emojiCodes]}
                     >
                         <View>
                             <EmojiReactionBubble
@@ -117,12 +119,17 @@ const ReportActionItemEmojiReactions = (props) => {
                     </Tooltip>
                 );
             })}
-            {totalReactionCount > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {totalReactionCount > 0 && (
+                <AddReactionBubble
+                    onSelectEmoji={props.toggleReaction}
+                    reportAction={{reportActionID: props.reportActionID}}
+                />
+            )}
         </View>
     );
-};
+}
 
-ReportActionItemEmojiReactions.displayName = 'ReportActionItemEmojiReactions';
+ReportActionItemEmojiReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemEmojiReactions.propTypes = propTypes;
 ReportActionItemEmojiReactions.defaultProps = defaultProps;
 export default withCurrentUserPersonalDetails(ReportActionItemEmojiReactions);

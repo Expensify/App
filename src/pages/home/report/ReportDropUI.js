@@ -12,21 +12,23 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ReportDropUI = (props) => (
-    <DropZone
-        dropZoneViewHolderName={CONST.REPORT.DROP_HOST_NAME}
-        dropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
-    >
-        <View style={styles.mb3}>
-            <Icon
-                src={Expensicons.DragAndDrop}
-                width={100}
-                height={100}
-            />
-        </View>
-        <Text style={[styles.textHeadline]}>{props.translate('reportActionCompose.dropToUpload')}</Text>
-    </DropZone>
-);
+function ReportDropUI(props) {
+    return (
+        <DropZone
+            dropZoneViewHolderName={CONST.REPORT.DROP_HOST_NAME}
+            dropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
+        >
+            <View style={styles.mb3}>
+                <Icon
+                    src={Expensicons.DragAndDrop}
+                    width={100}
+                    height={100}
+                />
+            </View>
+            <Text style={[styles.textHeadline]}>{props.translate('reportActionCompose.dropToUpload')}</Text>
+        </DropZone>
+    );
+}
 
 ReportDropUI.displayName = 'ReportDropUI';
 ReportDropUI.propTypes = propTypes;

@@ -13,10 +13,6 @@
                         "comment": "Profile and app settings"
                     },
                     {
-                        "/": "/setpassword/*",
-                        "comment": "Passoword setup"
-                    },
-                    {
                         "/": "/details/*",
                         "comment": "Details of another users"
                     },

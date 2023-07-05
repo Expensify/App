@@ -26,7 +26,7 @@ export default function (WrappedComponent) {
         ...policyDefaultProps,
     };
 
-    const WithPolicyAndFullscreenLoading = (props) => {
+    function WithPolicyAndFullscreenLoading(props) {
         if (props.isLoadingReportData && _.isEmpty(props.policy)) {
             return <FullscreenLoadingIndicator />;
         }
@@ -39,7 +39,7 @@ export default function (WrappedComponent) {
                 ref={props.forwardedRef}
             />
         );
-    };
+    }
 
     WithPolicyAndFullscreenLoading.propTypes = propTypes;
     WithPolicyAndFullscreenLoading.defaultProps = defaultProps;

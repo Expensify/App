@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, Image, View, Pressable} from 'react-native';
+import {ActivityIndicator, Image, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {runOnUI, interpolate, useAnimatedGestureHandler, useSharedValue, useWorkletCallback} from 'react-native-reanimated';
 import CONST from '../../CONST';
@@ -8,7 +8,7 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Button from '../Button';
-import HeaderWithCloseButton from '../HeaderWithCloseButton';
+import HeaderWithBackButton from '../HeaderWithBackButton';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import Modal from '../Modal';
@@ -21,6 +21,7 @@ import cropOrRotateImage from '../../libs/cropOrRotateImage';
 import HeaderGap from '../HeaderGap';
 import * as StyleUtils from '../../styles/StyleUtils';
 import Tooltip from '../Tooltip';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Link to image for cropping */
@@ -58,7 +59,7 @@ const defaultProps = {
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-const AvatarCropModal = (props) => {
+function AvatarCropModal(props) {
     const originalImageWidth = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -361,9 +362,9 @@ const AvatarCropModal = (props) => {
             onModalHide={resetState}
         >
             {props.isSmallScreenWidth && <HeaderGap />}
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('avatarCropModal.title')}
-                onCloseButtonPress={props.onClose}
+                onBackButtonPress={props.onClose}
             />
             <Text style={[styles.mh5]}>{props.translate('avatarCropModal.description')}</Text>
             <GestureHandlerRootView
@@ -396,16 +397,18 @@ const AvatarCropModal = (props) => {
                                 src={Expensicons.Zoom}
                                 fill={themeColors.icons}
                             />
-                            <Pressable
+                            <PressableWithoutFeedback
                                 style={[styles.mh5, styles.flex1]}
                                 onLayout={initializeSliderContainer}
                                 onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
+                                accessibilityLabel="slider"
+                                accessibilityRole="adjustable"
                             >
                                 <Slider
                                     sliderValue={translateSlider}
                                     onGesture={panSliderGestureEventHandler}
                                 />
-                            </Pressable>
+                            </PressableWithoutFeedback>
                             <Tooltip
                                 text={props.translate('common.rotate')}
                                 shiftVertical={-2}
@@ -433,7 +436,7 @@ const AvatarCropModal = (props) => {
             />
         </Modal>
     );
-};
+}
 
 AvatarCropModal.displayName = 'AvatarCropModal';
 AvatarCropModal.propTypes = propTypes;

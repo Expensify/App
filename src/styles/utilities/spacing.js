@@ -189,6 +189,10 @@ export default {
         marginTop: 44,
     },
 
+    mtAuto: {
+        marginTop: 'auto',
+    },
+
     mb0: {
         marginBottom: 0,
     },
@@ -328,6 +332,10 @@ export default {
 
     ph10: {
         paddingHorizontal: 40,
+    },
+
+    ph15: {
+        paddingHorizontal: 60,
     },
 
     ph25: {

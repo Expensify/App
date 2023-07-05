@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View, Pressable, Dimensions, Linking} from 'react-native';
+import {View, Dimensions, Linking} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -16,6 +16,8 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {propTypes as videoChatButtonAndMenuPropTypes, defaultProps} from './videoChatButtonAndMenuPropTypes';
+import * as Session from '../../libs/actions/Session';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Link to open when user wants to create a new google meet meeting */
@@ -101,9 +103,9 @@ class BaseVideoChatButtonAndMenu extends Component {
                     onLayout={this.measureVideoChatIconPosition}
                 >
                     <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
-                        <Pressable
+                        <PressableWithoutFeedback
                             ref={(el) => (this.videoChatButton = el)}
-                            onPress={() => {
+                            onPress={Session.checkIfActionIsAllowed(() => {
                                 // Drop focus to avoid blue focus ring.
                                 this.videoChatButton.blur();
 
@@ -113,14 +115,16 @@ class BaseVideoChatButtonAndMenu extends Component {
                                     return;
                                 }
                                 this.setMenuVisibility(true);
-                            }}
-                            style={[styles.touchableButtonImage]}
+                            })}
+                            style={styles.touchableButtonImage}
+                            accessibilityLabel={this.props.translate('videoChatButtonAndMenu.tooltip')}
+                            accessibilityRole="button"
                         >
                             <Icon
                                 src={Expensicons.Phone}
                                 fill={this.state.isVideoChatMenuActive ? themeColors.heading : themeColors.icon}
                             />
-                        </Pressable>
+                        </PressableWithoutFeedback>
                     </Tooltip>
                 </View>
                 <Popover
