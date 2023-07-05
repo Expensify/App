@@ -105,7 +105,7 @@ function OptionRowLHN(props) {
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
             (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
-            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted));
+            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted && !optionItem.isArchivedRoom));
 
     /**
      * Show the ReportActionContextMenu modal popover.
