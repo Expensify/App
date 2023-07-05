@@ -21,7 +21,7 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /** The color theme of the App */
+    /** The theme of the app */
     preferredTheme: PropTypes.string,
 };
 
