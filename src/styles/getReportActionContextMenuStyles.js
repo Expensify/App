@@ -13,6 +13,8 @@ const miniWrapperStyle = [
         borderRadius: variables.buttonBorderRadius,
         borderWidth: 1,
         borderColor: themeColors.border,
+        // In Safari, when welcome messages use a code block (triple backticks), they will overlap the context menu below when there is no scrollbar.
+        transform: 'translateZ(0)',
     },
 ];
 
