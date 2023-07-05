@@ -48,7 +48,8 @@ function TaskShareDestinationSelectorModal(props) {
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
-    const reportFilters = useMemo(() => {
+    // Exclude the reports that have permission as `Admins only` before get share destination options
+    const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
             if (!ReportUtils.isAllowedToComment(props.reports[reportKey])) {
@@ -60,16 +61,16 @@ function TaskShareDestinationSelectorModal(props) {
     }, [props.reports]);
 
     useEffect(() => {
-        const results = OptionsListUtils.getShareDestinationOptions(reportFilters, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
+        const results = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
 
         setFilteredUserToInvite(results.userToInvite);
         setFilteredRecentReports(results.recentReports);
         setFilteredPersonalDetails(results.personalDetails);
-    }, [props, reportFilters]);
+    }, [props, filteredReports]);
 
     useEffect(() => {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
-            reportFilters,
+            filteredReports,
             props.personalDetails,
             props.betas,
             searchValue.trim(),
@@ -83,7 +84,7 @@ function TaskShareDestinationSelectorModal(props) {
         setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
-    }, [props, searchValue, reportFilters]);
+    }, [props, searchValue, filteredReports]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
