@@ -270,6 +270,7 @@ type OnyxValues = {
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.PAYPAL]: OnyxTypes.Paypal;
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
+    [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
 };
 
 export default ONYXKEYS;

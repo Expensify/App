@@ -14,5 +14,24 @@ import Login from './Login';
 import Session from './Session';
 import Beta from './Beta';
 import Paypal from './Paypal';
+import BlockedFromConcierge from './BlockedFromConcierge';
 
-export type {Account, Credentials, QueuedOnyxUpdates, IOU, Modal, Network, PersonalDetails, PrivatePersonalDetails, Task, Currency, ScreenShareRequest, User, Login, Session, Beta, Paypal};
+export type {
+    Account,
+    Credentials,
+    QueuedOnyxUpdates,
+    IOU,
+    Modal,
+    Network,
+    PersonalDetails,
+    PrivatePersonalDetails,
+    Task,
+    Currency,
+    ScreenShareRequest,
+    User,
+    Login,
+    Session,
+    Beta,
+    Paypal,
+    BlockedFromConcierge,
+};
