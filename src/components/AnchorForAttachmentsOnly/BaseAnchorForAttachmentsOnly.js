@@ -19,8 +19,8 @@ const propTypes = {
     /** Press out handler for the link */
     onPressOut: PropTypes.func,
 
+    /** If a file download is happening */
     download: PropTypes.shape({
-        /** If a file download is happening */
         isDownloading: PropTypes.bool.isRequired,
     }),
 
