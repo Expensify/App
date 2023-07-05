@@ -7,12 +7,6 @@ import useThemePreference from './useThemePreference';
 // Going to eventually import the light theme here too
 import darkTheme from './default';
 
-// Temporarily add a light theme here
-const lightTheme = {
-    appBG: '#F9F4F0',
-    text: '#001F40',
-};
-
 const propTypes = {
     children: PropTypes.node.isRequired,
 };
