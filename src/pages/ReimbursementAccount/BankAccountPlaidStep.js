@@ -39,7 +39,7 @@ const defaultProps = {
 };
 
 function BankAccountPlaidStep(props) {
-    const {plaidData, receivedRedirectURI, plaidLinkOAuthToken} = props;
+    const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField} = props;
     const {translate} = useLocalize();
 
     const validate = useCallback((values) => {
@@ -53,7 +53,7 @@ function BankAccountPlaidStep(props) {
 
     const submit = useCallback(() => {
         const selectedPlaidBankAccount = _.findWhere(lodashGet(plaidData, 'bankAccounts', []), {
-            plaidAccountID: lodashGet(props.reimbursementAccountDraft, 'plaidAccountID', ''),
+            plaidAccountID: lodashGet(reimbursementAccountDraft, 'plaidAccountID', ''),
         });
 
         const bankAccountData = {
@@ -67,12 +67,12 @@ function BankAccountPlaidStep(props) {
         };
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
 
-        const bankAccountID = lodashGet(props.reimbursementAccount, 'achData.bankAccountID') || 0;
+        const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
         BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData);
-    }, [props.reimbursementAccount, props.reimbursementAccountDraft, plaidData]);
+    }, [reimbursementAccount, reimbursementAccountDraft, plaidData]);
 
-    const bankAccountID = lodashGet(props.reimbursementAccount, 'achData.bankAccountID') || 0;
-    const selectedPlaidAccountID = lodashGet(props.reimbursementAccountDraft, 'plaidAccountID', '');
+    const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
+    const selectedPlaidAccountID = lodashGet(reimbursementAccountDraft, 'plaidAccountID', '');
 
     return (
         <ScreenWrapper
@@ -85,7 +85,7 @@ function BankAccountPlaidStep(props) {
                 stepCounter={{step: 1, total: 5}}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                onBackButtonPress={props.onBackButtonPress}
+                onBackButtonPress={onBackButtonPress}
             />
             <Form
                 formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -120,7 +120,7 @@ function BankAccountPlaidStep(props) {
                                 <TextLink href={CONST.TERMS_URL}>{translate('common.expensifyTermsOfService')}</TextLink>
                             </Text>
                         )}
-                        defaultValue={props.getDefaultStateForField('acceptTerms', false)}
+                        defaultValue={getDefaultStateForField('acceptTerms', false)}
                         shouldSaveDraft
                     />
                 )}
