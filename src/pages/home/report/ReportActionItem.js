@@ -58,7 +58,7 @@ import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import ReportActionBasicMessage from "./ReportActionItemBasicMessage";
+import ReportActionBasicMessage from './ReportActionItemBasicMessage';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -272,22 +272,14 @@ function ReportActionItem(props) {
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
-            children = (
-                <ReportActionBasicMessage
-                    message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}
-                />
-            );
+            children = <ReportActionBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})} />;
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED) {
             const amount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
             const message = props.action.originalMessage.isSubmitterAddingBankAccount
-                    ? props.translate('iou.settledAfterAddedBankAccount', {submitterDisplayName, amount})
-                    : props.translate('iou.payerSettled', {amount});
-            children = (
-                <ReportActionBasicMessage
-                    message={message}
-                />
-            );
+                ? props.translate('iou.settledAfterAddedBankAccount', {submitterDisplayName, amount})
+                : props.translate('iou.payerSettled', {amount});
+            children = <ReportActionBasicMessage message={message} />;
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);

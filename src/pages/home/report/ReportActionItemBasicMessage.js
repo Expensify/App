@@ -8,11 +8,7 @@ const propTypes = {
 };
 
 function ReportActionBasicMessage(props) {
-    return (
-        <Text style={[styles.chatItemMessage, styles.colorMuted]}>
-            {props.message}
-        </Text>
-    );
+    return <Text style={[styles.chatItemMessage, styles.colorMuted]}>{props.message}</Text>;
 }
 
 ReportActionBasicMessage.propTypes = propTypes;

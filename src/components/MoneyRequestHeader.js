@@ -28,9 +28,9 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as UserUtils from '../libs/UserUtils';
-import Button from "./Button";
-import * as BankAccounts from "../libs/actions/BankAccounts";
-import * as store from "../libs/actions/ReimbursementAccount/store";
+import Button from './Button';
+import * as BankAccounts from '../libs/actions/BankAccounts';
+import * as store from '../libs/actions/ReimbursementAccount/store';
 
 const propTypes = {
     /** The report currently being looked at */

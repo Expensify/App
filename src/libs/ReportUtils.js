@@ -1886,6 +1886,10 @@ function isUnreadWithMention(report) {
  * @returns {boolean}
  */
 function isWaitingForIOUActionFromCurrentUser(report) {
+    if (!report || !allReports) {
+        return false;
+    }
+
     let reportToLook = report;
 
     if (report.iouReportID) {
@@ -1918,10 +1922,14 @@ function isWaitingForIOUActionFromCurrentUser(report) {
  * @returns {Boolean}
  */
 function isIOUOwnedByCurrentUser(report) {
+    if (!report || !allReports) {
+        return false;
+    }
+
     let reportToLook = report;
     if (report.iouReportID) {
         const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (iouReport) {
+        if (iouReport && iouReport.ownerAccountID) {
             reportToLook = iouReport;
         }
     }

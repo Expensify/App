@@ -299,7 +299,7 @@ describe('ReportUtils', () => {
             const report = LHNTestUtils.getFakeReport();
             expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
-        it('returns false when there is no iouReports collection', () => {
+        it('returns false when there is no reports collection', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
@@ -347,11 +347,13 @@ describe('ReportUtils', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
+                hasOutstandingIOU: true,
             };
             Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {
                 report_1: {
                     reportID: '1',
                     ownerAccountID: 99,
+                    hasOutstandingIOU: true,
                 },
             });
             expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
