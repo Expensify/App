@@ -21,6 +21,7 @@ import OnfidoWallet from './OnfidoWallet';
 import WalletAdditionalDetails from './WalletAdditionalDetails';
 import WalletTerms from './WalletTerms';
 import BankAccount from './BankAccount';
+import Card from './Card';
 
 export type {
     Account,
@@ -46,4 +47,5 @@ export type {
     WalletAdditionalDetails,
     WalletTerms,
     BankAccount,
+    Card,
 };
