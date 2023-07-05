@@ -131,14 +131,12 @@ function LoginForm(props) {
 
     useEffect(() => {
         Session.clearAccountMessages();
-    }, []);
-
-    useEffect(() => {
         if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible) {
             return;
         }
         input.current.focus();
-    }, [props.isVisible, input]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+    }, []);
 
     useEffect(() => {
         if (props.blurOnSubmit) {
