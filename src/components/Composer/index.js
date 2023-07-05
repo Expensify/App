@@ -173,7 +173,7 @@ class Composer extends React.Component {
             this.unsubscribeFocus = this.props.navigation.addListener('focus', () => document.addEventListener('paste', this.handlePaste));
             this.unsubscribeBlur = this.props.navigation.addListener('blur', () => document.removeEventListener('paste', this.handlePaste));
 
-            // focus is not triggered on component mount so we need to add listener manually
+            // We need to add paste listener manually as well as navigation focus event is not triggered on component mount
             document.addEventListener('paste', this.handlePaste);
         }
     }
