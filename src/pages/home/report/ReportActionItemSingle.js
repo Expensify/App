@@ -73,8 +73,8 @@ const showWorkspaceDetails = (reportID) => {
 function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actorAccountID;
     let {displayName} = props.personalDetailsList[actorAccountID] || {};
-    const {avatar, pendingFields} = props.personalDetailsList[actorAccountID] || {};
-    let actorHint = lodashGet(props.action, 'actorEmail', '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    const {avatar, login, pendingFields} = props.personalDetailsList[actorAccountID] || {};
+    let actorHint = (login || displayName).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
     let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
 
@@ -120,7 +120,7 @@ function ReportActionItemSingle(props) {
                 onPressOut={ControlSelection.unblock}
                 onPress={showActorDetails}
                 accessibilityLabel={actorHint}
-                accessibilityRole="button"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
@@ -155,7 +155,7 @@ function ReportActionItemSingle(props) {
                             onPressOut={ControlSelection.unblock}
                             onPress={showActorDetails}
                             accessibilityLabel={actorHint}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             {_.map(personArray, (fragment, index) => (
                                 <ReportActionItemFragment
