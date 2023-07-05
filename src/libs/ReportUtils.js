@@ -2237,8 +2237,8 @@ function canRequestMoney(report) {
  * @returns {Array}
  */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
-    // In any thread, we do not allow any new money requests yet
-    if (isChatThread(report)) {
+    // In any thread or task report, we do not allow any new money requests yet
+    if (isChatThread(report) || isTaskReport(report)) {
         return [];
     }
 
