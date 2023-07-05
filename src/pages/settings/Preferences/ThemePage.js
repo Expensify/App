@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -29,8 +30,8 @@ const defaultProps = {
     preferredTheme: CONST.DEFAULT_THEME,
 };
 
-function ColorThemePage(props) {
-    const localesToColorThemes = _.map(props.translate('themePage.themes'), (theme, key) => ({
+function ThemePage(props) {
+    const localesToThemes = _.map(props.translate('themePage.themes'), (theme, key) => ({
         value: key,
         text: theme.label,
         keyForList: key,
@@ -50,26 +51,28 @@ function ColorThemePage(props) {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <OptionsList
-                sections={[{data: localesToColorThemes}]}
-                // onSelectRow={(theme) => App.setThemeAndNavigate(theme.value)}
-                hideSectionHeaders
-                optionHoveredStyle={{
-                    ...styles.hoveredComponentBG,
-                    ...styles.mhn5,
-                    ...styles.ph5,
-                }}
-                shouldHaveOptionSeparator
-                shouldDisableRowInnerPadding
-                contentContainerStyles={[styles.ph5]}
-            />
+            <ScrollView style={[styles.flex1, styles.mt3]}>
+                <OptionsList
+                    sections={[{data: localesToThemes}]}
+                    // onSelectRow={(theme) => App.setThemeAndNavigate(theme.value)}
+                    hideSectionHeaders
+                    optionHoveredStyle={{
+                        ...styles.hoveredComponentBG,
+                        ...styles.mhn5,
+                        ...styles.ph5,
+                    }}
+                    shouldHaveOptionSeparator
+                    shouldDisableRowInnerPadding
+                    contentContainerStyles={[styles.ph5]}
+                />
+            </ScrollView>
         </ScreenWrapper>
     );
 }
 
-ColorThemePage.displayName = 'ColorThemePage';
-ColorThemePage.propTypes = propTypes;
-ColorThemePage.defaultProps = defaultProps;
+ThemePage.displayName = 'ColorThemePage';
+ThemePage.propTypes = propTypes;
+ThemePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -78,4 +81,4 @@ export default compose(
             key: ONYXKEYS.PREFERRED_THEME,
         },
     }),
-)(ColorThemePage);
+)(ThemePage);
