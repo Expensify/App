@@ -22,7 +22,6 @@ const defaultProps = {
 
 function CopyTextToClipboard(props) {
     const copyToClipboard = useCallback(() => {
-        debugger;
         Clipboard.setString(props.text);
     }, [props.text]);
 
