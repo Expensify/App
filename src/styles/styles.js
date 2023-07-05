@@ -253,6 +253,10 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
+    darkBG: {
+        backgroundCOlor: themeColors.splashBG,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
