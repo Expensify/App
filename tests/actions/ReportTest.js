@@ -558,7 +558,7 @@ describe('actions/Report', () => {
                 reportActionID = reportAction.reportActionID;
 
                 // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, reportActionID, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -574,7 +574,7 @@ describe('actions/Report', () => {
                 expect(reportActionReactionEmoji.users).toHaveProperty(`${TEST_USER_ACCOUNT_ID}`);
 
                 // Now we remove the reaction
-                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                Report.toggleEmojiReaction(REPORT_ID, reportActionID, EMOJI, reportActionReaction);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -585,11 +585,11 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Add the same reaction to the same report action with a different skintone
-                Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, reportActionID, EMOJI);
                 return waitForPromisesToResolve()
                     .then(() => {
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
-                        Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
+                        Report.toggleEmojiReaction(REPORT_ID, reportActionID, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
                         return waitForPromisesToResolve();
                     })
                     .then(() => {
@@ -610,7 +610,7 @@ describe('actions/Report', () => {
                         expect(reportActionReactionEmojiUserSkinTones).toHaveProperty('2');
 
                         // Now we remove the reaction, and expect that both variations are removed
-                        Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                        Report.toggleEmojiReaction(REPORT_ID, reportActionID, EMOJI, reportActionReaction);
                         return waitForPromisesToResolve();
                     })
                     .then(() => {
@@ -647,7 +647,8 @@ describe('actions/Report', () => {
                 reportActionsReactions[key] = val;
             },
         });
-        let reportActionID;
+
+        let resultAction;
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
@@ -663,25 +664,24 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                const resultAction = _.first(_.values(reportActions));
+                resultAction = _.first(_.values(reportActions));
 
                 // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI, {});
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                const resultAction = _.first(_.values(reportActions));
-
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
                 // should get removed instead of added again.
-                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI, 2);
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`];
+                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI, reportActionReaction, 2);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // Expect the reaction to have null where the users reaction used to be
-                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
-                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
+                expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`);
+                const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction.reportActionID}`];
                 expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
             });
     });
