@@ -45,7 +45,7 @@ const propTypes = {
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
-    /** Owner of the avatar, typically a login email or workspace name */
+    /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name: PropTypes.string,
 };
 

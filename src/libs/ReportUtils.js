@@ -786,7 +786,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             source: UserUtils.getAvatar(lodashGet(personalDetails, [parentReportAction.actorAccountID, 'avatar']), parentReportAction.actorAccountID),
             id: parentReportAction.actorAccountID,
             type: CONST.ICON_TYPE_AVATAR,
-            name: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'firstName'], ''),
+            name: lodashGet(personalDetails, [parentReportAction.actorAccountID, 'displayName'], ''),
         };
 
         return [memberIcon, workspaceIcon];
