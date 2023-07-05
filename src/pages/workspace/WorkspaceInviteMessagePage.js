@@ -82,7 +82,7 @@ class WorkspaceInviteMessagePage extends React.Component {
 
     componentDidMount() {
         if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
-            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
+            return Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
         }
         this.focusWelcomeMessageInput();
     }
