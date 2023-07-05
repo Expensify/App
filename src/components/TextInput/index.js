@@ -51,10 +51,13 @@ class TextInput extends React.Component {
 TextInput.propTypes = baseTextInputPropTypes.propTypes;
 TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
-export default React.forwardRef((props, ref) => (
-    <TextInput
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+export default React.forwardRef((props, ref) => {
+    const inputProps = {...props, value: props.value ? props.value : ""};
+    return (
+        <TextInput
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...inputProps}
+            innerRef={ref}
+        />
+    );
+});
