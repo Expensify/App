@@ -21,7 +21,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
-import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
@@ -200,7 +199,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
                 action: () => {
-                    App.openProfile();
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
                 },
                 brickRoadIndicator: profileBrickRoadIndicator,
             },
@@ -327,7 +326,7 @@ class InitialSettingsPage extends React.Component {
                                             style={[styles.mb3]}
                                             onPress={this.openProfileSettings}
                                             accessibilityLabel={this.props.translate('common.profile')}
-                                            accessibilityRole="button"
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
@@ -342,7 +341,7 @@ class InitialSettingsPage extends React.Component {
                                         style={[styles.mt1, styles.mw100]}
                                         onPress={this.openProfileSettings}
                                         accessibilityLabel={this.props.translate('common.profile')}
-                                        accessibilityRole="link"
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                     >
                                         <Tooltip text={this.props.translate('common.profile')}>
                                             <Text

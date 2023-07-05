@@ -7,6 +7,7 @@ import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import * as StyleUtils from '../styles/StyleUtils';
+import CONST from '../CONST';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
@@ -91,7 +92,7 @@ function Checkbox(props) {
             ref={props.forwardedRef}
             style={[props.style, styles.checkboxPressable]}
             onKeyDown={handleSpaceKey}
-            accessibilityRole="checkbox"
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
             accessibilityState={{checked: props.isChecked}}
             accessibilityLabel={props.accessibilityLabel}
             pressDimmingValue={1}

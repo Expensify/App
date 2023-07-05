@@ -244,7 +244,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                 />
                 <FloatingActionButton
                     accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     isActive={this.state.isCreateMenuActive}
                     onPress={this.showCreateMenu}
                 />
