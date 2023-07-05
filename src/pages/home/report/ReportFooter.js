@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {View, Keyboard} from 'react-native';
+import _ from 'underscore';
 import CONST from '../../../CONST';
 import ReportActionCompose from './ReportActionCompose';
 import AnonymousReportFooter from '../../../components/AnonymousReportFooter';
@@ -59,6 +60,7 @@ const defaultProps = {
 function ReportFooter(props) {
     const chatFooterStyles = {...styles.chatFooter, minHeight: !props.isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const shouldShowComposeInput = _.isEmpty(props.shouldShowComposeInput);
     const hideComposer = ReportUtils.shouldHideComposer(props.report, props.errors);
 
     return (
