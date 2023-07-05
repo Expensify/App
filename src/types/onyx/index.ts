@@ -23,6 +23,7 @@ import WalletTerms from './WalletTerms';
 import BankAccount from './BankAccount';
 import Card from './Card';
 import WalletStatement from './WalletStatement';
+import PersonalBankAccount from './PersonalBankAccount';
 
 export type {
     Account,
@@ -50,4 +51,5 @@ export type {
     BankAccount,
     Card,
     WalletStatement,
+    PersonalBankAccount,
 };

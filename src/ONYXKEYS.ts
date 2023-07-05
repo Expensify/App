@@ -283,7 +283,7 @@ type OnyxValues = {
     [ONYXKEYS.BANK_ACCOUNT_LIST]: Record<string, OnyxTypes.BankAccount>;
     [ONYXKEYS.CARD_LIST]: Record<string, OnyxTypes.Card>;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
-    // [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes;
+    [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     // [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes;
     // [ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT]: OnyxTypes;
     // [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: OnyxTypes;
