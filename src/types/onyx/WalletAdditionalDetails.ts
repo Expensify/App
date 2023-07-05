@@ -15,9 +15,7 @@ type WalletAdditionalDetails = OnyxCommon.BaseState & {
     errorCode?: string;
 
     /** Which field needs attention? */
-    errorFields?: {
-        [fieldName: string]: boolean;
-    };
+    errorFields?: Record<string, boolean>;
 };
 
 export default WalletAdditionalDetails;

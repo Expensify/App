@@ -1,0 +1,19 @@
+type Form = {
+    /** Controls the loading state of the form */
+    isLoading?: boolean;
+
+    /** Server side errors keyed by microtime */
+    errors?: Record<string, string>;
+
+    /** Field-specific server side errors keyed by microtime */
+    errorFields?: Record<string, Record<string, string>>;
+};
+
+type AddDebitCardForm = Form & {
+    /** Whether or not the form has been submitted */
+    setupComplete: boolean;
+};
+
+export default Form;
+
+export type {AddDebitCardForm};
