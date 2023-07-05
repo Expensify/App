@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -69,6 +69,8 @@ function LoginForm(props) {
     const input = useRef();
     const [login, setLogin] = useState('');
     const [formError, setFormError] = useState(false);
+
+    const {translate} = props;
 
     /**
      * Handle text input and clear formError upon text change
@@ -148,19 +150,19 @@ function LoginForm(props) {
         input.current.focus();
     }, [props.blurOnSubmit, props.isVisible, input]);
 
-    const formErrorText = formError ? props.translate(formError) : '';
-    const serverErrorText = ErrorUtils.getLatestErrorMessage(props.account);
+    const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
+    const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
     const hasError = !_.isEmpty(serverErrorText);
 
     return (
         <>
             <View
-                accessibilityLabel={props.translate('loginForm.loginForm')}
+                accessibilityLabel={translate('loginForm.loginForm')}
                 style={[styles.mt3]}
             >
                 <TextInput
                     ref={input}
-                    label={props.translate('loginForm.phoneOrEmail')}
+                    label={translate('loginForm.phoneOrEmail')}
                     value={login}
                     autoCompleteType="username"
                     textContentType="username"
@@ -190,7 +192,7 @@ function LoginForm(props) {
                 props.isVisible && (
                     <View style={[styles.mt5]}>
                         <FormAlertWithSubmitButton
-                            buttonText={props.translate('common.continue')}
+                            buttonText={translate('common.continue')}
                             isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.LOGIN_FORM}
                             onSubmit={validateAndSubmitForm}
                             message={serverErrorText}
