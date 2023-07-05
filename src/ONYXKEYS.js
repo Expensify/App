@@ -223,7 +223,7 @@ export default {
     IS_TOKEN_VALID: 'isTokenValid',
 
     // The color theme setting defined by the user in preferences
-   PREFERRED_THEME: 'preferredTheme',
+    PREFERRED_THEME: 'preferredTheme',
 
     // Whether we're checking if the room is public or not
     IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
