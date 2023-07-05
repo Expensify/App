@@ -19,7 +19,7 @@ function useThemePreference() {
         const connectionId = Onyx.connect({
             key: ONYXKEYS.PREFERRED_THEME,
             callback: (newTheme) => {
-                const theme = newTheme || DEFAULT_THEME;
+                const theme = newTheme || CONST.DEFAULT_THEME;
 
                 if (theme === CONST.THEME.SYSTEM) setThemePreference(systemTheme);
                 else setThemePreference(theme);
