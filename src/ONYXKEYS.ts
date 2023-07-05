@@ -114,9 +114,6 @@ const ONYXKEYS = {
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'preferredLocale',
 
-    /** List of transactionIDs in process of rejection */
-    TRANSACTIONS_BEING_REJECTED: 'transactionsBeingRejected',
-
     /** User's Expensify Wallet */
     USER_WALLET: 'userWallet',
 
@@ -279,7 +276,6 @@ type OnyxValues = {
     [ONYXKEYS.PLAID_LINK_TOKEN]: string;
     [ONYXKEYS.ONFIDO_TOKEN]: string;
     [ONYXKEYS.NVP_PREFERRED_LOCALE]: ValueOf<typeof CONST.LOCALES>;
-    // [ONYXKEYS.TRANSACTIONS_BEING_REJECTED]: OnyxTypes;
     // [ONYXKEYS.USER_WALLET]: OnyxTypes;
     // [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes;
     // [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes;
