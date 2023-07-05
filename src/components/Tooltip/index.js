@@ -48,6 +48,7 @@ class Tooltip extends PureComponent {
         this.isAnimationCanceled = React.createRef(false);
     }
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
         // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
         // we need to show the tooltip again
