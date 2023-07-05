@@ -111,6 +111,7 @@ class BankAccountManualStep extends React.Component {
                         shouldUseDefaultValue={shouldDisableInputs}
                     />
                     <CheckboxWithLabel
+                        accessibilityLabel={`${this.props.translate('common.iAcceptThe')} ${this.props.translate('common.expensifyTermsOfService')}`}
                         style={styles.mt4}
                         inputID="acceptTerms"
                         LabelComponent={() => (

@@ -931,7 +931,7 @@ const removeLinksFromHtml = (html, links) => {
     let htmlCopy = html.slice();
     _.forEach(links, (link) => {
         // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
-        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
+        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'g');
         htmlCopy = htmlCopy.replace(regex, '$4');
     });
     return htmlCopy;
@@ -1317,6 +1317,8 @@ function deleteReport(reportID) {
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
+    // Dismiss the current report screen and replace it with Concierge Chat
+    Navigation.goBack();
     navigateToConciergeChat();
     deleteReport(reportID);
 }
@@ -1585,7 +1587,7 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
  * Calls either addReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
- * @param {Object} reportAction
+ * @param {String} reportActionID
  * @param {Object} emoji
  * @param {String} emoji.name
  * @param {String} emoji.code
@@ -1593,7 +1595,13 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
  * @param {Object} existingReactions
  * @param {Number} [paramSkinTone]
  */
-function toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, paramSkinTone = preferredSkinTone) {
+function toggleEmojiReaction(reportID, reportActionID, emoji, existingReactions, paramSkinTone = preferredSkinTone) {
+    const reportAction = ReportActionsUtils.getReportAction(reportID, reportActionID);
+
+    if (_.isEmpty(reportAction)) {
+        return;
+    }
+
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
     const reactionObject = lodashGet(existingReactions, [emoji.name]);

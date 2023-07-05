@@ -93,21 +93,19 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** All of the personalDetails */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
 
     ...windowDimensionsPropTypes,
     emojiReactions: EmojiReactionsPropTypes,
+    personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 };
 
 const defaultProps = {
     draftMessage: '',
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    personalDetails: {},
     emojiReactions: {},
+    personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
 };
@@ -157,26 +155,18 @@ function ReportActionItem(props) {
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-
+    const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
+    const latestDecision = lodashGet(_.last(decisions), 'decision', '');
     useEffect(() => {
-        if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(props.action.message[0].moderationDecisions)) {
+        if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
             return;
         }
 
-        // Right now we are only sending the latest moderationDecision to the frontend even though it is an array
-        let decisions = props.action.message[0].moderationDecisions;
-        if (decisions.length > 1) {
-            decisions = decisions.slice(-1);
-        }
-        const latestDecision = decisions[0];
-        if (latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision.decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
+        if (latestDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
             setIsHidden(true);
         }
-        setModerationDecision(latestDecision.decision);
-
-        // props.action.message doesn't need to be a dependency, we only need to check the change of props.action.message[0].moderationDecisions
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.action.message[0].moderationDecisions, props.action.actionName]);
+        setModerationDecision(latestDecision);
+    }, [latestDecision, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
         setIsContextMenuActive(ReportActionContextMenu.isActiveReportAction(props.action.reportActionID));
@@ -217,6 +207,7 @@ function ReportActionItem(props) {
     const toggleReaction = useCallback(
         (emoji) => {
             Report.toggleEmojiReaction(props.report.reportID, props.action, emoji, props.emojiReactions);
+            Report.toggleEmojiReaction(props.report.reportID, props.action.reportActionID, emoji, props.emojiReactions);
         },
         [props.report, props.action, props.emojiReactions],
     );
@@ -257,7 +248,7 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
             children = (
                 <ReportPreview
-                    iouReportID={props.action.originalMessage.linkedReportID}
+                    iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
                     action={props.action}
                     isHovered={hovered}
@@ -353,7 +344,7 @@ function ReportActionItem(props) {
         return (
             <>
                 {children}
-                {!_.isEmpty(props.action.linkMetadata) && (
+                {!isHidden && !_.isEmpty(props.action.linkMetadata) && (
                     <View style={props.draftMessage ? styles.chatItemReactionsDraftRight : {}}>
                         <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
                     </View>
@@ -443,11 +434,11 @@ function ReportActionItem(props) {
     }
 
     const hasErrors = !_.isEmpty(props.action.errors);
-    const whisperedTo = props.action.whisperedTo || [];
-    const isWhisper = whisperedTo.length > 0;
-    const isMultipleParticipant = whisperedTo.length > 1;
-    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedTo);
-    const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetails, (details) => _.includes(whisperedTo, details.login)) : [];
+    const whisperedToAccountIDs = props.action.whisperedToAccountIDs || [];
+    const isWhisper = whisperedToAccountIDs.length > 0;
+    const isMultipleParticipant = whisperedToAccountIDs.length > 1;
+    const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
+    const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetailsList, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
     const displayNamesWithTooltips = isWhisper ? ReportUtils.getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
     return (
         <PressableWithSecondaryInteraction
@@ -500,7 +491,7 @@ function ReportActionItem(props) {
                                             &nbsp;
                                         </Text>
                                         <DisplayNames
-                                            fullTitle={ReportUtils.getWhisperDisplayNames(whisperedTo)}
+                                            fullTitle={ReportUtils.getWhisperDisplayNames(whisperedToAccountIDs)}
                                             displayNamesWithTooltips={displayNamesWithTooltips}
                                             tooltipEnabled
                                             numberOfLines={1}

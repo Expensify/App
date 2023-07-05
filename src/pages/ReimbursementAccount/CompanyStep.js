@@ -257,6 +257,7 @@ class CompanyStep extends React.Component {
                         />
                     </View>
                     <CheckboxWithLabel
+                        accessibilityLabel={`${this.props.translate('companyStep.confirmCompanyIsNot')} ${this.props.translate('companyStep.listOfRestrictedBusinesses')}`}
                         inputID="hasNoConnectionToCannabis"
                         defaultValue={this.props.getDefaultStateForField('hasNoConnectionToCannabis', false)}
                         LabelComponent={() => (

@@ -57,9 +57,8 @@ export default [
                 }
             };
 
-            const toggleEmojiAndCloseMenu = (emoji, existingReactions) => {
-                Report.toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
-
+            const onEmojiSelected = (emoji) => {
+                Report.toggleEmojiReaction(reportID, reportAction.reportActionID, emoji);
                 closeContextMenu();
             };
 
@@ -67,7 +66,7 @@ export default [
                 return (
                     <MiniQuickEmojiReactions
                         key="MiniQuickEmojiReactions"
-                        onEmojiSelected={toggleEmojiAndCloseMenu}
+                        onEmojiSelected={onEmojiSelected}
                         onPressOpenPicker={openContextMenu}
                         onEmojiPickerClosed={closeContextMenu}
                         reportID={reportID}
@@ -81,7 +80,7 @@ export default [
                 <QuickEmojiReactions
                     key="BaseQuickEmojiReactions"
                     closeContextMenu={closeContextMenu}
-                    onEmojiSelected={toggleEmojiAndCloseMenu}
+                    onEmojiSelected={onEmojiSelected}
                     reportID={reportID}
                     reportActionID={reportAction.reportActionID}
                     reportAction={reportAction}
@@ -330,7 +329,7 @@ export default [
             !isArchivedRoom &&
             !isChronosReport &&
             !ReportUtils.isConciergeChatReport(reportID) &&
-            reportAction.actorEmail !== CONST.EMAIL.CONCIERGE,
+            reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));
