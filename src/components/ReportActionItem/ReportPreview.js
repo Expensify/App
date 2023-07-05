@@ -15,7 +15,6 @@ import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
-import * as StyleUtils from '../../styles/StyleUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -24,7 +23,6 @@ import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** All the data of the action */
