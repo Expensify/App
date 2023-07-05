@@ -54,7 +54,6 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
-import Permissions from '../../../libs/Permissions';
 import EmojiReactionsPropTypes from '../../../components/Reactions/EmojiReactionsPropTypes';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -92,9 +91,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...windowDimensionsPropTypes,
     emojiReactions: EmojiReactionsPropTypes,
@@ -535,9 +531,6 @@ export default compose(
         },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(
