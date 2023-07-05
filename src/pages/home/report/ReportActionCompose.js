@@ -368,8 +368,7 @@ class ReportActionCompose extends React.Component {
     setTextInputRef(el) {
         ReportActionComposeFocusManager.composerRef.current = el;
         this.textInput = el;
-        this.textInputViewTag = findNodeHandle(el);
-        this.props.animatedRef = el;
+        this.props.animatedRef(el);
     }
 
     /**
@@ -909,9 +908,9 @@ class ReportActionCompose extends React.Component {
      */
     prepareCommentAndResetComposer() {
         const trimmedComment = this.comment.trim();
-
+        const commentLength = ReportUtils.getCommentLength(trimmedComment);
         // Don't submit empty comments or comments that exceed the character limit
-        if (ReportUtils.getCommentLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
+        if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
 
@@ -986,15 +985,19 @@ class ReportActionCompose extends React.Component {
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
         const maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
         const submit = this.submitForm;
-        const viewTag = this.textInputViewTag;
-
+        const aref = this.props.animatedRef;
+        const setCommentEmpty = () => this.setState({isCommentEmpty: true});
         const Tap = Gesture.Tap()
             .enabled(!(this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength))
             .onEnd(() => {
                 'worklet';
 
+                const viewTag = aref();
                 const viewName = 'RCTSinglelineTextInputView';
+                // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
+                runOnJS(setCommentEmpty)();
                 const updates = {text: ''};
+                // eslint-disable-next-line no-undef
                 _updatePropsPaper(viewTag, viewName, updates); // clears native text input on the UI thread
                 runOnJS(submit)();
             });
