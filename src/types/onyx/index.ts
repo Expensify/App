@@ -30,6 +30,7 @@ import ReimbursementAccountDraft from './ReimbursementAccountDraft';
 import WalletTransfer from './WalletTransfer';
 import Download from './Download';
 import PolicyMember from './PolicyMember';
+import Policy from './Policy';
 import Form, {AddDebitCardForm} from './Form';
 
 export type {
@@ -65,6 +66,7 @@ export type {
     WalletTransfer,
     Download,
     PolicyMember,
+    Policy,
     Form,
     AddDebitCardForm,
 };

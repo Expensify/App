@@ -304,8 +304,9 @@ type OnyxValues = {
 
     // Collections
     [download: `${typeof ONYXKEYS.COLLECTION.DOWNLOAD}${string}`]: OnyxTypes.Download;
-    // [policy: `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`]: OnyxTypes;
-    // [policyMembers: `${typeof ONYXKEYS.COLLECTION.POLICY_MEMBERS}${string}`]: OnyxTypes;
+    [policy: `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`]: OnyxTypes.Policy;
+    [policyMembers: `${typeof ONYXKEYS.COLLECTION.POLICY_MEMBERS}${string}`]: OnyxTypes.PolicyMember;
+    [deprecatedPolicyMemberList: `${typeof ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}${string}`]: OnyxTypes.PolicyMember;
     // [workspaceInviteMembersDraft: `${typeof ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${string}`]: OnyxTypes;
     // [report: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`]: OnyxTypes;
     // [ReportActions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`]: OnyxTypes;
@@ -317,7 +318,6 @@ type OnyxValues = {
     // [reportUserIsTyping: `${typeof ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${string}`]: OnyxTypes;
     // [securityGroup: `${typeof ONYXKEYS.COLLECTION.SECURITY_GROUP}${string}`]: OnyxTypes;
     // [transaction: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`]: OnyxTypes;
-    [deprecatedPolicyMemberList: `${typeof ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}${string}`]: OnyxTypes.PolicyMember;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
