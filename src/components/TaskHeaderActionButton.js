@@ -9,6 +9,7 @@ import Button from './Button';
 import * as Task from '../libs/actions/Task';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import * as ReportUtils from '../libs/ReportUtils';
+import CONST from '../CONST';
 
 const propTypes = {
     /** The report currently being looked at */
