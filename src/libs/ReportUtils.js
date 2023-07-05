@@ -814,7 +814,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
-            name: lodashGet(personalDetails, [report.ownerAccountID, 'firstName'], ''),
+            name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
         };
 
         return [ownerIcon];
@@ -841,7 +841,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             id: report.ownerAccountID,
             type: CONST.ICON_TYPE_AVATAR,
-            name: lodashGet(personalDetails, [report.ownerAccountID, 'firstName'], ''),
+            name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
         };
         return isExpenseReport(report) ? [memberIcon, workspaceIcon] : [workspaceIcon, memberIcon];
     }
@@ -850,14 +850,14 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.managerID, 'avatar']), report.managerID),
             id: report.managerID,
             type: CONST.ICON_TYPE_AVATAR,
-            name: lodashGet(personalDetails, [report.managerID, 'firstName'], ''),
+            name: lodashGet(personalDetails, [report.managerID, 'displayName'], ''),
         };
 
         const ownerIcon = {
             id: report.ownerAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
-            name: lodashGet(personalDetails, [report.ownerAccountID, 'firstName'], ''),
+            name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
         };
 
         return isPayer ? [managerIcon, ownerIcon] : [ownerIcon, managerIcon];
