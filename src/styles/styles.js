@@ -245,8 +245,12 @@ const styles = {
         color: themeColors.textMutedReversed,
     },
 
-    backgroundBG: {
+    highlightBG: {
         backgroundColor: themeColors.highlightBG,
+    },
+
+    appBG: {
+        backgroundColor: themeColors.appBG,
     },
 
     h1: {
