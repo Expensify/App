@@ -71,7 +71,7 @@ function AddPayPalMePage(props) {
                         <Text style={[styles.textMicro, styles.flexRow]}>{props.translate('addPayPalMePage.checkListOf')}</Text>
                         <PressableWithoutFeedback
                             shouldUseAutoHitSlop={false}
-                            accessibilityRole="link"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             accessibilityLabel={props.translate('addPayPalMePage.supportedCurrencies')}
                             onPress={() => Linking.openURL('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
                         >
