@@ -89,9 +89,8 @@ function getLatestErrorField(onyxData, fieldName) {
 }
 
 /**
- * Get the first error in the errorFields ordering by its key
- *
  * @param {Object} onyxData
+ * @param {Object} onyxData.errorFields
  * @param {String} fieldName
  * @returns {Object}
  */
