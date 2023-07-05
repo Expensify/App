@@ -1,4 +1,4 @@
-import React, {useRef, useState, useEffect, useContext, useCallback} from 'react';
+import React, {useRef, useState, useEffect, useContext, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -10,7 +10,7 @@ import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Performance from '../../../libs/Performance';
 import {withNetwork} from '../../../components/OnyxProvider';
@@ -61,6 +61,8 @@ const defaultProps = {
 function ReportActionsView(props) {
     const context = useContext(ReportScreenContext);
 
+    const reportScrollManager = useReportScrollManager();
+
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
     const unsubscribeVisibilityListener = useRef(null);
@@ -82,7 +84,7 @@ function ReportActionsView(props) {
     /**
      * @returns {Boolean}
      */
-    const isReportFullyVisible = useCallback(() => getIsReportFullyVisible(props.isFocused), [props.isFocused]);
+    const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(props.isFocused), [props.isFocused]);
 
     const openReportIfNecessary = useCallback(() => {
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
@@ -95,7 +97,7 @@ function ReportActionsView(props) {
 
     useEffect(() => {
         unsubscribeVisibilityListener.current = Visibility.onVisibilityChange(() => {
-            if (!isReportFullyVisible()) {
+            if (!isReportFullyVisible) {
                 return;
             }
             // If the app user becomes active and they have no unread actions we clear the new marker to sync their device
@@ -116,10 +118,10 @@ function ReportActionsView(props) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
-                ReportScrollManager.scrollToBottom(context.flatListRef);
+                reportScrollManager.scrollToBottom(context.flatListRef);
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 setNewMarkerReportActionID('');
-            } else if (isReportFullyVisible()) {
+            } else if (isReportFullyVisible) {
                 // We use the scroll position to determine whether the report should be marked as read and the new line indicator reset.
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
                 // stays in it's previous position.
@@ -157,7 +159,7 @@ function ReportActionsView(props) {
         // then we call ReconnectToReport which only loads the reportActions data without marking the report as read.
         const wasNetworkChangeDetected = lodashGet(prevNetwork, 'isOffline') && !lodashGet(props.network, 'isOffline');
         if (wasNetworkChangeDetected) {
-            if (isReportFullyVisible()) {
+            if (isReportFullyVisible) {
                 openReportIfNecessary();
             } else {
                 Report.reconnect(props.report.reportID);
@@ -172,7 +174,7 @@ function ReportActionsView(props) {
         // If the view is expanded from mobile to desktop layout
         // we update the new marker position, mark the report as read, and fetch new report actions
         const didScreenSizeIncrease = prevIsSmallScreenWidth && !props.isSmallScreenWidth;
-        const didReportBecomeVisible = isReportFullyVisible() && didScreenSizeIncrease;
+        const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             setNewMarkerReportActionID(ReportUtils.isUnread(props.report) ? ReportUtils.getNewMarkerReportActionID(props.report, props.reportActions) : '');
             openReportIfNecessary();
@@ -255,9 +257,9 @@ function ReportActionsView(props) {
     }, [props.report, props.reportActions]);
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
-        ReportScrollManager.scrollToBottom(context.flatListRef);
+        reportScrollManager.scrollToBottom(context.flatListRef);
         Report.readNewestAction(props.report.reportID);
-    }, [props.report, context.flatListRef]);
+    }, [reportScrollManager, props.report, context.flatListRef]);
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
