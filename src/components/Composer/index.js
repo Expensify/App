@@ -321,7 +321,12 @@ class Composer extends React.Component {
             // If HTML has img tag, then we only paste the plain text. This is because
             // fetching the image via fetch triggers a Content-Security-Policy error.
             if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                this.handlePastePlainText(event);
+                // If HTML has emoji, then treat this as plain text.
+                if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                  this.handlePastePlainText(event);
+                  return;
+                }
+                this.handlePastedHTML(pastedHTML);
                 return;
             }
 
