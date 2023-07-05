@@ -20,6 +20,7 @@ import {withNetwork} from '../../../../../components/OnyxProvider';
 import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
 import themeColors from '../../../../../styles/themes/default';
 import * as StyleUtils from '../../../../../styles/StyleUtils';
+import CONST from '../../../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -149,7 +150,7 @@ function BaseValidateCodeForm(props) {
                         underlayColor={themeColors.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('contacts.resendMagicCode')}
                     >
                         <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('contacts.resendMagicCode')}</Text>
