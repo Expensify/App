@@ -81,6 +81,10 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     componentDidMount() {
+        if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
+            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
+            return;
+        }
         this.focusWelcomeMessageInput();
     }
 
@@ -192,6 +196,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(this.props.invitedEmailsToAccountIDsDraft), this.props.personalDetails)}
                                 shouldStackHorizontally
+                                shouldDisplayAvatarsInRows
                                 secondAvatarStyle={[styles.secondAvatarInline]}
                             />
                         </View>
