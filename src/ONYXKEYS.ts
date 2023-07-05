@@ -111,27 +111,6 @@ const ONYXKEYS = {
     /** Token needed to initialize Onfido */
     ONFIDO_TOKEN: 'onfidoToken',
 
-    /** Collection Keys */
-    COLLECTION: {
-        DOWNLOAD: 'download_',
-        POLICY: 'policy_',
-        POLICY_MEMBERS: 'policyMembers_',
-        WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
-        REPORT: 'report_',
-        REPORT_ACTIONS: 'reportActions_',
-        REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
-        REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
-        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
-        REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
-        REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
-        REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
-        SECURITY_GROUP: 'securityGroup_',
-        TRANSACTION: 'transactions_',
-
-        /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
-        DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
-    },
-
     /** Indicates which locale should be used */
     NVP_PREFERRED_LOCALE: 'preferredLocale',
 
@@ -195,6 +174,45 @@ const ONYXKEYS = {
     /** The policyID of the last workspace whose settings were accessed by the user */
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
+    /** Whether we should show the compose input or not */
+    SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
+
+    /** Is app in beta version */
+    IS_BETA: 'isBeta',
+
+    /** Whether the auth token is valid */
+    IS_TOKEN_VALID: 'isTokenValid',
+
+    /** Whether we're checking if the room is public or not */
+    IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
+
+    /** A map of the user's security group IDs they belong to in specific domains */
+    MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
+
+    /** Report ID of the last report the user viewed as anonymous user */
+    LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
+
+    /** Collection Keys */
+    COLLECTION: {
+        DOWNLOAD: 'download_',
+        POLICY: 'policy_',
+        POLICY_MEMBERS: 'policyMembers_',
+        WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
+        REPORT: 'report_',
+        REPORT_ACTIONS: 'reportActions_',
+        REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
+        REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
+        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
+        REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
+        REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
+        REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        SECURITY_GROUP: 'securityGroup_',
+        TRANSACTION: 'transactions_',
+
+        /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
+        DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
+    },
+
     /** List of Form ids */
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
@@ -218,31 +236,6 @@ const ONYXKEYS = {
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         PAYPAL_FORM: 'payPalForm',
     },
-
-    /** Whether we should show the compose input or not */
-    SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
-
-    /** Is app in beta version */
-    IS_BETA: 'isBeta',
-
-    // The theme setting set by the user in preferences.
-    // This can be either "light", "dark" or "system"
-    PREFERRED_THEME: 'preferredTheme',
-
-    /** Whether the auth token is valid */
-    IS_TOKEN_VALID: 'isTokenValid',
-
-    /** Whether we're checking if the room is public or not */
-    IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
-
-    /** A map of the user's security group IDs they belong to in specific domains */
-    MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
-
-    /** Report ID of the last report the user viewed as anonymous user */
-    LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
-
-    // Experimental memory only Onyx mode flag
-    IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 } as const;
 
 type OnyxKeysMap = typeof ONYXKEYS;
@@ -276,6 +269,7 @@ type OnyxValues = {
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.BETAS]: OnyxTypes.Beta[];
     [ONYXKEYS.PAYPAL]: OnyxTypes.Paypal;
+    [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
 };
 
 export default ONYXKEYS;
