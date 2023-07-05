@@ -15,6 +15,7 @@ import Session from './Session';
 import Beta from './Beta';
 import Paypal from './Paypal';
 import BlockedFromConcierge from './BlockedFromConcierge';
+import PlaidData from './PlaidData';
 
 export type {
     Account,
@@ -34,4 +35,5 @@ export type {
     Beta,
     Paypal,
     BlockedFromConcierge,
+    PlaidData,
 };
