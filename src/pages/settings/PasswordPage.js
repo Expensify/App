@@ -63,12 +63,7 @@ function PasswordPage(props) {
 
     const currentPasswordInputRef = useRef(null);
 
-    useEffect(
-        () => () => {
-            Session.clearAccountMessages();
-        },
-        [],
-    );
+    useEffect(() => () => Session.clearAccountMessages(), []);
 
     /**
      * @param {String} field
