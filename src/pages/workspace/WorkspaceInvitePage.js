@@ -75,6 +75,7 @@ class WorkspaceInvitePage extends React.Component {
         this.toggleOption = this.toggleOption.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
+        this.onTransitionEnd = this.onTransitionEnd.bind(this);
 
         const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, '', this.getExcludedUsers());
         this.state = {
@@ -82,6 +83,7 @@ class WorkspaceInvitePage extends React.Component {
             personalDetails,
             selectedOptions: [],
             userToInvite,
+            sections: [],
         };
     }
 
@@ -103,6 +105,13 @@ class WorkspaceInvitePage extends React.Component {
 
         const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(this.props.policyMembers, this.props.personalDetails);
         Policy.openWorkspaceInvitePage(this.props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
+    }
+
+    /**
+     * Handle Lazy rendering for the options
+     */
+    onTransitionEnd() {
+        this.setState({sections: this.getSections()});
     }
 
     getExcludedUsers() {
@@ -263,12 +272,14 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     render() {
-        const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(this.state.personalDetails.length !== 0, Boolean(this.state.userToInvite), this.state.searchTerm);
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
-            <ScreenWrapper shouldEnableMaxHeight>
+            <ScreenWrapper
+                shouldEnableMaxHeight
+                onEntryTransitionEnd={this.onTransitionEnd}
+            >
                 <FullPageNotFoundView
                     shouldShow={_.isEmpty(this.props.policy)}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
@@ -288,7 +299,7 @@ class WorkspaceInvitePage extends React.Component {
                             contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}
                             listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
                             canSelectMultipleOptions
-                            sections={sections}
+                            sections={this.state.sections}
                             selectedOptions={this.state.selectedOptions}
                             value={this.state.searchTerm}
                             shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
