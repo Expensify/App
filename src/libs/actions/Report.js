@@ -1531,13 +1531,12 @@ function hasAccountIDReacted(accountID, users, skinTone) {
 
 /**
  * Adds a reaction to the report action.
- * @param {String} reportID
+ * @param {String} originalReportID
  * @param {Object} originalReportAction
  * @param {{ name: string, code: string, types: string[] }} emoji
  * @param {number} [skinTone] Optional.
  */
-function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
-    const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
+function addEmojiReaction(originalReportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
     const message = originalReportAction.message[0];
     let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const needToInsertReactionObject = !reactionObject;
@@ -1583,12 +1582,11 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
 
 /**
  * Removes a reaction to the report action.
- * @param {String} reportID
+ * @param {String} originalReportID
  * @param {Object} originalReportAction
  * @param {{ name: string, code: string, types: string[] }} emoji
  */
-function removeEmojiReaction(reportID, originalReportAction, emoji) {
-    const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
+function removeEmojiReaction(originalReportID, originalReportAction, emoji) {
     const message = originalReportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     if (!reactionObject) {
@@ -1635,28 +1633,28 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
 /**
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * @param {String} reportID
- * @param {Object} action
+ * @param {Object} reportAction
  * @param {Object} emoji
  * @param {number} paramSkinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, action, emoji, paramSkinTone = preferredSkinTone) {
-    const originalReportID = ReportUtils.getOriginalReportID(reportID, action);
-    const reportAction = ReportActionsUtils.getReportAction(originalReportID, action.reportActionID);
+function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+    const originalReportAction = ReportActionsUtils.getReportAction(originalReportID, reportAction.reportActionID);
 
-    if (_.isEmpty(reportAction)) {
+    if (_.isEmpty(originalReportAction)) {
         return;
     }
 
-    const message = reportAction.message[0];
+    const message = originalReportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
     if (reactionObject) {
         if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-            return removeEmojiReaction(reportID, reportAction, emoji, skinTone);
+            return removeEmojiReaction(originalReportID, originalReportAction, emoji, skinTone);
         }
     }
-    return addEmojiReaction(reportID, reportAction, emoji, skinTone);
+    return addEmojiReaction(originalReportID, originalReportAction, emoji, skinTone);
 }
 
 /**
