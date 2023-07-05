@@ -16,6 +16,7 @@ import Beta from './Beta';
 import Paypal from './Paypal';
 import BlockedFromConcierge from './BlockedFromConcierge';
 import PlaidData from './PlaidData';
+import UserWallet from './UserWallet';
 
 export type {
     Account,
@@ -36,4 +37,5 @@ export type {
     Paypal,
     BlockedFromConcierge,
     PlaidData,
+    UserWallet,
 };
