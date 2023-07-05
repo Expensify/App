@@ -12,6 +12,7 @@ import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import personalDetailsPropType from '../../../personalDetailsPropType';
+import * as Browser from '../../../../libs/Browser';
 import reportPropTypes from '../../../reportPropTypes';
 
 const propTypes = {
@@ -140,11 +141,8 @@ function MoneyRequestParticipantsSplitSelector({betas, participants, personalDet
                 personalDetails: chatOptions.personalDetails,
                 userToInvite: chatOptions.userToInvite,
             });
-            if (!isOptionInList) {
-                setSearchTerm('');
-            }
         },
-        [searchTerm, participants, onAddParticipants, reports, personalDetails, betas, setNewChatOptions, setSearchTerm],
+        [searchTerm, participants, onAddParticipants, reports, personalDetails, betas, setNewChatOptions],
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
@@ -181,6 +179,7 @@ function MoneyRequestParticipantsSplitSelector({betas, participants, personalDet
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}
+                shouldFocusOnSelectRow={!Browser.isMobile()}
             />
         </View>
     );

@@ -81,6 +81,10 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     componentDidMount() {
+        if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
+            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
+            return;
+        }
         this.focusWelcomeMessageInput();
     }
 
@@ -176,7 +180,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         footerContent={
                             <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
-                                accessibilityRole="link"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[styles.mv2, styles.alignSelfStart]}
