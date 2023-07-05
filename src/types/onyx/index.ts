@@ -34,6 +34,7 @@ import Policy from './Policy';
 import Report from './Report';
 import ReportAction from './ReportAction';
 import SecurityGroup from './SecurityGroup';
+import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
 
 export type {
@@ -73,6 +74,7 @@ export type {
     Report,
     ReportAction,
     SecurityGroup,
+    Transaction,
     Form,
     AddDebitCardForm,
 };

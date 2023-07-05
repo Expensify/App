@@ -315,7 +315,7 @@ type OnyxValues = {
     [reportIsComposerFull: `${typeof ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${string}`]: boolean;
     [reportUserIsTyping: `${typeof ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${string}`]: boolean;
     [securityGroup: `${typeof ONYXKEYS.COLLECTION.SECURITY_GROUP}${string}`]: OnyxTypes.SecurityGroup;
-    // [transaction: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`]: OnyxTypes;
+    [transaction: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`]: OnyxTypes.Transaction;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
