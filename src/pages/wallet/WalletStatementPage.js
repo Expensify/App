@@ -61,6 +61,10 @@ function WalletStatementPage(props) {
         }
     }, [yearMonth]);
 
+    useEffect(() => {
+        moment.locale(props.preferredLocale);
+    }, [props.preferredLocale])
+
     const processDownload = () => {
         if (props.walletStatement.isGenerating) {
             return;
@@ -79,7 +83,6 @@ function WalletStatementPage(props) {
         User.generateStatementPDF(yearMonth);
     };
 
-    moment.locale(props.preferredLocale);
     const year = yearMonth.substring(0, 4) || moment().year();
     const month = yearMonth.substring(4) || moment().month();
     const monthName = moment(month, 'M').format('MMMM');
@@ -105,6 +108,7 @@ function WalletStatementPage(props) {
 
 WalletStatementPage.propTypes = propTypes;
 WalletStatementPage.defaultProps = defaultProps;
+WalletStatementPage.displayName = 'WalletStatementPage';
 
 export default compose(
     withLocalize,
