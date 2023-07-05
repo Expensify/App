@@ -28,6 +28,9 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as UserUtils from '../libs/UserUtils';
+import Button from "./Button";
+import * as BankAccounts from "../libs/actions/BankAccounts";
+import * as store from "../libs/actions/ReimbursementAccount/store";
 
 const propTypes = {
     /** The report currently being looked at */
@@ -88,6 +91,7 @@ function MoneyRequestHeader(props) {
     const isPayer =
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer && !props.report.isWaitingOnBankAccount;
+    const shouldShowAddCreditBankAccountButton = !shouldShowSettlementButton && ReportUtils.isCurrentUserSubmitter(moneyRequestReport.reportID) && !store.hasCreditBankAccount();
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     let description = `${props.translate('iou.amount')} • ${props.translate('iou.cash')}`;
@@ -175,6 +179,16 @@ function MoneyRequestHeader(props) {
                                 />
                             </View>
                         )}
+                        {shouldShowAddCreditBankAccountButton && !props.isSmallScreenWidth && (
+                            <View style={[styles.ml4]}>
+                                <Button
+                                    success
+                                    text={props.translate('bankAccount.addBankAccount')}
+                                    onPress={BankAccounts.openPersonalBankAccountSetupView}
+                                    pressOnEnter
+                                />
+                            </View>
+                        )}
                     </View>
                 </View>
                 {shouldShowSettlementButton && props.isSmallScreenWidth && (
@@ -189,6 +203,16 @@ function MoneyRequestHeader(props) {
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                     />
+                )}
+                {shouldShowAddCreditBankAccountButton && props.isSmallScreenWidth && (
+                    <View style={[styles.ml4]}>
+                        <Button
+                            success
+                            text={props.translate('bankAccount.addBankAccount')}
+                            onPress={BankAccounts.openPersonalBankAccountSetupView}
+                            pressOnEnter
+                        />
+                    </View>
                 )}
             </View>
             {props.isSingleTransactionView && (

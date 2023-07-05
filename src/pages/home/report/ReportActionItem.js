@@ -30,7 +30,6 @@ import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 import {withBlockedFromConcierge, withNetwork, withPersonalDetails, withReportActionsDrafts} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
-import ReportActionItemReimbursementQueued from './ReportActionItemReimbursementQueued';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
 import SelectionScraper from '../../../libs/SelectionScraper';
@@ -58,8 +57,8 @@ import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
-import ReportActionItemReimbursed from './ReportActionItemReimbursed';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
+import ReportActionBasicMessage from "./ReportActionItemBasicMessage";
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -274,19 +273,19 @@ function ReportActionItem(props) {
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
             children = (
-                <ReportActionItemReimbursementQueued
-                    submitterDisplayName={submitterDisplayName}
-                    isCurrentUserSubmitter={ReportUtils.isCurrentUserSubmitter(props.report.reportID)}
+                <ReportActionBasicMessage
+                    message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}
                 />
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED) {
-            const totalAmount = ReportUtils.getMoneyRequestTotal(props.report);
+            const amount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const message = props.action.originalMessage.isSubmitterAddingBankAccount
+                    ? props.translate('iou.settledAfterAddedBankAccount', {submitterDisplayName, amount})
+                    : props.translate('iou.payerSettled', {amount});
             children = (
-                <ReportActionItemReimbursed
-                    amount={CurrencyUtils.convertToDisplayString(totalAmount, props.report.currency)}
-                    submitterDisplayName={submitterDisplayName}
-                    isFromSubmitterAddingBankAccount={props.action.originalMessage.isSubmitterAddingBankAccount}
+                <ReportActionBasicMessage
+                    message={message}
                 />
             );
         } else {
