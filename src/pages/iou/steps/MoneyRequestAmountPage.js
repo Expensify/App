@@ -246,17 +246,23 @@ function MoneyRequestAmountPage(props) {
     }, []);
 
     useEffect(() => {
-        if (isEditing.current) {
-            // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-            if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || prevMoneyRequestId.current !== props.iou.id) {
-                // The ID is cleared on completing a request. In that case, we will do nothing.
-                if (props.iou.id) {
-                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
-                }
-                return;
+        if (!isEditing.current) return;
+        // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
+        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || prevMoneyRequestId.current !== props.iou.id) {
+            // The ID is cleared on completing a request. In that case, we will do nothing.
+            if (props.iou.id) {
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
             }
         }
+        return () => {
+            prevProps.current = props;
+            prevMoneyRequestId.current = props.iou.id;
+        };
+        // We only want this effect to get called when we edit the amount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
+    useEffect(() => {
         const currencyParam = lodashGet(props.route.params, 'currency', '');
         const prevCurrencyParam = lodashGet(prevProps.current.route.params, 'currency', '');
         if (currencyParam !== '' && prevCurrencyParam !== currencyParam) {
@@ -267,11 +273,13 @@ function MoneyRequestAmountPage(props) {
         if (prevProps.current.iou.currency !== props.iou.currency) {
             setSelectedCurrencyCode(props.iou.currency);
         }
+
         return () => {
             prevProps.current = props;
-            prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props, props.route]);
+        // We only want this effect to get called when we edit the amount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.route, props.iou.currency]);
 
     useEffect(() => {
         const selectedAmountAsStringForState = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
@@ -289,23 +297,20 @@ function MoneyRequestAmountPage(props) {
     );
 
     /**
-     * Returns new state object if the updated amount is valid
-     * @param {String} prevAmount
-     * @param {String} prevSelection
+     * Sets the state according to amount that is passed
      * @param {String} newAmount - Changed amount from user input
-     * @returns {Object}
      */
-    const getNewState = (prevAmount, prevSelection, newAmount) => {
-        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-        // More info: https://github.com/Expensify/App/issues/16974
+    const setNewAmount = (newAmount) => {
         const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
         if (!validateAmount(newAmountWithoutSpaces)) {
-            // Use a shallow copy of selection to trigger setSelection
-            // More info: https://github.com/Expensify/App/issues/16385
-            return {amount: prevAmount, selection: {...prevSelection}};
+            setAmount((prevAmount) => prevAmount);
+            setSelection((prevSelection) => ({...prevSelection}));
+            return;
         }
-        const newSelection = getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length);
-        return {amount: stripCommaFromAmount(newAmountWithoutSpaces), selection: newSelection};
+        setAmount((prevAmount) => {
+            setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
+            return stripCommaFromAmount(newAmountWithoutSpaces);
+        });
     };
 
     /**
@@ -324,16 +329,12 @@ function MoneyRequestAmountPage(props) {
                 if (amount.length > 0) {
                     const selectionStart = selection.start === selection.end ? selection.start - 1 : selection.start;
                     const newAmount = `${amount.substring(0, selectionStart)}${amount.substring(selection.end)}`;
-                    const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
-                    setAmount(amountValueForState);
-                    setSelection(selectionValueForState);
+                    setNewAmount(newAmount);
                 }
                 return;
             }
             const newAmount = addLeadingZero(`${amount.substring(0, selection.start)}${key}${amount.substring(selection.end)}`);
-            const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
-            setAmount(amountValueForState);
-            setSelection(selectionValueForState);
+            setNewAmount(newAmount);
         },
         [amount, selection, shouldUpdateSelection],
     );
@@ -358,9 +359,7 @@ function MoneyRequestAmountPage(props) {
      */
     const updateAmount = (text) => {
         const newAmount = addLeadingZero(replaceAllDigits(text, fromLocaleDigit));
-        const {amount: amountValueForState, selection: selectionValueForState} = getNewState(amount, selection, newAmount);
-        setAmount(amountValueForState);
-        setSelection(selectionValueForState);
+        setNewAmount(newAmount);
     };
 
     const navigateBack = () => {
