@@ -74,7 +74,14 @@ function ReportActionItemEmojiReactions(props) {
             {_.map(sortedReactions, (reaction) => {
                 const reactionEmojiName = reaction.emojiName;
                 const usersWithReactions = _.filter(reaction.users, (userData) => userData);
-                const reactionCount = _.size(usersWithReactions);
+                let reactionCount = 0;
+                _.forEach(usersWithReactions, (user) => {
+                    if (user.skinTones) {
+                        reactionCount += _.size(user.skinTones);
+                    } else {
+                        reactionCount += 1;
+                    }
+                });
                 if (!reactionCount) {
                     return null;
                 }
