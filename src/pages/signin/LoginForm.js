@@ -137,8 +137,15 @@ function LoginForm(props) {
         if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible) {
             return;
         }
+        input.current.focus();
+    }, [props.isVisible, input]);
+
+    useEffect(() => {
         if (props.blurOnSubmit) {
             input.current.blur();
+        }
+        if (!input.current || !props.isVisible) {
+            return;
         }
         input.current.focus();
     }, [props.blurOnSubmit, props.isVisible, input]);
