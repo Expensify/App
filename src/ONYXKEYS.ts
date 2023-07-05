@@ -310,7 +310,7 @@ type OnyxValues = {
     [workspaceInviteMembersDraft: `${typeof ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${string}`]: Record<string, number>;
     [report: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`]: OnyxTypes.Report;
     [ReportActions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`]: OnyxTypes.ReportAction;
-    // [ReportActionsDrafts: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`]: OnyxTypes;
+    [ReportActionsDrafts: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`]: string;
     // [ReportActionsReactions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${string}`]: OnyxTypes;
     // [ReportDraftComment: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}`]: OnyxTypes;
     // [reportDraftCommentNumberOfLines: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${string}`]: OnyxTypes;
