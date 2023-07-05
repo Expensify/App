@@ -299,7 +299,7 @@ type OnyxValues = {
     [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.IS_TOKEN_VALID]: boolean;
     [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
-    // [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: OnyxTypes;
+    [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
 };
 
