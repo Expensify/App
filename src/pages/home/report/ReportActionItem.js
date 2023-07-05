@@ -361,7 +361,7 @@ function ReportActionItem(props) {
                 <View style={draftMessageRightAlign}>
                     <ReportActionItemEmojiReactions
                         reportActionID={props.action.reportActionID}
-                        reactions={emojiReactions}
+                        emojiReactions={emojiReactions}
                         toggleReaction={(emoji) => {
                             if (Session.isAnonymousUser()) {
                                 hideContextMenu(false);
