@@ -431,8 +431,8 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsPreferencesColorThemePage = require('../../../pages/settings/Preferences/ColorThemePage').default;
-            return SettingsPreferencesColorThemePage;
+            const SettingsPreferencesThemePage = require('../../../pages/settings/Preferences/ThemePage').default;
+            return SettingsPreferencesThemePage;
         },
         name: 'Settings_Preferences_ColorTheme',
     },
