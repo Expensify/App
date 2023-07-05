@@ -280,7 +280,7 @@ type OnyxValues = {
     [ONYXKEYS.WALLET_ONFIDO]: OnyxTypes.OnfidoWallet;
     [ONYXKEYS.WALLET_ADDITIONAL_DETAILS]: OnyxTypes.WalletAdditionalDetails;
     [ONYXKEYS.WALLET_TERMS]: OnyxTypes.WalletTerms;
-    // [ONYXKEYS.BANK_ACCOUNT_LIST]: OnyxTypes;
+    [ONYXKEYS.BANK_ACCOUNT_LIST]: Record<string, OnyxTypes.BankAccount>;
     // [ONYXKEYS.CARD_LIST]: OnyxTypes;
     // [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes;
     // [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes;

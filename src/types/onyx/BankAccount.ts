@@ -1,24 +1,15 @@
 type BankAccount = {
-    /** Masked account number */
-    accountNumber: string;
+    /** The name of the institution (bank of america, etc */
+    addressName?: string;
 
-    /** Name of account */
-    addressName: string;
+    /** The masked bank account number */
+    accountNumber?: string;
 
-    /** Is the account a savings account? */
-    isSavings: boolean;
+    /** The bankAccountID in the bankAccounts db */
+    bankAccountID?: number;
 
-    /** Unique identifier for this account in Plaid */
-    plaidAccountID: string;
-
-    /** Routing number for the account */
-    routingNumber: string;
-
-    /** last 4 digits of the account number */
-    mask: string;
-
-    /** Plaid access token, used to then retrieve Assets and Balances */
-    plaidAccessToken: string;
+    /** The bank account type */
+    type?: string;
 };
 
 export default BankAccount;

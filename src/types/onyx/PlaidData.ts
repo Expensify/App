@@ -1,4 +1,4 @@
-import BankAccount from './BankAccount';
+import PlaidBankAccount from './PlaidBankAccount';
 import * as OnyxCommon from './OnyxCommon';
 
 type PlaidData = OnyxCommon.BaseState & {
@@ -12,7 +12,7 @@ type PlaidData = OnyxCommon.BaseState & {
     plaidAccessToken?: string;
 
     /** List of plaid bank accounts */
-    bankAccounts?: BankAccount[];
+    bankAccounts?: PlaidBankAccount[];
 };
 
 export default PlaidData;
