@@ -132,9 +132,11 @@ function HeaderView(props) {
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(props.report);
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
+
     return (
         <View
-            style={[styles.appContentHeader]}
+            style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
             nativeID="drag-area"
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>

@@ -253,10 +253,6 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
-    darkBG: {
-        backgroundColor: themeColors.splashBG,
-    },
-
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -1443,8 +1439,6 @@ const styles = {
     },
 
     appContentHeader: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
