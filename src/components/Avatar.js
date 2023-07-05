@@ -12,7 +12,6 @@ import Image from './Image';
 import styles from '../styles/styles';
 import * as ReportUtils from '../libs/ReportUtils';
 import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
-import useNetwork from '../hooks/useNetwork';
 
 const propTypes = {
     /** Source for the avatar. Can be a URL or an icon. */
@@ -63,8 +62,8 @@ const defaultProps = {
 };
 
 function Avatar(props) {
-    const {isOffline} = useNetwork();
-    const [imageError, setImageError] = useState(isOffline);
+    const [imageError, setImageError] = useState(false);
+    const [cacheBuster, setCacheBuster] = useState(0);
     
     useOnNetworkReconnect(() => setImageError(false));
 
@@ -108,9 +107,9 @@ function Avatar(props) {
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
-                        source={{uri: props.source}}
+                        source={{uri: `${props.source}?cacheBuster=${cacheBuster}`}}
                         style={imageStyle}
-                        onError={() => setImageError(true)}
+                        onError={() => {setImageError(true); setCacheBuster(cacheBuster + 1)}}
                     />
                 </View>
             )}
