@@ -32,6 +32,7 @@ import Download from './Download';
 import PolicyMember from './PolicyMember';
 import Policy from './Policy';
 import Report from './Report';
+import ReportAction from './ReportAction';
 import Form, {AddDebitCardForm} from './Form';
 
 export type {
@@ -69,6 +70,7 @@ export type {
     PolicyMember,
     Policy,
     Report,
+    ReportAction,
     Form,
     AddDebitCardForm,
 };
