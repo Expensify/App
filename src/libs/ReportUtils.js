@@ -366,13 +366,12 @@ function getBankAccountRoute(report) {
  * @returns {Boolean}
  */
 function isWorkspaceTaskReport(report) {
-    if(!isTaskReport(report)){
+    if (!isTaskReport(report)) {
         return false;
     }
     const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
     return isPolicyExpenseChat(parentReport);
 }
-
 
 /**
  * Returns true if report has a parent
@@ -832,7 +831,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) 
             name: lodashGet(personalDetails, [report.ownerAccountID, 'displayName'], ''),
         };
 
-        if(isWorkspaceTaskReport(report)) {
+        if (isWorkspaceTaskReport(report)) {
             const workspaceIcon = getWorkspaceIcon(report);
             return [ownerIcon, workspaceIcon];
         }
