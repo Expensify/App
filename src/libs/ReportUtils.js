@@ -1000,7 +1000,7 @@ function getTransactionReportName(reportAction) {
  * @param {Object} reportAction
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction) {
+function getReportPreviewMessage(report, reportAction = {}) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1462,7 +1462,8 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
 }
 
 function buildOptimisticReportPreview(chatReport, iouReport) {
-    const reportPreviewAction = {
+    const message = getReportPreviewMessage(iouReport);
+    return {
         reportActionID: NumberUtils.rand64(),
         reportID: chatReport.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
@@ -1470,21 +1471,18 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
         originalMessage: {
             linkedReportID: iouReport.reportID,
         },
+        message: [
+            {
+                html: message,
+                text: message,
+                isEdited: false,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
         actorAccountID: iouReport.managerID || 0,
     };
-    const message = getReportPreviewMessage(iouReport, reportPreviewAction);
-    reportPreviewAction.message = [
-        {
-            html: message,
-            text: message,
-            isEdited: false,
-            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
-        },
-    ];
-
-    return reportPreviewAction;
 }
 
 function buildOptimisticTaskReportAction(taskReportID, actionName, message = '') {
