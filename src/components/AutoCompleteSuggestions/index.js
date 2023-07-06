@@ -10,7 +10,7 @@ import {propTypes} from './autoCompleteSuggestionsPropTypes';
  * On the native platform, tapping on auto-complete suggestions will not blur the main input.
  */
 
-const AutoCompleteSuggestions = (props) => {
+function AutoCompleteSuggestions(props) {
     const containerRef = React.useRef(null);
     React.useEffect(() => {
         const container = containerRef.current;
@@ -33,7 +33,7 @@ const AutoCompleteSuggestions = (props) => {
             ref={containerRef}
         />
     );
-};
+}
 
 AutoCompleteSuggestions.propTypes = propTypes;
 AutoCompleteSuggestions.displayName = 'AutoCompleteSuggestions';

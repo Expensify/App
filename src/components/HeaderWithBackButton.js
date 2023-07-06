@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View, Keyboard} from 'react-native';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Header from './Header';
 import Navigation from '../libs/Navigation/Navigation';
@@ -18,6 +19,7 @@ import withKeyboardState, {keyboardStatePropTypes} from './withKeyboardState';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import participantPropTypes from './participantPropTypes';
+import CONST from '../CONST';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import PinButton from './PinButton';
 
@@ -66,6 +68,12 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
+    /** The anchor alignment of the menu */
+    threeDotsAnchorAlignment: PropTypes.shape({
+        horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
+        vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
+    }),
+
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
@@ -88,9 +96,6 @@ const propTypes = {
     /** Whether we should show an avatar */
     shouldShowAvatarWithDisplay: PropTypes.bool,
 
-    /** Parent report, if provided it will override props.report for AvatarWithDisplay */
-    parentReport: iouReportPropTypes,
-
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report: iouReportPropTypes,
 
@@ -112,8 +117,8 @@ const defaultProps = {
     title: '',
     subtitle: '',
     onDownloadButtonPress: () => {},
-    onBackButtonPress: Navigation.goBack,
-    onCloseButtonPress: Navigation.dismissModal,
+    onBackButtonPress: () => Navigation.goBack(),
+    onCloseButtonPress: () => Navigation.dismissModal(),
     onThreeDotsButtonPress: () => {},
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
@@ -125,7 +130,6 @@ const defaultProps = {
     shouldShowBackButton: true,
     shouldShowAvatarWithDisplay: false,
     report: null,
-    parentReport: null,
     policies: {},
     personalDetails: {},
     guidesCallTaskID: '',
@@ -134,6 +138,10 @@ const defaultProps = {
     threeDotsAnchorPosition: {
         vertical: 0,
         horizontal: 0,
+    },
+    threeDotsAnchorAlignment: {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
 };
 
@@ -171,7 +179,7 @@ class HeaderWithBackButton extends Component {
                                     this.props.onBackButtonPress();
                                 }}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={this.props.translate('common.back')}
                             >
                                 <Icon src={Expensicons.BackArrow} />
@@ -180,7 +188,7 @@ class HeaderWithBackButton extends Component {
                     )}
                     {this.props.shouldShowAvatarWithDisplay && (
                         <AvatarWithDisplayName
-                            report={this.props.parentReport || this.props.report}
+                            report={this.props.report}
                             policies={this.props.policies}
                             personalDetails={this.props.personalDetails}
                         />
@@ -202,7 +210,7 @@ class HeaderWithBackButton extends Component {
                                         this.triggerButtonCompleteAndDownload();
                                     }}
                                     style={[styles.touchableButtonImage]}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={this.props.translate('common.download')}
                                 >
                                     <Icon
@@ -218,7 +226,7 @@ class HeaderWithBackButton extends Component {
                                 <PressableWithoutFeedback
                                     onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
                                     style={[styles.touchableButtonImage]}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
                                 >
                                     <Icon src={Expensicons.QuestionMark} />
@@ -233,6 +241,7 @@ class HeaderWithBackButton extends Component {
                                 menuItems={this.props.threeDotsMenuItems}
                                 onIconPress={this.props.onThreeDotsButtonPress}
                                 anchorPosition={this.props.threeDotsAnchorPosition}
+                                anchorAlignment={this.props.threeDotsAnchorAlignment}
                             />
                         )}
 
@@ -241,7 +250,7 @@ class HeaderWithBackButton extends Component {
                                 <PressableWithoutFeedback
                                     onPress={this.props.onCloseButtonPress}
                                     style={[styles.touchableButtonImage]}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={this.props.translate('common.close')}
                                 >
                                     <Icon src={Expensicons.Close} />

@@ -106,10 +106,18 @@ function MagicCodeInput(props) {
         setFocusedIndex(undefined);
     };
 
+    const focusMagicCodeInput = () => {
+        setFocusedIndex(0);
+        inputRefs.current[0].focus();
+    };
+
     useImperativeHandle(props.innerRef, () => ({
         focus() {
-            setFocusedIndex(0);
-            inputRefs.current[0].focus();
+            focusMagicCodeInput();
+        },
+        resetFocus() {
+            setInput('');
+            focusMagicCodeInput();
         },
         clear() {
             setInput('');
@@ -151,9 +159,9 @@ function MagicCodeInput(props) {
         let focusTimeout = null;
         if (props.shouldDelayFocus) {
             focusTimeout = setTimeout(() => inputRefs.current[0].focus(), CONST.ANIMATED_TRANSITION);
+        } else {
+            inputRefs.current[0].focus();
         }
-
-        inputRefs.current[0].focus();
 
         return () => {
             if (!focusTimeout) {
@@ -161,7 +169,9 @@ function MagicCodeInput(props) {
             }
             clearTimeout(focusTimeout);
         };
-    }, [props.autoFocus, props.shouldDelayFocus]);
+        // We only want this to run on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
      * Focuses on the input when it is pressed.
@@ -314,7 +324,7 @@ function MagicCodeInput(props) {
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
-                                autoFocus={index === 0 && props.autoFocus}
+                                autoFocus={index === 0 && props.autoFocus && !props.shouldDelayFocus}
                                 inputMode="numeric"
                                 textContentType="oneTimeCode"
                                 name={props.name}
@@ -328,7 +338,7 @@ function MagicCodeInput(props) {
                                     // not currently being responsible for the input, this is
                                     // necessary to avoid calls when the input changes due to
                                     // deleted characters. Only happens in mobile.
-                                    if (index !== editIndex) {
+                                    if (index !== editIndex || _.isUndefined(focusedIndex)) {
                                         return;
                                     }
                                     onChangeText(value);

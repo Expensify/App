@@ -1,3 +1,5 @@
+import isSelectorSupported from './isSelectorSupported';
+
 /**
  * Check the input is auto filled or not
  * @param  {Object} input
@@ -5,5 +7,8 @@
  */
 export default function isInputAutoFilled(input) {
     if (!input.matches) return false;
-    return input.matches(':-webkit-autofill') || input.matches(':autofill');
+    if (isSelectorSupported(':autofill')) {
+        return input.matches(':-webkit-autofill') || input.matches(':autofill');
+    }
+    return input.matches(':-webkit-autofill');
 }

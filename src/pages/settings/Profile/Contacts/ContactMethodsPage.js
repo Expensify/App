@@ -58,7 +58,7 @@ const defaultProps = {
     },
 };
 
-const ContactMethodsPage = (props) => {
+function ContactMethodsPage(props) {
     const loginNames = _.keys(props.loginList);
 
     // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
@@ -111,14 +111,14 @@ const ContactMethodsPage = (props) => {
     });
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
             <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             <ScrollView>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <Text>
+                    <Text numberOfLines={100}>
                         {props.translate('contacts.helpTextBeforeEmail')}
                         <CopyTextToClipboard
                             text="receipts@expensify.com"
@@ -139,7 +139,7 @@ const ContactMethodsPage = (props) => {
             </FixedFooter>
         </ScreenWrapper>
     );
-};
+}
 
 ContactMethodsPage.propTypes = propTypes;
 ContactMethodsPage.defaultProps = defaultProps;

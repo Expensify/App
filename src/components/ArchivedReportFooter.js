@@ -12,6 +12,7 @@ import * as ReportUtils from '../libs/ReportUtils';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import styles from '../styles/styles';
+import * as PersonalDetailsUtils from '../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** The reason this report was archived */
@@ -21,11 +22,11 @@ const propTypes = {
             /** The reason the report was closed */
             reason: PropTypes.string.isRequired,
 
-            /** (For accountMerged reason only), the email of the previous owner of this report. */
-            oldLogin: PropTypes.string,
+            /** (For accountMerged reason only), the accountID of the previous owner of this report. */
+            oldAccountID: PropTypes.number,
 
-            /** (For accountMerged reason only), the email of the account the previous owner was merged into */
-            newLogin: PropTypes.string,
+            /** (For accountMerged reason only), the accountID of the account the previous owner was merged into */
+            newAccountID: PropTypes.number,
         }).isRequired,
     }),
 
@@ -47,16 +48,16 @@ const defaultProps = {
     personalDetails: {},
 };
 
-const ArchivedReportFooter = (props) => {
+function ArchivedReportFooter(props) {
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    let displayName = lodashGet(props.personalDetails, `${props.report.ownerEmail}.displayName`, props.report.ownerEmail);
+    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
 
     let oldDisplayName;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
-        const newLogin = props.reportClosedAction.originalMessage.newLogin;
-        const oldLogin = props.reportClosedAction.originalMessage.oldLogin;
-        displayName = lodashGet(props.personalDetails, `${newLogin}.displayName`, newLogin);
-        oldDisplayName = lodashGet(props.personalDetails, `${oldLogin}.displayName`, oldLogin);
+        const newAccountID = props.reportClosedAction.originalMessage.newAccountID;
+        const oldAccountID = props.reportClosedAction.originalMessage.oldAccountID;
+        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [newAccountID, 'displayName']);
+        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [oldAccountID, 'displayName']);
     }
 
     return (
@@ -71,7 +72,7 @@ const ArchivedReportFooter = (props) => {
             shouldShowIcon
         />
     );
-};
+}
 
 ArchivedReportFooter.propTypes = propTypes;
 ArchivedReportFooter.defaultProps = defaultProps;
@@ -81,7 +82,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reportClosedAction: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,

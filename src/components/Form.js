@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useRef} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, useRef} from 'react';
 import lodashGet from 'lodash/get';
 import {Keyboard, ScrollView, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
@@ -27,7 +27,7 @@ const propTypes = {
     isSubmitButtonVisible: PropTypes.bool,
 
     /** Callback to validate the form */
-    validate: PropTypes.func.isRequired,
+    validate: PropTypes.func,
 
     /** Callback to submit the form */
     onSubmit: PropTypes.func.isRequired,
@@ -85,17 +85,19 @@ const defaultProps = {
     scrollContextEnabled: false,
     footerContent: null,
     style: [],
+    validate: () => ({}),
 };
 
-const Form = (props) => {
+function Form(props) {
     const [errors, setErrors] = useState({});
     const [inputValues, setInputValues] = useState({...props.draftValues});
     const formRef = useRef(null);
     const formContentRef = useRef(null);
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
+    const isFirstRender = useRef(true);
 
-    const {validate, translate, onSubmit, children} = props;
+    const {validate, onSubmit, children} = props;
 
     /**
      * @param {Object} values - An object containing the value of each inputID, e.g. {inputID1: value1, inputID2: value2}
@@ -126,7 +128,7 @@ const Form = (props) => {
                 }
 
                 // Add a validation error here because it is a string value that contains HTML characters
-                validationErrors[inputID] = translate('common.error.invalidCharacter');
+                validationErrors[inputID] = 'common.error.invalidCharacter';
             });
 
             if (!_.isObject(validationErrors)) {
@@ -141,16 +143,25 @@ const Form = (props) => {
 
             return touchedInputErrors;
         },
-        [errors, touchedInputs, props.formID, validate, translate],
+        [errors, touchedInputs, props.formID, validate],
     );
 
     useEffect(() => {
-        onValidate(inputValues);
-    }, [onValidate, inputValues]);
+        // We want to skip Form validation on initial render.
+        // This also avoids a bug where we immediately clear server errors when the loading indicator unmounts and Form remounts with server errors.
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
 
-    const getErrorMessage = useCallback(() => {
+        onValidate(inputValues);
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to revalidate the form on update if the preferred locale changed on another device so that errors get translated
+    }, [props.preferredLocale]);
+
+    const errorMessage = useMemo(() => {
         const latestErrorMessage = ErrorUtils.getLatestErrorMessage(props.formState);
-        return props.formState.error || (typeof latestErrorMessage === 'string' ? latestErrorMessage : '');
+        return typeof latestErrorMessage === 'string' ? latestErrorMessage : '';
     }, [props.formState]);
 
     /**
@@ -324,9 +335,9 @@ const Form = (props) => {
                 {props.isSubmitButtonVisible && (
                     <FormAlertWithSubmitButton
                         buttonText={props.submitButtonText}
-                        isAlertVisible={_.size(errors) > 0 || Boolean(getErrorMessage()) || !_.isEmpty(props.formState.errorFields)}
+                        isAlertVisible={_.size(errors) > 0 || Boolean(errorMessage) || !_.isEmpty(props.formState.errorFields)}
                         isLoading={props.formState.isLoading}
-                        message={_.isEmpty(props.formState.errorFields) ? getErrorMessage() : null}
+                        message={_.isEmpty(props.formState.errorFields) ? errorMessage : null}
                         onSubmit={submit}
                         footerContent={props.footerContent}
                         onFixTheErrorsLinkPressed={() => {
@@ -334,8 +345,10 @@ const Form = (props) => {
                             const focusKey = _.find(_.keys(inputRefs.current), (key) => _.keys(errorFields).includes(key));
                             const focusInput = inputRefs.current[focusKey];
 
-                            // Start with dismissing the keyboard, so when we focus a non-text input, the keyboard is hidden
-                            Keyboard.dismiss();
+                            // Dismiss the keyboard for non-text fields by checking if the component has the isFocused method, as only TextInput has this method.
+                            if (typeof focusInput.isFocused !== 'function') {
+                                Keyboard.dismiss();
+                            }
 
                             // We subtract 10 to scroll slightly above the input
                             if (focusInput.measureLayout && typeof focusInput.measureLayout === 'function') {
@@ -362,7 +375,7 @@ const Form = (props) => {
             errors,
             formContentRef,
             formRef,
-            getErrorMessage,
+            errorMessage,
             inputRefs,
             inputValues,
             submit,
@@ -402,7 +415,7 @@ const Form = (props) => {
             }
         </SafeAreaConsumer>
     );
-};
+}
 
 Form.displayName = 'Form';
 Form.propTypes = propTypes;

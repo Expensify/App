@@ -19,6 +19,7 @@ import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import * as Modal from '../../actions/Modal';
+import * as Report from '../../actions/Report';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createResponsiveStackNavigator from './createResponsiveStackNavigator';
 import SCREENS from '../../../SCREENS';
@@ -31,6 +32,7 @@ import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import styles from '../../../styles/styles';
+import * as SessionUtils from '../../SessionUtils';
 
 let currentUserEmail;
 Onyx.connect({
@@ -47,7 +49,7 @@ Onyx.connect({
 
 let timezone;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
         if (!val || timezone) {
             return;
@@ -85,6 +87,10 @@ const propTypes = {
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
     }),
+
+    /** The report ID of the last opened public room as anonymous user */
+    lastOpenedPublicRoomID: PropTypes.string,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -92,6 +98,7 @@ const defaultProps = {
     session: {
         email: null,
     },
+    lastOpenedPublicRoomID: null,
 };
 
 class AuthScreens extends React.Component {
@@ -113,8 +120,20 @@ class AuthScreens extends React.Component {
             User.subscribeToUserEvents();
         });
 
-        App.openApp();
+        // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
+        // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
+        if (SessionUtils.didUserLogInDuringSession()) {
+            App.openApp();
+        } else {
+            App.reconnectApp();
+        }
+
         App.setUpPoliciesAndNavigate(this.props.session);
+
+        if (this.props.lastOpenedPublicRoomID) {
+            // Re-open the last opened public room if the user logged in from a public room link
+            Report.openLastOpenedPublicRoom(this.props.lastOpenedPublicRoomID);
+        }
         Download.clearDownloads();
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
@@ -251,6 +270,18 @@ class AuthScreens extends React.Component {
                     }}
                 />
                 <RootStack.Screen
+                    name={SCREENS.REPORT_ATTACHMENTS}
+                    options={{
+                        headerShown: false,
+                        presentation: 'transparentModal',
+                    }}
+                    getComponent={() => {
+                        const ReportAttachments = require('../../../pages/home/report/ReportAttachments').default;
+                        return ReportAttachments;
+                    }}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
                     name={NAVIGATORS.FULL_SCREEN_NAVIGATOR}
                     options={defaultScreenOptions}
                     component={FullScreenNavigator}
@@ -273,6 +304,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        lastOpenedPublicRoomID: {
+            key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
         },
     }),
 )(AuthScreens);

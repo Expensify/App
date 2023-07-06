@@ -43,12 +43,12 @@ function ReportWelcomeMessagePage(props) {
     }, []);
 
     const submitForm = useCallback(() => {
-        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage);
+        Report.updateWelcomeMessage(props.report.reportID, props.report.welcomeMessage, welcomeMessage.trim());
     }, [props.report.reportID, props.report.welcomeMessage, welcomeMessage]);
 
     return (
         <ScreenWrapper
-            onTransitionEnd={() => {
+            onEntryTransitionEnd={() => {
                 if (!welcomeMessageInputRef.current) {
                     return;
                 }
@@ -61,7 +61,6 @@ function ReportWelcomeMessagePage(props) {
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.WELCOME_MESSAGE_FORM}
                     onSubmit={submitForm}
-                    validate={() => ({})}
                     submitButtonText={props.translate('common.save')}
                     enabledWhenOffline
                 >
@@ -70,14 +69,14 @@ function ReportWelcomeMessagePage(props) {
                         <TextInput
                             inputID="welcomeMessage"
                             label={props.translate('welcomeMessagePage.welcomeMessage')}
-                            multiline
-                            numberOfLines={10}
+                            autoGrowHeight
                             maxLength={CONST.MAX_COMMENT_LENGTH}
-                            ref={welcomeMessageInputRef}
+                            ref={(el) => (welcomeMessageInputRef.current = el)}
                             value={welcomeMessage}
                             onChangeText={handleWelcomeMessageChange}
                             autoCapitalize="none"
                             textAlignVertical="top"
+                            containerStyles={[styles.autoGrowHeightMultilineInput]}
                         />
                     </View>
                 </Form>

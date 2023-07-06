@@ -18,10 +18,16 @@ import writingDirection from './utilities/writingDirection';
 import optionAlternateTextPlatformStyles from './optionAlternateTextPlatformStyles';
 import pointerEventsNone from './pointerEventsNone';
 import pointerEventsAuto from './pointerEventsAuto';
+import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
+import textUnderline from './utilities/textUnderline';
+
+function getTransparentColor(color, transparency = '') {
+    return `${color}${transparency}`;
+}
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -162,6 +168,7 @@ const styles = {
     ...cursor,
     ...userSelect,
     ...themeColors,
+    ...textUnderline,
 
     rateCol: {
         margin: 0,
@@ -188,13 +195,11 @@ const styles = {
     },
 
     emojiSuggestionsEmoji: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,
         width: 51,
         textAlign: 'center',
     },
     emojiSuggestionsText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         fontSize: variables.fontSizeMedium,
     },
 
@@ -273,14 +278,6 @@ const styles = {
 
     textUnderline: {
         textDecorationLine: 'underline',
-    },
-
-    textUnderlinePositionUnder: {
-        textUnderlinePosition: 'under',
-    },
-
-    textDecorationSkipInkNone: {
-        textDecorationSkipInk: 'none',
     },
 
     label: {
@@ -554,6 +551,10 @@ const styles = {
         marginVertical: 1,
     },
 
+    noBorderRadius: {
+        borderRadius: 0,
+    },
+
     noRightBorderRadius: {
         borderTopRightRadius: 0,
         borderBottomRightRadius: 0,
@@ -768,7 +769,7 @@ const styles = {
     },
 
     headerGap: {
-        height: 12,
+        height: CONST.DESKTOP_HEADER_PADDING,
     },
 
     pushTextRight: {
@@ -1249,7 +1250,7 @@ const styles = {
     },
 
     leftPanelContainer: {
-        maxWidth: variables.leftPaneMaxWidth,
+        maxWidth: variables.sideBarWidth,
     },
 
     rightPanelContainer: {
@@ -1272,12 +1273,12 @@ const styles = {
 
     createMenuPositionProfile: (windowWidth) => ({
         horizontal: windowWidth - 355,
-        vertical: 250,
+        ...getPopOverVerticalOffset(162),
     }),
 
     createMenuPositionReportActionCompose: (windowHeight) => ({
         horizontal: 18 + variables.sideBarWidth,
-        vertical: windowHeight - 75,
+        vertical: windowHeight - 83,
     }),
 
     createMenuPositionRightSidepane: {
@@ -1553,7 +1554,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusRounded,
-        minHeight: variables.componentSizeNormal,
+        minHeight: variables.componentSizeMedium,
     },
 
     chatItemFullComposeBox: {
@@ -1592,7 +1593,7 @@ const styles = {
             backgroundColor: themeColors.componentBG,
             borderColor: themeColors.border,
             color: themeColors.text,
-            fontFamily: fontFamily.EMOJI_TEXT_FONT,
+            fontFamily: fontFamily.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             borderWidth: 0,
             height: 'auto',
@@ -1639,8 +1640,8 @@ const styles = {
         alignSelf: 'flex-end',
         borderRadius: variables.componentBorderRadiusRounded,
         backgroundColor: themeColors.transparent,
-        height: 32,
-        padding: 6,
+        height: 40,
+        padding: 10,
         margin: 3,
         justifyContent: 'center',
     },
@@ -1668,7 +1669,6 @@ const styles = {
 
     // Emoji Picker Styles
     emojiText: {
-        fontFamily: fontFamily.EMOJI_TEXT_FONT,
         textAlign: 'center',
         fontSize: variables.emojiSize,
         ...spacing.pv0,
@@ -1708,9 +1708,9 @@ const styles = {
     chatItemEmojiButton: {
         alignSelf: 'flex-end',
         borderRadius: variables.buttonBorderRadius,
-        height: 32,
+        height: 40,
         marginVertical: 3,
-        paddingHorizontal: 6,
+        paddingHorizontal: 10,
         justifyContent: 'center',
     },
 
@@ -1731,13 +1731,7 @@ const styles = {
         margin: 3,
         borderRadius: variables.componentBorderRadiusRounded,
         backgroundColor: themeColors.transparent,
-    },
-
-    taskSelectorLink: {
-        alignSelf: 'center',
-        width: '100%',
-        padding: 6,
-        backgroundColor: themeColors.transparent,
+        justifyContent: 'center',
     },
 
     chatItemAttachmentPlaceholder: {
@@ -2175,14 +2169,14 @@ const styles = {
     },
 
     twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
-        let paddingHorizontal = styles.ph15;
+        let paddingHorizontal = styles.ph9;
 
         if (isSmallScreenWidth) {
-            paddingHorizontal = styles.ph10;
+            paddingHorizontal = styles.ph4;
         }
 
         if (isExtraSmallScreenWidth) {
-            paddingHorizontal = styles.ph4;
+            paddingHorizontal = styles.ph2;
         }
 
         return {
@@ -2208,12 +2202,11 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
-        height: 148,
     },
 
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
-        width: 100,
+        width: 112,
         textAlign: 'center',
     },
 
@@ -2222,41 +2215,52 @@ const styles = {
         justifyContent: 'center',
         gap: 12,
         marginTop: 20,
+        flexWrap: 'wrap',
     },
 
     twoFactorAuthCodesButton: {
-        minWidth: 100,
+        minWidth: 112,
     },
 
-    twoFactorAuthFooter: {
-        marginTop: 'auto',
+    twoFactorAuthCopyCodeButton: {
+        minWidth: 110,
     },
 
-    anonymousRoomFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+    anonymousRoomFooter: (isSmallSizeLayout) => ({
+        flexDirection: isSmallSizeLayout ? 'column' : 'row',
+        ...(!isSmallSizeLayout && {
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        }),
         padding: 20,
-        marginBottom: 20,
-        backgroundColor: themeColors.activeComponentBG,
-        flexWrap: 'wrap',
-        gap: 8,
+        backgroundColor: themeColors.sidebar,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
-    },
-
+    }),
+    anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        ...(isSmallSizeLayout && {
+            justifyContent: 'space-between',
+            marginTop: 16,
+        }),
+    }),
     anonymousRoomFooterLogo: {
         width: 88,
         marginLeft: 0,
         height: 20,
     },
-
+    anonymousRoomFooterLogoTaglineText: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeMedium,
+        color: themeColors.textLight,
+    },
     signInButtonAvatar: {
         width: 80,
     },
 
     anonymousRoomFooterSignInButton: {
-        width: 125,
+        width: 110,
     },
 
     roomHeaderAvatarSize: {
@@ -2309,6 +2313,11 @@ const styles = {
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
+        padding: 20,
+    },
+
+    pageWrapperNotCentered: {
+        width: '100%',
         padding: 20,
     },
 
@@ -2464,13 +2473,20 @@ const styles = {
         alignItems: 'center',
     },
 
+    checkboxPressable: {
+        borderRadius: 6,
+        padding: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     checkboxContainer: {
         backgroundColor: themeColors.componentBG,
-        borderRadius: 2,
+        borderRadius: 4,
         height: 20,
         width: 20,
-        borderColor: themeColors.icon,
-        borderWidth: 1,
+        borderColor: themeColors.borderLighter,
+        borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -2493,6 +2509,12 @@ const styles = {
 
     magicCodeInputTransparent: {
         color: 'transparent',
+        caretColor: 'transparent',
+        WebkitTextFillColor: 'transparent',
+        // After setting the input text color to transparent, it acquires the background-color.
+        // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+        // Therefore, the transition effect needs to be delayed.
+        transitionDelay: '99999s',
     },
 
     iouAmountText: {
@@ -2557,8 +2579,8 @@ const styles = {
         marginBottom: 0,
     },
 
-    iouPreviewBoxCheckmark: {
-        marginLeft: 4,
+    defaultCheckmarkWrapper: {
+        marginLeft: 8,
         alignSelf: 'center',
     },
 
@@ -2691,10 +2713,6 @@ const styles = {
         outline: 'none',
     },
 
-    cursorPointer: {
-        cursor: 'pointer',
-    },
-
     cardStyleNavigator: {
         overflow: 'hidden',
         height: '100%',
@@ -2787,7 +2805,7 @@ const styles = {
         width: 250,
     },
 
-    workspaceInviteWelcome: {
+    autoGrowHeightMultilineInput: {
         maxHeight: 115,
     },
 
@@ -2843,10 +2861,6 @@ const styles = {
         },
         errorDot: {
             marginRight: 12,
-        },
-        menuItemErrorPadding: {
-            paddingLeft: 44,
-            paddingRight: 20,
         },
     },
 
@@ -2907,6 +2921,14 @@ const styles = {
         paddingRight: 12,
         paddingLeft: 12,
         marginTop: 12,
+    },
+
+    shortTermsHeadline: {
+        ...headlineFont,
+        ...whiteSpace.preWrap,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeXXXLarge,
+        lineHeight: variables.lineHeightXXXLarge,
     },
 
     longTermsRow: {
@@ -2979,12 +3001,12 @@ const styles = {
     },
 
     threeDotsPopoverOffset: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 60,
     }),
 
     threeDotsPopoverOffsetNoCloseButton: (windowWidth) => ({
-        vertical: 50,
+        ...getPopOverVerticalOffset(60),
         horizontal: windowWidth - 10,
     }),
 
@@ -2995,8 +3017,7 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flexShrink: 0,
-        flexGrow: 0,
+        flex: 0,
         flexBasis: 'auto',
     },
 
@@ -3352,16 +3373,30 @@ const styles = {
         lineHeight: variables.lineHeightXXLarge,
     },
 
-    moneyRequestHeaderCheckmark: {
-        marginLeft: 5,
-        alignSelf: 'center',
-    },
-
     loginHeroBody: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSignInHeroBody,
         color: themeColors.textLight,
         textAlign: 'center',
+    },
+
+    linkPreviewWrapper: {
+        marginTop: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        paddingLeft: 12,
+    },
+
+    linkPreviewImage: {
+        flex: 1,
+        resizeMode: 'contain',
+        borderRadius: 8,
+        marginTop: 8,
+    },
+
+    linkPreviewLogoImage: {
+        height: 16,
+        width: 16,
     },
 
     validateCodeMessage: {

@@ -2,7 +2,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Navigation from '../../../../libs/Navigation/Navigation';
@@ -177,6 +177,7 @@ class ContactMethodDetailsPage extends Component {
      */
     toggleDeleteModal(isOpen) {
         this.setState({isDeleteModalOpen: isOpen});
+        Keyboard.dismiss();
     }
 
     /**
@@ -215,6 +216,7 @@ class ContactMethodDetailsPage extends Component {
                         onCancel={() => this.toggleDeleteModal(false)}
                         prompt={this.props.translate('contacts.removeAreYouSure')}
                         confirmText={this.props.translate('common.yesContinue')}
+                        cancelText={this.props.translate('common.cancel')}
                         isVisible={this.state.isDeleteModalOpen}
                         danger
                     />
