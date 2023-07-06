@@ -43,11 +43,12 @@ function canUseDefaultRooms(betas) {
 }
 
 /**
- * @param {Array<String>} betas
+ * IOU Send feature is temporarily disabled.
+ *
  * @returns {Boolean}
  */
-function canUseIOUSend(betas) {
-    return _.contains(betas, CONST.BETAS.IOU_SEND) || canUseAllBetas(betas);
+function canUseIOUSend() {
+    return false;
 }
 
 /**
