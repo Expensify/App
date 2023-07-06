@@ -10,7 +10,6 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserEmail;
@@ -656,13 +655,7 @@ function getTaskAssigneeAccountID(taskReport) {
     }
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
-    const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
-
-    if (!childManagerEmail) {
-        return null;
-    }
-
-    return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
+    return lodashGet(reportAction, 'childManagerAccountID');
 }
 
 /**
