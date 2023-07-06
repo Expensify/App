@@ -159,12 +159,12 @@ describe('IOUUtils', () => {
 
 describe('isValidMoneyRequestType', () => {
     test('Return true for valid iou type', () => {
-        expect(IOUUtils.isValidMoneyRequestType('send')).toBe(true);
         expect(IOUUtils.isValidMoneyRequestType('request')).toBe(true);
         expect(IOUUtils.isValidMoneyRequestType('split')).toBe(true);
     });
 
     test('Return false for invalid iou type', () => {
+        expect(IOUUtils.isValidMoneyRequestType('send')).toBe(false);
         expect(IOUUtils.isValidMoneyRequestType('money')).toBe(false);
     });
 });
