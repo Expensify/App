@@ -63,34 +63,36 @@ function TaskPreview(props) {
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
-        <PressableWithoutFeedback
-            onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
-            style={[styles.flexRow, styles.justifyContentBetween, styles.chatItemMessage]}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-            accessibilityLabel={props.translate('newTaskPage.task')}
-        >
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
-                <Checkbox
-                    style={[styles.mr2]}
-                    containerStyle={[styles.taskCheckbox]}
-                    isChecked={isTaskCompleted}
-                    disabled={TaskUtils.isTaskCanceled(props.taskReport)}
-                    onPress={() => {
-                        if (isTaskCompleted) {
-                            TaskUtils.reopenTask(props.taskReportID, taskTitle);
-                        } else {
-                            TaskUtils.completeTask(props.taskReportID, taskTitle);
-                        }
-                    }}
-                    accessibilityLabel={props.translate('newTaskPage.task')}
+        <View style={[styles.chatItemMessage]}>
+            <PressableWithoutFeedback
+                onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
+                style={[styles.flexRow, styles.justifyContentBetween]}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                accessibilityLabel={props.translate('newTaskPage.task')}
+            >
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
+                    <Checkbox
+                        style={[styles.mr2]}
+                        containerStyle={[styles.taskCheckbox]}
+                        isChecked={isTaskCompleted}
+                        disabled={TaskUtils.isTaskCanceled(props.taskReport)}
+                        onPress={() => {
+                            if (isTaskCompleted) {
+                                TaskUtils.reopenTask(props.taskReportID, taskTitle);
+                            } else {
+                                TaskUtils.completeTask(props.taskReportID, taskTitle);
+                            }
+                        }}
+                        accessibilityLabel={props.translate('newTaskPage.task')}
+                    />
+                    <RenderHTML html={htmlForTaskPreview} />
+                </View>
+                <Icon
+                    src={Expensicons.ArrowRight}
+                    fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
                 />
-                <RenderHTML html={htmlForTaskPreview} />
-            </View>
-            <Icon
-                src={Expensicons.ArrowRight}
-                fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-            />
-        </PressableWithoutFeedback>
+            </PressableWithoutFeedback>
+        </View>
     );
 }
 
