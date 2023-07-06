@@ -58,7 +58,10 @@ function FullPageNotFoundView(props) {
     if (props.shouldShow) {
         return (
             <>
-                <HeaderWithBackButton onBackButtonPress={props.onBackButtonPress} shouldShowBackButton={props.shouldShowBackButton} />
+                <HeaderWithBackButton
+                    onBackButtonPress={props.onBackButtonPress}
+                    shouldShowBackButton={props.shouldShowBackButton}
+                />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}
