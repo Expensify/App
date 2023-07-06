@@ -971,25 +971,23 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             lastMessageHtml: optimisticIOUReportAction.message[0].html,
         },
     };
-    const optimisticReportActionsData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
-            value: {
-                [optimisticIOUReportAction.reportActionID]: {
-                    ...optimisticIOUReportAction,
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
+    const optimisticIOUReportActionsData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
+        value: {
+            [optimisticIOUReportAction.reportActionID]: {
+                ...optimisticIOUReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-            value: {
-                [reportPreviewAction.reportActionID]: reportPreviewAction,
-            },
+    };
+    const optimisticChatReportActionsData = {
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        value: {
+            [reportPreviewAction.reportActionID]: reportPreviewAction,
         },
-    ];
+    };
 
     const successData = [
         {
@@ -1078,16 +1076,8 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         };
 
-        // Add an optimistic created action to the optimistic reportActions data
-        optimisticReportActionsData.push(
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
-                value: {
-                    [optimisticCreatedAction.reportActionID]: optimisticCreatedAction,
-                },
-            },
-        );
+        // Add an optimistic created action to the optimistic chat reportActions data
+        optimisticChatReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
     } else {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1100,7 +1090,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         });
     }
 
-    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, ...optimisticReportActionsData, optimisticTransactionData];
+    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticChatReportActionsData, optimisticIOUReportActionsData, optimisticTransactionData];
     if (!_.isEmpty(optimisticPersonalDetailListData)) {
         optimisticData.push(optimisticPersonalDetailListData);
     }
