@@ -1,5 +1,5 @@
 import React, { Fragment, useRef } from 'react';
-import { View, useEffect, useState } from 'react-native';
+import { View, useEffect, useState, useCallback } from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -38,7 +38,7 @@ function DisplayNames(props) {
      * @param {Number} index Used to get the Ref to the node at the current index
      * @returns {Number} Distance to shift the tooltip horizontally
      */
-    const getTooltipShiftX = (index) => {
+    const getTooltipShiftX = useCallback((index) => {
         // Only shift the tooltip in case the containerLayout or Refs to the text node are available
         if (!containerLayout.current || !childRefs[index]) {
             return;
@@ -54,7 +54,7 @@ function DisplayNames(props) {
 
         // When text right end is beyond the Container right end
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
-    };
+    }, [containerLayout.current, childRefs]);
 
     if (!props.tooltipEnabled) {
         // No need for any complex text-splitting, just return a simple Text component
