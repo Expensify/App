@@ -1109,6 +1109,10 @@ const CONST = {
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
     },
+    AVATAR_ROW_SIZE: {
+        DEFAULT: 4,
+        LARGE_SCREEN: 8,
+    },
     OPTION_MODE: {
         COMPACT: 'compact',
         DEFAULT: 'default',
