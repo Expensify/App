@@ -24,11 +24,11 @@
 		<key>ReactShareViewBackgroundColor</key>
     <dict>
         <key>Red</key>
-        <integer>1</integer>
+        <integer>7</integer>
         <key>Green</key>
-        <integer>1</integer>
+        <integer>39</integer>
         <key>Blue</key>
-        <integer>1</integer>
+        <integer>31</integer>
         <key>Alpha</key>
         <integer>1</integer>
         <key>Transparent</key>
