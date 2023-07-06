@@ -35,6 +35,7 @@ function getMinimalAction(action, state) {
             payload: {
                 name: currentAction.payload.params.screen,
                 params: currentAction.payload.params.params,
+                path: currentAction.payload.params.path,
             },
             target: currentTargetKey,
         };
