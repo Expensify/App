@@ -195,7 +195,6 @@ describe('actions/Report', () => {
 
         const USER_1_LOGIN = 'user@test.com';
         const USER_1_ACCOUNT_ID = 1;
-        const USER_2_LOGIN = 'different-user@test.com';
         const USER_2_ACCOUNT_ID = 2;
         return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Test', reportID: REPORT_ID})
             .then(() => TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN))
