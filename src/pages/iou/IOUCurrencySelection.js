@@ -71,14 +71,14 @@ function IOUCurrencySelection(props) {
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
 
-    const hideModalSelection = ReportUtils.shouldHideComposer(props.report, props.errors);
+    const shouldDismissModal = ReportUtils.shouldHideComposer(props.report, props.errors);
 
     useEffect(() => {
-        if (!hideModalSelection) {
+        if (!shouldDismissModal) {
             return;
         }
         Navigation.dismissModal(reportID);
-    }, [hideModalSelection, reportID]);
+    }, [shouldDismissModal, reportID]);
 
     const confirmCurrencySelection = useCallback(
         (option) => {
