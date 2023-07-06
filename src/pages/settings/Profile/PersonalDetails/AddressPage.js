@@ -117,7 +117,7 @@ function AddressPage(props) {
 
             return errors;
         },
-        [isUSAForm],
+        [],
     );
 
     return (
