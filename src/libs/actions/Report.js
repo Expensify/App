@@ -18,12 +18,14 @@ import Log from '../Log';
 import * as ReportUtils from '../ReportUtils';
 import DateUtils from '../DateUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import * as CollectionUtils from '../CollectionUtils';
 import * as EmojiUtils from '../EmojiUtils';
 import * as ErrorUtils from '../ErrorUtils';
+import * as UserUtils from '../UserUtils';
 import * as Welcome from './Welcome';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -64,6 +66,14 @@ let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => (isNetworkOffline = lodashGet(val, 'isOffline', false)),
+});
+
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => {
+        allPersonalDetails = val || {};
+    },
 });
 
 const allReports = {};
@@ -116,27 +126,30 @@ function subscribeToReportTypingEvents(reportID) {
 
     const pusherChannelName = getReportChannelName(reportID);
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING, (typingStatus) => {
+        // If the pusher message comes from OldDot, we expect the typing status to be keyed by user
+        // login OR by 'Concierge'. If the pusher message comes from NewDot, it is keyed by accountID
+        // since personal details are keyed by accountID.
         const normalizedTypingStatus = getNormalizedTypingStatus(typingStatus);
-        const login = _.first(_.keys(normalizedTypingStatus));
+        const accountIDOrLogin = _.first(_.keys(normalizedTypingStatus));
 
-        if (!login) {
+        if (!accountIDOrLogin) {
             return;
         }
 
-        // Don't show the typing indicator if a user is typing on another platform
-        if (login === currentUserEmail) {
+        // Don't show the typing indicator if the user is typing on another platform
+        if (Number(accountIDOrLogin) === currentUserAccountID) {
             return;
         }
 
-        // Use a combo of the reportID and the login as a key for holding our timers.
-        const reportUserIdentifier = `${reportID}-${login}`;
+        // Use a combo of the reportID and the accountID or login as a key for holding our timers.
+        const reportUserIdentifier = `${reportID}-${accountIDOrLogin}`;
         clearTimeout(typingWatchTimers[reportUserIdentifier]);
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, normalizedTypingStatus);
 
         // Wait for 1.5s of no additional typing events before setting the status back to false.
         typingWatchTimers[reportUserIdentifier] = setTimeout(() => {
             const typingStoppedStatus = {};
-            typingStoppedStatus[login] = false;
+            typingStoppedStatus[accountIDOrLogin] = false;
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`, typingStoppedStatus);
             delete typingWatchTimers[reportUserIdentifier];
         }, 1500);
@@ -182,6 +195,21 @@ function subscribeToNewActionEvent(reportID, callback) {
 }
 
 /**
+ * Notify the ReportActionsView that a new comment has arrived
+ *
+ * @param {String} reportID
+ * @param {Number} accountID
+ * @param {String} reportActionID
+ */
+function notifyNewAction(reportID, accountID, reportActionID) {
+    if (reportID !== newActionSubscriber.reportID) {
+        return;
+    }
+    const isFromCurrentUser = accountID === currentUserAccountID;
+    newActionSubscriber.callback(isFromCurrentUser, reportActionID);
+}
+
+/**
  * Add up to two report actions to a report. This method can be called for the following situations:
  *
  * - Adding one comment
@@ -222,7 +250,9 @@ function addActions(reportID, text = '', file) {
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
+        lastMessageHtml: lastCommentText,
         lastActorEmail: currentUserEmail,
+        lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
 
@@ -281,8 +311,8 @@ function addActions(reportID, text = '', file) {
         parameters.timezone = JSON.stringify(timezone);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {[currentUserEmail]: {timezone}},
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {[currentUserAccountID]: {timezone}},
         });
         DateUtils.setTimezoneUpdated();
     }
@@ -292,12 +322,7 @@ function addActions(reportID, text = '', file) {
         successData,
         failureData,
     });
-
-    // Notify the ReportActionsView that a new comment has arrived
-    if (reportID === newActionSubscriber.reportID) {
-        const isFromCurrentUser = lastAction.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, lastAction.reportActionID);
-    }
+    notifyNewAction(reportID, lastAction.actorAccountID, lastAction.reportActionID);
 }
 
 /**
@@ -327,12 +352,13 @@ function addComment(reportID, text) {
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
  * @param {String} reportID
- * @param {Array} participantList The list of users that are included in a new chat, not including the user creating it
+ * @param {Array} participantLoginList The list of users that are included in a new chat, not including the user creating it
  * @param {Object} newReportObject The optimistic report object created when making a new chat, saved as optimistic data
  * @param {String} parentReportActionID The parent report action that a thread was created from (only passed for new threads)
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
+ * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
-function openReport(reportID, participantList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false) {
+function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
@@ -372,7 +398,8 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
 
     const params = {
         reportID,
-        emailList: participantList ? participantList.join(',') : '',
+        emailList: participantLoginList ? participantLoginList.join(',') : '',
+        accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
     };
 
@@ -413,6 +440,23 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
             value: {[optimisticCreatedAction.reportActionID]: {pendingAction: null}},
         });
 
+        // Add optimistic personal details for new participants
+        const optimisticPersonalDetails = {};
+        _.map(participantLoginList, (login, index) => {
+            const accountID = newReportObject.participantAccountIDs[index];
+            optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
+                login,
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: login,
+            };
+        });
+        onyxData.optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetails,
+        });
+
         // Add the createdReportActionID parameter to the API call
         params.createdReportActionID = optimisticCreatedAction.reportActionID;
 
@@ -445,19 +489,38 @@ function openReport(reportID, participantList = [], newReportObject = {}, parent
 /**
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
- * @param {Array} userLogins list of user logins.
+ * @param {Array} userLogins list of user logins to start a chat report with.
  */
 function navigateToAndOpenReport(userLogins) {
-    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
     let newChat = {};
-    const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
+    const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+    const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
     if (!chat) {
-        newChat = ReportUtils.buildOptimisticChatReport(formattedUserLogins);
+        const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
+        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
     }
     const reportID = chat ? chat.reportID : newChat.reportID;
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-    openReport(reportID, newChat.participants, newChat);
+    openReport(reportID, userLogins, newChat);
+    Navigation.dismissModal(reportID);
+}
+
+/**
+ * This will find an existing chat, or create a new one if none exists, for the given accountID or set of accountIDs. It will then navigate to this chat.
+ *
+ * @param {Array} participantAccountIDs of user logins to start a chat report with.
+ */
+function navigateToAndOpenReportWithAccountIDs(participantAccountIDs) {
+    let newChat = {};
+    const chat = ReportUtils.getChatByParticipants(participantAccountIDs);
+    if (!chat) {
+        newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    }
+    const reportID = chat ? chat.reportID : newChat.reportID;
+
+    // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
+    openReport(reportID, [], newChat, '0', false, participantAccountIDs);
     Navigation.dismissModal(reportID);
 }
 
@@ -474,15 +537,15 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
         openReport(childReportID);
         Navigation.navigate(ROUTES.getReportRoute(childReportID));
     } else {
-        const participants = _.uniq([currentUserEmail, parentReportAction.actorEmail]);
-        const formattedUserLogins = _.map(participants, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
+        const participantAccountIDs = _.uniq([currentUserAccountID, Number(parentReportAction.actorAccountID)]);
         const parentReport = allReports[parentReportID];
         const newChat = ReportUtils.buildOptimisticChatReport(
-            formattedUserLogins,
+            participantAccountIDs,
             lodashGet(parentReportAction, ['message', 0, 'text']),
             lodashGet(parentReport, 'chatType', ''),
             lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
             CONST.POLICY.OWNER_EMAIL_FAKE,
+            CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',
             undefined,
@@ -491,7 +554,8 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             parentReportID,
         );
 
-        openReport(newChat.reportID, newChat.participants, newChat, parentReportAction.reportActionID);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(newChat.participantAccountIDs);
+        openReport(newChat.reportID, participantLogins, newChat, parentReportAction.reportActionID);
         Navigation.navigate(ROUTES.getReportRoute(newChat.reportID));
     }
 }
@@ -632,10 +696,13 @@ function readNewestAction(reportID) {
  * @param {String} reportActionCreated
  */
 function markCommentAsUnread(reportID, reportActionCreated) {
+    // If no action created date is provided, use the last action's
+    const actionCreationTime = reportActionCreated || lodashGet(allReports, [reportID, 'lastVisibleActionCreated'], '0');
+
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
-    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(reportActionCreated, 1);
+    const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(actionCreationTime, 1);
     API.write(
         'MarkAsUnread',
         {
@@ -723,7 +790,7 @@ function setReportWithDraft(reportID, hasDraft) {
 function broadcastUserIsTyping(reportID) {
     const privateReportChannelName = getReportChannelName(reportID);
     const typingStatus = {};
-    typingStatus[currentUserEmail] = true;
+    typingStatus[currentUserAccountID] = true;
     Pusher.sendEvent(privateReportChannelName, Pusher.TYPE.USER_IS_TYPING, typingStatus);
 }
 
@@ -764,6 +831,7 @@ Onyx.connect({
  * @param {Object} reportAction
  */
 function deleteReportComment(reportID, reportAction) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
     const deletedMessage = [
         {
@@ -789,9 +857,9 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID, optimisticReportActions);
+    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(originalReportID, optimisticReportActions);
     if (lastMessageText.length > 0) {
-        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions).created;
+        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions).created;
         optimisticReport = {
             lastMessageText,
             lastVisibleActionCreated,
@@ -803,7 +871,7 @@ function deleteReportComment(reportID, reportAction) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     message: reportAction.message,
@@ -817,7 +885,7 @@ function deleteReportComment(reportID, reportAction) {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: null,
@@ -830,19 +898,19 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: optimisticReportActions,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
             value: optimisticReport,
         },
     ];
 
     const parameters = {
-        reportID,
-        reportActionID: reportAction.reportActionID,
+        reportID: originalReportID,
+        reportActionID,
     };
     API.write('DeleteComment', parameters, {optimisticData, successData, failureData});
 }
@@ -862,7 +930,7 @@ const removeLinksFromHtml = (html, links) => {
     let htmlCopy = html.slice();
     _.forEach(links, (link) => {
         // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
-        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
+        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'g');
         htmlCopy = htmlCopy.replace(regex, '$4');
     });
     return htmlCopy;
@@ -895,6 +963,7 @@ const handleUserDeletedLinksInHtml = (newCommentText, originalHtml) => {
  */
 function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parser = new ExpensiMark();
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
 
     // Do not autolink if someone explicitly tries to remove a link from message.
     // https://github.com/Expensify/App/issues/9090
@@ -913,7 +982,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
 
     //  Delete the comment if it's empty
     if (_.isEmpty(htmlForNewComment)) {
-        deleteReportComment(reportID, originalReportAction);
+        deleteReportComment(originalReportID, originalReportAction);
         return;
     }
 
@@ -942,12 +1011,12 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: optimisticReportActions,
         },
     ];
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(reportID, optimisticReportActions);
+    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
     if (reportActionID === lastVisibleAction.reportActionID) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
@@ -955,7 +1024,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
         };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
             value: optimisticReport,
         });
     }
@@ -963,7 +1032,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     ...originalReportAction,
@@ -976,7 +1045,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: null,
@@ -986,7 +1055,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     ];
 
     const parameters = {
-        reportID,
+        reportID: originalReportID,
         reportComment: htmlForNewComment,
         reportActionID,
     };
@@ -1059,7 +1128,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {welcomeMessage: newValue},
+            value: {welcomeMessage: parsedWelcomeMessage},
         },
     ];
     const failureData = [
@@ -1125,19 +1194,21 @@ function navigateToConciergeChat() {
 /**
  * Add a policy report (workspace room) optimistically and navigate to it.
  *
- * @param {Object} policy
+ * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
+ * @param {Array} policyMembers
  */
-function addPolicyReport(policy, reportName, visibility) {
+function addPolicyReport(policyID, reportName, visibility, policyMembers) {
     // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserEmail, ..._.pluck(policy.employeeList, 'email')]);
+    const participants = _.unique([currentUserAccountID, ...policyMembers]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
-        policy.id,
+        policyID,
         CONST.REPORT.OWNER_EMAIL_FAKE,
+        CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
         visibility,
@@ -1187,6 +1258,17 @@ function addPolicyReport(policy, reportName, visibility) {
             },
         },
     ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${policyReport.reportID}`,
+            value: {
+                errorFields: {
+                    addWorkspaceRoom: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                },
+            },
+        },
+    ];
 
     API.write(
         'AddWorkspaceRoom',
@@ -1197,7 +1279,7 @@ function addPolicyReport(policy, reportName, visibility) {
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
         },
-        {optimisticData, successData},
+        {optimisticData, successData, failureData},
     );
     Navigation.dismissModal(policyReport.reportID);
 }
@@ -1234,6 +1316,8 @@ function deleteReport(reportID) {
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
+    // Dismiss the current report screen and replace it with Concierge Chat
+    Navigation.goBack();
     navigateToConciergeChat();
     deleteReport(reportID);
 }
@@ -1388,12 +1472,7 @@ function showReportActionNotification(reportID, action) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         },
     });
-
-    // Notify the ReportActionsView that a new comment has arrived
-    if (reportID === newActionSubscriber.reportID) {
-        const isFromCurrentUser = action.actorAccountID === currentUserAccountID;
-        newActionSubscriber.callback(isFromCurrentUser, action.reportActionID);
-    }
+    notifyNewAction(reportID, action.actorAccountID, action.reportActionID);
 }
 
 /**
@@ -1430,8 +1509,8 @@ function getOptimisticDataForReportActionUpdate(originalReportAction, message, r
 
 /**
  * Returns true if the accountID has reacted to the report action (with the given skin tone).
- * @param {String} accountID
- * @param {Array<Object | String | number>} users
+ * @param {Number} accountID
+ * @param {Array<Object | Number>} users
  * @param {Number} [skinTone]
  * @returns {boolean}
  */
@@ -1440,12 +1519,12 @@ function hasAccountIDReacted(accountID, users, skinTone) {
         _.find(users, (user) => {
             let userAccountID;
             if (typeof user === 'object') {
-                userAccountID = `${user.accountID}`;
+                userAccountID = user.accountID;
             } else {
-                userAccountID = `${user}`;
+                userAccountID = user;
             }
 
-            return userAccountID === `${accountID}` && (skinTone == null ? true : user.skinTone === skinTone);
+            return userAccountID === accountID && (skinTone == null ? true : user.skinTone === skinTone);
         }) !== undefined
     );
 }
@@ -1458,6 +1537,7 @@ function hasAccountIDReacted(accountID, users, skinTone) {
  * @param {number} [skinTone] Optional.
  */
 function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = preferredSkinTone) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
     const message = originalReportAction.message[0];
     let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const needToInsertReactionObject = !reactionObject;
@@ -1489,10 +1569,10 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
     };
 
     // Optimistically update the reportAction with the reaction
-    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
+    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, originalReportID);
 
     const parameters = {
-        reportID,
+        reportID: originalReportID,
         skinTone,
         emojiCode: emoji.name,
         sequenceNumber: originalReportAction.sequenceNumber,
@@ -1508,6 +1588,7 @@ function addEmojiReaction(reportID, originalReportAction, emoji, skinTone = pref
  * @param {{ name: string, code: string, types: string[] }} emoji
  */
 function removeEmojiReaction(reportID, originalReportAction, emoji) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, originalReportAction);
     const message = originalReportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     if (!reactionObject) {
@@ -1540,10 +1621,10 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
     };
 
     // Optimistically update the reportAction with the reaction
-    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, reportID);
+    const optimisticData = getOptimisticDataForReportActionUpdate(originalReportAction, updatedMessage, originalReportID);
 
     const parameters = {
-        reportID,
+        reportID: originalReportID,
         sequenceNumber: originalReportAction.sequenceNumber,
         reportActionID: originalReportAction.reportActionID,
         emojiCode: emoji.name,
@@ -1554,12 +1635,18 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
 /**
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * @param {String} reportID
- * @param {Object} reportAction
+ * @param {String} reportActionID
  * @param {Object} emoji
  * @param {number} paramSkinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
+function toggleEmojiReaction(reportID, reportActionID, emoji, paramSkinTone = preferredSkinTone) {
+    const reportAction = ReportActionsUtils.getReportAction(reportID, reportActionID);
+
+    if (_.isEmpty(reportAction)) {
+        return;
+    }
+
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
@@ -1669,6 +1756,7 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
  * @param {String} severity
  */
 function flagComment(reportID, reportAction, severity) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const message = reportAction.message[0];
     let updatedDecision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
@@ -1679,6 +1767,12 @@ function flagComment(reportID, reportAction, severity) {
                 },
             ];
         }
+    } else if (severity === CONST.MODERATION.FLAG_SEVERITY_ASSAULT || severity === CONST.MODERATION.FLAG_SEVERITY_HARASSMENT) {
+        updatedDecision = [
+            {
+                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+            },
+        ];
     } else {
         updatedDecision = [
             {
@@ -1697,7 +1791,7 @@ function flagComment(reportID, reportAction, severity) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -1710,7 +1804,7 @@ function flagComment(reportID, reportAction, severity) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     ...reportAction,
@@ -1723,7 +1817,7 @@ function flagComment(reportID, reportAction, severity) {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
             value: {
                 [reportActionID]: {
                     pendingAction: null,
@@ -1771,11 +1865,13 @@ export {
     openReport,
     openReportFromDeepLink,
     navigateToAndOpenReport,
+    navigateToAndOpenReportWithAccountIDs,
     navigateToAndOpenChildReport,
     updatePolicyRoomNameAndNavigate,
     clearPolicyRoomNameErrors,
     clearIOUError,
     subscribeToNewActionEvent,
+    notifyNewAction,
     showReportActionNotification,
     addEmojiReaction,
     removeEmojiReaction,

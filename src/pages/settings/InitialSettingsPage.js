@@ -21,7 +21,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
-import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
@@ -100,8 +99,8 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
-    /** List of policy members */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
+    /** Members keyed by accountID for all policies */
+    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -119,7 +118,7 @@ const defaultProps = {
     bankAccountList: {},
     cardList: {},
     loginList: {},
-    policyMembers: {},
+    allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -171,7 +170,7 @@ class InitialSettingsPage extends React.Component {
             !_.isEmpty(this.props.reimbursementAccount.errors) ||
             _.chain(this.props.policies)
                 .filter((policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers))
+                .some((policy) => PolicyUtils.hasPolicyError(policy) || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.allPolicyMembers))
                 .value()
                 ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                 : null;
@@ -200,7 +199,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
                 action: () => {
-                    App.openProfile();
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
                 },
                 brickRoadIndicator: profileBrickRoadIndicator,
             },
@@ -327,12 +326,12 @@ class InitialSettingsPage extends React.Component {
                                             style={[styles.mb3]}
                                             onPress={this.openProfileSettings}
                                             accessibilityLabel={this.props.translate('common.profile')}
-                                            accessibilityRole="button"
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
                                                     imageStyles={[styles.avatarLarge]}
-                                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.email)}
+                                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.accountID)}
                                                     size={CONST.AVATAR_SIZE.LARGE}
                                                 />
                                             </OfflineWithFeedback>
@@ -342,7 +341,7 @@ class InitialSettingsPage extends React.Component {
                                         style={[styles.mt1, styles.mw100]}
                                         onPress={this.openProfileSettings}
                                         accessibilityLabel={this.props.translate('common.profile')}
-                                        accessibilityRole="link"
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                     >
                                         <Tooltip text={this.props.translate('common.profile')}>
                                             <Text
@@ -398,8 +397,8 @@ export default compose(
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
-        policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+        allPolicyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,

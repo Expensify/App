@@ -129,6 +129,12 @@ const addressComponents = [
         types: ['postal_code'],
     },
 ];
+
+const autoCompleteTerms = [
+    {offset: 0, value: 'Bangladesh Border Road'},
+    {offset: 24, value: 'Bangladesh'},
+];
+
 describe('GooglePlacesUtilsTest', () => {
     describe('getAddressComponents', () => {
         it('should find address components by type', () => {
@@ -187,6 +193,16 @@ describe('GooglePlacesUtilsTest', () => {
             // but 3.2214480000000094ms on github actions so using 5ms arbitrarily here for now
             // and we can change if needed later.
             expect(executionTime).toBeLessThan(5.0);
+        });
+    });
+    describe('getPlaceAutocompleteTerms', () => {
+        it('should find auto complete terms', () => {
+            expect(GooglePlacesUtils.getPlaceAutocompleteTerms(autoCompleteTerms)).toStrictEqual({
+                country: 'Bangladesh',
+                state: 'Bangladesh Border Road',
+                city: '',
+                street: '',
+            });
         });
     });
 });

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
@@ -63,6 +63,9 @@ const propTypes = {
     /** Saves a draft of the input value when used in a form */
     /* eslint-disable-next-line react/no-unused-prop-types */
     shouldSaveDraft: PropTypes.bool,
+
+    /** An accessibility label for the checkbox */
+    accessibilityLabel: PropTypes.string,
 };
 
 const defaultProps = {
@@ -76,6 +79,7 @@ const defaultProps = {
     value: false,
     defaultValue: false,
     forwardedRef: () => {},
+    accessibilityLabel: undefined,
 };
 
 function CheckboxWithLabel(props) {
@@ -89,10 +93,6 @@ function CheckboxWithLabel(props) {
         setIsChecked(newState);
     };
 
-    useEffect(() => {
-        setIsChecked(props.isChecked);
-    }, [props.isChecked]);
-
     const LabelComponent = props.LabelComponent;
 
     return (
@@ -104,6 +104,7 @@ function CheckboxWithLabel(props) {
                     label={props.label}
                     hasError={Boolean(props.errorText)}
                     forwardedRef={props.forwardedRef}
+                    accessibilityLabel={props.accessibilityLabel || props.label}
                 />
                 <PressableWithFeedback
                     focusable={false}

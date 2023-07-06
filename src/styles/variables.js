@@ -18,6 +18,7 @@ export default {
     contentHeaderHeight: getValueUsingPixelRatio(65, 100),
     componentSizeSmall: getValueUsingPixelRatio(28, 32),
     componentSizeNormal: 40,
+    componentSizeMedium: 48,
     inputComponentSizeNormal: 40,
     componentSizeLarge: 52,
     componentBorderRadius: 8,
@@ -26,7 +27,7 @@ export default {
     componentBorderRadiusNormal: 8,
     componentBorderRadiusLarge: 16,
     componentBorderRadiusCard: 12,
-    componentBorderRadiusRounded: 20,
+    componentBorderRadiusRounded: 24,
     buttonBorderRadius: 100,
     avatarSizeLarge: 80,
     avatarSizeHeader: 40,
@@ -78,7 +79,6 @@ export default {
     modalFullscreenBackdropOpacity: 0.5,
     tabletResponsiveWidthBreakpoint: 1024,
     safeInsertPercentage: 0.7,
-    leftPaneMaxWidth: 375,
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
@@ -93,6 +93,7 @@ export default {
     lineHeightLarge: getValueUsingPixelRatio(18, 24),
     lineHeightXLarge: getValueUsingPixelRatio(20, 24),
     lineHeightXXLarge: getValueUsingPixelRatio(27, 32),
+    lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
     lineHeightSizeh1: getValueUsingPixelRatio(23, 28),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
@@ -140,6 +141,7 @@ export default {
     popoverWidth: 375,
     addPaymentPopoverTopSpacing: 8,
     addPaymentPopoverRightSpacing: 13,
+    anonymousReportFooterBreakpoint: 650,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility
