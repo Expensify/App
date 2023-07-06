@@ -17,14 +17,12 @@ function getMinimalAction(action, state) {
     let currentAction = action;
     let currentState = state;
     let currentTargetKey = null;
-    let targetName = null;
 
     while (currentState.routes[currentState.index].name === currentAction.payload.name) {
         if (!currentState.routes[currentState.index].state) {
             break;
         }
 
-        targetName = currentState.routes[currentState.index].name;
         currentState = currentState.routes[currentState.index].state;
 
         currentTargetKey = currentState.key;
@@ -40,7 +38,7 @@ function getMinimalAction(action, state) {
             target: currentTargetKey,
         };
     }
-    return {minimalAction: currentAction, targetName};
+    return currentAction;
 }
 
 export default function linkTo(navigation, path, type) {
@@ -79,12 +77,8 @@ export default function linkTo(navigation, path, type) {
     }
 
     if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-        const {minimalAction, targetName} = getMinimalAction(action, navigation.getRootState());
+        const minimalAction = getMinimalAction(action, navigation.getRootState());
         if (minimalAction) {
-            // If the target name is RHP that means this action is responsible for changing flow within the RHP e.g. from settings to search. In that case we want to use REPLACE.
-            if (targetName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-                minimalAction.type = 'REPLACE';
-            }
             root.dispatch(minimalAction);
             return;
         }
