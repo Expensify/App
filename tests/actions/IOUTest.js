@@ -372,6 +372,7 @@ describe('actions/IOU', () => {
             const iouAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorEmail: RORY_EMAIL,
                 actorAccountID: RORY_ACCOUNT_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
@@ -834,6 +835,7 @@ describe('actions/IOU', () => {
             const julesExistingIOUAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorEmail: RORY_EMAIL,
                 actorAccountID: RORY_ACCOUNT_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
