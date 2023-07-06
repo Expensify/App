@@ -9,4 +9,4 @@ function isFloatingActionButtonCreateMenuOpen() {
     return floatingActionButtonAndPopoverRef.current.state.isCreateMenuActive;
 }
 
-export {floatingActionButtonAndPopoverRef, isFloatingActionButtonCreateMenuOpen}
+export {floatingActionButtonAndPopoverRef, isFloatingActionButtonCreateMenuOpen};
