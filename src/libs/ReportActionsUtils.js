@@ -266,7 +266,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
 
-    return currentAction.actorAccountID === previousAction.actorAccountID;
+    return currentAction.actorEmail === previousAction.actorEmail;
 }
 
 /**
