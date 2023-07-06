@@ -57,8 +57,14 @@ module.exports = {
         },
         {
             files: ['*.ts', '*.tsx'],
-            extends: ['airbnb-typescript', 'plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking', 'prettier'],
-            plugins: ['@typescript-eslint', 'jsdoc'],
+            extends: [
+                'airbnb-typescript',
+                'plugin:@typescript-eslint/recommended',
+                'plugin:@typescript-eslint/recommended-requiring-type-checking',
+                'plugin:you-dont-need-lodash-underscore/compatible',
+                'prettier',
+            ],
+            plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore'],
             parser: '@typescript-eslint/parser',
             parserOptions: {
                 project: './tsconfig.json',
@@ -112,6 +118,7 @@ module.exports = {
                 'jsdoc/no-types': 'error',
                 'import/no-extraneous-dependencies': 'off',
                 'rulesdir/onyx-props-must-have-default': 'off',
+                'rulesdir/prefer-underscore-method': 'off',
                 'no-restricted-syntax': [
                     'error',
                     {
