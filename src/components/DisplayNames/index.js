@@ -1,5 +1,5 @@
 import React, { Fragment, useRef } from 'react';
-import { View, useEffect, useState, useCallback } from 'react-native';
+import { View, useCallback, useEffect, useState } from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -54,7 +54,7 @@ function DisplayNames(props) {
 
         // When text right end is beyond the Container right end
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
-    }, [containerLayout.current, childRefs]);
+    }, [containerLayout, childRefs]);
 
     if (!props.tooltipEnabled) {
         // No need for any complex text-splitting, just return a simple Text component
