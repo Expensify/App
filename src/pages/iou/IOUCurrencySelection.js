@@ -78,8 +78,7 @@ function IOUCurrencySelection(props) {
             return;
         }
         Navigation.dismissModal(reportID);
-
-    }, [hideModalSelection,reportID])
+    }, [hideModalSelection, reportID]);
 
     const confirmCurrencySelection = useCallback(
         (option) => {
