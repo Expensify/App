@@ -151,8 +151,9 @@ class WorkspaceInvitePage extends React.Component {
 
         // Filtering out selected users from the search results
         const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
-        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => 
-             !filterText.includes(login) && (this.state.searchTerm === '' || this.state.searchTerm.includes(login))
+        const personalDetailsWithoutSelected = _.filter(
+            this.state.personalDetails,
+            ({login}) => !filterText.includes(login) && (this.state.searchTerm === '' || this.state.searchTerm.includes(login)),
         );
         const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
 
