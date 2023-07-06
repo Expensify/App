@@ -18,7 +18,6 @@ import withReportOrNotFound from '../home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /* Onyx Props */
