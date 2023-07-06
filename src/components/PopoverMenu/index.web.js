@@ -7,6 +7,7 @@ const PopoverMenu = forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         ref={ref}
+        shouldNavigateBeforeClosingModal
     />
 ));
 
