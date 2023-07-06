@@ -61,7 +61,7 @@ module.exports = {
                 'airbnb-typescript',
                 'plugin:@typescript-eslint/recommended',
                 'plugin:@typescript-eslint/recommended-requiring-type-checking',
-                'plugin:you-dont-need-lodash-underscore/compatible',
+                'plugin:you-dont-need-lodash-underscore/all',
                 'prettier',
             ],
             plugins: ['@typescript-eslint', 'jsdoc', 'you-dont-need-lodash-underscore'],
