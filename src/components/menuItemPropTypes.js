@@ -121,7 +121,7 @@ const propTypes = {
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 
     /** The action accept for anonymous user or not */
-    isAnonymousAction: PropTypes.bool
+    isAnonymousAction: PropTypes.bool,
 };
 
 export default propTypes;

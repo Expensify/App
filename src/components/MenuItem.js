@@ -67,7 +67,7 @@ const defaultProps = {
     hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
-    isAnonymousAction: false
+    isAnonymousAction: false,
 };
 
 function MenuItem(props) {
