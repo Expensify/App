@@ -309,13 +309,15 @@ function addActions(reportID, text = '', file) {
     const report = ReportUtils.getReport(reportID);
     if (report && report.parentReportActionID) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            value: {
-                [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(parentReportAction, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
-            },
-        });
+        if (parentReportAction && parentReportAction.reportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(parentReportAction, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+                },
+            });
+        }
     }
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
@@ -924,17 +926,19 @@ function deleteReportComment(reportID, reportAction) {
     const report = ReportUtils.getReport(reportID);
     if (report && report.parentReportActionID) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-            value: {
-                [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(
-                    parentReportAction,
-                    optimisticReport.lastVisibleActionCreated,
-                    CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                ),
-            },
-        });
+        if (parentReportAction && parentReportAction.reportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(
+                        parentReportAction,
+                        optimisticReport.lastVisibleActionCreated,
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    ),
+                },
+            });
+        }
     }
 
     const parameters = {
