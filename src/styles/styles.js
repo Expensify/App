@@ -21,14 +21,16 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
-import callout from './utilities/callout';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 
 function getTransparentColor(color, transparency = '') {
     return `${color}${transparency}`;
 }
+
+const touchCalloutNone = Browser.getBrowser() === CONST.BROWSER.SAFARI && Browser.isMobile() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -134,7 +136,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
-            ...callout.calloutNone,
+            ...touchCalloutNone,
         },
 
         p: {
