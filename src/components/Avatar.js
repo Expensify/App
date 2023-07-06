@@ -63,6 +63,7 @@ const defaultProps = {
 
 function Avatar(props) {
     const [imageError, setImageError] = useState(false);
+    // Avoid using cached image that loaded failed.
     const [cacheBuster, setCacheBuster] = useState(0);
     
     useOnNetworkReconnect(() => setImageError(false));
@@ -107,9 +108,12 @@ function Avatar(props) {
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
-                        source={{uri: props.source, params: {cacheBuster}}}
+                        source={{uri: `${props.source}${'?'.includes(props.source)?'&':'?'}cacheBuster=${cacheBuster}`}}
                         style={imageStyle}
-                        onError={() => {setImageError(true); setCacheBuster(cacheBuster + 1)}}
+                        onError={() => {
+                            setImageError(true);
+                            setCacheBuster(prevCacheBuster => prevCacheBuster + 1)
+                        }}
                     />
                 </View>
             )}
