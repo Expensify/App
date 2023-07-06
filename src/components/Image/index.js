@@ -35,7 +35,7 @@ class Image extends React.Component {
             const authToken = lodashGet(this.props, 'session.encryptedAuthToken', null);
 
             const url = new URL(source.uri);
-            url.searchParams.append('encryptedAuthToken', encodeURIComponent(authToken));
+            url.searchParams.append('encryptedAuthToken', authToken);
             imageSource = {uri: url.href};
         }
 
