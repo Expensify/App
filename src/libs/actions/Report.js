@@ -930,7 +930,7 @@ const removeLinksFromHtml = (html, links) => {
     let htmlCopy = html.slice();
     _.forEach(links, (link) => {
         // We want to match the anchor tag of the link and replace the whole anchor tag with the text of the anchor tag
-        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'gi');
+        const regex = new RegExp(`<(a)[^><]*href\\s*=\\s*(['"])(${Str.escapeForRegExp(link)})\\2(?:".*?"|'.*?'|[^'"><])*>([\\s\\S]*?)<\\/\\1>(?![^<]*(<\\/pre>|<\\/code>))`, 'g');
         htmlCopy = htmlCopy.replace(regex, '$4');
     });
     return htmlCopy;
@@ -1177,7 +1177,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
 function navigateToConciergeChat() {
     if (!conciergeChatReportID) {
         // In order not to delay the report life cycle, we first navigate to the unknown report
-        if (_.isEmpty(Navigation.getReportIDFromRoute())) {
+        if (!Navigation.getReportIDFromRoute()) {
             Navigation.navigate(ROUTES.REPORT);
         }
         // In order to avoid creating concierge repeatedly,
@@ -1316,6 +1316,8 @@ function deleteReport(reportID) {
  * @param {String} reportID The reportID of the policy report (workspace room)
  */
 function navigateToConciergeChatAndDeleteReport(reportID) {
+    // Dismiss the current report screen and replace it with Concierge Chat
+    Navigation.goBack();
     navigateToConciergeChat();
     deleteReport(reportID);
 }
@@ -1431,7 +1433,7 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
     }
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible() && Visibility.hasFocus()) {
+    if (reportID === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus()) {
         Log.info(`${tag} No notification because it was a comment for the current report`);
         return false;
     }
@@ -1633,12 +1635,18 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
 /**
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * @param {String} reportID
- * @param {Object} reportAction
+ * @param {String} reportActionID
  * @param {Object} emoji
  * @param {number} paramSkinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportAction, emoji, paramSkinTone = preferredSkinTone) {
+function toggleEmojiReaction(reportID, reportActionID, emoji, paramSkinTone = preferredSkinTone) {
+    const reportAction = ReportActionsUtils.getReportAction(reportID, reportActionID);
+
+    if (_.isEmpty(reportAction)) {
+        return;
+    }
+
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
