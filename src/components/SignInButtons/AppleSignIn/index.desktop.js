@@ -5,7 +5,7 @@ import IconButton from '../IconButton';
 import CONFIG from '../../../CONFIG';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
-import appleLogoIcon from '../../../../assets/images/signIn/apple-logo.svg';
+import * as Expensicons from '../../Icon/Expensicons';
 
 const propTypes = {...withLocalizePropTypes};
 
@@ -27,7 +27,7 @@ function AppleSignIn(props) {
                 onPress={() => {
                     window.open(appleSignInWebRouteForDesktopFlow);
                 }}
-                icon={appleLogoIcon}
+                icon={Expensicons.AppleLogo}
             />
         </View>
     );

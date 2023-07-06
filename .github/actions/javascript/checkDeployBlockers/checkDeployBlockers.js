@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const core = require('@actions/core');
+const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 
 const run = function () {
@@ -9,8 +10,8 @@ const run = function () {
 
     return GithubUtils.octokit.issues
         .get({
-            owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.APP_REPO,
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
             issue_number: issueNumber,
         })
         .then(({data}) => {
@@ -25,8 +26,8 @@ const run = function () {
             }
 
             return GithubUtils.octokit.issues.listComments({
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 issue_number: issueNumber,
                 per_page: 100,
             });

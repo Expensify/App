@@ -89,6 +89,10 @@ function applyStrikeThrough(children) {
 
 function OfflineWithFeedback(props) {
     const hasErrors = !_.isEmpty(props.errors);
+
+    // Some errors have a null message. This is used to apply opacity only and to avoid showing redundant messages.
+    const errorMessages = _.omit(props.errors, (e) => e === null);
+    const hasErrorMessages = !_.isEmpty(errorMessages);
     const isOfflinePendingAction = props.network.isOffline && props.pendingAction;
     const isUpdateOrDeleteError = hasErrors && (props.pendingAction === 'delete' || props.pendingAction === 'update');
     const isAddError = hasErrors && props.pendingAction === 'add';
@@ -111,18 +115,18 @@ function OfflineWithFeedback(props) {
                     {children}
                 </View>
             )}
-            {props.shouldShowErrorMessages && hasErrors && (
+            {props.shouldShowErrorMessages && hasErrorMessages && (
                 <View style={StyleUtils.combineStyles(styles.offlineFeedback.error, props.errorRowStyles)}>
                     <DotIndicatorMessage
                         style={[styles.flex1]}
-                        messages={props.errors}
+                        messages={errorMessages}
                         type="error"
                     />
                     <Tooltip text={props.translate('common.close')}>
                         <PressableWithoutFeedback
                             onPress={props.onClose}
                             style={[styles.touchableButtonImage]}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={props.translate('common.close')}
                         >
                             <Icon src={Expensicons.Close} />

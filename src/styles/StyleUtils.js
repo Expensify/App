@@ -9,6 +9,7 @@ import styles from './styles';
 import spacing from './utilities/spacing';
 import * as UserUtils from '../libs/UserUtils';
 import * as Browser from '../libs/Browser';
+import cursor from './utilities/cursor';
 
 const workspaceColorOptions = [
     {backgroundColor: colors.blue200, fill: colors.blue700},
@@ -190,7 +191,7 @@ function getAvatarBorderStyle(size, type) {
  * @returns {Object}
  */
 function getDefaultWorkspaceAvatarColor(workspaceName) {
-    const colorHash = UserUtils.hashLogin(workspaceName.trim(), workspaceColorOptions.length);
+    const colorHash = UserUtils.hashText(workspaceName.trim(), workspaceColorOptions.length);
 
     return workspaceColorOptions[colorHash];
 }
@@ -351,6 +352,18 @@ function getBackgroundAndBorderStyle(backgroundColor) {
 function getBackgroundColorStyle(backgroundColor) {
     return {
         backgroundColor,
+    };
+}
+
+/**
+ * Returns a style for text color
+ *
+ * @param {String} color
+ * @returns {Object}
+ */
+function getTextColorStyle(color) {
+    return {
+        color,
     };
 }
 
@@ -689,15 +702,34 @@ function convertRGBToUnitValues(red, green, blue) {
 }
 
 /**
+ * Matches an RGBA or RGB color value and extracts the color components.
+ *
+ * @param {string} color - The RGBA or RGB color value to match and extract components from.
+ * @returns {Array} An array containing the extracted color components [red, green, blue, alpha].
+ * Returns null if the input string does not match the pattern.
+ */
+function extractValuesFromRGB(color) {
+    const rgbaPattern = /rgba?\((?<r>[.\d]+)[, ]+(?<g>[.\d]+)[, ]+(?<b>[.\d]+)(?:\s?[,/]\s?(?<a>[.\d]+%?))?\)$/i;
+    const matchRGBA = color.match(rgbaPattern);
+    if (matchRGBA) {
+        const [, red, green, blue, alpha] = matchRGBA;
+        return [parseInt(red, 10), parseInt(green, 10), parseInt(blue, 10), alpha ? parseFloat(alpha) : 1];
+    }
+
+    return null;
+}
+
+/**
  * Determines the theme color for a modal based on the app's background color,
  * the modal's backdrop, and the backdrop's opacity.
  *
+ * @param {String} bgColor - theme background color
  * @returns {String} The theme color as an RGB value.
  */
-function getThemeBackgroundColor() {
+function getThemeBackgroundColor(bgColor = themeColors.appBG) {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(themeColors.appBG);
+    const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) || hexadecimalToRGBArray(bgColor);
     const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
@@ -1184,6 +1216,34 @@ function getOuterModalStyle(windowHeight, viewportOffsetTop) {
     return Browser.isMobile() ? {maxHeight: windowHeight, marginTop: viewportOffsetTop} : {};
 }
 
+/**
+ * Returns style object for flexWrap depending on the screen size
+ * @param {Boolean} isExtraSmallScreenWidth
+ * @return {Object}
+ */
+function getWrappingStyle(isExtraSmallScreenWidth) {
+    return {
+        flexWrap: isExtraSmallScreenWidth ? 'wrap' : 'nowrap',
+    };
+}
+
+/**
+ * Returns link styles based on whether the link is disabled or not
+ * @param {Boolean} isDisabled
+ * @returns {Object}
+ */
+function getDisabledLinkStyles(isDisabled = false) {
+    const disabledLinkStyles = {
+        color: themeColors.textSupporting,
+        ...cursor.cursorDisabled,
+    };
+
+    return {
+        ...styles.link,
+        ...(isDisabled ? disabledLinkStyles : {}),
+    };
+}
+
 export {
     getAvatarSize,
     getAvatarStyle,
@@ -1200,6 +1260,7 @@ export {
     getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
+    getTextColorStyle,
     getBorderColorStyle,
     getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
@@ -1250,4 +1311,6 @@ export {
     getMentionTextColor,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
+    getWrappingStyle,
+    getDisabledLinkStyles,
 };

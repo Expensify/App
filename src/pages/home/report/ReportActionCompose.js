@@ -21,15 +21,13 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import willBlurTextInputOnTapOutside from '../../../libs/willBlurTextInputOnTapOutside';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import CONST from '../../../CONST';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import participantPropTypes from '../../../components/participantPropTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import {withNetwork} from '../../../components/OnyxProvider';
 import * as User from '../../../libs/actions/User';
 import Tooltip from '../../../components/Tooltip';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -52,6 +50,7 @@ import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
 import * as TaskUtils from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
+import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 
 const propTypes = {
@@ -146,13 +145,14 @@ const {RNTextInputReset} = NativeModules;
  * @returns {Number}
  */
 const getMaxArrowIndex = (numRows, isAutoSuggestionPickerLarge) => {
-    // EmojiRowCount is number of emoji suggestions. For small screen we can fit 3 items and for large we show up to 5 items
-    const emojiRowCount = isAutoSuggestionPickerLarge
-        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS)
-        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_ITEMS);
+    // rowCount is number of emoji/mention suggestions. For small screen we can fit 3 items
+    // and for large we show up to 20 items for mentions/emojis
+    const rowCount = isAutoSuggestionPickerLarge
+        ? Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS)
+        : Math.min(numRows, CONST.AUTO_COMPLETE_SUGGESTER.MIN_AMOUNT_OF_SUGGESTIONS);
 
     // -1 because we start at 0
-    return emojiRowCount - 1;
+    return rowCount - 1;
 };
 
 class ReportActionCompose extends React.Component {
@@ -182,7 +182,9 @@ class ReportActionCompose extends React.Component {
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
+        this.debouncedUpdateFrequentlyUsedEmojis = _.debounce(this.debouncedUpdateFrequentlyUsedEmojis.bind(this), 1000, false);
         this.comment = props.comment;
+        this.insertedEmojis = [];
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -236,6 +238,14 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
+        // This listener is used for focusing the composer again after going back to a report without remounting it.
+        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
+            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
+                return;
+            }
+            this.focus();
+        });
+
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -244,6 +254,10 @@ class ReportActionCompose extends React.Component {
                 routes: lodashGet(this.props.navigation.getState(), 'routes', []),
                 showPopoverMenu: this.showPopoverMenu,
             });
+        }
+
+        if (this.props.comment.length !== 0) {
+            Report.setReportWithDraft(this.props.reportID, true);
         }
     }
 
@@ -270,6 +284,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+        if (!this.unsubscribeNavFocus) {
+            return;
+        }
+        this.unsubscribeNavFocus();
     }
 
     onSelectionChange(e) {
@@ -370,20 +388,20 @@ class ReportActionCompose extends React.Component {
             [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: {
                 icon: Expensicons.Receipt,
                 text: this.props.translate('iou.splitBill'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouSplitRoute(this.props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: {
                 icon: Expensicons.MoneyCircle,
                 text: this.props.translate('iou.requestMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIouRequestRoute(this.props.reportID)),
             },
             [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: {
                 icon: Expensicons.Send,
                 text: this.props.translate('iou.sendMoney'),
-                onSelected: () => Navigation.navigate(ROUTES.getIOUSendRoute(this.props.reportID)),
             },
         };
-        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), (option) => options[option]);
+        return _.map(ReportUtils.getMoneyRequestOptions(this.props.report, reportParticipants, this.props.betas), (option) => ({
+            ...options[option],
+            onSelected: () => IOU.startMoneyRequest(option, this.props.report.reportID),
+        }));
     }
 
     /**
@@ -415,7 +433,7 @@ class ReportActionCompose extends React.Component {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
         if (
             !Permissions.canUseTasks(this.props.betas) ||
-            (lodashGet(this.props.report, 'participants', []).length === 1 && _.some(reportParticipants, (email) => _.contains(CONST.EXPENSIFY_EMAILS, email)))
+            (lodashGet(this.props.report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
         ) {
             return [];
         }
@@ -452,6 +470,10 @@ class ReportActionCompose extends React.Component {
         }
 
         const filteredPersonalDetails = _.filter(_.values(personalDetails), (detail) => {
+            // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
+            if (!detail.login) {
+                return false;
+            }
             if (searchValue && !`${detail.displayName} ${detail.login}`.toLowerCase().includes(searchValue.toLowerCase())) {
                 return false;
             }
@@ -459,7 +481,7 @@ class ReportActionCompose extends React.Component {
         });
 
         const sortedPersonalDetails = _.sortBy(filteredPersonalDetails, (detail) => detail.displayName || detail.login);
-        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_ITEMS - suggestions.length), (detail) => {
+        _.each(_.first(sortedPersonalDetails, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length), (detail) => {
             suggestions.push({
                 text: detail.displayName,
                 alternateText: detail.login,
@@ -625,8 +647,8 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
+        this.insertedEmojis = [...this.insertedEmojis, emojiObject];
+        this.debouncedUpdateFrequentlyUsedEmojis(emojiObject);
     }
 
     /**
@@ -659,11 +681,11 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, `${emoji} `));
         this.setState((prevState) => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
+                end: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
             },
         }));
     }
@@ -712,16 +734,26 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
+    debouncedUpdateFrequentlyUsedEmojis() {
+        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(this.insertedEmojis));
+        this.insertedEmojis = [];
+    }
+
+    /**
      * Update the value of the comment in Onyx
      *
      * @param {String} comment
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.preferredSkinTone);
 
         if (!_.isEmpty(emojis)) {
-            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+            this.insertedEmojis = [...this.insertedEmojis, ...emojis];
+            this.debouncedUpdateFrequentlyUsedEmojis();
         }
 
         this.setState((prevState) => {
@@ -893,11 +925,11 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
-        const reportParticipants = _.without(lodashGet(this.props.report, 'participants', []), this.props.currentUserPersonalDetails.login);
-        const participantsWithoutExpensifyEmails = _.difference(reportParticipants, CONST.EXPENSIFY_EMAILS);
-        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyEmails[0]];
+        const reportParticipants = _.without(lodashGet(this.props.report, 'participantAccountIDs', []), this.props.currentUserPersonalDetails.accountID);
+        const participantsWithoutExpensifyAccountIDs = _.difference(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS);
+        const reportRecipient = this.props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
         const shouldShowReportRecipientLocalTime =
-            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.login) && !this.props.isComposerFullSize;
+            ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.report, this.props.currentUserPersonalDetails.accountID) && !this.props.isComposerFullSize;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
@@ -949,7 +981,7 @@ class ReportActionCompose extends React.Component {
                                                     style={[
                                                         styles.dFlex,
                                                         styles.flexColumn,
-                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentEnd,
+                                                        isFullComposerAvailable || this.props.isComposerFullSize ? styles.justifyContentBetween : styles.justifyContentCenter,
                                                     ]}
                                                 >
                                                     {this.props.isComposerFullSize && (
@@ -964,7 +996,7 @@ class ReportActionCompose extends React.Component {
                                                                 onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                accessibilityRole="button"
+                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                                 accessibilityLabel={this.props.translate('reportActionCompose.collapse')}
                                                             >
                                                                 <Icon src={Expensicons.Collapse} />
@@ -983,7 +1015,7 @@ class ReportActionCompose extends React.Component {
                                                                 onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                accessibilityRole="button"
+                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                                 accessibilityLabel={this.props.translate('reportActionCompose.expand')}
                                                             >
                                                                 <Icon src={Expensicons.Expand} />
@@ -1002,7 +1034,7 @@ class ReportActionCompose extends React.Component {
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
-                                                            accessibilityRole="button"
+                                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                             accessibilityLabel={this.props.translate('reportActionCompose.addAction')}
                                                         >
                                                             <Icon src={Expensicons.Plus} />
@@ -1131,7 +1163,7 @@ class ReportActionCompose extends React.Component {
                                     style={[styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                     onPress={this.submitForm}
                                     disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={this.props.translate('common.send')}
                                 >
                                     <Icon
@@ -1220,7 +1252,6 @@ export default compose(
     withNavigationFocus,
     withLocalize,
     withNetwork(),
-    withPersonalDetails(),
     withCurrentUserPersonalDetails,
     withKeyboardState,
     withOnyx({
@@ -1244,7 +1275,7 @@ export default compose(
             selector: EmojiUtils.getPreferredSkinToneIndex,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         shouldShowComposeInput: {
             key: ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,

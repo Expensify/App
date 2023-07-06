@@ -3,6 +3,7 @@ import AdminRoomAvatar from '../../../assets/images/avatars/admin-room.svg';
 import Android from '../../../assets/images/android.svg';
 import AnnounceRoomAvatar from '../../../assets/images/avatars/announce-room.svg';
 import Apple from '../../../assets/images/apple.svg';
+import AppleLogo from '../../../assets/images/signIn/apple-logo.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import ArrowRightLong from '../../../assets/images/arrow-right-long.svg';
 import ArrowsUpDown from '../../../assets/images/arrows-updown.svg';
@@ -60,6 +61,7 @@ import Keyboard from '../../../assets/images/keyboard.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
 import Lock from '../../../assets/images/lock.svg';
+import LoungeAccess from '../../../assets/images/lounge-access.svg';
 import Luggage from '../../../assets/images/luggage.svg';
 import MagnifyingGlass from '../../../assets/images/magnifying-glass.svg';
 import Mail from '../../../assets/images/mail.svg';
@@ -123,6 +125,7 @@ export {
     Android,
     AnnounceRoomAvatar,
     Apple,
+    AppleLogo,
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
@@ -185,6 +188,7 @@ export {
     Link,
     LinkCopy,
     Lock,
+    LoungeAccess,
     Luggage,
     MagnifyingGlass,
     Mail,

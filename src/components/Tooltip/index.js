@@ -8,6 +8,8 @@ import withWindowDimensions from '../withWindowDimensions';
 import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import compose from '../../libs/compose';
+import withLocalize from '../withLocalize';
 
 /**
  * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
@@ -43,6 +45,17 @@ class Tooltip extends PureComponent {
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
         this.updateBounds = this.updateBounds.bind(this);
+        this.isAnimationCanceled = React.createRef(false);
+    }
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    componentDidUpdate(prevProps) {
+        // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
+        // we need to show the tooltip again
+        if (this.state.isVisible && this.isAnimationCanceled.current && this.props.text && prevProps.text !== this.props.text) {
+            this.isAnimationCanceled.current = false;
+            this.showTooltip();
+        }
     }
 
     /**
@@ -84,7 +97,9 @@ class Tooltip extends PureComponent {
                 duration: 140,
                 delay: 500,
                 useNativeDriver: false,
-            }).start();
+            }).start(({finished}) => {
+                this.isAnimationCanceled.current = !finished;
+            });
         }
         TooltipSense.activate();
     }
@@ -137,7 +152,7 @@ class Tooltip extends PureComponent {
                         renderTooltipContent={this.props.renderTooltipContent}
                         // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                         // This prevents flickering/moving while remaining performant.
-                        key={[this.props.text, ...this.props.renderTooltipContentKey]}
+                        key={[this.props.text, ...this.props.renderTooltipContentKey, this.props.preferredLocale]}
                     />
                 )}
                 <BoundsObserver
@@ -158,4 +173,4 @@ class Tooltip extends PureComponent {
 
 Tooltip.propTypes = tooltipPropTypes.propTypes;
 Tooltip.defaultProps = tooltipPropTypes.defaultProps;
-export default withWindowDimensions(Tooltip);
+export default compose(withWindowDimensions, withLocalize)(Tooltip);

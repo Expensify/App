@@ -51,38 +51,38 @@ function ACHContractStep(props) {
                 _.each(requiredFields, (inputKey) => {
                     if (!ValidationUtils.isRequiredFulfilled(values[`beneficialOwner_${ownerKey}_${inputKey}`])) {
                         const errorKey = errorKeys[inputKey] || inputKey;
-                        errors[`beneficialOwner_${ownerKey}_${inputKey}`] = props.translate(`bankAccount.error.${errorKey}`);
+                        errors[`beneficialOwner_${ownerKey}_${inputKey}`] = `bankAccount.error.${errorKey}`;
                     }
                 });
 
                 if (values[`beneficialOwner_${ownerKey}_dob`]) {
                     if (!ValidationUtils.meetsMinimumAgeRequirement(values[`beneficialOwner_${ownerKey}_dob`])) {
-                        errors[`beneficialOwner_${ownerKey}_dob`] = props.translate('bankAccount.error.age');
+                        errors[`beneficialOwner_${ownerKey}_dob`] = 'bankAccount.error.age';
                     } else if (!ValidationUtils.meetsMaximumAgeRequirement(values[`beneficialOwner_${ownerKey}_dob`])) {
-                        errors[`beneficialOwner_${ownerKey}_dob`] = props.translate('bankAccount.error.dob');
+                        errors[`beneficialOwner_${ownerKey}_dob`] = 'bankAccount.error.dob';
                     }
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_ssnLast4`] && !ValidationUtils.isValidSSNLastFour(values[`beneficialOwner_${ownerKey}_ssnLast4`])) {
-                    errors[`beneficialOwner_${ownerKey}_ssnLast4`] = props.translate('bankAccount.error.ssnLast4');
+                    errors[`beneficialOwner_${ownerKey}_ssnLast4`] = 'bankAccount.error.ssnLast4';
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_street`] && !ValidationUtils.isValidAddress(values[`beneficialOwner_${ownerKey}_street`])) {
-                    errors[`beneficialOwner_${ownerKey}_street`] = props.translate('bankAccount.error.addressStreet');
+                    errors[`beneficialOwner_${ownerKey}_street`] = 'bankAccount.error.addressStreet';
                 }
 
                 if (values[`beneficialOwner_${ownerKey}_zipCode`] && !ValidationUtils.isValidZipCode(values[`beneficialOwner_${ownerKey}_zipCode`])) {
-                    errors[`beneficialOwner_${ownerKey}_zipCode`] = props.translate('bankAccount.error.zipCode');
+                    errors[`beneficialOwner_${ownerKey}_zipCode`] = 'bankAccount.error.zipCode';
                 }
             });
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
-            errors.acceptTermsAndConditions = props.translate('common.error.acceptTerms');
+            errors.acceptTermsAndConditions = 'common.error.acceptTerms';
         }
 
         if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
-            errors.certifyTrueInformation = props.translate('beneficialOwnersStep.error.certify');
+            errors.certifyTrueInformation = 'beneficialOwnersStep.error.certify';
         }
 
         return errors;
@@ -166,6 +166,7 @@ function ACHContractStep(props) {
                             <Text>{props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                         </Text>
                         <CheckboxWithLabel
+                            accessibilityLabel={props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
                             inputID="ownsMoreThan25Percent"
                             style={[styles.mb2]}
                             LabelComponent={() => (
@@ -186,6 +187,7 @@ function ACHContractStep(props) {
                             shouldSaveDraft
                         />
                         <CheckboxWithLabel
+                            accessibilityLabel={props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
                             inputID="hasOtherBeneficialOwners"
                             style={[styles.mb2]}
                             LabelComponent={() => (
@@ -251,6 +253,7 @@ function ACHContractStep(props) {
                         )}
                         <Text style={[styles.mv5]}>{props.translate('beneficialOwnersStep.agreement')}</Text>
                         <CheckboxWithLabel
+                            accessibilityLabel={`${props.translate('common.iAcceptThe')} ${props.translate('beneficialOwnersStep.termsAndConditions')}`}
                             inputID="acceptTermsAndConditions"
                             style={[styles.mt4]}
                             LabelComponent={() => (
@@ -263,6 +266,7 @@ function ACHContractStep(props) {
                             shouldSaveDraft
                         />
                         <CheckboxWithLabel
+                            accessibilityLabel={props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}
                             inputID="certifyTrueInformation"
                             style={[styles.mt4]}
                             LabelComponent={() => <Text>{props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>}

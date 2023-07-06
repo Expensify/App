@@ -16,19 +16,12 @@ import CONST from '../../CONST';
 
 const propTypes = {
     /** Which sign in provider we are using. */
-    signInProvider: PropTypes.oneOf(['google', 'apple']).isRequired,
+    signInProvider: PropTypes.oneOf([CONST.SIGN_IN_METHOD.APPLE, CONST.SIGN_IN_METHOD.GOOGLE]).isRequired,
 
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
 };
-
-/**
- * Creates a function to capitalize the first letter of the providor
- * being passed to the translate function.
- */
-
-const capitalize = (word) => word.charAt(0).toUpperCase() + word.slice(1);
 
 /* Dedicated screen that the desktop app links to on the web app, as Apple/Google
  * sign-in cannot work fully within Electron, so we escape to web and redirect
@@ -47,7 +40,7 @@ function ThirdPartySignInPage(props) {
             >
                 {props.signInProvider === CONST.SIGN_IN_METHOD.APPLE ? <AppleSignIn isDesktopFlow /> : <GoogleSignIn isDesktopFlow />}
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
-                <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.goBackMessage', {provider: capitalize(props.signInProvider)})}</Text>
+                <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.goBackMessage', {provider: props.signInProvider})}</Text>
                 <TextLink
                     style={[styles.link]}
                     onPress={goBack}
