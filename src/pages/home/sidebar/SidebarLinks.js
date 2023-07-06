@@ -101,7 +101,6 @@ const propTypes = {
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
 
-    ...withCurrentReportIDPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationPropTypes,
 };
@@ -115,7 +114,6 @@ const defaultProps = {
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     modal: {},
-    ...withCurrentReportIDDefaultProps,
 };
 
 class SidebarLinks extends React.Component {
