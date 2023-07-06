@@ -309,7 +309,7 @@ function OptionRowLHN(props) {
 
 OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
-OptionRowLHN.displayName = 'OptionRowIsFocusedSupport';
+OptionRowLHN.displayName = 'OptionRowLHN';
 
 export default compose(
     withLocalize,
