@@ -63,7 +63,8 @@ const defaultProps = {
 
 function Avatar(props) {
     const [imageError, setImageError] = useState(false);
-    // Avoid using cached image that loaded failed.
+
+    // Force the browser to fetch failed images from source and not from cache by altering the uri (adding the cacheBuster parameter).
     const [cacheBuster, setCacheBuster] = useState(0);
     
     useOnNetworkReconnect(() => setImageError(false));
@@ -84,6 +85,12 @@ function Avatar(props) {
 
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(props.name).fill : props.fill;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(props.name) : props.fallbackIcon;
+
+    const getImageURL= () => {
+        const url = new URL(props.source);
+        url.searchParams.append('cacheBuster', cacheBuster);
+        return url.href;
+    }
 
     return (
         <View
@@ -108,11 +115,11 @@ function Avatar(props) {
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
-                        source={{uri: `${props.source}${'?'.includes(props.source)?'&':'?'}cacheBuster=${cacheBuster}`}}
+                        source={{uri: getImageURL()}}
                         style={imageStyle}
                         onError={() => {
                             setImageError(true);
-                            setCacheBuster(prevCacheBuster => prevCacheBuster + 1)
+                            setCacheBuster(prevCacheBuster => prevCacheBuster + 1);
                         }}
                     />
                 </View>
