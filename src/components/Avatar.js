@@ -107,7 +107,7 @@ function Avatar(props) {
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
                         source={{uri: props.source}}
-                        style={imageStyle}
+                        style={[imageStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type)]}
                         onError={() => setImageError(true)}
                     />
                 </View>

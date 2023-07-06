@@ -2414,6 +2414,10 @@ function shouldReportShowSubscript(report) {
         return true;
     }
 
+    if (isExpenseRequest(report)) {
+        return true;
+    }
+
     if (isWorkspaceTaskReport(report)) {
         return true;
     }
