@@ -22,7 +22,7 @@ const propTypes = {
     ...withNavigationPropTypes,
 };
 
-const ThreePaneView = (props) => {
+function ThreePaneView(props) {
     const lastCentralPaneIndex = _.findLastIndex(props.state.routes, {name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR});
 
     return (
@@ -80,7 +80,7 @@ const ThreePaneView = (props) => {
             })}
         </View>
     );
-};
+}
 
 ThreePaneView.propTypes = propTypes;
 ThreePaneView.displayName = 'ThreePaneView';

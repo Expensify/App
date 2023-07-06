@@ -384,7 +384,7 @@ The [preDeploy workflow](https://github.com/Expensify/App/blob/main/.github/work
 - If the `StagingDeployCash` is locked, comment on the merged PR that it will be deployed later.
 - Otherwise:
   - Create a new version by triggering the [`createNewVersion` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/createNewVersion.yml)
-  - Use the [`updateProtectedBranch` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/updateProtectedBranch.yml) to update the `staging` branch.
+  - Update the `staging` branch from main.
 - Also, if the pull request has the `CP Staging` label, it will execute the [`cherryPick` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/cherryPick.yml) to deploy the pull request directly to staging, even if the `StagingDeployCash` is locked.
 
 ### deploy

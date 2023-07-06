@@ -121,7 +121,7 @@ const pressablePropTypes = {
 };
 
 const defaultProps = {
-    onPress: undefined,
+    onPress: () => {},
     keyboardShortcut: undefined,
     shouldUseHapticsOnPress: false,
     shouldUseHapticsOnLongPress: false,

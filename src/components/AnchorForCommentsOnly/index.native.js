@@ -6,7 +6,7 @@ import * as anchorForCommentsOnlyPropTypes from './anchorForCommentsOnlyPropType
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const AnchorForCommentsOnly = (props) => {
+function AnchorForCommentsOnly(props) {
     const onPress = () => (_.isFunction(props.onPress) ? props.onPress() : Linking.openURL(props.href));
 
     return (
@@ -16,7 +16,7 @@ const AnchorForCommentsOnly = (props) => {
             onPress={onPress}
         />
     );
-};
+}
 
 AnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes.propTypes;
 AnchorForCommentsOnly.defaultProps = anchorForCommentsOnlyPropTypes.defaultProps;

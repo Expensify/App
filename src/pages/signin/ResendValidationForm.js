@@ -49,7 +49,7 @@ const defaultProps = {
     account: {},
 };
 
-const ResendValidationForm = (props) => {
+function ResendValidationForm(props) {
     const isSMSLogin = Str.isSMSLogin(props.credentials.login);
 
     // replacing spaces with "hard spaces" to prevent breaking the number
@@ -94,7 +94,7 @@ const ResendValidationForm = (props) => {
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     onPress={() => redirectToSignIn()}
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={props.translate('common.back')}
                     // disable hover dim for switch
                     hoverDimmingValue={1}
@@ -113,7 +113,7 @@ const ResendValidationForm = (props) => {
             </View>
         </>
     );
-};
+}
 
 ResendValidationForm.propTypes = propTypes;
 ResendValidationForm.defaultProps = defaultProps;

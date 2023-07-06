@@ -14,6 +14,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps as anchorForCommentsOnlyDefaultProps} from './anchorForCommentsOnlyPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -39,7 +40,7 @@ const defaultProps = {
 /*
  * This is a default anchor component for regular links.
  */
-const BaseAnchorForCommentsOnly = (props) => {
+function BaseAnchorForCommentsOnly(props) {
     let linkRef;
     const rest = _.omit(props, _.keys(propTypes));
     const linkProps = {};
@@ -48,7 +49,7 @@ const BaseAnchorForCommentsOnly = (props) => {
     } else {
         linkProps.href = props.href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : styles.userSelectText;
+    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
@@ -66,12 +67,14 @@ const BaseAnchorForCommentsOnly = (props) => {
             onPress={linkProps.onPress}
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            accessibilityLabel={props.href}
         >
             <Tooltip text={props.href}>
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
-                    accessibilityRole="link"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     hrefAttrs={{
                         rel: props.rel,
                         target: isEmail ? '_self' : props.target,
@@ -87,7 +90,7 @@ const BaseAnchorForCommentsOnly = (props) => {
             </Tooltip>
         </PressableWithSecondaryInteraction>
     );
-};
+}
 
 BaseAnchorForCommentsOnly.propTypes = propTypes;
 BaseAnchorForCommentsOnly.defaultProps = defaultProps;

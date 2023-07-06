@@ -8,7 +8,7 @@ const withNavigationPropTypes = {
 };
 
 export default function withNavigation(WrappedComponent) {
-    const WithNavigation = (props) => {
+    function WithNavigation(props) {
         const navigation = useNavigation();
         return (
             <WrappedComponent
@@ -18,7 +18,7 @@ export default function withNavigation(WrappedComponent) {
                 navigation={navigation}
             />
         );
-    };
+    }
 
     WithNavigation.displayName = `withNavigation(${getComponentDisplayName(WrappedComponent)})`;
     WithNavigation.propTypes = {

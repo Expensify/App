@@ -34,7 +34,7 @@ const defaultProps = {
     ...anchorForAttachmentsOnlyDefaultProps,
 };
 
-const BaseAnchorForAttachmentsOnly = (props) => {
+function BaseAnchorForAttachmentsOnly(props) {
     const sourceURL = props.source;
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL);
     const sourceID = (sourceURL.match(CONST.REGEX.ATTACHMENT_ID) || [])[1];
@@ -58,7 +58,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
                     onPressOut={props.onPressOut}
                     onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
                     accessibilityLabel={fileName}
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 >
                     <AttachmentView
                         source={sourceURLWithAuth}
@@ -70,7 +70,7 @@ const BaseAnchorForAttachmentsOnly = (props) => {
             )}
         </ShowContextMenuContext.Consumer>
     );
-};
+}
 
 BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
 BaseAnchorForAttachmentsOnly.propTypes = propTypes;

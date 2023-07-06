@@ -1,15 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import * as Link from '../../libs/actions/Link';
 import Icon from '../../components/Icon';
-import Text from '../../components/Text';
+import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
-import Hoverable from '../../components/Hoverable';
-import TextLink from '../../components/TextLink';
 
 const socialsList = [
     {
@@ -34,29 +33,34 @@ const socialsList = [
     },
 ];
 
-const Socials = () => (
-    <Text>
-        {_.map(socialsList, (social) => (
-            <Hoverable key={social.link}>
-                {(hovered) => (
-                    <View>
-                        <TextLink
-                            style={styles.pr1}
-                            href={social.link}
-                        >
-                            <Icon
-                                src={social.iconURL}
-                                height={variables.iconSizeLarge}
-                                width={variables.iconSizeLarge}
-                                fill={hovered ? themeColors.link : themeColors.textLight}
-                            />
-                        </TextLink>
-                    </View>
-                )}
-            </Hoverable>
-        ))}
-    </Text>
-);
+function Socials() {
+    return (
+        <View style={[styles.flexRow, styles.flexWrap]}>
+            {_.map(socialsList, (social) => (
+                <PressableWithoutFeedback
+                    key={social.link}
+                    href={social.link}
+                    onPress={(e) => {
+                        e.preventDefault();
+                        Link.openExternalLink(social.link);
+                    }}
+                    accessible={false}
+                    style={[styles.mr1, styles.mt1]}
+                    shouldUseAutoHitSlop={false}
+                >
+                    {({hovered, pressed}) => (
+                        <Icon
+                            src={social.iconURL}
+                            height={variables.iconSizeLarge}
+                            width={variables.iconSizeLarge}
+                            fill={hovered || pressed ? themeColors.link : themeColors.textLight}
+                        />
+                    )}
+                </PressableWithoutFeedback>
+            ))}
+        </View>
+    );
+}
 
 Socials.displayName = 'Socials';
 

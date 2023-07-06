@@ -15,7 +15,13 @@ import * as User from '../../../../../libs/actions/User';
 import Button from '../../../../../components/Button';
 import DotIndicatorMessage from '../../../../../components/DotIndicatorMessage';
 import * as Session from '../../../../../libs/actions/Session';
+import shouldDelayFocus from '../../../../../libs/shouldDelayFocus';
 import Text from '../../../../../components/Text';
+import {withNetwork} from '../../../../../components/OnyxProvider';
+import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
+import themeColors from '../../../../../styles/themes/default';
+import * as StyleUtils from '../../../../../styles/StyleUtils';
+import CONST from '../../../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -130,6 +136,7 @@ function BaseValidateCodeForm(props) {
                 errorText={formError.validateCode ? props.translate(formError.validateCode) : ErrorUtils.getLatestErrorMessage(props.account)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus
+                shouldDelayFocus={shouldDelayFocus}
             />
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
@@ -138,12 +145,18 @@ function BaseValidateCodeForm(props) {
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateCodeSent')}
             >
                 <View style={[styles.mt2, styles.dFlex, styles.flexColumn, styles.alignItemsStart]}>
-                    <Text
-                        style={[styles.link, styles.mr1]}
+                    <PressableWithFeedback
+                        disabled={props.network.isOffline}
+                        style={[styles.mr1]}
                         onPress={resendValidateCode}
+                        underlayColor={themeColors.componentBG}
+                        hoverDimmingValue={1}
+                        pressDimmingValue={0.2}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={props.translate('contacts.resendMagicCode')}
                     >
-                        {props.translate('contacts.resendMagicCode')}
-                    </Text>
+                        <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('contacts.resendMagicCode')}</Text>
+                    </PressableWithFeedback>
                     {props.hasMagicCodeBeenSent && (
                         <DotIndicatorMessage
                             type="success"
@@ -160,6 +173,7 @@ function BaseValidateCodeForm(props) {
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateLogin')}
             >
                 <Button
+                    isDisabled={props.network.isOffline}
                     text={props.translate('common.verify')}
                     onPress={validateAndSubmitForm}
                     style={[styles.mt4]}
@@ -180,4 +194,5 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
+    withNetwork(),
 )(BaseValidateCodeForm);

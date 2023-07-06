@@ -22,7 +22,7 @@ import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 
 const propTypes = {
     /** Users accountID */
-    accountID: PropTypes.string.isRequired,
+    accountID: PropTypes.number.isRequired,
 
     /** The message fragment needing to be displayed */
     fragment: reportActionFragmentPropTypes.isRequired,
@@ -57,6 +57,9 @@ const propTypes = {
     // Additional styles to add after local styles
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** The accountID of the copilot who took this action on behalf of the user */
+    delegateAccountID: PropTypes.number,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -75,9 +78,10 @@ const defaultProps = {
     isSingleLine: false,
     source: '',
     style: [],
+    delegateAccountID: 0,
 };
 
-const ReportActionItemFragment = (props) => {
+function ReportActionItemFragment(props) {
     switch (props.fragment.type) {
         case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component
@@ -124,7 +128,7 @@ const ReportActionItemFragment = (props) => {
                     selectable={!DeviceCapabilities.canUseTouchScreen() || !props.isSmallScreenWidth}
                     style={[containsOnlyEmojis ? styles.onlyEmojisText : undefined, styles.ltr, ...props.style]}
                 >
-                    {convertToLTR(Str.htmlDecode(text))}
+                    {convertToLTR(text)}
                     {Boolean(props.fragment.isEdited) && (
                         <Text
                             fontSize={variables.fontSizeSmall}
@@ -145,7 +149,10 @@ const ReportActionItemFragment = (props) => {
         }
         case 'TEXT':
             return (
-                <UserDetailsTooltip accountID={props.accountID}>
+                <UserDetailsTooltip
+                    accountID={props.accountID}
+                    delegateAccountID={props.delegateAccountID}
+                >
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}
@@ -171,7 +178,7 @@ const ReportActionItemFragment = (props) => {
         default:
             return <Text>props.fragment.text</Text>;
     }
-};
+}
 
 ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;

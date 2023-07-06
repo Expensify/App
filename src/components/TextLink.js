@@ -5,6 +5,7 @@ import {Linking} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Link to open in new tab */
@@ -30,7 +31,8 @@ const defaultProps = {
     onMouseDown: (event) => event.preventDefault(),
 };
 
-const TextLink = (props) => {
+function TextLink(props) {
+    const rest = _.omit(props, _.keys(propTypes));
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
     /**
@@ -59,16 +61,18 @@ const TextLink = (props) => {
     return (
         <Text
             style={[styles.link, ...additionalStyles]}
-            accessibilityRole="link"
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
             href={props.href}
             onPress={openLink}
             onMouseDown={props.onMouseDown}
             onKeyDown={openLinkIfEnterKeyPressed}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
         >
             {props.children}
         </Text>
     );
-};
+}
 
 TextLink.defaultProps = defaultProps;
 TextLink.propTypes = propTypes;

@@ -22,7 +22,7 @@ const propTypes = {
     /**
      * A list of account IDs to display in the tooltip.
      */
-    accountIDs: PropTypes.arrayOf(PropTypes.string).isRequired,
+    accountIDs: PropTypes.arrayOf(PropTypes.number).isRequired,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -31,7 +31,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const ReactionTooltipContent = (props) => {
+function ReactionTooltipContent(props) {
     const users = useMemo(
         () => PersonalDetailsUtils.getPersonalDetailsByIDs(props.accountIDs, props.currentUserPersonalDetails.accountID, true),
         [props.currentUserPersonalDetails.accountID, props.accountIDs],
@@ -58,7 +58,7 @@ const ReactionTooltipContent = (props) => {
             <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{`${props.translate('emojiReactions.reactedWith')} :${props.emojiName}:`}</Text>
         </View>
     );
-};
+}
 
 ReactionTooltipContent.propTypes = propTypes;
 ReactionTooltipContent.defaultProps = defaultProps;

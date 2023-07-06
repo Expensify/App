@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -22,6 +22,8 @@ import styles from '../../../styles/styles';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import userPropTypes from '../userPropTypes';
+import * as App from '../../../libs/actions/App';
 
 const propTypes = {
     /* Onyx Props */
@@ -35,6 +37,8 @@ const propTypes = {
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
+    user: userPropTypes,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -42,10 +46,11 @@ const propTypes = {
 
 const defaultProps = {
     loginList: {},
+    user: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const ProfilePage = (props) => {
+function ProfilePage(props) {
     const getPronouns = () => {
         let pronounsKey = lodashGet(props.currentUserPersonalDetails, 'pronouns', '');
         if (pronounsKey.startsWith(CONST.PRONOUNS.PREFIX)) {
@@ -80,6 +85,10 @@ const ProfilePage = (props) => {
         },
     ];
 
+    useEffect(() => {
+        App.openProfile(props.currentUserPersonalDetails);
+    }, [props.currentUserPersonalDetails]);
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
@@ -89,7 +98,7 @@ const ProfilePage = (props) => {
             <ScrollView>
                 <AvatarWithImagePicker
                     isUsingDefaultAvatar={UserUtils.isDefaultAvatar(lodashGet(currentUserDetails, 'avatar', ''))}
-                    source={UserUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'login', ''))}
+                    source={UserUtils.getAvatar(lodashGet(currentUserDetails, 'avatar', ''), lodashGet(currentUserDetails, 'accountID', ''))}
                     onImageSelected={PersonalDetails.updateAvatar}
                     onImageRemoved={PersonalDetails.deleteAvatar}
                     anchorPosition={styles.createMenuPositionProfile(props.windowWidth)}
@@ -118,10 +127,20 @@ const ProfilePage = (props) => {
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS)}
                     shouldShowRightIcon
                 />
+                {props.user.hasLoungeAccess && (
+                    <MenuItem
+                        title={props.translate('loungeAccessPage.loungeAccess')}
+                        icon={Expensicons.LoungeAccess}
+                        iconWidth={40}
+                        iconHeight={40}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_LOUNGE_ACCESS)}
+                        shouldShowRightIcon
+                    />
+                )}
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 ProfilePage.propTypes = propTypes;
 ProfilePage.defaultProps = defaultProps;
@@ -134,6 +153,9 @@ export default compose(
     withOnyx({
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(ProfilePage);
