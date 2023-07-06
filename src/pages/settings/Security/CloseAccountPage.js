@@ -109,6 +109,7 @@ function CloseAccountPage(props) {
                         keyboardType={Str.isValidEmail(userEmailOrPhone) ? CONST.KEYBOARD_TYPE.EMAIL_ADDRESS : CONST.KEYBOARD_TYPE.DEFAULT}
                     />
                     <ConfirmModal
+                        danger
                         title={props.translate('closeAccountPage.closeAccountWarning')}
                         onConfirm={onConfirm}
                         onCancel={hideConfirmModal}

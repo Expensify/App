@@ -67,7 +67,6 @@ export default () => ({
                             text: '123 Ios',
                         },
                     ],
-                    actorEmail: 'fake3@gmail.com',
                     actorAccountID: 10773236,
                     message: [
                         {
