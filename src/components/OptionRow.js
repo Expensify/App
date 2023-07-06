@@ -182,7 +182,7 @@ class OptionRow extends Component {
                                 !this.props.onSelectRow && !this.props.isDisabled ? styles.cursorDefault : null,
                             ]}
                             accessibilityLabel={this.props.option.text}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             hoverDimmingValue={1}
                             hoverStyle={this.props.hoverStyle}
                         >

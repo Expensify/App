@@ -118,7 +118,7 @@ class BaseVideoChatButtonAndMenu extends Component {
                             })}
                             style={styles.touchableButtonImage}
                             accessibilityLabel={this.props.translate('videoChatButtonAndMenu.tooltip')}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
                             <Icon
                                 src={Expensicons.Phone}
