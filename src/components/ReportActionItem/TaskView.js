@@ -74,6 +74,8 @@ function TaskView(props) {
                                 containerBorderRadius={8}
                                 caretSize={16}
                                 accessibilityLabel={taskTitle || props.translate('task.task')}
+                                disabled={ReportUtils.isCanceledTaskReport(props.report)}
+
                             />
                             <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
