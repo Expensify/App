@@ -107,6 +107,12 @@ function ReportActionsView(props) {
                 setNewMarkerReportActionID('');
             }
         });
+        return () => {
+            if (!unsubscribeVisibilityListener.current) {
+                return;
+            }
+            unsubscribeVisibilityListener.current();
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
