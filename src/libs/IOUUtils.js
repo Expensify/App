@@ -127,7 +127,7 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
  * @returns {Boolean}
  */
 function isValidMoneyRequestType(iouType) {
-    return [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SEND, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT].includes(iouType);
+    return [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT].includes(iouType);
 }
 
 export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};

@@ -1422,7 +1422,6 @@ export default {
         deletedRequest: '[Deleted request]',
     },
     threads: {
-        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
