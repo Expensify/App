@@ -58,7 +58,12 @@ function TaskView(props) {
 
                     Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
                 })}
-                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, isCanceled), true), isCanceled && styles.buttonOpacityDisabled]}
+                style={({hovered, pressed}) => [
+                    styles.ph5,
+                    styles.pv2,
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, isCanceled), true),
+                    isCanceled && styles.buttonOpacityDisabled,
+                ]}
                 ref={props.forwardedRef}
                 disabled={!isOpen || isCanceled}
                 accessibilityLabel={taskTitle || props.translate('task.task')}
