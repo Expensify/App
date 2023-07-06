@@ -823,6 +823,7 @@ const styles = {
         alignItems: 'center',
         paddingHorizontal: 15,
         paddingRight: 5,
+        ...userSelect.userSelectNone,
     },
 
     calendarDayRoot: {
@@ -830,6 +831,7 @@ const styles = {
         height: 45,
         justifyContent: 'center',
         alignItems: 'center',
+        ...userSelect.userSelectNone,
     },
 
     calendarDayContainer: {

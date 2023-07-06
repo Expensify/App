@@ -5,7 +5,6 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../Text';
-import ScreenSlideAnimation from './ScreenSlideAnimation';
 import YearPickerPage from './YearPickerPage';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../../styles/styles';
@@ -16,16 +15,17 @@ import getButtonState from '../../../libs/getButtonState';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
+import Modal from '../../Modal';
 
 const propTypes = {
     /** An initial value of date string */
     value: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 
     /** A minimum date (oldest) allowed to select */
-    minDate: PropTypes.objectOf(Date),
+    minDate: PropTypes.instanceOf(Date),
 
     /** A maximum date (earliest) allowed to select */
-    maxDate: PropTypes.objectOf(Date),
+    maxDate: PropTypes.instanceOf(Date),
 
     /** A function called when the date is selected */
     onSelected: PropTypes.func,
@@ -57,6 +57,7 @@ class CalendarPicker extends React.PureComponent {
 
         this.state = {
             currentDateView,
+            isYearPickerVisible: false,
         };
 
         this.moveToPrevMonth = this.moveToPrevMonth.bind(this);
@@ -66,12 +67,10 @@ class CalendarPicker extends React.PureComponent {
     }
 
     onYearSelected(year) {
-        this.setState(
-            (prev) => ({
-                currentDateView: moment(prev.currentDateView).set('year', year).toDate(),
-            }),
-            () => this.yearPickerRef.close(),
-        );
+        this.setState((prev) => ({
+            currentDateView: moment(prev.currentDateView).set('year', year).toDate(),
+            isYearPickerVisible: false,
+        }));
     }
 
     /**
@@ -114,7 +113,7 @@ class CalendarPicker extends React.PureComponent {
             <View>
                 <View style={[styles.calendarHeader, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph4, styles.pr1]}>
                     <PressableWithFeedback
-                        onPress={() => this.yearPickerRef.open()}
+                        onPress={() => this.setState({isYearPickerVisible: true})}
                         style={[styles.alignItemsCenter, styles.flexRow, styles.flex1, styles.justifyContentStart]}
                         wrapperStyle={[styles.alignItemsCenter]}
                         hoverDimmingValue={1}
@@ -211,15 +210,20 @@ class CalendarPicker extends React.PureComponent {
                         })}
                     </View>
                 ))}
-                <ScreenSlideAnimation ref={(ref) => (this.yearPickerRef = ref)}>
+                <Modal
+                    onClose={() => this.setState({isYearPickerVisible: false})}
+                    isVisible={this.state.isYearPickerVisible}
+                    type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+                    onModalHide={() => this.setState({isYearPickerVisible: false})}
+                >
                     <YearPickerPage
                         onYearChange={this.onYearSelected}
-                        onClose={() => this.yearPickerRef.close()}
+                        onClose={() => this.setState({isYearPickerVisible: false})}
                         min={moment(this.props.minDate).year()}
                         max={moment(this.props.maxDate).year()}
                         currentYear={currentYearView}
                     />
-                </ScreenSlideAnimation>
+                </Modal>
             </View>
         );
     }

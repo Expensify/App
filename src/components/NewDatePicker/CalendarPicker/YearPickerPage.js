@@ -1,5 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
+import moment from 'moment/moment';
 import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../ScreenWrapper';
 import HeaderWithBackButton from '../../HeaderWithBackButton';
@@ -15,6 +17,27 @@ const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
+
+    /** Function to call when the user selects a year */
+    onYearChange: PropTypes.func.isRequired,
+
+    /** Function to call when the user closes the year picker */
+    onClose: PropTypes.func.isRequired,
+
+    /** Minimum year to show in the list */
+    min: PropTypes.number,
+
+    /** Maximum year to show in the list */
+    max: PropTypes.number,
+
+    /** Currently selected year */
+    currentYear: PropTypes.number.isRequired,
+};
+
+const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
+    min: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR),
+    max: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR),
 };
 
 class YearPickerPage extends React.Component {
@@ -86,7 +109,6 @@ class YearPickerPage extends React.Component {
                     hideSectionHeaders
                     optionHoveredStyle={styles.hoveredComponentBG}
                     shouldHaveOptionSeparator
-                    contentContainerStyles={[styles.ph5]}
                     shouldDelayFocus
                 />
             </ScreenWrapper>
@@ -95,6 +117,6 @@ class YearPickerPage extends React.Component {
 }
 
 YearPickerPage.propTypes = propTypes;
-YearPickerPage.defaultProps = withCurrentUserPersonalDetailsDefaultProps;
+YearPickerPage.defaultProps = defaultProps;
 
 export default withLocalize(YearPickerPage);
