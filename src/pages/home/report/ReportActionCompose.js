@@ -54,6 +54,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
 import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
+import * as FloatingActionButtonUtils from '../sidebar/SidebarScreen/FloatingActionButtonAndPopoverUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -708,7 +709,7 @@ class ReportActionCompose extends React.Component {
      * @returns {Boolean}
      */
     checkComposerVisibility() {
-        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || this.state.isMenuVisible;
+        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || this.state.isMenuVisible || FloatingActionButtonUtils.isFloatingActionButtonCreateMenuOpen();
         return !isComposerCoveredUp;
     }
 
