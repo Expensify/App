@@ -45,12 +45,6 @@ const propTypes = {
         currency: PropTypes.string,
     }),
 
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            reportID: PropTypes.string,
-        }),
-    }),
-
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
@@ -62,11 +56,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            reportID: '',
-        },
-    },
     report: {},
     errors: {},
     currencyList: {},
@@ -78,10 +67,13 @@ const defaultProps = {
 function IOUCurrencySelection(props) {
     const [searchValue, setSearchValue] = useState('');
     const selectedCurrencyCode = lodashGet(props.route, 'params.currency', props.iou.currency, CONST.CURRENCY.USD);
-    const hideModalSelection = ReportUtils.shouldHideComposer(props.report, props.errors);
 
+    const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
+    const reportID = lodashGet(props.route, 'params.reportID', '');
+
+    const hideModalSelection = ReportUtils.shouldHideComposer(props.report, props.errors);
     if (hideModalSelection) {
-        Navigation.dismissModal(props.report.reportID);
+        Navigation.dismissModal(reportID);
     }
 
     const confirmCurrencySelection = useCallback(
@@ -141,7 +133,7 @@ function IOUCurrencySelection(props) {
                 <>
                     <HeaderWithBackButton
                         title={translate('iOUCurrencySelection.selectCurrency')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.getIouRequestRoute(Navigation.getTopmostReportId()))}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID))}
                     />
                     <OptionsSelector
                         sections={sections}
