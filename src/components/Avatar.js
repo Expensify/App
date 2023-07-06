@@ -76,7 +76,7 @@ function Avatar(props) {
     const imageStyle =
         props.imageStyles && props.imageStyles.length
             ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, StyleUtils.getAvatarBorderRadius(props.size, props.type)]
-            : [StyleUtils.getAvatarStyle(props.size), styles.noBorderRadius];
+            : [StyleUtils.getAvatarStyle(props.size), StyleUtils.getAvatarBorderStyle(props.size, props.type)];
 
     const iconStyle = props.imageStyles && props.imageStyles.length ? [StyleUtils.getAvatarStyle(props.size), styles.bgTransparent, ...props.imageStyles] : undefined;
 
@@ -107,7 +107,7 @@ function Avatar(props) {
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
                         source={{uri: props.source}}
-                        style={[imageStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type)]}
+                        style={imageStyle}
                         onError={() => setImageError(true)}
                     />
                 </View>
