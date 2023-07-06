@@ -62,7 +62,7 @@ const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
-        if (!report || !key || !report.ownerAccountID) {
+        if (!report || !key || !_.isNumber(report.ownerAccountID)) {
             return;
         }
 
