@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -48,7 +48,6 @@ function TaskShareDestinationSelectorModal(props) {
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
-    // Filter out all the reports where user is not allowed to create task
     const filteredReports = useMemo(() => {
         const reports = {};
         _.keys(props.reports).forEach((reportKey) => {
@@ -59,16 +58,7 @@ function TaskShareDestinationSelectorModal(props) {
         });
         return reports;
     }, [props.reports]);
-
-    useEffect(() => {
-        const results = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
-
-        setFilteredUserToInvite(results.userToInvite);
-        setFilteredRecentReports(results.recentReports);
-        setFilteredPersonalDetails(results.personalDetails);
-    }, [props, filteredReports]);
-
-    useEffect(() => {
+    const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
             filteredReports,
             props.personalDetails,
@@ -85,6 +75,14 @@ function TaskShareDestinationSelectorModal(props) {
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
     }, [props, searchValue, filteredReports]);
+
+    useEffect(() => {
+        const debouncedSearch = _.debounce(updateOptions, 150);
+        debouncedSearch();
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
