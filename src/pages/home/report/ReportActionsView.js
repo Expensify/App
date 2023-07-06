@@ -1,4 +1,4 @@
-import React, {useRef, useState, useEffect, useContext, useCallback, useMemo} from 'react';
+import React, {useRef, useState, useEffect, useContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -86,14 +86,14 @@ function ReportActionsView(props) {
      */
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(props.isFocused), [props.isFocused]);
 
-    const openReportIfNecessary = useCallback(() => {
+    const openReportIfNecessary = () => {
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
         if (props.report.isOptimisticReport) {
             return;
         }
 
         Report.openReport(props.report.reportID);
-    }, [props.report]);
+    };
 
     useEffect(() => {
         unsubscribeVisibilityListener.current = Visibility.onVisibilityChange(() => {
@@ -169,7 +169,8 @@ function ReportActionsView(props) {
         }
         // update ref with current network state
         prevNetworkRef.current = props.network;
-    }, [props.network, props.report, isReportFullyVisible, openReportIfNecessary]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.network, props.report, isReportFullyVisible]);
 
     useEffect(() => {
         const prevIsSmallScreenWidth = prevIsSmallScreenWidthRef.current;
@@ -183,7 +184,8 @@ function ReportActionsView(props) {
         }
         // update ref with current state
         prevIsSmallScreenWidthRef.current = props.isSmallScreenWidth;
-    }, [props.isSmallScreenWidth, props.report, props.reportActions, isReportFullyVisible, openReportIfNecessary]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.isSmallScreenWidth, props.report, props.reportActions, isReportFullyVisible]);
 
     useEffect(() => {
         const prevReportActions = prevReportActionsRef.current;
@@ -242,7 +244,7 @@ function ReportActionsView(props) {
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
      * displaying.
      */
-    const loadMoreChats = useCallback(() => {
+    const loadMoreChats = () => {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (props.report.isLoadingMoreReportActions) {
             return;
@@ -257,17 +259,17 @@ function ReportActionsView(props) {
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
         Report.readOldestAction(props.report.reportID, oldestReportAction.reportActionID);
-    }, [props.report, props.reportActions]);
+    };
 
-    const scrollToBottomAndMarkReportAsRead = useCallback(() => {
+    const scrollToBottomAndMarkReportAsRead = () => {
         reportScrollManager.scrollToBottom();
         Report.readNewestAction(props.report.reportID);
-    }, [reportScrollManager, props.report]);
+    };
 
     /**
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
-    const toggleFloatingMessageCounter = useCallback(() => {
+    const toggleFloatingMessageCounter = () => {
         if (currentScrollOffset.current < -200 && !isFloatingMessageCounterVisible) {
             setIsFloatingMessageCounterVisible(true);
         }
@@ -275,25 +277,21 @@ function ReportActionsView(props) {
         if (currentScrollOffset.current > -200 && isFloatingMessageCounterVisible) {
             setIsFloatingMessageCounterVisible(false);
         }
-    }, [currentScrollOffset, isFloatingMessageCounterVisible]);
+    };
 
     /**
      * keeps track of the Scroll offset of the main messages list
      *
      * @param {Object} {nativeEvent}
      */
-    const trackScroll = useCallback(
-        ({nativeEvent}) => {
-            currentScrollOffset.current = -nativeEvent.contentOffset.y;
-            toggleFloatingMessageCounter();
-        },
-        [currentScrollOffset, toggleFloatingMessageCounter],
-    );
-
+    const trackScroll = ({nativeEvent}) => {
+        currentScrollOffset.current = -nativeEvent.contentOffset.y;
+        toggleFloatingMessageCounter();
+    };
     /**
      * Runs when the FlatList finishes laying out
      */
-    const recordTimeToMeasureItemLayout = useCallback(() => {
+    const recordTimeToMeasureItemLayout = () => {
         if (didLayout.current) {
             return;
         }
@@ -308,7 +306,7 @@ function ReportActionsView(props) {
         } else {
             Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
-    }, [didLayout, hasCachedActions]);
+    };
 
     // Comments have not loaded at all yet do nothing
     if (!_.size(props.reportActions)) {
