@@ -94,7 +94,7 @@ function getLatestErrorField(onyxData, fieldName) {
  * @param {String} fieldName
  * @returns {Object}
  */
-function getFirstErrorField(onyxData, fieldName) {
+function getEarliestErrorField(onyxData, fieldName) {
     const errorsForField = lodashGet(onyxData, ['errorFields', fieldName], {});
 
     if (_.isEmpty(errorsForField)) {
@@ -132,4 +132,4 @@ function addErrorMessage(errors, inputID, message) {
     }
 }
 
-export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getLatestErrorMessage, getLatestErrorField, getFirstErrorField, addErrorMessage};
+export {getAuthenticateErrorMessage, getMicroSecondOnyxError, getLatestErrorMessage, getLatestErrorField, getEarliestErrorField, addErrorMessage};
