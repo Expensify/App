@@ -112,7 +112,7 @@ function ReportPreview(props) {
                 <View style={styles.iouPreviewBox}>
                     <View style={styles.flexRow}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>
+                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>
                                 {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
                             </Text>
                         </View>
@@ -130,20 +130,20 @@ function ReportPreview(props) {
                             )}
                         </View>
                     </View>
+                    {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
+                        <SettlementButton
+                            currency={props.iouReport.currency}
+                            policyID={props.iouReport.policyID}
+                            chatReportID={props.chatReportID}
+                            iouReport={props.iouReport}
+                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                            enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                            addBankAccountRoute={bankAccountRoute}
+                            style={[styles.requestPreviewBox]}
+                        />
+                    )}
                 </View>
             </PressableWithoutFeedback>
-            {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
-                <SettlementButton
-                    currency={props.iouReport.currency}
-                    policyID={props.iouReport.policyID}
-                    chatReportID={props.chatReportID}
-                    iouReport={props.iouReport}
-                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                    addBankAccountRoute={bankAccountRoute}
-                    style={[styles.requestPreviewBox]}
-                />
-            )}
         </View>
     );
 }

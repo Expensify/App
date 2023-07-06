@@ -2534,7 +2534,7 @@ const styles = {
     },
 
     requestPreviewBox: {
-        marginTop: 8,
+        marginTop: 12,
         maxWidth: variables.sideBarWidth,
     },
 
