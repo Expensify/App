@@ -839,7 +839,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
-            isDeletedParentAction: true,
+            isDeletedParentAction: ReportActionsUtils.hasCommentThread(reportAction),
         },
     ];
     const optimisticReportActions = {
