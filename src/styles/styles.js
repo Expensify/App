@@ -551,6 +551,10 @@ const styles = {
         marginVertical: 1,
     },
 
+    noBorderRadius: {
+        borderRadius: 0,
+    },
+
     noRightBorderRadius: {
         borderTopRightRadius: 0,
         borderBottomRightRadius: 0,
@@ -2165,14 +2169,14 @@ const styles = {
     },
 
     twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
-        let paddingHorizontal = styles.ph15;
+        let paddingHorizontal = styles.ph9;
 
         if (isSmallScreenWidth) {
-            paddingHorizontal = styles.ph10;
+            paddingHorizontal = styles.ph4;
         }
 
         if (isExtraSmallScreenWidth) {
-            paddingHorizontal = styles.ph4;
+            paddingHorizontal = styles.ph2;
         }
 
         return {
@@ -2198,12 +2202,11 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
-        height: 148,
     },
 
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
-        width: 100,
+        width: 112,
         textAlign: 'center',
     },
 
@@ -2212,37 +2215,52 @@ const styles = {
         justifyContent: 'center',
         gap: 12,
         marginTop: 20,
+        flexWrap: 'wrap',
     },
 
     twoFactorAuthCodesButton: {
-        minWidth: 100,
+        minWidth: 112,
     },
 
-    anonymousRoomFooter: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+    twoFactorAuthCopyCodeButton: {
+        minWidth: 110,
+    },
+
+    anonymousRoomFooter: (isSmallSizeLayout) => ({
+        flexDirection: isSmallSizeLayout ? 'column' : 'row',
+        ...(!isSmallSizeLayout && {
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        }),
         padding: 20,
-        marginBottom: 20,
-        backgroundColor: themeColors.activeComponentBG,
-        flexWrap: 'wrap',
-        gap: 8,
+        backgroundColor: themeColors.sidebar,
         borderRadius: variables.componentBorderRadiusLarge,
         overflow: 'hidden',
-    },
-
+    }),
+    anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        ...(isSmallSizeLayout && {
+            justifyContent: 'space-between',
+            marginTop: 16,
+        }),
+    }),
     anonymousRoomFooterLogo: {
         width: 88,
         marginLeft: 0,
         height: 20,
     },
-
+    anonymousRoomFooterLogoTaglineText: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeMedium,
+        color: themeColors.textLight,
+    },
     signInButtonAvatar: {
         width: 80,
     },
 
     anonymousRoomFooterSignInButton: {
-        width: 125,
+        width: 110,
     },
 
     roomHeaderAvatarSize: {
@@ -2491,6 +2509,12 @@ const styles = {
 
     magicCodeInputTransparent: {
         color: 'transparent',
+        caretColor: 'transparent',
+        WebkitTextFillColor: 'transparent',
+        // After setting the input text color to transparent, it acquires the background-color.
+        // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
+        // Therefore, the transition effect needs to be delayed.
+        transitionDelay: '99999s',
     },
 
     iouAmountText: {
@@ -2838,10 +2862,6 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
-        menuItemErrorPadding: {
-            paddingLeft: 44,
-            paddingRight: 20,
-        },
     },
 
     dotIndicatorMessage: {
@@ -2997,8 +3017,7 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flexShrink: 0,
-        flexGrow: 0,
+        flex: 0,
         flexBasis: 'auto',
     },
 
