@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import './index.css';
 import lodashGet from 'lodash/get';
-import React, {useEffect} from 'react';
+import React, {useEffect, forwardRef} from 'react';
 import * as OnfidoSDK from 'onfido-sdk-ui';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
@@ -122,7 +122,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
     });
 }
 
-function Onfido(props) {
+const Onfido = forwardRef((props, ref) => {
     useEffect(() => {
         initializeOnfido({
             sdkToken: props.sdkToken,
@@ -134,8 +134,13 @@ function Onfido(props) {
         });
     }, [props.sdkToken, props.onSuccess, props.onError, props.onUserExit, props.preferredLocale, props.translate]);
 
-    return <div id={CONST.ONFIDO.CONTAINER_ID} />;
-}
+    return (
+        <div
+            id={CONST.ONFIDO.CONTAINER_ID}
+            ref={ref}
+        />
+    );
+});
 
 Onfido.propTypes = propTypes;
 export default withLocalize(Onfido);
