@@ -52,14 +52,14 @@ const defaultProps = {
 };
 
 function ValidateLoginPage(props) {
+    const {canUsePasswordlessLogins} = usePermissions();
+    const {preferredLocale} = useLocalize();
     const login = lodashGet(props, 'credentials.login', null);
     const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
     const accountID = lodashGet(props.route.params, 'accountID', '');
     const validateCode = lodashGet(props.route.params, 'validateCode', '');
     const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
     const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
-    const {canUsePasswordlessLogins} = usePermissions();
-    const {preferredLocale} = useLocalize();
     const cachedAccountID = lodashGet(props, 'credentials.accountID', null);
 
     useEffect(() => {
@@ -111,8 +111,9 @@ function ValidateLoginPage(props) {
     );
 }
 
-ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
+ValidateLoginPage.displayName = 'ValidateLoginPage';
+ValidateLoginPage.propTypes = propTypes;
 
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
