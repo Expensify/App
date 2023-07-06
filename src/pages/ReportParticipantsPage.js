@@ -67,6 +67,7 @@ const getAllParticipants = (report, personalDetails) => {
                 accountID: userPersonalDetail.accountID,
                 icons: [
                     {
+                        id: accountID,
                         source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
                         name: userLogin,
                         type: CONST.ICON_TYPE_AVATAR,
@@ -92,7 +93,9 @@ function ReportParticipantsPage(props) {
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report) ? 'common.members' : 'common.details',
+                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isChatThread(props.report)
+                                ? 'common.members'
+                                : 'common.details',
                         )}
                     />
                     <View

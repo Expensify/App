@@ -44,6 +44,7 @@ export default {
         details: 'Detalles',
         privacy: 'Privacidad',
         hidden: 'Oculto',
+        visible: 'Visible',
         delete: 'Eliminar',
         archived: 'archivado',
         contacts: 'Contactos',
@@ -143,6 +144,8 @@ export default {
         per: 'por',
         mi: 'milla',
         km: 'kilómetro',
+        copied: '¡Copiado!',
+        someone: 'Alguien',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -192,8 +195,6 @@ export default {
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',
         expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo.',
-        requestNewCode: '¡También puedes',
-        requestNewCodeLink: 'solicitar un nuevo código aquí',
         successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba tu dispositivo.',
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
@@ -296,6 +297,9 @@ export default {
         sayHello: '¡Saluda!',
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
     },
+    reportAction: {
+        asCopilot: 'como copiloto de',
+    },
     mentionSuggestions: {
         hereAlternateText: 'Notificar a todos los que estén en linea de esta sala',
     },
@@ -356,7 +360,8 @@ export default {
         amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
-        payerSettled: ({amount}) => `pagó ${amount}`,
+        settledElsewhereWithAmount: ({amount}) => `pagó ${amount} de otra forma`,
+        settledPaypalMeWithAmount: ({amount}) => `pagó ${amount} con PayPal.me`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -405,6 +410,15 @@ export default {
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
+    },
+    loungeAccessPage: {
+        loungeAccess: 'Acceso a la sala vip',
+        headline: 'Podrás acceder a nuestras salas vip exclusivas.',
+        description:
+            'La sala vip Expensify es el punto de encuentro entre una "sala vip de aeropuerto de alta gama" y un vibrante "espacio de co-working" optimizado para personas con ideas afines.',
+        coffeePromo: 'Buen café y buenos cócteles',
+        networkingPromo: 'Conecta con otros miembros',
+        viewsPromo: 'Increíbles vistas de San Francisco',
     },
     pronounsPage: {
         pronouns: 'Pronombres',
@@ -547,7 +561,6 @@ export default {
         stepSuccess: 'Finalizado',
         enabled: '¡La autenticación de dos factores ahora está habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
-        copyCodes: 'Copiar códigos',
         copy: 'Copiar',
         disable: 'Deshabilitar',
     },
@@ -582,7 +595,7 @@ export default {
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'Por favor, introduce un nombre válido',
+            invalidName: 'El nombre solo puede contener números y caracteres latinos.',
             addressZipCode: 'Por favor, introduce un código postal válido',
             debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido',
             expirationDate: 'Por favor, selecciona una fecha de vencimiento válida',
@@ -694,7 +707,8 @@ export default {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
-        codeSent: '¡Código mágico enviado!',
+        requestNewCode: 'Pedir un código nuevo en ',
+        requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',
@@ -819,6 +833,8 @@ export default {
         hasPhoneLoginError:
             'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: 'Se produjo un error al intentar agregar tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
+        hasCurrencyError:
+            '¡Ups! Parece que la moneda de tu espacio de trabajo está configurada en una moneda diferente a USD. Para continuar, por favor configúrala en USD e inténtalo nuevamente.',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
@@ -836,6 +852,7 @@ export default {
             restrictedBusiness: 'Por favor, confirma que la empresa no está en la lista de negocios restringidos',
             routingNumber: 'Por favor, introduce un número de ruta válido',
             accountNumber: 'Por favor, introduce un número de cuenta válido',
+            routingAndAccountNumberCannotBeSame: 'El número de ruta y el número de cuenta no pueden ser iguales',
             companyType: 'Por favor, selecciona un tipo de compañía válido',
             tooManyAttempts:
                 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduce los detalles manualmente.',
@@ -1075,9 +1092,7 @@ export default {
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             settlementFrequency: 'Frecuencia de liquidación',
-            growlMessageOnDelete: 'Espacio de trabajo eliminado',
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
-            growlMessageOnDeleteError: 'No se puede eliminar el espacio de trabajo porque tiene informes que están siendo procesados',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón Invitar que está arriba.',
             notAuthorized: `No tienes acceso a esta página. ¿Estás tratando de unirte al espacio de trabajo? Comunícate con el propietario de este espacio de trabajo para que pueda agregarte como miembro. ¿Necesitas algo más? Comunícate con ${CONST.EMAIL.CONCIERGE}`,
@@ -1211,6 +1226,10 @@ export default {
             bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
             areYouSure: '¿Estás seguro?',
+            workspaceCurrency: 'Moneda del espacio de trabajo',
+            updateCurrencyPrompt:
+                'Parece que tu espacio de trabajo está configurado actualmente en una moneda diferente a USD. Por favor, haz clic en el botón de abajo para actualizar tu moneda a USD ahora.',
+            updateToUSD: 'Actualizar a USD',
         },
     },
     getAssistancePage: {
@@ -1871,10 +1890,9 @@ export default {
         deletedMessage: '[Mensaje eliminado]',
     },
     threads: {
-        lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
-        from: 'De',
+        parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',

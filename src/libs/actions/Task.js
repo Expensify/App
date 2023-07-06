@@ -10,6 +10,17 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as ReportActionsUtils from '../ReportActionsUtils';
+
+let currentUserEmail;
+let currentUserAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserEmail = lodashGet(val, 'email', '');
+        currentUserAccountID = lodashGet(val, 'accountID', 0);
+    },
+});
 
 /**
  * Clears out the task info from the store
@@ -22,8 +33,6 @@ function clearOutTaskInfo() {
  * Assign a task to a user
  * Function title is createTask for consistency with the rest of the actions
  * and also because we can create a task without assigning it to anyone
- * @param {String} currentUserEmail
- * @param {Number} currentUserAccountID
  * @param {String} parentReportID
  * @param {String} title
  * @param {String} description
@@ -32,7 +41,7 @@ function clearOutTaskInfo() {
  *
  */
 
-function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentReportID, title, description, assignee, assigneeAccountID = 0) {
+function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0) {
     // Create the task report
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
@@ -55,6 +64,7 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Created a task: ${title}`, parentReportID);
+    optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
 
@@ -248,7 +258,7 @@ function reopenTask(taskReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.OPEN,
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: reopenedTaskReportAction.actorEmail,
+                lastActorEmail: currentUserEmail,
                 lastActorAccountID: reopenedTaskReportAction.actorAccountID,
                 lastReadTime: reopenedTaskReportAction.created,
             },
@@ -303,7 +313,9 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     const reportName = (title || report.reportName).trim();
-    const reportDescription = (!_.isUndefined(description) ? description : report.description).trim();
+
+    // Description can be unset, so we default to an empty string if so
+    const reportDescription = (!_.isUndefined(description) ? description : lodashGet(report, 'description', '')).trim();
 
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     let optimisticAssigneeAddComment;
@@ -581,7 +593,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: optimisticCancelReportAction.actorEmail,
+                lastActorEmail: currentUserEmail,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
             },
         },
@@ -627,6 +639,46 @@ function dismissModalAndClearOutTaskInfo() {
     clearOutTaskInfo();
 }
 
+/**
+ * Returns Task assignee accountID
+ *
+ * @param {Object} taskReport
+ * @returns {Number|null}
+ */
+function getTaskAssigneeAccountID(taskReport) {
+    if (!taskReport) {
+        return null;
+    }
+
+    if (taskReport.managerID) {
+        return taskReport.managerID;
+    }
+
+    const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    return lodashGet(reportAction, 'childManagerAccountID');
+}
+
+/**
+ * Returns Task owner accountID
+ *
+ * @param {Object} taskReport
+ * @returns {Number|null}
+ */
+function getTaskOwnerAccountID(taskReport) {
+    return lodashGet(taskReport, 'ownerAccountID', null);
+}
+
+/**
+ * Check if current user is either task assignee or task owner
+ *
+ * @param {Object} taskReport
+ * @param {Number} sessionAccountID
+ * @returns {Boolean}
+ */
+function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
+    return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -646,4 +698,6 @@ export {
     cancelTask,
     isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
+    getTaskAssigneeAccountID,
+    isTaskAssigneeOrTaskOwner,
 };

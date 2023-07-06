@@ -1,10 +1,9 @@
 import React from 'react';
 import {View, Text} from 'react-native';
+import PropTypes from 'prop-types';
 import Button from './Button';
 import AvatarWithDisplayName from './AvatarWithDisplayName';
 import ExpensifyWordmark from './ExpensifyWordmark';
-import compose from '../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import reportPropTypes from '../pages/reportPropTypes';
 import CONST from '../CONST';
@@ -15,17 +14,19 @@ const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes,
 
-    ...windowDimensionsPropTypes,
+    isSmallSizeLayout: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
+    isSmallSizeLayout: false,
 };
 
 function AnonymousReportFooter(props) {
     return (
-        <View style={styles.anonymousRoomFooter}>
+        <View style={styles.anonymousRoomFooter(props.isSmallSizeLayout)}>
             <View style={[styles.flexRow]}>
                 <AvatarWithDisplayName
                     report={props.report}
@@ -33,14 +34,14 @@ function AnonymousReportFooter(props) {
                     isAnonymous
                 />
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                <View style={styles.mr4}>
-                    <View style={[props.isSmallScreenWidth ? styles.alignItemsStart : styles.alignItemsEnd]}>
+            <View style={styles.anonymousRoomFooterWordmarkAndLogoContainer(props.isSmallSizeLayout)}>
+                <View style={[props.isSmallSizeLayout ? styles.mr1 : styles.mr4, styles.flexShrink1]}>
+                    <View style={[props.isSmallSizeLayout ? styles.alignItemsStart : styles.alignItemsEnd]}>
                         <ExpensifyWordmark style={styles.anonymousRoomFooterLogo} />
                     </View>
-                    <Text style={[styles.textNormal, styles.textWhite]}>{props.translate('anonymousReportFooter.logoTagline')}</Text>
+                    <Text style={styles.anonymousRoomFooterLogoTaglineText}>{props.translate('anonymousReportFooter.logoTagline')}</Text>
                 </View>
-                <View style={styles.anonymousRoomFooterSignInButton}>
+                <View style={[styles.anonymousRoomFooterSignInButton]}>
                     <Button
                         medium
                         success
@@ -57,4 +58,4 @@ AnonymousReportFooter.propTypes = propTypes;
 AnonymousReportFooter.defaultProps = defaultProps;
 AnonymousReportFooter.displayName = 'AnonymousReportFooter';
 
-export default compose(withWindowDimensions, withLocalize)(AnonymousReportFooter);
+export default withLocalize(AnonymousReportFooter);
