@@ -98,7 +98,7 @@ function AvatarWithDisplayName(props) {
                                     Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
                                 }}
                                 accessibilityLabel={subtitle}
-                                accessibilityRole="link"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             >
                                 <Text
                                     style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}

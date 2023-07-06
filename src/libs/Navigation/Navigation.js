@@ -20,6 +20,15 @@ const navigationIsReadyPromise = new Promise((resolve) => {
 
 let pendingRoute = null;
 
+let shouldPopAllStateOnUP = false;
+
+/**
+ * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
+ */
+function setShouldPopAllStateOnUP() {
+    shouldPopAllStateOnUP = true;
+}
+
 /**
  * @param {String} methodName
  * @param {Object} params
@@ -85,10 +94,19 @@ function navigate(route = ROUTES.HOME, type) {
 /**
  * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
+ * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false) {
+function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
+    }
+
+    if (shouldPopToTop) {
+        if (shouldPopAllStateOnUP) {
+            shouldPopAllStateOnUP = false;
+            navigationRef.current.dispatch(StackActions.popToTop());
+            return;
+        }
     }
 
     if (!navigationRef.current.canGoBack()) {
@@ -170,19 +188,6 @@ function getActiveRoute() {
 }
 
 /**
- * @returns {String}
- */
-function getReportIDFromRoute() {
-    if (!navigationRef.current) {
-        return '';
-    }
-
-    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
-    const reportRoute = lodashGet(drawerState, ['routes', 0]);
-    return lodashGet(reportRoute, ['params', 'reportID'], '');
-}
-
-/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -222,6 +227,7 @@ function setIsNavigationReady() {
 }
 
 export default {
+    setShouldPopAllStateOnUP,
     canNavigate,
     navigate,
     setParams,
@@ -231,7 +237,6 @@ export default {
     goBack,
     isNavigationReady,
     setIsNavigationReady,
-    getReportIDFromRoute,
     getTopmostReportId,
 };
 
