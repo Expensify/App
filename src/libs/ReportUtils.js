@@ -1807,7 +1807,6 @@ function buildOptimisticTaskReport(ownerEmail, ownerAccountID, assigneeAccountID
         description,
         ownerEmail,
         ownerAccountID,
-        // managerEmail: assignee,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
@@ -2130,7 +2129,7 @@ function shouldShowFlagComment(reportAction, report) {
         !isArchivedRoom(report) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report.reportID) &&
-        reportAction.actorEmail !== CONST.EMAIL.CONCIERGE
+        reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE
     );
 }
 
