@@ -22,17 +22,21 @@ export default function (WrappedComponent) {
         }
 
         componentWillUnmount() {
+            if (this.toggleDelayButtonStateCallback) {
+                this.toggleDelayButtonStateCallback();
+            }
+
             if (!this.resetButtonStateCompleteTimer) {
                 return;
             }
-
             clearTimeout(this.resetButtonStateCompleteTimer);
         }
 
         /**
          * @param {Boolean} resetAfterDelay Impose delay before toggling state
+         * @param {Function} callback Callback to call after delay
          */
-        toggleDelayButtonState(resetAfterDelay) {
+        toggleDelayButtonState(resetAfterDelay, callback = () => {}) {
             this.setState({
                 isDelayButtonStateComplete: true,
             });
@@ -40,11 +44,12 @@ export default function (WrappedComponent) {
             if (!resetAfterDelay) {
                 return;
             }
-
+            this.toggleDelayButtonStateCallback = callback;
             this.resetButtonStateCompleteTimer = setTimeout(() => {
                 this.setState({
                     isDelayButtonStateComplete: false,
                 });
+                callback();
             }, 1800);
         }
 

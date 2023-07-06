@@ -10,6 +10,7 @@ import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
 import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
+import ReportActionComposeFocusManager from '../libs/ReportActionComposeFocusManager';
 
 const propTypes = {
     /** Icon Component */
@@ -66,7 +67,7 @@ class ContextMenuItem extends Component {
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (this.props.successIcon || this.props.successText) {
-            this.props.toggleDelayButtonState(this.props.autoReset);
+            this.props.toggleDelayButtonState(this.props.autoReset, ReportActionComposeFocusManager.focus);
         }
     }
 
