@@ -1,11 +1,11 @@
+import React, { Fragment, useRef } from 'react';
+import { View, useEffect, useState } from 'react-native';
 import _ from 'underscore';
-import React, {Fragment, useRef} from 'react';
-import {View, useState} from 'react-native';
-import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
-import Tooltip from '../Tooltip';
 import Text from '../Text';
+import Tooltip from '../Tooltip';
 import UserDetailsTooltip from '../UserDetailsTooltip';
+import { defaultProps, propTypes } from './displayNamesPropTypes';
 
 function DisplayNames(props) {
     const containerRef = useRef(null);
@@ -74,7 +74,7 @@ function DisplayNames(props) {
             style={[...props.textStyles, styles.pRelative]}
             onLayout={setContainerLayout}
             numberOfLines={1}
-            ref={(el) => (containerRef = el)}
+            ref={containerRef}
         >
             {props.shouldUseFullTitle
                 ? props.fullTitle
