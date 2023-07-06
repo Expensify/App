@@ -494,7 +494,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 function navigateToAndOpenReport(userLogins) {
     let newChat = {};
     const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
-    const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
+    const chat = ReportUtils.getChatByParticipants(formattedUserLogins);
     if (!chat) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
         newChat = ReportUtils.buildOptimisticChatReport(participantAccountIDs);
