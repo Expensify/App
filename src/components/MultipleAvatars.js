@@ -223,7 +223,10 @@ function MultipleAvatars(props) {
             ) : (
                 <View style={avatarContainerStyles}>
                     <View style={[singleAvatarStyle, props.icons[0].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[0].type) : {}]}>
-                        <UserDetailsTooltip accountID={props.icons[0].id} icon={props.icons[0]}>
+                        <UserDetailsTooltip
+                            accountID={props.icons[0].id}
+                            icon={props.icons[0]}
+                        >
                             {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                             <View>
                                 <Avatar
@@ -238,7 +241,10 @@ function MultipleAvatars(props) {
                         </UserDetailsTooltip>
                         <View style={[...secondAvatarStyles, props.icons[1].type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, props.icons[1].type) : {}]}>
                             {props.icons.length === 2 ? (
-                                <UserDetailsTooltip accountID={props.icons[1].id} icon={props.icons[1]}>
+                                <UserDetailsTooltip
+                                    accountID={props.icons[1].id}
+                                    icon={props.icons[1]}
+                                >
                                     <View>
                                         <Avatar
                                             source={props.icons[1].source || props.fallbackIcon}
