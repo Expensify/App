@@ -93,6 +93,7 @@ function ReportDetailsPage(props) {
                 translationKey: 'common.members',
                 icon: Expensicons.Users,
                 subtitle: participants.length,
+                isAnonymousAction: false,
                 action: () => {
                     Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID));
                 },
@@ -104,6 +105,7 @@ function ReportDetailsPage(props) {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SETTINGS,
                 translationKey: 'common.settings',
                 icon: Expensicons.Gear,
+                isAnonymousAction: false,
                 action: () => {
                     Navigation.navigate(ROUTES.getReportSettingsRoute(props.report.reportID));
                 },
@@ -115,6 +117,7 @@ function ReportDetailsPage(props) {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.LEAVE_ROOM,
                 translationKey: isThread ? 'common.leaveThread' : 'common.leaveRoom',
                 icon: Expensicons.Exit,
+                isAnonymousAction: false,
                 action: () => Report.leaveRoom(props.report.reportID),
             });
         }
@@ -183,7 +186,7 @@ function ReportDetailsPage(props) {
                                 subtitle={item.subtitle}
                                 icon={item.icon}
                                 onPress={item.action}
-                                isAnonymousAction={item.isAnonymousAction || false}
+                                isAnonymousAction={item.isAnonymousAction}
                                 shouldShowRightIcon
                                 brickRoadIndicator={brickRoadIndicator}
                             />
