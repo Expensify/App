@@ -46,6 +46,7 @@ function TaskView(props) {
     const taskTitle = convertToLTR(props.report.reportName || '');
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
+    const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
 
     return (
         <View>
@@ -57,7 +58,7 @@ function TaskView(props) {
 
                     Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
                 })}
-                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed), true)]}
+                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, isCanceled), true)]}
                 ref={props.forwardedRef}
                 disabled={!isOpen}
                 accessibilityLabel={taskTitle || props.translate('task.task')}
@@ -74,7 +75,7 @@ function TaskView(props) {
                                 containerBorderRadius={8}
                                 caretSize={16}
                                 accessibilityLabel={taskTitle || props.translate('task.task')}
-                                disabled={ReportUtils.isCanceledTaskReport(props.report)}
+                                disabled={isCanceled}
                             />
                             <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
