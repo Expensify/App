@@ -38,7 +38,7 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
-    /** Whether Button is on active screen */
+    /** Whether the screen is focused */
     isFocused: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
