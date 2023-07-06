@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -250,8 +251,6 @@ function removeMembers(accountIDs, policyID) {
  * @returns {Object} - object with onyxSuccessData, onyxOptimisticData, and optimisticReportIDs (map login to reportID)
  */
 function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
-    console.group('createPolicyExpenseChats');
-    console.log('invitedEmailsToAccountIDs', invitedEmailsToAccountIDs);
     const workspaceMembersChats = {
         onyxSuccessData: [],
         onyxOptimisticData: [],
@@ -259,34 +258,31 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         reportCreationData: {},
     };
 
-    _.each(invitedEmailsToAccountIDs, (accountID, email) => {
-        const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
-        const optimisticPersonalDetails = {
-            [accountID]: personalDetails[accountID] || {
-                login,
-                accountID,
-                avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: login,
-            },
-        };
-        console.log('optimisticPersonalDetails', optimisticPersonalDetails);
-        workspaceMembersChats.onyxOptimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetails,
-        });
-    });
-
-    console.groupEnd();
-
-    // If the user is not in the beta, we don't want to create any chats
-    if (!Permissions.canUsePolicyExpenseChat(betas)) {
-        return workspaceMembersChats;
-    }
+    // Add optimistic personal details for new participants
+    const optimisticPersonalDetails = {};
+    const successPersonalDetails = {};
 
     _.each(invitedEmailsToAccountIDs, (accountID, email) => {
         const cleanAccountID = Number(accountID);
         const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
+
+        // TODO: Add comment
+        optimisticPersonalDetails[accountID] = personalDetails[accountID] || {
+            login,
+            accountID,
+            avatar: UserUtils.getDefaultAvatarURL(accountID),
+            displayName: login,
+        };
+
+        // TODO: Add comment
+        if (!personalDetails[accountID]) {
+            successPersonalDetails[accountID] = null;
+        }
+
+        // If the user is not in the beta, we don't want to create any chats
+        if (!Permissions.canUsePolicyExpenseChat(betas)) {
+            return;
+        }
 
         const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, cleanAccountID], policyID);
 
@@ -364,6 +360,25 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
             },
         });
     });
+
+    // TODO: Remove
+    console.group('createPolicyExpenseChats');
+    console.log('optimisticPersonalDetails', optimisticPersonalDetails);
+    console.log('successPersonalDetails', successPersonalDetails);
+    console.groupEnd();
+
+    // TODO: Add comment
+    workspaceMembersChats.onyxOptimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        value: optimisticPersonalDetails,
+    });
+    workspaceMembersChats.onyxSuccessData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        value: successPersonalDetails,
+    });
+
     return workspaceMembersChats;
 }
 
@@ -392,16 +407,24 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...membersChats.onyxOptimisticData,
     ];
-    console.log('addMembersToWorkspace > optimisticData:', optimisticData);
 
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
-            // Convert to object with each key clearing pendingAction. We don’t
-            // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
-            value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: null, errors: null})),
+            // TODO: Add comment
+            value: _.reduce(
+                accountIDs,
+                (memo, accountID) => {
+                    if (personalDetails[accountID]) {
+                        return {[accountID]: {pendingAction: null, errors: null}};
+                    }
+
+                    return {[accountID]: null};
+                },
+                {},
+            ),
         },
         ...membersChats.onyxSuccessData,
     ];

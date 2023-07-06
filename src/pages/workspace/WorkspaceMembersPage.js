@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, {useState, useEffect, useCallback} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -362,6 +363,13 @@ function WorkspaceMembersPage(props) {
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const removableMembers = {};
     let data = [];
+
+    // TODO: Remove
+    console.group('WorkspaceMembersPage');
+    console.log('personalDetails', {...props.personalDetails});
+    console.log('props.policyMembers', {...props.policyMembers});
+    console.groupEnd();
+
     _.each(props.policyMembers, (policyMember, accountID) => {
         if (isDeletedPolicyMember(policyMember)) {
             return;

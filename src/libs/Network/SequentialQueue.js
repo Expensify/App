@@ -83,7 +83,11 @@ function flush() {
                 isSequentialQueueRunning = false;
                 resolveIsReadyPromise();
                 currentRequest = null;
-                Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
+                const queuedOnyxUpdates = QueuedOnyxUpdates.getQueuedUpdates();
+                // TODO: Remove
+                // eslint-disable-next-line no-console
+                console.log('queuedOnyxUpdates', queuedOnyxUpdates);
+                Onyx.update(queuedOnyxUpdates).then(QueuedOnyxUpdates.clear);
             });
         },
     });
