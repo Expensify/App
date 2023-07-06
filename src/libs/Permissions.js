@@ -102,6 +102,14 @@ function canUseTasks(betas) {
     return _.contains(betas, CONST.BETAS.TASKS) || canUseAllBetas(betas);
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseScanReceipts(betas) {
+    return _.contains(betas, CONST.BETAS.SCAN_RECEIPTS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseChronos,
     canUseIOU,
@@ -114,4 +122,5 @@ export default {
     canUsePolicyExpenseChat,
     canUsePasswordlessLogins,
     canUseTasks,
+    canUseScanReceipts,
 };
