@@ -34,7 +34,7 @@ const propTypes = {
     policy: PropTypes.shape({
         role: PropTypes.string,
         owner: PropTypes.string,
-    })
+    }),
 };
 const defaultProps = {
     reports: {},
@@ -114,7 +114,7 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        policy : {
+        policy: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
