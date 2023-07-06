@@ -1254,38 +1254,35 @@ function buildOptimisticAddCommentReportAction(text, file) {
 }
 
 /**
- * update optimistic reportAction for the parent report when a comment is added or remove in thread
- * @param {String} parentReportAction - Parent report action of thread
- * @param {String} lastVisibleActionCreated - Last visible action created of thread
- * @param {String} type - The type of action in thread
+ * update optimistic parent reportAction when a comment is added or remove in the child report
+ * @param {String} parentReportAction - Parent report action of the child report
+ * @param {String} lastVisibleActionCreated - Last visible action created of the child report
+ * @param {String} type - The type of action in the child report
  * @returns {Object}
  */
 
 function updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type) {
-    let childVisibleActionCount = parentReportAction.childVisibleActionCount ? parentReportAction.childVisibleActionCount : 0;
-    let childCommenterCount = parentReportAction.childCommenterCount ? parentReportAction.childCommenterCount : 1;
-    const childLastVisibleActionCreated = lastVisibleActionCreated;
+    let childVisibleActionCount = parentReportAction.childVisibleActionCount || 0;
+    let childCommenterCount = parentReportAction.childCommenterCount || 0;
     let childOldestFourAccountIDs = parentReportAction.childOldestFourAccountIDs;
 
     if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         childVisibleActionCount += 1;
-        if (!childOldestFourAccountIDs) {
-            childOldestFourAccountIDs = currentUserAccountID.toString();
-        } else {
-            const oldestFourAccountIDs = childOldestFourAccountIDs.split(',');
+        const oldestFourAccountIDs = childOldestFourAccountIDs ? childOldestFourAccountIDs.split(',') : [];
+        if (oldestFourAccountIDs.length < 4) {
             const index = _.findIndex(oldestFourAccountIDs, (accountID) => accountID === currentUserAccountID.toString());
-            if (index !== -1) {
-                oldestFourAccountIDs.splice(index, 1);
+            if (index === -1) {
+                childCommenterCount += 1;
+                oldestFourAccountIDs.push(currentUserAccountID);
             }
-
-            oldestFourAccountIDs.push(currentUserAccountID);
-            if (oldestFourAccountIDs.length > 4) {
-                oldestFourAccountIDs.splice(0, 1);
-            }
-            childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
         }
+
+        if (!childCommenterCount) childCommenterCount = 1;
+        if (!oldestFourAccountIDs.length) oldestFourAccountIDs.push(currentUserAccountID);
+
+        childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
     } else {
-        childVisibleActionCount -= 1;
+        if (childVisibleActionCount > 0) childVisibleActionCount -= 1;
         if (childVisibleActionCount === 0) {
             childCommenterCount = 0;
             childOldestFourAccountIDs = '';
@@ -1295,7 +1292,7 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
     return {
         childVisibleActionCount,
         childCommenterCount,
-        childLastVisibleActionCreated,
+        childLastVisibleActionCreated: lastVisibleActionCreated,
         childOldestFourAccountIDs,
     };
 }
