@@ -1034,7 +1034,6 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         optimisticChatReportData.onyxMethod = Onyx.METHOD.SET;
-        optimisticReportActionsData.onyxMethod = Onyx.METHOD.SET;
         optimisticIOUReportData.onyxMethod = Onyx.METHOD.SET;
 
         // Set and clear pending fields on the chat report
@@ -1080,7 +1079,15 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         };
 
         // Add an optimistic created action to the optimistic reportActions data
-        optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+        optimisticReportActionsData.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+                value: {
+                    [optimisticCreatedAction.reportActionID]: optimisticCreatedAction,
+                },
+            },
+        );
     } else {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
