@@ -132,6 +132,8 @@ function MoneyRequestConfirmationList(props) {
 
     const selectedParticipants = useMemo(() => _.filter(props.participants, (participant) => participant.selected), [props.participants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
+    const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
+    const shouldDisableWhoPaidSection = canModifyParticipants;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -152,6 +154,7 @@ function MoneyRequestConfirmationList(props) {
                     data: [formattedPayeeOption],
                     shouldShow: true,
                     indexOffset: 0,
+                    isDisabled: shouldDisableWhoPaidSection,
                 },
                 {
                     title: translate('moneyRequestConfirmationList.whoWasThere'),
@@ -169,7 +172,17 @@ function MoneyRequestConfirmationList(props) {
             });
         }
         return sections;
-    }, [selectedParticipants, getParticipantsWithAmount, props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, props.participants, translate, payeePersonalDetails]);
+    }, [
+        props.participants,
+        props.hasMultipleParticipants,
+        props.iouAmount,
+        props.iouCurrencyCode,
+        getParticipantsWithAmount,
+        selectedParticipants,
+        payeePersonalDetails,
+        translate,
+        shouldDisableWhoPaidSection,
+    ]);
 
     const selectedOptions = useMemo(() => {
         if (!props.hasMultipleParticipants) {
@@ -228,7 +241,6 @@ function MoneyRequestConfirmationList(props) {
         [selectedParticipants, onSendMoney, onConfirm, props.iouType],
     );
 
-    const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode);
 
     const footerContent = useMemo(() => {
