@@ -269,6 +269,7 @@ const CONST = {
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
+        SCAN_RECEIPTS: 'scanReceipts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1108,6 +1109,10 @@ const CONST = {
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
+    },
+    AVATAR_ROW_SIZE: {
+        DEFAULT: 4,
+        LARGE_SCREEN: 8,
     },
     OPTION_MODE: {
         COMPACT: 'compact',

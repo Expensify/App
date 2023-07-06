@@ -196,6 +196,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(this.props.invitedEmailsToAccountIDsDraft), this.props.personalDetails)}
                                 shouldStackHorizontally
+                                shouldDisplayAvatarsInRows
                                 secondAvatarStyle={[styles.secondAvatarInline]}
                             />
                         </View>
