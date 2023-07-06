@@ -101,7 +101,7 @@ function ProfilePage(props) {
         }
     }, [accountID]);
 
-    const details = lodashGet(props.personalDetails, accountID, {isLoading: ValidationUtils.isValidAccountRoute(accountID)});
+    const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
     const displayName = details.displayName ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
@@ -154,7 +154,7 @@ function ProfilePage(props) {
                                         style={[styles.noOutline]}
                                         onPress={show}
                                         accessibilityLabel={props.translate('common.profile')}
-                                        accessibilityRole="imagebutton"
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar

@@ -182,7 +182,9 @@ class ReportActionCompose extends React.Component {
         this.setExceededMaxCommentLength = this.setExceededMaxCommentLength.bind(this);
         this.updateNumberOfLines = this.updateNumberOfLines.bind(this);
         this.showPopoverMenu = this.showPopoverMenu.bind(this);
+        this.debouncedUpdateFrequentlyUsedEmojis = _.debounce(this.debouncedUpdateFrequentlyUsedEmojis.bind(this), 1000, false);
         this.comment = props.comment;
+        this.insertedEmojis = [];
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -236,6 +238,14 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
+        // This listener is used for focusing the composer again after going back to a report without remounting it.
+        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
+            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
+                return;
+            }
+            this.focus();
+        });
+
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -274,6 +284,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
+        if (!this.unsubscribeNavFocus) {
+            return;
+        }
+        this.unsubscribeNavFocus();
     }
 
     onSelectionChange(e) {
@@ -633,8 +647,8 @@ class ReportActionCompose extends React.Component {
             },
             suggestedEmojis: [],
         }));
-        const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-        User.updateFrequentlyUsedEmojis(frequentEmojiList);
+        this.insertedEmojis = [...this.insertedEmojis, emojiObject];
+        this.debouncedUpdateFrequentlyUsedEmojis(emojiObject);
     }
 
     /**
@@ -667,11 +681,11 @@ class ReportActionCompose extends React.Component {
      * @param {String} emoji
      */
     addEmojiToTextBox(emoji) {
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, emoji));
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, `${emoji} `));
         this.setState((prevState) => ({
             selection: {
-                start: prevState.selection.start + emoji.length,
-                end: prevState.selection.start + emoji.length,
+                start: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
+                end: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
             },
         }));
     }
@@ -720,16 +734,26 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
+    debouncedUpdateFrequentlyUsedEmojis() {
+        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(this.insertedEmojis));
+        this.insertedEmojis = [];
+    }
+
+    /**
      * Update the value of the comment in Onyx
      *
      * @param {String} comment
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.isSmallScreenWidth, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.preferredSkinTone);
 
         if (!_.isEmpty(emojis)) {
-            User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+            this.insertedEmojis = [...this.insertedEmojis, ...emojis];
+            this.debouncedUpdateFrequentlyUsedEmojis();
         }
 
         this.setState((prevState) => {
@@ -972,7 +996,7 @@ class ReportActionCompose extends React.Component {
                                                                 onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                accessibilityRole="button"
+                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                                 accessibilityLabel={this.props.translate('reportActionCompose.collapse')}
                                                             >
                                                                 <Icon src={Expensicons.Collapse} />
@@ -991,7 +1015,7 @@ class ReportActionCompose extends React.Component {
                                                                 onMouseDown={(e) => e.preventDefault()}
                                                                 style={styles.composerSizeButton}
                                                                 disabled={isBlockedFromConcierge || this.props.disabled}
-                                                                accessibilityRole="button"
+                                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                                 accessibilityLabel={this.props.translate('reportActionCompose.expand')}
                                                             >
                                                                 <Icon src={Expensicons.Expand} />
@@ -1010,7 +1034,7 @@ class ReportActionCompose extends React.Component {
                                                             }}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || this.props.disabled}
-                                                            accessibilityRole="button"
+                                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                             accessibilityLabel={this.props.translate('reportActionCompose.addAction')}
                                                         >
                                                             <Icon src={Expensicons.Plus} />
@@ -1139,7 +1163,7 @@ class ReportActionCompose extends React.Component {
                                     style={[styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                     onPress={this.submitForm}
                                     disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={this.props.translate('common.send')}
                                 >
                                     <Icon

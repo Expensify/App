@@ -22,7 +22,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as App from '../../../libs/actions/App';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions from '../../../components/withWindowDimensions';
-import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
@@ -55,7 +54,22 @@ const propTypes = {
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
+    reportActions: PropTypes.objectOf(
+        PropTypes.arrayOf(
+            PropTypes.shape({
+                error: PropTypes.string,
+                message: PropTypes.arrayOf(
+                    PropTypes.shape({
+                        moderationDecisions: PropTypes.arrayOf(
+                            PropTypes.shape({
+                                decision: PropTypes.string,
+                            }),
+                        ),
+                    }),
+                ),
+            }),
+        ),
+    ),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -87,6 +101,7 @@ const propTypes = {
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
 
+    ...withCurrentReportIDPropTypes,
     ...withLocalizePropTypes,
     ...withNavigationPropTypes,
 };
@@ -100,6 +115,7 @@ const defaultProps = {
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     modal: {},
+    ...withCurrentReportIDDefaultProps,
 };
 
 class SidebarLinks extends React.Component {
@@ -212,13 +228,13 @@ class SidebarLinks extends React.Component {
                                 height={variables.lhnLogoHeight}
                             />
                         }
-                        accessibilityRole="text"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         shouldShowEnvironmentBadge
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <PressableWithoutFeedback
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             style={[styles.flexRow, styles.ph5]}
                             onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
@@ -227,7 +243,7 @@ class SidebarLinks extends React.Component {
                     </Tooltip>
                     <PressableWithoutFeedback
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
                     >
                         {Session.isAnonymousUser() ? (
@@ -255,7 +271,7 @@ class SidebarLinks extends React.Component {
                     <LHNOptionsList
                         contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
                         data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportId)}
+                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportID)}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
@@ -325,6 +341,11 @@ const reportActionsSelector = (reportActions) =>
     reportActions &&
     _.map(reportActions, (reportAction) => ({
         errors: reportAction.errors,
+        message: [
+            {
+                moderationDecisions: [{decision: lodashGet(reportAction, 'message[0].moderationDecisions[0].decision')}],
+            },
+        ],
     }));
 
 /**
