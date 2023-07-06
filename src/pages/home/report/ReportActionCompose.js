@@ -395,9 +395,24 @@ function ReportActionCompose({translate, ...props}) {
      * Used to show Popover menu on Workspace chat at first sign-in
      * @returns {Boolean}
      */
-    const showPopoverMenu = useCallback(() => {
-        setMenuVisibility(true);
-        return true;
+    const showPopoverMenu = useMemo(
+        () =>
+            _.debounce(() => {
+                setMenuVisibility(true);
+                return true;
+            }),
+        [],
+    );
+
+    const insertedEmojis = useRef([]);
+
+    /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
+    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
+        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis));
+        insertedEmojis.current = [];
     }, []);
 
     useEffect(() => {
@@ -711,10 +726,10 @@ function ReportActionCompose({translate, ...props}) {
             });
             setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
 
-            const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
-            User.updateFrequentlyUsedEmojis(frequentEmojiList);
+            insertedEmojis.current = [...insertedEmojis.current, emojiObject];
+            debouncedUpdateFrequentlyUsedEmojis(emojiObject);
         },
-        [suggestionValues.colonIndex, suggestionValues.suggestedEmojis, value, props.preferredSkinTone, selection, updateComment],
+        [debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, selection.end, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
     );
 
     /**
@@ -990,7 +1005,7 @@ function ReportActionCompose({translate, ...props}) {
                                                             onMouseDown={(e) => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || props.disabled}
-                                                            accessibilityRole="button"
+                                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                             accessibilityLabel={translate('reportActionCompose.collapse')}
                                                         >
                                                             <Icon src={Expensicons.Collapse} />
@@ -1009,7 +1024,7 @@ function ReportActionCompose({translate, ...props}) {
                                                             onMouseDown={(e) => e.preventDefault()}
                                                             style={styles.composerSizeButton}
                                                             disabled={isBlockedFromConcierge || props.disabled}
-                                                            accessibilityRole="button"
+                                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                             accessibilityLabel={translate('reportActionCompose.expand')}
                                                         >
                                                             <Icon src={Expensicons.Expand} />
@@ -1028,7 +1043,7 @@ function ReportActionCompose({translate, ...props}) {
                                                         }}
                                                         style={styles.composerSizeButton}
                                                         disabled={isBlockedFromConcierge || props.disabled}
-                                                        accessibilityRole="button"
+                                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                         accessibilityLabel={translate('reportActionCompose.addAction')}
                                                     >
                                                         <Icon src={Expensicons.Plus} />
@@ -1138,7 +1153,7 @@ function ReportActionCompose({translate, ...props}) {
                                 style={[styles.chatItemSubmitButton, isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
                                 onPress={submitForm}
                                 disabled={isCommentEmpty || isBlockedFromConcierge || props.disabled || hasExceededMaxCommentLength}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.send')}
                             >
                                 <Icon
