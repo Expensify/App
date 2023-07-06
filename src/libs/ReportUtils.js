@@ -23,6 +23,8 @@ import * as UserUtils from './UserUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
+let isAnonymousUser;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -33,13 +35,8 @@ Onyx.connect({
 
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
+        isAnonymousUser = val.authTokenType === 'anonymousAccount';
     },
-});
-
-let loginList;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => (loginList = _.isEmpty(val) ? [] : _.keys(val)),
 });
 
 let preferredLocale = CONST.LOCALES.DEFAULT;
@@ -202,30 +199,12 @@ function sortReportsByLastRead(reports) {
  */
 function canEditReportAction(reportAction) {
     return (
-        reportAction.actorEmail === currentUserEmail &&
+        reportAction.actorAccountID === currentUserAccountID &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
         reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-    );
-}
-
-/**
- * Can only flag if:
- *
- * - It was written by someone else
- * - It's an ADDCOMMENT that is not an attachment
- *
- * @param {Object} reportAction
- * @returns {Boolean}
- */
-function canFlagReportAction(reportAction) {
-    return (
-        !loginList.includes(reportAction.actorEmail) &&
-        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
-        !ReportActionsUtils.isDeletedAction(reportAction) &&
-        !ReportActionsUtils.isCreatedTaskReportAction(reportAction)
     );
 }
 
@@ -256,7 +235,7 @@ function canDeleteReportAction(reportAction, reportID) {
     ) {
         return false;
     }
-    if (reportAction.actorEmail === currentUserEmail) {
+    if (reportAction.actorAccountID === currentUserAccountID) {
         return true;
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
@@ -753,12 +732,12 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
 
-        const actorEmail = lodashGet(parentReportAction, 'actorEmail', '');
-        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', '');
+        const actorAccountID = lodashGet(parentReportAction, 'actorAccountID', 0);
+        const actorDisplayName = lodashGet(allPersonalDetails, [actorAccountID, 'displayName'], '');
         const actorIcon = {
             id: actorAccountID,
             source: UserUtils.getAvatar(lodashGet(personalDetails, [actorAccountID, 'avatar']), actorAccountID),
-            name: actorEmail,
+            name: actorDisplayName,
             type: CONST.ICON_TYPE_AVATAR,
         };
 
@@ -1243,7 +1222,6 @@ function buildOptimisticAddCommentReportAction(text, file) {
         reportAction: {
             reportActionID: NumberUtils.rand64(),
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-            actorEmail: currentUserEmail,
             actorAccountID: currentUserAccountID,
             person: [
                 {
@@ -1295,7 +1273,6 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     reportAction.reportAction.parentReportID = parentReportID;
     reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
     reportAction.reportAction.childReportName = taskTitle;
-    reportAction.reportAction.childManagerEmail = taskAssignee;
     reportAction.reportAction.childManagerAccountID = taskAssigneeAccountID;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
@@ -1476,7 +1453,6 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
         automatic: false,
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
@@ -1515,7 +1491,6 @@ function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
         originalMessage: {
             linkedReportID: iouReportID,
         },
-        actorEmail: currentUserEmail,
         actorAccountID: currentUserAccountID,
     };
 }
@@ -1530,7 +1505,6 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
     return {
         actionName,
         actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
         automatic: false,
         avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
         isAttachment: false,
@@ -1629,7 +1603,6 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1669,7 +1642,6 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
         actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         actorAccountID: currentUserAccountID,
-        actorEmail: currentUserEmail,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1834,7 +1806,6 @@ function buildOptimisticTaskReport(ownerEmail, ownerAccountID, assigneeAccountID
         description,
         ownerEmail,
         ownerAccountID,
-        // managerEmail: assignee,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
         parentReportID,
@@ -2124,6 +2095,26 @@ function chatIncludesChronos(report) {
 }
 
 /**
+ * Can only flag if:
+ *
+ * - It was written by someone else
+ * - It's an ADDCOMMENT that is not an attachment
+ *
+ * @param {Object} reportAction
+ * @param {number} reportID
+ * @returns {Boolean}
+ */
+function canFlagReportAction(reportAction, reportID) {
+    return (
+        reportAction.actorAccountID !== currentUserAccountID &&
+        reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+        !ReportActionsUtils.isDeletedAction(reportAction) &&
+        !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
+        isAllowedToComment(getReport(reportID))
+    );
+}
+
+/**
  * Whether flag comment page should show
  *
  * @param {Object} reportAction
@@ -2133,11 +2124,11 @@ function chatIncludesChronos(report) {
 
 function shouldShowFlagComment(reportAction, report) {
     return (
-        canFlagReportAction(reportAction) &&
+        canFlagReportAction(reportAction, report.reportID) &&
         !isArchivedRoom(report) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report.reportID) &&
-        reportAction.actorEmail !== CONST.EMAIL.CONCIERGE
+        reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE
     );
 }
 
@@ -2377,7 +2368,7 @@ function getParentReport(report) {
  * @returns {Boolean}
  */
 function shouldHideComposer(report, reportErrors) {
-    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report);
+    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
 }
 
 /**
