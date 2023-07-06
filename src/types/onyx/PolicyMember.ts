@@ -1,3 +1,5 @@
+import * as OnyxCommon from './OnyxCommon';
+
 type PolicyMember = {
     /** Role of the user in the policy */
     role?: string;
@@ -9,7 +11,7 @@ type PolicyMember = {
     errors?: Record<string, string>;
 
     /** Is this action pending? */
-    pendingAction?: string;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 export default PolicyMember;
