@@ -65,7 +65,9 @@ function ReportActionItemThread(props) {
                             selectable={false}
                             numberOfLines={1}
                             style={[styles.ml2, styles.textMicroSupporting, styles.flex1]}
-                        >{`${timeStamp}`}</Text>
+                        >
+                            {timeStamp}
+                        </Text>
                     </View>
                 </View>
             </PressableWithoutFeedback>
