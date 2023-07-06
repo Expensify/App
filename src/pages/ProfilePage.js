@@ -108,11 +108,15 @@ function ProfilePage(props) {
     const isExistingReport = ReportUtils.isExistReportsWithAccountID(accountID);
     const details = lodashGet(props.personalDetails, accountID, ValidationUtils.isValidAccountRoute(accountID) ? {} : {isloading: false});
 
-    const displayName = details.displayName && isExistingReport ? details.displayName : props.translate('common.hidden');
     const avatar = lodashGet(details, 'avatar', UserUtils.getDefaultAvatar());
     const originalFileName = lodashGet(details, 'originalFileName', '');
     const login = lodashGet(details, 'login', '');
     const timezone = lodashGet(details, 'timezone', {});
+
+    const isCurrentUser = _.keys(props.loginList).includes(login);
+    const hasMinimumDetails = !_.isEmpty(details.avatar);
+    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details) || props.isLoadingReportData;
+    const displayName = details.displayName && (isExistingReport || isCurrentUser) ? details.displayName : props.translate('common.hidden');
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
@@ -126,10 +130,6 @@ function ProfilePage(props) {
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
     const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
-
-    const isCurrentUser = _.keys(props.loginList).includes(login);
-    const hasMinimumDetails = !_.isEmpty(details.avatar);
-    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details) || props.isLoadingReportData;
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
@@ -179,7 +179,7 @@ function ProfilePage(props) {
                                     {displayName}
                                 </Text>
                             )}
-                            {login && isExistingReport ? (
+                            {login && (isExistingReport || isCurrentUser) ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mb1]}
@@ -194,7 +194,7 @@ function ProfilePage(props) {
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
-                            {pronouns && isExistingReport ? (
+                            {pronouns && (isExistingReport || isCurrentUser) ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text
                                         style={[styles.textLabelSupporting, styles.mb1]}
@@ -205,7 +205,7 @@ function ProfilePage(props) {
                                     <Text numberOfLines={1}>{pronouns}</Text>
                                 </View>
                             ) : null}
-                            {shouldShowLocalTime && isExistingReport && <AutoUpdateTime timezone={timezone} />}
+                            {shouldShowLocalTime && (isExistingReport || isCurrentUser) && <AutoUpdateTime timezone={timezone} />}
                         </View>
                         {!isCurrentUser && !Session.isAnonymousUser() && (
                             <MenuItem
