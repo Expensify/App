@@ -171,15 +171,16 @@ function MoneyRequestAmountPage(props) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
-    const prevMoneyRequestId = useRef(lodashGet(props.iou, 'id', ''));
-    const prevProps = useRef(props);
+    const prevMoneyRequestId = useRef(props.iou.id);
+    const prevPropCurrencyParam = useRef(lodashGet(props.route, 'params.currency'));
+    const prevPropIOUCurrency = useRef(lodashGet(props.iou, 'currency', ''));
     const textInput = useRef(null);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
-    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(() => props.iou.currency);
+    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
     const [selection, setSelection] = useState({start: selectedAmountAsString.length, end: selectedAmountAsString.length});
 
@@ -232,6 +233,12 @@ function MoneyRequestAmountPage(props) {
 
     useEffect(() => {
         if (!isEditing.current) return;
+        if (prevMoneyRequestId.current !== props.iou.id) {
+            // The ID is cleared on completing a request. In that case, we will do nothing.
+            if (props.iou.id) {
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+            }
+        }
         const moneyRequestId = `${iouType.current}${reportID.current}`;
         const shouldReset = props.iou.id !== moneyRequestId;
         if (shouldReset) {
@@ -241,41 +248,26 @@ function MoneyRequestAmountPage(props) {
         if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
-        // componentDidMount method refactoring
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
-    useEffect(() => {
-        if (!isEditing.current) return;
-        // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || prevMoneyRequestId.current !== props.iou.id) {
-            // The ID is cleared on completing a request. In that case, we will do nothing.
-            if (props.iou.id) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
-            }
-        }
         return () => {
-            prevProps.current = props;
             prevMoneyRequestId.current = props.iou.id;
         };
-        // We only want this effect to get called when we edit the amount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
     useEffect(() => {
         const currencyParam = lodashGet(props.route.params, 'currency', '');
-        const prevCurrencyParam = lodashGet(prevProps.current.route.params, 'currency', '');
+        const prevCurrencyParam = prevPropCurrencyParam.current;
         if (currencyParam !== '' && prevCurrencyParam !== currencyParam) {
             setSelectedCurrencyCode(currencyParam);
             return;
         }
 
-        if (prevProps.current.iou.currency !== props.iou.currency) {
+        if (prevPropIOUCurrency.current !== props.iou.currency) {
             setSelectedCurrencyCode(props.iou.currency);
         }
 
         return () => {
-            prevProps.current = props;
+            prevPropIOUCurrency.current = props.iou.currency;
         };
         // We only want this effect to get called when we edit the amount
         // eslint-disable-next-line react-hooks/exhaustive-deps
