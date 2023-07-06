@@ -1494,7 +1494,7 @@ function clearIOUError(reportID) {
  * @returns {boolean}
  */
 function hasAccountIDEmojiReacted(accountID, users, skinTone) {
-    if (!skinTone) {
+    if (_.isUndefined(skinTone)) {
         return Boolean(users[accountID]);
     }
     const usersReaction = users[accountID];
