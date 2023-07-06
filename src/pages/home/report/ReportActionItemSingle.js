@@ -74,7 +74,7 @@ function ReportActionItemSingle(props) {
     const actorAccountID = props.action.actorAccountID;
     let {displayName} = props.personalDetailsList[actorAccountID] || {};
     const {avatar, login, pendingFields} = props.personalDetailsList[actorAccountID] || {};
-    let actorHint = (login || displayName).replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    let actorHint = (login || displayName || '').replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     const isWorkspaceActor = ReportUtils.isPolicyExpenseChat(props.report) && !actorAccountID;
     let avatarSource = UserUtils.getAvatar(avatar, actorAccountID);
 
