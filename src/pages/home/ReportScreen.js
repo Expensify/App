@@ -33,7 +33,6 @@ import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withNavigationFocus from '../../components/withNavigationFocus';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
-import EmojiPicker from '../../components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
@@ -366,7 +365,6 @@ class ReportScreen extends React.Component {
                                 />
                             )}
 
-                            <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                             <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
                         </View>
                     </FullPageNotFoundView>

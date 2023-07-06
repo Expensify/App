@@ -5,11 +5,11 @@
 
 ### Fixed Issues
 <!---
-1. Please replace GH_LINK with a URL link to the GitHub issue this Pull Request is fixing.
-2. Please replace PROPOSAL: GH_LINK_ISSUE(COMMENT) with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).
+1. Please postfix `$` with a URL link to the GitHub issue this Pull Request is fixing. For example, `$ https://github.com/Expensify/App/issues/123`.
+2. Please postfix  `PROPOSAL:` with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).  For example, `PROPOSAL: https://github.com/Expensify/App/issues/123#issuecomment-1369752925`
 
 Do NOT add the special GH keywords like `fixed` etc, we have our own process of managing the flow.
-It MUST be an entire link to the github issue and your comment proposal ; otherwise, the linking will not work as expected.
+It MUST be an entire link to the github issue and your comment proposal ; otherwise, the linking and its automation will not work as expected.
 
 Make sure this section looks similar to this (you can link multiple issues using the same formatting, just add a new line):
 
@@ -18,8 +18,8 @@ $ https://github.com/Expensify/App/issues/<number-of-the-issue(comment)>
 
 Do NOT only link the issue number like this: $ #<number-of-the-issue>
 --->
-$ GH_LINK
-PROPOSAL: GH_LINK_ISSUE(COMMENT)
+$ 
+PROPOSAL: 
 
 
 ### Tests
