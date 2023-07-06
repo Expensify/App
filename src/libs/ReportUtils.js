@@ -995,7 +995,7 @@ function getTransactionReportName(reportAction) {
  * Get money request message for an IOU report
  *
  * @param {Object} report
- * @param {Object} reportAction
+ * @param {Object} [reportAction={}]
  * @returns  {String}
  */
 function getReportPreviewMessage(report, reportAction = {}) {
