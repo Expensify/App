@@ -31,10 +31,10 @@ const propTypes = {
     reports: PropTypes.objectOf(reportPropTypes),
 
     /** */
-    policy: {
+    policy: PropTypes.shape({
         role: PropTypes.string,
         owner: PropTypes.string,
-    }
+    })
 };
 const defaultProps = {
     reports: {},
