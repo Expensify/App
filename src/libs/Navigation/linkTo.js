@@ -79,12 +79,8 @@ export default function linkTo(navigation, path, type) {
     }
 
     if (action.payload.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-        const {minimalAction, targetName} = getMinimalAction(action, navigation.getRootState());
+        const {minimalAction} = getMinimalAction(action, navigation.getRootState());
         if (minimalAction) {
-            // If the target name is RHP that means this action is responsible for changing flow within the RHP e.g. from settings to search. In that case we want to use REPLACE.
-            if (targetName === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
-                minimalAction.type = 'REPLACE';
-            }
             root.dispatch(minimalAction);
             return;
         }
