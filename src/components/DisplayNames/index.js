@@ -54,7 +54,9 @@ function DisplayNames(props) {
 
         // When text right end is beyond the Container right end
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
-    }, [containerLayout, childRefs]);
+        // We only rely on teh containerLayout and childRefs[index] to calculate the shift and these values are not going to change after initialized.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (!props.tooltipEnabled) {
         // No need for any complex text-splitting, just return a simple Text component
