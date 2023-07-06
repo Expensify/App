@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback} from 'react';
+import React, {useState, useMemo, useCallback, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -72,9 +72,14 @@ function IOUCurrencySelection(props) {
     const reportID = lodashGet(props.route, 'params.reportID', '');
 
     const hideModalSelection = ReportUtils.shouldHideComposer(props.report, props.errors);
-    if (hideModalSelection) {
+
+    useEffect(() => {
+        if (!hideModalSelection) {
+            return;
+        }
         Navigation.dismissModal(reportID);
-    }
+
+    }, [hideModalSelection,reportID])
 
     const confirmCurrencySelection = useCallback(
         (option) => {
