@@ -269,6 +269,7 @@ const CONST = {
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
+        SCAN_RECEIPTS: 'scanReceipts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
