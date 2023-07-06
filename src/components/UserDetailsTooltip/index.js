@@ -59,7 +59,7 @@ function UserDetailsTooltip(props) {
     return (
         <Tooltip
             renderTooltipContent={renderTooltipContent}
-            renderTooltipContentKey={[userDetails.displayName, userDetails.login]}
+            renderTooltipContentKey={[userDisplayName, userLogin]}
         >
             {props.children}
         </Tooltip>
