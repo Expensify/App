@@ -1,5 +1,4 @@
-/* eslint-disable react/prop-types */
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -13,8 +12,8 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
+import usePrevious from '../../hooks/usePrevious';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import FormSubmit from '../../components/FormSubmit';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
@@ -68,10 +67,18 @@ const defaultProps = {
 };
 
 function WorkspaceInvitePage(props) {
-    const [searchTerm, setSearchTerm] = useState(''); //
-    const [personalDetails, setPersonalDetails] = useState([]); // array of all details of invited users
-    const [selectedOptions, setSelectedOptions] = useState([]); // this is an array of emails to invite
-    const [userToInvite, setUserToInvite] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [personalDetails, setPersonalDetails] = useState({});
+    const [selectedOptions, setSelectedOptions] = useState([]);
+    const [userToInvite, setUserToInvite] = useState([]);
+    const isPrevOffline = usePrevious(props.network.isOfflline);
+    const prevPersonalDetails = usePrevious(props.personalDetails);
+    const prevPolicyMembers = usePrevious(props.policyMembers);
+
+    const clearErrors = useCallback(() => {
+        Policy.setWorkspaceErrors(props.route.params.policyID, {});
+        Policy.hideWorkspaceAlertMessage(props.route.params.policyID);
+    }, [props.route.params.policyID]);
 
     const getExcludedUsers = useCallback(() => {
         // Exclude any expensify emails or valid policy members from the invite options
@@ -90,43 +97,61 @@ function WorkspaceInvitePage(props) {
         return memberEmailsToExclude;
     }, [props.personalDetails, props.policyMembers]);
 
-    // const updateOptionsWithSearchTerm = useCallback(() => {
-    //     this.setState({
-    //         searchTerm,
-    //         userToInvite,
-    //         personalDetails,
-    //     });
-    // }, [searchTerm, personalDetails, userToInvite]);
+    const updateOptionsWithSearchTerm = useCallback(
+        (newSearchTerm = '') => {
+            const {personalDetails: newPersonalDetails, userToInvite: newUserToInvite} = OptionsListUtils.getMemberInviteOptions(
+                props.personalDetails,
+                props.betas,
+                newSearchTerm,
+                getExcludedUsers(),
+            );
 
-    const updateOptionsWithSearchTerm = useCallback((searchTerm = '') => {
-        const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, getExcludedUsers());
+            // Update selectedOptions with the latest personalDetails and policyMembers information
+            const detailsMap = {};
+            _.forEach(personalDetails, (detail) => (detailsMap[detail.login] = detail));
 
-        // Update selectedOptions with the latest personalDetails and policyMembers information
-        const detailsMap = {};
-        _.forEach(personalDetails, (detail) => (detailsMap[detail.login] = detail)); // email => all details obj.
+            const newSelectedOptions = [];
+            _.forEach(selectedOptions, (option) => {
+                newSelectedOptions.push(_.has(detailsMap, option.login) ? detailsMap[option.login] : option);
+            });
 
-        const newSelectedOptions = [];
-        _.forEach(selectedOptions, (option) => {
-            newSelectedOptions.push(_.has(detailsMap, option.login) ? detailsMap[option.login] : option);
-        });
-
-        setSearchTerm(searchTerm);
-        setPersonalDetails(detailsMap);
-        setUserToInvite(userToInvite); //Check
-        setSelectedOptions(newSelectedOptions);
-    }, []);
-
-    useEffect(() => {
-        updateOptionsWithSearchTerm(props.searchTerm);
-    }, [props.personalDetails, props.searchTerm, updateOptionsWithSearchTerm]);
+            setPersonalDetails(newPersonalDetails);
+            setUserToInvite(newUserToInvite);
+            setSearchTerm(newSearchTerm);
+            setSelectedOptions(newSelectedOptions);
+        },
+        [props.personalDetails, props.betas, personalDetails, selectedOptions],
+    );
 
     useEffect(() => {
-        if (props.network.isOffline) {
-            return;
-        }
+        clearErrors();
         const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
-    }, [props.network.isOffline, props.personalDetails, props.policyMembers, props.route.params.policyID]);
+    }, [clearErrors, props.route.params.policyID, props.policyMembers, props.personalDetails]);
+
+    useEffect(() => {
+        if (!_.isEqual(prevPersonalDetails, props.personalDetails) || !_.isEqual(prevPolicyMembers, props.policyMembers)) {
+            updateOptionsWithSearchTerm(searchTerm);
+        }
+
+        const isReconnecting = isPrevOffline && !props.network.isOffline;
+        if (!isReconnecting) {
+            return;
+        }
+
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails);
+        Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
+    }, [
+        props.personalDetails,
+        props.policyMembers,
+        props.network.isOffline,
+        props.route.params.policyID,
+        prevPersonalDetails,
+        prevPolicyMembers,
+        isPrevOffline,
+        updateOptionsWithSearchTerm,
+        searchTerm,
+    ]);
 
     /**
      * @returns {Boolean}
@@ -172,36 +197,41 @@ function WorkspaceInvitePage(props) {
         }
 
         return sections;
-    }, []);
+    }, [selectedOptions, personalDetails, userToInvite, props.translate]);
 
     const openPrivacyURL = useCallback((e) => {
         e.preventDefault();
         Link.openExternalLink(CONST.PRIVACY_URL);
     }, []);
 
-    const clearErrors = useCallback(() => {
-        Policy.setWorkspaceErrors(props.route.params.policyID, {});
-        Policy.hideWorkspaceAlertMessage(props.route.params.policyID);
-    }, [props.route.params.policyID]);
-
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
+    const toggleOption = useCallback(
+        (option) => {
+            clearErrors();
+            const isOptionInList = _.some(selectedOptions, (selectedOption) => selectedOption.login === option.login);
 
-    const toggleOption = useCallback((option) => {
-        clearErrors();
+            let newSelectedOptions;
+            if (isOptionInList) {
+                newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+            } else {
+                newSelectedOptions = [...selectedOptions, option];
+            }
 
-        let newSelectedOptions;
-
-        if (isOptionInList) {
-            newSelectedOptions = _.reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
-        } else {
-            newSelectedOptions = [...selectedOptions, option];
-        }
-
-        setSelectedOptions(newSelectedOptions);
-    });
+            const {personalDetails: newPersonalDetails, userToInvite: newUserToInvite} = OptionsListUtils.getMemberInviteOptions(
+                props.personalDetails,
+                props.betas,
+                searchTerm,
+                getExcludedUsers(),
+            );
+            setSelectedOptions(newSelectedOptions);
+            setPersonalDetails(newPersonalDetails);
+            setUserToInvite(newUserToInvite);
+        },
+        [clearErrors, selectedOptions, props.personalDetails, props.betas, searchTerm, getExcludedUsers],
+    );
 
     /**
      * @returns {Boolean}
@@ -214,7 +244,7 @@ function WorkspaceInvitePage(props) {
 
         Policy.setWorkspaceErrors(props.route.params.policyID, errors);
         return _.size(errors) <= 0;
-    }, [props.route.params.policyID, selectedOptions.length]);
+    }, [props.route.params.policyID, selectedOptions]);
 
     /**
      * Handle the invite button click
@@ -235,7 +265,7 @@ function WorkspaceInvitePage(props) {
         });
         Policy.setWorkspaceInviteMembersDraft(props.route.params.policyID, invitedEmailsToAccountIDs);
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(props.route.params.policyID));
-    }, [props.route.params.policyID, selectedOptions, validate]);
+    }, [validate, selectedOptions, props.route.params.policyID]);
 
     const sections = getSections();
     const headerMessage = OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchTerm);
@@ -247,52 +277,47 @@ function WorkspaceInvitePage(props) {
                 shouldShow={_.isEmpty(props.policy)}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
-                <FormSubmit
-                    style={[styles.flex1]}
-                    onSubmit={inviteUser}
-                >
-                    <HeaderWithBackButton
-                        title={props.translate('workspace.invite.invitePeople')}
-                        subtitle={policyName}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                        onBackButtonPress={() => {
-                            clearErrors();
-                            Navigation.goBack(ROUTES.getWorkspaceMembersRoute(props.route.params.policyID));
-                        }}
+                <HeaderWithBackButton
+                    title={props.translate('workspace.invite.invitePeople')}
+                    subtitle={policyName}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                    onBackButtonPress={() => {
+                        clearErrors();
+                        Navigation.goBack(ROUTES.getWorkspaceMembersRoute(props.route.params.policyID));
+                    }}
+                />
+                <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
+                    <OptionsSelector
+                        contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}
+                        listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
+                        canSelectMultipleOptions
+                        sections={sections}
+                        selectedOptions={selectedOptions}
+                        value={searchTerm}
+                        shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
+                        onSelectRow={toggleOption}
+                        onChangeText={updateOptionsWithSearchTerm}
+                        onConfirmSelection={inviteUser}
+                        headerMessage={headerMessage}
+                        hideSectionHeaders
+                        boldStyle
+                        shouldFocusOnSelectRow={!Browser.isMobile()}
+                        textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     />
-                    <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
-                        <OptionsSelector
-                            contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}
-                            listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
-                            canSelectMultipleOptions
-                            sections={sections}
-                            selectedOptions={selectedOptions}
-                            value={searchTerm}
-                            shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
-                            onSelectRow={toggleOption}
-                            onChangeText={updateOptionsWithSearchTerm}
-                            onConfirmSelection={inviteUser}
-                            headerMessage={headerMessage}
-                            hideSectionHeaders
-                            boldStyle
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
-                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        />
-                    </View>
-                    <View style={[styles.flexShrink0]}>
-                        <FormAlertWithSubmitButton
-                            isDisabled={!selectedOptions.length}
-                            isAlertVisible={getShouldShowAlertPrompt()}
-                            buttonText={props.translate('common.next')}
-                            onSubmit={inviteUser}
-                            message={props.policy.alertMessage}
-                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                            enabledWhenOffline
-                            disablePressOnEnter
-                        />
-                    </View>
-                </FormSubmit>
+                </View>
+                <View style={[styles.flexShrink0]}>
+                    <FormAlertWithSubmitButton
+                        isDisabled={!selectedOptions.length}
+                        isAlertVisible={getShouldShowAlertPrompt()}
+                        buttonText={props.translate('common.next')}
+                        onSubmit={inviteUser}
+                        message={props.policy.alertMessage}
+                        containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                        enabledWhenOffline
+                        disablePressOnEnter
+                    />
+                </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
@@ -300,7 +325,7 @@ function WorkspaceInvitePage(props) {
 
 WorkspaceInvitePage.propTypes = propTypes;
 WorkspaceInvitePage.defaultProps = defaultProps;
-WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
+WorkspaceInvitePage.defaultName = 'WorkspaceInvitePage';
 
 export default compose(
     withLocalize,
