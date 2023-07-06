@@ -28,7 +28,7 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import withCurrentReportId from '../withCurrentReportId';
+import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
 import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
@@ -56,6 +56,7 @@ const propTypes = {
     optionItem: PropTypes.shape({}),
 
     ...withLocalizePropTypes,
+    ...withCurrentReportIDPropTypes,
 };
 
 const defaultProps = {
@@ -66,6 +67,7 @@ const defaultProps = {
     style: null,
     optionItem: null,
     comment: '',
+    ...withCurrentReportIDDefaultProps,
 };
 
 function BaseOptionRowLHN(props) {
@@ -311,7 +313,7 @@ OptionRowLHN.displayName = 'OptionRowIsFocusedSupport';
 
 export default compose(
     withLocalize,
-    withCurrentReportId,
+    withCurrentReportID,
     withReportCommentDrafts({
         propName: 'comment',
         transformValue: (drafts, props) => {
