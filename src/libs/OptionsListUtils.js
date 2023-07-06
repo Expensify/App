@@ -626,7 +626,7 @@ function getOptions(
 
     // Filter out all the reports that shouldn't be displayed
     const filteredReports = _.filter(reports, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, Navigation.getReportIDFromRoute(), false, iouReports, betas, policies, isShareDestination),
+        ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, iouReports, betas, policies, isShareDestination),
     );
 
     // Sorting the reports works like this:

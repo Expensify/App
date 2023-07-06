@@ -10,8 +10,17 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+
+let currentUserEmail;
+let currentUserAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserEmail = lodashGet(val, 'email', '');
+        currentUserAccountID = lodashGet(val, 'accountID', 0);
+    },
+});
 
 /**
  * Clears out the task info from the store
@@ -24,8 +33,6 @@ function clearOutTaskInfo() {
  * Assign a task to a user
  * Function title is createTask for consistency with the rest of the actions
  * and also because we can create a task without assigning it to anyone
- * @param {String} currentUserEmail
- * @param {Number} currentUserAccountID
  * @param {String} parentReportID
  * @param {String} title
  * @param {String} description
@@ -34,7 +41,7 @@ function clearOutTaskInfo() {
  *
  */
 
-function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentReportID, title, description, assignee, assigneeAccountID = 0) {
+function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0) {
     // Create the task report
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
@@ -251,7 +258,7 @@ function reopenTask(taskReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.OPEN,
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: reopenedTaskReportAction.actorEmail,
+                lastActorEmail: currentUserEmail,
                 lastActorAccountID: reopenedTaskReportAction.actorAccountID,
                 lastReadTime: reopenedTaskReportAction.created,
             },
@@ -586,7 +593,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: optimisticCancelReportAction.actorEmail,
+                lastActorEmail: currentUserEmail,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
             },
         },
@@ -648,13 +655,7 @@ function getTaskAssigneeAccountID(taskReport) {
     }
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
-    const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
-
-    if (!childManagerEmail) {
-        return null;
-    }
-
-    return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
+    return lodashGet(reportAction, 'childManagerAccountID');
 }
 
 /**
