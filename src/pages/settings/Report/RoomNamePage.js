@@ -18,7 +18,7 @@ import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
 import RoomNameInput from '../../../components/RoomNameInput';
-import * as ReportUtils from '../../../libs/ReportUtils';
+import * as Policy from '../../../libs/actions/Policy';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
@@ -29,12 +29,20 @@ const propTypes = {
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
+
+    /** */
+    policy: {
+        role: PropTypes.string,
+        owner: PropTypes.string,
+    }
 };
 const defaultProps = {
     reports: {},
+    policy: {},
 };
 
 function RoomNamePage(props) {
+    const policy = props.policy;
     const report = props.report;
     const reports = props.reports;
     const translate = props.translate;
@@ -69,7 +77,7 @@ function RoomNamePage(props) {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView shouldShow={ReportUtils.isAdminRoom(props.report)}>
+            <FullPageNotFoundView shouldShow={!Policy.isPolicyOwner(policy) && policy.role !== CONST.POLICY.ROLE.ADMIN}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
@@ -105,6 +113,9 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        policy : {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
     }),
 )(RoomNamePage);
