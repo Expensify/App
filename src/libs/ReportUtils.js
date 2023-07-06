@@ -474,7 +474,7 @@ function isArchivedRoom(report) {
  */
 function getPolicyName(report, returnEmptyIfNotFound = false) {
     const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
-    if (report === undefined) {
+    if (_.isEmpty(report)) {
         return noPolicyFound;
     }
 
