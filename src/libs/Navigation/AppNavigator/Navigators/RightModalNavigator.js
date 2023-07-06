@@ -17,7 +17,7 @@ function RigthModalNavigator() {
                 name="NewChat"
                 component={ModalStackNavigators.NewChatModalStackNavigator}
             />
-             <Stack.Screen
+            <Stack.Screen
                 name="NewGroup"
                 component={ModalStackNavigators.NewGroupModalStackNavigator}
                 options={{
