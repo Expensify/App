@@ -108,7 +108,7 @@ function TaskView(props) {
                 shouldShowRightIcon
                 disabled={!isOpen}
                 wrapperStyle={[styles.pv2]}
-                numberOfLines={3}
+                numberOfLinesTitle={3}
             />
             {props.report.managerID ? (
                 <MenuItem
