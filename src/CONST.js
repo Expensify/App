@@ -1109,6 +1109,10 @@ const CONST = {
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
     },
+    AVATAR_ROW_SIZE: {
+        DEFAULT: 4,
+        LARGE_SCREEN: 8,
+    },
     OPTION_MODE: {
         COMPACT: 'compact',
         DEFAULT: 'default',
@@ -2510,6 +2514,11 @@ const CONST = {
         MENUITEM: 'menuitem',
         TEXT: 'text',
         RADIO: 'radio',
+        IMAGEBUTTON: 'imagebutton',
+        CHECKBOX: 'checkbox',
+        SWITCH: 'switch',
+        ADJUSTABLE: 'adjustable',
+        IMAGE: 'image',
     },
     SETTINGS_LOUNGE_ACCESS: {
         HEADER_IMAGE_ASPECT_RATIO: 0.64,
