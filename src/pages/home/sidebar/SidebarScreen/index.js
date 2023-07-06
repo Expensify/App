@@ -1,4 +1,4 @@
-import React, {useRef, useCallback} from 'react';
+import React, {useCallback} from 'react';
 import {InteractionManager} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import sidebarPropTypes from './sidebarPropTypes';
