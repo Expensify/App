@@ -77,7 +77,6 @@ function getDeployMessage(deployer, deployVerb, prTitle) {
  */
 function commentPR(PR, message) {
     return GithubUtils.createComment(context.repo.repo, PR, message)
-        .then(() => ActionUtils.sleep(1000))
         .then(() => console.log(`Comment created on #${PR} successfully 🎉`))
         .catch((err) => {
             console.log(`Unable to write comment on #${PR} 😞`);
@@ -285,11 +284,12 @@ class GithubUtils {
         this.internalOctokit = new Octokit(
             getOctokitOptions(token, {
                 throttle: {
+                    retryAfterBaseValue: 2000,
                     onRateLimit: (retryAfter, options) => {
                         console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
 
-                        // Retry once after hitting a rate limit error, then give up
-                        if (options.request.retryCount <= 1) {
+                        // Retry five times when hitting a rate limit error, then give up
+                        if (options.request.retryCount <= 5) {
                             console.log(`Retrying after ${retryAfter} seconds!`);
                             return true;
                         }
