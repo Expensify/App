@@ -21,6 +21,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import reportPropTypes from "../../pages/reportPropTypes";
 
 const propTypes = {
     /** All the data of the action */
@@ -43,13 +44,7 @@ const propTypes = {
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
-    chatReport: PropTypes.shape({
-        /** The participants of this report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** Whether the chat report has an outstanding IOU */
-        hasOutstandingIOU: PropTypes.bool.isRequired,
-    }),
+    chatReport: reportPropTypes,
 
     /** IOU report data object */
     iouReport: iouReportPropTypes,
@@ -78,10 +73,7 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: undefined,
     checkIfContextMenuActive: () => {},
-    chatReport: {
-        participants: [],
-        hasOutstandingIOU: false,
-    },
+    chatReport: {},
     iouReport: {},
     reportActions: {},
     isHovered: false,
@@ -145,20 +137,18 @@ function MoneyRequestAction(props) {
     }
 
     return (
-        <>
-            <IOUPreview
-                iouReportID={props.requestReportID}
-                chatReportID={props.chatReportID}
-                isBillSplit={isSplitBillAction}
-                action={props.action}
-                contextMenuAnchor={props.contextMenuAnchor}
-                checkIfContextMenuActive={props.checkIfContextMenuActive}
-                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                onPreviewPressed={onIOUPreviewPressed}
-                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
-                isHovered={props.isHovered}
-            />
-        </>
+        <IOUPreview
+            iouReportID={props.requestReportID}
+            chatReportID={props.chatReportID}
+            isBillSplit={isSplitBillAction}
+            action={props.action}
+            contextMenuAnchor={props.contextMenuAnchor}
+            checkIfContextMenuActive={props.checkIfContextMenuActive}
+            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+            onPreviewPressed={onIOUPreviewPressed}
+            containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
+            isHovered={props.isHovered}
+        />
     );
 }
 
