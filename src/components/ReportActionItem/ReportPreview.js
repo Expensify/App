@@ -39,9 +39,6 @@ const propTypes = {
     /* Onyx Props */
     /** chatReport associated with iouReport */
     chatReport: PropTypes.shape({
-        /** The participants of this report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
         /** Whether the chat report has an outstanding IOU */
         hasOutstandingIOU: PropTypes.bool.isRequired,
     }),
