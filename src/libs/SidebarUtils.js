@@ -234,7 +234,6 @@ function getOptionData(reportID) {
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
-        ownerEmail: null,
         ownerAccountID: null,
         subtitle: null,
         participantsList: null,
@@ -279,7 +278,6 @@ function getOptionData(reportID) {
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    result.ownerEmail = report.ownerEmail;
     result.ownerAccountID = report.ownerAccountID;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
