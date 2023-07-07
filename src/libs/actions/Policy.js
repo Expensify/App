@@ -167,6 +167,16 @@ function isPolicyOwner(policy) {
 }
 
 /**
+ * Is the user the member of the given policy?
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPolicyMember(policy) {
+    return !isPolicyOwner(policy) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Check if the user has any active free policies (aka workspaces)
  *
  * @param {Array} policies
@@ -1142,4 +1152,5 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
+    isPolicyMember
 };

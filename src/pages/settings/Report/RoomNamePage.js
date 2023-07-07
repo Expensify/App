@@ -77,7 +77,7 @@ function RoomNamePage(props) {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView shouldShow={!Policy.isPolicyOwner(policy) && policy.role !== CONST.POLICY.ROLE.ADMIN}>
+            <FullPageNotFoundView shouldShow={Policy.isPolicyMember(policy)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
