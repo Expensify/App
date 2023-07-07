@@ -1201,8 +1201,9 @@ function navigateToConciergeChat() {
  * @param {String} writeCapability
  */
 function addPolicyReport(policyID, reportName, visibility, policyMembers, writeCapability) {
-    // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserAccountID, ...policyMembers]);
+    // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
+    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembers : [];
+    const participants = _.unique([currentUserAccountID, ...members]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
