@@ -143,13 +143,13 @@ function isTaskReport(report) {
 }
 
 /**
- * Checks if a task is completed
+ * Checks if a report is an open task report.
  *
  * @param {Object} report
  * @returns {Boolean}
  */
-function isTaskCompleted(report) {
-    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
+function isOpenTaskReport(report) {
+    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
@@ -158,6 +158,20 @@ function isTaskCompleted(report) {
  * @param {Object} report
  * @returns {Boolean}
  */
+function isCanceledTaskReport(report) {
+    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.CLOSED;
+}
+
+/**
+ * Checks if a report is a completed task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isCompletedTaskReport(report) {
+    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
+}
+
 function isTaskAssignee(report) {
     return lodashGet(report, 'managerEmail') === currentUserEmail;
 }
@@ -584,6 +598,16 @@ function isThreadParent(reportAction) {
  */
 function isThreadFirstChat(reportAction, reportID) {
     return !_.isUndefined(reportAction.childReportID) && reportAction.childReportID.toString() === reportID;
+}
+
+/**
+ * Checks if a report is a child report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isChildReport(report) {
+    return isThread(report) || isTaskReport(report);
 }
 
 /**
@@ -1138,7 +1162,7 @@ function getReportName(report) {
  * @returns {Object}
  */
 function getRootReportAndWorkspaceName(report) {
-    if (isThread(report) && !isMoneyRequestReport(report)) {
+    if (isChildReport(report) && !isMoneyRequestReport(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         return getRootReportAndWorkspaceName(parentReport);
     }
@@ -2535,7 +2559,9 @@ export {
     isExpenseRequest,
     isIOUReport,
     isTaskReport,
-    isTaskCompleted,
+    isOpenTaskReport,
+    isCanceledTaskReport,
+    isCompletedTaskReport,
     isTaskAssignee,
     isMoneyRequestReport,
     chatIncludesChronos,
@@ -2552,6 +2578,7 @@ export {
     isChatThread,
     isThreadParent,
     isThreadFirstChat,
+    isChildReport,
     shouldReportShowSubscript,
     isReportDataReady,
     isSettled,

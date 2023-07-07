@@ -50,14 +50,16 @@ function TaskAction(props) {
             messageLinkText = props.translate('task.messages.reopened');
             break;
         default:
-            messageLinkText = props.translate('newTaskPage.task');
+            messageLinkText = props.translate('task.task');
     }
 
     return (
         <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={styles.chatItemMessageLink}>{messageLinkText}</Text>
-                <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
+                <Text>
+                    <Text style={styles.chatItemMessageLink}>{messageLinkText}</Text>
+                    <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
+                </Text>
             </View>
         </>
     );

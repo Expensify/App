@@ -183,7 +183,7 @@ function getOrderedReportIDs(currentReportId) {
             return;
         }
 
-        if (ReportUtils.isTaskReport(report) && ReportUtils.isTaskCompleted(report)) {
+        if (ReportUtils.isTaskReport(report) && ReportUtils.isCompletedTaskReport(report)) {
             archivedReports.push(report);
             return;
         }
@@ -267,7 +267,7 @@ function getOptionData(reportID) {
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     if (result.isTaskReport) {
-        result.isTaskCompleted = ReportUtils.isTaskCompleted(report);
+        result.isCompletedTaskReport = ReportUtils.isCompletedTaskReport(report);
         result.isTaskAssignee = ReportUtils.isTaskAssignee(report);
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);

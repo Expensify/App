@@ -97,6 +97,19 @@ function getEmptyAvatarStyle(size) {
 }
 
 /**
+ * Return the width style from an avatar size constant
+ *
+ * @param {String} size
+ * @returns {Object}
+ */
+function getAvatarWidthStyle(size) {
+    const avatarSize = getAvatarSize(size);
+    return {
+        width: avatarSize,
+    };
+}
+
+/**
  * Return the style from an avatar size constant
  *
  * @param {String} size
@@ -1230,6 +1243,17 @@ function getWrappingStyle(isExtraSmallScreenWidth) {
 }
 
 /**
+ * Returns the text container styles for menu items depending on if the menu item container a small avatar
+ * @param {Boolean} isSmallAvatarSubscriptMenu
+ * @returns {Number}
+ */
+function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu) {
+    return {
+        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
+    };
+}
+
+/**
  * Returns link styles based on whether the link is disabled or not
  * @param {Boolean} isDisabled
  * @returns {Object}
@@ -1246,8 +1270,29 @@ function getDisabledLinkStyles(isDisabled = false) {
     };
 }
 
+/**
+ * Returns the checkbox container style
+ * @param {Number} size
+ * @param {Number} borderRadius
+ * @returns {Object}
+ */
+function getCheckboxContainerStyle(size, borderRadius) {
+    return {
+        backgroundColor: themeColors.componentBG,
+        height: size,
+        width: size,
+        borderColor: themeColors.borderLighter,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // eslint-disable-next-line object-shorthand
+        borderRadius: borderRadius,
+    };
+}
+
 export {
     getAvatarSize,
+    getAvatarWidthStyle,
     getAvatarStyle,
     getAvatarExtraFontSizeStyle,
     getAvatarBorderWidth,
@@ -1314,5 +1359,7 @@ export {
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,
+    getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
+    getCheckboxContainerStyle,
 };
