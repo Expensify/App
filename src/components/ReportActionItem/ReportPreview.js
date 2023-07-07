@@ -23,6 +23,7 @@ import getButtonState from '../../libs/getButtonState';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** All the data of the action */
@@ -38,9 +39,6 @@ const propTypes = {
     /* Onyx Props */
     /** chatReport associated with iouReport */
     chatReport: PropTypes.shape({
-        /** The participants of this report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
         /** Whether the chat report has an outstanding IOU */
         hasOutstandingIOU: PropTypes.bool.isRequired,
     }),
@@ -107,7 +105,7 @@ function ReportPreview(props) {
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
-                accessibilityRole="button"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
                 <View style={[styles.flexShrink1]}>

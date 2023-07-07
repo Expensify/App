@@ -5,9 +5,9 @@ home:
 
 # Hubs are comprised of sections and articles. Sections contain multiple related articles, but there can be standalone articles as well
 hubs:
-  - href: send-money
-    title: Send money
-    description: With only a couple of clicks, send money to your friends or coworkers.
+  - href: split-bills
+    title: Split bills
+    description: With only a couple of clicks, split bills with your friends or coworkers.
     icon: /assets/images/paper-airplane.svg
 
   - href: request-money

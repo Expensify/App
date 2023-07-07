@@ -5,4 +5,8 @@ module.exports = {
     core: {
         builder: 'webpack5',
     },
+    managerHead: (head) => `
+        ${head}
+        ${process.env.ENV === 'staging' ? '<meta name="robots" content="noindex">' : ''}
+    `,
 };
