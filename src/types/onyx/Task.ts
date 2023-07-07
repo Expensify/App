@@ -2,7 +2,7 @@ import Report from './Report';
 
 type Task = {
     /** Title of the Task */
-    title?: string;
+    title: string;
 
     /** Description of the Task */
     description?: string;
