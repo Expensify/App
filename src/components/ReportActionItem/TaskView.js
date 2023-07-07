@@ -61,11 +61,11 @@ function TaskView(props) {
                 style={({hovered, pressed}) => [
                     styles.ph5,
                     styles.pv2,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, isCanceled), true),
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, !isOpen), true),
                     isCanceled && styles.buttonOpacityDisabled,
                 ]}
                 ref={props.forwardedRef}
-                disabled={!isOpen || isCanceled}
+                disabled={!isOpen}
                 accessibilityLabel={taskTitle || props.translate('task.task')}
             >
                 {({hovered, pressed}) => (
@@ -94,7 +94,7 @@ function TaskView(props) {
                                 <Icon
                                     additionalStyles={[styles.alignItemsCenter]}
                                     src={Expensicons.ArrowRight}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, isCanceled))}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, !isOpen))}
                                 />
                             </View>
                         </View>
