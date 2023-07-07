@@ -1249,12 +1249,10 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    leftPanelContainer: {
-        maxWidth: variables.sideBarWidth,
-    },
-
-    rightPanelContainer: {
-        width: variables.sideBarWidth,
+    rhpNavigatorContainer: {
+        position: 'absolute',
+        right: 0,
+        height: '100%',
     },
 
     onlyEmojisText: {
