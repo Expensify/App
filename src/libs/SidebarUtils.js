@@ -143,23 +143,21 @@ function getOrderedReportIDs(currentReportId) {
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReports);
+        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
     // 1. Pinned - Always sorted by reportDisplayName
-    // 2. Waiting on bank account - Always sorted by reportDisplayName
-    // 3. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
-    // 4. Drafts - Always sorted by reportDisplayName
-    // 5. Non-archived reports
+    // 2. Outstanding IOUs - Always sorted by iouReportAmount with the largest amounts at the top of the group
+    // 3. Drafts - Always sorted by reportDisplayName
+    // 4. Non-archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
-    // 6. Archived reports
+    // 5. Archived reports
     //      - Sorted by lastVisibleActionCreated in default (most recent) view mode
     //      - Sorted by reportDisplayName in GSD (focus) view mode
     let pinnedReports = [];
     let outstandingIOUReports = [];
-    let waitingOnBankAccountReports = [];
     let draftReports = [];
     let nonArchivedReports = [];
     let archivedReports = [];
@@ -169,14 +167,8 @@ function getOrderedReportIDs(currentReportId) {
             return;
         }
 
-        const isIOUOwnedByCurrentUser = ReportUtils.isIOUOwnedByCurrentUser(report, allReports);
-        if (report.hasOutstandingIOU && !isIOUOwnedByCurrentUser) {
+        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
             outstandingIOUReports.push(report);
-            return;
-        }
-
-        if (report.isWaitingOnBankAccount && isIOUOwnedByCurrentUser) {
-            waitingOnBankAccountReports.push(report);
             return;
         }
 
@@ -200,7 +192,6 @@ function getOrderedReportIDs(currentReportId) {
 
     // Sort each group of reports accordingly
     pinnedReports = _.sortBy(pinnedReports, (report) => report.displayName.toLowerCase());
-    waitingOnBankAccountReports = _.sortBy(waitingOnBankAccountReports, (report) => report.displayName.toLowerCase());
     outstandingIOUReports = lodashOrderBy(outstandingIOUReports, ['iouReportAmount', (report) => report.displayName.toLowerCase()], ['desc', 'asc']);
     draftReports = _.sortBy(draftReports, (report) => report.displayName.toLowerCase());
     nonArchivedReports = isInDefaultMode
@@ -216,7 +207,7 @@ function getOrderedReportIDs(currentReportId) {
     // Now that we have all the reports grouped and sorted, they must be flattened into an array and only return the reportID.
     // The order the arrays are concatenated in matters and will determine the order that the groups are displayed in the sidebar.
     return _.pluck(
-        [].concat(pinnedReports).concat(waitingOnBankAccountReports).concat(outstandingIOUReports).concat(draftReports).concat(nonArchivedReports).concat(archivedReports),
+        [].concat(pinnedReports).concat(outstandingIOUReports).concat(draftReports).concat(nonArchivedReports).concat(archivedReports),
         'reportID',
     );
 }
@@ -374,8 +365,8 @@ function getOptionData(reportID) {
         result.alternateText = lastMessageText || formattedLogin;
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, allReports);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, allReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;

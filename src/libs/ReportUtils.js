@@ -921,14 +921,47 @@ function getMoneyRequestAction(reportAction = {}) {
 }
 
 /**
+ * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
+ *
+ * @param {Object} report (chatReport or iouReport)
+ * @returns {boolean}
+ */
+function isWaitingForIOUActionFromCurrentUser(report) {
+    if (!report || !allReports) {
+        return false;
+    }
+
+    let reportToLook = report;
+
+    if (report.iouReportID) {
+        const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+        if (iouReport) {
+            reportToLook = iouReport;
+        }
+    }
+
+    if (!reportToLook.ownerAccountID) {
+        return false;
+    }
+
+    if (reportToLook.ownerAccountID === currentUserAccountID && reportToLook.isWaitingOnBankAccount) {
+        return true;
+    }
+
+    if (reportToLook.ownerAccountID !== currentUserAccountID && reportToLook.hasOutstandingIOU) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * @param {Object} report
- * @param {String} report.iouReportID
- * @param {Object} moneyRequestReports
  * @returns {Number}
  */
-function getMoneyRequestTotal(report, moneyRequestReports = {}) {
-    if (report.hasOutstandingIOU || report.isWaitingOnBankAccount || isMoneyRequestReport(report)) {
-        const moneyRequestReport = moneyRequestReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`] || report;
+function getMoneyRequestTotal(report) {
+    if (isWaitingForIOUActionFromCurrentUser(report) || isMoneyRequestReport(report)) {
+        const moneyRequestReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`] || report;
         const total = lodashGet(moneyRequestReport, 'total', 0);
 
         if (total !== 0) {
@@ -1879,44 +1912,6 @@ function isUnreadWithMention(report) {
 }
 
 /**
- * Determines if a report has an outstanding IOU that is waiting for an action from the current user
- *
- * @param {Object} report
- * @param {String} report.iouReportID
- * @returns {boolean}
- */
-function isWaitingForIOUActionFromCurrentUser(report) {
-    if (!report || !allReports) {
-        return false;
-    }
-
-    let reportToLook = report;
-
-    if (report.iouReportID) {
-        const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (!iouReport) {
-            return false;
-        }
-
-        reportToLook = iouReport;
-    }
-
-    if (!reportToLook.ownerAccountID) {
-        return false;
-    }
-
-    if (reportToLook.ownerAccountID === currentUserAccountID && reportToLook.isWaitingOnBankAccount) {
-        return true;
-    }
-
-    if (reportToLook.ownerAccountID !== currentUserAccountID && reportToLook.hasOutstandingIOU) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
  * @param {Object} report
  * @param {String} report.iouReportID
  * @returns {Boolean}
@@ -2260,6 +2255,17 @@ function getReportIDFromLink(url) {
     return reportID;
 }
 
+function hasIouWaitingOnBankAccount(chatReport) {
+    if (chatReport.iouReportID) {
+        const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
+        if (iouReport && iouReport.isWaitingOnBankAccount) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /**
  * Users can request money in policy expense chats only if they are in a role of a member in the chat (in other words, if it's their policy expense chat)
  *
@@ -2267,6 +2273,10 @@ function getReportIDFromLink(url) {
  * @returns {Boolean}
  */
 function canRequestMoney(report) {
+    // Prevent requesting money if pending iou waiting for their bank account already exists.
+    if (hasIouWaitingOnBankAccount(report)) {
+        return false;
+    }
     return !isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat;
 }
 
@@ -2515,6 +2525,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
+    hasIouWaitingOnBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,

@@ -174,7 +174,7 @@ function IOUPreview(props) {
         let message = props.translate('iou.cash');
         if (props.iouReport.isWaitingOnBankAccount) {
             message += ` • ${props.translate('iou.pending')}`;
-        } else if (!props.iouReport.hasOutstandingIOU) {
+        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
             message += ` • ${props.translate('iou.settledExpensify')}`;
         }
         return message;
@@ -212,7 +212,7 @@ function IOUPreview(props) {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
-                            {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && !props.iouReport.isWaitingOnBankAccount && (
+                            {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                 <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
                                         src={Expensicons.Checkmark}

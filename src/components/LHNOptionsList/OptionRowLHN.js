@@ -28,6 +28,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Report from '../../libs/actions/Report';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 const propTypes = {
     /** Style for hovered state */
@@ -105,8 +106,7 @@ function OptionRowLHN(props) {
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
             (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted) ||
-            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
-            (optionItem.isWaitingOnBankAccount && optionItem.isIOUReportOwner));
+            ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem));
 
     /**
      * Show the ReportActionContextMenu modal popover.

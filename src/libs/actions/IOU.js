@@ -337,26 +337,20 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
 
     // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
     let iouReport;
-    let isNewIOUReport = true;
+    const isNewIOUReport = chatReport.iouReportID && !ReportUtils.hasIouWaitingOnBankAccount(chatReport);
 
-    if (chatReport.iouReportID) {
+    if (!isNewIOUReport) {
         iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
-        // If iouReportID exists but links to a report with a state other than SUBMITTED (waiting for bank account), let's not reuse it.
-        if (iouReport.stateNum === 1) {
-            isNewIOUReport = false;
-            if (isPolicyExpenseChat) {
-                iouReport = {...iouReport};
+        if (isPolicyExpenseChat) {
+            iouReport = {...iouReport};
 
-                // Because of the Expense reports are stored as negative values, we substract the total from the amount
-                iouReport.total -= amount;
-            } else {
-                iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
-            }
+            // Because of the Expense reports are stored as negative values, we substract the total from the amount
+            iouReport.total -= amount;
+        } else {
+            iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
         }
-    }
-
-    if (isNewIOUReport) {
+    } else {
         iouReport = isPolicyExpenseChat
             ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, payeeAccountID, amount, currency)
             : ReportUtils.buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
