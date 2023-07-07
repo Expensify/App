@@ -827,8 +827,6 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
             if (suggestionsExist) {
                 this.resetSuggestions();
-            } else if (this.comment.length > 0) {
-                this.updateComment('', true);
             }
             return;
         }

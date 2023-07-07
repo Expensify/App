@@ -360,7 +360,10 @@ export default {
         splitAmount: ({amount}) => `split ${amount}`,
         amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
+        payerOwes: ({payer}) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
+        payerPaid: ({payer}) => `${payer} paid: `,
+        payerSettled: ({amount}) => `paid ${amount}`,
         settledElsewhereWithAmount: ({amount}) => `paid ${amount} elsewhere`,
         settledPaypalMeWithAmount: ({amount}) => `paid ${amount} using Paypal.me`,
         noReimbursableExpenses: 'This report has an invalid amount',
@@ -1421,7 +1424,6 @@ export default {
         deletedMessage: '[Deleted message]',
     },
     threads: {
-        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
