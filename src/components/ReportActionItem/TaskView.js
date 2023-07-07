@@ -82,7 +82,7 @@ function TaskView(props) {
                                 accessibilityLabel={taskTitle || props.translate('task.task')}
                                 disabled={isCanceled}
                             />
-                            <View style={[styles.flexRow, styles.flex1]}>
+                            <View style={[styles.flexRow, styles.flex1, !isOpen && styles.buttonOpacityDisabled]}>
                                 <Text
                                     numberOfLines={3}
                                     style={styles.taskTitleMenuItem}
