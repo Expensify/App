@@ -524,9 +524,7 @@ class EmojiPickerMenu extends Component {
                     onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
                     getItemLayout={this.getItemLayout}
                     contentContainerStyle={styles.flexGrow1}
-                    ListEmptyComponent={
-                        <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>
-                    }
+                    ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>}
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
