@@ -89,7 +89,7 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, toolt
     const rectAtTargetCenterX = elementAtTargetCenterX.getBoundingClientRect();
 
     // Ensure it's not overlapping with another element by checking if the yOffset is greater than the top of the element
-    // and less than the bottom of the element. Also checking if the tooltip target is not completely inside the elementAtTargetCenterX by vertical direction
+    // and less than the bottom of the element. Also ensure the tooltip target is not completely inside the elementAtTargetCenterX by vertical direction
     const isOverlappingAtTargetCenterX = yOffset > rectAtTargetCenterX.top && yOffset < rectAtTargetCenterX.bottom && (yOffset + tooltipTargetHeight) > rectAtTargetCenterX.bottom;
 
     return isOverlappingAtTargetCenterX;
