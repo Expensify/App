@@ -84,7 +84,7 @@ function MoneyRequestHeader(props) {
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
             />
         </View>
     );

@@ -1,6 +1,7 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../../components/OptionsSelector';
@@ -75,16 +76,7 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
 
-    useEffect(() => {
-        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, false);
-
-        setFilteredRecentReports(results.recentReports);
-        setFilteredPersonalDetails(results.personalDetails);
-        setFilteredUserToInvite(results.userToInvite);
-        setFilteredCurrentUserOption(results.currentUserOption);
-    }, [props]);
-
-    useEffect(() => {
+    const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getNewChatOptions(
             props.reports,
             props.personalDetails,
@@ -102,6 +94,14 @@ function TaskAssigneeSelectorModal(props) {
         setFilteredPersonalDetails(personalDetails);
         setFilteredCurrentUserOption(currentUserOption);
     }, [props, searchValue]);
+
+    useEffect(() => {
+        const debouncedSearch = _.debounce(updateOptions, 200);
+        debouncedSearch();
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
