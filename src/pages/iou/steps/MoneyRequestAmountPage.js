@@ -106,7 +106,7 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidMount() {
-        this.shouldHideModal();
+        this.dismissModalIfNecessary();
 
         if (this.isEditing) {
             const moneyRequestId = `${this.iouType}${this.reportID}`;
@@ -128,7 +128,7 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        this.shouldHideModal();
+        this.dismissModalIfNecessary();
 
         if (this.isEditing) {
             // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
@@ -240,7 +240,7 @@ class MoneyRequestAmountPage extends React.Component {
     /**
      * Check and dismiss modal
      */
-    shouldHideModal() {
+    dismissModalIfNecessary() {
         if (!ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
             return;
         }
