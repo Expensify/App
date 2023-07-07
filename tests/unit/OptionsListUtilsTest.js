@@ -296,7 +296,7 @@ describe('OptionsListUtils', () => {
 
     it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
-        let results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '');
+        let results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
 
         // Then the 2 personalDetails that don't have reports should be returned
         expect(results.personalDetails.length).toBe(2);
