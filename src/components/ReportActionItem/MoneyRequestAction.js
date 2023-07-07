@@ -80,6 +80,7 @@ const defaultProps = {
     checkIfContextMenuActive: () => {},
     chatReport: {
         participants: [],
+        hasOutstandingIOU: false,
     },
     iouReport: {},
     reportActions: {},
