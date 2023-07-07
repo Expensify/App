@@ -1090,6 +1090,8 @@ export default {
             memberNotFound: 'Member not found. To invite a new member to the workspace, please use the Invite button above.',
             notAuthorized: `You do not have access to this page. Are you trying to join the workspace? Please reach out to the owner of this workspace so they can add you as a member! Something else? Reach out to ${CONST.EMAIL.CONCIERGE}`,
             goToRoom: ({roomName}) => `Go to ${roomName} room`,
+            userAlreadyMember: ({email, workspace}) => `${email} is already a member of ${workspace}`,
+            notAllowToInviteExpensifyEmails: ({email, workspace}) => `It's not allowed to invite Expensify email ${email} to ${workspace}`,
         },
         emptyWorkspace: {
             title: 'Create a new workspace',
