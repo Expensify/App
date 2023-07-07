@@ -49,6 +49,7 @@ import FlagLevelThree from '../../../assets/images/flag_level_03.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Globe from '../../../assets/images/globe.svg';
+import GoogleLogo from '../../../assets/images/signIn/google-logo.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
 import History from '../../../assets/images/history.svg';
 import Hourglass from '../../../assets/images/hourglass.svg';
@@ -176,6 +177,7 @@ export {
     Gallery,
     Gear,
     Globe,
+    GoogleLogo,
     Hashtag,
     History,
     Hourglass,

@@ -5,8 +5,7 @@ import IconButton from '../IconButton';
 import CONFIG from '../../../CONFIG';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
-
-const googleLogoIcon = require('../../../../assets/images/signIn/google-logo.svg').default;
+import * as Expensicons from '../../Icon/Expensicons';
 
 const propTypes = {...withLocalizePropTypes};
 
@@ -28,7 +27,7 @@ function GoogleSignIn(props) {
                 onPress={() => {
                     window.open(googleSignInWebRouteForDesktopFlow);
                 }}
-                icon={googleLogoIcon}
+                icon={Expensicons.GoogleLogo}
             />
         </View>
     );
