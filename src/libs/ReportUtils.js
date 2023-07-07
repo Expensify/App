@@ -801,13 +801,12 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         return [adminIcon, workspaceIcon];
     }
     if (isIOUReport(report)) {
-        const email = isPayer ? lodashGet(personalDetails, [report.managerID, 'login']) : report.ownerEmail;
         const accountID = isPayer ? report.managerID : report.ownerAccountID;
         return [
             {
                 id: accountID,
                 source: UserUtils.getAvatar(lodashGet(personalDetails, [accountID, 'avatar']), accountID),
-                name: email,
+                name: lodashGet(personalDetails, [accountID, 'login']),
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ];

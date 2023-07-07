@@ -63,8 +63,8 @@ const propTypes = {
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     /** Popover context menu anchor, used for showing context menu */
@@ -86,13 +86,13 @@ const defaultProps = {
     iouReport: {},
     checkIfContextMenuActive: () => {},
     session: {
-        email: null,
+        accountID: null,
     },
 };
 
 function ReportPreview(props) {
     const managerID = props.iouReport.managerID || 0;
-    const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID', null);
+    const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const displayingMessage = ReportUtils.getReportPreviewMessage(props.iouReport, props.action);
     return (
