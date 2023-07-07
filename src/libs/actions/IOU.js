@@ -337,12 +337,10 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     }
 
     // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
-    let iouReport;
-    const isNewIOUReport = chatReport.iouReportID && !ReportUtils.hasIouWaitingOnBankAccount(chatReport);
+    const isNewIOUReport = !chatReport.iouReportID || ReportUtils.hasIouWaitingOnBankAccount(chatReport);
+    let iouReport = isNewIOUReport ? null : iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
 
-    if (!isNewIOUReport) {
-        iouReport = iouReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
-
+    if (iouReport) {
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
 

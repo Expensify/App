@@ -104,7 +104,7 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
-            ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem)
+            ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem) ||
             (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
 
     /**

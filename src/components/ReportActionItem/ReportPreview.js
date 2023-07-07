@@ -93,7 +93,6 @@ function ReportPreview(props) {
         (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerAccountID, true)) || managerEmail;
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const displayingMessage = ReportUtils.getReportPreviewMessage(props.iouReport, props.action);
 
     return (
         <View style={styles.chatItemMessage}>
@@ -112,7 +111,7 @@ function ReportPreview(props) {
                     <View style={styles.flexRow}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>
-                                {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
+                                {(props.translate(ReportUtils.isSettled(props.iouReportID) || props.isWaitingOnBankAccount) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
                             </Text>
                         </View>
                     </View>
