@@ -1,3 +1,5 @@
+import * as OnyxCommon from './OnyxCommon';
+
 type AchData = {
     /** Step of the setup flow that we are on. Determines which view is presented. */
     currentStep?: string;
@@ -26,7 +28,7 @@ type ReimbursementAccount = {
     error?: string;
 
     /** Which field needs attention? */
-    errorFields?: Record<string, boolean | string[]>;
+    errorFields?: OnyxCommon.FieldErrors;
 
     /** Any additional error message to show */
     errors?: Record<string, string>;

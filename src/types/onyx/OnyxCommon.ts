@@ -4,6 +4,8 @@ import CONST from '../../CONST';
 
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION>;
 
+type FieldErrors = Record<string | number, Record<string, string>>;
+
 type BaseState = {
     success?: string;
 
@@ -22,4 +24,4 @@ type Icon = {
     name: string;
 };
 
-export type {BaseState, Icon, PendingAction};
+export type {BaseState, Icon, PendingAction, FieldErrors};

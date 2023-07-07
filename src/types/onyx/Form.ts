@@ -1,3 +1,5 @@
+import * as OnyxCommon from './OnyxCommon';
+
 type Form = {
     /** Controls the loading state of the form */
     isLoading?: boolean;
@@ -6,7 +8,7 @@ type Form = {
     errors?: Record<string, string>;
 
     /** Field-specific server side errors keyed by microtime */
-    errorFields?: Record<string, Record<string, string>>;
+    errorFields?: OnyxCommon.FieldErrors;
 };
 
 type AddDebitCardForm = Form & {

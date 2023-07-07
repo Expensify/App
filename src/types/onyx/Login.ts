@@ -1,3 +1,5 @@
+import * as OnyxCommon from './OnyxCommon';
+
 type Login = {
     /** Phone/Email associated with user */
     partnerUserID?: string;
@@ -9,10 +11,10 @@ type Login = {
     validatedDate?: string;
 
     /** Field-specific server side errors keyed by microtime */
-    errorFields?: Record<string, Record<string, unknown>>;
+    errorFields?: OnyxCommon.FieldErrors;
 
     /** Field-specific pending states for offline UI status */
-    pendingFields?: Record<string, Record<string, unknown>>;
+    pendingFields?: OnyxCommon.FieldErrors;
 };
 
 export default Login;
