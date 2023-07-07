@@ -691,8 +691,10 @@ export default {
             light: {
                 label: 'Claro',
             },
+            system: {
+                label: 'Utiliza los ajustes del dispositivo',
+            },
         },
-        useDeviceSettings: 'Utiliza los ajustes del dispositivo',
         chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
     },
     signInPage: {
