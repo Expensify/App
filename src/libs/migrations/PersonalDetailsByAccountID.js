@@ -62,6 +62,8 @@ function getDeprecatedPolicyMemberListFromOnyx() {
 /**
  * Migrate Onyx data for the email to accountID migration.
  *
+ * - personalDetails -> personalDetailsList
+ * - policyMemberList_ -> policyMembers_
  * - reportAction_
  *     - originalMessage.oldLogin -> originalMessage.oldAccountID
  *     - originalMessage.newLogin -> originalMessage.newAccountID
@@ -79,6 +81,13 @@ export default function () {
         ([oldReportActions, oldPersonalDetails, oldPolicyMemberList]) => {
             const onyxData = {};
 
+            // The personalDetails object has been replaced by personalDetailsList
+            // So if we find an instance of personalDetails we will clear it out
+            if (oldPersonalDetails) {
+                Log.info('[Migrate Onyx] PersonalDetailsByAccountID migration: removing personalDetails');
+                onyxData[DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS] = null;
+            }
+
             // The policyMemberList_ collection has been replaced by policyMembers_
             // So if we find any instances of policyMemberList_ we will clear them out
             _.each(oldPolicyMemberList, (_policyMembersForPolicy, policyKey) => {
@@ -86,8 +95,8 @@ export default function () {
                 onyxData[policyKey] = null;
             });
 
-            // We migrate reportActions to have the new accountID-based data if they don't already.
-            // If we are not able to get the accountID from personalDetails for some reason, we will just clear the reportAction
+            // We migrate reportActions to remove old email-based data.
+            // If we do not find the equivalent accountID-based data in the reportAction, we will just clear the reportAction
             // and let it be fetched from the API next time they open the report and scroll to that action.
             // We do this because we know the reportAction from the API will include the needed accountID data.
             _.each(oldReportActions, (reportActionsForReport, onyxKey) => {
@@ -202,13 +211,6 @@ export default function () {
                     onyxData[onyxKey] = newReportActionsForReport;
                 }
             });
-
-            // The personalDetails object has been replaced by personalDetailsList
-            // So if we find an instance of personalDetails we will clear it out
-            if (oldPersonalDetails) {
-                Log.info('[Migrate Onyx] PersonalDetailsByAccountID migration: removing personalDetails');
-                onyxData[DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS] = null;
-            }
 
             return Onyx.multiSet(onyxData);
         },
