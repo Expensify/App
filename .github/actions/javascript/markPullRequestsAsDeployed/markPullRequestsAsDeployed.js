@@ -67,7 +67,6 @@ function getDeployMessage(deployer, deployVerb, prTitle) {
  */
 function commentPR(PR, message) {
     return GithubUtils.createComment(context.repo.repo, PR, message)
-        .then(() => ActionUtils.sleep(1000))
         .then(() => console.log(`Comment created on #${PR} successfully 🎉`))
         .catch((err) => {
             console.log(`Unable to write comment on #${PR} 😞`);
