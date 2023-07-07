@@ -15,6 +15,7 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
+import Text from '../../../components/Text';
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
