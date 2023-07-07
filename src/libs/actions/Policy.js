@@ -417,17 +417,24 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             value: _.reduce(
                 accountIDs,
                 (memo, accountID) => {
-                    if (personalDetails[accountID]) {
-                        return {[accountID]: {pendingAction: null, errors: null}};
+                    let value = null;
+                    const isExistedAccount = Boolean(personalDetails[accountID]);
+
+                    if (isExistedAccount) {
+                        value = {pendingAction: null, errors: null};
                     }
 
-                    return {[accountID]: null};
+                    // eslint-disable-next-line no-param-reassign
+                    memo[accountID] = value;
+
+                    return memo;
                 },
                 {},
             ),
         },
         ...membersChats.onyxSuccessData,
     ];
+    console.log('successData', successData);
 
     const failureData = [
         {
