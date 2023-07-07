@@ -118,7 +118,7 @@ function ContactMethodsPage(props) {
             />
             <ScrollView>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <Text numberOfLines={100}>
+                    <Text>
                         {props.translate('contacts.helpTextBeforeEmail')}
                         <CopyTextToClipboard
                             text="receipts@expensify.com"
