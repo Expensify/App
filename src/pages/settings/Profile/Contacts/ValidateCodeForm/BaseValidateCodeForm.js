@@ -15,6 +15,7 @@ import * as User from '../../../../../libs/actions/User';
 import Button from '../../../../../components/Button';
 import DotIndicatorMessage from '../../../../../components/DotIndicatorMessage';
 import * as Session from '../../../../../libs/actions/Session';
+import shouldDelayFocus from '../../../../../libs/shouldDelayFocus';
 import Text from '../../../../../components/Text';
 import {withNetwork} from '../../../../../components/OnyxProvider';
 import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
@@ -135,6 +136,7 @@ function BaseValidateCodeForm(props) {
                 errorText={formError.validateCode ? props.translate(formError.validateCode) : ErrorUtils.getLatestErrorMessage(props.account)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus
+                shouldDelayFocus={shouldDelayFocus}
             />
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
@@ -166,7 +168,7 @@ function BaseValidateCodeForm(props) {
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
-                errors={ErrorUtils.getLatestErrorField(loginData, 'validateLogin')}
+                errors={ErrorUtils.getEarliestErrorField(loginData, 'validateLogin')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateLogin')}
             >
