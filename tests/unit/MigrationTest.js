@@ -474,7 +474,7 @@ describe('Migrations', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
                     1: {
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
-                        childOldestFourAccountIDs: [100, 101],
+                        childOldestFourAccountIDs: '100,101',
                     },
                     2: {
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
@@ -548,7 +548,7 @@ describe('Migrations', () => {
                         whisperedTo: ['test1@account.com', 'test2@account.com'],
                         whisperedToAccountIDs: [100, 101],
                         childOldestFourEmails: 'test1@account.com, test2@account.com',
-                        childOldestFourAccountIDs: [100, 101],
+                        childOldestFourAccountIDs: '100,101',
                     },
                 },
             })
@@ -569,7 +569,7 @@ describe('Migrations', () => {
                                 accountID: 101,
                                 childManagerAccountID: 101,
                                 whisperedToAccountIDs: [100, 101],
-                                childOldestFourAccountIDs: [100, 101],
+                                childOldestFourAccountIDs: '100,101',
                             };
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`][1]).toMatchObject(expectedReportAction);
                         },
