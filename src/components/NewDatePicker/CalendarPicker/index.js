@@ -5,7 +5,7 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../Text';
-import YearPickerPage from './YearPickerPage';
+import YearPickerModal from './YearPickerModal';
 import ArrowIcon from './ArrowIcon';
 import styles from '../../../styles/styles';
 import generateMonthMatrix from './generateMonthMatrix';
@@ -15,7 +15,6 @@ import getButtonState from '../../../libs/getButtonState';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import PressableWithFeedback from '../../Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import Modal from '../../Modal';
 
 const propTypes = {
     /** An initial value of date string */
@@ -55,11 +54,27 @@ class CalendarPicker extends React.PureComponent {
             currentDateView = props.minDate;
         }
 
+        const minYear = moment(this.props.minDate).year();
+        const maxYear = moment(this.props.maxDate).year();
+
+        this.years = _.map(
+            Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear),
+            (value) => ({
+                text: value.toString(),
+                value,
+                keyForList: value.toString(),
+                isSelected: value === currentDateView.getFullYear(),
+            }),
+        );
+
         this.state = {
             currentDateView,
             isYearPickerVisible: false,
+            textInputValue: '',
+            yearsFiltered: this.years,
         };
 
+        this.filterYears = this.filterYears.bind(this);
         this.moveToPrevMonth = this.moveToPrevMonth.bind(this);
         this.moveToNextMonth = this.moveToNextMonth.bind(this);
         this.onDayPressed = this.onDayPressed.bind(this);
@@ -84,6 +99,24 @@ class CalendarPicker extends React.PureComponent {
             }),
             () => this.props.onSelected(moment(this.state.currentDateView).format('YYYY-MM-DD')),
         );
+    }
+
+    /**
+     * Function filtering the list of the items when using search input
+     *
+     * @param {String} text
+     */
+    filterYears(text) {
+        const searchText = text.replace(CONST.REGEX.NON_NUMERIC, '');
+        this.setState((prevState) => {
+            if (searchText === prevState.textInputValue) {
+                return {};
+            }
+            return {
+                textInputValue: searchText,
+                yearsFiltered: _.filter(this.years, (year) => year.text.includes(searchText)),
+            };
+        });
     }
 
     /**
@@ -210,20 +243,15 @@ class CalendarPicker extends React.PureComponent {
                         })}
                     </View>
                 ))}
-                <Modal
-                    onClose={() => this.setState({isYearPickerVisible: false})}
+                <YearPickerModal
                     isVisible={this.state.isYearPickerVisible}
-                    type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-                    onModalHide={() => this.setState({isYearPickerVisible: false})}
-                >
-                    <YearPickerPage
-                        onYearChange={this.onYearSelected}
-                        onClose={() => this.setState({isYearPickerVisible: false})}
-                        min={moment(this.props.minDate).year()}
-                        max={moment(this.props.maxDate).year()}
-                        currentYear={currentYearView}
-                    />
-                </Modal>
+                    years={this.state.yearsFiltered}
+                    currentYear={currentYearView}
+                    onYearChange={this.onYearSelected}
+                    textInputValue={this.state.textInputValue}
+                    onChangeText={this.filterYears}
+                    onClose={() => this.setState({isYearPickerVisible: false})}
+                />
             </View>
         );
     }
