@@ -11,7 +11,6 @@ import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
 import * as ErrorUtils from '../ErrorUtils';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserEmail;
