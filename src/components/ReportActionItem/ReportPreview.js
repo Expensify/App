@@ -121,7 +121,7 @@ function ReportPreview(props) {
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.textHeadline}>{reportAmount}</Text>
                             {ReportUtils.isSettled(props.iouReportID) && (
-                                <View style={styles.iouPreviewBoxCheckmark}>
+                                <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={themeColors.iconSuccessFill}
