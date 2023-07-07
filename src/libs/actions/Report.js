@@ -1527,7 +1527,7 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
                     users: {
                         [currentUserAccountID]: {
                             skinTones: {
-                                [skinTone || -1]: createdAt,
+                                [!_.isUndefined(skinTone) ? skinTone : -1]: createdAt,
                             },
                         },
                     },
