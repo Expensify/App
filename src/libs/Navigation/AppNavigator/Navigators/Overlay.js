@@ -34,7 +34,7 @@ function Overlay(props) {
     );
 }
 
-Overlay.propTypes= propTypes;
+Overlay.propTypes = propTypes;
 Overlay.displayName = 'Overlay';
 
 export default Overlay;

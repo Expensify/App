@@ -24,7 +24,6 @@ const defaultProps = {
     screenOptions: undefined,
 };
 
-
 function ResponsiveStackNavigator(props) {
     const isSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
     const {navigation, state, descriptors, NavigationContent} = useNavigationBuilder(CustomRouter, {
