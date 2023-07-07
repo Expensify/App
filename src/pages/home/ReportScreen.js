@@ -292,17 +292,15 @@ class ReportScreen extends React.Component {
                                 />
                             )}
 
-                            {ReportUtils.isTaskReport(this.props.report) &&
-                                this.props.isSmallScreenWidth &&
-                                ReportUtils.isOpenTaskReport(this.props.report)(
-                                    <View style={[styles.borderBottom]}>
-                                        <View style={[styles.appBG, styles.pl0]}>
-                                            <View style={[styles.ph5, styles.pb3]}>
-                                                <TaskHeaderActionButton report={this.props.report} />
-                                            </View>
+                            {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(this.props.report) && (
+                                <View style={[styles.borderBottom]}>
+                                    <View style={[styles.appBG, styles.pl0]}>
+                                        <View style={[styles.ph5, styles.pb3]}>
+                                            <TaskHeaderActionButton report={this.props.report} />
                                         </View>
-                                    </View>,
-                                )}
+                                    </View>
+                                </View>
+                            )}
                         </OfflineWithFeedback>
                         {Boolean(this.props.accountManagerReportID) && ReportUtils.isConciergeChatReport(this.props.report) && this.state.isBannerVisible && (
                             <Banner
