@@ -71,6 +71,7 @@ const defaultProps = {
     isSmallAvatarSubscriptMenu: false,
     title: '',
     numberOfLinesTitle: 1,
+    shouldGreyOutWhenDisabled: true,
 };
 
 function MenuItem(props) {
@@ -123,7 +124,7 @@ function MenuItem(props) {
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 (hovered || pressed) && props.hoverAndPressStyle,
                 ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
-                props.disabled && styles.buttonOpacityDisabled,
+                props.shouldGreyOutWhenDisabled && props.disabled && styles.buttonOpacityDisabled,
             ]}
             disabled={props.disabled}
             ref={props.forwardedRef}

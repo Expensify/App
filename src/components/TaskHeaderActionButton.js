@@ -1,5 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import reportPropTypes from '../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
@@ -11,6 +13,7 @@ import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import * as ReportUtils from '../libs/ReportUtils';
 import CONST from '../CONST';
 import compose from '../libs/compose';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -25,7 +28,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    disabled: false,
     session: {
         accountID: 0,
     },

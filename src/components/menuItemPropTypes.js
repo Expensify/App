@@ -128,6 +128,9 @@ const propTypes = {
 
     /** The max number of lines the title text should occupy before ellipses are added */
     numberOfLines: PropTypes.number,
+
+    /** Should we grey out the menu item when it is disabled? */
+    shouldGreyOutWhenDisabled: PropTypes.bool,
 };
 
 export default propTypes;

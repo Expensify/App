@@ -62,7 +62,6 @@ function TaskView(props) {
                     styles.ph5,
                     styles.pv2,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, !isOpen), true),
-                    isCanceled && styles.buttonOpacityDisabled,
                 ]}
                 ref={props.forwardedRef}
                 disabled={!isOpen}
@@ -82,7 +81,7 @@ function TaskView(props) {
                                 accessibilityLabel={taskTitle || props.translate('task.task')}
                                 disabled={isCanceled}
                             />
-                            <View style={[styles.flexRow, styles.flex1, !isOpen && styles.buttonOpacityDisabled]}>
+                            <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
                                     numberOfLines={3}
                                     style={styles.taskTitleMenuItem}
@@ -90,13 +89,16 @@ function TaskView(props) {
                                     {taskTitle}
                                 </Text>
                             </View>
-                            <View style={styles.taskRightIconContainer}>
-                                <Icon
-                                    additionalStyles={[styles.alignItemsCenter]}
-                                    src={Expensicons.ArrowRight}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, !isOpen))}
-                                />
-                            </View>
+                            {isOpen && (
+                                <View style={styles.taskRightIconContainer}>
+                                    <Icon
+                                        additionalStyles={[styles.alignItemsCenter]}
+                                        src={Expensicons.ArrowRight}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, !isOpen))}
+                                    />
+                                </View>
+                            )}
+                            
                         </View>
                     </>
                 )}
@@ -105,10 +107,11 @@ function TaskView(props) {
                 description={props.translate('task.description')}
                 title={props.report.description || ''}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
-                shouldShowRightIcon
+                shouldShowRightIcon={isOpen}
                 disabled={!isOpen}
                 wrapperStyle={[styles.pv2]}
                 numberOfLinesTitle={3}
+                shouldGreyOutWhenDisabled={false}
             />
             {props.report.managerID ? (
                 <MenuItem
@@ -122,18 +125,20 @@ function TaskView(props) {
                     avatarSize={CONST.AVATAR_SIZE.SMALLER}
                     titleStyle={styles.assigneeTextStyle}
                     onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={isOpen}
                     disabled={!isOpen}
                     wrapperStyle={[styles.pv2]}
                     isSmallAvatarSubscriptMenu
+                    shouldGreyOutWhenDisabled={false}
                 />
             ) : (
                 <MenuItemWithTopDescription
                     description={props.translate('task.assignee')}
                     onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={isOpen}
                     disabled={!isOpen}
                     wrapperStyle={[styles.pv2]}
+                    shouldGreyOutWhenDisabled={false}
                 />
             )}
 
