@@ -1,14 +1,13 @@
 import React from 'react';
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 import SkeletonViewContentLoader from 'react-content-loader/native';
-import {Circle, Rect} from "react-native-svg";
-import {View} from "react-native";
-import * as StyleUtils from "../../styles/StyleUtils";
+import {Circle, Rect} from 'react-native-svg';
+import {View} from 'react-native';
+import * as StyleUtils from '../../styles/StyleUtils';
 import CONST from '../../CONST';
-import themeColors from "../../styles/themes/default";
-import variables from "../../styles/variables";
-import styles from "../../styles/styles";
-
+import themeColors from '../../styles/themes/default';
+import variables from '../../styles/variables';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Whether to animate the skeleton view */
@@ -28,30 +27,30 @@ function CurrentUserPersonalDetailsSkeletonView(props) {
     const labelSize = variables.fontSizeLabel;
     return (
         <View style={styles.avatarSectionWrapperSkeleton}>
-                <SkeletonViewContentLoader
-                    animate={props.shouldAnimate}
-                    backgroundColor={themeColors.highlightBG}
-                    foregroundColor={themeColors.border}
-                    height={avatarPlaceholderSize + headlineMarginTop + headlineSize + labelMarginTop + labelSize}
-                >
-                    <Circle
-                        cx="50%"
-                        cy={avatarPlaceholderRadius}
-                        r={avatarPlaceholderRadius}
-                    />
-                    <Rect
-                        x="20%"
-                        y={avatarPlaceholderSize + headlineMarginTop}
-                        width="60%"
-                        height={headlineSize}
-                    />
-                    <Rect
-                        x="15%"
-                        y={avatarPlaceholderSize + headlineMarginTop + headlineSize + labelMarginTop}
-                        width="70%"
-                        height={labelSize}
-                    />
-                </SkeletonViewContentLoader>
+            <SkeletonViewContentLoader
+                animate={props.shouldAnimate}
+                backgroundColor={themeColors.highlightBG}
+                foregroundColor={themeColors.border}
+                height={avatarPlaceholderSize + headlineMarginTop + headlineSize + labelMarginTop + labelSize}
+            >
+                <Circle
+                    cx="50%"
+                    cy={avatarPlaceholderRadius}
+                    r={avatarPlaceholderRadius}
+                />
+                <Rect
+                    x="20%"
+                    y={avatarPlaceholderSize + headlineMarginTop}
+                    width="60%"
+                    height={headlineSize}
+                />
+                <Rect
+                    x="15%"
+                    y={avatarPlaceholderSize + headlineMarginTop + headlineSize + labelMarginTop}
+                    width="70%"
+                    height={labelSize}
+                />
+            </SkeletonViewContentLoader>
         </View>
     );
 }
@@ -59,4 +58,4 @@ function CurrentUserPersonalDetailsSkeletonView(props) {
 CurrentUserPersonalDetailsSkeletonView.displayName = 'CurrentUserPersonalDetailsSkeletonView';
 CurrentUserPersonalDetailsSkeletonView.propTypes = propTypes;
 CurrentUserPersonalDetailsSkeletonView.defaultProps = defaultProps;
-export default CurrentUserPersonalDetailsSkeletonView
+export default CurrentUserPersonalDetailsSkeletonView;

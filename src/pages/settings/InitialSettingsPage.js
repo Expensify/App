@@ -4,7 +4,7 @@ import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import CurrentUserPersonalDetailsSkeletonView from "../../components/CurrentUserPersonalDetailsSkeletonView";
+import CurrentUserPersonalDetailsSkeletonView from '../../components/CurrentUserPersonalDetailsSkeletonView';
 import {withNetwork} from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
@@ -22,10 +22,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    withCurrentUserPersonalDetailsPropTypes
-} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
@@ -317,9 +314,10 @@ class InitialSettingsPage extends React.Component {
                             style={[styles.settingsPageBackground]}
                         >
                             <View style={styles.w100}>
-                                {(_.isEmpty(this.props.currentUserPersonalDetails) || _.isUndefined(this.props.currentUserPersonalDetails.displayName))
-                                    ? <CurrentUserPersonalDetailsSkeletonView/>
-                                    : <View style={styles.avatarSectionWrapper}>
+                                {_.isEmpty(this.props.currentUserPersonalDetails) || _.isUndefined(this.props.currentUserPersonalDetails.displayName) ? (
+                                    <CurrentUserPersonalDetailsSkeletonView />
+                                ) : (
+                                    <View style={styles.avatarSectionWrapper}>
                                         <Tooltip text={this.props.translate('common.profile')}>
                                             <PressableWithoutFeedback
                                                 style={[styles.mb3]}
@@ -327,8 +325,7 @@ class InitialSettingsPage extends React.Component {
                                                 accessibilityLabel={this.props.translate('common.profile')}
                                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                             >
-                                                <OfflineWithFeedback
-                                                    pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                                                <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                     <Avatar
                                                         imageStyles={[styles.avatarLarge]}
                                                         source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.accountID)}
@@ -362,7 +359,8 @@ class InitialSettingsPage extends React.Component {
                                                 {this.props.formatPhoneNumber(this.props.session.email)}
                                             </Text>
                                         )}
-                                    </View>}
+                                    </View>
+                                )}
                                 {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
 
                                 <ConfirmModal
