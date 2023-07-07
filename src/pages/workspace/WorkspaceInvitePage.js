@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -20,7 +20,7 @@ import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
 import {policyPropTypes, policyDefaultProps} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import {withNetwork} from '../../components/OnyxProvider';
+import useNetwork from '../../hooks/useOnNetworkReconnect';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
@@ -68,10 +68,8 @@ const defaultProps = {
 
 function WorkspaceInvitePage(props) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [personalDetails, setPersonalDetails] = useState({});
     const [selectedOptions, setSelectedOptions] = useState([]);
-    const [userToInvite, setUserToInvite] = useState([]);
-    const isPrevOffline = usePrevious(props.network.isOfflline);
+    const wasOffline = usePrevious(props.network.isOfflline);
     const prevPersonalDetails = usePrevious(props.personalDetails);
     const prevPolicyMembers = usePrevious(props.policyMembers);
 
@@ -80,7 +78,7 @@ function WorkspaceInvitePage(props) {
         Policy.hideWorkspaceAlertMessage(props.route.params.policyID);
     }, [props.route.params.policyID]);
 
-    const getExcludedUsers = useCallback(() => {
+    const {excludedUsers} = useMemo(() => {
         // Exclude any expensify emails or valid policy members from the invite options
         const memberEmailsToExclude = [...CONST.EXPENSIFY_EMAILS];
         _.each(props.policyMembers, (policyMember, accountID) => {
@@ -97,15 +95,13 @@ function WorkspaceInvitePage(props) {
         return memberEmailsToExclude;
     }, [props.personalDetails, props.policyMembers]);
 
+    const {personalDetails, userToInvite} = useMemo(
+        () => OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, '', excludedUsers),
+        [props.personalDetails, props.betas, excludedUsers],
+    );
+
     const updateOptionsWithSearchTerm = useCallback(
         (newSearchTerm = '') => {
-            const {personalDetails: newPersonalDetails, userToInvite: newUserToInvite} = OptionsListUtils.getMemberInviteOptions(
-                props.personalDetails,
-                props.betas,
-                newSearchTerm,
-                getExcludedUsers(),
-            );
-
             // Update selectedOptions with the latest personalDetails and policyMembers information
             const detailsMap = {};
             _.forEach(personalDetails, (detail) => (detailsMap[detail.login] = detail));
@@ -114,13 +110,10 @@ function WorkspaceInvitePage(props) {
             _.forEach(selectedOptions, (option) => {
                 newSelectedOptions.push(_.has(detailsMap, option.login) ? detailsMap[option.login] : option);
             });
-
-            setPersonalDetails(newPersonalDetails);
-            setUserToInvite(newUserToInvite);
             setSearchTerm(newSearchTerm);
             setSelectedOptions(newSelectedOptions);
         },
-        [props.personalDetails, props.betas, personalDetails, selectedOptions],
+        [personalDetails, selectedOptions],
     );
 
     useEffect(() => {
@@ -134,7 +127,7 @@ function WorkspaceInvitePage(props) {
             updateOptionsWithSearchTerm(searchTerm);
         }
 
-        const isReconnecting = isPrevOffline && !props.network.isOffline;
+        const isReconnecting = wasOffline && !props.network.isOffline;
         if (!isReconnecting) {
             return;
         }
@@ -148,7 +141,7 @@ function WorkspaceInvitePage(props) {
         props.route.params.policyID,
         prevPersonalDetails,
         prevPolicyMembers,
-        isPrevOffline,
+        wasOffline,
         updateOptionsWithSearchTerm,
         searchTerm,
     ]);
@@ -219,18 +212,9 @@ function WorkspaceInvitePage(props) {
             } else {
                 newSelectedOptions = [...selectedOptions, option];
             }
-
-            const {personalDetails: newPersonalDetails, userToInvite: newUserToInvite} = OptionsListUtils.getMemberInviteOptions(
-                props.personalDetails,
-                props.betas,
-                searchTerm,
-                getExcludedUsers(),
-            );
             setSelectedOptions(newSelectedOptions);
-            setPersonalDetails(newPersonalDetails);
-            setUserToInvite(newUserToInvite);
         },
-        [clearErrors, selectedOptions, props.personalDetails, props.betas, searchTerm, getExcludedUsers],
+        [clearErrors, selectedOptions],
     );
 
     /**
@@ -330,7 +314,7 @@ WorkspaceInvitePage.defaultName = 'WorkspaceInvitePage';
 export default compose(
     withLocalize,
     withPolicyAndFullscreenLoading,
-    withNetwork(),
+    useNetwork,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
