@@ -172,8 +172,6 @@ function MoneyRequestAmountPage(props) {
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
     const prevMoneyRequestId = useRef(props.iou.id);
-    const prevPropCurrencyParam = useRef(lodashGet(props.route, 'params.currency'));
-    const prevPropIOUCurrency = useRef(lodashGet(props.iou, 'currency', ''));
     const textInput = useRef(null);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
@@ -200,6 +198,7 @@ function MoneyRequestAmountPage(props) {
             textInput.current.focus();
         }
     };
+
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
@@ -224,22 +223,23 @@ function MoneyRequestAmountPage(props) {
     };
 
     useEffect(() => {
-        if (!isEditing.current) return;
-        if (prevMoneyRequestId.current !== props.iou.id) {
-            // The ID is cleared on completing a request. In that case, we will do nothing.
-            if (props.iou.id) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+        if (isEditing.current) {
+            if (prevMoneyRequestId.current !== props.iou.id) {
+                // The ID is cleared on completing a request. In that case, we will do nothing.
+                if (props.iou.id) {
+                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                }
                 return;
             }
-        }
-        const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId;
-        if (shouldReset) {
-            IOU.resetMoneyRequestInfo(moneyRequestId);
-        }
+            const moneyRequestId = `${iouType.current}${reportID.current}`;
+            const shouldReset = props.iou.id !== moneyRequestId;
+            if (shouldReset) {
+                IOU.resetMoneyRequestInfo(moneyRequestId);
+            }
 
-        if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
-            Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+            if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+            }
         }
 
         return () => {
@@ -248,21 +248,16 @@ function MoneyRequestAmountPage(props) {
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
     useEffect(() => {
-        const currencyParam = lodashGet(props.route.params, 'currency', '');
-        const prevCurrencyParam = prevPropCurrencyParam.current;
-        if (currencyParam !== '' && prevCurrencyParam !== currencyParam) {
-            setSelectedCurrencyCode(currencyParam);
+        if (!props.route.params.currency) {
+            return;
         }
 
-        if (prevPropIOUCurrency.current !== props.iou.currency) {
-            setSelectedCurrencyCode(props.iou.currency);
-        }
+        setSelectedCurrencyCode(props.route.params.currency);
+    }, [props.route.params.currency]);
 
-        return () => {
-            prevPropIOUCurrency.current = props.iou.currency;
-            prevPropCurrencyParam.current = lodashGet(props.route, 'params.currency');
-        };
-    }, [props.route, props.iou.currency]);
+    useEffect(() => {
+        setSelectedCurrencyCode(props.iou.currency);
+    }, [props.iou.currency]);
 
     useEffect(() => {
         const selectedAmountAsStringForState = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
