@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef, useMemo, useCallback} from 'react';
+import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -200,20 +200,12 @@ function MoneyRequestAmountPage(props) {
             textInput.current.focus();
         }
     };
-
-    const titleForStep = useMemo(() => {
-        if (isEditing.current) {
-            return translate('iou.amount');
-        }
-        const title = {
-            [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
-            [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
-            [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
-        };
-        return title[iouType.current];
-        // warning for props - Don't require in this case
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const title = {
+        [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
+        [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
+        [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
+    };
+    const titleForStep = isEditing.current ? translate('iou.amount') : title[iouType.current];
 
     /**
      * Focus text input
