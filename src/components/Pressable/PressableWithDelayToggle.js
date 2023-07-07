@@ -90,18 +90,10 @@ function PressableWithDelayToggle(props) {
     return (
         <PressableView
             ref={props.innerRef}
-            style={[styles.flexRow, ...props.styles]}
             onPress={updatePressState}
             accessibilityLabel={tooltipText}
         >
             <>
-                <Text
-                    suppressHighlighting
-                    style={props.textStyles}
-                >
-                    {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
-                    &nbsp;
-                </Text>
                 <Tooltip
                     containerStyles={[styles.flexRow]}
                     text={tooltipText}
@@ -110,9 +102,17 @@ function PressableWithDelayToggle(props) {
                         focusable={false}
                         accessible={false}
                         onPress={updatePressState}
+                        style={[styles.flexRow, ...props.styles]}
                     >
                         {({hovered, pressed}) => (
                             <>
+                                <Text
+                                    suppressHighlighting
+                                    style={props.textStyles}
+                                >
+                                    {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
+                                    &nbsp;
+                                </Text>
                                 {props.icon && (
                                     <Icon
                                         src={props.isDelayButtonStateComplete ? props.iconChecked : props.icon}
