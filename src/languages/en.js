@@ -690,6 +690,8 @@ export default {
                 label: 'Light',
             },
         },
+        useDeviceSettings: 'Use Device Settings ',
+        chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
     },
     signInPage: {
         expensifyDotCash: 'New Expensify',
