@@ -22,7 +22,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
-import * as TaskUtils from '../../../../libs/actions/Task';
+import * as Task from '../../../../libs/actions/Task';
 import * as Session from '../../../../libs/actions/Session';
 import * as IOU from '../../../../libs/actions/IOU';
 import usePrevious from '../../../../hooks/usePrevious';
@@ -236,7 +236,7 @@ function FloatingActionButtonAndPopover(props) {
                               {
                                   icon: Expensicons.Task,
                                   text: props.translate('newTaskPage.assignTask'),
-                                  onSelected: () => interceptAnonymousUser(() => TaskUtils.clearOutTaskInfoAndNavigate()),
+                                  onSelected: () => interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                               },
                           ]
                         : []),
