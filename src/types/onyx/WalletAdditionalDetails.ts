@@ -15,7 +15,7 @@ type WalletAdditionalDetails = OnyxCommon.BaseState & {
     errorCode?: string;
 
     /** Which field needs attention? */
-    errorFields?: OnyxCommon.FieldErrors;
+    errorFields?: OnyxCommon.ErrorFields;
 };
 
 export default WalletAdditionalDetails;

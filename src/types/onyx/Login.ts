@@ -11,10 +11,10 @@ type Login = {
     validatedDate?: string;
 
     /** Field-specific server side errors keyed by microtime */
-    errorFields?: OnyxCommon.FieldErrors;
+    errorFields?: OnyxCommon.ErrorFields;
 
     /** Field-specific pending states for offline UI status */
-    pendingFields?: OnyxCommon.FieldErrors;
+    pendingFields?: OnyxCommon.ErrorFields;
 };
 
 export default Login;

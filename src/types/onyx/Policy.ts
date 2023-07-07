@@ -25,7 +25,7 @@ type Policy = {
     avatar?: string;
 
     /** Error objects keyed by field name containing errors keyed by microtime */
-    errorFields?: OnyxCommon.FieldErrors;
+    errorFields?: OnyxCommon.ErrorFields;
     pendingAction?: OnyxCommon.PendingAction;
 };
 

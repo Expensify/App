@@ -28,7 +28,7 @@ type ReimbursementAccount = {
     error?: string;
 
     /** Which field needs attention? */
-    errorFields?: OnyxCommon.FieldErrors;
+    errorFields?: OnyxCommon.ErrorFields;
 
     /** Any additional error message to show */
     errors?: Record<string, string>;

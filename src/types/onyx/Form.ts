@@ -8,7 +8,7 @@ type Form = {
     errors?: Record<string, string>;
 
     /** Field-specific server side errors keyed by microtime */
-    errorFields?: OnyxCommon.FieldErrors;
+    errorFields?: OnyxCommon.ErrorFields;
 };
 
 type AddDebitCardForm = Form & {
