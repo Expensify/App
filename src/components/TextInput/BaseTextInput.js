@@ -218,7 +218,7 @@ function BaseTextInput(props) {
     };
 
     const togglePasswordVisibility = useCallback(() => {
-        setPasswordHidden((prevState) => !prevState.passwordHidden);
+        setPasswordHidden((prevPasswordHidden) => !prevPasswordHidden);
     }, []);
 
     const storePrefixLayoutDimensions = useCallback((event) => {
@@ -347,7 +347,7 @@ function BaseTextInput(props) {
                             />
                             {Boolean(props.secureTextEntry) && (
                                 <Checkbox
-                                    style={styles.textInputIconContainer}
+                                    style={[styles.flex1, styles.textInputIconContainer]}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(e) => e.preventDefault()}
                                     accessibilityLabel={props.translate('common.visible')}
