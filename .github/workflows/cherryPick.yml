@@ -83,6 +83,9 @@ jobs:
       - name: Cherry-pick the merge commit of target PR
         id: cherryPick
         run: |
+          echo "Fetching merge commit of PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} (${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }})..."
+          git fetch origin ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} --no-tags --depth=1
+
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
