@@ -59,6 +59,8 @@ import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import ReportActionBasicMessage from './ReportActionItemBasicMessage';
+import * as store from '../../../libs/actions/ReimbursementAccount/store';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -272,7 +274,21 @@ function ReportActionItem(props) {
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
-            children = <ReportActionBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})} />;
+            const shouldShowAddCreditBankAccountButton = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount();
+
+            children = (
+                <ReportActionBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}>
+                    {shouldShowAddCreditBankAccountButton && (
+                        <Button
+                            success
+                            style={[styles.w100, styles.requestPreviewBox]}
+                            text={props.translate('bankAccount.addBankAccount')}
+                            onPress={BankAccounts.openPersonalBankAccountSetupView}
+                            pressOnEnter
+                        />
+                    )}
+                </ReportActionBasicMessage>
+            );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED) {
             const amount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
