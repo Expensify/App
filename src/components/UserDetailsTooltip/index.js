@@ -56,7 +56,14 @@ function UserDetailsTooltip(props) {
         return props.children;
     }
 
-    return <Tooltip renderTooltipContent={renderTooltipContent}>{props.children}</Tooltip>;
+    return (
+        <Tooltip
+            renderTooltipContent={renderTooltipContent}
+            renderTooltipContentKey={[userDisplayName, userLogin]}
+        >
+            {props.children}
+        </Tooltip>
+    );
 }
 
 UserDetailsTooltip.propTypes = propTypes;
