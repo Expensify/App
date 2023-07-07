@@ -48,9 +48,6 @@ const propTypes = {
         ownerEmail: PropTypes.string,
     }),
 
-    /** Personal details of all users */
-    personalDetails: PropTypes.objectOf(personalDetailsPropType),
-
     ...withLocalizePropTypes,
 };
 
@@ -58,7 +55,6 @@ const defaultProps = {
     personalDetailsList: {},
     taskReport: {},
     isHovered: false,
-    personalDetails: {},
 };
 
 function TaskPreview(props) {
