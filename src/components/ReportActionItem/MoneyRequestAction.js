@@ -21,7 +21,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import reportPropTypes from "../../pages/reportPropTypes";
+import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {
     /** All the data of the action */
