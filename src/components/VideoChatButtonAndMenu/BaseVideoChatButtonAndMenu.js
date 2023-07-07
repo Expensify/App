@@ -32,7 +32,6 @@ function BaseVideoChatButtonAndMenu(props) {
     const [isVideoChatMenuActive, setIsVideoChatMenuActive] = useState(false);
     const [videoChatIconPosition, setVideoChatIconPosition] = useState({x: 0, y: 0});
     const videoChatIconWrapperRef = useRef(null);
-    const dimensionsEventListenerRef = useRef(null);
     const videoChatButtonRef = useRef(null);
 
     const menuItemData = [
@@ -68,14 +67,14 @@ function BaseVideoChatButtonAndMenu(props) {
     }, []);
 
     useEffect(() => {
-        dimensionsEventListenerRef.current = Dimensions.addEventListener('change', measureVideoChatIconPosition);
+        const dimensionsEventListener = Dimensions.addEventListener('change', measureVideoChatIconPosition);
 
         return () => {
-            if (!dimensionsEventListenerRef.current) {
+            if (!dimensionsEventListener) {
                 return;
             }
 
-            dimensionsEventListenerRef.current.remove();
+            dimensionsEventListener.remove();
         };
     }, [measureVideoChatIconPosition]);
 
