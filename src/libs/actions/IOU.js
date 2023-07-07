@@ -138,7 +138,7 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    if (isNewChatReport && !_.isEmpty(optimisticPersonalDetailListAction)) {
+    if (!_.isEmpty(optimisticPersonalDetailListAction)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -377,14 +377,16 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     );
 
     // Add optimistic personal details for participant
-    const optimisticPersonalDetailListAction = {
-        [payerAccountID]: {
-            accountID: payerAccountID,
-            avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-            displayName: participant.displayName || payerEmail,
-            login: participant.login,
-        },
-    };
+    const optimisticPersonalDetailListAction = isNewChatReport
+        ? {
+              [payerAccountID]: {
+                  accountID: payerAccountID,
+                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+                  displayName: participant.displayName || payerEmail,
+                  login: participant.login,
+              },
+          }
+        : undefined;
 
     let isNewReportPreviewAction = false;
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -593,11 +595,16 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
         let oneOnOneChatReport;
         let isNewOneOnOneChatReport = false;
-        oneOnOneChatReport = !hasMultipleParticipants && !existingGroupChatReportID ? groupChatReport : ReportUtils.getChatByParticipants([accountID]);
+        let createOptimisticPersonalDetails = false;
 
-        if (!oneOnOneChatReport) {
-            isNewOneOnOneChatReport = true;
-            oneOnOneChatReport = ReportUtils.buildOptimisticChatReport([accountID]);
+        if (!hasMultipleParticipants && !existingGroupChatReportID) {
+            oneOnOneChatReport = groupChatReport;
+            createOptimisticPersonalDetails = !existingGroupChatReport;
+        } else {
+            const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
+            isNewOneOnOneChatReport = !existingChatReport;
+            createOptimisticPersonalDetails = isNewOneOnOneChatReport;
+            oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([accountID]);
         }
 
         // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
@@ -639,14 +646,16 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         );
 
         // Add optimistic personal details for new participants
-        const oneOnOnePersonalDetailListAction = {
-            [accountID]: {
-                accountID,
-                avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: participant.displayName || email,
-                login: participant.login,
-            },
-        };
+        const oneOnOnePersonalDetailListAction = createOptimisticPersonalDetails
+            ? {
+                  [accountID]: {
+                      accountID,
+                      avatar: UserUtils.getDefaultAvatarURL(accountID),
+                      displayName: participant.displayName || email,
+                      login: participant.login,
+                  },
+              }
+            : undefined;
 
         let isNewOneOnOneReportPreviewAction = false;
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
