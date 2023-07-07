@@ -28,7 +28,7 @@ import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import Hoverable from '../../../components/Hoverable';
+import getButtonState from '../../../libs/getButtonState';
 import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
@@ -95,6 +95,7 @@ function ReportActionItemMessageEdit(props) {
 
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
+    const insertedEmojis = useRef([]);
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -139,16 +140,30 @@ function ReportActionItemMessageEdit(props) {
     );
 
     /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
+    const debouncedUpdateFrequentlyUsedEmojis = useMemo(
+        () =>
+            _.debounce(() => {
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis.current));
+                insertedEmojis.current = [];
+            }, 1000),
+        [],
+    );
+
+    /**
      * Update the value of the draft in Onyx
      *
      * @param {String} newDraftInput
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, isSmallScreenWidth, props.preferredSkinTone);
+            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone);
 
             if (!_.isEmpty(emojis)) {
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+                insertedEmojis.current = [...insertedEmojis.current, ...emojis];
+                debouncedUpdateFrequentlyUsedEmojis();
             }
             setDraft((prevDraft) => {
                 if (newDraftInput !== newDraft) {
@@ -172,7 +187,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, isSmallScreenWidth, props.preferredSkinTone],
+        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone],
     );
 
     /**
@@ -223,10 +238,10 @@ function ReportActionItemMessageEdit(props) {
      */
     const addEmojiToTextBox = (emoji) => {
         setSelection((prevSelection) => ({
-            start: prevSelection.start + emoji.length,
-            end: prevSelection.start + emoji.length,
+            start: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
+            end: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
         }));
-        updateDraft(ComposerUtils.insertText(draft, selection, emoji));
+        updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
 
     /**
@@ -255,27 +270,25 @@ function ReportActionItemMessageEdit(props) {
             <View style={[styles.chatItemMessage, styles.flexRow]}>
                 <View style={[styles.justifyContentEnd]}>
                     <Tooltip text={translate('common.cancel')}>
-                        <Hoverable>
-                            {(hovered) => (
-                                <PressableWithFeedback
-                                    onPress={deleteDraft}
-                                    style={styles.chatItemSubmitButton}
-                                    nativeID={cancelButtonID}
-                                    accessibilityRole="button"
-                                    accessibilityLabel={translate('common.close')}
-                                    // disable dimming
-                                    hoverDimmingValue={1}
-                                    pressDimmingValue={1}
-                                    hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
-                                    pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
-                                >
-                                    <Icon
-                                        src={Expensicons.Close}
-                                        fill={StyleUtils.getIconFillColor(hovered ? CONST.BUTTON_STATES.ACTIVE : CONST.BUTTON_STATES.DEFAULT)}
-                                    />
-                                </PressableWithFeedback>
+                        <PressableWithFeedback
+                            onPress={deleteDraft}
+                            style={styles.chatItemSubmitButton}
+                            nativeID={cancelButtonID}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessibilityLabel={translate('common.close')}
+                            // disable dimming
+                            hoverDimmingValue={1}
+                            pressDimmingValue={1}
+                            hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
+                            pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    src={Expensicons.Close}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
                             )}
-                        </Hoverable>
+                        </PressableWithFeedback>
                     </Tooltip>
                 </View>
                 <View
@@ -340,7 +353,7 @@ function ReportActionItemMessageEdit(props) {
                                 onPress={publishDraft}
                                 nativeID={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}

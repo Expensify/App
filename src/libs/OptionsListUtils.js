@@ -377,15 +377,20 @@ function getAllReportErrors(report, reportActions) {
  * @returns {String}
  */
 function getLastMessageTextForReport(report) {
+    const lastReportAction = lastReportActions[report.reportID];
     let lastMessageTextFromReport = '';
+
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
         lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
+        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
     } else {
         lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
 
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
         const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
-        if (lodashGet(lastNonWhisper, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+        if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
             const latestVisibleAction =
                 _.find(
                     allSortedReportActions[report.reportID],
@@ -456,7 +461,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-        result.isThread = ReportUtils.isThread(report);
+        result.isThread = ReportUtils.isChatThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
         result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
         result.allReportErrors = getAllReportErrors(report, reportActions);
@@ -516,7 +521,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
     result.text = reportName;
     result.searchText = getSearchText(report, reportName, personalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID));
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), false, personalDetail.login, personalDetail.accountID);
     result.subtitle = subtitle;
 
     return result;
@@ -616,10 +621,10 @@ function getOptions(
     let personalDetailsOptions = [];
     const reportMapForAccountIDs = {};
     const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(searchInputValue));
-    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
+    const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getReportIDFromRoute(), false, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, iouReports, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -639,7 +644,7 @@ function getOptions(
             return;
         }
 
-        const isThread = ReportUtils.isThread(report);
+        const isThread = ReportUtils.isChatThread(report);
         const isChatRoom = ReportUtils.isChatRoom(report);
         const isTaskReport = ReportUtils.isTaskReport(report);
         const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);

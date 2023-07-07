@@ -7,12 +7,8 @@ import ScreenWrapper from '../../ScreenWrapper';
 import HeaderWithBackButton from '../../HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import styles from '../../../styles/styles';
-import OptionsSelector from '../../OptionsSelector';
-import themeColors from '../../../styles/themes/default';
-import * as Expensicons from '../../Icon/Expensicons';
 import CONST from '../../../CONST';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+import SelectionListRadio from '../../SelectionListRadio';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -50,12 +46,7 @@ class YearPickerPage extends React.Component {
                 text: value.toString(),
                 value,
                 keyForList: value.toString(),
-
-                // Include the green checkmark icon to indicate the currently selected value
-                customIcon: value === this.props.currentYear ? greenCheckmark : undefined,
-
-                // This property will make the currently selected value have bold text
-                boldStyle: value === this.props.currentYear,
+                isSelected: value === this.props.currentYear,
             }),
         );
 
@@ -96,20 +87,16 @@ class YearPickerPage extends React.Component {
                     title={this.props.translate('yearPickerPage.year')}
                     onBackButtonPress={this.props.onClose}
                 />
-                <OptionsSelector
+                <SelectionListRadio
                     textInputLabel={this.props.translate('yearPickerPage.selectYear')}
+                    textInputValue={this.state.inputText}
+                    textInputMaxLength={4}
                     onChangeText={this.filterYearList}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                    maxLength={4}
-                    value={this.state.inputText}
+                    headerMessage={headerMessage}
                     sections={[{data: this.state.yearOptions, indexOffset: 0}]}
                     onSelectRow={(option) => this.props.onYearChange(option.value)}
-                    headerMessage={headerMessage}
                     initiallyFocusedOptionKey={this.props.currentYear.toString()}
-                    hideSectionHeaders
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    shouldHaveOptionSeparator
-                    shouldDelayFocus
                 />
             </ScreenWrapper>
         );

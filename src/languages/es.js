@@ -44,6 +44,7 @@ export default {
         details: 'Detalles',
         privacy: 'Privacidad',
         hidden: 'Oculto',
+        visible: 'Visible',
         delete: 'Eliminar',
         archived: 'archivado',
         contacts: 'Contactos',
@@ -194,8 +195,6 @@ export default {
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',
         expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo.',
-        requestNewCode: '¡También puedes',
-        requestNewCodeLink: 'solicitar un nuevo código aquí',
         successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba tu dispositivo.',
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
@@ -298,6 +297,9 @@ export default {
         sayHello: '¡Saluda!',
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
     },
+    reportAction: {
+        asCopilot: 'como copiloto de',
+    },
     mentionSuggestions: {
         hereAlternateText: 'Notificar a todos los que estén en linea de esta sala',
     },
@@ -358,7 +360,8 @@ export default {
         amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
-        payerSettled: ({amount}) => `pagó ${amount}`,
+        settledElsewhereWithAmount: ({amount}) => `pagó ${amount} de otra forma`,
+        settledPaypalMeWithAmount: ({amount}) => `pagó ${amount} con PayPal.me`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -558,7 +561,6 @@ export default {
         stepSuccess: 'Finalizado',
         enabled: '¡La autenticación de dos factores ahora está habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
-        copyCodes: 'Copiar códigos',
         copy: 'Copiar',
         disable: 'Deshabilitar',
     },
@@ -593,7 +595,7 @@ export default {
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'Por favor, introduce un nombre válido',
+            invalidName: 'El nombre solo puede contener números y caracteres latinos.',
             addressZipCode: 'Por favor, introduce un código postal válido',
             debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido',
             expirationDate: 'Por favor, selecciona una fecha de vencimiento válida',
@@ -706,6 +708,7 @@ export default {
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         requestNewCode: 'Pedir un código nuevo en ',
+        requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',
@@ -1887,10 +1890,9 @@ export default {
         deletedMessage: '[Mensaje eliminado]',
     },
     threads: {
-        lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
-        from: 'De',
+        parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',
