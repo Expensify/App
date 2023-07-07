@@ -29,7 +29,7 @@ const propTypes = {
 };
 
 function BaseVideoChatButtonAndMenu(props) {
-    const [isVideoChatMenuActive, setMenuVisibility] = useState(false);
+    const [isVideoChatMenuActive, setIsVideoChatMenuActive] = useState(false);
     const [videoChatIconPosition, setVideoChatIconPosition] = useState({x: 0, y: 0});
     const videoChatIconWrapperRef = useRef(null);
     const dimensionsEventListenerRef = useRef(null);
@@ -40,7 +40,7 @@ function BaseVideoChatButtonAndMenu(props) {
             icon: ZoomIcon,
             text: props.translate('videoChatButtonAndMenu.zoom'),
             onPress: () => {
-                setMenuVisibility(false);
+                setIsVideoChatMenuActive(false);
                 Linking.openURL(CONST.NEW_ZOOM_MEETING_URL);
             },
         },
@@ -48,7 +48,7 @@ function BaseVideoChatButtonAndMenu(props) {
             icon: GoogleMeetIcon,
             text: props.translate('videoChatButtonAndMenu.googleMeet'),
             onPress: () => {
-                setMenuVisibility(false);
+                setIsVideoChatMenuActive(false);
                 Linking.openURL(props.googleMeetURL);
             },
         },
@@ -68,7 +68,7 @@ function BaseVideoChatButtonAndMenu(props) {
     }, []);
 
     const closePopover = useCallback(() => {
-        setMenuVisibility(false);
+        setIsVideoChatMenuActive(false);
     }, []);
 
     useEffect(() => {
@@ -101,7 +101,7 @@ function BaseVideoChatButtonAndMenu(props) {
                                 Linking.openURL(props.guideCalendarLink);
                                 return;
                             }
-                            setMenuVisibility(true);
+                            setIsVideoChatMenuActive(true);
                         })}
                         style={styles.touchableButtonImage}
                         accessibilityLabel={props.translate('videoChatButtonAndMenu.tooltip')}
