@@ -71,12 +71,14 @@ class WorkspaceInvitePage extends React.Component {
 
         this.inviteUser = this.inviteUser.bind(this);
         this.clearErrors = this.clearErrors.bind(this);
-        this.getExcludedUsers = this.getExcludedUsers.bind(this);
+        this.getExcludedUsersWithReason = this.getExcludedUsersWithReason.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
         this.openPrivacyURL = this.openPrivacyURL.bind(this);
 
-        const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, '', this.getExcludedUsers());
+        this.excludedUsersWithReason = this.getExcludedUsersWithReason();
+        this.excludedUsers = _.keys(this.excludedUsersWithReason);
+        const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, '', this.excludedUsers);
         this.state = {
             searchTerm: '',
             personalDetails,
@@ -105,9 +107,13 @@ class WorkspaceInvitePage extends React.Component {
         Policy.openWorkspaceInvitePage(this.props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     }
 
-    getExcludedUsers() {
+    getExcludedUsersWithReason() {
         // Exclude any expensify emails or valid policy members from the invite options
-        const memberEmailsToExclude = [...CONST.EXPENSIFY_EMAILS];
+        const policyName = lodashGet(this.props.policy, 'name');
+        const membersToExclude = {};
+        _.each(CONST.EXPENSIFY_EMAILS, (memberEmail) => {
+            membersToExclude[memberEmail] = this.props.translate('workspace.notAllowToInviteExpensifyEmails', {email: memberEmail, workspace: policyName});
+        });
         _.each(this.props.policyMembers, (policyMember, accountID) => {
             // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
             if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policyMember.errors)) {
@@ -117,9 +123,9 @@ class WorkspaceInvitePage extends React.Component {
             if (!memberEmail) {
                 return;
             }
-            memberEmailsToExclude.push(memberEmail);
+            membersToExclude[memberEmail] = this.props.translate('workspace.userAlreadyMember', {email: memberEmail, workspace: policyName});
         });
-        return memberEmailsToExclude;
+        return membersToExclude;
     }
 
     /**
@@ -171,7 +177,7 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, searchTerm, this.getExcludedUsers());
+        const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, searchTerm, this.excludedUsers);
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
@@ -217,7 +223,7 @@ class WorkspaceInvitePage extends React.Component {
                 newSelectedOptions = [...prevState.selectedOptions, option];
             }
 
-            const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, prevState.searchTerm, this.getExcludedUsers());
+            const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, prevState.searchTerm, this.excludedUsers);
 
             return {
                 selectedOptions: newSelectedOptions,
@@ -263,7 +269,13 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     render() {
-        const headerMessage = OptionsListUtils.getHeaderMessage(this.state.personalDetails.length !== 0, Boolean(this.state.userToInvite), this.state.searchTerm);
+        const trimmedSearchTerm = this.state.searchTerm.trim();
+        let headerMessage = '';
+        if (_.has(this.excludedUsersWithReason, trimmedSearchTerm)) {
+            headerMessage = this.excludedUsersWithReason[trimmedSearchTerm];
+        } else {
+            headerMessage = OptionsListUtils.getHeaderMessage(this.state.personalDetails.length !== 0, Boolean(this.state.userToInvite), trimmedSearchTerm);
+        }
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
