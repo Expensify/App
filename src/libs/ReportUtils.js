@@ -945,7 +945,7 @@ function isWaitingForIOUActionFromCurrentUser(report) {
         return true;
     }
 
-    if (reportToLook.ownerAccountID !== currentUserAccountID && reportToLook.hasOutstandingIOU) {
+    if ((reportToLook.ownerAccountID !== currentUserAccountID || currentUserAccountID === reportToLook.managerID) && reportToLook.hasOutstandingIOU) {
         return true;
     }
 
