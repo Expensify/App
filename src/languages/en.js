@@ -360,7 +360,10 @@ export default {
         splitAmount: ({amount}) => `split ${amount}`,
         amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
+        payerOwes: ({payer}) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
+        payerPaid: ({payer}) => `${payer} paid: `,
+        payerSettled: ({amount}) => `paid ${amount}`,
         settledElsewhereWithAmount: ({amount}) => `paid ${amount} elsewhere`,
         settledPaypalMeWithAmount: ({amount}) => `paid ${amount} using Paypal.me`,
         noReimbursableExpenses: 'This report has an invalid amount',
@@ -560,7 +563,6 @@ export default {
         stepSuccess: 'Finished',
         enabled: 'Two-factor authentication is now enabled!',
         congrats: 'Congrats, now you’ve got that extra security.',
-        copyCodes: 'Copy codes',
         copy: 'Copy',
         disable: 'Disable',
     },
@@ -595,7 +597,7 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         expensifyPassword: 'Expensify password',
         error: {
-            invalidName: 'Please enter a valid name',
+            invalidName: 'Name can only include latin letters and numbers.',
             addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please select a valid expiration date',
@@ -707,6 +709,7 @@ export default {
         enterAuthenticatorCode: 'Please enter your authenticator code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: 'Request a new code in ',
+        requestNewCodeAfterErrorOccurred: 'Request a new code',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
@@ -1421,10 +1424,9 @@ export default {
         deletedMessage: '[Deleted message]',
     },
     threads: {
-        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
-        from: 'From',
+        parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copyUrlToClipboard: 'Copy URL to clipboard',

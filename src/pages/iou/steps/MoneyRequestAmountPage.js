@@ -207,6 +207,16 @@ function MoneyRequestAmountPage(props) {
     const titleForStep = isEditing.current ? translate('iou.amount') : title[iouType.current];
 
     /**
+     * Check and dismiss modal
+     */
+    const dismissModalIfNecessary = useCallback(() => {
+        if (!ReportUtils.shouldHideComposer(props.report, props.errors)) {
+            return;
+        }
+        Navigation.dismissModal(reportID);
+    }, [props.errors, props.report]);
+
+    /**
      * Focus text input
      */
     const focusTextInput = () => {
@@ -223,6 +233,7 @@ function MoneyRequestAmountPage(props) {
     };
 
     useEffect(() => {
+        dismissModalIfNecessary();
         if (isEditing.current) {
             if (prevMoneyRequestId.current !== props.iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
@@ -245,19 +256,21 @@ function MoneyRequestAmountPage(props) {
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id, dismissModalIfNecessary]);
 
     useEffect(() => {
+        dismissModalIfNecessary();
         if (!props.route.params.currency) {
             return;
         }
 
         setSelectedCurrencyCode(props.route.params.currency);
-    }, [props.route.params.currency]);
+    }, [props.route.params.currency, dismissModalIfNecessary]);
 
     useEffect(() => {
+        dismissModalIfNecessary();
         setSelectedCurrencyCode(props.iou.currency);
-    }, [props.iou.currency]);
+    }, [props.iou.currency, dismissModalIfNecessary]);
 
     useEffect(() => {
         const selectedAmountAsStringForState = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';

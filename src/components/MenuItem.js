@@ -67,6 +67,7 @@ const defaultProps = {
     hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
+    numberOfLinesTitle: 1,
 };
 
 function MenuItem(props) {
@@ -79,8 +80,8 @@ function MenuItem(props) {
             props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
             props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
-            props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined,
-            styles.pre,
+            props.numberOfLinesTitle > 1 ? styles.preWrap : styles.pre,
+            props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
         ],
@@ -119,6 +120,7 @@ function MenuItem(props) {
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 (hovered || pressed) && props.hoverAndPressStyle,
                 ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
+                props.disabled && styles.buttonOpacityDisabled,
             ]}
             disabled={props.disabled}
             ref={props.forwardedRef}
@@ -192,7 +194,7 @@ function MenuItem(props) {
                                     {Boolean(props.title) && (
                                         <Text
                                             style={titleTextStyle}
-                                            numberOfLines={1}
+                                            numberOfLines={props.numberOfLinesTitle}
                                         >
                                             {convertToLTR(props.title)}
                                         </Text>
