@@ -1425,7 +1425,6 @@ export default {
         deletedMessage: '[Deleted message]',
     },
     threads: {
-        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,

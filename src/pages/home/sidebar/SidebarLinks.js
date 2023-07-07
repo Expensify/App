@@ -216,13 +216,13 @@ class SidebarLinks extends React.Component {
                                 height={variables.lhnLogoHeight}
                             />
                         }
-                        accessibilityRole="text"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         shouldShowEnvironmentBadge
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <PressableWithoutFeedback
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             style={[styles.flexRow, styles.ph5]}
                             onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
@@ -231,7 +231,7 @@ class SidebarLinks extends React.Component {
                     </Tooltip>
                     <PressableWithoutFeedback
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
                     >
                         {Session.isAnonymousUser() ? (
