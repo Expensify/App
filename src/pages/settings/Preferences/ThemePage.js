@@ -7,17 +7,13 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import OptionsList from '../../../components/OptionsList';
+import SelectionListRadio from '../../../components/SelectionListRadio';
 import styles from '../../../styles/styles';
-import themeColors from '../../../styles/themes/default';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 // import * as App from '../../../libs/actions/App';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import Text from '../../../components/Text';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -35,12 +31,7 @@ function ThemePage(props) {
         value: key,
         text: theme.label,
         keyForList: key,
-
-        // Include the green checkmark icon to indicate the currently selected value
-        customIcon: props.preferredTheme === key ? greenCheckmark : undefined,
-
-        // This property will make the currently selected value have bold text
-        boldStyle: props.preferredTheme === key,
+        isSelected: props.preferredTheme === key,
     }));
 
     return (
@@ -54,18 +45,10 @@ function ThemePage(props) {
 
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('themePage.chooseThemeBelowOrSync')}</Text>
 
-            <OptionsList
+            <SelectionListRadio
                 sections={[{data: localesToThemes}]}
-                // onSelectRow={(theme) => App.setThemeAndNavigate(theme.value)}
-                hideSectionHeaders
-                optionHoveredStyle={{
-                    ...styles.hoveredComponentBG,
-                    ...styles.mhn5,
-                    ...styles.ph5,
-                }}
-                shouldHaveOptionSeparator
-                shouldDisableRowInnerPadding
-                contentContainerStyles={[styles.ph5]}
+                // onSelectRow={(theme) => User.updateTheme(theme.value)}
+                initiallyFocusedOptionKey={_.find(localesToThemes, (theme) => theme.isSelected).keyForList}
             />
         </ScreenWrapper>
     );
