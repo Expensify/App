@@ -960,6 +960,7 @@ class ReportActionCompose extends React.Component {
                             styles.chatItemComposeBox,
                             this.props.isComposerFullSize && styles.chatItemFullComposeBox,
                             hasExceededMaxCommentLength && styles.borderColorDanger,
+                            !shouldShowReportRecipientLocalTime && styles.mt4,
                         ]}
                     >
                         <AttachmentModal
