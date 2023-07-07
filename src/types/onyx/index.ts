@@ -1,4 +1,5 @@
 import Account from './Account';
+import Request from './Request';
 import Credentials from './Credentials';
 import QueuedOnyxUpdates from './QueuedOnyxUpdates';
 import IOU from './IOU';
@@ -39,6 +40,7 @@ import Form, {AddDebitCardForm} from './Form';
 
 export type {
     Account,
+    Request,
     Credentials,
     QueuedOnyxUpdates,
     IOU,
