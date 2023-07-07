@@ -209,11 +209,11 @@ function MoneyRequestAmountPage(props) {
     /**
      * Check and dismiss modal
      */
-    const dismissModalIfNecessary = useCallback(() => {
+    useEffect(() => {
         if (!ReportUtils.shouldHideComposer(props.report, props.errors)) {
             return;
         }
-        Navigation.dismissModal(reportID);
+        Navigation.dismissModal(reportID.current);
     }, [props.errors, props.report]);
 
     /**
@@ -233,7 +233,6 @@ function MoneyRequestAmountPage(props) {
     };
 
     useEffect(() => {
-        dismissModalIfNecessary();
         if (isEditing.current) {
             if (prevMoneyRequestId.current !== props.iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
@@ -256,21 +255,19 @@ function MoneyRequestAmountPage(props) {
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id, dismissModalIfNecessary]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
     useEffect(() => {
-        dismissModalIfNecessary();
         if (!props.route.params.currency) {
             return;
         }
 
         setSelectedCurrencyCode(props.route.params.currency);
-    }, [props.route.params.currency, dismissModalIfNecessary]);
+    }, [props.route.params.currency]);
 
     useEffect(() => {
-        dismissModalIfNecessary();
         setSelectedCurrencyCode(props.iou.currency);
-    }, [props.iou.currency, dismissModalIfNecessary]);
+    }, [props.iou.currency]);
 
     useEffect(() => {
         const selectedAmountAsStringForState = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
