@@ -993,7 +993,7 @@ class ReportActionCompose extends React.Component {
                 'worklet';
 
                 const viewTag = aref();
-                const viewName = 'RCTSinglelineTextInputView';
+                const viewName = 'RCTMultilineTextInputView';
                 // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
                 runOnJS(setCommentEmpty)();
                 const updates = {text: ''};
@@ -1224,14 +1224,16 @@ class ReportActionCompose extends React.Component {
                             <Tooltip text={this.props.translate('common.send')}>
                                 <GestureDetector gesture={Tap}>
                                     <PressableWithFeedback
-                                        style={[styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
+                                        style={({pressed, isDisabled}) => [styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess]}
                                         accessibilityRole="button"
                                         accessibilityLabel={this.props.translate('common.send')}
                                     >
-                                        <Icon
-                                            src={Expensicons.Send}
-                                            fill={this.state.isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
-                                        />
+                                        {({pressed}) => (
+                                                <Icon
+                                                    src={Expensicons.Send}
+                                                    fill={this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed ? themeColors.icon : themeColors.textLight}
+                                                />    
+                                                )}
                                     </PressableWithFeedback>
                                 </GestureDetector>
                             </Tooltip>
