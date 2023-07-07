@@ -3,13 +3,12 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import compose from '../../../libs/compose';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import useLocalize from '../../../hooks/useLocalize';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
@@ -33,8 +32,6 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -45,6 +42,7 @@ const defaultProps = {
 };
 
 function DebitCardPage(props) {
+    const {translate} = useLocalize();
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
 
     useEffect(() => {
@@ -112,24 +110,24 @@ function DebitCardPage(props) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={props.translate('addDebitCardPage.addADebitCard')}
+                title={translate('addDebitCardPage.addADebitCard')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
                 validate={validate}
                 onSubmit={PaymentMethods.addPaymentCard}
-                submitButtonText={props.translate('common.save')}
+                submitButtonText={translate('common.save')}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
             >
                 <TextInput
                     inputID="nameOnCard"
-                    label={props.translate('addDebitCardPage.nameOnCard')}
+                    label={translate('addDebitCardPage.nameOnCard')}
                 />
                 <TextInput
                     inputID="cardNumber"
-                    label={props.translate('addDebitCardPage.debitCardNumber')}
+                    label={translate('addDebitCardPage.debitCardNumber')}
                     containerStyles={[styles.mt4]}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 />
@@ -137,8 +135,8 @@ function DebitCardPage(props) {
                     <View style={[styles.flex1, styles.mr2]}>
                         <TextInput
                             inputID="expirationDate"
-                            label={props.translate('addDebitCardPage.expiration')}
-                            placeholder={props.translate('addDebitCardPage.expirationDate')}
+                            label={translate('addDebitCardPage.expiration')}
+                            placeholder={translate('addDebitCardPage.expirationDate')}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             maxLength={4}
                         />
@@ -146,7 +144,7 @@ function DebitCardPage(props) {
                     <View style={[styles.flex1]}>
                         <TextInput
                             inputID="securityCode"
-                            label={props.translate('addDebitCardPage.cvv')}
+                            label={translate('addDebitCardPage.cvv')}
                             maxLength={4}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         />
@@ -155,17 +153,17 @@ function DebitCardPage(props) {
                 <View>
                     <AddressSearch
                         inputID="addressStreet"
-                        label={props.translate('addDebitCardPage.billingAddress')}
+                        label={translate('addDebitCardPage.billingAddress')}
                         containerStyles={[styles.mt4]}
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     />
                 </View>
                 <TextInput
                     inputID="addressZipCode"
-                    label={props.translate('common.zip')}
+                    label={translate('common.zip')}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                    hint={props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
+                    hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                     containerStyles={[styles.mt4]}
                 />
                 <View style={styles.mt4}>
@@ -175,7 +173,7 @@ function DebitCardPage(props) {
                     <View style={[styles.mt4]}>
                         <TextInput
                             inputID="password"
-                            label={props.translate('addDebitCardPage.expensifyPassword')}
+                            label={translate('addDebitCardPage.expensifyPassword')}
                             textContentType="password"
                             autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                             secureTextEntry
@@ -183,12 +181,12 @@ function DebitCardPage(props) {
                     </View>
                 )}
                 <CheckboxWithLabel
-                    accessibilityLabel={`${props.translate('common.iAcceptThe')} ${props.translate('common.expensifyTermsOfService')}`}
+                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID="acceptTerms"
                     LabelComponent={() => (
                         <Text>
-                            {`${props.translate('common.iAcceptThe')}`}
-                            <TextLink href={CONST.TERMS_URL}>{`${props.translate('common.expensifyTermsOfService')}`}</TextLink>
+                            {`${translate('common.iAcceptThe')}`}
+                            <TextLink href={CONST.TERMS_URL}>{`${translate('common.expensifyTermsOfService')}`}</TextLink>
                         </Text>
                     )}
                     style={[styles.mt4]}
@@ -201,14 +199,11 @@ function DebitCardPage(props) {
 DebitCardPage.propTypes = propTypes;
 DebitCardPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        formData: {
-            key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(DebitCardPage);
+export default withOnyx({
+    formData: {
+        key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(DebitCardPage);
