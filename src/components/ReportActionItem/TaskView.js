@@ -58,11 +58,7 @@ function TaskView(props) {
 
                     Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
                 })}
-                style={({hovered, pressed}) => [
-                    styles.ph5,
-                    styles.pv2,
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, !isOpen), true),
-                ]}
+                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, !isOpen), true)]}
                 ref={props.forwardedRef}
                 disabled={!isOpen}
                 accessibilityLabel={taskTitle || props.translate('task.task')}
@@ -98,7 +94,6 @@ function TaskView(props) {
                                     />
                                 </View>
                             )}
-                            
                         </View>
                     </>
                 )}

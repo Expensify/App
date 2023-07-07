@@ -130,6 +130,7 @@ function HeaderView(props) {
     const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(props.report);
+    const defaultSubscriptSize = ReportUtils.isExpenseRequest(props.report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
@@ -171,8 +172,7 @@ function HeaderView(props) {
                                 <SubscriptAvatar
                                     mainAvatar={icons[0]}
                                     secondaryAvatar={icons[1]}
-                                    mainTooltip={props.report.ownerEmail}
-                                    secondaryTooltip={subtitle}
+                                    size={defaultSubscriptSize}
                                 />
                             ) : (
                                 <MultipleAvatars
