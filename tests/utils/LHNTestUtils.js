@@ -1,12 +1,13 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {render} from '@testing-library/react-native';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
-import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
+import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
-import {CurrentReportIDContextProvider} from '../../src/components/withCurrentReportID';
+import {CurrentReportIDContext} from '../../src/components/withCurrentReportID';
 
 // we have to mock `useIsFocused` because it's used in the SidebarLinks component
 const mockedNavigate = jest.fn();
@@ -186,10 +187,25 @@ function getDefaultRenderedSidebarLinks() {
  * @param {String} [currentReportID]
  * @returns {JSX.Element}
  */
-function MockedSidebarLinks() {
+function MockedSidebarLinks({currentReportID}) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
-            <SidebarLinks
+        <ComposeProviders
+            components={[
+                OnyxProvider,
+                LocaleContextProvider,
+                ({children}) => (
+                    <CurrentReportIDContext.Provider
+                        value={{
+                            updateCurrentReportID: () => {},
+                            currentReportID,
+                        }}
+                    >
+                        {children}
+                    </CurrentReportIDContext.Provider>
+                ),
+            ]}
+        >
+            <SidebarLinksData
                 onLinkClick={() => {}}
                 insets={{
                     top: 0,
@@ -202,5 +218,13 @@ function MockedSidebarLinks() {
         </ComposeProviders>
     );
 }
+
+MockedSidebarLinks.propTypes = {
+    currentReportID: PropTypes.string,
+};
+
+MockedSidebarLinks.defaultProps = {
+    currentReportID: '',
+};
 
 export {fakePersonalDetails, getDefaultRenderedSidebarLinks, getAdvancedFakeReport, getFakeReport, getFakeReportAction, MockedSidebarLinks};
