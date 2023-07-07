@@ -68,6 +68,19 @@ type Report = {
 
     /** The report type */
     type?: string;
+
+    parentReportID?: number;
+    parentReportActionID?: string;
+    isOptimisticReport?: boolean;
+    hasDraft?: boolean;
+    managerID?: number;
+    lastVisibleActionLastModified?: string;
+    displayName?: string;
+    lastMessageHtml?: string;
+    welcomeMessage?: string;
+    lastActorAccountID?: string;
+    ownerAccountID?: number;
+    participantAccountIDs?: number[];
 };
 
 export default Report;
