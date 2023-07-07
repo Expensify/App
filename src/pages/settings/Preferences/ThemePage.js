@@ -50,6 +50,9 @@ function ThemePage(props) {
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
+
+            <Text style={[styles.mh5, styles.mv4]}>{props.translate('themePage.chooseThemeBelowOrSync')}</Text>
+
             <OptionsList
                 sections={[{data: localesToThemes}]}
                 // onSelectRow={(theme) => App.setThemeAndNavigate(theme.value)}
