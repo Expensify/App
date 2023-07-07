@@ -24,6 +24,7 @@ import * as TaskUtils from '../libs/actions/Task';
 import * as UserUtils from '../libs/UserUtils';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import ONYXKEYS from '../ONYXKEYS';
+import withNavigationFocus from './withNavigationFocus';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -36,6 +37,9 @@ const propTypes = {
     session: PropTypes.shape({
         accountID: PropTypes.number,
     }),
+
+    /** Whether the screen is focused */
+    isFocused: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -55,8 +59,11 @@ function TaskHeader(props) {
     const isCompleted = ReportUtils.isTaskCompleted(props.report);
 
     useEffect(() => {
+        if (!props.isFocused) {
+            return;
+        }
         TaskUtils.setTaskReport(props.report);
-    }, [props.report]);
+    }, [props.report, props.isFocused]);
 
     return (
         <View style={styles.borderBottom}>
@@ -66,7 +73,7 @@ function TaskHeader(props) {
                     <PressableWithFeedback
                         onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                         disabled={!isOpen}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('newTaskPage.assignee')}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
@@ -143,6 +150,7 @@ TaskHeader.displayName = 'TaskHeader';
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withNavigationFocus,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
