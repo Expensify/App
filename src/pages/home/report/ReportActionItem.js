@@ -151,11 +151,11 @@ function ReportActionItem(props) {
     const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
     const latestDecision = lodashGet(_.last(decisions), 'decision', '');
     useEffect(() => {
-        if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
+        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
             return;
         }
 
-        if (latestDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
+        if (_.contains([CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE, CONST.MODERATION.MODERATOR_DECISION_HIDDEN], latestDecision)) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision);
