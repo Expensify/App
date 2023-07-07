@@ -47,8 +47,8 @@ const propTypes = {
         /** Email address of the manager in this iou report */
         managerEmail: PropTypes.string,
 
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
+        /** AccountID of the creator of this iou report */
+        ownerAccountID: PropTypes.number,
 
         /** Outstanding amount in cents of this transaction */
         total: PropTypes.number,

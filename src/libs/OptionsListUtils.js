@@ -62,7 +62,7 @@ const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (report, key) => {
-        if (!report || !key || !report.ownerEmail) {
+        if (!report || !key || !_.isNumber(report.ownerAccountID)) {
             return;
         }
 
@@ -423,7 +423,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
-        ownerEmail: null,
+        ownerAccountID: null,
         subtitle: null,
         participantsList: null,
         accountID: 0,
@@ -469,7 +469,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.allReportErrors = getAllReportErrors(report, reportActions);
         result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
-        result.ownerEmail = report.ownerEmail;
+        result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
         result.isUnread = ReportUtils.isUnread(report);
         result.hasDraftComment = report.hasDraft;
@@ -718,7 +718,7 @@ function getOptions(
             }
 
             const isCurrentUserOwnedPolicyExpenseChatThatCouldShow =
-                reportOption.isPolicyExpenseChat && reportOption.ownerEmail === currentUserLogin && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
+                reportOption.isPolicyExpenseChat && reportOption.ownerAccountID === currentUserAccountID && includeOwnedWorkspaceChats && !reportOption.isArchivedRoom;
 
             // Skip if we aren't including multiple participant reports and this report has multiple participants
             if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !reportOption.login) {
