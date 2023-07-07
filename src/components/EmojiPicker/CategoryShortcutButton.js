@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {PureComponent, useState} from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import Tooltip from '../Tooltip';
@@ -23,42 +23,36 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class CategoryShortcutButton extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isHighlighted: false,
-        };
-    }
+function CategoryShortcutButton(props) {
 
-    render() {
-        return (
-            <Tooltip
-                text={this.props.translate(`emojiPicker.headers.${this.props.code}`)}
-                shiftVertical={-4}
+    let [isHighlighted, setIsHighlighted] = useState(false)
+
+    return (
+        <Tooltip
+            text={props.translate(`emojiPicker.headers.${props.code}`)}
+            shiftVertical={-4}
+        >
+            <PressableWithoutFeedback
+                onPress={props.onPress}
+                onHoverIn={() => setIsHighlighted(true)}
+                onHoverOut={() => setIsHighlighted(false)}
+                style={({ pressed }) => [
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                    styles.categoryShortcutButton,
+                    isHighlighted && styles.emojiItemHighlighted,
+                ]}
+                accessibilityLabel={`emojiPicker.headers.${props.code}`}
+                accessibilityRole="button"
             >
-                <PressableWithoutFeedback
-                    onPress={this.props.onPress}
-                    onHoverIn={() => this.setState({isHighlighted: true})}
-                    onHoverOut={() => this.setState({isHighlighted: false})}
-                    style={({pressed}) => [
-                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                        styles.categoryShortcutButton,
-                        this.state.isHighlighted && styles.emojiItemHighlighted,
-                    ]}
-                    accessibilityLabel={`emojiPicker.headers.${this.props.code}`}
-                    accessibilityRole="button"
-                >
-                    <Icon
-                        fill={themeColors.icon}
-                        src={this.props.icon}
-                        height={variables.iconSizeNormal}
-                        width={variables.iconSizeNormal}
-                    />
-                </PressableWithoutFeedback>
-            </Tooltip>
-        );
-    }
+                <Icon
+                    fill={themeColors.icon}
+                    src={props.icon}
+                    height={variables.iconSizeNormal}
+                    width={variables.iconSizeNormal}
+                />
+            </PressableWithoutFeedback>
+        </Tooltip>
+    );
 }
 CategoryShortcutButton.propTypes = propTypes;
 
