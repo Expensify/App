@@ -266,16 +266,13 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         const cleanAccountID = Number(accountID);
         const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
 
-        // TODO: Add comment
-        optimisticPersonalDetails[accountID] = personalDetails[accountID] || {
-            login,
-            accountID,
-            avatar: UserUtils.getDefaultAvatarURL(accountID),
-            displayName: login,
-        };
-
-        // TODO: Add comment
         if (!personalDetails[accountID]) {
+            optimisticPersonalDetails[accountID] = {
+                login,
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: login,
+            };
             successPersonalDetails[accountID] = null;
         }
 
