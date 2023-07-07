@@ -10,7 +10,7 @@ import {withNavigationPropTypes} from '../../../../components/withNavigation';
 import styles from '../../../../styles/styles';
 import CONST from '../../../../CONST';
 import PressableWithoutFeedback from '../../../../components/Pressable/PressableWithoutFeedback';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import useLocalize from '../../../../hooks/useLocalize';
 
 const propTypes = {
     /* State from useNavigationBuilder */
@@ -22,11 +22,11 @@ const propTypes = {
     descriptors: PropTypes.object.isRequired,
 
     ...withNavigationPropTypes,
-    ...withLocalizePropTypes,
 };
 
 function ThreePaneView(props) {
     const lastCentralPaneIndex = _.findLastIndex(props.state.routes, {name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR});
+    const {translate} = useLocalize();
 
     return (
         <View style={[styles.flex1, styles.flexRow]}>
@@ -67,7 +67,7 @@ function ThreePaneView(props) {
                             <PressableWithoutFeedback
                                 style={[styles.flex1]}
                                 onPress={() => props.navigation.goBack()}
-                                accessibilityLabel={props.translate('common.close')}
+                                accessibilityLabel={translate('common.close')}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             />
                             <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
@@ -90,4 +90,4 @@ function ThreePaneView(props) {
 ThreePaneView.propTypes = propTypes;
 ThreePaneView.displayName = 'ThreePaneView';
 
-export default withLocalize(ThreePaneView);
+export default ThreePaneView;

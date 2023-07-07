@@ -40,5 +40,11 @@ module.exports = {
             },
         ],
         'react-native-a11y/has-accessibility-hint': ['off'],
+        'react-native-a11y/has-valid-accessibility-descriptors': [
+            'error',
+            {
+                touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
+            },
+        ],
     },
 };
