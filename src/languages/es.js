@@ -1890,10 +1890,9 @@ export default {
         deletedMessage: '[Mensaje eliminado]',
     },
     threads: {
-        lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
-        from: 'De',
+        parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',

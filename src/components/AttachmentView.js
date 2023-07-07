@@ -16,6 +16,7 @@ import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Whether source url requires authentication */
@@ -103,7 +104,7 @@ function AttachmentView(props) {
                 onPress={props.onPress}
                 disabled={loadComplete}
                 style={containerStyles}
-                accessibilityRole="imagebutton"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
             >
                 {children}
@@ -130,7 +131,7 @@ function AttachmentView(props) {
                 onPress={props.onPress}
                 disabled={loadComplete}
                 style={containerStyles}
-                accessibilityRole="imagebutton"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
             >
                 {children}
