@@ -3,10 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-<<<<<<< HEAD
-=======
 import _ from 'underscore';
->>>>>>> ed21fdaaf90f458f7a063eaeb346bff61bac133e
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -120,11 +117,7 @@ export default compose(
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
         },
-<<<<<<< HEAD
-        personalDetails: {
-=======
         personalDetailsList: {
->>>>>>> ed21fdaaf90f458f7a063eaeb346bff61bac133e
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
