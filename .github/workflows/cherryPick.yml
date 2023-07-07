@@ -83,8 +83,10 @@ jobs:
       - name: Cherry-pick the merge commit of target PR
         id: cherryPick
         run: |
-          echo "Fetching merge commit of PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} (${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }})..."
-          git fetch origin ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} --no-tags --depth=1
+          if ! git rev-parse --verify ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} 2>/dev/null; then
+            echo "Merge commit of PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} (${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}) not found, fetching it now..."
+            git fetch origin ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} --no-tags --depth=1
+          fi
 
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
