@@ -237,6 +237,7 @@ function MoneyRequestAmountPage(props) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                return;
             }
         }
         const moneyRequestId = `${iouType.current}${reportID.current}`;
@@ -259,7 +260,6 @@ function MoneyRequestAmountPage(props) {
         const prevCurrencyParam = prevPropCurrencyParam.current;
         if (currencyParam !== '' && prevCurrencyParam !== currencyParam) {
             setSelectedCurrencyCode(currencyParam);
-            return;
         }
 
         if (prevPropIOUCurrency.current !== props.iou.currency) {
@@ -268,9 +268,8 @@ function MoneyRequestAmountPage(props) {
 
         return () => {
             prevPropIOUCurrency.current = props.iou.currency;
+            prevPropCurrencyParam.current = lodashGet(props.route, 'params.currency');
         };
-        // We only want this effect to get called when we edit the amount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.route, props.iou.currency]);
 
     useEffect(() => {
@@ -293,7 +292,11 @@ function MoneyRequestAmountPage(props) {
      * @param {String} newAmount - Changed amount from user input
      */
     const setNewAmount = (newAmount) => {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
         const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
+        // Use a shallow copy of selection to trigger setSelection
+        // More info: https://github.com/Expensify/App/issues/16385
         if (!validateAmount(newAmountWithoutSpaces)) {
             setAmount((prevAmount) => prevAmount);
             setSelection((prevSelection) => ({...prevSelection}));
