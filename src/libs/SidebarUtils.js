@@ -33,18 +33,6 @@ Onyx.connect({
     callback: (val) => (personalDetails = val),
 });
 
-let priorityMode;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (val) => (priorityMode = val),
-});
-
-let betas;
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (val) => (betas = val),
-});
-
 const visibleReportActionItems = {};
 const lastReportActions = {};
 const reportActions = {};
@@ -69,13 +57,6 @@ Onyx.connect({
 
         reportActions[key] = actions;
     },
-});
-
-let policies;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (val) => (policies = val),
 });
 
 let currentUserAccountID;
@@ -117,17 +98,22 @@ function setIsSidebarLoadedReady() {
 }
 
 /**
+ * @param {String} currentReportId
+ * @param {Object} allReportsDict
+ * @param {Object} betas
+ * @param {String[]} policies
+ * @param {String} priorityMode
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs() {
+function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode) {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReports, (report) => ReportUtils.shouldReportBeInOptionList(report, isInGSDMode, allReports, betas, policies));
+    const reportsToDisplay = _.filter(allReportsDict, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies));
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
-        const conciergeChatReport = _.find(allReports, ReportUtils.isConciergeChatReport);
+        const conciergeChatReport = _.find(allReportsDict, ReportUtils.isConciergeChatReport);
         if (conciergeChatReport) {
             reportsToDisplay.push(conciergeChatReport);
         }
@@ -142,7 +128,7 @@ function getOrderedReportIDs() {
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReports);
+        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReportsDict);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -167,7 +153,7 @@ function getOrderedReportIDs() {
             return;
         }
 
-        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, allReports)) {
+        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, allReportsDict)) {
             outstandingIOUReports.push(report);
             return;
         }

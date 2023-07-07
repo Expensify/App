@@ -72,6 +72,8 @@ const defaultProps = {
 
 function BaseOptionRowLHN(props) {
     const optionItem = props.optionItem;
+    console.log('optionItem', optionItem);
+
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     useEffect(() => {

@@ -569,6 +569,7 @@ function isCurrentUser(userDetails) {
     return _.some(_.keys(loginList), (login) => login.toLowerCase() === userDetailsLogin.toLowerCase());
 }
 
+// TODO: add current report id back?
 /**
  * Build the options
  *
@@ -624,7 +625,7 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue;
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, false, iouReports, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
