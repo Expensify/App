@@ -1840,6 +1840,12 @@ const styles = {
         right: -1,
     },
 
+    secondAvatarSubscriptSmallNormal: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+    },
+
     leftSideLargeAvatar: {
         left: 15,
     },
@@ -1911,6 +1917,11 @@ const styles = {
     emptyAvatar: {
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
+    },
+
+    emptyAvatarSmallNormal: {
+        height: variables.avatarSizeSmallNormal,
+        width: variables.avatarSizeSmallNormal,
     },
 
     emptyAvatarSmall: {
@@ -3135,18 +3146,6 @@ const styles = {
         bottom: 0,
         backgroundColor: themeColors.dropUIBG,
         zIndex: 2,
-    },
-
-    textPill: {
-        backgroundColor: themeColors.border,
-        borderRadius: 10,
-        overflow: 'hidden',
-        paddingVertical: 2,
-        flexShrink: 0,
-        maxWidth: variables.badgeMaxWidth,
-        fontSize: variables.fontSizeSmall,
-        ...whiteSpace.pre,
-        ...spacing.ph2,
     },
 
     dropZoneTopInvisibleOverlay: {
