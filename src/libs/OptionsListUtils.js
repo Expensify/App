@@ -250,9 +250,6 @@ function getParticipantNames(personalDetailList) {
     // `_.contains(Array, value)` for an Array with n members.
     const participantNames = new Set();
     _.each(personalDetailList, (participant) => {
-        if (participant.accountID) {
-            participantNames.add(participant.accountID.toString());
-        }
         if (participant.login) {
             participantNames.add(participant.login.toLowerCase());
         }
