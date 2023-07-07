@@ -10,12 +10,25 @@ import * as Task from '../libs/actions/Task';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import * as ReportUtils from '../libs/ReportUtils';
 import CONST from '../CONST';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
 
+    /** Current user session */
+    session: PropTypes.shape({
+        accountID: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    disabled: false,
+    session: {
+        accountID: 0,
+    },
 };
 
 function TaskHeaderActionButton(props) {
@@ -31,7 +44,7 @@ function TaskHeaderActionButton(props) {
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
                 <Button
                     success
-                    isDisabled={ReportUtils.isCanceledTaskReport(props.report)}
+                    isDisabled={ReportUtils.isCanceledTaskReport(props.report) || !Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID)}
                     medium
                     text={props.translate(ReportUtils.isCompletedTaskReport(props.report) ? 'task.markAsIncomplete' : 'task.markAsDone')}
                     onPress={() =>
@@ -47,6 +60,14 @@ function TaskHeaderActionButton(props) {
 }
 
 TaskHeaderActionButton.propTypes = propTypes;
+TaskHeaderActionButton.defaultProps = defaultProps;
 TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
 
-export default withLocalize(TaskHeaderActionButton);
+export default compose(
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+    }),
+)(TaskHeaderActionButton);
