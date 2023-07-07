@@ -306,6 +306,7 @@ function MoneyRequestConfirmationList(props) {
                 onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 disabled={didConfirm || props.isReadOnly}
+                numberOfLinesTitle={2}
             />
         </OptionsSelector>
     );
