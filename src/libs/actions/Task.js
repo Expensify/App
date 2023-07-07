@@ -625,7 +625,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     ];
 
-    API.write('CancelTask', {, cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, failureData});
+    API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, failureData});
 }
 
 /**
