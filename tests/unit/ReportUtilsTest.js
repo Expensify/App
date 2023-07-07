@@ -292,10 +292,6 @@ describe('ReportUtils', () => {
         it('returns false when there is no report', () => {
             expect(ReportUtils.isWaitingForIOUActionFromCurrentUser()).toBe(false);
         });
-        it('returns false when the report has no iouReportID', () => {
-            const report = LHNTestUtils.getFakeReport();
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
-        });
         it('returns false when there is no reports collection', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -303,42 +299,47 @@ describe('ReportUtils', () => {
             };
             expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
+        it('returns false when the report has no iouReportID', () => {
+            const report = LHNTestUtils.getFakeReport();
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+                reportID: '2',
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
+            });
+        });
         it('returns false when there is no matching IOU report', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
             };
-            Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {
-                report_2: {
-                    reportID: '2',
-                },
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {
+                reportID: '2',
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
             });
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the matched IOU report does not have an owner email', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
             };
-            Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {
-                report_1: {
-                    reportID: '1',
-                },
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
             });
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
         it('returns false when the matched IOU report does not have an owner email', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
             };
-            Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: 99,
-                },
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                ownerAccountID: 99,
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
             });
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
         it('returns true when the report has an oustanding IOU', () => {
             const report = {
@@ -346,14 +347,13 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
                 hasOutstandingIOU: true,
             };
-            Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: 99,
-                    hasOutstandingIOU: true,
-                },
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                ownerAccountID: 99,
+                hasOutstandingIOU: true,
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
             });
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(true);
         });
         it('returns false when the report has no oustanding IOU', () => {
             const report = {
@@ -361,29 +361,28 @@ describe('ReportUtils', () => {
                 iouReportID: '1',
                 hasOutstandingIOU: false,
             };
-            Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: 99,
-                },
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                ownerAccountID: 99,
+                hasOutstandingIOU: false,
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
             });
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
-
         it('returns true when the report has no oustanding IOU but is waiting for a bank account', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
                 iouReportID: '1',
                 hasOutstandingIOU: false,
             };
-            Onyx.merge(ONYXKEYS.COLLECTION.REPORT, {
-                report_1: {
-                    reportID: '1',
-                    ownerAccountID: currentUserEmail,
-                    isWaitingOnBankAccount: true,
-                },
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+                reportID: '1',
+                ownerAccountID: currentUserEmail,
+                hasOutstandingIOU: false,
+                isWaitingOnBankAccount: true,
+            }).then(() => {
+                expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
             });
-            expect(ReportUtils.isWaitingForIOUActionFromCurrentUser(report)).toBe(false);
         });
     });
 
