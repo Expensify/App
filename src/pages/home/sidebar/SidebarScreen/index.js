@@ -8,7 +8,7 @@ import FreezeWrapper from '../../../../libs/Navigation/FreezeWrapper';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import StatusBar from '../../../../libs/StatusBar';
 import themeColors from '../../../../styles/themes/default';
-import * as FloatingActionButton from './FloatingActionButtonAndPopoverUtils';
+import * as FloatingActionButton from '../../../../libs/FloatingActionButtonAndPopoverUtils';
 
 function SidebarScreen(props) {
     const popoverModal = FloatingActionButton.floatingActionButtonAndPopoverRef;

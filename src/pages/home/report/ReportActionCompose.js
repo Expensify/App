@@ -54,7 +54,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
 import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
-import * as FloatingActionButtonUtils from '../sidebar/SidebarScreen/FloatingActionButtonAndPopoverUtils';
+import * as FloatingActionButtonUtils from '../../../libs/FloatingActionButtonAndPopoverUtils';
 
 const propTypes = {
     /** Beta features list */
