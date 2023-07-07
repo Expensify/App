@@ -48,7 +48,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
-import * as TaskUtils from '../../../libs/actions/Task';
+import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
@@ -442,7 +442,7 @@ class ReportActionCompose extends React.Component {
             {
                 icon: Expensicons.Task,
                 text: this.props.translate('newTaskPage.assignTask'),
-                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(this.props.reportID),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(this.props.reportID),
             },
         ];
     }
@@ -827,8 +827,6 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
             if (suggestionsExist) {
                 this.resetSuggestions();
-            } else if (this.comment.length > 0) {
-                this.updateComment('', true);
             }
             return;
         }
