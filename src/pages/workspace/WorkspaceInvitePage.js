@@ -263,58 +263,63 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     render() {
-        const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(this.state.personalDetails.length !== 0, Boolean(this.state.userToInvite), this.state.searchTerm);
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
             <ScreenWrapper shouldEnableMaxHeight>
-                <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy)}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                >
-                    <HeaderWithBackButton
-                        title={this.props.translate('workspace.invite.invitePeople')}
-                        subtitle={policyName}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                        onBackButtonPress={() => {
-                            this.clearErrors();
-                            Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
-                        }}
-                    />
-                    <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
-                        <OptionsSelector
-                            contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}
-                            listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
-                            canSelectMultipleOptions
-                            sections={sections}
-                            selectedOptions={this.state.selectedOptions}
-                            value={this.state.searchTerm}
-                            shouldShowOptions={OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
-                            onSelectRow={this.toggleOption}
-                            onChangeText={this.updateOptionsWithSearchTerm}
-                            onConfirmSelection={this.inviteUser}
-                            headerMessage={headerMessage}
-                            hideSectionHeaders
-                            boldStyle
-                            shouldFocusOnSelectRow={!Browser.isMobile()}
-                            textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                        />
-                    </View>
-                    <View style={[styles.flexShrink0]}>
-                        <FormAlertWithSubmitButton
-                            isDisabled={!this.state.selectedOptions.length}
-                            isAlertVisible={this.getShouldShowAlertPrompt()}
-                            buttonText={this.props.translate('common.next')}
-                            onSubmit={this.inviteUser}
-                            message={this.props.policy.alertMessage}
-                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                            enabledWhenOffline
-                            disablePressOnEnter
-                        />
-                    </View>
-                </FullPageNotFoundView>
+                {({didScreenTransitionEnd}) => {
+                    const sections = didScreenTransitionEnd ? this.getSections() : [];
+                    return (
+                        <FullPageNotFoundView
+                            shouldShow={_.isEmpty(this.props.policy)}
+                            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                        >
+                            <HeaderWithBackButton
+                                title={this.props.translate('workspace.invite.invitePeople')}
+                                subtitle={policyName}
+                                shouldShowGetAssistanceButton
+                                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                                onBackButtonPress={() => {
+                                    this.clearErrors();
+                                    Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+                                }}
+                            />
+                            <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
+                                <OptionsSelector
+                                    contentContainerStyles={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}
+                                    listContainerStyles={[styles.flexGrow1, styles.flexShrink1, styles.flexBasis0]}
+                                    canSelectMultipleOptions
+                                    sections={sections}
+                                    selectedOptions={this.state.selectedOptions}
+                                    value={this.state.searchTerm}
+                                    shouldShowOptions={didScreenTransitionEnd && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails)}
+                                    onSelectRow={this.toggleOption}
+                                    onChangeText={this.updateOptionsWithSearchTerm}
+                                    onConfirmSelection={this.inviteUser}
+                                    headerMessage={headerMessage}
+                                    hideSectionHeaders
+                                    boldStyle
+                                    shouldDelayFocus
+                                    shouldFocusOnSelectRow={!Browser.isMobile()}
+                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                />
+                            </View>
+                            <View style={[styles.flexShrink0]}>
+                                <FormAlertWithSubmitButton
+                                    isDisabled={!this.state.selectedOptions.length}
+                                    isAlertVisible={this.getShouldShowAlertPrompt()}
+                                    buttonText={this.props.translate('common.next')}
+                                    onSubmit={this.inviteUser}
+                                    message={this.props.policy.alertMessage}
+                                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                                    enabledWhenOffline
+                                    disablePressOnEnter
+                                />
+                            </View>
+                        </FullPageNotFoundView>
+                    );
+                }}
             </ScreenWrapper>
         );
     }

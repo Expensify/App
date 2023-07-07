@@ -1177,7 +1177,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
 function navigateToConciergeChat() {
     if (!conciergeChatReportID) {
         // In order not to delay the report life cycle, we first navigate to the unknown report
-        if (_.isEmpty(Navigation.getReportIDFromRoute())) {
+        if (!Navigation.getReportIDFromRoute()) {
             Navigation.navigate(ROUTES.REPORT);
         }
         // In order to avoid creating concierge repeatedly,
@@ -1200,8 +1200,9 @@ function navigateToConciergeChat() {
  * @param {Array} policyMembers
  */
 function addPolicyReport(policyID, reportName, visibility, policyMembers) {
-    // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserAccountID, ...policyMembers]);
+    // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
+    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembers : [];
+    const participants = _.unique([currentUserAccountID, ...members]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
@@ -1433,7 +1434,7 @@ function shouldShowReportActionNotification(reportID, action = null, isRemote = 
     }
 
     // If we are currently viewing this report do not show a notification.
-    if (reportID === Navigation.getReportIDFromRoute() && Visibility.isVisible() && Visibility.hasFocus()) {
+    if (reportID === Navigation.getTopmostReportId() && Visibility.isVisible() && Visibility.hasFocus()) {
         Log.info(`${tag} No notification because it was a comment for the current report`);
         return false;
     }

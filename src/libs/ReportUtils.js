@@ -23,6 +23,8 @@ import * as UserUtils from './UserUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
+let isAnonymousUser;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -33,13 +35,8 @@ Onyx.connect({
 
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
+        isAnonymousUser = val.authTokenType === 'anonymousAccount';
     },
-});
-
-let loginList;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => (loginList = _.isEmpty(val) ? [] : _.keys(val)),
 });
 
 let preferredLocale = CONST.LOCALES.DEFAULT;
@@ -477,7 +474,7 @@ function isArchivedRoom(report) {
  */
 function getPolicyName(report, returnEmptyIfNotFound = false) {
     const noPolicyFound = returnEmptyIfNotFound ? '' : Localize.translateLocal('workspace.common.unavailable');
-    if (report === undefined) {
+    if (_.isEmpty(report)) {
         return noPolicyFound;
     }
 
@@ -1276,7 +1273,6 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
     reportAction.reportAction.parentReportID = parentReportID;
     reportAction.reportAction.childType = CONST.REPORT.TYPE.TASK;
     reportAction.reportAction.childReportName = taskTitle;
-    reportAction.reportAction.childManagerEmail = taskAssignee;
     reportAction.reportAction.childManagerAccountID = taskAssigneeAccountID;
     reportAction.reportAction.childStatusNum = CONST.REPORT.STATUS.OPEN;
     reportAction.reportAction.childStateNum = CONST.REPORT.STATE_NUM.OPEN;
@@ -2014,8 +2010,8 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    // Hide thread reports that haven't been commented on
-    if (isThread(report) && !report.lastMessageText) {
+    // Hide only chat threads that haven't been commented on (other threads are actionable)
+    if (isChatThread(report) && !report.lastMessageText) {
         return false;
     }
 
@@ -2110,7 +2106,7 @@ function chatIncludesChronos(report) {
  */
 function canFlagReportAction(reportAction, reportID) {
     return (
-        !loginList.includes(reportAction.actorEmail) &&
+        reportAction.actorAccountID !== currentUserAccountID &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
@@ -2230,8 +2226,8 @@ function canRequestMoney(report) {
  * @returns {Array}
  */
 function getMoneyRequestOptions(report, reportParticipants, betas) {
-    // In any thread, we do not allow any new money requests yet
-    if (isChatThread(report)) {
+    // In any thread or task report, we do not allow any new money requests yet
+    if (isChatThread(report) || isTaskReport(report)) {
         return [];
     }
 
@@ -2372,7 +2368,7 @@ function getParentReport(report) {
  * @returns {Boolean}
  */
 function shouldHideComposer(report, reportErrors) {
-    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report);
+    return isArchivedRoom(report) || !_.isEmpty(reportErrors) || !isAllowedToComment(report) || isAnonymousUser;
 }
 
 /**
