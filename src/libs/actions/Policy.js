@@ -1152,5 +1152,5 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
-    isPolicyMember
+    isPolicyMember,
 };
