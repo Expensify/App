@@ -33,10 +33,7 @@ class Image extends React.Component {
             // in the headers of the image request so the authToken is added as a query param.
             // On native the authToken IS passed in the image request headers
             const authToken = lodashGet(this.props, 'session.encryptedAuthToken', null);
-
-            const url = new URL(source.uri);
-            url.searchParams.append('encryptedAuthToken', authToken);
-            imageSource = {uri: url.href};
+            imageSource = {uri: `${source.uri}${source.uri.includes('?') ? '&' : '?'}encryptedAuthToken=${encodeURIComponent(authToken)}`};
         }
 
         return imageSource;

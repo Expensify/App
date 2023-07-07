@@ -86,12 +86,6 @@ function Avatar(props) {
     const iconFillColor = isWorkspace ? StyleUtils.getDefaultWorkspaceAvatarColor(props.name).fill : props.fill;
     const fallbackAvatar = isWorkspace ? ReportUtils.getDefaultWorkspaceAvatar(props.name) : props.fallbackIcon;
 
-    const getImageURL= () => {
-        const url = new URL(props.source);
-        url.searchParams.append('cacheBuster', cacheBuster);
-        return url.href;
-    }
-
     return (
         <View
             pointerEvents="none"
@@ -115,7 +109,7 @@ function Avatar(props) {
             ) : (
                 <View style={[iconStyle, StyleUtils.getAvatarBorderStyle(props.size, props.type), ...props.iconAdditionalStyles]}>
                     <Image
-                        source={{uri: getImageURL()}}
+                        source={{uri: `${props.source}${props.source.includes('?') ? '&' : '?'}cacheBuster=${cacheBuster}`}}
                         style={imageStyle}
                         onError={() => {
                             setImageError(true);
