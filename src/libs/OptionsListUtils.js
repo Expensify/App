@@ -541,8 +541,12 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
     const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
     let matching = true;
     searchWords.forEach((word) => {
+        // if one of the word is not matching, we don't need to check further
+        if (!matching) {
+            return;
+        }
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        matching &&= matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
+        matching = matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
     });
     return matching;
 }
