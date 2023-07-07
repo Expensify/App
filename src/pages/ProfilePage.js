@@ -62,7 +62,7 @@ const propTypes = {
         partnerUserID: PropTypes.string,
     }),
 
-    /** Indicated whether the report data is loading */
+    /** Indicates whether the app is loading initial data */
     isLoadingReportData: PropTypes.bool,
 
     ...withLocalizePropTypes,
