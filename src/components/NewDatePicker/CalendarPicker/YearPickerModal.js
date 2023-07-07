@@ -6,23 +6,43 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import CONST from '../../../CONST';
 import SelectionListRadio from '../../SelectionListRadio';
 import Modal from '../../Modal';
+import {radioListItemPropTypes} from '../../SelectionListRadio/selectionListRadioPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 
-    /** Function to call when the user selects a year */
-    onYearChange: PropTypes.func.isRequired,
+    /** Whether the modal is visible */
+    isVisible: PropTypes.bool.isRequired,
 
-    /** Function to call when the user closes the year picker */
-    onClose: PropTypes.func.isRequired,
+    /** The list of years to render */
+    years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes)).isRequired,
 
     /** Currently selected year */
     currentYear: PropTypes.number.isRequired,
+
+    /** Function to call when the user selects a year */
+    onYearChange: PropTypes.func.isRequired,
+
+    /** Value for the text input */
+    textInputValue: PropTypes.string.isRequired,
+
+    /** Callback to fire when the text input changes */
+    onChangeText: PropTypes.func.isRequired,
+
+    /** Function to call when the user closes the year picker */
+    onClose: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
+    isVisible: false,
+    years: [],
+    currentYear: new Date().getFullYear(),
+    onYearChange: () => {},
+    textInputValue: '',
+    onChangeText: () => {},
+    onClose: () => {},
 };
 
 function YearPickerModal(props) {
