@@ -212,7 +212,6 @@ const ONYXKEYS = {
     /** List of Form ids */
     FORMS: {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
-        REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
         WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
@@ -319,7 +318,6 @@ type OnyxValues = {
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
-    // [ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM]: OnyxTypes.Form; // TODO: REIMBURSEMENT_ACCOUNT_FORM has the same value as REIMBURSEMENT_ACCOUNT
     [ONYXKEYS.FORMS.WORKSPACE_SETTINGS_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.WORKSPACE_RATE_AND_UNIT_FORM]: OnyxTypes.Form;
     [ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM]: OnyxTypes.Form;
