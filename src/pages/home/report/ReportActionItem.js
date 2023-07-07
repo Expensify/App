@@ -332,7 +332,7 @@ function ReportActionItem(props) {
         const hasReplies = numberOfThreadReplies > 0;
 
         const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
-        const oldestFourAccountIDs = lodashGet(props.action, 'childOldestFourAccountIDs', '').split(',');
+        const oldestFourAccountIDs = _.map(lodashGet(props.action, 'childOldestFourAccountIDs', '').split(','), (accountID) => Number(accountID));
         const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
         return (

@@ -44,8 +44,8 @@ const propTypes = {
         /** AccountID of the manager in this iou report */
         managerID: PropTypes.number,
 
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
+        /** AccountID of the creator of this iou report */
+        ownerAccountID: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
