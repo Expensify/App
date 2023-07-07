@@ -30,9 +30,6 @@ function PriorityModePage(props) {
         value: key,
         text: mode.label,
         alternateText: mode.description,
-
-        // Set max line to undefined to reset line restriction
-        alternateTextMaxLines: undefined,
         keyForList: key,
         isSelected: props.priorityMode === key,
     }));
