@@ -362,16 +362,6 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        if (this.state.shouldShowContinueSetupButton) {
-            return (
-                <ContinueBankAccountSetup
-                    reimbursementAccount={this.props.reimbursementAccount}
-                    continue={this.continue}
-                    policyName={policyName}
-                />
-            );
-        }
-
         let errorText;
         const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
         const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');

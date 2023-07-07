@@ -201,7 +201,7 @@ function WorkspaceInitialPage(props) {
                             pendingAction={policy.pendingAction}
                             onClose={() => dismissError(policy.id)}
                             errors={policy.errors}
-                            errorRowStyles={[styles.ph6, styles.pv2]}
+                            errorRowStyles={[styles.ph5, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
                                 <View style={styles.avatarSectionWrapper}>
@@ -212,7 +212,7 @@ function WorkspaceInitialPage(props) {
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={() => openEditor(policy.id)}
                                                 accessibilityLabel={props.translate('workspace.common.settings')}
-                                                accessibilityRole="button"
+                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
@@ -232,7 +232,7 @@ function WorkspaceInitialPage(props) {
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
                                                     onPress={() => openEditor(policy.id)}
                                                     accessibilityLabel={props.translate('workspace.common.settings')}
-                                                    accessibilityRole="button"
+                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                 >
                                                     <Text
                                                         numberOfLines={1}
