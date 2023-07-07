@@ -57,7 +57,7 @@ function StateSelectorPage(props) {
     const updateCountryState = useCallback(
         (selectedState) => {
             dispatch(selectedState.value);
-            Navigation.goBack(`${decodeURIComponent(route.params.backTo)}`, true);
+            Navigation.goBack(`${decodeURIComponent(route.params.backTo)}`);
         },
         [dispatch, route.params.backTo],
     );

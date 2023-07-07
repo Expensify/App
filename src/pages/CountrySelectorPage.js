@@ -55,7 +55,7 @@ function CountrySelectorPage(props) {
     );
 
     const updateCountry = useCallback((selectedCountry) => {
-        Navigation.goBack(`${ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS}?countryISO=${selectedCountry.value}`, true);
+        Navigation.navigate(`${ROUTES.SETTINGS_PERSONAL_DETAILS_ADDRESS}?countryISO=${selectedCountry.value}`, 'NAVIGATE');
     }, []);
 
     return (

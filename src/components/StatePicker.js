@@ -1,6 +1,6 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import {useRoute} from '@react-navigation/native';
+import {useRoute, useFocusEffect} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import useNavigationStorage from '../hooks/useNavigationStorage';
 import compose from '../libs/compose';
@@ -42,17 +42,18 @@ function BaseStatePicker(props) {
     const onInputChange = props.onInputChange;
     const translate = props.translate;
 
-    useEffect(() => {
-        if (!paramStateISO) {
-            return;
-        }
-        setStateTitle(paramStateISO);
-
-        // Needed to call onInputChange, so Form can update the validation and values
-        onInputChange(paramStateISO);
-        // onInputChange isn't a stable function, so we can't add it to the dependency array
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [paramStateISO]);
+    useFocusEffect(
+        useCallback(() => {
+            const collectedState = collect();
+            if (collectedState && collectedState !== stateTitle) {
+                setStateTitle(collectedState);
+                // Needed to call onInputChange, so Form can update the validation and values
+                onInputChange(paramStateISO);
+            }
+            // onInputChange isn't a stable function, so we can't add it to the dependency array
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [collect, stateTitle]),
+    );
 
     const navigateToCountrySelector = useCallback(() => {
         // Try first using the route.path so I can keep any query params

@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useEffect, useCallback} from 'react';
 
 const storage = new Map();
 
@@ -26,10 +26,13 @@ export default function useNavigationStorage(key = 'input', initialValue = null)
         storage.set(key, initialValue);
     }, [key, initialValue]);
 
-    const collect = () => storage.get(key);
-    const save = (value) => {
-        storage.set(key, value);
-    };
+    const collect = useCallback(() => storage.get(key), [key]);
+    const save = useCallback(
+        (value) => {
+            storage.set(key, value);
+        },
+        [key],
+    );
 
     return [collect, save];
 }
