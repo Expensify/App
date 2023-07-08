@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import _ from 'lodash';
+import _ from 'underscore';
 import {Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
