@@ -84,6 +84,7 @@ function SidebarLinksData(props) {
             insets={props.insets}
             isSmallScreenWidth={props.isSmallScreenWidth}
             onLayout={props.onLayout}
+            priorityMode={props.priorityMode}
             // Data props:
             isLoading={isLoading}
             optionListItems={optionListItems}

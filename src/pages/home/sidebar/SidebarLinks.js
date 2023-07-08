@@ -60,6 +60,8 @@ const propTypes = {
 
     currentUserPersonalDetails: personalDetailsPropType,
 
+    priorityMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
+
     ...withLocalizePropTypes,
     ...withNavigationPropTypes,
 };
@@ -68,6 +70,7 @@ const defaultProps = {
     currentUserPersonalDetails: {
         avatar: '',
     },
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 
 class SidebarLinks extends React.PureComponent {
@@ -225,7 +228,6 @@ class SidebarLinks extends React.PureComponent {
                         focusedIndex={_.findIndex(this.props.optionListItems, (option) => option.toString() === this.props.currentReportID)}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        // TODO: i think this option mode is broken as well, as i removed the prop? 👀
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
                     />
                 )}
