@@ -30,7 +30,7 @@ function getTransparentColor(color, transparency = '') {
     return `${color}${transparency}`;
 }
 
-const touchCalloutNone = Browser.getBrowser() === CONST.BROWSER.SAFARI && Browser.isMobile() ? {WebkitTouchCallout: 'none'} : {};
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
