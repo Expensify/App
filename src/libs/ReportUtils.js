@@ -1361,13 +1361,10 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
                 oldestFourAccountIDs.push(currentUserAccountID);
             }
         }
-
-        if (!childCommenterCount) childCommenterCount = 1;
-        if (!oldestFourAccountIDs.length) oldestFourAccountIDs.push(currentUserAccountID);
-
         childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
-    } else {
+    } else if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         if (childVisibleActionCount > 0) childVisibleActionCount -= 1;
+
         if (childVisibleActionCount === 0) {
             childCommenterCount = 0;
             childOldestFourAccountIDs = '';
