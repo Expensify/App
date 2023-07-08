@@ -224,8 +224,6 @@ class SidebarLinks extends React.PureComponent {
                     <LHNOptionsList
                         contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
                         data={this.props.optionListItems}
-                        // TODO: this is using currentReportID which doesn't exist anymore!
-                        focusedIndex={_.findIndex(this.props.optionListItems, (option) => option.toString() === this.props.currentReportID)}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}

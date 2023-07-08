@@ -15,9 +15,6 @@ const propTypes = {
     /** Sections for the section list */
     data: PropTypes.arrayOf(PropTypes.string).isRequired,
 
-    /** Index for option to focus on */
-    focusedIndex: PropTypes.number.isRequired,
-
     /** Callback to fire when a row is selected */
     onSelectRow: PropTypes.func.isRequired,
 
@@ -65,16 +62,15 @@ class LHNOptionsList extends Component {
      *
      * @param {Object} params
      * @param {Object} params.item
-     * @param {Number} params.index
      *
      * @return {Component}
      */
-    renderItem({item, index}) {
+    renderItem({item}) {
         return (
             <OptionRowLHN
                 reportID={item}
                 viewMode={this.props.optionMode}
-                isFocused={!this.props.shouldDisableFocusOptions && this.props.focusedIndex === index}
+                shouldDisableFocusOptions={this.props.shouldDisableFocusOptions}
                 onSelectRow={this.props.onSelectRow}
             />
         );
@@ -86,7 +82,7 @@ class LHNOptionsList extends Component {
             this.data = this.props.data;
         }
 
-        console.log("List rendered with data:", this.data.length);
+        console.log('List rendered with data:', this.data.length);
 
         return (
             <View style={[styles.flex1]}>
@@ -100,7 +96,6 @@ class LHNOptionsList extends Component {
                     stickySectionHeadersEnabled={false}
                     renderItem={this.renderItem}
                     getItemLayout={this.getItemLayout}
-                    extraData={this.props.focusedIndex}
                     initialNumToRender={5}
                     maxToRenderPerBatch={5}
                     windowSize={5}

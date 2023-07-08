@@ -51,6 +51,8 @@ const propTypes = {
     /** Toggle between compact and default view */
     viewMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
+    shouldDisableFocusOptions: PropTypes.bool,
+
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     optionItem: PropTypes.shape({}),
@@ -63,7 +65,7 @@ const defaultProps = {
     hoverStyle: styles.sidebarLinkHover,
     viewMode: 'default',
     onSelectRow: () => {},
-    isFocused: false,
+    shouldDisableFocusOptions: false,
     style: null,
     optionItem: null,
     comment: '',
@@ -292,11 +294,14 @@ const MemoedOptionRowLHN = React.memo(
     )(BaseOptionRowLHN),
 );
 
+// TODO: cleaner split which components receives which props.
+//       maybe even create a data component here as well?
+
 // We only want to pass a boolean to the memoized
 // component, thats why we have this intermediate component.
 // (We don't want to fully re-render all items, just because the active report changed).
 function OptionRowLHN(props) {
-    const isFocused = props.currentReportId === props.reportID;
+    const isFocused = !props.shouldDisableFocusOptions && props.currentReportId === props.reportID;
 
     return (
         <MemoedOptionRowLHN
