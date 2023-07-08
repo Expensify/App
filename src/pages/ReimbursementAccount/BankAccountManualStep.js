@@ -97,7 +97,7 @@ function BankAccountManualStep(props) {
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
-                    value={props.getDefaultStateForField('routingNumber', '')}
+                    defaultValue={props.getDefaultStateForField('routingNumber', '')}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
@@ -107,7 +107,7 @@ function BankAccountManualStep(props) {
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
-                    value={props.getDefaultStateForField('accountNumber', '')}
+                    defaultValue={props.getDefaultStateForField('accountNumber', '')}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
