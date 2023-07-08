@@ -110,7 +110,6 @@ function MoneyReportHeader(props) {
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                         style={[styles.pv2]}
-                        totalAmount={formattedAmount}
                     />
                 </View>
                 )}
