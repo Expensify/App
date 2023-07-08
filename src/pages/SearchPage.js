@@ -162,7 +162,11 @@ class SearchPage extends Component {
     render() {
         const sections = this.getSections();
         const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
-        const headerMessage = OptionsListUtils.getHeaderMessage(this.state.recentReports.length + this.state.personalDetails.length !== 0, Boolean(this.state.userToInvite), this.state.searchValue);
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            this.state.recentReports.length + this.state.personalDetails.length !== 0,
+            Boolean(this.state.userToInvite),
+            this.state.searchValue,
+        );
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
