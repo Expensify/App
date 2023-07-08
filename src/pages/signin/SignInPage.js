@@ -9,9 +9,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
-import PasswordForm from './PasswordForm';
 import ValidateCodeForm from './ValidateCodeForm';
-import ResendValidationForm from './ResendValidationForm';
 import Performance from '../../libs/Performance';
 import * as App from '../../libs/actions/App';
 import UnlinkLoginForm from './UnlinkLoginForm';
@@ -98,7 +96,10 @@ function SignInPage({credentials, account}) {
 
     let welcomeHeader;
     let welcomeText;
-    if (shouldShowValidateCodeForm) {
+    if (shouldShowLoginForm) {
+        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
+        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+    } else if (shouldShowValidateCodeForm) {
         if (account.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
             welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
@@ -122,9 +123,6 @@ function SignInPage({credentials, account}) {
         }
     } else if (shouldShowUnlinkLoginForm) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
-    } else if (!shouldShowResendValidationForm) {
-        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
-        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
     } else {
         Log.warn('SignInPage in unexpected state!');
     }
