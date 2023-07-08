@@ -6,6 +6,8 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
+import withLocalize from '../../components/withLocalize';
+import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
@@ -132,8 +134,11 @@ function BankAccountPlaidStep(props) {
 BankAccountPlaidStep.propTypes = propTypes;
 BankAccountPlaidStep.defaultProps = defaultProps;
 BankAccountPlaidStep.displayName = 'BankAccountPlaidStep';
-export default withOnyx({
-    plaidData: {
-        key: ONYXKEYS.PLAID_DATA,
-    },
-})(BankAccountPlaidStep);
+export default compose(
+    withLocalize,
+    withOnyx({
+        plaidData: {
+            key: ONYXKEYS.PLAID_DATA,
+        },
+    }),
+)(BankAccountPlaidStep);
