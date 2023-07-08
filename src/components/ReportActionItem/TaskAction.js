@@ -25,8 +25,8 @@ const propTypes = {
         /** Email address of the manager in this iou report */
         managerEmail: PropTypes.string,
 
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
+        /** AccountID of the creator of this iou report */
+        ownerAccountID: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
@@ -50,14 +50,16 @@ function TaskAction(props) {
             messageLinkText = props.translate('task.messages.reopened');
             break;
         default:
-            messageLinkText = props.translate('newTaskPage.task');
+            messageLinkText = props.translate('task.task');
     }
 
     return (
         <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={styles.chatItemMessageLink}>{messageLinkText}</Text>
-                <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
+                <Text>
+                    <Text style={styles.chatItemMessageLink}>{messageLinkText}</Text>
+                    <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
+                </Text>
             </View>
         </>
     );
