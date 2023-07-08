@@ -8,22 +8,34 @@ import styles from '../../styles/styles';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
-import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListRadioDefaultProps} from './selectionListRadioPropTypes';
+import {propTypes as selectionListRadioPropTypes} from './selectionListRadioPropTypes';
 import RadioListItem from './RadioListItem';
 import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import useKeyboardState from '../../hooks/useKeyboardState';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 
-const propTypes = {
-    ...selectionListRadioPropTypes,
-};
+const propTypes = selectionListRadioPropTypes;
 
-function BaseSelectionListRadio(props) {
+function BaseSelectionListRadio({
+    onSelectRow,
+    sections,
+    initiallyFocusedOptionKey = '',
+    headerMessage = '',
+    keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
+    onChangeText = () => {},
+    onScroll = () => {},
+    onScrollBeginDrag = () => {},
+    shouldDelayFocus = false,
+    textInputLabel = '',
+    textInputPlaceholder = '',
+    textInputValue = '',
+    textInputMaxLength = undefined,
+}) {
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
-    const shouldShowTextInput = Boolean(props.textInputLabel);
+    const shouldShowTextInput = Boolean(textInputLabel);
 
     const {isKeyboardShown} = useKeyboardState();
 
@@ -45,7 +57,7 @@ function BaseSelectionListRadio(props) {
         let offset = 0;
         const itemLayouts = [{length: 0, offset}];
 
-        _.each(props.sections, (section, sectionIndex) => {
+        _.each(sections, (section, sectionIndex) => {
             // We're not rendering any section header, but we need to push to the array
             // because React Native accounts for it in getItemLayout
             const sectionHeaderHeight = 0;
@@ -111,7 +123,7 @@ function BaseSelectionListRadio(props) {
         // Otherwise, it will cause an index-out-of-bounds error and crash the app.
         let adjustedSectionIndex = sectionIndex;
         for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(props.sections, `[${i}].data`))) {
+            if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
                 adjustedSectionIndex--;
             }
         }
@@ -121,7 +133,7 @@ function BaseSelectionListRadio(props) {
 
     // Calculate the initial focused index only on first render
     const initialFocusedIndex = useMemo(() => {
-        const initialIndex = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
+        const initialIndex = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
         if (initialIndex <= 0) {
             return 0;
         }
@@ -168,15 +180,15 @@ function BaseSelectionListRadio(props) {
             <RadioListItem
                 item={item}
                 isFocused={isFocused}
-                onSelectRow={props.onSelectRow}
+                onSelectRow={onSelectRow}
             />
         );
     };
 
-    /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
+    /** Focuses the text input when the component mounts. If `shouldDelayFocus` is true, we wait for the animation to finish */
     useEffect(() => {
         if (shouldShowTextInput) {
-            if (props.shouldDelayFocus) {
+            if (shouldDelayFocus) {
                 focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
             } else {
                 textInputRef.current.focus();
@@ -189,7 +201,7 @@ function BaseSelectionListRadio(props) {
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [props.shouldDelayFocus, shouldShowTextInput]);
+    }, [shouldDelayFocus, shouldShowTextInput]);
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
@@ -200,7 +212,7 @@ function BaseSelectionListRadio(props) {
                 return;
             }
 
-            props.onSelectRow(focusedOption);
+            onSelectRow(focusedOption);
         },
         {
             captureOnInputs: true,
@@ -216,28 +228,28 @@ function BaseSelectionListRadio(props) {
                         <View style={[styles.ph5, styles.pv5]}>
                             <TextInput
                                 ref={textInputRef}
-                                label={props.textInputLabel}
-                                value={props.textInputValue}
-                                placeholder={props.textInputPlaceholder}
-                                maxLength={props.textInputMaxLength}
-                                onChangeText={props.onChangeText}
-                                keyboardType={props.keyboardType}
+                                label={textInputLabel}
+                                value={textInputValue}
+                                placeholder={textInputPlaceholder}
+                                maxLength={textInputMaxLength}
+                                onChangeText={onChangeText}
+                                keyboardType={keyboardType}
                                 selectTextOnFocus
                             />
                         </View>
                     )}
-                    {Boolean(props.headerMessage) && (
+                    {Boolean(headerMessage) && (
                         <View style={[styles.ph5, styles.pb5]}>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                         </View>
                     )}
                     <SectionList
                         ref={listRef}
-                        sections={props.sections}
+                        sections={sections}
                         renderItem={renderItem}
                         getItemLayout={getItemLayout}
-                        onScroll={props.onScroll}
-                        onScrollBeginDrag={props.onScrollBeginDrag}
+                        onScroll={onScroll}
+                        onScrollBeginDrag={onScrollBeginDrag}
                         keyExtractor={(item) => item.keyForList}
                         extraData={focusedIndex}
                         indicatorStyle="white"
@@ -258,6 +270,5 @@ function BaseSelectionListRadio(props) {
 
 BaseSelectionListRadio.displayName = 'BaseSelectionListRadio';
 BaseSelectionListRadio.propTypes = propTypes;
-BaseSelectionListRadio.defaultProps = selectionListRadioDefaultProps;
 
 export default BaseSelectionListRadio;
