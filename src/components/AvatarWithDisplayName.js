@@ -61,6 +61,8 @@ function AvatarWithDisplayName(props) {
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
+    const isExpenseRequest = ReportUtils.isExpenseRequest(props.report);
+    const defaultSubscriptSize = isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : props.size;
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
@@ -70,7 +72,7 @@ function AvatarWithDisplayName(props) {
                             backgroundColor={themeColors.highlightBG}
                             mainAvatar={icons[0]}
                             secondaryAvatar={icons[1]}
-                            size={props.size}
+                            size={defaultSubscriptSize}
                         />
                     ) : (
                         <MultipleAvatars
@@ -79,7 +81,7 @@ function AvatarWithDisplayName(props) {
                             secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexColumn, shouldShowSubscriptAvatar ? styles.ml4 : {}]}>
+                    <View style={[styles.flex1, styles.flexColumn, shouldShowSubscriptAvatar && !isExpenseRequest ? styles.ml4 : {}]}>
                         <DisplayNames
                             fullTitle={title}
                             displayNamesWithTooltips={displayNamesWithTooltips}
