@@ -116,58 +116,22 @@ function MoneyRequestHeader(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
             />
             <View style={[styles.ph5, styles.pb2]}>
-                <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Avatar
-                            source={payeeAvatar}
-                            type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
-                            name={payeeName}
-                            size={CONST.AVATAR_SIZE.DEFAULT}
-                        />
-                        <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
-                            <Text
-                                style={[styles.headerText, styles.pre]}
-                                numberOfLines={1}
-                            >
-                                {payeeName}
-                            </Text>
-                            {isExpenseReport && (
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
-                                    numberOfLines={1}
-                                >
-                                    {props.translate('workspace.common.workspace')}
-                                </Text>
-                            )}
+                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                    {shouldShowSettlementButton && !props.isSmallScreenWidth && (
+                        <View style={[styles.ml4]}>
+                            <SettlementButton
+                                currency={props.report.currency}
+                                policyID={props.report.policyID}
+                                shouldShowPaypal={shouldShowPaypal}
+                                chatReportID={props.chatReport.reportID}
+                                iouReport={props.report}
+                                onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                                enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                                addBankAccountRoute={bankAccountRoute}
+                                shouldShowPaymentOptions
+                            />
                         </View>
-                    </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
-                        {!props.isSingleTransactionView && isSettled && (
-                            <View style={styles.defaultCheckmarkWrapper}>
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    fill={themeColors.iconSuccessFill}
-                                />
-                            </View>
-                        )}
-                        {shouldShowSettlementButton && !props.isSmallScreenWidth && (
-                            <View style={[styles.ml4]}>
-                                <SettlementButton
-                                    currency={props.report.currency}
-                                    policyID={props.report.policyID}
-                                    shouldShowPaypal={shouldShowPaypal}
-                                    chatReportID={props.chatReport.reportID}
-                                    iouReport={props.report}
-                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
-                                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                                    addBankAccountRoute={bankAccountRoute}
-                                    shouldShowPaymentOptions
-                                />
-                            </View>
-                        )}
-                    </View>
+                    )}
                 </View>
                 {shouldShowSettlementButton && props.isSmallScreenWidth && (
                     <SettlementButton
