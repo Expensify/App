@@ -122,6 +122,7 @@ const chatReportSelector = (report) =>
         policyID: report.policyID,
         reportName: report.reportName,
         visibility: report.visibility,
+        lastReadTime: report.lastReadTime,
     };
 
 /**
