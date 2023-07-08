@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useMemo} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -6,11 +6,11 @@ import SectionList from '../SectionList';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import TextInput from '../TextInput';
-import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
 import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListRadioDefaultProps} from './selectionListRadioPropTypes';
 import RadioListItem from './RadioListItem';
+import useArrowKeyFocusManager from '../../hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import useKeyboardState from '../../hooks/useKeyboardState';
 import SafeAreaConsumer from '../SafeAreaConsumer';
@@ -90,18 +90,6 @@ function BaseSelectionListRadio(props) {
 
     const flattenedSections = getFlattenedSections();
 
-    const [focusedIndex, setFocusedIndex] = useState(() => {
-        const defaultIndex = 0;
-
-        const indexOfInitiallyFocusedOption = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
-
-        if (indexOfInitiallyFocusedOption >= 0) {
-            return indexOfInitiallyFocusedOption;
-        }
-
-        return defaultIndex;
-    });
-
     /**
      * Scrolls to the desired item index in the section list
      *
@@ -130,6 +118,22 @@ function BaseSelectionListRadio(props) {
 
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
     };
+
+    // Calculate the initial focused index only on first render
+    const initialFocusedIndex = useMemo(() => {
+        const initialIndex = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
+        if (initialIndex <= 0) {
+            return 0;
+        }
+        return initialIndex;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    const [focusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex,
+        maxIndex: flattenedSections.allOptions.length - 1,
+        disabledIndexes: flattenedSections.disabledOptionsIndexes,
+        onFocusedIndexChanged: (newFocusedIndex) => scrollToIndex(newFocusedIndex, true),
+    });
 
     /**
      * This function is used to compute the layout of any given item in our list.
@@ -205,60 +209,50 @@ function BaseSelectionListRadio(props) {
     );
 
     return (
-        <ArrowKeyFocusManager
-            disabledIndexes={flattenedSections.disabledOptionsIndexes}
-            focusedIndex={focusedIndex}
-            maxIndex={flattenedSections.allOptions.length - 1}
-            onFocusedIndexChanged={(newFocusedIndex) => {
-                setFocusedIndex(newFocusedIndex);
-                scrollToIndex(newFocusedIndex, true);
-            }}
-        >
-            <SafeAreaConsumer>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
-                        {shouldShowTextInput && (
-                            <View style={[styles.ph5, styles.pv5]}>
-                                <TextInput
-                                    ref={textInputRef}
-                                    label={props.textInputLabel}
-                                    value={props.textInputValue}
-                                    placeholder={props.textInputPlaceholder}
-                                    maxLength={props.textInputMaxLength}
-                                    onChangeText={props.onChangeText}
-                                    keyboardType={props.keyboardType}
-                                    selectTextOnFocus
-                                />
-                            </View>
-                        )}
-                        {Boolean(props.headerMessage) && (
-                            <View style={[styles.ph5, styles.pb5]}>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
-                            </View>
-                        )}
-                        <SectionList
-                            ref={listRef}
-                            sections={props.sections}
-                            renderItem={renderItem}
-                            getItemLayout={getItemLayout}
-                            onScroll={props.onScroll}
-                            onScrollBeginDrag={props.onScrollBeginDrag}
-                            keyExtractor={(item) => item.keyForList}
-                            extraData={focusedIndex}
-                            indicatorStyle="white"
-                            keyboardShouldPersistTaps="always"
-                            showsVerticalScrollIndicator={false}
-                            OP
-                            initialNumToRender={12}
-                            maxToRenderPerBatch={5}
-                            windowSize={5}
-                            viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                            onLayout={() => scrollToIndex(focusedIndex, false)}
-                        />
-                    </View>
-                )}
-            </SafeAreaConsumer>
-        </ArrowKeyFocusManager>
+        <SafeAreaConsumer>
+            {({safeAreaPaddingBottomStyle}) => (
+                <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
+                    {shouldShowTextInput && (
+                        <View style={[styles.ph5, styles.pv5]}>
+                            <TextInput
+                                ref={textInputRef}
+                                label={props.textInputLabel}
+                                value={props.textInputValue}
+                                placeholder={props.textInputPlaceholder}
+                                maxLength={props.textInputMaxLength}
+                                onChangeText={props.onChangeText}
+                                keyboardType={props.keyboardType}
+                                selectTextOnFocus
+                            />
+                        </View>
+                    )}
+                    {Boolean(props.headerMessage) && (
+                        <View style={[styles.ph5, styles.pb5]}>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
+                        </View>
+                    )}
+                    <SectionList
+                        ref={listRef}
+                        sections={props.sections}
+                        renderItem={renderItem}
+                        getItemLayout={getItemLayout}
+                        onScroll={props.onScroll}
+                        onScrollBeginDrag={props.onScrollBeginDrag}
+                        keyExtractor={(item) => item.keyForList}
+                        extraData={focusedIndex}
+                        indicatorStyle="white"
+                        keyboardShouldPersistTaps="always"
+                        showsVerticalScrollIndicator={false}
+                        OP
+                        initialNumToRender={12}
+                        maxToRenderPerBatch={5}
+                        windowSize={5}
+                        viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
+                        onLayout={() => scrollToIndex(focusedIndex, false)}
+                    />
+                </View>
+            )}
+        </SafeAreaConsumer>
     );
 }
 
