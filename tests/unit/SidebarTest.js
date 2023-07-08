@@ -31,7 +31,13 @@ describe('Sidebar', () => {
     );
 
     // Initialize the network key for OfflineWithFeedback
-    beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
+    beforeEach(() => {
+        const multiSetImpl = Onyx.multiSet;
+        Onyx.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
+        const mergeImpl = Onyx.merge;
+        Onyx.merge = (...args) => mergeImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
+        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
