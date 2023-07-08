@@ -113,7 +113,7 @@ function ReportParticipantsPage(props) {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.accountID));
+                                    Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip
