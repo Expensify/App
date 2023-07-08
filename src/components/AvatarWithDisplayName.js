@@ -11,7 +11,6 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import SubscriptAvatar from './SubscriptAvatar';
 import * as ReportUtils from '../libs/ReportUtils';
-import Avatar from './Avatar';
 import MultipleAvatars from './MultipleAvatars';
 import DisplayNames from './DisplayNames';
 import compose from '../libs/compose';
@@ -77,8 +76,7 @@ function AvatarWithDisplayName(props) {
                         <MultipleAvatars
                             icons={icons}
                             size={props.size}
-                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG)]}
-                            // shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
+                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG)]}
                         />
                     )}
                     <View style={[styles.flex1, styles.flexColumn, shouldShowSubscriptAvatar ? styles.ml4 : {}]}>
