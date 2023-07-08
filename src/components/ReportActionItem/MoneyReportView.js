@@ -28,7 +28,6 @@ import * as Expensicons from '../Icon/Expensicons';
 import variables from '../../styles/variables';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 
-
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -49,7 +48,7 @@ function MoneyReportView(props) {
         <>
             <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
-                        <Text
+                    <Text
                         style={[styles.textLabelSupporting, styles.lineHeightNormal, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
                         numberOfLines={1}
                     >
