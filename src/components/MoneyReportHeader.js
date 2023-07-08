@@ -76,6 +76,7 @@ function MoneyReportHeader(props) {
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const report = props.report;
+    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
     return (
         <View style={[styles.pl0]}>
             <HeaderWithBackButton
@@ -110,6 +111,7 @@ function MoneyReportHeader(props) {
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                         style={[styles.pv2]}
+                        formattedAmount={formattedAmount}
                     />
                 </View>
                 )}
@@ -126,6 +128,7 @@ function MoneyReportHeader(props) {
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
+                        formattedAmount={formattedAmount}
                     />
                 )}
             </View>
