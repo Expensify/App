@@ -82,7 +82,7 @@ function MoneyReportHeader(props) {
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={false}
-                shouldShowThreeDotsButton={false}
+                shouldShowThreeDotsButton
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,
@@ -94,7 +94,7 @@ function MoneyReportHeader(props) {
                 report={report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
-                shouldShowBackButton={props.isSmallScreenWidth}
+                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 shouldShowBorderBottom={!props.isSmallScreenWidth}
         >
