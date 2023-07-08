@@ -1,21 +1,24 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Platform, ScrollView, StyleSheet, View,} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import AltExpensiMark from './expensify-common/lib/ExpensiMark';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
-import * as ComposerUtils from '../../libs/ComposerUtils';
+import getNumberOfLines from '../../libs/ComposerUtils/index';
 import * as Browser from '../../libs/Browser';
+import Clipboard from '../../libs/Clipboard';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
-import Text from '../Text';
-import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
-import CONST from '../../CONST';
+
+import {RenderMarkdownPreviewHTML} from '../RenderHTML';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -26,13 +29,6 @@ const propTypes = {
 
     /** The value of the comment box */
     value: PropTypes.string,
-
-    /** Number of lines for the comment */
-    numberOfLines: PropTypes.number,
-
-    
-    /** Callback method to update number of lines for the comment */
-    onNumberOfLinesChange: PropTypes.func,
 
     /** Callback method to handle pasting a file */
     onPasteFile: PropTypes.func,
@@ -54,7 +50,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Set focus to this component the first time it renders.
-    Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
+     Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
     autoFocus: PropTypes.bool,
 
     /** Update selection position on change */
@@ -75,9 +71,6 @@ const propTypes = {
     /** Whether the composer is full size */
     isComposerFullSize: PropTypes.bool,
 
-    /** Should we calculate the caret position */
-    shouldCalculateCaretPosition: PropTypes.bool,
-
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -86,25 +79,26 @@ const propTypes = {
 const defaultProps = {
     defaultValue: undefined,
     value: undefined,
-    numberOfLines: undefined,
-    onNumberOfLinesChange: () => {},
     maxLines: -1,
-    onPasteFile: () => {},
+    onPasteFile: () => {
+    },
     shouldClear: false,
-    onClear: () => {},
+    onClear: () => {
+    },
     style: null,
     isDisabled: false,
     autoFocus: false,
     forwardedRef: null,
-    onSelectionChange: () => {},
+    onSelectionChange: () => {
+    },
     selection: {
         start: 0,
         end: 0,
     },
     isFullComposerAvailable: false,
-    setIsFullComposerAvailable: () => {},
+    setIsFullComposerAvailable: () => {
+    },
     isComposerFullSize: false,
-    shouldCalculateCaretPosition: false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -125,25 +119,31 @@ class Composer extends React.Component {
     constructor(props) {
         super(props);
 
-        const initialValue = props.defaultValue ? `${props.defaultValue}` : `${props.value || ''}`;
+        const initialValue = props.defaultValue
+            ? `${props.defaultValue}`
+            : `${props.value || ''}`;
 
         this.state = {
-            numberOfLines: props.numberOfLines,
+            htmlPreviewWidth: null,
+            numberOfLines: 1,
             selection: {
                 start: initialValue.length,
                 end: initialValue.length,
             },
-            valueBeforeCaret: '',
+            markdownPreviewHTML: '',
         };
 
         this.paste = this.paste.bind(this);
-        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
+        this.putSelectionInClipboard = this.putSelectionInClipboard.bind(this);
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
-        this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
-        this.textRef = React.createRef(null);
+    }
+
+    onSelectionChange(event) {
+        this.props.onSelectionChange(event);
+        const {nativeEvent} = event;
     }
 
     componentDidMount() {
@@ -162,7 +162,15 @@ class Composer extends React.Component {
         if (this.textInput) {
             this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
+            this.textInput.addEventListener('keydown', this.putSelectionInClipboard);
         }
+        this.updatePreviewHtml(this.props.value);
+    }
+
+    updatePreviewHtml = (value) => {
+        const parser = new AltExpensiMark();
+        const parsedHTML = parser.replace(value);
+        this.setState({markdownPreviewHTML: parsedHTML});
     }
 
     componentDidUpdate(prevProps) {
@@ -173,19 +181,20 @@ class Composer extends React.Component {
             this.props.onClear();
         }
 
-        if (
-            prevProps.value !== this.props.value ||
-            prevProps.defaultValue !== this.props.defaultValue ||
-            prevProps.isComposerFullSize !== this.props.isComposerFullSize ||
-            prevProps.windowWidth !== this.props.windowWidth ||
-            prevProps.numberOfLines !== this.props.numberOfLines
-        ) {
+        if (prevProps.value !== this.props.value
+            || prevProps.defaultValue !== this.props.defaultValue
+            || prevProps.isComposerFullSize !== this.props.isComposerFullSize
+            || prevProps.windowWidth !== this.props.windowWidth) {
             this.updateNumberOfLines();
         }
 
         if (prevProps.selection !== this.props.selection) {
             // eslint-disable-next-line react/no-did-update-set-state
             this.setState({selection: this.props.selection});
+        }
+
+        if (prevProps.value !== this.props.value) {
+            this.updatePreviewHtml(this.props.value);
         }
     }
 
@@ -196,65 +205,6 @@ class Composer extends React.Component {
 
         this.textInput.removeEventListener('paste', this.handlePaste);
         this.textInput.removeEventListener('wheel', this.handleWheel);
-    }
-
-    // Get characters from the cursor to the next space or new line
-    getNextChars(str, cursorPos) {
-        // Get the substring starting from the cursor position
-        const substr = str.substring(cursorPos);
-
-        // Find the index of the next space or new line character
-        const spaceIndex = substr.search(/[ \n]/);
-
-        if (spaceIndex === -1) {
-            return substr;
-        }
-
-        // If there is a space or new line, return the substring up to the space or new line
-        return substr.substring(0, spaceIndex);
-    }
-
-    /**
-     *  Adds the cursor position to the selection change event.
-     *
-     * @param {Event} event
-     */
-    addCursorPositionToSelectionChange(event) {
-        if (this.props.shouldCalculateCaretPosition) {
-            const newValueBeforeCaret = event.target.value.slice(0, event.nativeEvent.selection.start);
-
-            this.setState(
-                {
-                    valueBeforeCaret: newValueBeforeCaret,
-                    caretContent: this.getNextChars(this.props.value, event.nativeEvent.selection.start),
-                },
-
-                () => {
-                    const customEvent = {
-                        nativeEvent: {
-                            selection: {
-                                start: event.nativeEvent.selection.start,
-                                end: event.nativeEvent.selection.end,
-                                positionX: this.textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
-                                positionY: this.textRef.current.offsetTop,
-                            },
-                        },
-                    };
-                    this.props.onSelectionChange(customEvent);
-                },
-            );
-            return;
-        }
-
-        this.props.onSelectionChange(event);
-    }
-
-    // Prevent onKeyPress from being triggered if the Enter key is pressed while text is being composed
-    handleKeyPress(e) {
-        if (!this.props.onKeyPress || isEnterWhileComposition(e)) {
-            return;
-        }
-        this.props.onKeyPress(e);
     }
 
     /**
@@ -270,7 +220,8 @@ class Composer extends React.Component {
             this.textInput.blur();
             this.textInput.focus();
             // eslint-disable-next-line no-empty
-        } catch (e) {}
+        } catch (e) {
+        }
     }
 
     /**
@@ -314,7 +265,7 @@ class Composer extends React.Component {
                 // If HTML has emoji, then treat this as plain text.
                 if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
                     const plainText = event.clipboardData.getData('text/plain');
-                    this.paste(plainText);
+                    this.paste(Str.htmlDecode(plainText));
                     return;
                 }
                 fetch(embeddedImages[0].src)
@@ -338,11 +289,11 @@ class Composer extends React.Component {
                         Growl.error(errorDesc);
 
                         /*
-                         * Since we intercepted the user-triggered paste event to check for attachments,
-                         * we need to manually set the value and call the `onChangeText` handler.
-                         * Synthetically-triggered paste events do not affect the document's contents.
-                         * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                         */
+                        * Since we intercepted the user-triggered paste event to check for attachments,
+                        * we need to manually set the value and call the `onChangeText` handler.
+                        * Synthetically-triggered paste events do not affect the document's contents.
+                        * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
+                        */
                         this.handlePastedHTML(pastedHTML);
                     });
                 return;
@@ -354,7 +305,7 @@ class Composer extends React.Component {
 
         const plainText = event.clipboardData.getData('text/plain');
 
-        this.paste(plainText);
+        this.paste(Str.htmlDecode(plainText));
     }
 
     /**
@@ -369,6 +320,19 @@ class Composer extends React.Component {
         this.textInput.scrollTop += event.deltaY;
         event.preventDefault();
         event.stopPropagation();
+    }
+
+    putSelectionInClipboard(event) {
+        // If anything happens that isn't cmd+c or cmd+x, ignore the event because it's not a copy command
+        if (!event.metaKey || (event.key !== 'c' && event.key !== 'x')) {
+            return;
+        }
+
+        // The user might have only highlighted a portion of the message to copy, so using the selection will ensure that
+        // the only stuff put into the clipboard is what the user selected.
+        const selectedText = event.target.value.substring(this.state.selection.start, this.state.selection.end);
+
+        Clipboard.setHtml(selectedText, selectedText);
     }
 
     /**
@@ -397,74 +361,134 @@ class Composer extends React.Component {
         this.setState({numberOfLines: 1}, () => {
             const computedStyle = window.getComputedStyle(this.textInput);
             const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
-            const computedNumberOfLines = ComposerUtils.getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
-            const numberOfLines = computedNumberOfLines === 0 ? this.props.numberOfLines : computedNumberOfLines;
+            const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10)
+                + parseInt(computedStyle.paddingTop, 10);
+            const numberOfLines = getNumberOfLines(this.props.maxLines, lineHeight, paddingTopAndBottom, this.textInput.scrollHeight);
             updateIsFullComposerAvailable(this.props, numberOfLines);
             this.setState({
                 numberOfLines,
-                width: computedStyle.width,
             });
-            this.props.onNumberOfLinesChange(numberOfLines);
         });
+    }
+
+    handleOnTextChange = (event) => {
+        console.log('handleOnTextChange', event);
+    }
+
+    convertToFormattedMarkdown = (value) => {
+        // Initialize the ExpensiMark parser
+        const parser = new ExpensiMark();
+
+        // Convert raw input to markdown
+        const markdown = parser.textToMarkdown(value);
+
+        // Return the formatted markdown
+        return markdown;
     }
 
     render() {
         const propStyles = StyleSheet.flatten(this.props.style);
         propStyles.outline = 'none';
         const propsWithoutStyles = _.omit(this.props, 'style');
+        console.log('propStyles', propStyles);
 
-        // This code creates a hidden text component that helps track the caret position in the visible input.
-        const renderElementForCaretPosition = (
-            <View
-                style={{
-                    position: 'absolute',
-                    bottom: -2000,
-                    zIndex: -1,
-                    opacity: 0,
-                }}
-            >
-                <Text
-                    multiline
-                    style={[propStyles, this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {}, {maxWidth: this.state.width}]}
-                >
-                    {`${this.state.valueBeforeCaret} `}
-                    <Text
-                        numberOfLines={1}
-                        ref={this.textRef}
-                    >
-                        {`${this.state.caretContent}`}
-                    </Text>
-                </Text>
-            </View>
+        // const {width} = useWindowDimensions();
+
+        // const parser = new ExpensiMark();
+        // const renderedHTML = parser.replace(this.state.markdownPreviewHTML);
+
+        const getDefaultRender = () => (
+            <RNTextInput
+                autoComplete="off"
+                autoCorrect={!Browser.isMobileSafari()}
+                placeholderTextColor={themeColors.placeholderText}
+                ref={el => this.textInput = el}
+                selection={this.state.selection}
+                onChange={this.shouldCallUpdateNumberOfLines}
+                onSelectionChange={this.onSelectionChange}
+                numberOfLines={this.state.numberOfLines}
+                style={[
+                    propStyles,
+
+                    // We are hiding the scrollbar to prevent it from reducing the text input width,
+                    // so we can get the correct scroll height while calculating the number of lines.
+                    this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                ]}
+                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                {...propsWithoutStyles}
+                disabled={this.props.isDisabled}
+            />
         );
 
-        // We're disabling autoCorrect for iOS Safari until Safari fixes this issue. See https://github.com/Expensify/App/issues/8592
-        return (
-            <>
-                <RNTextInput
-                    autoComplete="off"
-                    autoCorrect={!Browser.isMobileSafari()}
-                    placeholderTextColor={themeColors.placeholderText}
-                    ref={(el) => (this.textInput = el)}
-                    selection={this.state.selection}
-                    onChange={this.shouldCallUpdateNumberOfLines}
-                    style={[
-                        propStyles,
+        const inputStyle = [
+            propStyles[0],
+            {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                color: 'transparent',
+                width: 'inherit',
 
-                        // We are hiding the scrollbar to prevent it from reducing the text input width,
-                        // so we can get the correct scroll height while calculating the number of lines.
-                        this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
-                    ]}
-                    /* eslint-disable-next-line react/jsx-props-no-spreading */
-                    {...propsWithoutStyles}
-                    onSelectionChange={this.addCursorPositionToSelectionChange}
-                    numberOfLines={this.state.numberOfLines}
-                    disabled={this.props.isDisabled}
-                    onKeyPress={this.handleKeyPress}
-                />
-                {this.props.shouldCalculateCaretPosition && renderElementForCaretPosition}
-            </>
+                // height: '21px',
+                lineHeight: '20px',
+                fontFamily: 'ExpensifyNeue-Regular',
+                fontSize: '15px',
+                fontWeight: '400px',
+                outline: 'none',
+            },
+
+            // Apply caret-color for web only
+            Platform.OS === 'web' ? {caretColor: 'red'} : {},
+
+            // We are hiding the scrollbar to prevent it from reducing the text input width,
+            // so we can get the correct scroll height while calculating the number of lines.
+            this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+        ];
+
+        // console.log('this.state.numberOfLines', this.state.numberOfLines);
+        //
+        console.log('TESTING METRO');
+
+        return (
+
+            true ? getDefaultRender()
+                : (
+                    <View style={[propStyles[1], {
+                        position: 'relative', display: 'flex', alignSelf: 'stretch', width: '100%',
+                    }]}
+                    >
+                        <ScrollView
+                            style={{height: this.state.numberOfLines * 20, pointerEvents: 'none'}}
+                            contentContainerStyle={{
+                                flexGrow: 1,
+                                alignContent: 'flex-start',
+                                justifyContent: 'flex-start',
+                            }}
+                            showsVerticalScrollIndicator={false}
+                        >
+                            <RenderMarkdownPreviewHTML
+                                markdownPreviewHTML={this.state.markdownPreviewHTML}
+                                htmlStyle={inputStyle}
+                                contentContainerStyle={{flexGrow: 1, justifyContent: 'flex-start'}}
+                            />
+                        </ScrollView>
+                        <RNTextInput
+                            autoComplete="off"
+                            autoCorrect={!Browser.isMobileSafari()}
+                            placeholderTextColor={themeColors.placeholderText}
+                            ref={el => this.textInput = el}
+                            selection={this.state.selection}
+                            onChange={this.shouldCallUpdateNumberOfLines}
+                            onSelectionChange={this.onSelectionChange}
+                            selectionColor={Platform.OS === 'web' ? undefined : 'red'}
+                            numberOfLines={this.state.numberOfLines}
+                            style={inputStyle}
+                            /* eslint-disable-next-line react/jsx-props-no-spreading */
+                            {...propsWithoutStyles}
+                            disabled={this.props.isDisabled}
+                        />
+                    </View>
+                )
         );
     }
 }
@@ -475,12 +499,7 @@ Composer.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-)(
-    React.forwardRef((props, ref) => (
-        <Composer
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+)(React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <Composer {...props} forwardedRef={ref}/>
+)));

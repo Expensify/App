@@ -1,0 +1,941 @@
+{
+  "root": "/Users/matkoson/dev/repos/client/expensify/App",
+  "reactNativePath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native",
+  "dependencies": {
+    "@oguzhnatly/react-native-image-manipulator": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@oguzhnatly/react-native-image-manipulator",
+      "name": "@oguzhnatly/react-native-image-manipulator",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@oguzhnatly/react-native-image-manipulator/react-native-image-manipulator.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@oguzhnatly/react-native-image-manipulator/android",
+          "packageImportPath": "import com.oguzhnatly.rnimagemanipulator.RNImageManipulatorPackage;",
+          "packageInstance": "new RNImageManipulatorPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@oguzhnatly/react-native-image-manipulator/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@oguzhnatly/react-native-image-manipulator/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@onfido/react-native-sdk": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@onfido/react-native-sdk",
+      "name": "@onfido/react-native-sdk",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@onfido/react-native-sdk/onfido-react-native-sdk.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@onfido/react-native-sdk/android",
+          "packageImportPath": "import com.onfido.reactnative.sdk.OnfidoSdkPackage;",
+          "packageInstance": "new OnfidoSdkPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@onfido/react-native-sdk/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@onfido/react-native-sdk/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-async-storage/async-storage": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-async-storage/async-storage",
+      "name": "@react-native-async-storage/async-storage",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-async-storage/async-storage/RNCAsyncStorage.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-async-storage/async-storage/android",
+          "packageImportPath": "import com.reactnativecommunity.asyncstorage.AsyncStoragePackage;",
+          "packageInstance": "new AsyncStoragePackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-community/cameraroll": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/cameraroll",
+      "name": "@react-native-community/cameraroll",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/cameraroll/react-native-cameraroll.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/cameraroll/android",
+          "packageImportPath": "import com.reactnativecommunity.cameraroll.CameraRollPackage;",
+          "packageInstance": "new CameraRollPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/cameraroll/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/cameraroll/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-community/clipboard": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/clipboard",
+      "name": "@react-native-community/clipboard",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/clipboard/RNCClipboard.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/clipboard/android",
+          "packageImportPath": "import com.reactnativecommunity.clipboard.ClipboardPackage;",
+          "packageInstance": "new ClipboardPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/clipboard/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/clipboard/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-community/datetimepicker": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/datetimepicker",
+      "name": "@react-native-community/datetimepicker",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/datetimepicker/RNDateTimePicker.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/datetimepicker/android",
+          "packageImportPath": "import com.reactcommunity.rndatetimepicker.RNDateTimePickerPackage;",
+          "packageInstance": "new RNDateTimePickerPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/datetimepicker/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/datetimepicker/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-community/netinfo": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/netinfo",
+      "name": "@react-native-community/netinfo",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/netinfo/react-native-netinfo.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/netinfo/android",
+          "packageImportPath": "import com.reactnativecommunity.netinfo.NetInfoPackage;",
+          "packageInstance": "new NetInfoPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/netinfo/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/netinfo/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-community/progress-bar-android": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-bar-android",
+      "name": "@react-native-community/progress-bar-android",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-bar-android/react-native-progress-bar-android.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-bar-android/android",
+          "packageImportPath": "import com.reactnativecommunity.androidprogressbar.RNCProgressBarPackage;",
+          "packageInstance": "new RNCProgressBarPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-bar-android/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-bar-android/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-community/progress-view": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-view",
+      "name": "@react-native-community/progress-view",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-view/react-native-progress-view.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-view/android",
+          "packageImportPath": "import com.reactnativecommunity.progressview.RNCProgressViewPackage;",
+          "packageInstance": "new RNCProgressViewPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-view/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-community/progress-view/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-firebase/analytics": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/analytics",
+      "name": "@react-native-firebase/analytics",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/analytics/RNFBAnalytics.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/analytics/android",
+          "packageImportPath": "import io.invertase.firebase.analytics.ReactNativeFirebaseAnalyticsPackage;",
+          "packageInstance": "new ReactNativeFirebaseAnalyticsPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/analytics/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/analytics/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-firebase/app": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/app",
+      "name": "@react-native-firebase/app",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/app/RNFBApp.podspec",
+          "configurations": [],
+          "scriptPhases": [
+            {
+              "name": "[RNFB] Core Configuration",
+              "path": "./ios_config.sh",
+              "execution_position": "after_compile",
+              "input_files": [
+                "$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)"
+              ]
+            }
+          ]
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/app/android",
+          "packageImportPath": "import io.invertase.firebase.app.ReactNativeFirebaseAppPackage;",
+          "packageInstance": "new ReactNativeFirebaseAppPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/app/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/app/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-firebase/crashlytics": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/crashlytics",
+      "name": "@react-native-firebase/crashlytics",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/crashlytics/RNFBCrashlytics.podspec",
+          "configurations": [],
+          "scriptPhases": [
+            {
+              "name": "[RNFB] Crashlytics Configuration",
+              "path": "./ios_config.sh",
+              "execution_position": "after_compile",
+              "input_files": [
+                "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+                "$(SRCROOT)/$(BUILT_PRODUCTS_DIR)/$(INFOPLIST_PATH)"
+              ]
+            }
+          ]
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/crashlytics/android",
+          "packageImportPath": "import io.invertase.firebase.crashlytics.ReactNativeFirebaseCrashlyticsPackage;",
+          "packageInstance": "new ReactNativeFirebaseCrashlyticsPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/crashlytics/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/crashlytics/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-firebase/perf": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/perf",
+      "name": "@react-native-firebase/perf",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/perf/RNFBPerf.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/perf/android",
+          "packageImportPath": "import io.invertase.firebase.perf.ReactNativeFirebasePerfPackage;",
+          "packageInstance": "new ReactNativeFirebasePerfPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/perf/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-firebase/perf/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "@react-native-picker/picker": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-picker/picker",
+      "name": "@react-native-picker/picker",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-picker/picker/RNCPicker.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-picker/picker/android",
+          "packageImportPath": "import com.reactnativecommunity.picker.RNCPickerPackage;",
+          "packageInstance": "new RNCPickerPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/@react-native-picker/picker/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "lottie-react-native": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/lottie-react-native",
+      "name": "lottie-react-native",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/lottie-react-native/lottie-react-native.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/lottie-react-native/src/android",
+          "packageImportPath": "import com.airbnb.android.react.lottie.LottiePackage;",
+          "packageInstance": "new LottiePackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/lottie-react-native/src/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/lottie-react-native/src/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-blob-util": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-blob-util",
+      "name": "react-native-blob-util",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-blob-util/react-native-blob-util.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-blob-util/android",
+          "packageImportPath": "import com.ReactNativeBlobUtil.ReactNativeBlobUtilPackage;",
+          "packageInstance": "new ReactNativeBlobUtilPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-blob-util/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-config": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-config",
+      "name": "react-native-config",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-config/react-native-config.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-config/android",
+          "packageImportPath": "import com.lugg.ReactNativeConfig.ReactNativeConfigPackage;",
+          "packageInstance": "new ReactNativeConfigPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-config/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-config/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-device-info": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-device-info",
+      "name": "react-native-device-info",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-device-info/RNDeviceInfo.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-device-info/android",
+          "packageImportPath": "import com.learnium.RNDeviceInfo.RNDeviceInfo;",
+          "packageInstance": "new RNDeviceInfo()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-device-info/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-device-info/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-document-picker": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-document-picker",
+      "name": "react-native-document-picker",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-document-picker/react-native-document-picker.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-document-picker/android",
+          "packageImportPath": "import com.reactnativedocumentpicker.DocumentPickerPackage;",
+          "packageInstance": "new DocumentPickerPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-document-picker/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-document-picker/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-fast-image": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-fast-image",
+      "name": "react-native-fast-image",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-fast-image/RNFastImage.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-fast-image/android",
+          "packageImportPath": "import com.dylanvann.fastimage.FastImageViewPackage;",
+          "packageInstance": "new FastImageViewPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-fast-image/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-fast-image/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-gesture-handler": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-gesture-handler",
+      "name": "react-native-gesture-handler",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-gesture-handler/RNGestureHandler.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-gesture-handler/android",
+          "packageImportPath": "import com.swmansion.gesturehandler.RNGestureHandlerPackage;",
+          "packageInstance": "new RNGestureHandlerPackage()",
+          "buildTypes": [],
+          "libraryName": "rngesturehandler_codegen",
+          "componentDescriptors": [
+            "RNGestureHandlerButtonComponentDescriptor",
+            "RNGestureHandlerRootViewComponentDescriptor"
+          ],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-gesture-handler/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-gesture-handler/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-haptic-feedback": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-haptic-feedback",
+      "name": "react-native-haptic-feedback",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-haptic-feedback/RNReactNativeHapticFeedback.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-haptic-feedback/android",
+          "packageImportPath": "import com.mkuczera.RNReactNativeHapticFeedbackPackage;",
+          "packageInstance": "new RNReactNativeHapticFeedbackPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-haptic-feedback/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-haptic-feedback/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-image-picker": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-image-picker",
+      "name": "react-native-image-picker",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-image-picker/react-native-image-picker.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-image-picker/android",
+          "packageImportPath": "import com.imagepicker.ImagePickerPackage;",
+          "packageInstance": "new ImagePickerPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-image-picker/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-image-size": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-image-size",
+      "name": "react-native-image-size",
+      "platforms": {
+        "ios": null,
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-image-size/android",
+          "packageImportPath": "import com.existfragger.rnimagesize.RNImageSizePackage;",
+          "packageInstance": "new RNImageSizePackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-image-size/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-image-size/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-pdf": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-pdf",
+      "name": "react-native-pdf",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-pdf/react-native-pdf.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-pdf/android",
+          "packageImportPath": "import org.wonday.pdf.RCTPdfView;",
+          "packageInstance": "new RCTPdfView()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-pdf/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-pdf/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-performance": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-performance",
+      "name": "react-native-performance",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-performance/react-native-performance.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-performance/android",
+          "packageImportPath": "import com.oblador.performance.PerformancePackage;",
+          "packageInstance": "new PerformancePackage()",
+          "buildTypes": [],
+          "libraryName": "rnperformance",
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-performance/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-performance/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-permissions": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-permissions",
+      "name": "react-native-permissions",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-permissions/RNPermissions.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-permissions/android",
+          "packageImportPath": "import com.zoontek.rnpermissions.RNPermissionsPackage;",
+          "packageInstance": "new RNPermissionsPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-permissions/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-permissions/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-plaid-link-sdk": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-plaid-link-sdk",
+      "name": "react-native-plaid-link-sdk",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-plaid-link-sdk/react-native-plaid-link-sdk.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-plaid-link-sdk/android",
+          "packageImportPath": "import com.plaid.PlaidPackage;",
+          "packageInstance": "new PlaidPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-plaid-link-sdk/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-plaid-link-sdk/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-quick-sqlite": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-quick-sqlite",
+      "name": "react-native-quick-sqlite",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-quick-sqlite/react-native-quick-sqlite.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-quick-sqlite/android",
+          "packageImportPath": "import com.reactnativequicksqlite.SequelPackage;",
+          "packageInstance": "new SequelPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-quick-sqlite/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-quick-sqlite/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-reanimated": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-reanimated",
+      "name": "react-native-reanimated",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-reanimated/RNReanimated.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-reanimated/android",
+          "packageImportPath": "import com.swmansion.reanimated.ReanimatedPackage;",
+          "packageInstance": "new ReanimatedPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-reanimated/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-render-html": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-render-html",
+      "name": "react-native-render-html",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-render-html/react-native-render-html.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": null
+      }
+    },
+    "react-native-safe-area-context": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-safe-area-context",
+      "name": "react-native-safe-area-context",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-safe-area-context/react-native-safe-area-context.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-safe-area-context/android",
+          "packageImportPath": "import com.th3rdwave.safeareacontext.SafeAreaContextPackage;",
+          "packageInstance": "new SafeAreaContextPackage()",
+          "buildTypes": [],
+          "libraryName": "safeareacontext",
+          "componentDescriptors": [
+            "RNCSafeAreaProviderComponentDescriptor",
+            "RNCSafeAreaViewComponentDescriptor"
+          ],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-safe-area-context/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-safe-area-context/android/src/main/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-screens": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-screens",
+      "name": "react-native-screens",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-screens/RNScreens.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-screens/android",
+          "packageImportPath": "import com.swmansion.rnscreens.RNScreensPackage;",
+          "packageInstance": "new RNScreensPackage()",
+          "buildTypes": [],
+          "libraryName": "rnscreens",
+          "componentDescriptors": [
+            "RNSFullWindowOverlayComponentDescriptor",
+            "RNSScreenContainerComponentDescriptor",
+            "RNSScreenNavigationContainerComponentDescriptor",
+            "RNSScreenStackHeaderConfigComponentDescriptor",
+            "RNSScreenStackHeaderSubviewComponentDescriptor",
+            "RNSScreenStackComponentDescriptor",
+            "RNSSearchBarComponentDescriptor"
+          ],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-screens/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-screens/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-svg": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-svg",
+      "name": "react-native-svg",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-svg/RNSVG.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-svg/android",
+          "packageImportPath": "import com.horcrux.svg.SvgPackage;",
+          "packageInstance": "new SvgPackage()",
+          "buildTypes": [],
+          "libraryName": "rnsvg",
+          "componentDescriptors": [
+            "RNSVGCircleComponentDescriptor",
+            "RNSVGClipPathComponentDescriptor",
+            "RNSVGDefsComponentDescriptor",
+            "RNSVGEllipseComponentDescriptor",
+            "RNSVGForeignObjectComponentDescriptor",
+            "RNSVGGroupComponentDescriptor",
+            "RNSVGImageComponentDescriptor",
+            "RNSVGLinearGradientComponentDescriptor",
+            "RNSVGLineComponentDescriptor",
+            "RNSVGMarkerComponentDescriptor",
+            "RNSVGMaskComponentDescriptor",
+            "RNSVGPathComponentDescriptor",
+            "RNSVGPatternComponentDescriptor",
+            "RNSVGRadialGradientComponentDescriptor",
+            "RNSVGRectComponentDescriptor",
+            "RNSVGSvgViewComponentDescriptor",
+            "RNSVGSymbolComponentDescriptor",
+            "RNSVGTextComponentDescriptor",
+            "RNSVGTextPathComponentDescriptor",
+            "RNSVGTSpanComponentDescriptor",
+            "RNSVGUseComponentDescriptor"
+          ],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-svg/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-svg/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-webview": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-webview",
+      "name": "react-native-webview",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-webview/react-native-webview.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-webview/android",
+          "packageImportPath": "import com.reactnativecommunity.webview.RNCWebViewPackage;",
+          "packageInstance": "new RNCWebViewPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-webview/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-webview/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "urbanairship-react-native": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/urbanairship-react-native",
+      "name": "urbanairship-react-native",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/urbanairship-react-native/urbanairship-react-native.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/urbanairship-react-native/android",
+          "packageImportPath": "import com.urbanairship.reactnative.ReactAirshipPackage;",
+          "packageInstance": "new ReactAirshipPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/urbanairship-react-native/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/urbanairship-react-native/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    },
+    "react-native-flipper": {
+      "root": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-flipper",
+      "name": "react-native-flipper",
+      "platforms": {
+        "ios": {
+          "podspecPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-flipper/react-native-flipper.podspec",
+          "configurations": [],
+          "scriptPhases": []
+        },
+        "android": {
+          "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-flipper/android",
+          "packageImportPath": "import com.facebook.flipper.reactnative.FlipperPackage;",
+          "packageInstance": "new FlipperPackage()",
+          "buildTypes": [],
+          "componentDescriptors": [],
+          "androidMkPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-flipper/android/build/generated/source/codegen/jni/Android.mk",
+          "cmakeListsPath": "/Users/matkoson/dev/repos/client/expensify/App/node_modules/react-native-flipper/android/build/generated/source/codegen/jni/CMakeLists.txt"
+        }
+      }
+    }
+  },
+  "commands": [
+    {
+      "name": "log-ios",
+      "description": "starts iOS device syslog tail"
+    },
+    {
+      "name": "run-ios",
+      "description": "builds your app and starts it on iOS simulator",
+      "examples": [
+        {
+          "desc": "Run on a different simulator, e.g. iPhone SE (2nd generation)",
+          "cmd": "react-native run-ios --simulator \"iPhone SE (2nd generation)\""
+        },
+        {
+          "desc": "Run on a connected device, e.g. Max's iPhone",
+          "cmd": "react-native run-ios --device \"Max's iPhone\""
+        },
+        {
+          "desc": "Run on the AppleTV simulator",
+          "cmd": "react-native run-ios --simulator \"Apple TV\"  --scheme \"helloworld-tvOS\""
+        }
+      ],
+      "options": [
+        {
+          "name": "--simulator <string>",
+          "description": "Explicitly set simulator to use. Optionally include iOS version between parenthesis at the end to match an exact version: \"iPhone 6 (10.0)\"",
+          "default": "iPhone 13"
+        },
+        {
+          "name": "--configuration <string>",
+          "description": "Explicitly set the scheme configuration to use",
+          "default": "Debug"
+        },
+        {
+          "name": "--scheme <string>",
+          "description": "Explicitly set Xcode scheme to use"
+        },
+        {
+          "name": "--device [string]",
+          "description": "Explicitly set device to use by name.  The value is not required if you have a single device connected."
+        },
+        {
+          "name": "--udid <string>",
+          "description": "Explicitly set device to use by udid"
+        },
+        {
+          "name": "--no-packager",
+          "description": "Do not launch packager while building"
+        },
+        {
+          "name": "--verbose",
+          "description": "Do not use xcbeautify or xcpretty even if installed"
+        },
+        {
+          "name": "--port <number>",
+          "default": 8081
+        },
+        {
+          "name": "--terminal <string>",
+          "description": "Launches the Metro Bundler in a new window using the specified terminal path."
+        }
+      ]
+    },
+    {
+      "name": "log-android",
+      "description": "starts logkitty"
+    },
+    {
+      "name": "run-android",
+      "description": "builds your app and starts it on a connected Android emulator or device",
+      "options": [
+        {
+          "name": "--variant <string>",
+          "description": "Specify your app's build variant",
+          "default": "debug"
+        },
+        {
+          "name": "--appId <string>",
+          "description": "Specify an applicationId to launch after build. If not specified, `package` from AndroidManifest.xml will be used.",
+          "default": ""
+        },
+        {
+          "name": "--appIdSuffix <string>",
+          "description": "Specify an applicationIdSuffix to launch after build.",
+          "default": ""
+        },
+        {
+          "name": "--main-activity <string>",
+          "description": "Name of the activity to start",
+          "default": "MainActivity"
+        },
+        {
+          "name": "--deviceId <string>",
+          "description": "builds your app and starts it on a specific device/simulator with the given device id (listed by running \"adb devices\" on the command line)."
+        },
+        {
+          "name": "--no-packager",
+          "description": "Do not launch packager while building"
+        },
+        {
+          "name": "--port <number>",
+          "default": 8081
+        },
+        {
+          "name": "--terminal <string>",
+          "description": "Launches the Metro Bundler in a new window using the specified terminal path.",
+          "default": "tmux"
+        },
+        {
+          "name": "--tasks <list>",
+          "description": "Run custom Gradle tasks. By default it's \"installDebug\""
+        },
+        {
+          "name": "--active-arch-only",
+          "description": "Build native libraries only for the current device architecture for debug builds.",
+          "default": false
+        }
+      ]
+    },
+    {
+      "description": "fully automated project state clean: like a freshly-cloned, never-started repo",
+      "name": "clean-project-auto"
+    },
+    {
+      "description": "interactive project state clean: choose types of react-native state to clean",
+      "name": "clean-project"
+    }
+  ],
+  "healthChecks": [],
+  "platforms": {
+    "ios": {},
+    "android": {}
+  },
+  "project": {
+    "ios": {
+      "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/ios",
+      "xcodeProject": {
+        "name": "NewExpensify.xcworkspace",
+        "isWorkspace": true
+      }
+    },
+    "android": {
+      "sourceDir": "/Users/matkoson/dev/repos/client/expensify/App/android",
+      "appName": "app",
+      "packageName": "com.expensify.chat"
+    }
+  }
+}
