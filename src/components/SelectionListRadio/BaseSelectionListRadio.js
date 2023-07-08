@@ -100,7 +100,7 @@ function BaseSelectionListRadio({
         };
     };
 
-    const flattenedSections = getFlattenedSections();
+    const {allOptions, disabledOptionsIndexes, itemLayouts} = getFlattenedSections();
 
     /**
      * Scrolls to the desired item index in the section list
@@ -109,7 +109,7 @@ function BaseSelectionListRadio({
      * @param {Boolean} animated - whether to animate the scroll
      */
     const scrollToIndex = (index, animated) => {
-        const item = flattenedSections.allOptions[index];
+        const item = allOptions[index];
 
         if (!listRef.current || !item) {
             return;
@@ -133,7 +133,7 @@ function BaseSelectionListRadio({
 
     // Calculate the initial focused index only on first render
     const initialFocusedIndex = useMemo(() => {
-        const initialIndex = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
+        const initialIndex = _.findIndex(allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
         if (initialIndex <= 0) {
             return 0;
         }
@@ -142,8 +142,8 @@ function BaseSelectionListRadio({
     }, []);
     const [focusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex,
-        maxIndex: flattenedSections.allOptions.length - 1,
-        disabledIndexes: flattenedSections.disabledOptionsIndexes,
+        maxIndex: allOptions.length - 1,
+        disabledIndexes: disabledOptionsIndexes,
         onFocusedIndexChanged: (newFocusedIndex) => scrollToIndex(newFocusedIndex, true),
     });
 
@@ -164,7 +164,7 @@ function BaseSelectionListRadio({
      * @returns {Object}
      */
     const getItemLayout = (data, flatDataArrayIndex) => {
-        const targetItem = flattenedSections.itemLayouts[flatDataArrayIndex];
+        const targetItem = itemLayouts[flatDataArrayIndex];
 
         return {
             length: targetItem.length,
@@ -206,7 +206,7 @@ function BaseSelectionListRadio({
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ENTER,
         () => {
-            const focusedOption = flattenedSections.allOptions[focusedIndex];
+            const focusedOption = allOptions[focusedIndex];
 
             if (!focusedOption) {
                 return;
@@ -216,7 +216,7 @@ function BaseSelectionListRadio({
         },
         {
             captureOnInputs: true,
-            shouldBubble: () => !flattenedSections.allOptions[focusedIndex],
+            shouldBubble: () => !allOptions[focusedIndex],
         },
     );
 
