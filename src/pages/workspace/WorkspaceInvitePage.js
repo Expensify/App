@@ -4,12 +4,13 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import useLocalize from '../../hooks/useLocalize';
+// import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
-import compose from '../../libs/compose';
+// import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import usePrevious from '../../hooks/usePrevious';
@@ -20,7 +21,7 @@ import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
 import {policyPropTypes, policyDefaultProps} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import useNetwork from '../../hooks/useOnNetworkReconnect';
+import useNetwork from '../../hooks/useNetwork';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
@@ -56,7 +57,6 @@ const propTypes = {
     }).isRequired,
 
     ...policyPropTypes,
-    ...withLocalizePropTypes,
     network: networkPropTypes.isRequired,
 };
 
@@ -67,9 +67,11 @@ const defaultProps = {
 };
 
 function WorkspaceInvitePage(props) {
+    const {isOffline} = useNetwork();
+    const {translate} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState([]);
-    const wasOffline = usePrevious(props.network.isOfflline);
+    const wasOffline = usePrevious(props.network.isOffline);
     const prevPersonalDetails = usePrevious(props.personalDetails);
     const prevPolicyMembers = usePrevious(props.policyMembers);
 
@@ -127,24 +129,14 @@ function WorkspaceInvitePage(props) {
             updateOptionsWithSearchTerm(searchTerm);
         }
 
-        const isReconnecting = wasOffline && !props.network.isOffline;
+        const isReconnecting = wasOffline && !isOffline;
         if (!isReconnecting) {
             return;
         }
 
         const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
-    }, [
-        props.personalDetails,
-        props.policyMembers,
-        props.network.isOffline,
-        props.route.params.policyID,
-        prevPersonalDetails,
-        prevPolicyMembers,
-        wasOffline,
-        updateOptionsWithSearchTerm,
-        searchTerm,
-    ]);
+    }, [props.personalDetails, props.policyMembers, isOffline, props.route.params.policyID, prevPersonalDetails, prevPolicyMembers, wasOffline, updateOptionsWithSearchTerm, searchTerm]);
 
     /**
      * @returns {Boolean}
@@ -173,7 +165,7 @@ function WorkspaceInvitePage(props) {
         const hasUnselectedUserToInvite = userToInvite && !filterText.includes(userToInvite.login);
 
         sections.push({
-            title: props.translate('common.contacts'),
+            title: translate('common.contacts'),
             data: personalDetailsWithoutSelected,
             shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
             indexOffset,
@@ -190,7 +182,7 @@ function WorkspaceInvitePage(props) {
         }
 
         return sections;
-    }, [selectedOptions, personalDetails, userToInvite, props.translate]);
+    }, [selectedOptions, personalDetails, userToInvite, translate]);
 
     const openPrivacyURL = useCallback((e) => {
         e.preventDefault();
@@ -262,7 +254,7 @@ function WorkspaceInvitePage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
                 <HeaderWithBackButton
-                    title={props.translate('workspace.invite.invitePeople')}
+                    title={translate('workspace.invite.invitePeople')}
                     subtitle={policyName}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
@@ -287,14 +279,14 @@ function WorkspaceInvitePage(props) {
                         hideSectionHeaders
                         boldStyle
                         shouldFocusOnSelectRow={!Browser.isMobile()}
-                        textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                     />
                 </View>
                 <View style={[styles.flexShrink0]}>
                     <FormAlertWithSubmitButton
                         isDisabled={!selectedOptions.length}
                         isAlertVisible={getShouldShowAlertPrompt()}
-                        buttonText={props.translate('common.next')}
+                        buttonText={translate('common.next')}
                         onSubmit={inviteUser}
                         message={props.policy.alertMessage}
                         containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
@@ -311,10 +303,7 @@ WorkspaceInvitePage.propTypes = propTypes;
 WorkspaceInvitePage.defaultProps = defaultProps;
 WorkspaceInvitePage.defaultName = 'WorkspaceInvitePage';
 
-export default compose(
-    withLocalize,
-    withPolicyAndFullscreenLoading,
-    useNetwork,
+export default withPolicyAndFullscreenLoading(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -322,5 +311,8 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-    }),
-)(WorkspaceInvitePage);
+        network: {
+            key: ONYXKEYS.NETWORK,
+        },
+    })(WorkspaceInvitePage),
+);
