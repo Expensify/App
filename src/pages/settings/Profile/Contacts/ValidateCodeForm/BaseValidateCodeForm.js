@@ -168,7 +168,7 @@ function BaseValidateCodeForm(props) {
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
-                errors={ErrorUtils.getLatestErrorField(loginData, 'validateLogin')}
+                errors={ErrorUtils.getEarliestErrorField(loginData, 'validateLogin')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateLogin')}
             >
