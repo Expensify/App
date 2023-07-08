@@ -33,9 +33,6 @@ const propTypes = {
         /** The primaryLogin associated with the account */
         primaryLogin: PropTypes.string,
 
-        /** Has the user pressed the forgot password button? */
-        forgotPassword: PropTypes.bool,
-
         /** Does this account require 2FA? */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
@@ -43,7 +40,6 @@ const propTypes = {
     /** The credentials of the person signing in */
     credentials: PropTypes.shape({
         login: PropTypes.string,
-        password: PropTypes.string,
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
@@ -56,27 +52,21 @@ const defaultProps = {
 
 /**
  * @param {Boolean} hasLogin
- * @param {Boolean} hasPassword
  * @param {Boolean} hasValidateCode
  * @param {Boolean} isPrimaryLogin
  * @param {Boolean} isAccountValidated
- * @param {Boolean} didForgetPassword
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasPassword, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, didForgetPassword}) {
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated;
-    const shouldShowPasswordForm = hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !isUnvalidatedSecondaryLogin;
     const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin;
-    const shouldShowResendValidationForm = hasLogin && (!isAccountValidated || didForgetPassword) && !isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm;
     return {
         shouldShowLoginForm,
         shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
-        shouldShowPasswordForm,
         shouldShowValidateCodeForm,
-        shouldShowResendValidationForm,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
     };
@@ -95,19 +85,15 @@ function SignInPage({credentials, account}) {
     const {
         shouldShowLoginForm,
         shouldShowUnlinkLoginForm,
-        shouldShowPasswordForm,
         shouldShowValidateCodeForm,
-        shouldShowResendValidationForm,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
     } = getRenderOptions({
         hasLogin: Boolean(credentials.login),
-        hasPassword: Boolean(credentials.password),
         hasValidateCode: Boolean(credentials.validateCode),
         hasAccount: !_.isEmpty(account),
         isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
         isAccountValidated: Boolean(account.validated),
-        didForgetPassword: Boolean(account.forgotPassword),
     });
 
     let welcomeHeader;
@@ -134,9 +120,6 @@ function SignInPage({credentials, account}) {
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
-    } else if (shouldShowPasswordForm) {
-        welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-        welcomeText = isSmallScreenWidth ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.enterPassword')}` : translate('welcomeText.enterPassword');
     } else if (shouldShowUnlinkLoginForm) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
     } else if (!shouldShowResendValidationForm) {
@@ -160,8 +143,7 @@ function SignInPage({credentials, account}) {
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
                 />
-                {shouldShowValidateCodeForm ? <ValidateCodeForm isVisible={shouldShowValidateCodeForm} /> : <PasswordForm isVisible={shouldShowPasswordForm} />}
-                {shouldShowResendValidationForm && <ResendValidationForm />}
+                {shouldShowValidateCodeForm && <ValidateCodeForm isVisible={shouldShowValidateCodeForm} />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
             </SignInPageLayout>
         </View>
