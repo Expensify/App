@@ -18,7 +18,6 @@ import UnlinkLoginForm from './UnlinkLoginForm';
 import * as Localize from '../../libs/Localize';
 import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
-import usePermissions from '../../hooks/usePermissions';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
 
@@ -62,15 +61,14 @@ const defaultProps = {
  * @param {Boolean} isPrimaryLogin
  * @param {Boolean} isAccountValidated
  * @param {Boolean} didForgetPassword
- * @param {Boolean} canUsePasswordlessLogins
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasPassword, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, didForgetPassword, canUsePasswordlessLogins}) {
+function getRenderOptions({hasLogin, hasPassword, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, didForgetPassword}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated;
-    const shouldShowPasswordForm = hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins;
-    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && canUsePasswordlessLogins;
-    const shouldShowResendValidationForm = hasLogin && (!isAccountValidated || didForgetPassword) && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins;
+    const shouldShowPasswordForm = hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !isUnvalidatedSecondaryLogin;
+    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin;
+    const shouldShowResendValidationForm = hasLogin && (!isAccountValidated || didForgetPassword) && !isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm;
     return {
@@ -86,7 +84,6 @@ function getRenderOptions({hasLogin, hasPassword, hasValidateCode, hasAccount, i
 
 function SignInPage({credentials, account}) {
     const {translate, formatPhoneNumber} = useLocalize();
-    const {canUsePasswordlessLogins} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
     const safeAreaInsets = useSafeAreaInsets();
 
@@ -111,7 +108,6 @@ function SignInPage({credentials, account}) {
         isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
         isAccountValidated: Boolean(account.validated),
         didForgetPassword: Boolean(account.forgotPassword),
-        canUsePasswordlessLogins,
     });
 
     let welcomeHeader;

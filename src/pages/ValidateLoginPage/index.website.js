@@ -3,13 +3,11 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
-import * as User from '../../libs/actions/User';
 import compose from '../../libs/compose';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import Permissions from '../../libs/Permissions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -20,9 +18,6 @@ import JustSignedInModal from '../../components/ValidateCode/JustSignedInModal';
 const propTypes = {
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
@@ -50,7 +45,6 @@ const propTypes = {
 
 const defaultProps = {
     route: validateLinkDefaultProps,
-    betas: [],
     session: {
         authToken: null,
     },
@@ -61,14 +55,6 @@ const defaultProps = {
 class ValidateLoginPage extends Component {
     componentDidMount() {
         const login = lodashGet(this.props, 'credentials.login', null);
-
-        // A fresh session will not have credentials.login and user permission betas available.
-        // In that case, we directly allow users to go through password less flow
-        if (login && !Permissions.canUsePasswordlessLogins(this.props.betas)) {
-            User.validateLogin(this.getAccountID(), this.getValidateCode());
-            return;
-        }
-
         const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
         const cachedAutoAuthState = lodashGet(this.props, 'session.autoAuthState', null);
         if (!login && isSignedIn && (cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || cachedAutoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
@@ -144,7 +130,6 @@ export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
-        betas: {key: ONYXKEYS.BETAS},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         session: {key: ONYXKEYS.SESSION},
     }),

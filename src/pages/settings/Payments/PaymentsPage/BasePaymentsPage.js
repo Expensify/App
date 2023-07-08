@@ -452,14 +452,7 @@ class BasePaymentsPage extends React.Component {
                                         // InteractionManager fires after the currently running animation is completed.
                                         // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                         InteractionManager.runAfterInteractions(() => {
-                                            if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
-                                                this.makeDefaultPaymentMethod();
-                                            } else {
-                                                this.setState({
-                                                    shouldShowPasswordPrompt: true,
-                                                    passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
-                                                });
-                                            }
+                                            this.makeDefaultPaymentMethod();
                                         });
                                     }}
                                     text={this.props.translate('paymentsPage.setDefaultConfirmation')}
