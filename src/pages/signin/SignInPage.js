@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -69,17 +70,15 @@ const defaultProps = {
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasPassword, hasValidateCode, isPrimaryLogin, isAccountValidated, didForgetPassword, canUsePasswordlessLogins, hasEmailDeliveryFailure}) {
+function getRenderOptions({hasLogin, hasPassword, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, didForgetPassword, hasEmailDeliveryFailure}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !shouldShowEmailDeliveryFailurePage;
-    const shouldShowPasswordForm =
-        hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;
-    const shouldShowValidateCodeForm = (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;
-    const shouldShowResendValidationForm =
-        hasLogin && (!isAccountValidated || didForgetPassword) && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;
+    const shouldShowPasswordForm = hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;
+    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;
+    const shouldShowResendValidationForm = hasLogin && (!isAccountValidated || didForgetPassword) && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins && !shouldShowEmailDeliveryFailurePage;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin || shouldShowEmailDeliveryFailurePage;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || shouldShowEmailDeliveryFailurePage;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm;
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
@@ -116,6 +115,7 @@ function SignInPage({credentials, account}) {
         hasLogin: Boolean(credentials.login),
         hasPassword: Boolean(credentials.password),
         hasValidateCode: Boolean(credentials.validateCode),
+        hasAccount: !_.isEmpty(account),
         isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
         isAccountValidated: Boolean(account.validated),
         didForgetPassword: Boolean(account.forgotPassword),
