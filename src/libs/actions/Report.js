@@ -1200,8 +1200,9 @@ function navigateToConciergeChat() {
  * @param {Array} policyMembers
  */
 function addPolicyReport(policyID, reportName, visibility, policyMembers) {
-    // The participants include the current user (admin) and the employees. Participants must not be empty.
-    const participants = _.unique([currentUserAccountID, ...policyMembers]);
+    // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
+    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembers : [];
+    const participants = _.unique([currentUserAccountID, ...members]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
@@ -1636,17 +1637,18 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * @param {String} reportID
  * @param {String} reportActionID
- * @param {Object} emoji
+ * @param {Object} reactionEmoji
  * @param {number} paramSkinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportActionID, emoji, paramSkinTone = preferredSkinTone) {
+function toggleEmojiReaction(reportID, reportActionID, reactionEmoji, paramSkinTone = preferredSkinTone) {
     const reportAction = ReportActionsUtils.getReportAction(reportID, reportActionID);
 
     if (_.isEmpty(reportAction)) {
         return;
     }
 
+    const emoji = EmojiUtils.findEmojiByCode(reactionEmoji.code);
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
