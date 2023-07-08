@@ -23,8 +23,8 @@ const propTypes = {
 };
 
 function BankAccountManualStep(props) {
-    const {translate} = useLocalize();
-    const {reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, preferredLocale, getDefaultStateForField} = props;
+    const {translate, preferredLocale} = useLocalize();
+    const {reimbursementAccount, reimbursementAccountDraft} = props;
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
@@ -75,7 +75,7 @@ function BankAccountManualStep(props) {
                 stepCounter={{step: 1, total: 5}}
                 shouldShowGetAssistanceButton
                 guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                onBackButtonPress={onBackButtonPress}
+                onBackButtonPress={props.onBackButtonPress}
             />
             <Form
                 formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -95,7 +95,7 @@ function BankAccountManualStep(props) {
                     shouldDelayFocus={shouldDelayFocus}
                     inputID="routingNumber"
                     label={translate('bankAccount.routingNumber')}
-                    value={getDefaultStateForField('routingNumber', '')}
+                    value={props.getDefaultStateForField('routingNumber', '')}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
@@ -105,7 +105,7 @@ function BankAccountManualStep(props) {
                     inputID="accountNumber"
                     containerStyles={[styles.mt4]}
                     label={translate('bankAccount.accountNumber')}
-                    value={getDefaultStateForField('accountNumber', '')}
+                    value={props.getDefaultStateForField('accountNumber', '')}
                     keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     disabled={shouldDisableInputs}
                     shouldSaveDraft
@@ -121,7 +121,7 @@ function BankAccountManualStep(props) {
                             <TextLink href={CONST.TERMS_URL}>{translate('common.expensifyTermsOfService')}</TextLink>
                         </Text>
                     )}
-                    defaultValue={getDefaultStateForField('acceptTerms', false)}
+                    defaultValue={props.getDefaultStateForField('acceptTerms', false)}
                     shouldSaveDraft
                 />
             </Form>
