@@ -101,14 +101,13 @@ describe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [CONST.BETAS.POLICY_EXPENSE_CHAT],
-                        }).then(waitForPromisesToResolve),
+                        }),
                     )
 
                     // Then there is one report rendered in the LHN
                     .then(() => {
                         const hintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
                         const optionRows = screen.queryAllByAccessibilityHint(hintText);
-                        console.log('the test is deemed a failure');
                         expect(optionRows).toHaveLength(1);
                     })
             );
@@ -334,7 +333,7 @@ describe('Sidebar', () => {
                                 const displayNamesHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                                 const displayNames = screen.queryAllByLabelText(displayNamesHintText);
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                                console.log('TEST DEEMED A FAILURE!')
+                                console.log('TEST DEEMED A FAILURE!');
                                 expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                 expect(displayNames).toHaveLength(1);
                                 expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
