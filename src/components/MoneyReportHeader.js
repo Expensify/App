@@ -95,26 +95,27 @@ function MoneyReportHeader(props) {
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                shouldShowBorderBottom
-            />
-            <View style={[styles.ph5, styles.pb2]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    {shouldShowSettlementButton && !props.isSmallScreenWidth && (
-                        <View style={[styles.ml4]}>
-                            <SettlementButton
-                                currency={props.report.currency}
-                                policyID={props.report.policyID}
-                                shouldShowPaypal={shouldShowPaypal}
-                                chatReportID={props.chatReport.reportID}
-                                iouReport={props.report}
-                                onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
-                                enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                                addBankAccountRoute={bankAccountRoute}
-                                shouldShowPaymentOptions
-                            />
-                        </View>
-                    )}
+                shouldShowBorderBottom={!props.isSmallScreenWidth}
+        >
+                {shouldShowSettlementButton && !props.isSmallScreenWidth && (
+                <View style={[styles.pv2]}>
+                    <SettlementButton
+                        currency={props.report.currency}
+                        policyID={props.report.policyID}
+                        shouldShowPaypal={shouldShowPaypal}
+                        chatReportID={props.chatReport.reportID}
+                        iouReport={props.report}
+                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                        addBankAccountRoute={bankAccountRoute}
+                        shouldShowPaymentOptions
+                        style={[styles.pv2]}
+                        totalAmount={formattedAmount}
+                    />
                 </View>
+                )}
+            </HeaderWithBackButton>
+            <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
                 {shouldShowSettlementButton && props.isSmallScreenWidth && (
                     <SettlementButton
                         currency={props.report.currency}
