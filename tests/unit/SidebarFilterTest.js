@@ -33,8 +33,11 @@ describe('Sidebar', () => {
 
     // Initialize the network key for OfflineWithFeedback
     beforeEach(() => {
+        // TODO: explain this (investigate whether we render a batch later now!)
         const multiSetImpl = Onyx.multiSet;
         Onyx.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
+        const mergeImpl = Onyx.merge;
+        Onyx.merge = (...args) => mergeImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 
@@ -295,57 +298,56 @@ describe('Sidebar', () => {
             // Taken from https://stackoverflow.com/a/39734979/9114791 to generate all possible boolean combinations
             const AMOUNT_OF_VARIABLES = 6;
             // eslint-disable-next-line no-bitwise
-            // for (let i = 0; i < 1 << AMOUNT_OF_VARIABLES; i++) {
-            // const boolArr = [];
-            // for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
-            //     // eslint-disable-next-line no-bitwise
-            //     boolArr.push(Boolean(i & (1 << j)));
-            // }
+            for (let i = 0; i < 1 << AMOUNT_OF_VARIABLES; i++) {
+                const boolArr = [];
+                for (let j = AMOUNT_OF_VARIABLES - 1; j >= 0; j--) {
+                    // eslint-disable-next-line no-bitwise
+                    boolArr.push(Boolean(i & (1 << j)));
+                }
 
-            // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
-            // for the specific case that's failing. You can then debug the code to see why the test is not passing.
-            const boolArr = [false, false, false, false, false, false];
+                // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
+                // for the specific case that's failing. You can then debug the code to see why the test is not passing.
+                // const boolArr = [false, false, false, false, false];
 
-            it(`the booleans ${boolArr}`, () => {
-                const report2 = {
-                    ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
-                    policyID: policy.policyID,
-                };
-                LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
+                it(`the booleans ${boolArr}`, () => {
+                    const report2 = {
+                        ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
+                        policyID: policy.policyID,
+                    };
+                    LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
 
-                return (
-                    waitForPromisesToResolve()
-                        // When Onyx is updated to contain that data and the sidebar re-renders
-                        .then(() =>
-                            Onyx.multiSet({
-                                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                                [ONYXKEYS.BETAS]: betas,
-                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
-                                [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
-                                [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
-                            }),
-                        )
-                        // Then depending on the outcome, either one or two reports are visible
-                        .then(() => {
-                            if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
-                                // Only one report visible
-                                const displayNamesHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
-                                const displayNames = screen.queryAllByLabelText(displayNamesHintText);
-                                const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                                console.log('TEST DEEMED A FAILURE!');
-                                expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
-                                expect(displayNames).toHaveLength(1);
-                                expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
-                            } else {
-                                // Both reports visible
-                                const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
-                                expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(2);
-                            }
-                        })
-                );
-            });
-            // }
+                    return (
+                        waitForPromisesToResolve()
+                            // When Onyx is updated to contain that data and the sidebar re-renders
+                            .then(() =>
+                                Onyx.multiSet({
+                                    [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
+                                    [ONYXKEYS.BETAS]: betas,
+                                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${report1.reportID}`]: report1,
+                                    [`${ONYXKEYS.COLLECTION.REPORT}${report2.reportID}`]: report2,
+                                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
+                                }),
+                            )
+                            // Then depending on the outcome, either one or two reports are visible
+                            .then(() => {
+                                if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
+                                    // Only one report visible
+                                    const displayNamesHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
+                                    const displayNames = screen.queryAllByLabelText(displayNamesHintText);
+                                    const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
+                                    expect(displayNames).toHaveLength(1);
+                                    expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
+                                } else {
+                                    // Both reports visible
+                                    const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(2);
+                                }
+                            })
+                    );
+                });
+            }
         });
     });
 
