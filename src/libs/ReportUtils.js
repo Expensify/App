@@ -2422,6 +2422,10 @@ function shouldReportShowSubscript(report) {
         return false;
     }
 
+    if (isMoneyRequestReport(report)) {
+        return false;
+    }
+
     if (isPolicyExpenseChat(report) && !isChatThread(report) && !isTaskReport(report) && !report.isOwnPolicyExpenseChat) {
         return true;
     }

@@ -12,6 +12,7 @@ import themeColors from '../styles/themes/default';
 import SubscriptAvatar from './SubscriptAvatar';
 import * as ReportUtils from '../libs/ReportUtils';
 import Avatar from './Avatar';
+import MultipleAvatars from './MultipleAvatars';
 import DisplayNames from './DisplayNames';
 import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -60,12 +61,12 @@ function AvatarWithDisplayName(props) {
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
-    const avatarContainerStyle = StyleUtils.getEmptyAvatarStyle(props.size) || styles.emptyAvatar;
+    const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
     return (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {Boolean(props.report && title) && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    {isExpenseReport ? (
+                    {shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
                             backgroundColor={themeColors.highlightBG}
                             mainAvatar={icons[0]}
@@ -73,15 +74,14 @@ function AvatarWithDisplayName(props) {
                             size={props.size}
                         />
                     ) : (
-                        <Avatar
+                        <MultipleAvatars
+                            icons={icons}
                             size={props.size}
-                            source={icons[0].source}
-                            type={icons[0].type}
-                            name={icons[0].name}
-                            containerStyles={avatarContainerStyle}
+                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG)]}
+                            // shouldShowTooltip={OptionsListUtils.shouldOptionShowTooltip(optionItem)}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
+                    <View style={[styles.flex1, styles.flexColumn, shouldShowSubscriptAvatar ? styles.ml4 : {}]}>
                         <DisplayNames
                             fullTitle={title}
                             displayNamesWithTooltips={displayNamesWithTooltips}
