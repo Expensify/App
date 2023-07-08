@@ -12,11 +12,10 @@ import variables from '../../styles/variables';
 import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListRadioDefaultProps} from './selectionListRadioPropTypes';
 import RadioListItem from './RadioListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
+import useKeyboardState from '../../hooks/useKeyboardState';
 import SafeAreaConsumer from '../SafeAreaConsumer';
-import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 
 const propTypes = {
-    ...keyboardStatePropTypes,
     ...selectionListRadioPropTypes,
 };
 
@@ -25,6 +24,8 @@ function BaseSelectionListRadio(props) {
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(props.textInputLabel);
+
+    const {isKeyboardShown} = useKeyboardState();
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -215,7 +216,7 @@ function BaseSelectionListRadio(props) {
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !props.isKeyboardShown && safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pv5]}>
                                 <TextInput
@@ -265,4 +266,4 @@ BaseSelectionListRadio.displayName = 'BaseSelectionListRadio';
 BaseSelectionListRadio.propTypes = propTypes;
 BaseSelectionListRadio.defaultProps = selectionListRadioDefaultProps;
 
-export default withKeyboardState(BaseSelectionListRadio);
+export default BaseSelectionListRadio;
