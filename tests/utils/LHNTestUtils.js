@@ -164,7 +164,10 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
     };
 }
 
-function getDefaultRenderedSidebarLinks(currentReportID) {
+/**
+ * @param {String} [currentReportID]
+ */
+function getDefaultRenderedSidebarLinks(currentReportID = '') {
     // A try-catch block needs to be added to the rendering so that any errors that happen while the component
     // renders are caught and logged to the console. Without the try-catch block, Jest might only report the error
     // as "The above error occurred in your component", without providing specific details. By using a try-catch block,
@@ -188,12 +191,7 @@ function getDefaultRenderedSidebarLinks(currentReportID) {
  */
 function MockedSidebarLinks({currentReportID}) {
     return (
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                LocaleContextProvider,
-            ]}
-        >
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
             <SidebarLinksData
                 onLinkClick={() => {}}
                 insets={{

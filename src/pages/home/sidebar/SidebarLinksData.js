@@ -202,7 +202,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
         },
-        // TOOD: why do we need this?
+        // TODO: why do we need this?
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },

@@ -35,7 +35,7 @@ describe('Sidebar', () => {
     beforeEach(() => {
         const multiSetImpl = Onyx.multiSet;
         Onyx.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 
     // Cleanup (ie. unmount) all rendered components and clear out Onyx after each test so that each test starts with a clean slate
@@ -258,6 +258,7 @@ describe('Sidebar', () => {
             );
         });
 
+        // NOTE: This is also for #focus mode, should we move this test block?
         describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
             // Given a report that is the active report and doesn't change
             const report1 = LHNTestUtils.getFakeReport([3, 4]);
@@ -304,11 +305,11 @@ describe('Sidebar', () => {
 
             // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
             // for the specific case that's failing. You can then debug the code to see why the test is not passing.
-            // const boolArr = [false, false, true, false, false, false];
+            const boolArr = [false, false, false, false, false, false];
 
-            it(`the booleans [false,false,false,false,false,false]`, () => {
+            it(`the booleans ${boolArr}`, () => {
                 const report2 = {
-                    ...LHNTestUtils.getAdvancedFakeReport(...[false, false, false, false, false, false]),
+                    ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
                     policyID: policy.policyID,
                 };
                 LHNTestUtils.getDefaultRenderedSidebarLinks(report1.reportID);
@@ -326,14 +327,14 @@ describe('Sidebar', () => {
                                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                             }),
                         )
-
                         // Then depending on the outcome, either one or two reports are visible
                         .then(() => {
-                            if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify([false, false, false, false, false, false])) > -1) {
+                            if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {
                                 // Only one report visible
                                 const displayNamesHintText = Localize.translateLocal('accessibilityHints.chatUserDisplayNames');
                                 const displayNames = screen.queryAllByLabelText(displayNamesHintText);
                                 const navigatesToChatHintText = Localize.translateLocal('accessibilityHints.navigatesToChat');
+                                console.log('TEST DEEMED A FAILURE!')
                                 expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
                                 expect(displayNames).toHaveLength(1);
                                 expect(lodashGet(displayNames, [0, 'props', 'children'])).toBe('Three, Four');
