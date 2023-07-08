@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import _ from 'lodash';
 import {Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -10,6 +11,7 @@ import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import useLocalize from '../../hooks/useLocalize';
+import {withLocalizePropTypes} from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import exampleCheckImage from './exampleCheckImage';
@@ -19,7 +21,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
-    ...StepPropTypes,
+    ..._.omit(StepPropTypes, _.keys(withLocalizePropTypes)),
 };
 
 function BankAccountManualStep(props) {
