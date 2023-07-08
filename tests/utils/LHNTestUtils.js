@@ -7,7 +7,6 @@ import {LocaleContextProvider} from '../../src/components/withLocalize';
 import SidebarLinksData from '../../src/pages/home/sidebar/SidebarLinksData';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
-import {CurrentReportIDContext} from '../../src/components/withCurrentReportID';
 
 // we have to mock `useIsFocused` because it's used in the SidebarLinks component
 const mockedNavigate = jest.fn();
@@ -165,7 +164,7 @@ function getAdvancedFakeReport(isArchived, isUserCreatedPolicyRoom, hasAddWorksp
     };
 }
 
-function getDefaultRenderedSidebarLinks() {
+function getDefaultRenderedSidebarLinks(currentReportID) {
     // A try-catch block needs to be added to the rendering so that any errors that happen while the component
     // renders are caught and logged to the console. Without the try-catch block, Jest might only report the error
     // as "The above error occurred in your component", without providing specific details. By using a try-catch block,
@@ -177,7 +176,7 @@ function getDefaultRenderedSidebarLinks() {
         // are passed to the component. If this is not done, then all the locale props are missing
         // and there are a lot of render warnings. It needs to be done like this because normally in
         // our app (App.js) is when the react application is wrapped in the context providers
-        render(<MockedSidebarLinks />);
+        render(<MockedSidebarLinks currentReportID={currentReportID} />);
     } catch (error) {
         console.error(error);
     }
@@ -193,16 +192,6 @@ function MockedSidebarLinks({currentReportID}) {
             components={[
                 OnyxProvider,
                 LocaleContextProvider,
-                ({children}) => (
-                    <CurrentReportIDContext.Provider
-                        value={{
-                            updateCurrentReportID: () => {},
-                            currentReportID,
-                        }}
-                    >
-                        {children}
-                    </CurrentReportIDContext.Provider>
-                ),
             ]}
         >
             <SidebarLinksData
@@ -214,6 +203,7 @@ function MockedSidebarLinks({currentReportID}) {
                     bottom: 0,
                 }}
                 isSmallScreenWidth={false}
+                currentReportID={currentReportID}
             />
         </ComposeProviders>
     );
