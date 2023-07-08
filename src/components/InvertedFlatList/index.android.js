@@ -48,7 +48,12 @@ class InvertedFlatList extends React.Component {
                 ListFooterComponentStyle={[styles.invert, this.props.ListFooterComponentStyle]}
                 verticalScrollbarPosition="left" // We are mirroring the X and Y axis, so we need to swap the scrollbar position
                 CellRendererComponent={CellRendererComponent}
-                // Enables absolute positioning with zIndex in the list. Source: https://reactnative.dev/docs/0.71/optimizing-flatlist-configuration#removeclippedsubviews
+
+                /**
+                 * To achieve absolute positioning and handle overflows for list items, the property must be disabled
+                 * for Android native builds.
+                 * Source: https://reactnative.dev/docs/0.71/optimizing-flatlist-configuration#removeclippedsubviews
+                 */
                 removeClippedSubviews={false}
             />
         );
