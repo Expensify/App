@@ -70,7 +70,7 @@ const defaultProps = {
  * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasPassword, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, didForgetPassword, hasEmailDeliveryFailure}) {
+function getRenderOptions({hasLogin, hasPassword, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, didForgetPassword, canUsePasswordlessLogins, hasEmailDeliveryFailure}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !shouldShowEmailDeliveryFailurePage;
@@ -125,7 +125,7 @@ function SignInPage({credentials, account}) {
 
     let welcomeHeader;
     let welcomeText;
-    if (shouldShowValidateCodeForm) {
+    if (shouldShowValidateCodeForm || shouldShowResendValidationForm) {
         if (account.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
             welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
