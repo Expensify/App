@@ -410,6 +410,10 @@ function isThread(report) {
     return Boolean(report && report.parentReportID && report.parentReportActionID && report.type === CONST.REPORT.TYPE.CHAT);
 }
 
+function isControlPolicyExpenseChat(report) {
+    return getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
+}
+
 /**
  * Only returns true if this is our main 1:1 DM report with Concierge
  *
@@ -2223,8 +2227,8 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
-    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
-        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report)) || isControlPolicyExpenseChat(report)) {
+        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT, CONST.IOU.MONEY_REQUEST_TYPE.REQUEST];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.

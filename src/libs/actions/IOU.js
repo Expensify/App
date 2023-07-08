@@ -462,7 +462,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     const groupChatReport = existingGroupChatReport || ReportUtils.buildOptimisticChatReport(participantAccountIDs);
 
     // ReportID is -2 (aka "deleted") on the group transaction: https://github.com/Expensify/Auth/blob/3fa2698654cd4fbc30f9de38acfca3fbeb7842e4/auth/command/SplitTransaction.cpp#L24-L27
-    const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, (participant) => participant.login)]);
+    const formattedParticipants = Localize.arrayToString([currentUserLogin, ..._.map(participants, (participant) => participant.login || participant.displayName)]);
     const groupTransaction = TransactionUtils.buildOptimisticTransaction(
         amount,
         currency,
@@ -580,12 +580,19 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = IOUUtils.calculateAmount(participants.length, amount, false);
-    const splits = [{email: currentUserEmail, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, true)}];
+    const splits = groupChatReport.isPolicyExpenseChat
+        ? []
+        : [{email: currentUserEmail, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, true)}];
 
-    const hasMultipleParticipants = participants.length > 1;
+    const hasMultipleParticipants = participants.length > 1 && !groupChatReport.isPolicyExpenseChat;
     _.each(participants, (participant) => {
-        const email = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase();
-        const accountID = Number(participant.accountID);
+        console.log(participant, groupChatReport);
+        if (groupChatReport.isPolicyExpenseChat && !_.isEmpty(participant.login)) {
+            // Skip the manager of the policy expense chat
+            return;
+        }
+        const email = participant.login ? OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase() : '';
+        const accountID = participant.accountID ? Number(participant.accountID) : 0;
         if (email === currentUserEmail) {
             return;
         }
@@ -594,11 +601,14 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
         let oneOnOneChatReport;
         let isNewOneOnOneChatReport = false;
-        oneOnOneChatReport = !hasMultipleParticipants && !existingGroupChatReportID ? groupChatReport : ReportUtils.getChatByParticipants([accountID]);
-
-        if (!oneOnOneChatReport) {
-            isNewOneOnOneChatReport = true;
-            oneOnOneChatReport = ReportUtils.buildOptimisticChatReport([accountID]);
+        if (participant.isPolicyExpenseChat) {
+            oneOnOneChatReport = chatReports[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`];
+        } else {
+            oneOnOneChatReport = !hasMultipleParticipants && !existingGroupChatReportID ? groupChatReport : ReportUtils.getChatByParticipants([accountID]);
+            if (!oneOnOneChatReport) {
+                isNewOneOnOneChatReport = true;
+                oneOnOneChatReport = ReportUtils.buildOptimisticChatReport([accountID]);
+            }
         }
 
         // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
@@ -694,6 +704,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         chatReportID: groupChatReport.reportID,
         transactionID: groupTransaction.transactionID,
         reportActionID: groupIOUReportAction.reportActionID,
+        policyID: groupChatReport.policyID,
     };
 
     if (_.isEmpty(existingGroupChatReport)) {
@@ -730,6 +741,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
             transactionID: groupData.transactionID,
             reportActionID: groupData.reportActionID,
             createdReportActionID: groupData.createdReportActionID,
+            policyID: groupData.policyID,
         },
         onyxData,
     );
