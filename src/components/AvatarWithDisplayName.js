@@ -57,7 +57,7 @@ function AvatarWithDisplayName(props) {
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
-    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
+    const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies, true);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
     const shouldShowSubscriptAvatar = ReportUtils.shouldReportShowSubscript(props.report);
