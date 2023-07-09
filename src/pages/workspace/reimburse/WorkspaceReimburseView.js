@@ -125,10 +125,6 @@ function WorkspaceReimburseView(props) {
     }, [props.policy.id]);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    useEffect(() => {
         setCurrentRatePerUnit(getCurrentRatePerUnitLabel());
         const isReconnecting = prevIsOffline && !props.network.isOffline;
         if (!isReconnecting) {
