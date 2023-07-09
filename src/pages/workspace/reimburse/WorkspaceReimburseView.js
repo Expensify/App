@@ -67,7 +67,6 @@ const defaultProps = {
 
 function WorkspaceReimburseView(props) {
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
-    const prevIsOffline = usePrevious(props.network.isOffline);
     const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === 'Distance');
     const distanceCustomRate = _.find(lodashGet(props.distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
@@ -126,8 +125,7 @@ function WorkspaceReimburseView(props) {
 
     useEffect(() => {
         setCurrentRatePerUnit(getCurrentRatePerUnitLabel());
-        const isReconnecting = prevIsOffline && !props.network.isOffline;
-        if (!isReconnecting) {
+        if (props.network.isOffline) {
             return;
         }
         fetchData();
