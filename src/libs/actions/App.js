@@ -201,14 +201,14 @@ function endSignOnTransition() {
 /**
  * Create a new workspace and navigate to it
  *
- * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
  */
-function createWorkspaceAndNavigateToIt(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
+function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
     const policyID = Policy.generatePolicyID();
-    const adminsChatReportID = Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, policyID);
+    const adminsChatReportID = Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
     Navigation.isNavigationReady()
         .then(() => {
             if (transitionFromOldDot) {
