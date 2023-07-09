@@ -14,6 +14,7 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps as anchorForCommentsOnlyDefaultProps} from './anchorForCommentsOnlyPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -66,12 +67,14 @@ function BaseAnchorForCommentsOnly(props) {
             onPress={linkProps.onPress}
             onPressIn={props.onPressIn}
             onPressOut={props.onPressOut}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            accessibilityLabel={props.href}
         >
             <Tooltip text={props.href}>
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
-                    accessibilityRole="link"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     hrefAttrs={{
                         rel: props.rel,
                         target: isEmail ? '_self' : props.target,

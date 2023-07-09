@@ -1,7 +1,8 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
+import lodashGet from 'lodash/get';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -12,22 +13,28 @@ import Hoverable from '../Hoverable';
 import DisplayNames from '../DisplayNames';
 import colors from '../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import {withReportCommentDrafts} from '../OnyxProvider';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
-import TextPill from '../TextPill';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
+
+    /** The comment left by the user */
+    comment: PropTypes.string,
 
     /** The ID of the report that the option is for */
     reportID: PropTypes.string.isRequired,
@@ -52,10 +59,20 @@ const defaultProps = {
     onSelectRow: () => {},
     isFocused: false,
     style: null,
+    comment: '',
 };
 
 function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
+    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
+
+    useEffect(() => {
+        if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
+            return;
+        }
+        Report.setReportWithDraft(props.reportID, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (!optionItem) {
         return null;
@@ -65,7 +82,6 @@ function OptionRowLHN(props) {
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
-    const textPillStyle = props.isFocused ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)] : [styles.ml1];
     const alternateTextStyle = StyleUtils.combineStyles(
         props.viewMode === CONST.OPTION_MODE.COMPACT
             ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
@@ -83,11 +99,12 @@ function OptionRowLHN(props) {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const shouldShowGreenDotIndicator =
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
             (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
-            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted));
+            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -95,6 +112,7 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
+        setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
             event,
@@ -104,7 +122,7 @@ function OptionRowLHN(props) {
             {},
             '',
             () => {},
-            () => {},
+            () => setIsContextMenuActive(false),
             false,
             false,
             optionItem.isPinned,
@@ -140,13 +158,12 @@ function OptionRowLHN(props) {
                             styles.sidebarLinkInner,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
-                            hovered && !props.isFocused ? props.hoverStyle : null,
+                            (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
                         ]}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
                     >
-                        <View
-                            accessibilityHint={props.translate('accessibilityHints.navigatesToChat')}
-                            style={sidebarInnerRowStyle}
-                        >
+                        <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!_.isEmpty(optionItem.icons) &&
                                     (optionItem.shouldShowSubscript ? (
@@ -154,9 +171,7 @@ function OptionRowLHN(props) {
                                             backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
-                                            mainTooltip={optionItem.ownerEmail}
-                                            secondaryTooltip={optionItem.subtitle}
-                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
                                         />
                                     ) : (
                                         <MultipleAvatars
@@ -184,13 +199,6 @@ function OptionRowLHN(props) {
                                                 optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
                                             }
                                         />
-                                        {optionItem.isChatRoom && !optionItem.isThread && (
-                                            <TextPill
-                                                style={textPillStyle}
-                                                accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
-                                                text={optionItem.subtitle}
-                                            />
-                                        )}
                                     </View>
                                     {optionItem.alternateText ? (
                                         <Text
@@ -255,4 +263,13 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default withLocalize(OptionRowLHN);
+export default compose(
+    withLocalize,
+    withReportCommentDrafts({
+        propName: 'comment',
+        transformValue: (drafts, props) => {
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
+            return lodashGet(drafts, draftKey, '');
+        },
+    }),
+)(OptionRowLHN);

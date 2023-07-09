@@ -218,13 +218,6 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
         },
         name: 'ReportParticipants_Root',
     },
-    {
-        getComponent: () => {
-            const ProfilePage = require('../../../pages/ProfilePage').default;
-            return ProfilePage;
-        },
-        name: 'ReportParticipants_Details',
-    },
 ]);
 
 const SearchModalStackNavigator = createModalStackNavigator([
@@ -463,6 +456,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return SettingsAppDownloadLinks;
         },
         name: 'Settings_App_Download_Links',
+    },
+    {
+        getComponent: () => {
+            const SettingsLoungeAccessPage = require('../../../pages/settings/Profile/LoungeAccessPage').default;
+            return SettingsLoungeAccessPage;
+        },
+        name: 'Settings_Lounge_Access',
     },
     {
         getComponent: () => {
