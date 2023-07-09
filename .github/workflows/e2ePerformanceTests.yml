@@ -79,7 +79,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Unmerged PR - Fetch head ref of unmerged PR
-        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '') }}
+        if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         run: |
           if [[ ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }} != '' ]]; then
             git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
