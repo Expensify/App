@@ -2333,10 +2333,10 @@ function getReportIDFromLink(url) {
     return reportID;
 }
 
-function hasIouWaitingOnBankAccount(chatReport) {
+function hasIouWaitingOnCurrentUserBankAccount(chatReport) {
     if (chatReport.iouReportID) {
         const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
-        if (iouReport && iouReport.isWaitingOnBankAccount) {
+        if (iouReport && iouReport.isWaitingOnBankAccount && iouReport.ownerAccountID === currentUserAccountID) {
             return true;
         }
     }
@@ -2352,7 +2352,7 @@ function hasIouWaitingOnBankAccount(chatReport) {
  */
 function canRequestMoney(report) {
     // Prevent requesting money if pending iou waiting for their bank account already exists.
-    if (hasIouWaitingOnBankAccount(report)) {
+    if (hasIouWaitingOnCurrentUserBankAccount(report)) {
         return false;
     }
     return !isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat;
@@ -2622,7 +2622,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
-    hasIouWaitingOnBankAccount,
+    hasIouWaitingOnCurrentUserBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
