@@ -111,7 +111,7 @@ function ReportPreview(props) {
                     <View style={styles.flexRow}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>
-                                {props.translate((ReportUtils.isSettled(props.iouReportID) || props.isWaitingOnBankAccount) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
+                                {props.translate(ReportUtils.isSettled(props.iouReportID) || props.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
                             </Text>
                         </View>
                     </View>
