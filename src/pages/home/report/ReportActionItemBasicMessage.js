@@ -13,7 +13,7 @@ const defaultProps = {
     children: null,
 };
 
-function ReportActionBasicMessage(props) {
+function ReportActionItemBasicMessage(props) {
     return (
         <View>
             <Text style={[styles.chatItemMessage, styles.colorMuted]}>{props.message}</Text>
@@ -22,8 +22,8 @@ function ReportActionBasicMessage(props) {
     );
 }
 
-ReportActionBasicMessage.propTypes = propTypes;
-ReportActionBasicMessage.defaultProps = defaultProps;
-ReportActionBasicMessage.displayName = 'ReportActionItemAddedBankAccount';
+ReportActionItemBasicMessage.propTypes = propTypes;
+ReportActionItemBasicMessage.defaultProps = defaultProps;
+ReportActionItemBasicMessage.displayName = 'ReportActionBasicMessage';
 
-export default ReportActionBasicMessage;
+export default ReportActionItemBasicMessage;
