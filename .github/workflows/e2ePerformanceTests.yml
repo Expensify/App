@@ -78,11 +78,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Unmerged PR - Fetch changes from forked repository if necessary
+      - name: Unmerged PR - Fetch head ref of unmerged PR
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) && (steps.getPullRequestDetails.outputs.FORKED_REPO_URL != '') }}
         run: |
-          git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
-          git fetch pr_remote ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
+          if [[ ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }} != '' ]]; then
+            git remote add pr_remote ${{ steps.getPullRequestDetails.outputs.FORKED_REPO_URL }}
+            git fetch pr_remote ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
+          else
+            git fetch origin ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }} --no-tags --depth=1
+          fi
 
       - name: Unmerged PR - Set dummy git credentials before merging
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
@@ -94,11 +98,8 @@ jobs:
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitShaIfUnmergedPR
         run: |
-          $HEAD_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
-          git fetch origin "$HEAD_COMMIT_SHA" --no-tags --depth=1
-          git merge --no-commit "$HEAD_COMMIT_SHA"
-          git checkout "$HEAD_COMMIT_SHA"
-          echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+          git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
