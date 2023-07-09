@@ -171,7 +171,7 @@ function MoneyRequestAmountPage(props) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
-    const prevMoneyRequestId = useRef(props.iou.id);
+    const prevMoneyRequestID = useRef(props.iou.id);
     const textInput = useRef(null);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
@@ -234,17 +234,17 @@ function MoneyRequestAmountPage(props) {
 
     useEffect(() => {
         if (isEditing.current) {
-            if (prevMoneyRequestId.current !== props.iou.id) {
+            if (prevMoneyRequestID.current !== props.iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
                 if (props.iou.id) {
                     Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
                 }
                 return;
             }
-            const moneyRequestId = `${iouType.current}${reportID.current}`;
-            const shouldReset = props.iou.id !== moneyRequestId;
+            const moneyRequestID = `${iouType.current}${reportID.current}`;
+            const shouldReset = props.iou.id !== moneyRequestID;
             if (shouldReset) {
-                IOU.resetMoneyRequestInfo(moneyRequestId);
+                IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
             if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
@@ -253,7 +253,7 @@ function MoneyRequestAmountPage(props) {
         }
 
         return () => {
-            prevMoneyRequestId.current = props.iou.id;
+            prevMoneyRequestID.current = props.iou.id;
         };
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
@@ -374,12 +374,12 @@ function MoneyRequestAmountPage(props) {
             return;
         }
 
-        const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId;
+        const moneyRequestID = `${iouType.current}${reportID.current}`;
+        const shouldReset = props.iou.id !== moneyRequestID;
         // If the money request ID in Onyx does not match the ID from params, we want to start a new request
         // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
         if (shouldReset) {
-            IOU.setMoneyRequestId(moneyRequestId);
+            IOU.setMoneyRequestId(moneyRequestID);
             IOU.setMoneyRequestDescription('');
             IOU.setMoneyRequestParticipants([]);
         }
