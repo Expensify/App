@@ -94,8 +94,10 @@ jobs:
         if: ${{ !fromJSON(steps.getPullRequestDetails.outputs.IS_MERGED) }}
         id: getMergeCommitShaIfUnmergedPR
         run: |
-          git merge --no-commit ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
-          git checkout ${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+          $HEAD_COMMIT_SHA=${{ steps.getPullRequestDetails.outputs.HEAD_COMMIT_SHA }}
+          git fetch origin "$HEAD_COMMIT_SHA" --no-tags --depth=1
+          git merge --no-commit "$HEAD_COMMIT_SHA"
+          git checkout "$HEAD_COMMIT_SHA"
           echo "MERGE_COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
