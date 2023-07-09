@@ -13,7 +13,7 @@ import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
@@ -42,7 +42,7 @@ function NewTaskDescriptionPage(props) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     const onSubmit = (values) => {
-        TaskUtils.setDescriptionValue(values.taskDescription);
+        Task.setDescriptionValue(values.taskDescription);
         Navigation.navigate(ROUTES.NEW_TASK);
     };
 
@@ -56,14 +56,14 @@ function NewTaskDescriptionPage(props) {
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton
-                title={props.translate('newTaskPage.description')}
-                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                title={props.translate('task.description')}
+                onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
-                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                style={[styles.mh5, styles.flexGrow1]}
                 onSubmit={(values) => onSubmit(values)}
                 enabledWhenOffline
             >
