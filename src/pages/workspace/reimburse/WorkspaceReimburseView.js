@@ -19,7 +19,6 @@ import * as Policy from '../../../libs/actions/Policy';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
-import usePrevious from '../../../hooks/usePrevious';
 import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 import networkPropTypes from '../../../components/networkPropTypes';
@@ -129,7 +128,7 @@ function WorkspaceReimburseView(props) {
             return;
         }
         fetchData();
-    }, [props.policy.customUnits, props.preferredLocale, props.network.isOffline, prevIsOffline, getCurrentRatePerUnitLabel, fetchData]);
+    }, [props.policy.customUnits, props.preferredLocale, props.network.isOffline, getCurrentRatePerUnitLabel, fetchData]);
 
     return (
         <>
