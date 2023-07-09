@@ -47,7 +47,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
-import * as TaskUtils from '../../../libs/actions/Task';
+import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
 import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager';
@@ -273,6 +273,17 @@ function ReportActionCompose({translate, ...props}) {
         shouldExcludeTextAreaNodes: false,
     });
 
+    const insertedEmojis = useRef([]);
+
+    /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
+    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
+        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis));
+        insertedEmojis.current = [];
+    }, []);
+
     /**
      * Updates the composer when the comment length is exceeded
      * Shows red borders and prevents the comment from being sent
@@ -352,10 +363,12 @@ function ReportActionCompose({translate, ...props}) {
      */
     const updateComment = useCallback(
         (commentValue, shouldDebounceSaveComment) => {
-            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, props.preferredSkinTone);
+            const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(commentValue, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+                insertedEmojis.current = [...insertedEmojis, ...emojis];
+                debouncedUpdateFrequentlyUsedEmojis();
             }
 
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
@@ -388,7 +401,7 @@ function ReportActionCompose({translate, ...props}) {
                 debouncedBroadcastUserIsTyping(props.reportID);
             }
         },
-        [props.preferredSkinTone, props.reportID, selection.end, value],
+        [debouncedUpdateFrequentlyUsedEmojis, props.preferredLocale, props.preferredSkinTone, props.reportID, selection.end, value],
     );
 
     /**
@@ -403,17 +416,6 @@ function ReportActionCompose({translate, ...props}) {
             }),
         [],
     );
-
-    const insertedEmojis = useRef([]);
-
-    /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useCallback(() => {
-        User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis));
-        insertedEmojis.current = [];
-    }, []);
 
     useEffect(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
@@ -440,8 +442,17 @@ function ReportActionCompose({translate, ...props}) {
             Report.setReportWithDraft(props.reportID, true);
         }
 
+        const unsubscribeNavFocus = props.navigation.addListener('focus', () => {
+            if (!willBlurTextInputOnTapOutside || props.isFocused || props.modal.isVisible) return;
+            focus();
+        });
+
         return () => {
             ReportActionComposeFocusManager.clear();
+            if (!unsubscribeNavFocus) {
+                return;
+            }
+            unsubscribeNavFocus();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -491,7 +502,7 @@ function ReportActionCompose({translate, ...props}) {
                 shouldShowEmojiSuggestionMenu: false,
                 isAutoSuggestionPickerLarge,
             };
-            const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
+            const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, props.preferredLocale);
 
             if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
                 nextState.suggestedEmojis = newSuggestedEmojis;
@@ -500,7 +511,7 @@ function ReportActionCompose({translate, ...props}) {
 
             setSuggestionValues((prevState) => ({...prevState, ...nextState}));
         },
-        [composerHeight, value, props.windowHeight, props.isSmallScreenWidth, shouldBlockEmojiCalc],
+        [value, props.windowHeight, props.isSmallScreenWidth, props.preferredLocale, composerHeight],
     );
 
     const getMentionOptions = useCallback(
@@ -695,7 +706,7 @@ function ReportActionCompose({translate, ...props}) {
             {
                 icon: Expensicons.Task,
                 text: translate('newTaskPage.assignTask'),
-                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(props.reportID),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(props.reportID),
             },
         ];
     }, [props.betas, props.report, props.reportID, reportParticipants, translate]);
@@ -858,8 +869,6 @@ function ReportActionCompose({translate, ...props}) {
 
                 if (suggestionsExist) {
                     resetSuggestions();
-                } else if (comment.current.length > 0) {
-                    updateComment('', true);
                 }
 
                 return;
@@ -900,7 +909,6 @@ function ReportActionCompose({translate, ...props}) {
             submitForm,
             suggestionValues.suggestedEmojis.length,
             suggestionValues.suggestedMentions.length,
-            updateComment,
         ],
     );
 

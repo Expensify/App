@@ -106,6 +106,8 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidMount() {
+        this.dismissModalIfNecessary();
+
         if (this.isEditing) {
             const moneyRequestId = `${this.iouType}${this.reportID}`;
             const shouldReset = this.props.iou.id !== moneyRequestId;
@@ -126,6 +128,8 @@ class MoneyRequestAmountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        this.dismissModalIfNecessary();
+
         if (this.isEditing) {
             // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
             if (_.isEmpty(this.props.iou.participants) || this.props.iou.amount === 0 || prevProps.iou.id !== this.props.iou.id) {
@@ -231,6 +235,16 @@ class MoneyRequestAmountPage extends React.Component {
             [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: this.props.translate('iou.splitBill'),
         };
         return title[this.iouType];
+    }
+
+    /**
+     * Check and dismiss modal
+     */
+    dismissModalIfNecessary() {
+        if (!ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
+            return;
+        }
+        Navigation.dismissModal(this.reportID);
     }
 
     /**
