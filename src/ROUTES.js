@@ -120,8 +120,6 @@ export default {
     getProfileRoute: (accountID) => `a/${accountID}`,
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
-    REPORT_PARTICIPANT: 'r/:reportID/participants/a/:accountID',
-    getReportParticipantRoute: (reportID, accountID) => `r/${reportID}/participants/a/${accountID}`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: (reportID) => `r/${reportID}/details`,
     REPORT_SETTINGS: 'r/:reportID/settings',
