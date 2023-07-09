@@ -89,7 +89,7 @@ function MoneyRequestHeader(props) {
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
+    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
     const report = props.report;
     if (props.isSingleTransactionView) {
         report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
