@@ -245,6 +245,14 @@ const styles = {
         color: themeColors.textMutedReversed,
     },
 
+    highlightBG: {
+        backgroundColor: themeColors.highlightBG,
+    },
+
+    appBG: {
+        backgroundColor: themeColors.appBG,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -1431,8 +1439,6 @@ const styles = {
     },
 
     appContentHeader: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
@@ -1840,6 +1846,12 @@ const styles = {
         right: -1,
     },
 
+    secondAvatarSubscriptSmallNormal: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+    },
+
     leftSideLargeAvatar: {
         left: 15,
     },
@@ -1911,6 +1923,11 @@ const styles = {
     emptyAvatar: {
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
+    },
+
+    emptyAvatarSmallNormal: {
+        height: variables.avatarSizeSmallNormal,
+        width: variables.avatarSizeSmallNormal,
     },
 
     emptyAvatarSmall: {
@@ -2480,17 +2497,6 @@ const styles = {
         alignItems: 'center',
     },
 
-    checkboxContainer: {
-        backgroundColor: themeColors.componentBG,
-        borderRadius: 4,
-        height: 20,
-        width: 20,
-        borderColor: themeColors.borderLighter,
-        borderWidth: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
     checkedContainer: {
         backgroundColor: themeColors.checkBox,
     },
@@ -2550,14 +2556,14 @@ const styles = {
     },
 
     requestPreviewBox: {
-        marginTop: 8,
+        marginTop: 12,
         maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
-        borderRadius: variables.componentBorderRadiusCard,
-        padding: 20,
+        borderRadius: variables.componentBorderRadiusLarge,
+        padding: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
@@ -3137,18 +3143,6 @@ const styles = {
         zIndex: 2,
     },
 
-    textPill: {
-        backgroundColor: themeColors.border,
-        borderRadius: 10,
-        overflow: 'hidden',
-        paddingVertical: 2,
-        flexShrink: 0,
-        maxWidth: variables.badgeMaxWidth,
-        fontSize: variables.fontSizeSmall,
-        ...whiteSpace.pre,
-        ...spacing.ph2,
-    },
-
     dropZoneTopInvisibleOverlay: {
         position: 'absolute',
         width: '100%',
@@ -3415,6 +3409,51 @@ const styles = {
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    taskTitleMenuItem: {
+        ...writingDirection.ltr,
+        ...headlineFont,
+        ...spacing.flexWrap,
+        ...spacing.flex1,
+        fontSize: variables.fontSizeXLarge,
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
+    taskTitleDescription: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+        lineHeight: variables.lineHeightNormal,
+        ...spacing.mb1,
+    },
+
+    taskMenuItemCheckbox: {
+        height: 27,
+        ...spacing.mr3,
+    },
+
+    taskHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        ...spacing.mh5,
+        ...spacing.mv2,
+    },
+
+    assigneeTextStyle: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+        minHeight: variables.avatarSizeSubscript,
+    },
+
+    taskRightIconContainer: {
+        width: variables.componentSizeNormal,
+        marginLeft: 'auto',
+        ...spacing.mt1,
+        ...pointerEventsAuto,
+        ...spacing.dFlex,
+        ...spacing.alignItemsCenter,
     },
 
     shareCodePage: {

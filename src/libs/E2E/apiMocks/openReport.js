@@ -7,7 +7,7 @@ export default () => ({
                 reportID: '98345625',
                 reportName: 'Chat Report',
                 chatType: '',
-                ownerEmail: '__fake__',
+                ownerAccountID: 0,
                 policyID: '_FAKE_',
                 participants: ['fake1@gmail.com', 'fake2@gmail.com', 'fake3@gmail.com', 'fake4@gmail.com', 'fake5@gmail.com', 'fake6@gmail.com', 'fake7@gmail.com', 'fake8@gmail.com'],
                 isPinned: false,

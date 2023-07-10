@@ -96,7 +96,7 @@ function MoneyRequestHeader(props) {
         report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
     }
     return (
-        <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
+        <View style={[styles.highlightBG, styles.pl0]}>
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={props.isSingleTransactionView}
