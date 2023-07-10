@@ -31,13 +31,14 @@ All workspace admins can access the #admins room. Use the #admins room to collab
 - To turn your message into code, place a backtick on both sides of the text: `text`
 - To turn your text into a blockquote, add an angled bracket (>) in front of the text: 
    >your text
+- To turn your message into a heading, place a number sign (#) in front of the text:
+# Heading
 - To turn your entire message into code block, place three backticks on both sides of the text:
 ```
 here's some text 
 and even more text
 ```
-- To turn your message into a heading, place a number sign (#) in front of the text:
-# Heading
+
 # FAQs
 ## How do I add more than one person to a chat?
 Start by clicking the green chat **+** button and select **New Group**. Search for the people you want to invite and check the circle to the far right. Once you’ve selected everyone you want in the group chat, click the **Create Group** button at the bottom of your screen.
