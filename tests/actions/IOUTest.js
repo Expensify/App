@@ -380,7 +380,6 @@ describe('actions/IOU', () => {
                     amount: existingTransaction.amount,
                     currency: CONST.CURRENCY.USD,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    participants: [RORY_EMAIL, CARLOS_EMAIL],
                     participantAccountIDs: [RORY_ACCOUNT_ID, CARLOS_ACCOUNT_ID],
                 },
             };
@@ -842,7 +841,6 @@ describe('actions/IOU', () => {
                     amount: julesExistingTransaction.amount,
                     currency: CONST.CURRENCY.USD,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                    participants: [RORY_EMAIL, JULES_EMAIL],
                     participantAccountIDs: [RORY_ACCOUNT_ID, JULES_ACCOUNT_ID],
                 },
             };
