@@ -1,5 +1,5 @@
 import lodashClamp from 'lodash/clamp';
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
@@ -64,10 +64,9 @@ function calculateThumbnailImageSize(width, height, windowHeight) {
 
 function ThumbnailImage(props) {
     const {windowHeight} = useWindowDimensions();
-    const {initialWidth, initialHeight} = calculateThumbnailImageSize(props.imageWidth, props.imageHeight, windowHeight);
-    const [imageWidth, setImageWidth] = useState(initialWidth);
-    const [imageHeight, setImageHeight] = useState(initialHeight);
-
+    const initialDimensions = calculateThumbnailImageSize(props.imageWidth, props.imageHeight, windowHeight);
+    const [imageWidth, setImageWidth] = useState(initialDimensions.thumbnailWidth);
+    const [imageHeight, setImageHeight] = useState(initialDimensions.thumbnailHeight);
 
     /**
      * Update the state with the computed thumbnail sizes.
@@ -75,14 +74,17 @@ function ThumbnailImage(props) {
      * @param {{ width: number, height: number }} Params - width and height of the original image.
      */
 
-    const updateImageSize = useCallback(({width, height}) => {
-        const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height,windowHeight);
-        setImageWidth(thumbnailWidth);
-        setImageHeight(thumbnailHeight);
-    }, [windowHeight])
+    const updateImageSize = useCallback(
+        ({width, height}) => {
+            const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height, windowHeight);
+            setImageWidth(thumbnailWidth);
+            setImageHeight(thumbnailHeight);
+        },
+        [windowHeight],
+    );
     return (
         <View style={[props.style, styles.overflowHidden]}>
-            <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth ?? 200, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={props.previewSourceURL}
                     onMeasure={updateImageSize}
@@ -96,3 +98,4 @@ function ThumbnailImage(props) {
 ThumbnailImage.propTypes = propTypes;
 ThumbnailImage.defaultProps = defaultProps;
 ThumbnailImage.displayName = 'ThumbnailImage';
+export default React.memo(ThumbnailImage);
