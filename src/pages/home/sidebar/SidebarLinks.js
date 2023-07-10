@@ -161,7 +161,6 @@ class SidebarLinks extends React.PureComponent {
 
     render() {
         const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
-        console.count('HannoDebug render SidebarLinks');
 
         return (
             <View

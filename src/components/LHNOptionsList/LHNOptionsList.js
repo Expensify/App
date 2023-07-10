@@ -82,8 +82,6 @@ class LHNOptionsList extends Component {
             this.data = this.props.data;
         }
 
-        console.log('List rendered with data:', this.data.length);
-
         return (
             <View style={[styles.flex1]}>
                 <FlatList

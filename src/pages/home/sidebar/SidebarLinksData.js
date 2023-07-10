@@ -76,7 +76,6 @@ function SidebarLinksData(props) {
 
     const isLoading = _.isEmpty(props.personalDetails) || _.isEmpty(props.chatReports);
 
-    console.count('HannoDebug render SidebarLinksData');
     return (
         <SidebarLinks
             // Forwarded props:
