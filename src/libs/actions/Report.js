@@ -297,7 +297,6 @@ function addActions(reportID, text = '', file) {
 
     const failureReport = {
         lastMessageText: prevVisibleMessageText,
-        lastReadTime: currentTime,
     };
     const failureData = [
         {
