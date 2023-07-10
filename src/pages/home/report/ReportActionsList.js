@@ -21,6 +21,7 @@ import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import MoneyRequestDetails from '../../../components/MoneyRequestDetails';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -52,6 +53,15 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
 
     ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -150,6 +160,7 @@ function ReportActionsList(props) {
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetailsList, props.report, props.currentUserPersonalDetails.accountID);
+
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
@@ -157,7 +168,7 @@ function ReportActionsList(props) {
                 ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
-                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
+                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={calculateInitialNumToRender()}
@@ -180,7 +191,6 @@ function ReportActionsList(props) {
                             />
                         );
                     }
-
                     return null;
                 }}
                 keyboardShouldPersistTaps="handled"

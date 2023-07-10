@@ -8,26 +8,14 @@ import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
-import Text from './Text';
 import participantPropTypes from './participantPropTypes';
-import Avatar from './Avatar';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import Icon from './Icon';
-import SettlementButton from './SettlementButton';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
-import * as IOU from '../libs/actions/IOU';
-import * as CurrencyUtils from '../libs/CurrencyUtils';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import DateUtils from '../libs/DateUtils';
-import reportPropTypes from '../pages/reportPropTypes';
-import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -41,9 +29,6 @@ const propTypes = {
         /** Name of the policy */
         name: PropTypes.string,
     }).isRequired,
-
-    /** The chat report this report is linked to */
-    chatReport: reportPropTypes,
 
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
@@ -62,7 +47,6 @@ const propTypes = {
 
 const defaultProps = {
     isSingleTransactionView: false,
-    chatReport: {},
     session: {
         email: null,
     },
@@ -70,20 +54,8 @@ const defaultProps = {
 };
 
 function MoneyRequestHeader(props) {
-    // These are only used for the single transaction view and not for expense and iou reports
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
-    const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const transactionDate = lodashGet(props.parentReportAction, ['created']);
-    const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
-
-    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
     const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
-    const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerID);
-    const payeeAvatar = isExpenseReport
-        ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
-        : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer =
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
@@ -107,6 +79,7 @@ function MoneyRequestHeader(props) {
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
                 report={report}
+                parentReport={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
@@ -125,9 +98,6 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
-        chatReport: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
-        },
         session: {
             key: ONYXKEYS.SESSION,
         },
