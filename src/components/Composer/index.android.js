@@ -88,7 +88,7 @@ function Composer({
       // get a ref to the inner textInput element e.g. if we do
       // <constructor ref={el => this.textInput = el} /> this will not
       // return a ref to the component, but rather the HTML element by default
-      props.forwardedRef(textInput);
+      props.forwardedRef(textInput.current);
     }, []);
 
     useEffect(() => {
