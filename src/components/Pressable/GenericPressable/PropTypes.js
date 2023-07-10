@@ -132,7 +132,7 @@ const defaultProps = {
     screenReaderActiveStyle: {},
     enableInScreenReaderStates: CONST.SCREEN_READER_STATES.ALL,
     nextFocusRef: undefined,
-    shouldUseAutoHitSlop: true,
+    shouldUseAutoHitSlop: false,
     accessible: true,
 };
 
