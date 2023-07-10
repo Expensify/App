@@ -48,7 +48,7 @@ function MoneyReportView(props) {
 
     return (
         <>
-            <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(280)]}>
+            <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
                 <Image
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
