@@ -245,6 +245,7 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
+    const prevVisibleMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID);
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
     const optimisticReport = {
@@ -294,7 +295,15 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
+    const failureReport = {
+        lastMessageText: prevVisibleMessageText,
+    };
     const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: failureReport,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
