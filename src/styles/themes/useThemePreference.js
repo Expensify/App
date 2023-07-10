@@ -5,7 +5,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 
 function useThemePreference() {
-    const [themePreference, setThemePreference] = useState(CONST.DEFAULT_THEME);
+    const [themePreference, setThemePreference] = useState(CONST.THEME.DEFAULT);
     const [systemTheme, setSystemTheme] = useState();
 
     useEffect(() => {
@@ -19,7 +19,7 @@ function useThemePreference() {
         const connectionId = Onyx.connect({
             key: ONYXKEYS.PREFERRED_THEME,
             callback: (newTheme) => {
-                const theme = newTheme || CONST.DEFAULT_THEME;
+                const theme = newTheme || CONST.THEME.DEFAULT;
 
                 if (theme === CONST.THEME.SYSTEM) setThemePreference(systemTheme);
                 else setThemePreference(theme);
