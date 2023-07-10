@@ -45,7 +45,7 @@ const propTypes = {
     /** Denotes whether it is an avatar or a workspace avatar */
     type: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_WORKSPACE]),
 
-    /** Owner of the avatar, typically a login email or workspace name */
+    /** Owner of the avatar. If user, displayName. If workspace, policy name */
     name: PropTypes.string,
 };
 
@@ -76,7 +76,7 @@ function Avatar(props) {
     const imageStyle =
         props.imageStyles && props.imageStyles.length
             ? [StyleUtils.getAvatarStyle(props.size), ...props.imageStyles, StyleUtils.getAvatarBorderRadius(props.size, props.type)]
-            : [StyleUtils.getAvatarStyle(props.size), styles.noBorderRadius];
+            : [StyleUtils.getAvatarStyle(props.size), StyleUtils.getAvatarBorderStyle(props.size, props.type)];
 
     const iconStyle = props.imageStyles && props.imageStyles.length ? [StyleUtils.getAvatarStyle(props.size), styles.bgTransparent, ...props.imageStyles] : undefined;
 

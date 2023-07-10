@@ -10,13 +10,13 @@ import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
+import * as CurrencyUtils from '../CurrencyUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
-import * as CurrencyUtils from '../CurrencyUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
 
@@ -977,7 +977,8 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
  * @returns {String}
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / 100}${currency}`;
+    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
+    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / currencyUnit}${currency}`;
 }
 
 /**
