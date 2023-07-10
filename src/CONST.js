@@ -487,6 +487,13 @@ const CONST = {
         GOOGLE: 'Google',
     },
 
+    SIGN_IN_PLATFORM: {
+        DESKTOP: 'desktop',
+        IOS: 'ios',
+        ANDROID: 'android',
+        WEB: 'web',
+    },
+
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',

@@ -38,6 +38,12 @@ Onyx.connect({
     callback: (val) => (credentials = val || {}),
 });
 
+let loginPlatform = '';
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_PLATFORM,
+    callback: (val) => (loginPlatform = val || ''),
+});
+
 /**
  * Manage push notification subscriptions on sign-in/sign-out.
  *
@@ -198,6 +204,15 @@ function resendValidateCode(login = credentials.login) {
 }
 
 /**
+ */
+
+function setSignInAttemptPlatform(platform = loginPlatform) {
+    Onyx.merge(ONYXKEYS.LOGIN_PLATFORM, platform);
+}
+
+function clearSignInAttemptPlatform() {
+    Onyx.merge(ONYXKEYS.LOGIN_PLATFORM, '');
+}
 
 /**
  * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls.
@@ -789,6 +804,8 @@ export {
     cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
+    setSignInAttemptPlatform,
+    clearSignInAttemptPlatform,
     resendValidationLink,
     resendValidateCode,
     requestUnlinkValidationLink,

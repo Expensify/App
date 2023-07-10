@@ -71,6 +71,9 @@ export default {
     // Contains metadata (partner, login, validation date) for all of the user's logins
     LOGIN_LIST: 'loginList',
 
+    // Contains the user's attempted login platform
+    LOGIN_PLATFORM: 'loginPlatform',
+
     // Information about the current session (authToken, accountID, email, loading, error)
     SESSION: 'session',
     BETAS: 'betas',
