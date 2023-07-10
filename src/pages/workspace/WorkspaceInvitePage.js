@@ -151,10 +151,7 @@ class WorkspaceInvitePage extends React.Component {
 
         // Filtering out selected users from the search results
         const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
-        const personalDetailsWithoutSelected = _.filter(
-            this.state.personalDetails,
-            ({login}) => !filterText.includes(login) && (this.state.searchTerm === '' || this.state.searchTerm.includes(login)),
-        );
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
 
         sections.push({
             title: this.props.translate('common.contacts'),
@@ -165,7 +162,8 @@ class WorkspaceInvitePage extends React.Component {
         indexOffset += personalDetailsWithoutSelected.length;
 
         const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
-        if (hasUnselectedUserToInvite) {
+        const hideUserToInvite = this.state.searchTerm !== '' && !this.state.searchTerm.includes(this.state.userToInvite);
+        if (hasUnselectedUserToInvite && !hideUserToInvite) {
             sections.push({
                 title: undefined,
                 data: [this.state.userToInvite],
