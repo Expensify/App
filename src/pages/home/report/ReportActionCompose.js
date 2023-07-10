@@ -238,14 +238,6 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
-        // This listener is used for focusing the composer again after going back to a report without remounting it.
-        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
-            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
-                return;
-            }
-            this.focus();
-        });
-
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -262,10 +254,10 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+        // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.willBlurTextInputOnTapOutside && this.props.isFocused && prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        if (this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && this.props.isFocused && (prevProps.modal.isVisible || !prevProps.isFocused)) {
             this.focus();
         }
 
@@ -284,10 +276,6 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-        if (!this.unsubscribeNavFocus) {
-            return;
-        }
-        this.unsubscribeNavFocus();
     }
 
     onSelectionChange(e) {
