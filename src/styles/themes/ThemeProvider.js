@@ -3,6 +3,7 @@ import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import ThemeContext from './ThemeContext';
 import useThemePreference from './useThemePreference';
+import CONST from '../../CONST';
 
 // Going to eventually import the light theme here too
 import darkTheme from './default';
@@ -14,7 +15,7 @@ const propTypes = {
 function ThemeProvider(props) {
     const themePreference = useThemePreference();
 
-    const theme = useMemo(() => (themePreference === 'light' ? /* TODO: replace with light theme */ darkTheme : darkTheme), [themePreference]);
+    const theme = useMemo(() => (themePreference === CONST.THEME.LIGHT ? /* TODO: replace with light theme */ darkTheme : darkTheme), [themePreference]);
 
     return <ThemeContext.Provider value={theme}>{props.children}</ThemeContext.Provider>;
 }
