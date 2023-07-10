@@ -289,7 +289,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
             policyID,
             cleanAccountID,
         );
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
             reportID: optimisticReport.reportID,

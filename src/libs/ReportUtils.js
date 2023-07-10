@@ -1680,10 +1680,10 @@ function buildOptimisticChatReport(
 
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
- * @param {String} ownerEmail
+ * @param {String} emailCreatingAction
  * @returns {Object}
  */
-function buildOptimisticCreatedReportAction(ownerEmail) {
+function buildOptimisticCreatedReportAction(emailCreatingAction) {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -1693,7 +1693,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                text: emailCreatingAction === currentUserEmail ? 'You' : emailCreatingAction,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1718,11 +1718,11 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
 /**
  * Returns the necessary reportAction onyx data to indicate that a task report has been edited
  *
- * @param {String} ownerEmail
+ * @param {String} emailEditingTask
  * @returns {Object}
  */
 
-function buildOptimisticEditedTaskReportAction(ownerEmail) {
+function buildOptimisticEditedTaskReportAction(emailEditingTask) {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
@@ -1732,7 +1732,7 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                text: emailEditingTask === currentUserEmail ? 'You' : emailEditingTask,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1757,12 +1757,12 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
 /**
  * Returns the necessary reportAction onyx data to indicate that a chat has been archived
  *
- * @param {String} ownerEmail
+ * @param {String} emailClosingReport
  * @param {String} policyName
  * @param {String} reason - A reason why the chat has been archived
  * @returns {Object}
  */
-function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONST.REPORT.ARCHIVE_REASON.DEFAULT) {
+function buildOptimisticClosedReportAction(emailClosingReport, policyName, reason = CONST.REPORT.ARCHIVE_REASON.DEFAULT) {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
@@ -1773,7 +1773,7 @@ function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONS
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                text: emailClosingReport === currentUserEmail ? 'You' : emailClosingReport,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1809,7 +1809,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         policyID,
-        0,
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         policyName,
         null,
@@ -1818,7 +1818,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
     const announceChatReportID = announceChatData.reportID;
-    const announceCreatedAction = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+    const announceCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_ACCOUNT_ID_FAKE);
     const announceReportActionData = {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
@@ -1828,12 +1828,12 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
         CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         policyID,
-        0,
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         policyName,
     );
     const adminsChatReportID = adminsChatData.reportID;
-    const adminsCreatedAction = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+    const adminsCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
     const adminsReportActionData = {
         [adminsCreatedAction.reportActionID]: adminsCreatedAction,
     };
@@ -1848,7 +1848,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         policyName,
     );
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
     const expenseReportActionData = {
         [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
     };
@@ -1872,7 +1872,6 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 /**
  * Builds an optimistic Task Report with a randomly generated reportID
  *
- * @param {String} ownerEmail - Email of the person generating the Task.
  * @param {Number} ownerAccountID - Account ID of the person generating the Task.
  * @param {String} assigneeAccountID - AccountID of the other person participating in the Task.
  * @param {String} parentReportID - Report ID of the chat where the Task is.
@@ -1882,12 +1881,11 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Object}
  */
 
-function buildOptimisticTaskReport(ownerEmail, ownerAccountID, assigneeAccountID = 0, parentReportID, title, description) {
+function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parentReportID, title, description) {
     return {
         reportID: generateReportID(),
         reportName: title,
         description,
-        ownerEmail,
         ownerAccountID,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
