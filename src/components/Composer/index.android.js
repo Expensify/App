@@ -89,6 +89,7 @@ function Composer({
       // <constructor ref={el => this.textInput = el} /> this will not
       // return a ref to the component, but rather the HTML element by default
       props.forwardedRef(textInput.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
