@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
+import {deepEqual} from 'fast-equals';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -22,7 +23,6 @@ import * as ContextMenuActions from '../../pages/home/report/ContextMenu/Context
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
-import {deepEqual} from 'fast-equals';
 
 const propTypes = {
     /** Style for hovered state */
@@ -45,7 +45,8 @@ const propTypes = {
     viewMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
     /** The item that should be rendered */
-    optionItem: PropTypes.shape({}),
+    // eslint-disable-next-line react/forbid-prop-types
+    optionItem: PropTypes.object,
 
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
@@ -57,6 +58,7 @@ const defaultProps = {
     style: null,
     optionItem: null,
     comment: '',
+    isFocused: false,
 };
 
 function OptionRowLHN(props) {
