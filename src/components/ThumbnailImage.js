@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -23,8 +23,6 @@ const propTypes = {
 
     /** Height of the thumbnail image */
     imageHeight: PropTypes.number,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -65,9 +63,11 @@ function calculateThumbnailImageSize(width, height, windowHeight) {
 }
 
 function ThumbnailImage(props) {
-    const {initialWidth, initialHeight} = calculateThumbnailImageSize(props.imageWidth, props.imageHeight, props.windowHeight);
+    const {windowHeight} = useWindowDimensions();
+    const {initialWidth, initialHeight} = calculateThumbnailImageSize(props.imageWidth, props.imageHeight, windowHeight);
     const [imageWidth, setImageWidth] = useState(initialWidth);
     const [imageHeight, setImageHeight] = useState(initialHeight);
+
 
     /**
      * Update the state with the computed thumbnail sizes.
@@ -76,10 +76,10 @@ function ThumbnailImage(props) {
      */
 
     const updateImageSize = useCallback(({width, height}) => {
-        const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height, props.windowHeight);
+        const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height,windowHeight);
         setImageWidth(thumbnailWidth);
         setImageHeight(thumbnailHeight);
-    }, [props.windowHeight])
+    }, [windowHeight])
     return (
         <View style={[props.style, styles.overflowHidden]}>
             <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -96,4 +96,3 @@ function ThumbnailImage(props) {
 ThumbnailImage.propTypes = propTypes;
 ThumbnailImage.defaultProps = defaultProps;
 ThumbnailImage.displayName = 'ThumbnailImage';
-export default withWindowDimensions(ThumbnailImage);
