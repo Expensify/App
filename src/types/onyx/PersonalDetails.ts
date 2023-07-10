@@ -23,16 +23,16 @@ type PersonalDetails = {
     /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;
 
-    /** login of the current user from their personal details */
+    /** Login of the current user from their personal details */
     login?: string;
 
-    /** pronouns of the current user from their personal details */
+    /** Pronouns of the current user from their personal details */
     pronouns?: string;
 
-    /** local currency for the user */
+    /** Local currency for the user */
     localCurrencyCode?: string;
 
-    /** timezone of the current user from their personal details */
+    /** Timezone of the current user from their personal details */
     timezone?: {
         /** Value of selected timezone */
         selected?: string;

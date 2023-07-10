@@ -14,7 +14,7 @@ type PlaidBankAccount = {
     /** Routing number for the account */
     routingNumber: string;
 
-    /** last 4 digits of the account number */
+    /** Last 4 digits of the account number */
     mask: string;
 
     /** Plaid access token, used to then retrieve Assets and Balances */

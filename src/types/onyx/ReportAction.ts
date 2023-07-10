@@ -18,7 +18,7 @@ type ReportAction = {
 
     /** Original message associated with this action */
     originalMessage?: {
-        // The ID of the iou transaction
+        /** The ID of the iou transaction */
         IOUTransactionID?: string;
     };
 
@@ -31,13 +31,13 @@ type ReportAction = {
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
     whisperedToAccountIDs: number[];
 
-    childReportID?: number
-    childType?:  string
-    childOldestFourEmails?: string
-    childOldestFourAccountIDs?: string
-    childCommenterCount?: number,
-    childLastVisibleActionCreated?: string
-    childVisibleActionCount?: number
+    childReportID?: number;
+    childType?: string;
+    childOldestFourEmails?: string;
+    childOldestFourAccountIDs?: string;
+    childCommenterCount?: number;
+    childLastVisibleActionCreated?: string;
+    childVisibleActionCount?: number;
 };
 
 export default ReportAction;

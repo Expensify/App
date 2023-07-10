@@ -1,6 +1,6 @@
 import * as OnyxCommon from './OnyxCommon';
 
-type AchData = {
+type ACHData = {
     /** Step of the setup flow that we are on. Determines which view is presented. */
     currentStep?: string;
 
@@ -19,7 +19,7 @@ type ReimbursementAccount = {
     throttledDate?: string;
 
     /** Additional data for the account in setup */
-    achData?: AchData;
+    achData?: ACHData;
 
     /** Disable validation button if max attempts exceeded */
     maxAttemptsReached?: boolean;
