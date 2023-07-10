@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import LocalNotification from '../Notification/LocalNotification';
-import Navigation from '../Navigation/Navigation';
+import Navigation, {navigationRef} from '../Navigation/Navigation';
 import * as ActiveClientManager from '../ActiveClientManager';
 import Visibility from '../Visibility';
 import ROUTES from '../../ROUTES';
@@ -808,8 +808,13 @@ function handleReportChanged(report) {
     // In this case, the API will return a preexistingReportID, so we should clear out the optimistically created report.
     // And re-route the user to the preexisting report if they are still looking at the optimistically created report.
     if (report && report.reportID && report.preexistingReportID) {
-        Navigation.navigate(ROUTES.getReportRoute(report.preexistingReportID));
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, null);
+        const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+
+        // Only re-route them if they are still looking at the optimistically created report
+        if (lodashGet(currentRoute, 'params.reportID') === report.reportID) {
+            Navigation.replaceCentralPaneScreen(ROUTES.getReportRoute(report.preexistingReportID));
+        }
         return;
     }
 

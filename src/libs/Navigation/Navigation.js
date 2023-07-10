@@ -82,6 +82,14 @@ function navigate(route = ROUTES.HOME, type) {
     linkTo(navigationRef.current, route, type);
 }
 
+function replaceCentralPaneScreen(route) {
+    if (!canNavigate('replace', {route})) {
+        return;
+    }
+
+    navigationRef.current.dispatch(StackActions.replace(NAVIGATORS.CENTRAL_PANE_NAVIGATOR, route));
+}
+
 /**
  * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
@@ -224,6 +232,7 @@ function setIsNavigationReady() {
 export default {
     canNavigate,
     navigate,
+    replaceCentralPaneScreen,
     setParams,
     dismissModal,
     isActiveRoute,
