@@ -25,7 +25,7 @@ import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import networkPropTypes from '../../components/networkPropTypes';
 import * as UserUtils from '../../libs/UserUtils';
-import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
@@ -33,7 +33,7 @@ import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import SelectionListRadio from '../../components/SelectionListRadio';
 
 const propTypes = {
-    /** The personal details of the person who is logged in */
+    /** All personal details asssociated with user */
     personalDetails: personalDetailsPropType,
 
     /** URL Route params */
@@ -54,6 +54,7 @@ const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
     network: networkPropTypes.isRequired,
 };
 
@@ -63,6 +64,7 @@ const defaultProps = {
         accountID: 0,
     },
     ...policyDefaultProps,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function WorkspaceMembersPage(props) {

@@ -13,8 +13,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
-import OptionsSelector from '../../components/OptionsSelector';
-import FormSubmit from '../../components/FormSubmit';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
 import * as Link from '../../libs/actions/Link';
@@ -191,7 +189,7 @@ class WorkspaceInvitePage extends React.Component {
 
             return {
                 searchTerm,
-                userToInvite,
+                userToInvite: formattedUserToInvite,
                 personalDetails,
                 selectedOptions,
             };
@@ -274,50 +272,55 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     render() {
-        const sections = this.getSections();
         const headerMessage = OptionsListUtils.getHeaderMessage(this.state.personalDetails.length !== 0, Boolean(this.state.userToInvite), this.state.searchTerm);
         const policyName = lodashGet(this.props.policy, 'name');
 
         return (
             <ScreenWrapper shouldEnableMaxHeight>
-                <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy)}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                >
-                    <HeaderWithBackButton
-                        title={this.props.translate('workspace.invite.invitePeople')}
-                        subtitle={policyName}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                        onBackButtonPress={() => {
-                            this.clearErrors();
-                            Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
-                        }}
-                    />
-                    <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
-                        <SelectionListRadio
-                            canSelectMultiple
-                            sections={sections}
-                            textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            textInputValue={this.state.searchTerm}
-                            onChangeText={this.updateOptionsWithSearchTerm}
-                            headerMessage={headerMessage}
-                            onSelectRow={this.toggleOption}
-                        />
-                    </View>
-                    <View style={[styles.flexShrink0]}>
-                        <FormAlertWithSubmitButton
-                            isDisabled={!this.state.selectedOptions.length}
-                            isAlertVisible={this.getShouldShowAlertPrompt()}
-                            buttonText={this.props.translate('common.next')}
-                            onSubmit={this.inviteUser}
-                            message={this.props.policy.alertMessage}
-                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
-                            enabledWhenOffline
-                            disablePressOnEnter
-                        />
-                    </View>
-                </FullPageNotFoundView>
+                {({didScreenTransitionEnd}) => {
+                    const sections = didScreenTransitionEnd ? this.getSections() : [];
+
+                    return (
+                        <FullPageNotFoundView
+                            shouldShow={_.isEmpty(this.props.policy)}
+                            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                        >
+                            <HeaderWithBackButton
+                                title={this.props.translate('workspace.invite.invitePeople')}
+                                subtitle={policyName}
+                                shouldShowGetAssistanceButton
+                                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
+                                onBackButtonPress={() => {
+                                    this.clearErrors();
+                                    Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
+                                }}
+                            />
+                            <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
+                                <SelectionListRadio
+                                    canSelectMultiple
+                                    sections={sections}
+                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                    textInputValue={this.state.searchTerm}
+                                    onChangeText={this.updateOptionsWithSearchTerm}
+                                    headerMessage={headerMessage}
+                                    onSelectRow={this.toggleOption}
+                                />
+                            </View>
+                            <View style={[styles.flexShrink0]}>
+                                <FormAlertWithSubmitButton
+                                    isDisabled={!this.state.selectedOptions.length}
+                                    isAlertVisible={this.getShouldShowAlertPrompt()}
+                                    buttonText={this.props.translate('common.next')}
+                                    onSubmit={this.inviteUser}
+                                    message={this.props.policy.alertMessage}
+                                    containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
+                                    enabledWhenOffline
+                                    disablePressOnEnter
+                                />
+                            </View>
+                        </FullPageNotFoundView>
+                    );
+                }}
             </ScreenWrapper>
         );
     }

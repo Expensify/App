@@ -10,7 +10,6 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 
 let currentUserEmail;
@@ -308,7 +307,7 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {String} editedTask.assignee
  * @param {Number} editedTask.assigneeAccountID
  */
-function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee, assigneeAccountID = 0}) {
+function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee = '', assigneeAccountID = 0}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
@@ -348,6 +347,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
                 reportName,
                 description: reportDescription,
                 managerID: assigneeAccountID || report.managerID,
+                managerEmail: assignee || report.managerEmail,
             },
         },
     ];
@@ -625,11 +625,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     ];
 
-    API.write('CancelTask', {taskReportID, optimisticReportActionID}, {optimisticData, failureData});
-}
-
-function isTaskCanceled(taskReport) {
-    return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
+    API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, failureData});
 }
 
 /**
@@ -656,13 +652,7 @@ function getTaskAssigneeAccountID(taskReport) {
     }
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
-    const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
-
-    if (!childManagerEmail) {
-        return null;
-    }
-
-    return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
+    return lodashGet(reportAction, 'childManagerAccountID');
 }
 
 /**
@@ -703,7 +693,6 @@ export {
     getAssignee,
     getShareDestination,
     cancelTask,
-    isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,
