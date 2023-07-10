@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {InteractionManager} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import sidebarPropTypes from './sidebarPropTypes';
@@ -8,10 +8,9 @@ import FreezeWrapper from '../../../../libs/Navigation/FreezeWrapper';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import StatusBar from '../../../../libs/StatusBar';
 import themeColors from '../../../../styles/themes/default';
-import * as FloatingActionButton from '../../../../libs/FloatingActionButtonAndPopoverUtils';
 
 function SidebarScreen(props) {
-    const popoverModal = FloatingActionButton.floatingActionButtonAndPopoverRef;
+    const popoverModal = useRef(null);
 
     useFocusEffect(
         useCallback(() => {
