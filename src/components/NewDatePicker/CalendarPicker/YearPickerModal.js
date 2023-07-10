@@ -67,7 +67,7 @@ function YearPickerModal(props) {
                 textInputLabel={translate('yearPickerPage.selectYear')}
                 textInputValue={searchText}
                 textInputMaxLength={4}
-                onChangeText={setSearchText}
+                onChangeText={(text) => setSearchText(text.replace(CONST.REGEX.NON_NUMERIC, '').trim())}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 headerMessage={headerMessage}
                 sections={sections}
