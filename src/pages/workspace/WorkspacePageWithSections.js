@@ -86,7 +86,7 @@ function fetchData(skipVBBACal) {
 function WorkspacePageWithSections(props) {
     const {shouldSkipVBBACall} = props;
 
-    useOnNetworkReconnect(() => !shouldSkipVBBACall && BankAccounts.openWorkspaceView());
+    useOnNetworkReconnect(() => fetchData(shouldSkipVBBACall));
 
     const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;
