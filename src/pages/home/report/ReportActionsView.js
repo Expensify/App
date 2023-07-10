@@ -334,6 +334,7 @@ function ReportActionsView(props) {
                 isLoadingMoreReportActions={props.report.isLoadingMoreReportActions}
                 loadMoreChats={loadMoreChats}
                 newMarkerReportActionID={newMarkerReportActionID}
+                policy={props.policy}
             />
             <PopoverReactionList
                 ref={context.reactionListRef}
