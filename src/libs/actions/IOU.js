@@ -595,15 +595,17 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
         let oneOnOneChatReport;
         let isNewOneOnOneChatReport = false;
-        let createOptimisticPersonalDetails = false;
+        let shouldCreateOptimisticPersonalDetails = false;
 
+        // If this is a split between two people only and the function
+        // wasn't provided with an existing group chat report id
         if (!hasMultipleParticipants && !existingGroupChatReportID) {
             oneOnOneChatReport = groupChatReport;
-            createOptimisticPersonalDetails = !existingGroupChatReport;
+            shouldCreateOptimisticPersonalDetails = !existingGroupChatReport;
         } else {
             const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
             isNewOneOnOneChatReport = !existingChatReport;
-            createOptimisticPersonalDetails = isNewOneOnOneChatReport;
+            shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport;
             oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([accountID]);
         }
 
@@ -646,7 +648,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         );
 
         // Add optimistic personal details for new participants
-        const oneOnOnePersonalDetailListAction = createOptimisticPersonalDetails
+        const oneOnOnePersonalDetailListAction = shouldCreateOptimisticPersonalDetails
             ? {
                   [accountID]: {
                       accountID,
