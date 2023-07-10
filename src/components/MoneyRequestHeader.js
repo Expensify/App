@@ -96,7 +96,7 @@ function MoneyRequestHeader(props) {
         report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
     }
     return (
-        <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
+        <View style={[styles.highlightBG, styles.pl0]}>
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={props.isSingleTransactionView}
@@ -113,7 +113,7 @@ function MoneyRequestHeader(props) {
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
             />
             <View style={[styles.ph5, styles.pb2]}>
                 <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>

@@ -276,7 +276,7 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
-                avatarSize={item.avatarSize}
+                floatRightAvatarSize={item.avatarSize}
                 ref={this.popoverAnchor}
                 shouldBlockSelection={Boolean(item.link)}
                 onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current) : undefined}
@@ -326,7 +326,7 @@ class InitialSettingsPage extends React.Component {
                                             style={[styles.mb3]}
                                             onPress={this.openProfileSettings}
                                             accessibilityLabel={this.props.translate('common.profile')}
-                                            accessibilityRole="button"
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
@@ -341,7 +341,7 @@ class InitialSettingsPage extends React.Component {
                                         style={[styles.mt1, styles.mw100]}
                                         onPress={this.openProfileSettings}
                                         accessibilityLabel={this.props.translate('common.profile')}
-                                        accessibilityRole="link"
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                     >
                                         <Tooltip text={this.props.translate('common.profile')}>
                                             <Text
