@@ -30,7 +30,7 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** */
+    /** Policy of the report for which the name is being edited */
     policy: PropTypes.shape({
         role: PropTypes.string,
         owner: PropTypes.string,
