@@ -13,6 +13,7 @@ export default {
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
+            [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -288,7 +289,6 @@ export default {
                     Participants: {
                         screens: {
                             ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,
-                            ReportParticipants_Details: ROUTES.REPORT_PARTICIPANT,
                         },
                     },
                     MoneyRequest: {

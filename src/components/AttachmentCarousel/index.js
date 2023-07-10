@@ -134,13 +134,21 @@ class AttachmentCarousel extends React.Component {
             },
         });
 
-        _.forEach(actions, (action) => htmlParser.write(_.get(action, ['message', 0, 'html'])));
+        _.forEach(actions, (action, key) => {
+            if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
+                return;
+            }
+            htmlParser.write(_.get(action, ['message', 0, 'html']));
+        });
         htmlParser.end();
 
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (page === -1) {
             throw new Error('Attachment not found');
         }
+
+        // Update the parent modal's state with the source and name from the mapped attachments
+        this.props.onNavigate(attachments[page]);
 
         return {
             page,

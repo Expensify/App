@@ -63,9 +63,6 @@ const propTypes = {
         /** Account ID of the manager in this iou report */
         managerID: PropTypes.number,
 
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
-
         /** Account ID of the creator of this iou report */
         ownerAccountID: PropTypes.number,
 
@@ -189,7 +186,7 @@ function IOUPreview(props) {
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewHeaderText()}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                             {Boolean(getSettledMessage()) && (
                                 <>
                                     <Icon
@@ -230,9 +227,9 @@ function IOUPreview(props) {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1]}>
                             {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
                             )}
-                            {!_.isEmpty(requestComment) && <Text style={[styles.colorMuted]}>{requestComment}</Text>}
+                            {!_.isEmpty(requestComment) && <Text style={[styles.mt1, styles.colorMuted]}>{requestComment}</Text>}
                         </View>
                         {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
