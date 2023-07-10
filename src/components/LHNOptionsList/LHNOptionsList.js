@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import OptionRowLHN from './OptionRowLHN';
+import OptionRowLHNData from './OptionRowLHNData';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
 
@@ -67,7 +67,7 @@ class LHNOptionsList extends Component {
      */
     renderItem({item}) {
         return (
-            <OptionRowLHN
+            <OptionRowLHNData
                 reportID={item}
                 viewMode={this.props.optionMode}
                 shouldDisableFocusOptions={this.props.shouldDisableFocusOptions}

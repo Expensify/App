@@ -2,8 +2,6 @@ import _ from 'underscore';
 import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -13,22 +11,18 @@ import MultipleAvatars from '../MultipleAvatars';
 import Hoverable from '../Hoverable';
 import DisplayNames from '../DisplayNames';
 import colors from '../../styles/colors';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import {withReportCommentDrafts} from '../OnyxProvider';
 import Text from '../Text';
 import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
-import SidebarUtils from '../../libs/SidebarUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
-import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
 import * as Report from '../../libs/actions/Report';
+import useLocalize from '../../hooks/useLocalize';
+import {deepEqual} from 'fast-equals';
 
 const propTypes = {
     /** Style for hovered state */
@@ -50,28 +44,24 @@ const propTypes = {
     /** Toggle between compact and default view */
     viewMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
-    shouldDisableFocusOptions: PropTypes.bool,
-
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-
+    /** The item that should be rendered */
     optionItem: PropTypes.shape({}),
 
-    ...withLocalizePropTypes,
-    ...withCurrentReportIDPropTypes,
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
 
 const defaultProps = {
     hoverStyle: styles.sidebarLinkHover,
     viewMode: 'default',
     onSelectRow: () => {},
-    shouldDisableFocusOptions: false,
     style: null,
     optionItem: null,
     comment: '',
-    ...withCurrentReportIDDefaultProps,
 };
 
-function BaseOptionRowLHN(props) {
+function OptionRowLHN(props) {
+    const localize = useLocalize();
+
     const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
@@ -170,7 +160,7 @@ function BaseOptionRowLHN(props) {
                             (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
+                        accessibilityLabel={localize.translate('accessibilityHints.navigatesToChat')}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -198,7 +188,7 @@ function BaseOptionRowLHN(props) {
                                 <View style={contentContainerStyles}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                         <DisplayNames
-                                            accessibilityLabel={props.translate('accessibilityHints.chatUserDisplayNames')}
+                                            accessibilityLabel={localize.translate('accessibilityHints.chatUserDisplayNames')}
                                             fullTitle={optionItem.text}
                                             displayNamesWithTooltips={optionItem.displayNamesWithTooltips}
                                             tooltipEnabled
@@ -213,7 +203,7 @@ function BaseOptionRowLHN(props) {
                                         <Text
                                             style={alternateTextStyle}
                                             numberOfLines={1}
-                                            accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
+                                            accessibilityLabel={localize.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
                                             {optionItem.alternateText}
                                         </Text>
@@ -247,7 +237,7 @@ function BaseOptionRowLHN(props) {
                             {optionItem.hasDraftComment && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={props.translate('sidebarScreen.draftedMessage')}
+                                    accessibilityLabel={localize.translate('sidebarScreen.draftedMessage')}
                                 >
                                     <Icon src={Expensicons.Pencil} />
                                 </View>
@@ -255,7 +245,7 @@ function BaseOptionRowLHN(props) {
                             {!shouldShowGreenDotIndicator && optionItem.isPinned && (
                                 <View
                                     style={styles.ml2}
-                                    accessibilityLabel={props.translate('sidebarScreen.chatPinned')}
+                                    accessibilityLabel={localize.translate('sidebarScreen.chatPinned')}
                                 >
                                     <Icon src={Expensicons.Pin} />
                                 </View>
@@ -268,52 +258,13 @@ function BaseOptionRowLHN(props) {
     );
 }
 
-BaseOptionRowLHN.propTypes = propTypes;
-BaseOptionRowLHN.defaultProps = defaultProps;
-BaseOptionRowLHN.displayName = 'BaseOptionRowLHN';
-
-const MemoedOptionRowLHN = React.memo(
-    compose(
-        withLocalize,
-        withOnyx({
-            optionItem: {
-                key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
-                selector: SidebarUtils.getOptionData,
-            },
-        }),
-    )(BaseOptionRowLHN),
-);
-
-// TODO: cleaner split which components receives which props.
-//       maybe even create a data component here as well?
-
-// We only want to pass a boolean to the memoized
-// component, thats why we have this intermediate component.
-// (We don't want to fully re-render all items, just because the active report changed).
-function OptionRowLHN(props) {
-    const isFocused = !props.shouldDisableFocusOptions && props.currentReportId === props.reportID;
-
-    return (
-        <MemoedOptionRowLHN
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {..._.omit(props, 'currentReportId')}
-            isFocused={isFocused}
-        />
-    );
-}
-
 OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-export default compose(
-    withLocalize,
-    withCurrentReportID,
-    withReportCommentDrafts({
-        propName: 'comment',
-        transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-            return lodashGet(drafts, draftKey, '');
-        },
-    }),
-)(OptionRowLHN);
+// We use deepEqual here, as the selectors results for optionItem
+// aren't stable, meaning that content-wise the object is the same,
+// but the reference changed.
+export default React.memo(OptionRowLHN, deepEqual);
+
+export {propTypes, defaultProps};
