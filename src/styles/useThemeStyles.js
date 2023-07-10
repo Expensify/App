@@ -4,7 +4,7 @@ import ThemeStylesContext from './ThemeStylesContext';
 function useThemeStyles() {
     const themeStyles = useContext(ThemeStylesContext);
 
-    if (themeStyles == null) {
+    if (!themeStyles) {
         throw new Error('StylesContext was null! Are you sure that you wrapped the component under a <ThemeStylesProvider>?');
     }
 
