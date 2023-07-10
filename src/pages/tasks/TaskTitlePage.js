@@ -12,14 +12,11 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
-    /** Task Report Info */
-    task: PropTypes.shape({
-        /** Title of the Task */
-        report: reportPropTypes,
-    }),
+    /** The report currently being looked at */
+    report: reportPropTypes,
 
     /** Current user session */
     session: PropTypes.shape({
@@ -32,7 +29,7 @@ const propTypes = {
 
 const defaultProps = {
     session: {},
-    task: {},
+    report: {},
 };
 
 function TaskTitlePage(props) {
@@ -53,9 +50,9 @@ function TaskTitlePage(props) {
 
     const submit = useCallback(
         (values) => {
-            // Set the description of the report in the store and then call TaskUtils.editTaskReport
-            // to update the description of the report on the server
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {title: values.title});
+            // Set the title of the report in the store and then call Task.editTaskReport
+            // to update the title of the report on the server
+            Task.editTaskAndNavigate(props.report, props.session.email, props.session.accountID, {title: values.title});
         },
         [props],
     );
@@ -67,7 +64,7 @@ function TaskTitlePage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
         >
-            <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
+            <HeaderWithBackButton title={props.translate('task.task')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
@@ -80,8 +77,11 @@ function TaskTitlePage(props) {
                     <TextInput
                         inputID="title"
                         name="title"
-                        label={props.translate('newTaskPage.title')}
-                        defaultValue={(props.task.report && props.task.report.reportName) || ''}
+                        autoGrowHeight
+                        textAlignVertical="top"
+                        containerStyles={[styles.autoGrowHeightMultilineInput]}
+                        label={props.translate('task.title')}
+                        defaultValue={(props.report && props.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />
                 </View>
@@ -99,8 +99,8 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        task: {
-            key: ONYXKEYS.TASK,
+        report: {
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
         },
     }),
 )(TaskTitlePage);

@@ -307,7 +307,7 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {String} editedTask.assignee
  * @param {Number} editedTask.assigneeAccountID
  */
-function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee, assigneeAccountID = 0}) {
+function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee = '', assigneeAccountID = 0}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
@@ -347,6 +347,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
                 reportName,
                 description: reportDescription,
                 managerID: assigneeAccountID || report.managerID,
+                managerEmail: assignee || report.managerEmail,
             },
         },
     ];
@@ -624,11 +625,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     ];
 
-    API.write('CancelTask', {taskReportID, optimisticReportActionID}, {optimisticData, failureData});
-}
-
-function isTaskCanceled(taskReport) {
-    return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
+    API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, failureData});
 }
 
 /**
@@ -696,7 +693,6 @@ export {
     getAssignee,
     getShareDestination,
     cancelTask,
-    isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,

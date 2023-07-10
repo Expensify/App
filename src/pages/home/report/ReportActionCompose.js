@@ -48,7 +48,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
-import * as TaskUtils from '../../../libs/actions/Task';
+import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
@@ -444,7 +444,7 @@ class ReportActionCompose extends React.Component {
             {
                 icon: Expensicons.Task,
                 text: this.props.translate('newTaskPage.assignTask'),
-                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(this.props.reportID),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(this.props.reportID),
             },
         ];
     }
@@ -538,7 +538,7 @@ class ReportActionCompose extends React.Component {
             shouldShowEmojiSuggestionMenu: false,
             isAutoSuggestionPickerLarge,
         };
-        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
+        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, this.props.preferredLocale);
 
         if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
             nextState.suggestedEmojis = newSuggestedEmojis;
@@ -751,7 +751,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.preferredSkinTone, this.props.preferredLocale);
 
         if (!_.isEmpty(emojis)) {
             this.insertedEmojis = [...this.insertedEmojis, ...emojis];
@@ -829,8 +829,6 @@ class ReportActionCompose extends React.Component {
             e.preventDefault();
             if (suggestionsExist) {
                 this.resetSuggestions();
-            } else if (this.comment.length > 0) {
-                this.updateComment('', true);
             }
             return;
         }
