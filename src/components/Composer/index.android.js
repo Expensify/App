@@ -68,8 +68,9 @@ function Composer({
   onClear,
   isDisabled,
   maxLines,
-  setIsFullComposerAvailable,
+  forwardedRef,
   isComposerFullSize,
+  setIsFullComposerAvailable,
   ...props
 }) {
     const textInput = useRef(null);
@@ -80,7 +81,7 @@ function Composer({
      */
     const setTextInputRef = useCallback((el) => {
         textInput.current = el;
-        if (!_.isFunction(props.forwardedRef) || textInput.current === null) {
+        if (!_.isFunction(forwardedRef) || textInput.current === null) {
           return;
         }
 
@@ -88,7 +89,7 @@ function Composer({
       // get a ref to the inner textInput element e.g. if we do
       // <constructor ref={el => this.textInput = el} /> this will not
       // return a ref to the component, but rather the HTML element by default
-      props.forwardedRef(textInput.current);
+      forwardedRef(textInput.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
