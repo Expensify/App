@@ -6,19 +6,19 @@ import SidebarUtils from '../../libs/SidebarUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
-import OptionRowLHN from './OptionRowLHN';
+import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
 import PropTypes from 'prop-types';
 
 const propTypes = {
     shouldDisableFocusOptions: PropTypes.bool,
     ...withCurrentReportIDPropTypes,
-    ...OptionRowLHN.propTypes,
+    ...basePropTypes,
 };
 
 const defaultProps = {
     shouldDisableFocusOptions: false,
     ...withCurrentReportIDDefaultProps,
-    ...OptionRowLHN.defaultProps,
+    ...baseDefaultProps,
 };
 
 /**
