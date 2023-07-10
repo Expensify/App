@@ -20,6 +20,12 @@ jest.mock('../../src/components/withLocalize', () => (Component) => (props) => (
     />
 ));
 
+jest.mock('../../src/hooks/useLocalize', () =>
+    jest.fn(() => ({
+        translate: jest.fn(),
+    })),
+);
+
 describe('CalendarPicker', () => {
     test('renders calendar component', () => {
         render(<CalendarPicker />);
