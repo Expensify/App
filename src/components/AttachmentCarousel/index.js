@@ -78,12 +78,13 @@ class AttachmentCarousel extends React.Component {
         if (_.isEqual(prevProps.reportActions, this.props.reportActions)) {
             return;
         }
-        // const {
-        //     page,
-        //     attachments,
-        // } = this.createInitialState();
-    
-        this.setState(this.createInitialState())
+        const nextState = this.createInitialState();
+        if (!_.isEmpty(nextState)) {
+            const {attachments} = nextState;
+            this.setState({
+                attachments,
+            });
+        }
     }
 
     /**
