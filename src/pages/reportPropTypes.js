@@ -50,9 +50,6 @@ export default PropTypes.shape({
     /** The policy name to use for an archived report */
     oldPolicyName: PropTypes.string,
 
-    /** The email address of the report owner */
-    ownerEmail: PropTypes.string,
-
     /** The accountID of the report owner */
     ownerAccountID: PropTypes.number,
 

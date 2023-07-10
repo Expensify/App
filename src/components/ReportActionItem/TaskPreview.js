@@ -17,7 +17,8 @@ import getButtonState from '../../libs/getButtonState';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
+import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
@@ -44,8 +45,8 @@ const propTypes = {
         /** Email address of the manager in this iou report */
         managerEmail: PropTypes.string,
 
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
+        /** AccountID of the creator of this iou report */
+        ownerAccountID: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
@@ -65,7 +66,7 @@ function TaskPreview(props) {
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
-    const taskAssigneeAccountID = TaskUtils.getTaskAssigneeAccountID(props.taskReport);
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport);
     const taskAssignee = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], ''));
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
@@ -75,22 +76,22 @@ function TaskPreview(props) {
                 onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                accessibilityLabel={props.translate('newTaskPage.task')}
+                accessibilityLabel={props.translate('task.task')}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
                     <Checkbox
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={TaskUtils.isTaskCanceled(props.taskReport)}
+                        disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
                         onPress={() => {
                             if (isTaskCompleted) {
-                                TaskUtils.reopenTask(props.taskReportID, taskTitle);
+                                Task.reopenTask(props.taskReportID, taskTitle);
                             } else {
-                                TaskUtils.completeTask(props.taskReportID, taskTitle);
+                                Task.completeTask(props.taskReportID, taskTitle);
                             }
                         }}
-                        accessibilityLabel={props.translate('newTaskPage.task')}
+                        accessibilityLabel={props.translate('task.task')}
                     />
                     <RenderHTML html={htmlForTaskPreview} />
                 </View>
