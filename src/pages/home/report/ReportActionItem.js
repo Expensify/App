@@ -397,15 +397,6 @@ function ReportActionItem(props) {
         }
 
         if (!props.displayAsGroup) {
-            const parentReport = ReportActionsUtils.getParentReportAction(props.report);
-            if (ReportActionsUtils.isTransactionThread(parentReport)) {
-                return (
-                    <MoneyRequestView
-                        report={props.report}
-                        shouldShowHorizontalRule={!props.isOnlyReportAction}
-                    />
-                );
-            }
             return (
                 <ReportActionItemSingle
                     action={props.action}
