@@ -44,11 +44,11 @@ const propTypes = {
     /** Toggle between compact and default view */
     viewMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
+    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+
     /** The item that should be rendered */
     // eslint-disable-next-line react/forbid-prop-types
     optionItem: PropTypes.object,
-
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 };
 
 const defaultProps = {
