@@ -84,7 +84,7 @@ function fetchData(skipVBBACal) {
 }
 
 function WorkspacePageWithSections(props) {
-    const {shouldSkipVBBACall} = props;
+    const {children, footer, shouldSkipVBBACall} = props;
 
     useOnNetworkReconnect(() => fetchData(shouldSkipVBBACall));
 
@@ -93,6 +93,7 @@ function WorkspacePageWithSections(props) {
     const isUsingECard = lodashGet(props.user, 'isUsingExpensifyCard', false);
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
+    const content = children(hasVBA, policyID, isUsingECard);
 
     useEffect(() => {
         fetchData(shouldSkipVBBACall);
@@ -121,12 +122,12 @@ function WorkspacePageWithSections(props) {
                         keyboardShouldPersistTaps="handled"
                         style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                     >
-                        <View style={[styles.w100, styles.flex1]}>{props.children(hasVBA, policyID, isUsingECard)}</View>
+                        <View style={[styles.w100, styles.flex1]}>{content}</View>
                     </ScrollViewWithContext>
                 ) : (
-                    props.children(hasVBA, policyID, isUsingECard)
+                    content
                 )}
-                {props.footer}
+                {footer}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
