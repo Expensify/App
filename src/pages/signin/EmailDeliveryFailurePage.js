@@ -8,7 +8,6 @@ import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import useLocalize from '../../hooks/useLocalize';
-import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import CONST from '../../CONST';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
