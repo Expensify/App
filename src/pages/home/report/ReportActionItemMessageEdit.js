@@ -29,6 +29,7 @@ import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import getButtonState from '../../../libs/getButtonState';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
@@ -59,6 +60,8 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -159,7 +162,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone);
+            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 insertedEmojis.current = [...insertedEmojis.current, ...emojis];
@@ -187,7 +190,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone],
+        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, props.preferredLocale],
     );
 
     /**
@@ -379,10 +382,12 @@ ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default React.forwardRef((props, ref) => (
-    <ReportActionItemMessageEdit
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default withLocalize(
+    React.forwardRef((props, ref) => (
+        <ReportActionItemMessageEdit
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

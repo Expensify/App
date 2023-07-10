@@ -11,7 +11,7 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
@@ -40,9 +40,9 @@ function TaskDescriptionPage(props) {
 
     const submit = useCallback(
         (values) => {
-            // Set the description of the report in the store and then call TaskUtils.editTaskReport
+            // Set the description of the report in the store and then call Task.editTaskReport
             // to update the description of the report on the server
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {description: values.description});
+            Task.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {description: values.description});
         },
         [props],
     );
@@ -54,7 +54,7 @@ function TaskDescriptionPage(props) {
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
-            <HeaderWithBackButton title={props.translate('newTaskPage.task')} />
+            <HeaderWithBackButton title={props.translate('task.task')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.EDIT_TASK_FORM}
