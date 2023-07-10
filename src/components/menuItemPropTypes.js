@@ -31,7 +31,7 @@ const propTypes = {
     iconHeight: PropTypes.number,
 
     /** Text to display for the item */
-    title: PropTypes.string.isRequired,
+    title: PropTypes.string,
 
     /** Text that appears above the title */
     label: PropTypes.string,
@@ -99,6 +99,9 @@ const propTypes = {
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
 
+    /** Prop to represent the size of the float right avatar images to be shown */
+    floatRightAvatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+
     /** Prop to represent the size of the avatar images to be shown */
     avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
 
@@ -119,6 +122,15 @@ const propTypes = {
 
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+
+    /**  Whether we should use small avatar subscript sizing the for menu item */
+    isSmallAvatarSubscriptMenu: PropTypes.bool,
+
+    /** The max number of lines the title text should occupy before ellipses are added */
+    numberOfLines: PropTypes.number,
+
+    /** Should we grey out the menu item when it is disabled? */
+    shouldGreyOutWhenDisabled: PropTypes.bool,
 };
 
 export default propTypes;

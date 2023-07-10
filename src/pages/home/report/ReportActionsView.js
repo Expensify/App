@@ -393,6 +393,22 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
+    if (lodashGet(newProps, 'report.reportName') !== lodashGet(oldProps, 'report.reportName')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.description') !== lodashGet(oldProps, 'report.description')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.managerID') !== lodashGet(oldProps, 'report.managerID')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.managerEmail') !== lodashGet(oldProps, 'report.managerEmail')) {
+        return false;
+    }
+
     return _.isEqual(lodashGet(newProps.report, 'icons', []), lodashGet(oldProps.report, 'icons', []));
 }
 
