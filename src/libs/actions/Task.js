@@ -11,6 +11,7 @@ import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as Expensicons from '../../components/Icon/Expensicons';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -558,7 +559,7 @@ function getAssignee(details) {
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
     return {
-        icons: ReportUtils.getIcons(report, personalDetails),
+        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
         subtitle: ReportUtils.getChatRoomSubtitle(report),
     };
