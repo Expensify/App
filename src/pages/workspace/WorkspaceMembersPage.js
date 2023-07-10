@@ -32,7 +32,7 @@ import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
-import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../hooks/usePrevious';
@@ -40,7 +40,7 @@ import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
-    /** The personal details of the person who is logged in */
+    /** All personal details asssociated with user */
     personalDetails: personalDetailsPropType,
 
     /** URL Route params */
@@ -61,6 +61,7 @@ const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
     network: networkPropTypes.isRequired,
 };
 
@@ -70,6 +71,7 @@ const defaultProps = {
         accountID: 0,
     },
     ...policyDefaultProps,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function WorkspaceMembersPage(props) {
@@ -292,6 +294,7 @@ function WorkspaceMembersPage(props) {
      */
     const renderItem = useCallback(
         ({item}) => {
+            const disabled = props.session.email === item.login || item.role === 'admin';
             const hasError = !_.isEmpty(item.errors) || errors[item.accountID];
             const isChecked = _.contains(selectedEmployees, Number(item.accountID));
             return (
@@ -302,23 +305,26 @@ function WorkspaceMembersPage(props) {
                 >
                     <PressableWithFeedback
                         style={[styles.peopleRow, (_.isEmpty(item.errors) || errors[item.accountID]) && styles.peopleRowBorderBottom, hasError && styles.borderColorDanger]}
+                        disabled={disabled}
                         onPress={() => toggleUser(item.accountID, item.pendingAction)}
-                        accessibilityRole="checkbox"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
                         accessibilityState={{
                             checked: isChecked,
                         }}
                         accessibilityLabel={props.formatPhoneNumber(item.displayName)}
-                        // disable hover dimming
                         hoverDimmingValue={1}
                         pressDimmingValue={0.7}
                     >
                         <Checkbox
+                            disabled={disabled}
                             isChecked={isChecked}
                             onPress={() => toggleUser(item.accountID, item.pendingAction)}
+                            accessibilityLabel={item.displayName}
                         />
                         <View style={styles.flex1}>
                             <OptionRow
                                 boldStyle
+                                isDisabled={disabled}
                                 option={{
                                     text: props.formatPhoneNumber(item.displayName),
                                     alternateText: props.formatPhoneNumber(item.login),
@@ -330,7 +336,7 @@ function WorkspaceMembersPage(props) {
                                             type: CONST.ICON_TYPE_AVATAR,
                                         },
                                     ],
-                                    keyForList: item.accountID,
+                                    keyForList: String(item.accountID),
                                 }}
                                 onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
@@ -448,10 +454,24 @@ function WorkspaceMembersPage(props) {
                         {data.length > 0 ? (
                             <View style={[styles.w100, styles.mt4, styles.flex1]}>
                                 <View style={[styles.peopleRow, styles.ph5, styles.pb3]}>
-                                    <Checkbox
-                                        isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
+                                    <PressableWithFeedback
+                                        disabled={_.isEmpty(removableMembers)}
                                         onPress={() => toggleAllUsers(removableMembers)}
-                                    />
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                        accessibilityState={{
+                                            checked: !_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID))),
+                                        }}
+                                        accessibilityLabel={props.translate('workspace.people.selectAll')}
+                                        hoverDimmingValue={1}
+                                        pressDimmingValue={0.7}
+                                    >
+                                        <Checkbox
+                                            disabled={_.isEmpty(removableMembers)}
+                                            isChecked={!_.isEmpty(removableMembers) && _.every(_.keys(removableMembers), (accountID) => _.contains(selectedEmployees, Number(accountID)))}
+                                            onPress={() => toggleAllUsers(removableMembers)}
+                                            accessibilityLabel={props.translate('workspace.people.selectAll')}
+                                        />
+                                    </PressableWithFeedback>
                                     <View style={[styles.flex1]}>
                                         <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>
                                     </View>

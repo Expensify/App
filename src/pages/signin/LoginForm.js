@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -65,165 +65,150 @@ const defaultProps = {
     blurOnSubmit: false,
 };
 
-class LoginForm extends React.Component {
-    constructor(props) {
-        super(props);
-        this.onTextInput = this.onTextInput.bind(this);
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+function LoginForm(props) {
+    const input = useRef();
+    const [login, setLogin] = useState('');
+    const [formError, setFormError] = useState(false);
 
-        this.state = {
-            formError: false,
-            login: '',
-        };
-
-        if (this.props.account.errors || this.props.account.isLoading) {
-            Session.clearAccountMessages();
-        }
-    }
-
-    componentDidMount() {
-        if (!canFocusInputOnScreenFocus() || !this.input || !this.props.isVisible) {
-            return;
-        }
-        this.input.focus();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.blurOnSubmit && this.props.blurOnSubmit) {
-            this.input.blur();
-        }
-        if (prevProps.isVisible || !this.props.isVisible) {
-            return;
-        }
-        this.input.focus();
-    }
+    const {translate} = props;
 
     /**
      * Handle text input and clear formError upon text change
      *
      * @param {String} text
      */
-    onTextInput(text) {
-        this.setState({
-            login: text,
-            formError: null,
-        });
+    const onTextInput = useCallback(
+        (text) => {
+            setLogin(text);
+            setFormError(null);
 
-        if (this.props.account.errors || this.props.account.message) {
-            Session.clearAccountMessages();
-        }
+            if (props.account.errors || props.account.message) {
+                Session.clearAccountMessages();
+            }
 
-        // Clear the "Account successfully closed" message when the user starts typing
-        if (this.props.closeAccount.success && !isInputAutoFilled(this.input)) {
-            CloseAccount.setDefaultData();
-        }
-    }
-
-    /**
-     * Clear Login from the state
-     */
-    clearLogin() {
-        this.setState({login: ''}, this.input.clear);
-    }
+            // Clear the "Account successfully closed" message when the user starts typing
+            if (props.closeAccount.success && !isInputAutoFilled(input.current)) {
+                CloseAccount.setDefaultData();
+            }
+        },
+        [props.account, props.closeAccount, input, setFormError, setLogin],
+    );
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    validateAndSubmitForm() {
-        if (this.props.network.isOffline) {
+    const validateAndSubmitForm = useCallback(() => {
+        if (props.network.isOffline) {
             return;
         }
 
         // If account was closed and have success message in Onyx, we clear it here
-        if (!_.isEmpty(this.props.closeAccount.success)) {
+        if (!_.isEmpty(props.closeAccount.success)) {
             CloseAccount.setDefaultData();
         }
 
-        const login = this.state.login.trim();
-        if (!login) {
-            this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
+        const loginTrim = login.trim();
+        if (!loginTrim) {
+            setFormError('common.pleaseEnterEmailOrPhoneNumber');
             return;
         }
 
-        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(login));
+        const phoneLogin = LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(loginTrim));
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
-        if (!Str.isValidEmail(login) && !parsedPhoneNumber.possible) {
-            if (ValidationUtils.isNumericWithSpecialChars(login)) {
-                this.setState({formError: 'common.error.phoneNumber'});
+        if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
+            if (ValidationUtils.isNumericWithSpecialChars(loginTrim)) {
+                setFormError('common.error.phoneNumber');
             } else {
-                this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
+                setFormError('loginForm.error.invalidFormatEmailLogin');
             }
             return;
         }
 
-        this.setState({
-            formError: null,
-        });
+        setFormError(null);
 
         // Check if this login has an account associated with it or not
-        Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : login);
-    }
+        Session.beginSignIn(parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : loginTrim);
+    }, [login, props.closeAccount, props.network, setFormError]);
 
-    render() {
-        const formErrorText = this.state.formError ? this.props.translate(this.state.formError) : '';
-        const serverErrorText = ErrorUtils.getLatestErrorMessage(this.props.account);
-        const hasError = !_.isEmpty(serverErrorText);
-        return (
-            <>
-                <View
-                    accessibilityLabel={this.props.translate('loginForm.loginForm')}
-                    style={[styles.mt3]}
-                >
-                    <TextInput
-                        ref={(el) => (this.input = el)}
-                        label={this.props.translate('loginForm.phoneOrEmail')}
-                        value={this.state.login}
-                        autoCompleteType="username"
-                        textContentType="username"
-                        nativeID="username"
-                        name="username"
-                        onChangeText={this.onTextInput}
-                        onSubmitEditing={this.validateAndSubmitForm}
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
-                        errorText={formErrorText}
-                        hasError={hasError}
-                    />
-                </View>
-                {!_.isEmpty(this.props.account.success) && <Text style={[styles.formSuccess]}>{this.props.account.success}</Text>}
-                {!_.isEmpty(this.props.closeAccount.success || this.props.account.message) && (
-                    // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
-                    <DotIndicatorMessage
-                        style={[styles.mv2]}
-                        type="success"
-                        messages={{0: this.props.closeAccount.success || this.props.account.message}}
-                    />
-                )}
-                {
-                    // We need to unmount the submit button when the component is not visible so that the Enter button
-                    // key handler gets unsubscribed and does not conflict with the Password Form
-                    this.props.isVisible && (
-                        <View style={[styles.mt5]}>
-                            <FormAlertWithSubmitButton
-                                buttonText={this.props.translate('common.continue')}
-                                isLoading={this.props.account.isLoading && this.props.account.loadingForm === CONST.FORMS.LOGIN_FORM}
-                                onSubmit={this.validateAndSubmitForm}
-                                message={serverErrorText}
-                                isAlertVisible={!_.isEmpty(serverErrorText)}
-                                containerStyles={[styles.mh0]}
-                            />
-                        </View>
-                    )
-                }
-            </>
-        );
-    }
+    useEffect(() => {
+        Session.clearAccountMessages();
+        if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible) {
+            return;
+        }
+        input.current.focus();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we just want to call this function when component is mounted
+    }, []);
+
+    useEffect(() => {
+        if (props.blurOnSubmit) {
+            input.current.blur();
+        }
+        if (!input.current || !props.isVisible) {
+            return;
+        }
+        input.current.focus();
+    }, [props.blurOnSubmit, props.isVisible, input]);
+
+    const formErrorText = useMemo(() => (formError ? translate(formError) : ''), [formError, translate]);
+    const serverErrorText = useMemo(() => ErrorUtils.getLatestErrorMessage(props.account), [props.account]);
+    const hasError = !_.isEmpty(serverErrorText);
+
+    return (
+        <>
+            <View
+                accessibilityLabel={translate('loginForm.loginForm')}
+                style={[styles.mt3]}
+            >
+                <TextInput
+                    ref={input}
+                    label={translate('loginForm.phoneOrEmail')}
+                    value={login}
+                    autoCompleteType="username"
+                    textContentType="username"
+                    nativeID="username"
+                    name="username"
+                    onChangeText={onTextInput}
+                    onSubmitEditing={validateAndSubmitForm}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                    errorText={formErrorText}
+                    hasError={hasError}
+                />
+            </View>
+            {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
+            {!_.isEmpty(props.closeAccount.success || props.account.message) && (
+                // DotIndicatorMessage mostly expects onyxData errors, so we need to mock an object so that the messages looks similar to prop.account.errors
+                <DotIndicatorMessage
+                    style={[styles.mv2]}
+                    type="success"
+                    messages={{0: props.closeAccount.success || props.account.message}}
+                />
+            )}
+            {
+                // We need to unmount the submit button when the component is not visible so that the Enter button
+                // key handler gets unsubscribed and does not conflict with the Password Form
+                props.isVisible && (
+                    <View style={[styles.mt5]}>
+                        <FormAlertWithSubmitButton
+                            buttonText={translate('common.continue')}
+                            isLoading={props.account.isLoading && props.account.loadingForm === CONST.FORMS.LOGIN_FORM}
+                            onSubmit={validateAndSubmitForm}
+                            message={serverErrorText}
+                            isAlertVisible={!_.isEmpty(serverErrorText)}
+                            containerStyles={[styles.mh0]}
+                        />
+                    </View>
+                )
+            }
+        </>
+    );
 }
 
 LoginForm.propTypes = propTypes;
 LoginForm.defaultProps = defaultProps;
+LoginForm.displayName = 'LoginForm';
 
 export default compose(
     withOnyx({

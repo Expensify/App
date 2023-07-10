@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
 import SidebarLinks from '../SidebarLinks';
@@ -17,60 +17,52 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-class BaseSidebarScreen extends Component {
-    constructor(props) {
-        super(props);
+/**
+ * Function called when avatar is clicked
+ */
+const navigateToSettings = () => {
+    Navigation.navigate(ROUTES.SETTINGS);
+};
 
-        this.startTimer = this.startTimer.bind(this);
-        this.navigateToSettings = this.navigateToSettings.bind(this);
-    }
+/**
+ * Function called when a pinned chat is selected.
+ */
+const startTimer = () => {
+    Timing.start(CONST.TIMING.SWITCH_REPORT);
+    Performance.markStart(CONST.TIMING.SWITCH_REPORT);
+};
 
-    componentDidMount() {
+function BaseSidebarScreen(props) {
+    useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
-    }
+    }, []);
 
-    /**
-     * Method called when avatar is clicked
-     */
-    navigateToSettings() {
-        Navigation.navigate(ROUTES.SETTINGS);
-    }
-
-    /**
-     * Method called when a pinned chat is selected.
-     */
-    startTimer() {
-        Timing.start(CONST.TIMING.SWITCH_REPORT);
-        Performance.markStart(CONST.TIMING.SWITCH_REPORT);
-    }
-
-    render() {
-        return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnableKeyboardAvoidingView={false}
-                style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
-            >
-                {({insets}) => (
-                    <>
-                        <View style={[styles.flex1]}>
-                            <SidebarLinks
-                                onLinkClick={this.startTimer}
-                                insets={insets}
-                                onAvatarClick={this.navigateToSettings}
-                                isSmallScreenWidth={this.props.isSmallScreenWidth}
-                                onLayout={this.props.onLayout}
-                            />
-                        </View>
-                        {this.props.children}
-                    </>
-                )}
-            </ScreenWrapper>
-        );
-    }
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
+            style={[styles.sidebar, Browser.isMobile() ? styles.userSelectNone : {}]}
+        >
+            {({insets}) => (
+                <>
+                    <View style={[styles.flex1]}>
+                        <SidebarLinks
+                            onLinkClick={startTimer}
+                            insets={insets}
+                            onAvatarClick={navigateToSettings}
+                            isSmallScreenWidth={props.isSmallScreenWidth}
+                            onLayout={props.onLayout}
+                        />
+                    </View>
+                    {props.children}
+                </>
+            )}
+        </ScreenWrapper>
+    );
 }
 
 BaseSidebarScreen.propTypes = propTypes;
+BaseSidebarScreen.displayName = 'BaseSidebarScreen';
 
 export default withWindowDimensions(BaseSidebarScreen);

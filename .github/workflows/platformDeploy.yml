@@ -165,7 +165,7 @@ jobs:
         with:
           timeout_minutes: 10
           max_attempts: 5
-          command: cd ios && pod install
+          command: cd ios && bundle exec pod install
 
       - name: Decrypt profile
         run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output chat_expensify_appstore.mobileprovision chat_expensify_appstore.mobileprovision.gpg
@@ -261,8 +261,14 @@ jobs:
         if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: npm run build-staging
 
-      - name: Build docs
+      - name: Build storybook docs for production
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: npm run storybook-build
+        continue-on-error: true
+
+      - name: Build storybook docs for staging
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: npm run storybook-build-staging
         continue-on-error: true
 
       - name: Deploy production to S3
