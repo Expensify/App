@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import useLocalize from '../../hooks/useLocalize';
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import CONST from '../../CONST';
@@ -21,8 +21,6 @@ const propTypes = {
         /** The email/phone the user logged in with */
         login: PropTypes.string,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -30,36 +28,37 @@ const defaultProps = {
 };
 
 function EmailDeliveryFailurePage(props) {
+    const {translate} = useLocalize();
     const login = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
     return (
         <>
             <View style={[styles.mv3, styles.flexRow, styles.justifyContentetween]}>
                 <View style={[styles.flex1]}>
-                    <Text>{props.translate('emailDeliveryFailurePage.ourEmailProvider', {login})}</Text>
+                    <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', {login})}</Text>
                     <Text style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>{props.translate('emailDeliveryFailurePage.confirmThat', {login})}</Text>
-                        {props.translate('emailDeliveryFailurePage.emailAliases')}
+                        <Text style={[styles.textStrong]}>{translate('emailDeliveryFailurePage.confirmThat', {login})}</Text>
+                        {translate('emailDeliveryFailurePage.emailAliases')}
                     </Text>
                     <Text style={[styles.mt5]}>
-                        <Text style={[styles.textStrong]}>{props.translate('emailDeliveryFailurePage.ensureYourEmailClient')}</Text>
-                        {props.translate('emailDeliveryFailurePage.youCanFindDirections')}
+                        <Text style={[styles.textStrong]}>{translate('emailDeliveryFailurePage.ensureYourEmailClient')}</Text>
+                        {translate('emailDeliveryFailurePage.youCanFindDirections')}
                         <TextLink
                             href="https://community.expensify.com/discussion/5651/deep-dive-best-practices-when-youre-running-into-trouble-receiving-emails-from-expensify/p1?new=1"
                             style={[styles.link]}
                         >
-                            {props.translate('common.here')}
+                            {translate('common.here')}
                         </TextLink>
-                        {props.translate('emailDeliveryFailurePage.helpConfigure')}
+                        {translate('emailDeliveryFailurePage.helpConfigure')}
                     </Text>
                     <Text style={styles.mt5}>
-                        {props.translate('emailDeliveryFailurePage.onceTheAbove')}
+                        {translate('emailDeliveryFailurePage.onceTheAbove')}
                         <TextLink
                             href={`mailto:${CONST.EMAIL.CONCIERGE}`}
                             style={[styles.link]}
                         >
                             {CONST.EMAIL.CONCIERGE}
                         </TextLink>
-                        {props.translate('emailDeliveryFailurePage.toUnblock')}
+                        {translate('emailDeliveryFailurePage.toUnblock')}
                     </Text>
                 </View>
             </View>
@@ -67,12 +66,12 @@ function EmailDeliveryFailurePage(props) {
                 <PressableWithFeedback
                     onPress={() => redirectToSignIn()}
                     accessibilityRole="button"
-                    accessibilityLabel={props.translate('common.back')}
+                    accessibilityLabel={translate('common.back')}
                     // disable hover dim for switch
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}
                 >
-                    <Text style={[styles.link]}>{props.translate('common.back')}</Text>
+                    <Text style={[styles.link]}>{translate('common.back')}</Text>
                 </PressableWithFeedback>
             </View>
         </>
@@ -84,7 +83,6 @@ EmailDeliveryFailurePage.defaultProps = defaultProps;
 EmailDeliveryFailurePage.displayName = 'EmailDeliveryFailurePage';
 
 export default compose(
-    withLocalize,
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
     }),
