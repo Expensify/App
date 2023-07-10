@@ -1459,14 +1459,12 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
     const amount = NumberFormatUtils.format(preferredLocale, total / currencyUnit, {style: 'currency', currency});
     let paymentMethodMessage;
     switch (paymentType) {
-        case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-            paymentMethodMessage = ' elsewhere';
+        case CONST.IOU.PAYMENT_TYPE.ELSEWHERE: 
+            paymentMethodMessage = ' elsewhere'; 
             break;
-        case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-            paymentMethodMessage = ' using PayPal.me';
-            break;
-        default:
-            break;
+        default: 
+            paymentMethodMessage = ` using ${paymentType}`;
+            break; 
     }
 
     let iouMessage;
