@@ -91,6 +91,9 @@ function ReportActionItemSingle(props) {
         displayName = actorHint;
         avatarSource = UserUtils.getAvatar(delegateDetails.avatar, props.action.delegateAccountID);
     }
+    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
+        displayName = 'mimimi';
+    }
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
