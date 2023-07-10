@@ -334,6 +334,7 @@ function ReportActionsView(props) {
                 isLoadingMoreReportActions={props.report.isLoadingMoreReportActions}
                 loadMoreChats={loadMoreChats}
                 newMarkerReportActionID={newMarkerReportActionID}
+                policy={props.policy}
             />
             <PopoverReactionList
                 ref={context.reactionListRef}
@@ -390,6 +391,22 @@ function arePropsEqual(oldProps, newProps) {
     }
 
     if (lodashGet(newProps, 'policy.name') !== lodashGet(oldProps, 'policy.name')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.reportName') !== lodashGet(oldProps, 'report.reportName')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.description') !== lodashGet(oldProps, 'report.description')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.managerID') !== lodashGet(oldProps, 'report.managerID')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.managerEmail') !== lodashGet(oldProps, 'report.managerEmail')) {
         return false;
     }
 

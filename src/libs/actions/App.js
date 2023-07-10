@@ -210,7 +210,7 @@ function setUpPoliciesAndNavigate(session) {
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
-    const ownerEmail = url.searchParams.get('ownerEmail');
+    const policyOwnerEmail = url.searchParams.get('ownerEmail');
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName');
 
@@ -222,7 +222,7 @@ function setUpPoliciesAndNavigate(session) {
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioningFromOldDot && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
+        Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, true);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
