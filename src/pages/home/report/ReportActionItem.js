@@ -155,7 +155,7 @@ function ReportActionItem(props) {
             return;
         }
 
-        // Reset moderationDecision state to hide reveal button if latestDecision is changed to empty 
+        // Hide reveal message button and show the message if latestDecision is changed to empty 
         if (_.isEmpty(latestDecision)) {
             setModerationDecision(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
             setIsHidden(false);
