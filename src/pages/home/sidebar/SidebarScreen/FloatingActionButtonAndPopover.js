@@ -273,7 +273,6 @@ export default compose(
     withNavigation,
     withNavigationFocus,
     withWindowDimensions,
-    withWindowDimensions,
     withOnyx({
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,
