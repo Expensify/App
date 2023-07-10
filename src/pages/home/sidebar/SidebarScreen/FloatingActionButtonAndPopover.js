@@ -58,6 +58,7 @@ const propTypes = {
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
 
+    /** FAB ref for access from HOC */
     innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 };
 const defaultProps = {
