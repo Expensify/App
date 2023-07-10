@@ -12,6 +12,7 @@ import Button from '../Button';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import AttachmentView from '../AttachmentView';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -71,6 +72,18 @@ class AttachmentCarousel extends React.Component {
 
     componentDidMount() {
         this.autoHideArrow();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(prevProps.reportActions, this.props.reportActions)) {
+            return;
+        }
+        // const {
+        //     page,
+        //     attachments,
+        // } = this.createInitialState();
+    
+        this.setState(this.createInitialState())
     }
 
     /**
@@ -191,7 +204,8 @@ class AttachmentCarousel extends React.Component {
 
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (page === -1) {
-            throw new Error('Attachment not found');
+            Navigation.dismissModal();
+            return;
         }
 
         // Update the parent modal's state with the source and name from the mapped attachments
