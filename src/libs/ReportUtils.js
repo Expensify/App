@@ -1372,7 +1372,6 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
 /**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
- * @param {String} payeeEmail - Email of the person generating the IOU.
  * @param {Number} payeeAccountID - AccountID of the person generating the IOU.
  * @param {Number} payerAccountID - AccountID of the other person participating in the IOU.
  * @param {Number} total - IOU amount in the smallest unit of the currency.
@@ -1382,7 +1381,7 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, total, chatReportID, currency, isSendingMoney = false) {
+function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatReportID, currency, isSendingMoney = false) {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = personalDetails.login;
@@ -1394,7 +1393,6 @@ function buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, to
         chatReportID,
         currency,
         managerID: payerAccountID,
-        ownerEmail: payeeEmail,
         ownerAccountID: payeeAccountID,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
@@ -1411,14 +1409,13 @@ function buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, to
  *
  * @param {String} chatReportID - Report ID of the PolicyExpenseChat where the Expense Report is
  * @param {String} policyID - The policy ID of the PolicyExpenseChat
- * @param {String} payeeEmail - Email of the employee (payee)
  * @param {Number} payeeAccountID - AccountID of the employee (payee)
  * @param {Number} total - Amount in cents
  * @param {String} currency
  *
  * @returns {Object}
  */
-function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, payeeAccountID, total, currency) {
+function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, total, currency) {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
@@ -1432,7 +1429,6 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, payeeA
         chatReportID,
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,
-        ownerEmail: payeeEmail,
         ownerAccountID: payeeAccountID,
         hasOutstandingIOU: true,
         currency: outputCurrency,
