@@ -829,7 +829,7 @@ class ReportActionCompose extends React.Component {
         if (
             e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
             this.textInput.selectionStart === 0 &&
-            this.state.isCommentEmpty &&
+            this.state.value.length === 0 &&
             !ReportUtils.chatIncludesChronos(this.props.report)
         ) {
             e.preventDefault();

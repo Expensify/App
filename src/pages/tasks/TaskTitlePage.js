@@ -14,6 +14,7 @@ import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -76,12 +77,14 @@ function TaskTitlePage(props) {
             >
                 <View style={[styles.mb4]}>
                     <TextInput
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="title"
                         name="title"
                         autoGrowHeight
                         textAlignVertical="top"
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         label={props.translate('task.title')}
+                        accessibilityLabel={props.translate('task.title')}
                         defaultValue={(props.report && props.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
                     />
