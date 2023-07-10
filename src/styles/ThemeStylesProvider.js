@@ -15,9 +15,9 @@ function ThemeStylesProvider(props) {
     const appContentStyle = useMemo(
         () => ({
             ...defaultStyles.appContent,
-            backgroundColor: theme.appBG.value,
+            backgroundColor: theme.appBG,
         }),
-        [theme.appBG.value],
+        [theme.appBG],
     );
 
     const styles = useMemo(
