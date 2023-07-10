@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef, useMemo } from 'react';
+import React, {useEffect, useCallback, useRef, useMemo} from 'react';
 import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -63,16 +63,7 @@ const defaultProps = {
     style: null,
 };
 
-function Composer({
-  shouldClear,
-  onClear,
-  isDisabled,
-  maxLines,
-  forwardedRef,
-  isComposerFullSize,
-  setIsFullComposerAvailable,
-  ...props
-}) {
+function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
     const textInput = useRef(null);
 
     /**
@@ -82,15 +73,15 @@ function Composer({
     const setTextInputRef = useCallback((el) => {
         textInput.current = el;
         if (!_.isFunction(forwardedRef) || textInput.current === null) {
-          return;
+            return;
         }
 
-      // This callback prop is used by the parent component using the constructor to
-      // get a ref to the inner textInput element e.g. if we do
-      // <constructor ref={el => this.textInput = el} /> this will not
-      // return a ref to the component, but rather the HTML element by default
-      forwardedRef(textInput.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        forwardedRef(textInput.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -101,20 +92,19 @@ function Composer({
         onClear();
     }, [shouldClear, onClear]);
 
-
-     /**
-      * Set maximum number of lines
-      * @return {Number}
-      */
+    /**
+     * Set maximum number of lines
+     * @return {Number}
+     */
     const maximumNumberOfLines = useMemo(() => {
         if (isComposerFullSize) return 1000000;
         return maxLines;
-    },[isComposerFullSize, maxLines])
+    }, [isComposerFullSize, maxLines]);
 
     const styles = useMemo(() => {
-      StyleSheet.flatten(props.style)
-    },[props.style])
-    
+        StyleSheet.flatten(props.style);
+    }, [props.style]);
+
     return (
         <RNTextInput
             autoComplete="off"
@@ -123,10 +113,10 @@ function Composer({
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
             textAlignVertical="center"
-                // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
-                // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)
-                // @Szymon20000 is working on fixing this (android-only) issue in the in the upstream PR (https://github.com/facebook/react-native/pulls?q=is%3Apr+is%3Aopen+maxNumberOfLines)
-                // TODO: remove this commend once upstream PR is merged
+            // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
+            // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)
+            // @Szymon20000 is working on fixing this (android-only) issue in the in the upstream PR (https://github.com/facebook/react-native/pulls?q=is%3Apr+is%3Aopen+maxNumberOfLines)
+            // TODO: remove this commend once upstream PR is merged
             maximumNumberOfLines={maximumNumberOfLines}
             style={styles}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
