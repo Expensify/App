@@ -18,7 +18,7 @@ function ReceiptSelector() {
 
     return (
         <Camera
-            style={StyleSheet.absoluteFill}
+            style={{flex: 1}}
             device={device}
             isActive
         />

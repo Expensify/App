@@ -6,13 +6,15 @@ import compose from '../libs/compose';
 import withLocalize from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import TabSelectorItem from './TabSelectorItem';
+import lodashGet from 'lodash/get';
 
 function TabSelector(props) {
+    const selectedTab = lodashGet(props.tabSelected, 'selected', 'manual');
     return (
         <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
             <TabSelectorItem
                 title="Manual"
-                selected={props.tabSelected.selected === 'manual'}
+                selected={selectedTab === 'manual'}
                 icon={Expensicons.Pencil}
                 callback={() => {
                     Onyx.merge(ONYXKEYS.TAB_SELECTOR, {selected: 'manual'});
@@ -20,7 +22,7 @@ function TabSelector(props) {
             />
             <TabSelectorItem
                 title="Scan"
-                selected={props.tabSelected.selected === 'scan'}
+                selected={selectedTab === 'scan'}
                 icon={Expensicons.Receipt}
                 callback={() => {
                     Onyx.merge(ONYXKEYS.TAB_SELECTOR, {selected: 'scan'});

@@ -736,10 +736,12 @@ PODS:
   - TensorFlowLiteObjC/Metal (2.13.0):
     - TensorFlowLiteC/Metal (= 2.13.0)
     - TensorFlowLiteObjC/Core (= 2.13.0)
-  - VisionCamera (2.15.4):
+  - VisionCamera (3.0.0-rc.3):
     - React
     - React-callinvoker
     - React-Core
+    - react-native-skia
+    - react-native-worklets
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -1183,7 +1185,7 @@ SPEC CHECKSUMS:
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
   TensorFlowLiteC: ac3334fa9dbc90e4744b4497312a393fd02b5408
   TensorFlowLiteObjC: 56179ff822bd10506d015b1f949f6d4dedeaa04d
-  VisionCamera: c6356b309f7b8e185b7be2e703ec67bb35acf345
+  VisionCamera: 312907200e0476069077d7cbaa5010208fbf47f7
   Yoga: f87bd008d34c18bf990d4371200802f2866ce18c
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
