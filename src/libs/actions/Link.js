@@ -66,18 +66,13 @@ function openOldDotLink(url) {
     }
 
     // If shortLivedAuthToken is not accessible, fallback to opening the link without the token.
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
-        .then((response) => {
-            buildOldDotURL(url, response.shortLivedAuthToken).then((oldDotUrl) => {
-                Linking.openURL(oldDotUrl);
-            });
-        })
-        .catch(() => {
-            buildOldDotURL(url).then((oldDotUrl) => {
-                Linking.openURL(oldDotUrl);
-            });
-        });
+    asyncOpenURL(
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects('OpenOldDotLink', {}, {})
+            .then((response) => buildOldDotURL(url, response.shortLivedAuthToken))
+            .catch(() => buildOldDotURL(url)),
+        (oldDotURL) => oldDotURL,
+    );
 }
 
 /**

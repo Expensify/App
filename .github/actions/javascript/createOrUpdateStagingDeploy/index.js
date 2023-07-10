@@ -220,6 +220,7 @@ const sanitizeStringForJSONParse = __nccwpck_require__(9338);
 /**
  * @param {String} tag
  */
+// eslint-disable-next-line no-unused-vars
 function fetchTagIfNeeded(tag) {
     try {
         console.log(`Checking if tag ${tag} exists locally`);
@@ -249,8 +250,10 @@ function fetchTagIfNeeded(tag) {
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    fetchTagIfNeeded(fromTag);
-    fetchTagIfNeeded(toTag);
+    // fetchTagIfNeeded(fromTag);
+    // fetchTagIfNeeded(toTag);
+    // Note: this is a temporary measure until we can figure out a faster way to fetch only what's needed
+    execSync('git fetch --all --tags');
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
@@ -383,11 +386,12 @@ class GithubUtils {
         this.internalOctokit = new Octokit(
             getOctokitOptions(token, {
                 throttle: {
+                    retryAfterBaseValue: 2000,
                     onRateLimit: (retryAfter, options) => {
                         console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
 
-                        // Retry once after hitting a rate limit error, then give up
-                        if (options.request.retryCount <= 1) {
+                        // Retry five times when hitting a rate limit error, then give up
+                        if (options.request.retryCount <= 5) {
                             console.log(`Retrying after ${retryAfter} seconds!`);
                             return true;
                         }

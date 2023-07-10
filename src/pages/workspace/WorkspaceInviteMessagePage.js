@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -81,6 +81,10 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     componentDidMount() {
+        if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
+            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
+            return;
+        }
         this.focusWelcomeMessageInput();
     }
 
@@ -114,6 +118,7 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     sendInvitation() {
+        Keyboard.dismiss();
         Policy.addMembersToWorkspace(this.props.invitedEmailsToAccountIDsDraft, this.state.welcomeNote, this.props.route.params.policyID, this.props.betas);
         Policy.setWorkspaceInviteMembersDraft(this.props.route.params.policyID, {});
         Navigation.navigate(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
@@ -175,7 +180,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         footerContent={
                             <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
-                                accessibilityRole="link"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[styles.mv2, styles.alignSelfStart]}
@@ -191,6 +196,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(this.props.invitedEmailsToAccountIDsDraft), this.props.personalDetails)}
                                 shouldStackHorizontally
+                                shouldDisplayAvatarsInRows
                                 secondAvatarStyle={[styles.secondAvatarInline]}
                             />
                         </View>

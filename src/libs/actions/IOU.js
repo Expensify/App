@@ -10,6 +10,7 @@ import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
+import * as CurrencyUtils from '../CurrencyUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as IOUUtils from '../IOUUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
@@ -17,6 +18,7 @@ import DateUtils from '../DateUtils';
 import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
+import * as Report from './Report';
 
 const chatReports = {};
 const iouReports = {};
@@ -427,6 +429,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     );
     resetMoneyRequestInfo();
     Navigation.dismissModal(chatReport.reportID);
+    Report.notifyNewAction(chatReport.reportID, payeeAccountID);
 }
 
 /**
@@ -733,6 +736,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
 
     resetMoneyRequestInfo();
     Navigation.dismissModal();
+    Report.notifyNewAction(groupData.chatReportID, currentUserAccountID);
 }
 
 /**
@@ -763,6 +767,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(groupData.chatReportID);
+    Report.notifyNewAction(groupData.chatReportID, currentUserAccountID);
 }
 
 /**
@@ -880,7 +885,8 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
  * @returns {String}
  */
 function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
-    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / 100}${currency}`;
+    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
+    return `https://paypal.me/${submitterPayPalMeAddress}/${Math.abs(amount) / currencyUnit}${currency}`;
 }
 
 /**
@@ -1227,6 +1233,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipi
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
+    Report.notifyNewAction(params.chatReportID, managerID);
 }
 
 /**
@@ -1244,6 +1251,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
+    Report.notifyNewAction(params.chatReportID, managerID);
 }
 
 /**
@@ -1261,6 +1269,7 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipi
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
+    Report.notifyNewAction(params.chatReportID, managerID);
 
     asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(amount, recipient.payPalMeAddress, currency));
 }
