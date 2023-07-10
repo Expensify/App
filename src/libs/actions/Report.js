@@ -26,6 +26,7 @@ import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as Environment from '../Environment/Environment';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -1762,10 +1763,12 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
  * @param {String} reportID
  * @param {Object} reportAction
  * @param {String} severity
+ * @param {String} environment
  */
-function flagComment(reportID, reportAction, severity) {
+function flagComment(reportID, reportAction, severity, environment) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const message = reportAction.message[0];
+    const isDevRequest = environment === CONST.ENVIRONMENT.DEV;
     let updatedDecision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
         if (_.isEmpty(message.moderationDecisions) || message.moderationDecisions[message.moderationDecisions.length - 1].decision !== CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE) {
@@ -1837,6 +1840,7 @@ function flagComment(reportID, reportAction, severity) {
     const parameters = {
         severity,
         reportActionID,
+        isDevRequest,
     };
 
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});

@@ -22,6 +22,7 @@ import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as Session from '../libs/actions/Session';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import withEnvironment, {environmentPropTypes} from '../components/withEnvironment';
 
 const propTypes = {
     /** Array of report actions for this report */
@@ -45,6 +46,8 @@ const propTypes = {
     isLoadingReportData: PropTypes.bool,
 
     ...withLocalizePropTypes,
+
+    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -130,7 +133,7 @@ function FlagCommentPage(props) {
         if (reportAction === undefined || reportAction.reportActionID === undefined) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
         }
-        Report.flagComment(reportID, reportAction, severity);
+        Report.flagComment(reportID, reportAction, severity, props.environment);
         Navigation.dismissModal();
     };
 
@@ -181,6 +184,7 @@ FlagCommentPage.displayName = 'FlagCommentPage';
 
 export default compose(
     withLocalize,
+    withEnvironment,
     withOnyx({
         reportActions: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
