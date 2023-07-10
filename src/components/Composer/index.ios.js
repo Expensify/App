@@ -63,16 +63,7 @@ const defaultProps = {
     style: null,
 };
 
-function Composer({
-  shouldClear,
-  onClear,
-  isDisabled,
-  maxLines,
-  forwardedRef,
-  isComposerFullSize,
-  setIsFullComposerAvailable,
-  ...props
-}) {
+function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
     const textInput = useRef(null);
 
     /**
@@ -82,15 +73,15 @@ function Composer({
     const setTextInputRef = useCallback((el) => {
         textInput.current = el;
         if (!_.isFunction(forwardedRef) || textInput.current === null) {
-          return;
+            return;
         }
 
-      // This callback prop is used by the parent component using the constructor to
-      // get a ref to the inner textInput element e.g. if we do
-      // <constructor ref={el => this.textInput = el} /> this will not
-      // return a ref to the component, but rather the HTML element by default
-      forwardedRef(textInput.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // This callback prop is used by the parent component using the constructor to
+        // get a ref to the inner textInput element e.g. if we do
+        // <constructor ref={el => this.textInput = el} /> this will not
+        // return a ref to the component, but rather the HTML element by default
+        forwardedRef(textInput.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -101,15 +92,14 @@ function Composer({
         onClear();
     }, [shouldClear, onClear]);
 
-
-     /**
-      * Set maximum number of lines
-      * @return {Number}
-      */
+    /**
+     * Set maximum number of lines
+     * @return {Number}
+     */
     const maximumNumberOfLines = useMemo(() => {
         if (isComposerFullSize) return 1000000;
         return maxLines;
-    },[isComposerFullSize, maxLines])
+    }, [isComposerFullSize, maxLines]);
 
     const styles = useMemo(() => {
         StyleSheet.flatten(props.style);
