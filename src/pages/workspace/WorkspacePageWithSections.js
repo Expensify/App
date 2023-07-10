@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -11,14 +11,12 @@ import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScrollViewWithContext from '../../components/ScrollViewWithContext';
 import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
@@ -64,8 +62,6 @@ const propTypes = {
 
     /** Option to use the default scroll view  */
     shouldUseScrollView: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -79,6 +75,14 @@ const defaultProps = {
     backButtonRoute: '',
 };
 
+function fetchData(skipVBBACal) {
+    if (skipVBBACal) {
+        return;
+    }
+
+    BankAccounts.openWorkspaceView();
+}
+
 function WorkspacePageWithSections(props) {
     const {shouldSkipVBBACall} = props;
 
@@ -89,6 +93,11 @@ function WorkspacePageWithSections(props) {
     const isUsingECard = lodashGet(props.user, 'isUsingExpensifyCard', false);
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
+
+    useEffect(() => {
+        fetchData(shouldSkipVBBACall);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- It should run when component mounts
+    }, []);
 
     return (
         <ScreenWrapper
@@ -127,7 +136,6 @@ WorkspacePageWithSections.propTypes = propTypes;
 WorkspacePageWithSections.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
@@ -137,5 +145,4 @@ export default compose(
         },
     }),
     withPolicyAndFullscreenLoading,
-    withNetwork(),
 )(WorkspacePageWithSections);
