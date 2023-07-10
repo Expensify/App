@@ -215,9 +215,6 @@ export default {
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
                             },
-                            YearPicker_Root: {
-                                path: ROUTES.SELECT_YEAR,
-                            },
                         },
                     },
                     Report_Details: {

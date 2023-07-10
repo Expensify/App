@@ -108,10 +108,6 @@ function RightModalNavigator(props) {
                         component={ModalStackNavigators.WalletStatementStackNavigator}
                     />
                     <Stack.Screen
-                        name="Select_Year"
-                        component={ModalStackNavigators.YearPickerStackNavigator}
-                    />
-                    <Stack.Screen
                         name="Flag_Comment"
                         component={ModalStackNavigators.FlagCommentStackNavigator}
                     />
