@@ -13,6 +13,7 @@ import styles from '../../styles/styles';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -62,7 +63,7 @@ function TaskTitlePage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
         >
             <HeaderWithBackButton title={props.translate('task.task')} />
             <Form
