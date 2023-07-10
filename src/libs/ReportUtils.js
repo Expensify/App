@@ -2017,10 +2017,11 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Object} report
  * @param {Array<Object>} policies
  * @param {Array<String>} betas
+ * @param {Object} allReportActions
  * @returns {Boolean}
  */
-function canAccessReport(report, policies, betas) {
-    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report))) {
+function canAccessReport(report, policies, betas, allReportActions) {
+    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report, allReportActions))) {
         return false;
     }
 
@@ -2045,9 +2046,10 @@ function canAccessReport(report, policies, betas) {
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
+ * @param {Object} allReportActions
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2061,7 +2063,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    if (!canAccessReport(report, policies, betas)) {
+    if (!canAccessReport(report, policies, betas, allReportActions)) {
         return false;
     }
 

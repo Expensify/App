@@ -1,13 +1,13 @@
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import {withReportCommentDrafts} from '../OnyxProvider';
 import SidebarUtils from '../../libs/SidebarUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
-import PropTypes from 'prop-types';
 
 const propTypes = {
     shouldDisableFocusOptions: PropTypes.bool,
@@ -21,7 +21,7 @@ const defaultProps = {
     ...baseDefaultProps,
 };
 
-/**
+/*
  * This component gets the data from onyx for the actual
  * OptionRowLHN component.
  * The OptionRowLHN component is memoized, so it will only

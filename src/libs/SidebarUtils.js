@@ -103,14 +103,17 @@ function setIsSidebarLoadedReady() {
  * @param {Object} betas
  * @param {String[]} policies
  * @param {String} priorityMode
+ * @param {Object} allReportActions
  * @returns {String[]} An array of reportIDs sorted in the proper order
  */
-function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode) {
+function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, priorityMode, allReportActions) {
     const isInGSDMode = priorityMode === CONST.PRIORITY_MODE.GSD;
     const isInDefaultMode = !isInGSDMode;
 
     // Filter out all the reports that shouldn't be displayed
-    const reportsToDisplay = _.filter(allReportsDict, (report) => ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies));
+    const reportsToDisplay = _.filter(allReportsDict, (report) =>
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions),
+    );
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
         const conciergeChatReport = _.find(allReportsDict, ReportUtils.isConciergeChatReport);

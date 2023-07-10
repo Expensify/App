@@ -21,9 +21,8 @@ const propTypes = {
     /** List of reports */
     chatReports: PropTypes.objectOf(reportPropTypes),
 
-    // TODO: i think this can be removed?
     /** All report actions for all reports */
-    reportActions: PropTypes.objectOf(
+    allReportActions: PropTypes.objectOf(
         PropTypes.arrayOf(
             PropTypes.shape({
                 error: PropTypes.string,
@@ -46,33 +45,33 @@ const propTypes = {
     /** The chat priority mode */
     priorityMode: PropTypes.string,
 
+    /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
-    policies: PropTypes.shape({}),
 
-    // TODO: this can maybe be removed
-    preferredLocale: PropTypes.string,
+    /** The policies which the user has access to */
+    // eslint-disable-next-line react/forbid-prop-types
+    policies: PropTypes.object,
 };
 
 const defaultProps = {
     chatReports: {},
-    reportActions: {},
+    allReportActions: {},
     personalDetails: {},
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     betas: [],
     policies: [],
-    preferredLocale: CONST.DEFAULT_LOCALE,
 };
 
 function SidebarLinksData(props) {
     const prevReportIDs = useRef([]);
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(props.currentReportID, props.chatReports, props.betas, props.policies, props.priorityMode);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(props.currentReportID, props.chatReports, props.betas, props.policies, props.priorityMode, props.allReportActions);
         if (deepEqual(prevReportIDs.current, reportIDs)) {
             return prevReportIDs.current;
         }
         prevReportIDs.current = reportIDs;
         return reportIDs;
-    }, [props.betas, props.chatReports, props.currentReportID, props.policies, props.priorityMode]);
+    }, [props.allReportActions, props.betas, props.chatReports, props.currentReportID, props.policies, props.priorityMode]);
 
     const isLoading = _.isEmpty(props.personalDetails) || _.isEmpty(props.chatReports);
 
@@ -195,17 +194,13 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        reportActions: {
+        allReportActions: {
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
             selector: reportActionsSelector,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
             selector: policySelector,
-        },
-        // TODO: why do we need this?
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
 )(SidebarLinksData);
