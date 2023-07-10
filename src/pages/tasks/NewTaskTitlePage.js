@@ -14,7 +14,7 @@ import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
     /** Beta features list */
@@ -57,8 +57,8 @@ function NewTaskTitlePage(props) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
-        TaskUtils.setTitleValue(values.taskTitle);
-        Navigation.navigate(ROUTES.getNewTaskRoute());
+        Task.setTitleValue(values.taskTitle);
+        Navigation.navigate(ROUTES.NEW_TASK);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -77,15 +77,15 @@ function NewTaskTitlePage(props) {
             includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
-                title={props.translate('newTaskPage.title')}
-                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                title={props.translate('task.title')}
+                onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
-                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
+                style={[styles.mh5, styles.flexGrow1]}
                 validate={(values) => validate(values)}
                 onSubmit={(values) => onSubmit(values)}
                 enabledWhenOffline
@@ -95,7 +95,7 @@ function NewTaskTitlePage(props) {
                         defaultValue={props.task.title}
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
-                        label={props.translate('newTaskPage.title')}
+                        label={props.translate('task.title')}
                     />
                 </View>
             </Form>

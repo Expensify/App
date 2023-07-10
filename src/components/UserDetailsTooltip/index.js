@@ -12,6 +12,6 @@ const propTypes = {
 const UserDetailsTooltip = (props) => props.children;
 
 UserDetailsTooltip.propTypes = propTypes;
-UserDetailsTooltip.displayName = 'Tooltip';
+UserDetailsTooltip.displayName = 'UserDetailsTooltip';
 
 export default UserDetailsTooltip;
