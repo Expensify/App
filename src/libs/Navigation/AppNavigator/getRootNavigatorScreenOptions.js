@@ -16,7 +16,7 @@ export default (isSmallScreenWidth) => ({
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
         presentation: 'transparentModal',
 
-        // we want pop in RHP since there are some flows that would work weird otherwise
+        // We want pop in RHP since there are some flows that would work weird otherwise
         animationTypeForReplace: 'pop',
         cardStyle: {
             ...styles.cardStyleNavigator,
