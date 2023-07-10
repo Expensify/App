@@ -3,6 +3,7 @@ import {FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
+import styles from '../../styles/styles';
 import stylePropTypes from '../../styles/stylePropTypes';
 import CellRendererComponent from './CellRendererComponent';
 
