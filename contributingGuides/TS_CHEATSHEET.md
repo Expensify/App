@@ -2,14 +2,17 @@
 
 ## Table of Contents
 
-- [1.1 `props.children`](#children-prop)
-- [1.2 `forwardRef`](#forwardRef)
-- [1.3 Animated styles](#animated-style)
-- [1.4 Style Props](#style-props)
-- [1.5 Render Prop](#render-prop)
-- [1.6 Type Narrowing](#type-narrowing)
-- [1.7 Errors in Try-Catch Clauses](#try-catch-clauses)
-- [1.8 Const Assertion](#const-assertion)
+- [CheatSheet](#cheatsheet)
+  - [1.1 `props.children`](#children-prop)
+  - [1.2 `forwardRef`](#forwardRef)
+  - [1.3 Style Props](#style-props)
+  - [1.4 Animated styles](#animated-style)
+  - [1.5 Render Prop](#render-prop)
+  - [1.6 Type Narrowing](#type-narrowing)
+  - [1.7 Errors in Try-Catch Clauses](#try-catch-clauses)
+  - [1.8 Const Assertion](#const-assertion)
+  - [1.9 Higher Order Components](#higher-order-components)
+  - [1.10 Function Overloading](#function-overloading)
 
 ## CheatSheet
 
@@ -22,7 +25,7 @@
     children?: React.ReactNode;
   };
 
-  function WrapperComponent({ children }: Props) {
+  function WrapperComponent({ children }: WrapperComponentProps) {
     return <View>{children}</View>;
   }
 
@@ -43,12 +46,12 @@
   import { forwardRef, useRef, ReactNode } from "react";
   import { TextInput, View } from "react-native";
 
-  export type CustomButtonProps = {
+  export type CustomTextInputProps = {
     label: string;
     children?: ReactNode;
   };
 
-  const CustomTextInput = forwardRef<TextInput, CustomButtonProps>(
+  const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(
     (props, ref) => {
       return (
         <View>
@@ -60,36 +63,14 @@
   );
 
   function ParentComponent() {
-    const ref = useRef<TextInput>;
+    const ref = useRef<TextInput>();
     return <CustomTextInput ref={ref} label="Press me" />;
   }
   ```
 
-<a name="animated-style"></a><a name="1.3"></a>
+<a name="style-props"></a><a name="1.3"></a>
 
-- [1.3](#animated-style) **Animated styles**
-
-  ```ts
-  import {useRef} from 'react';
-  import {Animated, StyleProp, ViewStyle} from 'react-native';
-
-  type MyComponentProps = {
-      style?: Animated.WithAnimatedValue<StyleProp<ViewStyle>>;
-  };
-
-  function MyComponent({ style }: Props) {
-      return <Animated.View style={style} />;
-  }
-
-  function MyComponent() {
-      const anim = useRef(new Animated.Value(0)).current;
-      return <Component style={{opacity: anim.interpolate({...})}} />;
-  }
-  ```
-
-<a name="style-props"></a><a name="1.4"></a>
-
-- [1.4](#style-props) **Style Props**
+- [1.3](#style-props) **Style Props**
 
   Use `StyleProp<T>` to type style props. For pass-through style props, use types exported from `react-native` for the type parameter (e.g. `ViewStyle`).
 
@@ -102,11 +83,33 @@
     imageStyle?: StyleProp<ImageStyle>;
   };
 
-  function MyComponentProps({ containerStyle, textStyle, imageStyle }: MyComponentProps) = {
+  function MyComponent({ containerStyle, textStyle, imageStyle }: MyComponentProps) = {
     <View style={containerStyle}>
         <Text style={textStyle}>Sample Image</Text>
         <Image style={imageStyle} src={'https://sample.com/image.png'} />
     </View>
+  }
+  ```
+
+<a name="animated-style"></a><a name="1.4"></a>
+
+- [1.4](#animated-style) **Animated styles**
+
+  ```ts
+  import {useRef} from 'react';
+  import {Animated, StyleProp, ViewStyle} from 'react-native';
+
+  type MyComponentProps = {
+      style?: Animated.WithAnimatedValue<StyleProp<ViewStyle>>;
+  };
+
+  function MyComponent({ style }: MyComponentProps) {
+      return <Animated.View style={style} />;
+  }
+
+  function MyComponent() {
+      const anim = useRef(new Animated.Value(0)).current;
+      return <Component style={{opacity: anim.interpolate({...})}} />;
   }
   ```
 
@@ -138,7 +141,7 @@
 
 <a name="type-narrowing"></a><a name="1.6"></a>
 
-- [1.6](#type-narrowing) **Type Narrowing** Narrow types down using `typeof` or custom type guards.
+- [1.6](#type-narrowing) **Type Narrowing** Narrow types down using `typeof`, discriminated unions, or custom type guards. Refer [this guide](https://medium.com/@hayata.suenaga/discriminated-unions-custom-type-guards-182ebe1f92fb) for more information on when to use discriminated unions and custom type guards.
 
   ```ts
   type Manager = {
@@ -199,7 +202,7 @@
 
 <a name="const-assertion"></a><a name="1.8"></a>
 
-- [1.8](#const-assersion) **Use const assertions for rigorous typing**
+- [1.8](#const-assertion) **Use const assertions for rigorous typing**
 
   Use `as const` when you want to ensure that the types and values are as exact as possible and prevent unwanted mutations.
 
@@ -213,3 +216,21 @@
   const array1 = ["hello", 1]; // type: (string | number)[]
   const array2 = ["goodbye", 2]; // type: readonly ["goodbye", 2]
   ```
+
+<a name="higher-order-components"></a><a name="1.9"></a>
+
+- [1.9](#higher-order-components) **Higher Order Components**
+
+  Typing HOCs is hard. Refer to [this articles](https://medium.com/@hayata.suenaga/ts-higher-order-components-30c38dd19ae8) for detailed guideline on typing HOCs for different usages of HOCs.
+
+<a name="function-overloading"></a><a name="1.10"></a>
+
+- [1.10](#function-overloading) **Function Overloading**
+
+  Use [function overloads](https://www.typescriptlang.org/docs/handbook/2/functions.html#function-overloads) to provide more type information for functions. For the following types of functions, function overloading can be beneficial.
+
+  - The return type depends on the input type
+  - When function accept different number of parameters
+  - There are type dependencies between parameters
+
+  Refer to [this guide](https://medium.com/@hayata.suenaga/when-to-use-function-overloads-acc48f7e3142) to learn how to use functional overloads for each situation.
