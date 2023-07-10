@@ -69,49 +69,46 @@ function WorkspaceReimburseView(props) {
     const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === 'Distance');
     const distanceCustomRate = _.find(lodashGet(props.distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
+    const {translate, toLocaleDigit} = props;
 
     const getNumericValue = useCallback(
         (value) => {
-            const propsToLocaleDigit = props.toLocaleDigit;
-            const numValue = parseFloat(value.toString().replace(propsToLocaleDigit('.'), '.'));
+            const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
             if (Number.isNaN(numValue)) {
                 return NaN;
             }
             return numValue.toFixed(3);
         },
-        [props.toLocaleDigit],
+        [toLocaleDigit],
     );
 
     const getRateDisplayValue = useCallback(
         (value) => {
-            const propsToLocaleDigit = props.toLocaleDigit;
             const numValue = getNumericValue(value);
             if (Number.isNaN(numValue)) {
                 return '';
             }
-            return numValue.toString().replace('.', propsToLocaleDigit('.')).substring(0, value.length);
+            return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.length);
         },
-        [getNumericValue, props.toLocaleDigit],
+        [getNumericValue, toLocaleDigit],
     );
 
     const getRateLabel = useCallback((customUnitRate) => getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET), [getRateDisplayValue]);
 
     const getUnitLabel = useCallback(
         (value) => {
-            const propsTranslate = props.translate;
-            return propsTranslate(`common.${value}`);
+            translate(`common.${value}`);
         },
-        [props.translate],
+        [translate],
     );
 
     const getCurrentRatePerUnitLabel = useCallback(() => {
-        const propsTranslate = props.translate;
         const customUnitRate = _.find(distanceCustomUnit && distanceCustomUnit.rates, (rate) => rate && rate.name === 'Default Rate');
         const currentUnit = getUnitLabel((distanceCustomUnit && distanceCustomUnit.attributes && distanceCustomUnit.attributes.unit) || 'mi');
         const currentRate = getRateLabel(customUnitRate);
-        const perWord = propsTranslate('common.per');
+        const perWord = translate('common.per');
         return `${currentRate} ${perWord} ${currentUnit}`;
-    }, [props.translate, distanceCustomUnit, getUnitLabel, getRateLabel]);
+    }, [translate, distanceCustomUnit, getUnitLabel, getRateLabel]);
 
     const fetchData = useCallback(() => {
         // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
@@ -128,7 +125,7 @@ function WorkspaceReimburseView(props) {
             return;
         }
         fetchData();
-    }, [props.policy.customUnits, props.preferredLocale, props.network.isOffline, getCurrentRatePerUnitLabel, fetchData]);
+    }, [props.policy.customUnits, props.network.isOffline, getCurrentRatePerUnitLabel, fetchData]);
 
     return (
         <>
