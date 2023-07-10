@@ -245,6 +245,7 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
+    const prevVisibleMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID);
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
     const optimisticReport = {
@@ -294,7 +295,15 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
+    const failureReport = {
+        lastMessageText: prevVisibleMessageText,
+    };
     const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: failureReport,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -1637,17 +1646,18 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * @param {String} reportID
  * @param {String} reportActionID
- * @param {Object} emoji
+ * @param {Object} reactionEmoji
  * @param {number} paramSkinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportActionID, emoji, paramSkinTone = preferredSkinTone) {
+function toggleEmojiReaction(reportID, reportActionID, reactionEmoji, paramSkinTone = preferredSkinTone) {
     const reportAction = ReportActionsUtils.getReportAction(reportID, reportActionID);
 
     if (_.isEmpty(reportAction)) {
         return;
     }
 
+    const emoji = EmojiUtils.findEmojiByCode(reactionEmoji.code);
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
