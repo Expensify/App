@@ -544,7 +544,6 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             lodashGet(parentReportAction, ['message', 0, 'text']),
             lodashGet(parentReport, 'chatType', ''),
             lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
-            CONST.POLICY.OWNER_EMAIL_FAKE,
             CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',
@@ -1208,7 +1207,6 @@ function addPolicyReport(policyID, reportName, visibility, policyMembers) {
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         policyID,
-        CONST.REPORT.OWNER_EMAIL_FAKE,
         CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
@@ -1217,7 +1215,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembers) {
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
-    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail);
+    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerAccountID);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.

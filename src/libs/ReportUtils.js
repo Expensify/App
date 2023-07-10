@@ -1627,7 +1627,6 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {String} reportName
  * @param {String} chatType
  * @param {String} policyID
- * @param {String} ownerEmail
  * @param {Number} ownerAccountID
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
@@ -1642,7 +1641,6 @@ function buildOptimisticChatReport(
     reportName = CONST.REPORT.DEFAULT_REPORT_NAME,
     chatType = '',
     policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
-    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
     ownerAccountID = CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
@@ -1666,7 +1664,6 @@ function buildOptimisticChatReport(
         lastVisibleActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
-        ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
         ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         parentReportActionID,
         parentReportID,
@@ -1812,7 +1809,6 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         policyID,
-        null,
         0,
         false,
         policyName,
@@ -1832,7 +1828,6 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
         CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         policyID,
-        null,
         0,
         false,
         policyName,
@@ -1848,7 +1843,6 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         '',
         CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         policyID,
-        currentUserEmail,
         currentUserAccountID,
         true,
         policyName,

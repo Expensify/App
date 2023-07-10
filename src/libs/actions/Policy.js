@@ -287,7 +287,6 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
             undefined,
             CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             policyID,
-            login,
             cleanAccountID,
         );
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
