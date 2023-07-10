@@ -16,6 +16,7 @@ import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import * as IOU from '../../libs/actions/IOU';
 import optionPropTypes from '../../components/optionPropTypes';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -111,6 +112,8 @@ class MoneyRequestDescriptionPage extends Component {
                             name="moneyRequestComment"
                             defaultValue={this.props.iou.comment}
                             label={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
+                            accessibilityLabel={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => (this.descriptionInputRef = el)}
                         />
                     </View>
