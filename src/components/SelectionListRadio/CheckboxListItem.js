@@ -57,6 +57,7 @@ function CheckboxListItem(props) {
                 focusStyle={styles.hoveredComponentBG}
             >
                 <Checkbox
+                    accessibilityLabel={props.item.text}
                     disabled={props.item.isDisabled}
                     isChecked={props.item.isSelected}
                     onPress={() => props.onSelectRow(props.item)}

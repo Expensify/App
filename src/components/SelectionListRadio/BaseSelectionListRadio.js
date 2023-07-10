@@ -16,10 +16,10 @@ import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
 import SafeAreaConsumer from '../SafeAreaConsumer';
 import withKeyboardState, {keyboardStatePropTypes} from '../withKeyboardState';
 import Checkbox from '../Checkbox';
-import withLocalize from '../withLocalize';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import FixedFooter from '../FixedFooter';
 import Button from '../Button';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     ...keyboardStatePropTypes,
@@ -27,12 +27,13 @@ const propTypes = {
 };
 
 function BaseSelectionListRadio(props) {
+    const {translate} = useLocalize();
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
     const shouldShowTextInput = Boolean(props.textInputLabel);
     const shouldShowSelectAll = Boolean(props.onSelectAll);
-    const confirmButtonText = props.confirmButtonText || props.translate('common.confirm');
+    const confirmButtonText = props.confirmButtonText || translate('common.confirm');
     const shouldShowConfirmButton = Boolean(props.onConfirm);
 
     /**
@@ -289,16 +290,17 @@ function BaseSelectionListRadio(props) {
                             <PressableWithFeedback
                                 style={[styles.peopleRow, styles.ph5, styles.pb3]}
                                 onPress={props.onSelectAll}
-                                accessibilityLabel={props.translate('workspace.people.selectAll')}
+                                accessibilityLabel={translate('workspace.people.selectAll')}
                                 accessibilityRole="button"
                                 accessibilityState={{checked: flattenedSections.allSelected}}
                             >
                                 <Checkbox
+                                    accessibilityLabel={translate('workspace.people.selectAll')}
                                     isChecked={flattenedSections.allSelected}
                                     onPress={props.onSelectAll}
                                 />
                                 <View style={[styles.flex1]}>
-                                    <Text style={[styles.textStrong, styles.ph5]}>{props.translate('workspace.people.selectAll')}</Text>
+                                    <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>
                                 </View>
                             </PressableWithFeedback>
                         )}
