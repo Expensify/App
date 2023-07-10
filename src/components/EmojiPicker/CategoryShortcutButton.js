@@ -25,8 +25,7 @@ const propTypes = {
 };
 
 function CategoryShortcutButton(props) {
-
-    let [isHighlighted, setIsHighlighted] = useState(false);
+    const [isHighlighted, setIsHighlighted] = useState(false);
 
     return (
         <Tooltip
@@ -37,11 +36,7 @@ function CategoryShortcutButton(props) {
                 onPress={props.onPress}
                 onHoverIn={() => setIsHighlighted(true)}
                 onHoverOut={() => setIsHighlighted(false)}
-                style={({ pressed }) => [
-                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
-                    styles.categoryShortcutButton,
-                    isHighlighted && styles.emojiItemHighlighted,
-                ]}
+                style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
                 accessibilityLabel={`emojiPicker.headers.${props.code}`}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
