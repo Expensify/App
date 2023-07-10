@@ -1119,12 +1119,12 @@ describe('actions/IOU', () => {
                                             accountID: VIT_ACCOUNT_ID,
                                             displayName: VIT_EMAIL,
                                             login: VIT_EMAIL,
-                                        }
-                                    })
+                                        },
+                                    });
                                     resolve();
                                 },
-                            })
-                        })
+                            });
+                        }),
                 )
                 .then(fetch.resume)
                 .then(
