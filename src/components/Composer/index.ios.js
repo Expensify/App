@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useMemo} from 'react';
+import React, {useEffect, useRef, useMemo, useCallback} from 'react';
 import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -64,23 +64,34 @@ const defaultProps = {
 };
 
 function Composer({
-  forwardedRef,
   shouldClear,
   onClear,
   isDisabled,
   maxLines,
-  setIsFullComposerAvailable,
+  forwardedRef,
   isComposerFullSize,
+  setIsFullComposerAvailable,
   ...props
 }) {
-    const textInput = useRef();
+    const textInput = useRef(null);
 
-    useEffect(() => {
-        if (!_.isFunction(forwardedRef)) {
-            return;
+    /**
+     * Set the TextInput Ref
+     * @param {Element} el
+     */
+    const setTextInputRef = useCallback((el) => {
+        textInput.current = el;
+        if (!_.isFunction(forwardedRef) || textInput.current === null) {
+          return;
         }
-        forwardedRef(textInput.current);
-    }, [forwardedRef]);
+
+      // This callback prop is used by the parent component using the constructor to
+      // get a ref to the inner textInput element e.g. if we do
+      // <constructor ref={el => this.textInput = el} /> this will not
+      // return a ref to the component, but rather the HTML element by default
+      forwardedRef(textInput.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         if (!shouldClear) {
@@ -90,10 +101,15 @@ function Composer({
         onClear();
     }, [shouldClear, onClear]);
 
+
+     /**
+      * Set maximum number of lines
+      * @return {Number}
+      */
     const maximumNumberOfLines = useMemo(() => {
-        if (isComposerFullSize) return undefined;
+        if (isComposerFullSize) return 1000000;
         return maxLines;
-    }, [isComposerFullSize, maxLines]);
+    },[isComposerFullSize, maxLines])
 
     const styles = useMemo(() => {
         StyleSheet.flatten(props.style);
@@ -107,7 +123,7 @@ function Composer({
         <RNTextInput
             autoComplete="off"
             placeholderTextColor={themeColors.placeholderText}
-            ref={textInput}
+            ref={setTextInputRef}
             onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
             rejectResponderTermination={false}
             textAlignVertical="center"
