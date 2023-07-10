@@ -55,6 +55,8 @@ const defaultProps = {
 };
 
 function VerifyPage(props) {
+    const formRef = React.useRef(null);
+
     useEffect(() => {
         Session.clearAccountMessages();
     }, []);
@@ -132,22 +134,27 @@ function VerifyPage(props) {
                                 icon={Expensicons.Copy}
                                 inline={false}
                                 onPress={() => Clipboard.setString(props.account.twoFactorAuthSecretKey)}
-                                styles={[styles.button, styles.buttonMedium]}
+                                styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                                 textStyles={[styles.buttonMediumText]}
                             />
                         </View>
                         <Text style={styles.mt11}>{props.translate('twoFactorAuth.enterCode')}</Text>
                     </View>
                     <View style={[styles.mt3, styles.mh5]}>
-                        <TwoFactorAuthForm />
+                        <TwoFactorAuthForm innerRef={formRef} />
                     </View>
                 </ScrollView>
                 <FixedFooter style={[styles.mtAuto, styles.pt2]}>
                     <Button
                         success
                         text={props.translate('common.next')}
-                        isDisabled
                         isLoading={props.account.isLoading}
+                        onPress={() => {
+                            if (!formRef.current) {
+                                return;
+                            }
+                            formRef.current.validateAndSubmitForm();
+                        }}
                     />
                 </FixedFooter>
             </FullPageOfflineBlockingView>
