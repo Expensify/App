@@ -29,15 +29,11 @@ const defaultProps = {
 };
 
 function ConnectBankAccountButton(props) {
-    if (props.network.isOffline) {
-        return (
-            <View style={props.style}>
-                <Text>{`${props.translate('common.youAppearToBeOffline')} ${props.translate('common.thisFeatureRequiresInternet')}`}</Text>
-            </View>
-        );
-    }
-
-    return (
+    return props.network.isOffline ? (
+        <View style={props.style}>
+            <Text>{`${props.translate('common.youAppearToBeOffline')} ${props.translate('common.thisFeatureRequiresInternet')}`}</Text>
+        </View>
+    ) : (
         <Button
             text={props.translate('workspace.common.connectBankAccount')}
             onPress={() => ReimbursementAccount.navigateToBankAccountRoute(props.policyID)}
@@ -53,6 +49,6 @@ function ConnectBankAccountButton(props) {
 
 ConnectBankAccountButton.propTypes = propTypes;
 ConnectBankAccountButton.defaultProps = defaultProps;
-ConnectBankAccountButton.displayName = 'ConfirmPopover';
+ConnectBankAccountButton.displayName = 'ConnectBankAccountButton';
 
 export default compose(withNetwork(), withLocalize)(ConnectBankAccountButton);
