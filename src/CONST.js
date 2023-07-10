@@ -1109,6 +1109,7 @@ const CONST = {
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
+        SMALL_NORMAL: 'small-normal',
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,

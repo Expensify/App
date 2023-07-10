@@ -3,6 +3,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import TextInput from '../TextInput';
 import CONST from '../../CONST';
+import * as Browser from '../../libs/Browser';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import './styles.css';
@@ -47,12 +48,12 @@ class DatePicker extends React.Component {
     }
 
     /**
-     * Pops the datepicker up when we focus this field. This only works on mWeb
-     * On mWeb the user needs to tap on the field again in order to bring the datepicker. But our current styles
+     * Pops the datepicker up when we focus this field. This only works on mWeb chrome
+     * On mWeb chrome the user needs to tap on the field again in order to bring the datepicker. But our current styles
      * don't make this very obvious. To avoid confusion we open the datepicker when the user focuses the field
      */
     showDatepicker() {
-        if (!this.inputRef) {
+        if (!this.inputRef || !Browser.isMobileChrome()) {
             return;
         }
 

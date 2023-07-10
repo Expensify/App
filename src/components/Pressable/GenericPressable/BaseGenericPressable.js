@@ -136,7 +136,7 @@ const GenericPressable = forwardRef((props, ref) => {
     return (
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
-            onLayout={onLayout}
+            onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref}
             onPress={!isDisabled ? onPressHandler : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
