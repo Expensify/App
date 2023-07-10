@@ -95,7 +95,7 @@ export default withOnyx({
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
     },
     emojiReactions: {
-    key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+        key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
     },
     preferredLocale: {
         key: ONYXKEYS.NVP_PREFERRED_LOCALE,

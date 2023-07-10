@@ -136,7 +136,6 @@ function ReportActionItemEmojiReactions(props) {
     );
 }
 
-
 ReportActionItemEmojiReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemEmojiReactions.propTypes = propTypes;
 ReportActionItemEmojiReactions.defaultProps = defaultProps;
