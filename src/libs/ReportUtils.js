@@ -173,7 +173,7 @@ function isCompletedTaskReport(report) {
 }
 
 function isTaskAssignee(report) {
-    return lodashGet(report, 'managerEmail') === currentUserEmail;
+    return lodashGet(report, 'managerID') === currentUserAccountID;
 }
 
 /**
