@@ -36,7 +36,8 @@ All workspace admins can access the #admins room. Use the #admins room to collab
 here's some text 
 and even more text
 ```
-
+- To turn your message into a heading, place a number sign (#) in front of the text:
+# Heading
 # FAQs
 ## How do I add more than one person to a chat?
 Start by clicking the green chat **+** button and select **New Group**. Search for the people you want to invite and check the circle to the far right. Once you’ve selected everyone you want in the group chat, click the **Create Group** button at the bottom of your screen.
