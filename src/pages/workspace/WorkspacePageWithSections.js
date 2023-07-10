@@ -146,7 +146,6 @@ function WorkspacePageWithSections(props) {
 
 WorkspacePageWithSections.propTypes = propTypes;
 WorkspacePageWithSections.defaultProps = defaultProps;
-WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default compose(
     withLocalize,
