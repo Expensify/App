@@ -251,7 +251,7 @@ function Form(props) {
 
                 // We want to initialize the input value if it's undefined
                 if (_.isUndefined(inputValues[inputID])) {
-                    inputValues[inputID] = defaultValue;
+                    inputValues[inputID] = defaultValue || '';
                 }
 
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
