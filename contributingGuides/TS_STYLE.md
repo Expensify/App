@@ -25,7 +25,7 @@
   - [1.16 Reusable Types](#reusable-types)
   - [1.17 `.tsx`](#tsx)
   - [1.18 No inline prop types](#no-inline-prop-types)
-- [Communication Items](#items)
+- [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
 
 ## Other Expensify Resources on TypeScript
@@ -75,11 +75,11 @@ type Foo = {
   - Use PascalCase for type names. eslint: [`@typescript-eslint/naming-convention`](https://typescript-eslint.io/rules/naming-convention/)
 
     ```ts
-    // bad
+    // BAD
     type foo = ...;
     type BAR = ...;
 
-    // good
+    // GOOD
     type Foo = ...;
     type Bar = ...;
     ```
@@ -87,20 +87,20 @@ type Foo = {
   - Do not postfix type aliases with `Type`.
 
     ```ts
-    // bad
+    // BAD
     type PersonType = ...;
 
-    // good
+    // GOOD
     type Person = ...;
     ```
 
   - Use singular name for union types.
 
     ```ts
-    // bad
+    // BAD
     type Colors = "red" | "blue" | "green";
 
-    // good
+    // GOOD
     type Color = "red" | "blue" | "green";
     ```
 
@@ -109,12 +109,12 @@ type Foo = {
     > Prefix each type parameter name to distinguish them from other types.
 
     ```ts
-    // bad
+    // BAD
     type KeyValuePair<T, U> = { key: K; value: U };
 
     type Keys<Key> = Array<Key>;
 
-    // good
+    // GOOD
     type KeyValuePair<TKey, TValue> = { key: TKey; value: TValue };
 
     type Keys<T> = Array<T>;
@@ -123,7 +123,7 @@ type Foo = {
 
 <a name="d-ts-extension"></a><a name="1.2"></a>
 
-- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations.
+- [1.2](#d-ts-extension) **`d.ts` Extension**: Do not use `d.ts` file extension even when a file contains only type declarations. Only exception is the `global.d.ts` file in which third party packages can be modified using module augmentation. Refer to the [Communication Items](#communication-items) section to learn more about module augmentation.
 
   > Why? Type errors in `d.ts` files are not checked by TypeScript [^1].
 
@@ -136,12 +136,12 @@ type Foo = {
   > Why? In TypeScript, `type` and `interface` can be used interchangeably to declare types. Use `type` for consistency.
 
   ```ts
-  // bad
+  // BAD
   interface Person {
     name: string;
   }
 
-  // good
+  // GOOD
   type Person = {
     name: string;
   };
@@ -223,11 +223,11 @@ type Foo = {
 - [1.8](#ts-nullish-coalescing) **Optional chaining and nullish coalescing**: Use optional chaining and nullish coalescing instead of the `get` lodash function. eslint: [`no-restricted-imports`](https://eslint.org/docs/latest/rules/no-restricted-imports)
 
   ```ts
-  // Bad
+  // BAD
   import lodashGet from "lodash/get";
   const name = lodashGet(user, "name", "default name");
 
-  // Good
+  // GOOD
   const name = user?.name ?? "default name";
   ```
 
@@ -236,14 +236,14 @@ type Foo = {
 - [1.9](#type-inference) **Type Inference**: When possible, allow the compiler to infer type of variables.
 
   ```ts
-  // Bad
+  // BAD
   const foo: string = "foo";
   const [counter, setCounter] = useState<number>(0);
 
-  // Good
+  // GOOD
   const foo = "foo";
   const [counter, setCounter] = useState(0);
-  const [username, setUsername] = useState<string | undefined>(undefined); // Username is a union type of string and undefined, and its type cannot be interred from the default value of undefined
+  const [username, setUsername] = useState<string | undefined>(undefined); // Username is a union type of string and undefined, and its type cannot be inferred from the default value of undefined
   ```
 
   For function return types, default to always typing them unless a function is simple enough to reason about its return type.
@@ -266,7 +266,7 @@ type Foo = {
 - [1.10](#jsdoc) **JSDoc**: Omit comments that are redundant with TypeScript. Do not declare types in `@param` or `@return` blocks. Do not write `@implements`, `@enum`, `@private`, `@override`. eslint: [`jsdoc/no-types`](https://github.com/gajus/eslint-plugin-jsdoc/blob/main/.README/rules/no-types.md)
 
   ```ts
-  // bad
+  // BAD
   /**
    * @param {number} age
    * @returns {boolean} Whether the person is a legal drinking age or nots
@@ -275,7 +275,7 @@ type Foo = {
     return age >= 21;
   }
 
-  // good
+  // GOOD
   /**
    * @param age
    * @returns Whether the person is a legal drinking age or nots
@@ -313,13 +313,13 @@ type Foo = {
     bar: string;
   };
 
-  // good
-  type ReadOnlyFoo = Readonly<Foo>;
-
-  // bad
+  // BAD
   type ReadOnlyFoo = {
     readonly [Property in keyof Foo]: Foo[Property];
   };
+
+  // GOOD
+  type ReadOnlyFoo = Readonly<Foo>;
   ```
 
 <a name="object-type"></a><a name="1.13"></a>
@@ -329,7 +329,7 @@ type Foo = {
   > Why? `object` refers to "any non-primitive type," not "any object". Typing "any non-primitive value" is not commonly needed.
 
   ```ts
-  // bad
+  // BAD
   const foo: object = [1, 2, 3]; // TypeScript does not error
   ```
 
@@ -361,12 +361,12 @@ type Foo = {
     return <Text>{foo}</Text>;
   }
 
-  // bad
+  // BAD
   import { ComponentProps } from "React";
   import MyComponent from "./MyComponent";
   type MyComponentProps = ComponentProps<typeof MyComponent>;
 
-  // good
+  // GOOD
   import MyComponent, { MyComponentProps } from "./MyComponent";
   ```
 
@@ -386,7 +386,7 @@ type Foo = {
   };
 
   // index.native.ts
-  import { GreetingModule } from "./types.ts";
+  import { GreetingModule } from "./types";
   function getHello() {
     return "hello from mobile code";
   }
@@ -400,7 +400,7 @@ type Foo = {
   export default Greeting;
 
   // index.ts
-  import { GreetingModule } from "./types.ts";
+  import { GreetingModule } from "./types";
   function getHello() {
     return "hello from other platform code";
   }
@@ -423,13 +423,13 @@ type Foo = {
     }
 
     // index.ios.ts
-    import { MyComponentProps } from ./types.ts;
+    import { MyComponentProps } from "./types";
 
     export MyComponentProps;
     export default function MyComponent({ foo }: MyComponentProps) {...}
 
     // index.ts
-    import { MyComponentProps } from ./types.ts;
+    import { MyComponentProps } from "./types";
 
     export MyComponentProps;
     export default function MyComponent({ foo }: MyComponentProps) {...}
@@ -437,7 +437,7 @@ type Foo = {
 
 <a name="reusable-types"></a><a name="1.16"></a>
 
-- [1.16](#reusable-types) **Reusable Types**: Reusable type definitions, such as models (e.g. Report), must have their own file and be placed under `src/types/`. The type should be exported as a default export.
+- [1.16](#reusable-types) **Reusable Types**: Reusable type definitions, such as models (e.g., Report), must have their own file and be placed under `src/types/`. The type should be exported as a default export.
 
   ```ts
   // src/types/Report.ts
@@ -457,17 +457,17 @@ type Foo = {
 
 - [1.18](#no-inline-prop-types) **No inline prop types**: Do not define prop types inline for components that are exported.
 
-  > Why? Prop types might need to be exported from component files. //TODO: link to the export component types section. If the component is only used inside a file or module and not exported, then inline prop types can be used.
+  > Why? Prop types might [need to be exported from component files](#export-prop-types). If the component is only used inside a file or module and not exported, then inline prop types can be used.
 
   ```ts
-  // bad
+  // BAD
   export default function MyComponent({ foo, bar }: { foo: string, bar: number }){
     // component implementation
   };
 
-  // good
-  type MyComponentProp = { foo: string, bar: number };
-  export default MyComponent({ foo, bar }: MyComponentProp){
+  // GOOD
+  type MyComponentProps = { foo: string, bar: number };
+  export default MyComponent({ foo, bar }: MyComponentProps){
     // component implementation
   }
   ```
@@ -478,7 +478,7 @@ type Foo = {
 
 - I think types definitions in a third party library is incomplete or incorrect
 
-When the library indeed contains incorrect type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/global.d.ts`.
+When the library indeed contains incorrect or missing type definitions and it cannot be updated, use module augmentation to correct them. All module augmentation code should be contained in `/src/global.d.ts`.
 
 ```ts
 declare module "external-library-name" {
@@ -495,7 +495,7 @@ declare module "external-library-name" {
 
 - If you're migrating a module that doesn't have a default implementation (i.e. `index.ts`, e.g. `getPlatform`), convert `index.website.js` to `index.ts`. Without `index.ts`, TypeScript cannot get type information where the module is imported.
 
-- Deprecate the usage of `underscore`. Use corresponding methods from `lodash`. eslint: [`no-restricted-imports`](https://eslint.org/docs/latest/rules/no-restricted-imports)
+- Deprecate the usage of `underscore`. Use the corresponding methods from `lodash`. eslint: [`no-restricted-imports`](https://eslint.org/docs/latest/rules/no-restricted-imports)
 
 - Found type bugs. Now what?
 
