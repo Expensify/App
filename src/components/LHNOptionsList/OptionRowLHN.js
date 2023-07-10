@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import {deepEqual} from 'fast-equals';
@@ -21,16 +21,12 @@ import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteract
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** Style for hovered state */
     // eslint-disable-next-line react/forbid-prop-types
     hoverStyle: PropTypes.object,
-
-    /** The comment left by the user */
-    comment: PropTypes.string,
 
     /** The ID of the report that the option is for */
     reportID: PropTypes.string.isRequired,
@@ -57,7 +53,6 @@ const defaultProps = {
     onSelectRow: () => {},
     style: null,
     optionItem: null,
-    comment: '',
     isFocused: false,
 };
 
@@ -66,14 +61,6 @@ function OptionRowLHN(props) {
 
     const optionItem = props.optionItem;
     const [isContextMenuActive, setIsContextMenuActive] = useState(false);
-
-    useEffect(() => {
-        if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
-            return;
-        }
-        Report.setReportWithDraft(props.reportID, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     if (!optionItem) {
         return null;

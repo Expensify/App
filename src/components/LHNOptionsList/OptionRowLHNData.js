@@ -2,12 +2,14 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
+import React, {useEffect} from 'react';
 import {withReportCommentDrafts} from '../OnyxProvider';
 import SidebarUtils from '../../libs/SidebarUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../withCurrentReportID';
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
+import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
     shouldDisableFocusOptions: PropTypes.bool,
@@ -33,10 +35,18 @@ function OptionRowLHNData(props) {
     // (We don't want to fully re-render all items, just because the active report changed).
     const isFocused = !props.shouldDisableFocusOptions && props.currentReportId === props.reportID;
 
+    useEffect(() => {
+        if (!props.optionItem || props.optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || isFocused) {
+            return;
+        }
+        Report.setReportWithDraft(props.reportID, true);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {..._.omit(props, 'currentReportID')}
+            {..._.omit(props, 'currentReportID', 'comment')}
             isFocused={isFocused}
         />
     );
