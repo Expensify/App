@@ -4,9 +4,10 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
-import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
+import withLocalize from '../withLocalize';
+import compose from '../../libs/compose';
 import * as Report from '../../libs/actions/Report';
 import EmojiReactionsPropTypes from './EmojiReactionsPropTypes';
 import Tooltip from '../Tooltip';
@@ -84,7 +85,9 @@ function ReportActionItemEmojiReactions(props) {
                     return null;
                 }
                 totalReactionCount += reactionCount;
-                const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmojiName);
+                const emojiAsset = EmojiUtils.findEmojiByName(reactionEmojiName);
+                // const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmojiName);
+                debugger;
                 const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emojiAsset, reaction.users);
                 const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
                 const reactionUsers = _.keys(usersWithReactions);
@@ -102,7 +105,7 @@ function ReportActionItemEmojiReactions(props) {
                     <Tooltip
                         renderTooltipContent={() => (
                             <ReactionTooltipContent
-                                emojiName={reactionEmojiName}
+                                emojiName={EmojiUtils.getLocalizedEmojiName(reactionEmojiName, props.preferredLocale)}
                                 emojiCodes={emojiCodes}
                                 accountIDs={reactionUserAccountIDs}
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
@@ -135,7 +138,8 @@ function ReportActionItemEmojiReactions(props) {
     );
 }
 
+
 ReportActionItemEmojiReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemEmojiReactions.propTypes = propTypes;
 ReportActionItemEmojiReactions.defaultProps = defaultProps;
-export default withCurrentUserPersonalDetails(ReportActionItemEmojiReactions);
+export default compose(withLocalize, withCurrentUserPersonalDetails)(ReportActionItemEmojiReactions);

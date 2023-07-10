@@ -54,7 +54,11 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
+<<<<<<< HEAD
 import EmojiReactionsPropTypes from '../../../components/Reactions/EmojiReactionsPropTypes';
+=======
+import TaskView from '../../../components/ReportActionItem/TaskView';
+>>>>>>> 0df937588afc6379190d8838e31d29be524aa4c5
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
@@ -95,6 +99,9 @@ const propTypes = {
     ...windowDimensionsPropTypes,
     emojiReactions: EmojiReactionsPropTypes,
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
+
+    /** Is this the only report action on the report? */
+    isOnlyReportAction: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -104,6 +111,7 @@ const defaultProps = {
     personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
+    isOnlyReportAction: false,
 };
 
 function ReportActionItem(props) {
@@ -154,11 +162,11 @@ function ReportActionItem(props) {
     const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
     const latestDecision = lodashGet(_.last(decisions), 'decision', '');
     useEffect(() => {
-        if (!props.action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
+        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
             return;
         }
 
-        if (latestDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || latestDecision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN) {
+        if (_.contains([CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE, CONST.MODERATION.MODERATOR_DECISION_HIDDEN], latestDecision)) {
             setIsHidden(true);
         }
         setModerationDecision(latestDecision);
@@ -332,7 +340,7 @@ function ReportActionItem(props) {
         const hasReplies = numberOfThreadReplies > 0;
 
         const shouldDisplayThreadReplies = hasReplies && props.action.childCommenterCount && !ReportUtils.isThreadFirstChat(props.action, props.report.reportID);
-        const oldestFourAccountIDs = lodashGet(props.action, 'childOldestFourAccountIDs', '').split(',');
+        const oldestFourAccountIDs = _.map(lodashGet(props.action, 'childOldestFourAccountIDs', '').split(','), (accountID) => Number(accountID));
         const draftMessageRightAlign = props.draftMessage ? styles.chatItemReactionsDraftRight : {};
 
         return (
@@ -408,10 +416,18 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        if (ReportUtils.isTaskReport(props.report)) {
+            return (
+                <TaskView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                />
+            );
+        }
         return (
             <ReportActionItemCreated
-                policyID={props.report.policyID}
                 reportID={props.report.reportID}
+                policyID={props.report.policyID}
             />
         );
     }
@@ -544,6 +560,17 @@ export default compose(
             _.isEqual(prevProps.action, nextProps.action) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
-            prevProps.translate === nextProps.translate,
+            prevProps.translate === nextProps.translate &&
+            // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
+            ReportUtils.isTaskReport(prevProps.report) &&
+            prevProps.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+            ReportUtils.isTaskReport(nextProps.report) &&
+            nextProps.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+            prevProps.report.reportName === nextProps.report.reportName &&
+            prevProps.report.description === nextProps.report.description &&
+            ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
+            prevProps.report.managerID === nextProps.report.managerID &&
+            prevProps.report.managerEmail === nextProps.report.managerEmail &&
+            prevProps.isOnlyReportAction === nextProps.isOnlyReportAction,
     ),
 );
