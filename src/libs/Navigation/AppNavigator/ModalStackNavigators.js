@@ -218,13 +218,6 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
         },
         name: 'ReportParticipants_Root',
     },
-    {
-        getComponent: () => {
-            const ProfilePage = require('../../../pages/ProfilePage').default;
-            return ProfilePage;
-        },
-        name: 'ReportParticipants_Details',
-    },
 ]);
 
 const SearchModalStackNavigator = createModalStackNavigator([
