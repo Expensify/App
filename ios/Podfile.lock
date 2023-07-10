@@ -1236,7 +1236,7 @@ PODS:
     - ReactCommon/turbomodule/core
   - react-native-view-shot (3.6.0):
     - React-Core
-  - react-native-webview (12.0.2):
+  - react-native-webview (13.2.2):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1370,14 +1370,22 @@ PODS:
     - React-jsi (= 0.72.0)
     - React-logger (= 0.72.0)
     - React-perflogger (= 0.72.0)
-  - RNCAsyncStorage (1.17.11):
-    - RCT-Folly
+  - RNCAsyncStorage (1.19.0):
+    - hermes-engine
+    - RCT-Folly (= 2021.07.22.00)
     - RCTRequired
     - RCTTypeSafety
-    - React
     - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-NativeModulesApple
     - React-RCTFabric
+    - React-utils
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - RNCClipboard (1.11.1):
     - RCT-Folly
     - RCTRequired
@@ -1454,7 +1462,7 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - RNReactNativeHapticFeedback (1.14.0):
+  - RNReactNativeHapticFeedback (2.0.0):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1935,7 +1943,7 @@ SPEC CHECKSUMS:
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 0dfc8e3a7d5ff115d100bafe4269d64a2c0a1456
   react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
-  react-native-webview: 840959f28ba47e602b8d04dbf49f34800c137dde
+  react-native-webview: 2c6441f35d41462e5ea7ee6c9297583ba25582fb
   React-NativeModulesApple: 038cd625999ff352fc13d11fd335ea7509794599
   React-perflogger: 684a11499a0589cc42135d6d5cc04d0e4e0e261a
   React-RCTActionSheet: 00b0a4c382a13b834124fa3f541a7d8d1d56efb9
@@ -1954,7 +1962,7 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 24614bcd31643eacb06c78c0b9101b453d6aac47
   React-utils: c12d2e75c8bbc727939ddc4319ed95493395ed5a
   ReactCommon: 517b45ed311ba9146aa8b55a8ef6617425f7448e
-  RNCAsyncStorage: 927a20d65fa373b82cdb26c28828e888d603798a
+  RNCAsyncStorage: ce38f699d96005604ea2b5ce07714066ac6e3cae
   RNCClipboard: 472660b493222f5b351439c03e1874caafc5471e
   RNCPicker: d7db5fb87007968ac14bd2266f96be30f8d738d6
   RNDateTimePicker: cf5f81f92f817f4908cfa02ed7944baf94b97f68
@@ -1969,7 +1977,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: d8224aad6d7081834ae6e6cf925397059485b69e
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   RNPermissions: 5c43d3f6c3ca216a0cffa79362827ff102a5fcd0
-  RNReactNativeHapticFeedback: c6a6b38daf5f6f187de5f8319102f786170a43c7
+  RNReactNativeHapticFeedback: b4a73cb674ecae432b5b09a4a10f91f16dff3da6
   RNReanimated: 3ce2aec600ad2ef47a5927abf2742329d7a190e9
   RNScreens: 8e13360d58411c3f6ef6ee6592f19a89655dfc57
   RNSVG: a9204714b832d82b483b0cbaee9e675646426b8d
@@ -1979,6 +1987,6 @@ SPEC CHECKSUMS:
   Yoga: 1d6727ed193122f6adaf435c3de1a768326ff83b
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 1ed5c9f57207039e00acfa794447f120d1db0611
+PODFILE CHECKSUM: 31ce589e3fb831d539ac50b609d2b100c2880bbf
 
 COCOAPODS: 1.12.1

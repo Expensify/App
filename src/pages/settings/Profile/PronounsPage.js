@@ -9,14 +9,10 @@ import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
-import themeColors from '../../../styles/themes/default';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import CONST from '../../../CONST';
-import OptionsSelector from '../../../components/OptionsSelector';
 import ROUTES from '../../../ROUTES';
 import Navigation from '../../../libs/Navigation/Navigation';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+import SelectionListRadio from '../../../components/SelectionListRadio';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -56,12 +52,7 @@ function PronounsPage(props) {
                     text: value,
                     value: fullPronounKey,
                     keyForList: key,
-
-                    // Include the green checkmark icon to indicate the currently selected value
-                    customIcon: isCurrentPronouns ? greenCheckmark : undefined,
-
-                    // This property will make the currently selected value have bold text
-                    boldStyle: isCurrentPronouns,
+                    isSelected: isCurrentPronouns,
                 };
             })
             .sortBy((pronoun) => pronoun.text.toLowerCase())
@@ -108,30 +99,21 @@ function PronounsPage(props) {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={props.translate('pronounsPage.pronouns')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
-                    />
-                    <Text style={[styles.ph5, styles.mb3]}>{props.translate('pronounsPage.isShownOnProfile')}</Text>
-                    <OptionsSelector
-                        textInputLabel={props.translate('pronounsPage.pronouns')}
-                        placeholderText={props.translate('pronounsPage.placeholderText')}
-                        headerMessage={headerMessage}
-                        sections={[{data: filteredPronounsList, indexOffset: 0}]}
-                        value={searchValue}
-                        onSelectRow={updatePronouns}
-                        onChangeText={onChangeText}
-                        optionHoveredStyle={styles.hoveredComponentBG}
-                        safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                        shouldDelayFocus
-                        shouldFocusOnSelectRow
-                        shouldHaveOptionSeparator
-                        initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
-                    />
-                </>
-            )}
+            <HeaderWithBackButton
+                title={props.translate('pronounsPage.pronouns')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
+            />
+            <Text style={[styles.ph5, styles.mb3]}>{props.translate('pronounsPage.isShownOnProfile')}</Text>
+            <SelectionListRadio
+                headerMessage={headerMessage}
+                textInputLabel={props.translate('pronounsPage.pronouns')}
+                textInputPlaceholder={props.translate('pronounsPage.placeholderText')}
+                textInputValue={searchValue}
+                sections={[{data: filteredPronounsList, indexOffset: 0}]}
+                onSelectRow={updatePronouns}
+                onChangeText={onChangeText}
+                initiallyFocusedOptionKey={initiallyFocusedOption.keyForList}
+            />
         </ScreenWrapper>
     );
 }
