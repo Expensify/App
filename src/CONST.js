@@ -673,11 +673,11 @@ const CONST = {
         DEFAULT: 'default',
     },
     THEME: {
+        DEFAULT: 'dark',
         LIGHT: 'light',
         DARK: 'dark',
         SYSTEM: 'system',
     },
-    DEFAULT_THEME: 'dark',
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,

@@ -23,7 +23,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    preferredTheme: CONST.DEFAULT_THEME,
+    preferredTheme: CONST.THEME.DEFAULT,
 };
 
 function ThemePage(props) {
