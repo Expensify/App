@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import {cleanup, screen} from '@testing-library/react-native';
 import lodashGet from 'lodash/get';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import wrapOnyxWithWaitForPromisesToResolve from '../utils/wrapOnyxWithWaitForPromisesToResolve';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
@@ -33,10 +34,7 @@ describe('Sidebar', () => {
 
     // Initialize the network key for OfflineWithFeedback
     beforeEach(() => {
-        const multiSetImpl = Onyx.multiSet;
-        Onyx.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
-        const mergeImpl = Onyx.merge;
-        Onyx.merge = (...args) => mergeImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
+        wrapOnyxWithWaitForPromisesToResolve(Onyx);
         return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 

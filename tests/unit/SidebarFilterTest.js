@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import wrapOnyxWithWaitForPromisesToResolve from '../utils/wrapOnyxWithWaitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
@@ -33,11 +34,7 @@ describe('Sidebar', () => {
 
     // Initialize the network key for OfflineWithFeedback
     beforeEach(() => {
-        // TODO: explain this (investigate whether we render a batch later now!)
-        const multiSetImpl = Onyx.multiSet;
-        Onyx.multiSet = (...args) => multiSetImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
-        const mergeImpl = Onyx.merge;
-        Onyx.merge = (...args) => mergeImpl(...args).then((result) => waitForPromisesToResolve().then(() => result));
+        wrapOnyxWithWaitForPromisesToResolve(Onyx);
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 
