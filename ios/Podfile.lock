@@ -1167,12 +1167,21 @@ PODS:
     - React-RCTFabric
     - ReactCommon/turbomodule/core
   - react-native-key-command (1.0.1):
-    - RCT-Folly
+    - hermes-engine
+    - RCT-Folly (= 2021.07.22.00)
     - RCTRequired
     - RCTTypeSafety
     - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-utils
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-netinfo (9.3.7):
     - RCT-Folly
     - RCTRequired
@@ -1190,12 +1199,21 @@ PODS:
     - React-RCTFabric
     - ReactCommon/turbomodule/core
   - react-native-performance (4.0.0):
-    - RCT-Folly
+    - hermes-engine
+    - RCT-Folly (= 2021.07.22.00)
     - RCTRequired
     - RCTTypeSafety
     - React-Codegen
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-utils
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - react-native-plaid-link-sdk (9.0.1):
     - Plaid (~> 4.1.0)
     - RCT-Folly
@@ -1934,16 +1952,16 @@ SPEC CHECKSUMS:
   react-native-document-picker: 2178704739867574667da2c325f25a81e52e17c4
   react-native-image-manipulator: 39f7fded66a1170ccb5055095beafa657d0cb36a
   react-native-image-picker: ee3960a0f1da5ecc6dba6686a784485dc8299a22
-  react-native-key-command: b1d2e140b41aefea00de48a2ce61d506a84dc44f
+  react-native-key-command: c25a8fe48b499b8f2c1507879356c12a397335f3
   react-native-netinfo: 20ae59b6777f1114a7bdad5010b1230959daf9cf
   react-native-pdf: 98810171111685a679dfb6beaf638090ba3a9eb9
-  react-native-performance: 426cc34043381602a59f059755a04452315effb4
+  react-native-performance: 8d52c16b63aa3728464aa10a1e75dff23412ea2e
   react-native-plaid-link-sdk: 4235a8135027ebffb9fd37e1c30e1ed1de457217
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 0dfc8e3a7d5ff115d100bafe4269d64a2c0a1456
   react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
-  react-native-webview: 2c6441f35d41462e5ea7ee6c9297583ba25582fb
+  react-native-webview: 7f51334b9176430050c43a48aa1b739fd2558ee4
   React-NativeModulesApple: 038cd625999ff352fc13d11fd335ea7509794599
   React-perflogger: 684a11499a0589cc42135d6d5cc04d0e4e0e261a
   React-RCTActionSheet: 00b0a4c382a13b834124fa3f541a7d8d1d56efb9
