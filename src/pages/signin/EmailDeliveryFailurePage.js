@@ -82,8 +82,6 @@ EmailDeliveryFailurePage.propTypes = propTypes;
 EmailDeliveryFailurePage.defaultProps = defaultProps;
 EmailDeliveryFailurePage.displayName = 'EmailDeliveryFailurePage';
 
-export default compose(
-    withOnyx({
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-    }),
-)(EmailDeliveryFailurePage);
+export default withOnyx({
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+})(EmailDeliveryFailurePage);
