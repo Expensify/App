@@ -1,4 +1,4 @@
-import React, {useEffect, useCallback} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -19,15 +19,12 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import userPropTypes from '../settings/userPropTypes';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScrollViewWithContext from '../../components/ScrollViewWithContext';
+import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,
-
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
 
     /** The text to display in the header */
     headerText: PropTypes.string.isRequired,
@@ -83,27 +80,9 @@ const defaultProps = {
 };
 
 function WorkspacePageWithSections(props) {
-    const {network, shouldSkipVBBACall} = props;
+    const {shouldSkipVBBACall} = props;
 
-    const fetchData = useCallback(() => {
-        if (shouldSkipVBBACall) {
-            return;
-        }
-
-        BankAccounts.openWorkspaceView();
-    }, [shouldSkipVBBACall])
-
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    useEffect(() => {
-        if (network.isOffline) {
-            return;
-        }
-
-        fetchData();
-    }, [fetchData, network]);
+    useOnNetworkReconnect(() => !shouldSkipVBBACall && BankAccounts.openWorkspaceView());
 
     const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;
