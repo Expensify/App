@@ -10,9 +10,7 @@ import withCurrentReportID from '../../../components/withCurrentReportID';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
-import participantPropTypes from '../../../components/participantPropTypes';
 import CONST from '../../../CONST';
-import * as UserUtils from '../../../libs/UserUtils';
 
 const propTypes = {
     ...basePropTypes,
@@ -39,8 +37,8 @@ const propTypes = {
         ),
     ),
 
-    /** List of users' personal details */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    /** Whether the personal details are loading. When false it means they are ready to be used. */
+    isPersonalDetailsLoading: PropTypes.bool,
 
     /** The chat priority mode */
     priorityMode: PropTypes.string,
@@ -56,24 +54,24 @@ const propTypes = {
 const defaultProps = {
     chatReports: {},
     allReportActions: {},
-    personalDetails: {},
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+    isPersonalDetailsLoading: true,
     betas: [],
     policies: [],
 };
 
 function SidebarLinksData(props) {
-    const prevReportIDs = useRef([]);
+    const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
         const reportIDs = SidebarUtils.getOrderedReportIDs(props.currentReportID, props.chatReports, props.betas, props.policies, props.priorityMode, props.allReportActions);
-        if (deepEqual(prevReportIDs.current, reportIDs)) {
-            return prevReportIDs.current;
+        if (deepEqual(reportIDsRef.current, reportIDs)) {
+            return reportIDsRef.current;
         }
-        prevReportIDs.current = reportIDs;
+        reportIDsRef.current = reportIDs;
         return reportIDs;
     }, [props.allReportActions, props.betas, props.chatReports, props.currentReportID, props.policies, props.priorityMode]);
 
-    const isLoading = _.isEmpty(props.personalDetails) || _.isEmpty(props.chatReports);
+    const isLoading = _.isEmpty(props.chatReports) || props.isPersonalDetailsLoading;
 
     return (
         <SidebarLinks
@@ -125,28 +123,6 @@ const chatReportSelector = (report) =>
     };
 
 /**
- * @param {Object} [personalDetails]
- * @returns {Object|undefined}
- */
-const personalDetailsSelector = (personalDetails) =>
-    _.reduce(
-        personalDetails,
-        (finalPersonalDetails, personalData, accountID) => {
-            // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-            // eslint-disable-next-line no-param-reassign
-            finalPersonalDetails[accountID] = {
-                accountID: Number(accountID),
-                login: personalData.login,
-                displayName: personalData.displayName,
-                firstName: personalData.firstName,
-                avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
-            };
-            return finalPersonalDetails;
-        },
-        {},
-    );
-
-/**
  * @param {Object} [reportActions]
  * @returns {Object|undefined}
  */
@@ -175,18 +151,13 @@ const policySelector = (policy) =>
 export default compose(
     withCurrentReportID,
     withOnyx({
-        // Note: It is very important that the keys subscribed to here are the same
-        // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
-        // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
-        // This could be changed if each OptionRowLHN used withOnyx() to connect to the Onyx keys, but if you had 10,000 reports
-        // with 10,000 withOnyx() connections, it would have unknown performance implications.
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,
             selector: chatReportSelector,
         },
-        personalDetails: {
+        isPersonalDetailsLoading: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            selector: personalDetailsSelector,
+            selector: _.isEmpty,
         },
         priorityMode: {
             key: ONYXKEYS.NVP_PRIORITY_MODE,

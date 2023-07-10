@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
-import {deepEqual} from 'fast-equals';
 import * as optionRowStyles from '../../styles/optionRowStyles';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -251,9 +250,6 @@ OptionRowLHN.propTypes = propTypes;
 OptionRowLHN.defaultProps = defaultProps;
 OptionRowLHN.displayName = 'OptionRowLHN';
 
-// We use deepEqual here, as the selectors results for optionItem
-// aren't stable, meaning that content-wise the object is the same,
-// but the reference changed.
-export default React.memo(OptionRowLHN, deepEqual);
+export default React.memo(OptionRowLHN);
 
 export {propTypes, defaultProps};

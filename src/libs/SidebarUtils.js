@@ -13,24 +13,22 @@ import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 
-// Note: It is very important that the keys subscribed to here are the same
-// keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
-// for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
-// There are a couple of keys here which are OK to have stale data. Having redundant subscriptions causes more re-renders which should be avoided.
-// Session also can remain stale because the only way for the current user to change is to sign out and sign in, which would clear out all the Onyx
-// data anyway and cause SidebarLinks to rerender.
+// Note: Earlier SidebarUtils.getOrderedReportIDs() used to have to parameters. All the needed data was loaded here directly
+// using Onyx.connect. We then had to connect SidebarLinks additionally to all the keys that were used in SidebarUtils.getOrderedReportIDs().
+// That's because we wanted to cause a re-render in SidebarLunks to run SidebarUtils.getOrderedReportIDs() again.
+// This caused bugs in the past as we were forgetting to include e.g. very nested data.
+// Now we pass all the data from SidebarLinks props to SidebarUtils.getOrderedReportIDs().
+// This makes the code easier to understand and less error prone.
+
+// However, in getOptionData() we still use Onyx.connect() to get some of the data.
+// That's because we can't connect to specific nested data. Once we added dependent
+// selectors to Onyx, we can remove this as well.
 
 let allReports;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
     callback: (val) => (allReports = val),
-});
-
-let personalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = val),
 });
 
 const visibleReportActionItems = {};
@@ -59,6 +57,9 @@ Onyx.connect({
     },
 });
 
+// Session can remain stale because the only way for the current user to change is to
+// sign out and sign in, which would clear out all the Onyx
+// data anyway and cause SidebarLinks to rerender.
 let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -69,12 +70,6 @@ Onyx.connect({
 
         currentUserAccountID = val.accountID;
     },
-});
-
-let preferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => (preferredLocale = val || CONST.LOCALES.DEFAULT),
 });
 
 let resolveSidebarIsReadyPromise;
@@ -202,9 +197,11 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
  * Gets all the data necessary for rendering an OptionRowLHN component
  *
  * @param {Object} report
+ * @param {Object} personalDetails
+ * @param {String} preferredLocale
  * @returns {Object}
  */
-function getOptionData(report) {
+function getOptionData(report, personalDetails, preferredLocale) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
