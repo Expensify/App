@@ -1,5 +1,9 @@
 import lodashClamp from 'lodash/clamp';
+<<<<<<< Updated upstream
 import React, {useState} from 'react';
+=======
+import React, {useCallback,useState} from 'react';
+>>>>>>> Stashed changes
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
@@ -75,17 +79,33 @@ function ThumbnailImage(props) {
      * @param {{ width: number, height: number }} Params - width and height of the original image.
      */
 
+<<<<<<< Updated upstream
     function updateImageSize({width, height}) {
         const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height, props.windowHeight);
         setImageWidth(thumbnailWidth);
         setImageHeight(thumbnailHeight);
     }
+=======
+    const updateImageSize = useCallback(({width, height}) => {
+        const {thumbnailWidth, thumbnailHeight} = calculateThumbnailImageSize(width, height, props.windowHeight);
+        setImageWidth(thumbnailWidth);
+        setImageHeight(thumbnailHeight);
+    }, [props.windowHeight])
+>>>>>>> Stashed changes
     return (
         <View style={[props.style, styles.overflowHidden]}>
             <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={props.previewSourceURL}
+<<<<<<< Updated upstream
                     onMeasure={(measurements) => updateImageSize(measurements)}
+=======
+<<<<<<< Updated upstream
+                    onMeasure={() => updateImageSize()}
+=======
+                    onMeasure={(measurements) => updateImageSize(measurements)}
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
                     isAuthTokenRequired={props.isAuthTokenRequired}
                 />
             </View>
@@ -96,4 +116,8 @@ function ThumbnailImage(props) {
 ThumbnailImage.propTypes = propTypes;
 ThumbnailImage.defaultProps = defaultProps;
 ThumbnailImage.displayName = 'ThumbnailImage';
+<<<<<<< Updated upstream
 export default withWindowDimensions(ThumbnailImage);
+=======
+export default withWindowDimensions(ThumbnailImage);
+>>>>>>> Stashed changes
