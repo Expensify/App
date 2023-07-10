@@ -1595,49 +1595,28 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
  * @param {String} reportActionID
-<<<<<<< HEAD
- * @param {Object} emoji
- * @param {String} emoji.name
- * @param {String} emoji.code
- * @param {String[]} [emoji.types]
+ * @param {Object} reactionObject
  * @param {Object} existingReactions
  * @param {Number} [paramSkinTone]
  */
-function toggleEmojiReaction(reportID, reportActionID, emoji, existingReactions, paramSkinTone = preferredSkinTone) {
-=======
- * @param {Object} reactionEmoji
- * @param {number} paramSkinTone
- * @returns {Promise}
- */
-function toggleEmojiReaction(reportID, reportActionID, reactionEmoji, paramSkinTone = preferredSkinTone) {
->>>>>>> 0df937588afc6379190d8838e31d29be524aa4c5
+function toggleEmojiReaction(reportID, reportActionID, reactionObject, existingReactions, paramSkinTone = preferredSkinTone) {
     const reportAction = ReportActionsUtils.getReportAction(reportID, reportActionID);
 
     if (_.isEmpty(reportAction)) {
         return;
     }
 
-<<<<<<< HEAD
     // This will get cleaned up as part of https://github.com/Expensify/App/issues/16506 once the old emoji
     // format is no longer being used
-    const reactionObject = lodashGet(existingReactions, [emoji.name]);
+    const emoji = EmojiUtils.findEmojiByCode(reactionObject.code);
+    const existingReactionObject = lodashGet(existingReactions, [emoji.name]);
 
     // Only use skin tone if emoji supports it
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
-    if (reactionObject && hasAccountIDEmojiReacted(currentUserAccountID, reactionObject.users, skinTone)) {
+    if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
         removeEmojiReaction(reportID, reportAction.reportActionID, emoji);
         return;
-=======
-    const emoji = EmojiUtils.findEmojiByCode(reactionEmoji.code);
-    const message = reportAction.message[0];
-    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
-    const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
-    if (reactionObject) {
-        if (hasAccountIDReacted(currentUserAccountID, reactionObject.users, skinTone)) {
-            return removeEmojiReaction(reportID, reportAction, emoji, skinTone);
-        }
->>>>>>> 0df937588afc6379190d8838e31d29be524aa4c5
     }
 
     addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);

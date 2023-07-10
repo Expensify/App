@@ -54,11 +54,8 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
-<<<<<<< HEAD
 import EmojiReactionsPropTypes from '../../../components/Reactions/EmojiReactionsPropTypes';
-=======
 import TaskView from '../../../components/ReportActionItem/TaskView';
->>>>>>> 0df937588afc6379190d8838e31d29be524aa4c5
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 

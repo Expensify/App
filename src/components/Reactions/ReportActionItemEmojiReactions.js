@@ -86,8 +86,6 @@ function ReportActionItemEmojiReactions(props) {
                 }
                 totalReactionCount += reactionCount;
                 const emojiAsset = EmojiUtils.findEmojiByName(reactionEmojiName);
-                // const emojiAsset = _.find(emojis, (emoji) => emoji.name === reactionEmojiName);
-                debugger;
                 const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emojiAsset, reaction.users);
                 const hasUserReacted = Report.hasAccountIDEmojiReacted(props.currentUserPersonalDetails.accountID, reaction.users);
                 const reactionUsers = _.keys(usersWithReactions);
