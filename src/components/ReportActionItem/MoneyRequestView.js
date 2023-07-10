@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import {View, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get'
 import PropTypes from 'prop-types';
@@ -32,6 +32,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import DateUtils from '../../libs/DateUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -61,6 +62,13 @@ function MoneyRequestView(props) {
 
     return (
         <View>
+            <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
+                <Image
+                    pointerEvents="none"
+                    source={EmptyStateBackgroundImage}
+                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(true)]}
+                />
+            </View>
             <MenuItemWithTopDescription
                 title={formattedTransactionAmount}
                 shouldShowTitleIcon={isSettled}
