@@ -70,7 +70,7 @@ function ValidateLoginPage(props) {
             return;
         }
 
-        if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN  || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
+        if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
             Navigation.navigate(ROUTES.REPORT);
             return;
