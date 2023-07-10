@@ -89,7 +89,6 @@ function buildOnyxDataForMoneyRequest(
     reportPreviewAction,
     isNewChatReport,
     isNewIOUReport,
-    isNewReportPreviewAction,
 ) {
     const optimisticData = [
         {
@@ -187,13 +186,9 @@ function buildOnyxDataForMoneyRequest(
                           },
                       }
                     : {}),
-                ...(isNewReportPreviewAction
-                    ? {
-                          [reportPreviewAction.reportActionID]: {
-                              pendingAction: null,
-                          },
-                      }
-                    : {}),
+                [reportPreviewAction.reportActionID]: {
+                    pendingAction: null,
+                },
             },
         },
         {
@@ -385,7 +380,6 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         },
     };
 
-    let isNewReportPreviewAction = false;
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
         reportPreviewAction.created = DateUtils.getDBTime();
@@ -393,7 +387,6 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         reportPreviewAction.message[0].html = message;
         reportPreviewAction.message[0].text = message;
     } else {
-        isNewReportPreviewAction = true;
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
     }
 
@@ -409,7 +402,6 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         reportPreviewAction,
         isNewChatReport,
         isNewIOUReport,
-        isNewReportPreviewAction,
     );
 
     // STEP 6: Make the request
@@ -652,7 +644,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             },
         };
 
-        let isNewOneOnOneReportPreviewAction = false;
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction.created = DateUtils.getDBTime();
@@ -660,7 +651,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneReportPreviewAction.message[0].html = message;
             oneOnOneReportPreviewAction.message[0].text = message;
         } else {
-            isNewOneOnOneReportPreviewAction = true;
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
@@ -676,7 +666,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneReportPreviewAction,
             isNewOneOnOneChatReport,
             isNewOneOnOneIOUReport,
-            isNewOneOnOneReportPreviewAction,
         );
 
         const splitData = {
