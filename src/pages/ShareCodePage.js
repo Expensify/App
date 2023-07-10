@@ -51,6 +51,7 @@ class ShareCodePage extends React.Component {
 
         const platform = getPlatform();
         const isNative = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+        const formattedEmail = this.props.formatPhoneNumber(this.props.session.email);
 
         return (
             <ScreenWrapper>
@@ -65,7 +66,7 @@ class ShareCodePage extends React.Component {
                             ref={this.qrCodeRef}
                             url={url}
                             title={isReport ? this.props.report.reportName : this.props.currentUserPersonalDetails.displayName}
-                            subtitle={isReport ? subtitle : this.props.session.email}
+                            subtitle={isReport ? subtitle : formattedEmail}
                             logo={isReport ? expensifyLogo : UserUtils.getAvatarUrl(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
                             logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                             logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}

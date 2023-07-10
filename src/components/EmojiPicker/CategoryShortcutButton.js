@@ -1,4 +1,4 @@
-import React, {PureComponent, useState} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import Tooltip from '../Tooltip';
@@ -9,6 +9,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import themeColors from '../../styles/themes/default';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The emoji code of the category header */
@@ -25,7 +26,7 @@ const propTypes = {
 
 function CategoryShortcutButton(props) {
 
-    let [isHighlighted, setIsHighlighted] = useState(false)
+    let [isHighlighted, setIsHighlighted] = useState(false);
 
     return (
         <Tooltip
@@ -42,7 +43,7 @@ function CategoryShortcutButton(props) {
                     isHighlighted && styles.emojiItemHighlighted,
                 ]}
                 accessibilityLabel={`emojiPicker.headers.${props.code}`}
-                accessibilityRole="button"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Icon
                     fill={themeColors.icon}
@@ -55,5 +56,5 @@ function CategoryShortcutButton(props) {
     );
 }
 CategoryShortcutButton.propTypes = propTypes;
-
+CategoryShortcutButton.displayName = 'CategoryShortcutButton';
 export default withLocalize(CategoryShortcutButton);

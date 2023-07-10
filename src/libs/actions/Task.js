@@ -10,8 +10,18 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
-import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as Expensicons from '../../components/Icon/Expensicons';
+
+let currentUserEmail;
+let currentUserAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserEmail = lodashGet(val, 'email', '');
+        currentUserAccountID = lodashGet(val, 'accountID', 0);
+    },
+});
 
 /**
  * Clears out the task info from the store
@@ -24,8 +34,6 @@ function clearOutTaskInfo() {
  * Assign a task to a user
  * Function title is createTask for consistency with the rest of the actions
  * and also because we can create a task without assigning it to anyone
- * @param {String} currentUserEmail
- * @param {Number} currentUserAccountID
  * @param {String} parentReportID
  * @param {String} title
  * @param {String} description
@@ -34,7 +42,7 @@ function clearOutTaskInfo() {
  *
  */
 
-function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentReportID, title, description, assignee, assigneeAccountID = 0) {
+function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0) {
     // Create the task report
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
@@ -57,6 +65,7 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
     // Create the CreatedReportAction on the task
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Created a task: ${title}`, parentReportID);
+    optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
 
@@ -65,7 +74,6 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
-        lastActorEmail: currentUserEmail,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
@@ -136,7 +144,6 @@ function createTaskAndNavigate(currentUserEmail, currentUserAccountID, parentRep
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
             lastMessageText: lastAssigneeCommentText,
-            lastActorEmail: currentUserEmail,
             lastActorAccountID: currentUserAccountID,
             lastReadTime: currentTime,
         };
@@ -250,7 +257,6 @@ function reopenTask(taskReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.OPEN,
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: reopenedTaskReportAction.actorEmail,
                 lastActorAccountID: reopenedTaskReportAction.actorAccountID,
                 lastReadTime: reopenedTaskReportAction.created,
             },
@@ -299,7 +305,7 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {String} editedTask.assignee
  * @param {Number} editedTask.assigneeAccountID
  */
-function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee, assigneeAccountID = 0}) {
+function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee = '', assigneeAccountID = 0}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
 
@@ -339,6 +345,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
                 reportName,
                 description: reportDescription,
                 managerID: assigneeAccountID || report.managerID,
+                managerEmail: assignee || report.managerEmail,
             },
         },
     ];
@@ -552,7 +559,7 @@ function getAssignee(details) {
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
     return {
-        icons: ReportUtils.getIcons(report, personalDetails),
+        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
         subtitle: ReportUtils.getChatRoomSubtitle(report),
     };
@@ -585,7 +592,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: optimisticCancelReportAction.actorEmail,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
             },
         },
@@ -616,11 +622,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     ];
 
-    API.write('CancelTask', {taskReportID, optimisticReportActionID}, {optimisticData, failureData});
-}
-
-function isTaskCanceled(taskReport) {
-    return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
+    API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, failureData});
 }
 
 /**
@@ -647,13 +649,7 @@ function getTaskAssigneeAccountID(taskReport) {
     }
 
     const reportAction = ReportActionsUtils.getParentReportAction(taskReport);
-    const childManagerEmail = lodashGet(reportAction, 'childManagerEmail', '');
-
-    if (!childManagerEmail) {
-        return null;
-    }
-
-    return PersonalDetailsUtils.getAccountIDsByLogins([childManagerEmail])[0];
+    return lodashGet(reportAction, 'childManagerAccountID');
 }
 
 /**
@@ -694,7 +690,6 @@ export {
     getAssignee,
     getShareDestination,
     cancelTask,
-    isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,
