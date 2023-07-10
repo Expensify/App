@@ -1,21 +1,43 @@
 import React from 'react';
 import {View} from 'react-native';
 import moment from 'moment';
+import PropTypes from 'prop-types';
 import TextInput from '../TextInput';
-import CalendarPicker from '../CalendarPicker';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import * as Expensicons from '../Icon/Expensicons';
-import {propTypes as datePickerPropTypes, defaultProps as defaultDatePickerProps} from './datePickerPropTypes';
+import {propTypes as baseTextInputPropTypes, defaultProps as defaultBaseTextInputPropTypes} from '../TextInput/baseTextInputPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import CalendarPicker from './CalendarPicker';
 
 const propTypes = {
+    /**
+     * The datepicker supports any value that `moment` can parse.
+     * `onInputChange` would always be called with a Date (or null)
+     */
+    value: PropTypes.string,
+
+    /**
+     * The datepicker supports any defaultValue that `moment` can parse.
+     * `onInputChange` would always be called with a Date (or null)
+     */
+    defaultValue: PropTypes.string,
+
+    /** A minimum date of calendar to select */
+    minDate: PropTypes.objectOf(Date),
+
+    /** A maximum date of calendar to select */
+    maxDate: PropTypes.objectOf(Date),
+
     ...withLocalizePropTypes,
-    ...datePickerPropTypes,
+    ...baseTextInputPropTypes,
 };
 
 const datePickerDefaultProps = {
-    ...defaultDatePickerProps,
+    ...defaultBaseTextInputPropTypes,
+    minDate: moment().year(CONST.CALENDAR_PICKER.MIN_YEAR).toDate(),
+    maxDate: moment().year(CONST.CALENDAR_PICKER.MAX_YEAR).toDate(),
+    value: undefined,
 };
 
 class NewDatePicker extends React.Component {
@@ -23,26 +45,15 @@ class NewDatePicker extends React.Component {
         super(props);
 
         this.state = {
-            selectedMonth: null,
             selectedDate: props.value || props.defaultValue || undefined,
         };
 
         this.setDate = this.setDate.bind(this);
-        this.setCurrentSelectedMonth = this.setCurrentSelectedMonth.bind(this);
 
         // We're using uncontrolled input otherwise it won't be possible to
         // raise change events with a date value - each change will produce a date
         // and make us reset the text input
         this.defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
-    }
-
-    /**
-     * Updates selected month when year picker is opened.
-     * This is used to keep the last visible month in the calendar when going back from year picker screen.
-     * @param {Date} currentDateView
-     */
-    setCurrentSelectedMonth(currentDateView) {
-        this.setState({selectedMonth: currentDateView.getMonth()});
     }
 
     /**
@@ -81,9 +92,6 @@ class NewDatePicker extends React.Component {
                         maxDate={this.props.maxDate}
                         value={this.state.selectedDate}
                         onSelected={this.setDate}
-                        selectedMonth={this.state.selectedMonth}
-                        selectedYear={this.props.selectedYear}
-                        onYearPickerOpen={this.setCurrentSelectedMonth}
                     />
                 </View>
             </View>

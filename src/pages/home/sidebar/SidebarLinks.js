@@ -185,8 +185,10 @@ class SidebarLinks extends React.Component {
      * @param {String} option.reportID
      */
     showReportPage(option) {
-        if (this.props.isCreateMenuOpen) {
+        if (this.props.isCreateMenuOpen || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
             // Prevent opening Report page when click LHN row quickly after clicking FAB icon
+            // or when continuously click different LHNs, only apply to small screen since
+            // getTopmostReportId always returns on other devices
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
@@ -216,13 +218,13 @@ class SidebarLinks extends React.Component {
                                 height={variables.lhnLogoHeight}
                             />
                         }
-                        accessibilityRole="text"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         shouldShowEnvironmentBadge
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <PressableWithoutFeedback
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             style={[styles.flexRow, styles.ph5]}
                             onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
@@ -231,7 +233,7 @@ class SidebarLinks extends React.Component {
                     </Tooltip>
                     <PressableWithoutFeedback
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
                     >
                         {Session.isAnonymousUser() ? (
