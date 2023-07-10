@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, {useEffect, useState, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -5,12 +6,10 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import useLocalize from '../../hooks/useLocalize';
-// import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
-// import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Policy from '../../libs/actions/Policy';
 import usePrevious from '../../hooks/usePrevious';
@@ -124,19 +123,27 @@ function WorkspaceInvitePage(props) {
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     }, [clearErrors, props.route.params.policyID, props.policyMembers, props.personalDetails]);
 
+    // The first useEffect can handle changes in personal details and policy members:
     useEffect(() => {
-        if (!_.isEqual(prevPersonalDetails, props.personalDetails) || !_.isEqual(prevPolicyMembers, props.policyMembers)) {
-            updateOptionsWithSearchTerm(searchTerm);
+        if (_.isEqual(prevPersonalDetails, props.personalDetails) && _.isEqual(prevPolicyMembers, props.policyMembers)) {
+            return;
         }
+        updateOptionsWithSearchTerm(searchTerm);
+    }, [props.personalDetails, props.policyMembers, prevPersonalDetails, prevPolicyMembers, updateOptionsWithSearchTerm, searchTerm]);
 
+    // The second useEffect can check for a change in the offline status:
+    useEffect(() => {
         const isReconnecting = wasOffline && !isOffline;
         if (!isReconnecting) {
             return;
         }
+    }, [wasOffline, isOffline]);
 
+    // The third useEffect can open the workspace invite page when the policyID changes:
+    useEffect(() => {
         const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
-    }, [props.personalDetails, props.policyMembers, isOffline, props.route.params.policyID, prevPersonalDetails, prevPolicyMembers, wasOffline, updateOptionsWithSearchTerm, searchTerm]);
+    }, [props.policyMembers, props.personalDetails, props.route.params.policyID]);
 
     /**
      * @returns {Boolean}
@@ -310,9 +317,6 @@ export default withPolicyAndFullscreenLoading(
         },
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        network: {
-            key: ONYXKEYS.NETWORK,
         },
     })(WorkspaceInvitePage),
 );
