@@ -57,24 +57,20 @@ class CalendarPicker extends React.PureComponent {
         const minYear = moment(this.props.minDate).year();
         const maxYear = moment(this.props.maxDate).year();
 
-        this.years = _.map(
-            Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear),
-            (value) => ({
-                text: value.toString(),
-                value,
-                keyForList: value.toString(),
-                isSelected: value === currentDateView.getFullYear(),
-            }),
-        );
-
         this.state = {
             currentDateView,
             isYearPickerVisible: false,
-            textInputValue: '',
-            yearsFiltered: this.years,
+            years: _.map(
+                Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear),
+                (value) => ({
+                    text: value.toString(),
+                    value,
+                    keyForList: value.toString(),
+                    isSelected: value === currentDateView.getFullYear(),
+                }),
+            ),
         };
 
-        this.filterYears = this.filterYears.bind(this);
         this.moveToPrevMonth = this.moveToPrevMonth.bind(this);
         this.moveToNextMonth = this.moveToNextMonth.bind(this);
         this.onDayPressed = this.onDayPressed.bind(this);
@@ -82,10 +78,18 @@ class CalendarPicker extends React.PureComponent {
     }
 
     onYearSelected(year) {
-        this.setState((prev) => ({
-            currentDateView: moment(prev.currentDateView).set('year', year).toDate(),
-            isYearPickerVisible: false,
-        }));
+        this.setState((prev) => {
+            const newCurrentDateView = moment(prev.currentDateView).set('year', year).toDate();
+
+            return {
+                currentDateView: newCurrentDateView,
+                isYearPickerVisible: false,
+                years: _.map(prev.years, (item) => ({
+                    ...item,
+                    isSelected: item.value === newCurrentDateView.getFullYear(),
+                })),
+            };
+        });
     }
 
     /**
@@ -99,24 +103,6 @@ class CalendarPicker extends React.PureComponent {
             }),
             () => this.props.onSelected(moment(this.state.currentDateView).format('YYYY-MM-DD')),
         );
-    }
-
-    /**
-     * Function filtering the list of the items when using search input
-     *
-     * @param {String} text
-     */
-    filterYears(text) {
-        const searchText = text.replace(CONST.REGEX.NON_NUMERIC, '');
-        this.setState((prevState) => {
-            if (searchText === prevState.textInputValue) {
-                return {};
-            }
-            return {
-                textInputValue: searchText,
-                yearsFiltered: _.filter(this.years, (year) => year.text.includes(searchText)),
-            };
-        });
     }
 
     /**
@@ -245,11 +231,9 @@ class CalendarPicker extends React.PureComponent {
                 ))}
                 <YearPickerModal
                     isVisible={this.state.isYearPickerVisible}
-                    years={this.state.yearsFiltered}
+                    years={this.state.years}
                     currentYear={currentYearView}
                     onYearChange={this.onYearSelected}
-                    textInputValue={this.state.textInputValue}
-                    onChangeText={this.filterYears}
                     onClose={() => this.setState({isYearPickerVisible: false})}
                 />
             </View>

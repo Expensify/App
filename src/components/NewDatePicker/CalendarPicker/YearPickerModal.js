@@ -1,17 +1,14 @@
-import React from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import PropTypes from 'prop-types';
-import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../withCurrentUserPersonalDetails';
+import _ from 'underscore';
 import HeaderWithBackButton from '../../HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import CONST from '../../../CONST';
 import SelectionListRadio from '../../SelectionListRadio';
 import Modal from '../../Modal';
 import {radioListItemPropTypes} from '../../SelectionListRadio/selectionListRadioPropTypes';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-    ...withCurrentUserPersonalDetailsPropTypes,
-
     /** Whether the modal is visible */
     isVisible: PropTypes.bool.isRequired,
 
@@ -19,34 +16,38 @@ const propTypes = {
     years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes)).isRequired,
 
     /** Currently selected year */
-    currentYear: PropTypes.number.isRequired,
+    currentYear: PropTypes.number,
 
     /** Function to call when the user selects a year */
-    onYearChange: PropTypes.func.isRequired,
-
-    /** Value for the text input */
-    textInputValue: PropTypes.string.isRequired,
-
-    /** Callback to fire when the text input changes */
-    onChangeText: PropTypes.func.isRequired,
+    onYearChange: PropTypes.func,
 
     /** Function to call when the user closes the year picker */
-    onClose: PropTypes.func.isRequired,
+    onClose: PropTypes.func,
 };
 
 const defaultProps = {
-    ...withCurrentUserPersonalDetailsDefaultProps,
-    isVisible: false,
-    years: [],
     currentYear: new Date().getFullYear(),
     onYearChange: () => {},
-    textInputValue: '',
-    onChangeText: () => {},
     onClose: () => {},
 };
 
 function YearPickerModal(props) {
-    const headerMessage = props.textInputValue.trim() && !props.years.length ? props.translate('common.noResultsFound') : '';
+    const {translate} = useLocalize();
+    const [searchText, setSearchText] = useState('');
+    const {sections, headerMessage} = useMemo(() => {
+        const yearsList = searchText === '' ? props.years : _.filter(props.years, (year) => year.text.includes(searchText));
+        return {
+            headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
+            sections: [{data: yearsList, indexOffset: 0}],
+        };
+    }, [props.years, searchText, translate]);
+
+    useEffect(() => {
+        if (props.isVisible) {
+            return;
+        }
+        setSearchText('');
+    }, [props.isVisible]);
 
     return (
         <Modal
@@ -58,18 +59,18 @@ function YearPickerModal(props) {
             useNativeDriver
         >
             <HeaderWithBackButton
-                title={props.translate('yearPickerPage.year')}
+                title={translate('yearPickerPage.year')}
                 onBackButtonPress={props.onClose}
             />
             <SelectionListRadio
                 shouldDelayFocus
-                textInputLabel={props.translate('yearPickerPage.selectYear')}
-                textInputValue={props.textInputValue}
+                textInputLabel={translate('yearPickerPage.selectYear')}
+                textInputValue={searchText}
                 textInputMaxLength={4}
-                onChangeText={props.onChangeText}
+                onChangeText={setSearchText}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 headerMessage={headerMessage}
-                sections={[{data: props.years, indexOffset: 0}]}
+                sections={sections}
                 onSelectRow={(option) => props.onYearChange(option.value)}
                 initiallyFocusedOptionKey={props.currentYear.toString()}
             />
@@ -81,4 +82,4 @@ YearPickerModal.propTypes = propTypes;
 YearPickerModal.defaultProps = defaultProps;
 YearPickerModal.displayName = 'YearPickerModal';
 
-export default withLocalize(YearPickerModal);
+export default YearPickerModal;
