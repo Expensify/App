@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
@@ -13,6 +12,8 @@ import themeColors from '../styles/themes/default';
 const propTypes = {
     ...headerWithBackButtonPropTypes,
 
+    children: PropTypes.node,
+
     /** The background color to apply in the upper half of the screen. */
     backgroundColor: PropTypes.string.isRequired,
 
@@ -24,11 +25,10 @@ const defaultProps = {
     ...headerWithBackButtonDefaultProps,
 };
 
-function IllustratedHeaderPageLayout(props) {
-    const propsToPassToHeader = _.omit(props, ['illustration', 'footer', 'backgroundColor']);
+function IllustratedHeaderPageLayout({children, illustration, backgroundColor, ...propsToPassToHeader}) {
     return (
         <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(props.backgroundColor)]}
+            style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
         >
@@ -38,14 +38,14 @@ function IllustratedHeaderPageLayout(props) {
                     <HeaderWithBackButton {...propsToPassToHeader} />
                     <View style={[styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Lottie
-                            source={props.illustration}
+                            source={illustration}
                             style={styles.w100}
                             autoPlay
                             loop
                         />
                     </View>
                     <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
-                        <ScrollView contentContainerStyle={styles.illustratedPageScrollView(safeAreaPaddingBottomStyle)}>{props.children}</ScrollView>
+                        <ScrollView contentContainerStyle={styles.illustratedPageScrollView(safeAreaPaddingBottomStyle)}>{children}</ScrollView>
                     </View>
                 </>
             )}
