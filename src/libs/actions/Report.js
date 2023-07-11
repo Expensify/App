@@ -1203,11 +1203,11 @@ function navigateToConciergeChat() {
  * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
- * @param {Array} policyMembers
+ * @param {Array<Number>} policyMembersAccountIDs
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembers) {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
-    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembers : [];
+    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
