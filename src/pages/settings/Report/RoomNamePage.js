@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -37,7 +37,6 @@ function RoomNamePage(props) {
     const reports = props.reports;
     const translate = props.translate;
 
-    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const roomNameInputRef = useRef(null);
 
     const validate = useCallback(
@@ -68,19 +67,11 @@ function RoomNamePage(props) {
         [report, reports],
     );
 
-    // Room name input autofocusing may block screen transition on Safari
-    useEffect(() => {
-        if (!didScreenTransitionEnd || !roomNameInputRef.current) {
-            return;
-        }
-
-        roomNameInputRef.current.focus();
-    }, [didScreenTransitionEnd]);
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
+            // Room name input autofocusing may block screen transition on Safari
+            onEntryTransitionEnd={() => roomNameInputRef.current && roomNameInputRef.current.focus()}
         >
             <HeaderWithBackButton
                 title={translate('newRoomPage.roomName')}
@@ -96,7 +87,7 @@ function RoomNamePage(props) {
             >
                 <View style={styles.mb4}>
                     <RoomNameInput
-                        ref={roomNameInputRef}
+                        ref={(ref) => roomNameInputRef.current = ref}
                         inputID="roomName"
                         defaultValue={report.reportName}
                     />
