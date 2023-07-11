@@ -16,8 +16,8 @@ const globalRestrictedImport = [
 ];
 
 module.exports = {
-    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier'],
-    plugins: ['react-hooks'],
+    extends: ['expensify', 'plugin:storybook/recommended', 'plugin:react-hooks/recommended', 'prettier', 'plugin:react-native-a11y/basic'],
+    plugins: ['react-hooks', 'react-native-a11y'],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js', 'desktop/dist/*.js', 'dist/*.js', 'node_modules/.bin/**', '.git/**'],
     env: {
@@ -27,6 +27,18 @@ module.exports = {
         __DEV__: 'readonly',
     },
     overrides: [
+        {
+            files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
+            rules: {
+                'react-native-a11y/has-accessibility-hint': ['off'],
+                'react-native-a11y/has-valid-accessibility-descriptors': [
+                    'error',
+                    {
+                        touchables: ['PressableWithoutFeedback', 'PressableWithFeedback'],
+                    },
+                ],
+            },
+        },
         {
             files: ['*.js', '*.jsx'],
             settings: {
