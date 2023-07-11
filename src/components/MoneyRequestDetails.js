@@ -92,7 +92,7 @@ function MoneyRequestDetails(props) {
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
-    const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getAddWorkspaceRoomPendingActionAndErrors(props.report);
+    const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(props.report);
     return (
         <OfflineWithFeedback
             pendingAction={addWorkspaceRoomOrChatPendingAction}
