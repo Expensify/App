@@ -352,7 +352,6 @@ export default {
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
         settleExpensify: 'Pagar con Expensify',
-        settleElsewhere: 'Voy a pagar de otra forma',
         payExpenseElsewhere: 'Pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
         requestAmount: ({amount}) => `solicitar ${amount}`,
