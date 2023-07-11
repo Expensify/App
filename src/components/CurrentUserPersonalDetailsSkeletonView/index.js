@@ -21,9 +21,9 @@ const defaultProps = {
 function CurrentUserPersonalDetailsSkeletonView(props) {
     const avatarPlaceholderSize = StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE);
     const avatarPlaceholderRadius = avatarPlaceholderSize / 2;
-    const headlineMarginTop = 16;
+    const spaceBetweenAvatarAndHeadline = styles.mb3.marginBottom + styles.mt1.marginTop + (variables.lineHeightXXLarge - variables.fontSizeXLarge) / 2;
     const headlineSize = variables.fontSizeXLarge;
-    const labelMarginTop = 4;
+    const spaceBetweenHeadlineAndLabel = styles.mt1.marginTop + (variables.lineHeightXXLarge - variables.fontSizeXLarge) / 2;
     const labelSize = variables.fontSizeLabel;
     return (
         <View style={styles.avatarSectionWrapperSkeleton}>
@@ -31,7 +31,7 @@ function CurrentUserPersonalDetailsSkeletonView(props) {
                 animate={props.shouldAnimate}
                 backgroundColor={themeColors.highlightBG}
                 foregroundColor={themeColors.border}
-                height={avatarPlaceholderSize + headlineMarginTop + headlineSize + labelMarginTop + labelSize}
+                height={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline + headlineSize + spaceBetweenHeadlineAndLabel + labelSize}
             >
                 <Circle
                     cx="50%"
@@ -40,13 +40,13 @@ function CurrentUserPersonalDetailsSkeletonView(props) {
                 />
                 <Rect
                     x="20%"
-                    y={avatarPlaceholderSize + headlineMarginTop}
+                    y={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline}
                     width="60%"
                     height={headlineSize}
                 />
                 <Rect
                     x="15%"
-                    y={avatarPlaceholderSize + headlineMarginTop + headlineSize + labelMarginTop}
+                    y={avatarPlaceholderSize + spaceBetweenAvatarAndHeadline + headlineSize + spaceBetweenHeadlineAndLabel}
                     width="70%"
                     height={labelSize}
                 />
