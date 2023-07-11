@@ -42,8 +42,8 @@ const propTypes = {
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** AccountID of the manager in this iou report */
+        managerID: PropTypes.number,
 
         /** AccountID of the creator of this iou report */
         ownerAccountID: PropTypes.number,
@@ -60,8 +60,8 @@ const propTypes = {
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     /** Popover context menu anchor, used for showing context menu */
@@ -79,17 +79,15 @@ const defaultProps = {
     iouReport: {},
     checkIfContextMenuActive: () => {},
     session: {
-        email: null,
+        accountID: null,
     },
 };
 
 function ReportPreview(props) {
+    const managerID = props.iouReport.managerID || 0;
+    const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
-    const managerEmail = props.iouReport.managerEmail || '';
-    const managerAccountID = props.iouReport.managerID || 0;
-    const managerName =
-        (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerAccountID, true)) || managerEmail;
-    const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
+    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
 
     return (

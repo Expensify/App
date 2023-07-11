@@ -16,6 +16,7 @@ import * as LoginUtils from './LoginUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -230,9 +231,6 @@ function getParticipantNames(personalDetailList) {
     // `_.contains(Array, value)` for an Array with n members.
     const participantNames = new Set();
     _.each(personalDetailList, (participant) => {
-        if (participant.accountID) {
-            participantNames.add(participant.accountID.toString());
-        }
         if (participant.login) {
             participantNames.add(participant.login.toLowerCase());
         }
@@ -474,7 +472,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || report.lastActorEmail,
+                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
@@ -521,12 +519,18 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
-    const searchWords = _.compact(uniqFast([searchValue, ..._.map(searchValue.replace(/,/g, ' ').split(' '), (word) => word.trim())]));
+    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
     const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-    return _.some(searchWords, (word) => {
+    let matching = true;
+    searchWords.forEach((word) => {
+        // if one of the word is not matching, we don't need to check further
+        if (!matching) {
+            return;
+        }
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        return matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
+        matching = matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
     });
+    return matching;
 }
 
 /**
