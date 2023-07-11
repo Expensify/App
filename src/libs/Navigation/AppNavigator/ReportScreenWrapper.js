@@ -104,9 +104,7 @@ function ReportScreenWrapper(props) {
     }
 
     return <FullScreenLoadingIndicator initialParams={props.route.params} />;
-};
-
-
+}
 
 ReportScreenWrapper.propTypes = propTypes;
 ReportScreenWrapper.defaultProps = defaultProps;
