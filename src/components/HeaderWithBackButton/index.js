@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Keyboard} from 'react-native';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import Header from '../Header';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -20,6 +21,7 @@ import useLocalize from '../../hooks/useLocalize';
 import useKeyboardState from '../../hooks/useKeyboardState';
 
 function HeaderWithBackButton({
+    backgroundColor = themeColors.appBG,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
@@ -55,7 +57,7 @@ function HeaderWithBackButton({
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     return (
-        <View style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
+        <View style={[styles.headerBar, StyleUtils.getBackgroundColorStyle(backgroundColor), shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
                 {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
