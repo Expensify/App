@@ -105,8 +105,8 @@ class Composer extends React.Component {
                 // Setting a really high number here fixes an issue with the `maxNumberOfLines` prop on TextInput, where on Android the text input would collapse to only one line,
                 // when it should actually expand to the container (https://github.com/Expensify/App/issues/11694#issuecomment-1560520670)
                 // @Szymon20000 is working on fixing this (android-only) issue in the in the upstream PR (https://github.com/facebook/react-native/pulls?q=is%3Apr+is%3Aopen+maxNumberOfLines)
-                // TODO: remove this commend once upstream PR is merged
-                maximumNumberOfLines={this.props.isComposerFullSize ? 1000000 : this.props.maxLines}
+                // TODO: remove this comment once upstream PR is merged and available in a future release
+                maxNumberOfLines={this.props.isComposerFullSize ? 1000000 : this.props.maxLines}
                 style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...this.props}

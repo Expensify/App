@@ -108,7 +108,7 @@ class Composer extends React.Component {
                 rejectResponderTermination={false}
                 textAlignVertical="center"
                 smartInsertDelete={false}
-                maximumNumberOfLines={this.props.isComposerFullSize ? undefined : this.props.maxLines}
+                maxNumberOfLines={this.props.isComposerFullSize ? undefined : this.props.maxLines}
                 style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsToPass}
