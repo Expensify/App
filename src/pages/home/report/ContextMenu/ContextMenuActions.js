@@ -172,7 +172,6 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
-            console.log('reportAction', reportAction)
             const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
             const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
             const displayingMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
