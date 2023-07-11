@@ -12,6 +12,7 @@ import KeyboardSpacer from '../KeyboardSpacer';
 import {propTypes as passwordPopoverPropTypes, defaultProps as passwordPopoverDefaultProps} from './passwordPopoverPropTypes';
 import Button from '../Button';
 import withViewportOffsetTop from '../withViewportOffsetTop';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -62,6 +63,8 @@ class BasePasswordPopover extends Component {
                     <Text style={[styles.mb3]}>{this.props.translate('passwordForm.pleaseFillPassword')}</Text>
                     <TextInput
                         label={this.props.translate('common.password')}
+                        accessibilityLabel={this.props.translate('common.password')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={(el) => (this.passwordInput = el)}
                         secureTextEntry
                         autoCompleteType="password"
