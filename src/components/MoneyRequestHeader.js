@@ -62,7 +62,7 @@ function MoneyRequestHeader(props) {
         <View style={[styles.pl0]}>
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
-                shouldShowPinButton
+                shouldShowPinButton={false}
                 shouldShowThreeDotsButton={!isPayer && !isSettled}
                 threeDotsMenuItems={[
                     {
