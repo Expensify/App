@@ -40,8 +40,8 @@ const defaultProps = {
 };
 
 function BankAccountPlaidStep(props) {
-    const {translate} = useLocalize();
     const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField} = props;
+    const {translate} = useLocalize();
 
     const validate = useCallback((values) => {
         const errorFields = {};
