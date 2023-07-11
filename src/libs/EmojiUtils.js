@@ -14,7 +14,11 @@ Onyx.connect({
         frequentlyUsedEmojis = _.map(val, (item) => {
             const emoji = Emojis.emojiCodeTable[item.code];
             if (emoji) {
+<<<<<<< HEAD
                 return {name: emoji.name, code: emoji.code, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+=======
+                return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             }
         });
     },
@@ -228,8 +232,12 @@ function getFrequentlyUsedEmojis(newEmoji) {
             frequentEmojiList.splice(emojiIndex, 1);
         }
 
+<<<<<<< HEAD
         const {name, code} = Emojis.emojiCodeTable[emoji.code];
         const updatedEmoji = {name, code, count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
+=======
+        const updatedEmoji = {...Emojis.emojiCodeTable[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
 
         // We want to make sure the current emoji is added to the list
         // Hence, we take one less than the current frequent used emojis

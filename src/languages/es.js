@@ -568,7 +568,11 @@ export default {
     },
     twoFactorAuthForm: {
         error: {
+<<<<<<< HEAD
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+=======
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo',
         },
     },
@@ -714,7 +718,11 @@ export default {
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',
+<<<<<<< HEAD
             pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+=======
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         },
     },
     passwordForm: {
@@ -1302,7 +1310,12 @@ export default {
         messages: {
             completed: 'tarea completada',
             canceled: 'tarea cancelada',
+<<<<<<< HEAD
             reopened: 'tarea reabierta',
+=======
+            reopened: 'tarea reabrir',
+            error: 'No tiene permiso para realizar la acción solicitada.',
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         },
         markAsDone: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',

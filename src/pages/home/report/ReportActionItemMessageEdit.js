@@ -336,7 +336,11 @@ function ReportActionItemMessageEdit(props) {
                                 }
                                 openReportActionComposeViewWhenClosingMessageEdit();
                             }}
+<<<<<<< HEAD
                             selection={selection}
+=======
+                            selection={!isFocused ? undefined : selection}
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                         />
                     </View>

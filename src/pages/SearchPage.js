@@ -61,7 +61,10 @@ class SearchPage extends Component {
 
         this.state = {
             searchValue: '',
+<<<<<<< HEAD
             headerMessage: '',
+=======
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             recentReports,
             personalDetails,
             userToInvite,
@@ -129,6 +132,7 @@ class SearchPage extends Component {
             this.state.searchValue.trim(),
             this.props.betas,
         );
+<<<<<<< HEAD
         this.setState((prevState) => {
             const headerMessage = OptionsListUtils.getHeaderMessage(recentReports.length + personalDetails.length !== 0, Boolean(userToInvite), prevState.searchValue);
             return {
@@ -137,6 +141,12 @@ class SearchPage extends Component {
                 recentReports,
                 personalDetails,
             };
+=======
+        this.setState({
+            userToInvite,
+            recentReports,
+            personalDetails,
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         });
     }
 
@@ -167,6 +177,14 @@ class SearchPage extends Component {
     render() {
         const sections = this.getSections();
         const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+<<<<<<< HEAD
+=======
+        const headerMessage = OptionsListUtils.getHeaderMessage(
+            this.state.recentReports.length + this.state.personalDetails.length !== 0,
+            Boolean(this.state.userToInvite),
+            this.state.searchValue,
+        );
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -179,7 +197,11 @@ class SearchPage extends Component {
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
                                 onChangeText={this.onChangeText}
+<<<<<<< HEAD
                                 headerMessage={this.state.headerMessage}
+=======
+                                headerMessage={headerMessage}
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
                                 hideSectionHeaders
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}

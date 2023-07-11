@@ -1081,10 +1081,17 @@ function getTransactionReportName(reportAction) {
  * Get money request message for an IOU report
  *
  * @param {Object} report
+<<<<<<< HEAD
  * @param {Object} reportAction
  * @returns  {String}
  */
 function getReportPreviewMessage(report, reportAction) {
+=======
+ * @param {Object} [reportAction={}]
+ * @returns  {String}
+ */
+function getReportPreviewMessage(report, reportAction = {}) {
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1561,6 +1568,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
+<<<<<<< HEAD
 function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
     return {
         reportActionID: NumberUtils.rand64(),
@@ -1573,14 +1581,36 @@ function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
             {
                 html: '',
                 text: '',
+=======
+function buildOptimisticReportPreview(chatReport, iouReport) {
+    const message = getReportPreviewMessage(iouReport);
+    return {
+        reportActionID: NumberUtils.rand64(),
+        reportID: chatReport.reportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        originalMessage: {
+            linkedReportID: iouReport.reportID,
+        },
+        message: [
+            {
+                html: message,
+                text: message,
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
                 isEdited: false,
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
+<<<<<<< HEAD
         originalMessage: {
             linkedReportID: iouReportID,
         },
         actorAccountID: currentUserAccountID,
+=======
+        created: DateUtils.getDBTime(),
+        accountID: iouReport.managerID || 0,
+        actorAccountID: iouReport.managerID || 0,
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
     };
 }
 

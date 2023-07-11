@@ -182,6 +182,10 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+<<<<<<< HEAD
+=======
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
                 },
                 {
                     code: '💤',
@@ -234,6 +238,10 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+<<<<<<< HEAD
+=======
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
                 },
                 {
                     code: '💤',
@@ -280,6 +288,10 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+<<<<<<< HEAD
+=======
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
                 },
                 {...zzzEmoji, count: 2, lastUpdatedAt: 3},
                 {
@@ -329,6 +341,10 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 3,
                     lastUpdatedAt: 23,
+<<<<<<< HEAD
+=======
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
                 },
                 {
                     code: '😡',
@@ -389,6 +405,10 @@ describe('EmojiTest', () => {
                     name: 'baby',
                     count: 3,
                     lastUpdatedAt: 13,
+<<<<<<< HEAD
+=======
+                    types: ['👶🏿', '👶🏾', '👶🏽', '👶🏼', '👶🏻'],
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
                 },
                 {
                     code: '👄',

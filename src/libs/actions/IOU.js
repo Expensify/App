@@ -89,7 +89,10 @@ function buildOnyxDataForMoneyRequest(
     reportPreviewAction,
     isNewChatReport,
     isNewIOUReport,
+<<<<<<< HEAD
     isNewReportPreviewAction,
+=======
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
 ) {
     const optimisticData = [
         {
@@ -124,9 +127,13 @@ function buildOnyxDataForMoneyRequest(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 ...(isNewChatReport ? {[chatCreatedAction.reportActionID]: chatCreatedAction} : {}),
+<<<<<<< HEAD
                 [reportPreviewAction.reportActionID]: {
                     ...(isNewReportPreviewAction ? reportPreviewAction : {created: DateUtils.getDBTime()}),
                 },
+=======
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             },
         },
         {
@@ -139,7 +146,11 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
+<<<<<<< HEAD
     if (isNewChatReport && !_.isEmpty(optimisticPersonalDetailListAction)) {
+=======
+    if (!_.isEmpty(optimisticPersonalDetailListAction)) {
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -189,6 +200,7 @@ function buildOnyxDataForMoneyRequest(
                           },
                       }
                     : {}),
+<<<<<<< HEAD
                 ...(isNewReportPreviewAction
                     ? {
                           [reportPreviewAction.reportActionID]: {
@@ -196,6 +208,11 @@ function buildOnyxDataForMoneyRequest(
                           },
                       }
                     : {}),
+=======
+                [reportPreviewAction.reportActionID]: {
+                    pendingAction: null,
+                },
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             },
         },
         {
@@ -378,6 +395,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     );
 
     // Add optimistic personal details for participant
+<<<<<<< HEAD
     const optimisticPersonalDetailListAction = {
         [payerAccountID]: {
             accountID: payerAccountID,
@@ -392,6 +410,27 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     if (!reportPreviewAction) {
         isNewReportPreviewAction = true;
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport.reportID, iouReport.reportID);
+=======
+    const optimisticPersonalDetailListAction = isNewChatReport
+        ? {
+              [payerAccountID]: {
+                  accountID: payerAccountID,
+                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+                  displayName: participant.displayName || payerEmail,
+                  login: participant.login,
+              },
+          }
+        : undefined;
+
+    let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    if (reportPreviewAction) {
+        reportPreviewAction.created = DateUtils.getDBTime();
+        const message = ReportUtils.getReportPreviewMessage(iouReport, reportPreviewAction);
+        reportPreviewAction.message[0].html = message;
+        reportPreviewAction.message[0].text = message;
+    } else {
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
     }
 
     // STEP 5: Build Onyx Data
@@ -406,7 +445,10 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         reportPreviewAction,
         isNewChatReport,
         isNewIOUReport,
+<<<<<<< HEAD
         isNewReportPreviewAction,
+=======
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
     );
 
     // STEP 6: Make the request
@@ -594,11 +636,26 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
         let oneOnOneChatReport;
         let isNewOneOnOneChatReport = false;
+<<<<<<< HEAD
         oneOnOneChatReport = !hasMultipleParticipants && !existingGroupChatReportID ? groupChatReport : ReportUtils.getChatByParticipants([accountID]);
 
         if (!oneOnOneChatReport) {
             isNewOneOnOneChatReport = true;
             oneOnOneChatReport = ReportUtils.buildOptimisticChatReport([accountID]);
+=======
+        let shouldCreateOptimisticPersonalDetails = false;
+
+        // If this is a split between two people only and the function
+        // wasn't provided with an existing group chat report id
+        if (!hasMultipleParticipants && !existingGroupChatReportID) {
+            oneOnOneChatReport = groupChatReport;
+            shouldCreateOptimisticPersonalDetails = !existingGroupChatReport;
+        } else {
+            const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
+            isNewOneOnOneChatReport = !existingChatReport;
+            shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport;
+            oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([accountID]);
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         }
 
         // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
@@ -640,6 +697,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         );
 
         // Add optimistic personal details for new participants
+<<<<<<< HEAD
         const oneOnOnePersonalDetailListAction = {
             [accountID]: {
                 accountID,
@@ -654,6 +712,27 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         if (!oneOnOneReportPreviewAction) {
             isNewOneOnOneReportPreviewAction = true;
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+=======
+        const oneOnOnePersonalDetailListAction = shouldCreateOptimisticPersonalDetails
+            ? {
+                  [accountID]: {
+                      accountID,
+                      avatar: UserUtils.getDefaultAvatarURL(accountID),
+                      displayName: participant.displayName || email,
+                      login: participant.login,
+                  },
+              }
+            : undefined;
+
+        let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+        if (oneOnOneReportPreviewAction) {
+            oneOnOneReportPreviewAction.created = DateUtils.getDBTime();
+            const message = ReportUtils.getReportPreviewMessage(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction.message[0].html = message;
+            oneOnOneReportPreviewAction.message[0].text = message;
+        } else {
+            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         }
 
         // STEP 5: Build Onyx Data
@@ -668,7 +747,10 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             oneOnOneReportPreviewAction,
             isNewOneOnOneChatReport,
             isNewOneOnOneIOUReport,
+<<<<<<< HEAD
             isNewOneOnOneReportPreviewAction,
+=======
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         );
 
         const splitData = {
@@ -944,6 +1026,11 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         true,
     );
 
+<<<<<<< HEAD
+=======
+    const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
+
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
     // First, add data that will be used in all cases
     const optimisticChatReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -951,7 +1038,11 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         value: {
             ...chatReport,
             lastReadTime: DateUtils.getDBTime(),
+<<<<<<< HEAD
             lastVisibleActionCreated: optimisticIOUReportAction.created,
+=======
+            lastVisibleActionCreated: reportPreviewAction.created,
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         },
     };
     const optimisticIOUReportData = {
@@ -963,7 +1054,11 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             lastMessageHtml: optimisticIOUReportAction.message[0].html,
         },
     };
+<<<<<<< HEAD
     const optimisticReportActionsData = {
+=======
+    const optimisticIOUReportActionsData = {
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
         value: {
@@ -973,6 +1068,16 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         },
     };
+<<<<<<< HEAD
+=======
+    const optimisticChatReportActionsData = {
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+        value: {
+            [reportPreviewAction.reportActionID]: reportPreviewAction,
+        },
+    };
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
 
     const successData = [
         {
@@ -989,6 +1094,18 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {pendingAction: null},
         },
+<<<<<<< HEAD
+=======
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
     ];
 
     const failureData = [
@@ -1008,7 +1125,10 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         // Change the method to set for new reports because it doesn't exist yet, is faster,
         // and we need the data to be available when we navigate to the chat page
         optimisticChatReportData.onyxMethod = Onyx.METHOD.SET;
+<<<<<<< HEAD
         optimisticReportActionsData.onyxMethod = Onyx.METHOD.SET;
+=======
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         optimisticIOUReportData.onyxMethod = Onyx.METHOD.SET;
 
         // Set and clear pending fields on the chat report
@@ -1053,8 +1173,13 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             },
         };
 
+<<<<<<< HEAD
         // Add an optimistic created action to the optimistic reportActions data
         optimisticReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+=======
+        // Add an optimistic created action to the optimistic chat reportActions data
+        optimisticChatReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
     } else {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1067,7 +1192,11 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         });
     }
 
+<<<<<<< HEAD
     const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticReportActionsData, optimisticTransactionData];
+=======
+    const optimisticData = [optimisticChatReportData, optimisticIOUReportData, optimisticChatReportActionsData, optimisticIOUReportActionsData, optimisticTransactionData];
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
     if (!_.isEmpty(optimisticPersonalDetailListData)) {
         optimisticData.push(optimisticPersonalDetailListData);
     }
@@ -1081,6 +1210,10 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
             createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : 0,
+<<<<<<< HEAD
+=======
+            reportPreviewReportActionID: reportPreviewAction.reportActionID,
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         },
         optimisticData,
         successData,
@@ -1115,6 +1248,15 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         login: recipient.login,
     };
 
+<<<<<<< HEAD
+=======
+    const optimisticReportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    optimisticReportPreviewAction.created = DateUtils.getDBTime();
+    const message = ReportUtils.getReportPreviewMessage(iouReport, optimisticReportPreviewAction);
+    optimisticReportPreviewAction.message[0].html = message;
+    optimisticReportPreviewAction.message[0].text = message;
+
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1141,6 +1283,16 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+<<<<<<< HEAD
+=======
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
                 ...iouReport,
@@ -1198,6 +1350,18 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+<<<<<<< HEAD
+=======
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticReportPreviewAction.reportActionID]: {
+                    created: optimisticReportPreviewAction.created,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {
                 errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),

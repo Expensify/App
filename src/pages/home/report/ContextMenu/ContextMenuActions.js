@@ -298,7 +298,11 @@ export default [
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, false);
             if (closePopover) {
+<<<<<<< HEAD
                 hideContextMenu(false);
+=======
+                hideContextMenu(false, ReportActionComposeFocusManager.focus);
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             }
         },
         getDescription: () => {},
@@ -311,7 +315,11 @@ export default [
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, true);
             if (closePopover) {
+<<<<<<< HEAD
                 hideContextMenu(false);
+=======
+                hideContextMenu(false, ReportActionComposeFocusManager.focus);
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             }
         },
         getDescription: () => {},

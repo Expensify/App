@@ -51,7 +51,11 @@ function UserDetailsTooltip(props) {
                     />
                 </View>
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
+<<<<<<< HEAD
                 <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{subtitle}</Text>
+=======
+                <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
             </View>
         ),
         [props.icon, userAvatar, userAccountID, userLogin, title, subtitle],

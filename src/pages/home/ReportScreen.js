@@ -134,6 +134,11 @@ class ReportScreen extends React.Component {
             isBannerVisible: true,
         };
         this.firstRenderRef = React.createRef();
+<<<<<<< HEAD
+=======
+        this.firstRenderRef.current = reportActionsListViewHeight === 0;
+
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
         this.flatListRef = React.createRef();
         this.reactionListRef = React.createRef();
     }
@@ -244,8 +249,13 @@ class ReportScreen extends React.Component {
 
         const shouldHideReport = !ReportUtils.canAccessReport(this.props.report, this.props.policies, this.props.betas);
 
+<<<<<<< HEAD
         const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.firstRenderRef.current;
         this.firstRenderRef.current = true;
+=======
+        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || this.firstRenderRef.current;
+        this.firstRenderRef.current = false;
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
 
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
         const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
@@ -316,7 +326,15 @@ class ReportScreen extends React.Component {
                             nativeID={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                             onLayout={(event) => {
+<<<<<<< HEAD
                                 const skeletonViewContainerHeight = event.nativeEvent.layout.height;
+=======
+                                // Rounding this value for comparison because they can look like this: 411.9999694824219
+                                const skeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
+
+                                // Only set state when the height changes to avoid unnecessary renders
+                                if (reportActionsListViewHeight === skeletonViewContainerHeight) return;
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
 
                                 // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
                                 // takes up so we can set the skeleton view container height.

@@ -169,7 +169,12 @@ function NewTaskPage(props) {
                             description={shareDestination.displayName ? shareDestination.subtitle : props.translate('newTaskPage.shareSomewhere')}
                             icon={shareDestination.icons}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
+<<<<<<< HEAD
                             shouldShowRightIcon
+=======
+                            interactive={!props.task.parentReportID}
+                            shouldShowRightIcon={!props.task.parentReportID}
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
                         />
                     </View>
                     <FormAlertWithSubmitButton

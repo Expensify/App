@@ -19,6 +19,10 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
+<<<<<<< HEAD
 	<string>1.3.39.7</string>
+=======
+	<string>1.3.39.5</string>
+>>>>>>> 1a4190b (Merge pull request #22662 from Expensify/stites-fixFrequentlyUsedEmojis)
 </dict>
 </plist>
