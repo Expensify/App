@@ -29,7 +29,6 @@ import variables from '../../styles/variables';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 
-
 const propTypes = {
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,

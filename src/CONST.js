@@ -161,7 +161,7 @@ const CONST = {
         },
         MONEY_REPORT: {
             MIN_HEIGHT: 280,
-        }
+        },
     },
 
     RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,
