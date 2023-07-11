@@ -52,6 +52,7 @@ import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
 import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
+import usePrevious from '../../../hooks/usePrevious';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -442,29 +443,23 @@ function ReportActionCompose({translate, ...props}) {
             Report.setReportWithDraft(props.reportID, true);
         }
 
-        const unsubscribeNavFocus = props.navigation.addListener('focus', () => {
-            if (!willBlurTextInputOnTapOutside || props.isFocused || props.modal.isVisible) return;
-            focus();
-        });
-
         return () => {
             ReportActionComposeFocusManager.clear();
-            if (!unsubscribeNavFocus) {
-                return;
-            }
-            unsubscribeNavFocus();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const prevProps = usePrevious(props);
     useEffect(() => {
-        // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+        // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!willBlurTextInputOnTapOutside || !props.isFocused || !props.modal.isVisible) return;
+        if (!willBlurTextInputOnTapOutside || props.modal.isVisible || !props.isFocused || prevProps.modal.isVisible || !prevProps.isFocused) {
+            return;
+        }
 
         focus();
-    }, [focus, props.isFocused, props.modal.isVisible]);
+    }, [focus, prevProps, props.isFocused, props.modal.isVisible]);
 
     useEffect(() => {
         if (value === props.comment) return;
@@ -881,7 +876,7 @@ function ReportActionCompose({translate, ...props}) {
             }
 
             // Trigger the edit box for last sent message if ArrowUp is pressed and the comment is empty and Chronos is not in the participants
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.current.selectionStart === 0 && isCommentEmpty && !ReportUtils.chatIncludesChronos(props.report)) {
+            if (e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey && textInput.current.selectionStart === 0 && value.length === 0 && !ReportUtils.chatIncludesChronos(props.report)) {
                 e.preventDefault();
 
                 const parentReportActionID = lodashGet(props.report, 'parentReportActionID', '');
