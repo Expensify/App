@@ -55,7 +55,7 @@ jobs:
         run: |
           # Find the commit for the version-bump
           # This command fetches commits in the last hour on the main branch
-          git fetch origin main --no-tags --shallow-since="$(( $(date -%s) - 3600 ))"
+          git fetch origin main --no-tags --shallow-since="$(( $(date +%s) - 3600 ))"
           git switch main
           VERSION_BUMP_COMMIT="$(git log --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
 
