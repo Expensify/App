@@ -228,8 +228,7 @@ function getFrequentlyUsedEmojis(newEmoji) {
             frequentEmojiList.splice(emojiIndex, 1);
         }
 
-        const {name, code} = Emojis.emojiCodeTable[emoji.code];
-        const updatedEmoji = {name, code, count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
+        const updatedEmoji = {...Emojis.emojiCodeTable[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
 
         // We want to make sure the current emoji is added to the list
         // Hence, we take one less than the current frequent used emojis
