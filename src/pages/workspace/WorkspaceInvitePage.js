@@ -146,10 +146,8 @@ class WorkspaceInvitePage extends React.Component {
 
         // Filtering out selected users from the search results
         const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
-
         const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
         const personalDetailsFormatted = _.map(personalDetailsWithoutSelected, (personalDetail) => OptionsListUtils.formatMemberForList(personalDetail, false));
-
         const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
 
         sections.push({
@@ -163,7 +161,7 @@ class WorkspaceInvitePage extends React.Component {
         if (hasUnselectedUserToInvite) {
             sections.push({
                 title: undefined,
-                data: [this.state.userToInvite],
+                data: [OptionsListUtils.formatMemberForList(this.state.userToInvite, false)],
                 shouldShow: true,
                 indexOffset,
             });
@@ -177,22 +175,17 @@ class WorkspaceInvitePage extends React.Component {
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
-        _.forEach(personalDetails, (detail) => (detailsMap[detail.login] = detail));
+        _.forEach(personalDetails, (detail) => (detailsMap[detail.login] = OptionsListUtils.formatMemberForList(detail, false)));
         const selectedOptions = [];
         _.forEach(this.state.selectedOptions, (option) => {
-            selectedOptions.push(_.has(detailsMap, option.login) ? detailsMap[option.login] : option);
+            selectedOptions.push(_.has(detailsMap, option.login) ? {...detailsMap[option.login], isSelected: true} : option);
         });
 
-        this.setState((prevState) => {
-            const isSelected = _.find(prevState.selectedOptions, {login: lodashGet(userToInvite, 'login', '')});
-            const formattedUserToInvite = OptionsListUtils.formatMemberForList(userToInvite, isSelected);
-
-            return {
-                searchTerm,
-                userToInvite: formattedUserToInvite,
-                personalDetails,
-                selectedOptions,
-            };
+        this.setState({
+            searchTerm,
+            userToInvite,
+            personalDetails,
+            selectedOptions,
         });
     }
 
@@ -224,14 +217,8 @@ class WorkspaceInvitePage extends React.Component {
                 newSelectedOptions = [...prevState.selectedOptions, {...option, isSelected: true}];
             }
 
-            const {personalDetails, userToInvite} = OptionsListUtils.getMemberInviteOptions(this.props.personalDetails, this.props.betas, prevState.searchTerm, this.getExcludedUsers());
-
-            const formattedUserToInvite = OptionsListUtils.formatMemberForList(userToInvite, !isOptionInList);
-
             return {
                 selectedOptions: newSelectedOptions,
-                personalDetails,
-                userToInvite: formattedUserToInvite,
                 searchTerm: prevState.searchTerm,
             };
         });
