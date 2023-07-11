@@ -14,7 +14,7 @@ import ThreeDotsMenu from '../ThreeDotsMenu';
 import AvatarWithDisplayName from '../AvatarWithDisplayName';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import PinButton from '../PinButton';
-import {propTypes} from './headerWithBackButtonPropTypes';
+import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
 import useDelayToggleButtonState from '../../hooks/useDelayToggleButtonState';
 import useLocalize from '../../hooks/useLocalize';
 import useKeyboardState from '../../hooks/useKeyboardState';
@@ -157,7 +157,7 @@ function HeaderWithBackButton({
     );
 }
 
-HeaderWithBackButton.propTypes = propTypes;
+HeaderWithBackButton.propTypes = headerWithBackButtonPropTypes;
 HeaderWithBackButton.displayName = 'HeaderWithBackButton';
 
 export default HeaderWithBackButton;

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import Lottie from 'lottie-react-native';
-import {propTypes as headerWithBackButtonPropTypes, defaultProps as headerWithBackButtonDefaultProps} from './HeaderWithBackButton/headerWithBackButtonPropTypes';
+import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBackButtonPropTypes';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
@@ -19,10 +19,6 @@ const propTypes = {
 
     /** The illustration to display in the header. Can be either an SVG component or a JSON object representing a Lottie animation. */
     illustration: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
-};
-
-const defaultProps = {
-    ...headerWithBackButtonDefaultProps,
 };
 
 function IllustratedHeaderPageLayout({children, illustration, backgroundColor, ...propsToPassToHeader}) {
@@ -54,7 +50,6 @@ function IllustratedHeaderPageLayout({children, illustration, backgroundColor, .
 }
 
 IllustratedHeaderPageLayout.propTypes = propTypes;
-IllustratedHeaderPageLayout.defaultProps = defaultProps;
 IllustratedHeaderPageLayout.displayName = 'IllustratedHeaderPageLayout';
 
 export default IllustratedHeaderPageLayout;

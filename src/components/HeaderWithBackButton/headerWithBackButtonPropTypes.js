@@ -4,7 +4,6 @@ import {ThreeDotsMenuItemPropTypes} from '../ThreeDotsMenu';
 import CONST from '../../CONST';
 import iouReportPropTypes from '../../pages/iouReportPropTypes';
 import participantPropTypes from '../participantPropTypes';
-import Navigation from '../../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Title of the Header */
@@ -95,37 +94,4 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(participantPropTypes),
 };
 
-const defaultProps = {
-    title: '',
-    subtitle: '',
-    onDownloadButtonPress: () => {},
-    onBackButtonPress: () => Navigation.goBack(),
-    onCloseButtonPress: () => Navigation.dismissModal(),
-    onThreeDotsButtonPress: () => {},
-    shouldShowBorderBottom: false,
-    shouldShowDownloadButton: false,
-    shouldShowGetAssistanceButton: false,
-    shouldShowThreeDotsButton: false,
-    shouldShowPinButton: false,
-    shouldShowCloseButton: false,
-    shouldShowStepCounter: true,
-    shouldShowBackButton: true,
-    shouldShowAvatarWithDisplay: false,
-    report: null,
-    parentReport: null,
-    policies: {},
-    personalDetails: {},
-    guidesCallTaskID: '',
-    stepCounter: null,
-    threeDotsMenuItems: [],
-    threeDotsAnchorPosition: {
-        vertical: 0,
-        horizontal: 0,
-    },
-    threeDotsAnchorAlignment: {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
-};
-
-export {propTypes, defaultProps};
+export default propTypes;
