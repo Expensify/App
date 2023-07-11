@@ -31,7 +31,7 @@ function ThemePage(props) {
         value: key,
         text: theme.label,
         keyForList: key,
-        isSelected: props.preferredTheme === key,
+        isSelected: (props.preferredTheme || CONST.THEME.DEFAULT) === key,
     }));
 
     return (
