@@ -94,7 +94,7 @@ function PreferencesPage(props) {
                     />
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
-                        title={themes[props.preferredTheme].label}
+                        title={themes[props.preferredTheme || CONST.THEME.DEFAULT].label}
                         description={props.translate('themePage.theme')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
                     />
