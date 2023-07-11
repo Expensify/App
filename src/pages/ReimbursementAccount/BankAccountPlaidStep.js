@@ -6,8 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
-import withLocalize from '../../components/withLocalize';
-import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
@@ -19,9 +17,11 @@ import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import * as PlaidDataProps from './plaidDataPropTypes';
 import StepPropTypes from './StepPropTypes';
+import useLocalize from '../../hooks/useLocalize';
+import {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
-    ...StepPropTypes,
+    ..._.omit(StepPropTypes, _.keys(withLocalizePropTypes)),
 
     /** Contains plaid data */
     plaidData: PlaidDataProps.plaidDataPropTypes,
@@ -40,7 +40,8 @@ const defaultProps = {
 };
 
 function BankAccountPlaidStep(props) {
-    const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField, translate} = props;
+    const {translate} = useLocalize();
+    const {plaidData, receivedRedirectURI, plaidLinkOAuthToken, reimbursementAccount, reimbursementAccountDraft, onBackButtonPress, getDefaultStateForField} = props;
 
     const validate = useCallback((values) => {
         const errorFields = {};
@@ -132,11 +133,8 @@ function BankAccountPlaidStep(props) {
 BankAccountPlaidStep.propTypes = propTypes;
 BankAccountPlaidStep.defaultProps = defaultProps;
 BankAccountPlaidStep.displayName = 'BankAccountPlaidStep';
-export default compose(
-    withLocalize,
-    withOnyx({
-        plaidData: {
-            key: ONYXKEYS.PLAID_DATA,
-        },
-    }),
-)(BankAccountPlaidStep);
+export default withOnyx({
+    plaidData: {
+        key: ONYXKEYS.PLAID_DATA,
+    },
+})(BankAccountPlaidStep);
