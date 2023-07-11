@@ -13,6 +13,8 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 const propTypes = {
     openLinkInBrowser: PropTypes.func.isRequired,
 
+    linkText: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -30,8 +32,8 @@ function DeeplinkRedirectLoadingIndicator(props) {
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
                 <View style={[styles.mt2, styles.fontSizeNormal, styles.textAlignCenter]}>
                     <Text>{props.translate('deeplinkWrapper.redirectedToDesktopApp')}</Text>
-                    <Text>
-                        {props.translate('deeplinkWrapper.youCanAlso')} <TextLink onPress={props.openLinkInBrowser}>{props.translate('deeplinkWrapper.openLinkInBrowser')}</TextLink>.
+                    <Text style={[styles.textAlignCenter]}>
+                        {props.translate('deeplinkWrapper.youCanAlso')} <TextLink onPress={props.openLinkInBrowser}>{props.translate(props.linkText)}</TextLink>.
                     </Text>
                 </View>
             </View>

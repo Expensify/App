@@ -191,6 +191,7 @@ export default {
         redirectedToDesktopApp: "We've redirected you to the desktop app.",
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
+        continueInBrowser: 'continue in your browser',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',

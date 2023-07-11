@@ -1101,6 +1101,13 @@ const styles = {
         marginBottom: 4,
     },
 
+    desktopRedirectPage: {
+        backgroundColor: themeColors.appBG,
+        minHeight: '100%',
+        flex: 1,
+        alignItems: 'center',
+    },
+
     signInPage: {
         backgroundColor: themeColors.highlightBG,
         minHeight: '100%',
