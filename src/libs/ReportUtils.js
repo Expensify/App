@@ -1585,6 +1585,22 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
     };
 }
 
+function updateReportPreview(iouReport, reportPreviewAction) {
+    const message = getReportPreviewMessage(iouReport, reportPreviewAction);
+    return {
+        ...reportPreviewAction,
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                html: message,
+                text: message,
+                isEdited: false,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
+    };
+}
+
 function buildOptimisticTaskReportAction(taskReportID, actionName, message = '') {
     const originalMessage = {
         taskReportID,
@@ -2544,6 +2560,7 @@ export {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
+    updateReportPreview,
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
