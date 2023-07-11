@@ -53,12 +53,6 @@ class Hoverable extends Component {
         document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
-    handleVisibilityChange() {
-        if (document.visibilityState === 'hidden') {
-            this.setIsHovered(false);
-        }
-    }
-
     /**
      * Sets the hover state of this component to true and execute the onHoverIn callback.
      *
@@ -77,6 +71,14 @@ class Hoverable extends Component {
         if (!isHovered) {
             this.hoverDisabled = false;
         }
+    }
+
+    handleVisibilityChange() {
+        if (document.visibilityState !== 'hidden') {
+            return;
+        }
+
+        this.setIsHovered(false);
     }
 
     render() {
