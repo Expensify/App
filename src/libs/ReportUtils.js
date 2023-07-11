@@ -2325,7 +2325,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
-    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) { // TEST THIS
+    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) {
         return [];
     }
 
