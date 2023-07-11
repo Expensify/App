@@ -180,7 +180,7 @@ function BaseSelectionList(props) {
     };
 
     const renderSectionHeader = ({section}) => {
-        if (!section.title || !section.shouldShow) {
+        if (!section.title) {
             return null;
         }
 
@@ -290,7 +290,7 @@ function BaseSelectionList(props) {
                         )}
                         {!props.headerMessage && props.canSelectMultiple && shouldShowSelectAll && (
                             <PressableWithFeedback
-                                style={[styles.peopleRow, styles.ph5, styles.pb3]}
+                                style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
                                 onPress={props.onSelectAll}
                                 accessibilityLabel={translate('workspace.people.selectAll')}
                                 accessibilityRole="button"

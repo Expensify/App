@@ -45,7 +45,7 @@ function CheckboxListItem(props) {
             errorRowStyles={styles.ph5}
         >
             <PressableWithFeedback
-                style={[styles.peopleRow, props.isFocused && styles.sidebarLinkActive, hasError && styles.borderColorDanger]}
+                style={[styles.peopleRow, styles.userSelectNone, props.isFocused && styles.sidebarLinkActive, hasError && styles.borderColorDanger]}
                 onPress={() => props.onSelectRow(props.item)}
                 disabled={props.item.isDisabled}
                 disabledStyle={styles.buttonOpacityDisabled}

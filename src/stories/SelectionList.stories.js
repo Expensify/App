@@ -1,7 +1,21 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import _ from 'underscore';
 import SelectionList from '../components/SelectionList';
 import CONST from '../CONST';
+import PropTypes from 'prop-types';
+import OnyxProvider from '../components/OnyxProvider';
+import ComposeProviders from '../components/ComposeProviders';
+import createOnyxContext from '../components/createOnyxContext';
+import ONYXKEYS from '../ONYXKEYS';
+import {LocaleContextProvider} from '../components/withLocalize';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {PortalProvider} from '@gorhom/portal';
+import SafeArea from '../components/SafeArea';
+import HTMLEngineProvider from '../components/HTMLEngineProvider';
+import {WindowDimensionsProvider} from '../components/withWindowDimensions';
+import {KeyboardStateProvider} from '../components/withKeyboardState';
+import {CurrentReportIDContextProvider} from '../components/withCurrentReportID';
+import {PickerStateProvider} from 'react-native-picker-select';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -82,16 +96,17 @@ function Default(args) {
 
     return (
         <SelectionList
-            onSelectRow={onSelectRow}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={sections}
+            onSelectRow={onSelectRow}
         />
     );
 }
 
 Default.args = {
     sections: SECTIONS,
+    onSelectRow: () => {},
     initiallyFocusedOptionKey: 'option-2',
 };
 
@@ -129,12 +144,12 @@ function WithTextInput(args) {
 
     return (
         <SelectionList
-            textInputValue={searchText}
-            onChangeText={setSearchText}
-            onSelectRow={onSelectRow}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={sections}
+            textInputValue={searchText}
+            onChangeText={setSearchText}
+            onSelectRow={onSelectRow}
         />
     );
 }
@@ -146,6 +161,8 @@ WithTextInput.args = {
     textInputMaxLength: 4,
     keyboardType: CONST.KEYBOARD_TYPE.NUMBER_PAD,
     initiallyFocusedOptionKey: 'option-2',
+    onSelectRow: () => {},
+    onChangeText: () => {},
 };
 
 function WithHeaderMessage(props) {
@@ -191,10 +208,10 @@ function WithAlternateText(args) {
     };
     return (
         <SelectionList
-            onSelectRow={onSelectRow}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
             sections={sections}
+            onSelectRow={onSelectRow}
         />
     );
 }
@@ -203,5 +220,174 @@ WithAlternateText.args = {
     ...Default.args,
 };
 
-export {Default, WithTextInput, WithHeaderMessage, WithAlternateText};
+function MultipleSelection(args) {
+    const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
+
+    const {sections, allIds} = useMemo(() => {
+        const allIds = [];
+
+        const sections = _.map(args.sections, (section) => {
+            const data = _.map(section.data, (item, index) => {
+                allIds.push(item.keyForList);
+                const isSelected = _.contains(selectedIds, item.keyForList);
+
+                return {
+                    ...item,
+                    isSelected,
+                    alternateText: `${item.keyForList}@email.com`,
+                    accountID: item.keyForList,
+                    login: item.text,
+                    isAdmin: index + section.indexOffset === 0,
+                };
+            });
+
+            return {...section, data};
+        });
+
+        return {sections, allIds};
+    }, [args.sections, selectedIds]);
+
+    const onSelectRow = (item) => {
+        const newSelectedIds = _.contains(selectedIds, item.keyForList) ? _.without(selectedIds, item.keyForList) : [...selectedIds, item.keyForList];
+        setSelectedIds(newSelectedIds);
+    };
+
+    const onSelectAll = () => {
+        if (selectedIds.length === allIds.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(allIds);
+        }
+    };
+
+    return (
+        <SelectionList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...args}
+            sections={sections}
+            onSelectRow={onSelectRow}
+            onSelectAll={onSelectAll}
+        />
+    );
+}
+
+MultipleSelection.args = {
+    ...Default.args,
+    canSelectMultiple: true,
+    onSelectAll: () => {},
+};
+
+function WithSectionHeader(args) {
+    const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
+
+    const {sections, allIds} = useMemo(() => {
+        const allIds = [];
+
+        const sections = _.map(args.sections, (section, sectionIndex) => {
+            const data = _.map(section.data, (item, itemIndex) => {
+                allIds.push(item.keyForList);
+                const isSelected = _.contains(selectedIds, item.keyForList);
+
+                return {
+                    ...item,
+                    isSelected,
+                    alternateText: `${item.keyForList}@email.com`,
+                    accountID: item.keyForList,
+                    login: item.text,
+                    isAdmin: itemIndex + section.indexOffset === 0,
+                };
+            });
+
+            return {...section, data, title: `Section ${sectionIndex + 1}`};
+        });
+
+        return {sections, allIds};
+    }, [args.sections, selectedIds]);
+
+    const onSelectRow = (item) => {
+        const newSelectedIds = _.contains(selectedIds, item.keyForList) ? _.without(selectedIds, item.keyForList) : [...selectedIds, item.keyForList];
+        setSelectedIds(newSelectedIds);
+    };
+
+    const onSelectAll = () => {
+        if (selectedIds.length === allIds.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(allIds);
+        }
+    };
+
+    return (
+        <SelectionList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...args}
+            sections={sections}
+            onSelectRow={onSelectRow}
+            onSelectAll={onSelectAll}
+        />
+    );
+}
+
+WithSectionHeader.args = {
+    ...MultipleSelection.args,
+};
+
+function WithConfirmButton(args) {
+    const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
+
+    const {sections, allIds} = useMemo(() => {
+        const allIds = [];
+
+        const sections = _.map(args.sections, (section, sectionIndex) => {
+            const data = _.map(section.data, (item, itemIndex) => {
+                allIds.push(item.keyForList);
+                const isSelected = _.contains(selectedIds, item.keyForList);
+
+                return {
+                    ...item,
+                    isSelected,
+                    alternateText: `${item.keyForList}@email.com`,
+                    accountID: item.keyForList,
+                    login: item.text,
+                    isAdmin: itemIndex + section.indexOffset === 0,
+                };
+            });
+
+            return {...section, data, title: `Section ${sectionIndex + 1}`};
+        });
+
+        return {sections, allIds};
+    }, [args.sections, selectedIds]);
+
+    const onSelectRow = (item) => {
+        const newSelectedIds = _.contains(selectedIds, item.keyForList) ? _.without(selectedIds, item.keyForList) : [...selectedIds, item.keyForList];
+        setSelectedIds(newSelectedIds);
+    };
+
+    const onSelectAll = () => {
+        if (selectedIds.length === allIds.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(allIds);
+        }
+    };
+
+    return (
+        <SelectionList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...args}
+            sections={sections}
+            onSelectRow={onSelectRow}
+            onSelectAll={onSelectAll}
+        />
+    );
+}
+
+WithConfirmButton.args = {
+    ...MultipleSelection.args,
+    onConfirm: () => {},
+    confirmButtonText: 'Confirm',
+};
+
+export {Default, WithTextInput, WithHeaderMessage, WithAlternateText, MultipleSelection, WithSectionHeader, WithConfirmButton};
 export default story;
