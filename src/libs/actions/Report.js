@@ -27,7 +27,6 @@ import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 
-let currentUserEmail;
 let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -37,7 +36,6 @@ Onyx.connect({
             return;
         }
 
-        currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
     },
 });
@@ -252,7 +250,6 @@ function addActions(reportID, text = '', file) {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
-        lastActorEmail: currentUserEmail,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
@@ -1186,7 +1183,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
 function navigateToConciergeChat() {
     if (!conciergeChatReportID) {
         // In order not to delay the report life cycle, we first navigate to the unknown report
-        if (!Navigation.getReportIDFromRoute()) {
+        if (!Navigation.getTopmostReportId()) {
             Navigation.navigate(ROUTES.REPORT);
         }
         // In order to avoid creating concierge repeatedly,

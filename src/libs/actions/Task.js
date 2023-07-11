@@ -11,6 +11,7 @@ import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as Expensicons from '../../components/Icon/Expensicons';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -73,7 +74,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
-        lastActorEmail: currentUserEmail,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
@@ -144,7 +144,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
             lastMessageText: lastAssigneeCommentText,
-            lastActorEmail: currentUserEmail,
             lastActorAccountID: currentUserAccountID,
             lastReadTime: currentTime,
         };
@@ -258,7 +257,6 @@ function reopenTask(taskReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.OPEN,
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: currentUserEmail,
                 lastActorAccountID: reopenedTaskReportAction.actorAccountID,
                 lastReadTime: reopenedTaskReportAction.created,
             },
@@ -561,7 +559,7 @@ function getAssignee(details) {
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
     return {
-        icons: ReportUtils.getIcons(report, personalDetails),
+        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
         subtitle: ReportUtils.getChatRoomSubtitle(report),
     };
@@ -594,7 +592,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: currentUserEmail,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
             },
         },
