@@ -441,7 +441,6 @@ export default {
             'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
-        resendMagicCode: 'Reenviar código mágico',
         failedNewContact: 'Hubo un error al añadir este método de contacto.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
@@ -569,7 +568,7 @@ export default {
     },
     twoFactorAuthForm: {
         error: {
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
             incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo',
         },
     },
@@ -715,7 +714,7 @@ export default {
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
         },
     },
     passwordForm: {
@@ -1288,26 +1287,27 @@ export default {
         assignTask: 'Asignar tarea',
         assignMe: 'Asignar a mí mismo',
         confirmTask: 'Confirmar tarea',
-        confirmError: 'Por favor introduce un título y selecciona un destino de tarea.',
+        confirmError: 'Por favor, introduce un título y selecciona un destino de tarea.',
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
-        pleaseEnterTaskName: 'Por favor introduce un título',
-        pleaseEnterTaskDestination: 'Por favor selecciona con quien deseas compartir.',
+        pleaseEnterTaskName: 'Por favor, introduce un título',
+        pleaseEnterTaskDestination: 'Por favor, selecciona con quién deseas compartir.',
     },
     task: {
         task: 'Tarea',
         title: 'Título',
         description: 'Descripción',
-        assignee: 'Cesionario',
+        assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
             completed: 'tarea completada',
             canceled: 'tarea cancelada',
             reopened: 'tarea reabrir',
+            error: 'No tiene permiso para realizar la acción solicitada.',
         },
-        markAsDone: 'Marcar como hecho',
+        markAsDone: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
-        assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario.',
+        assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
