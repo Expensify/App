@@ -11,9 +11,6 @@ index 95e6871..18bb14d 100644
 +        isScreenActive = STATE_TRANSITIONING_OR_BELOW_TOP;
 +      }
 +
-+      
-+
-+
        const {
          headerShown = true,
          headerTransparent,
