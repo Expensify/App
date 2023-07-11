@@ -71,8 +71,6 @@ export default {
     getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
     REPORT_ATTACHMENTS: 'r/:reportID/attachment',
     getReportAttachmentRoute: (reportID, source) => `r/${reportID}/attachment?source=${encodeURI(source)}`,
-    SELECT_YEAR: 'select-year',
-    getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
@@ -121,8 +119,6 @@ export default {
     getProfileRoute: (accountID) => `a/${accountID}`,
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
-    REPORT_PARTICIPANT: 'r/:reportID/participants/a/:accountID',
-    getReportParticipantRoute: (reportID, accountID) => `r/${reportID}/participants/a/${accountID}`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: (reportID) => `r/${reportID}/details`,
     REPORT_SETTINGS: 'r/:reportID/settings',

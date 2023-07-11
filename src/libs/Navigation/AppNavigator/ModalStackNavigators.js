@@ -218,13 +218,6 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
         },
         name: 'ReportParticipants_Root',
     },
-    {
-        getComponent: () => {
-            const ProfilePage = require('../../../pages/ProfilePage').default;
-            return ProfilePage;
-        },
-        name: 'ReportParticipants_Details',
-    },
 ]);
 
 const SearchModalStackNavigator = createModalStackNavigator([
@@ -628,13 +621,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const YearPickerPage = require('../../../pages/YearPickerPage').default;
-            return YearPickerPage;
-        },
-        name: 'YearPicker_Root',
-    },
-    {
-        getComponent: () => {
             const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
             return SettingsTwoFactorAuthIsEnabled;
         },
@@ -710,16 +696,6 @@ const WalletStatementStackNavigator = createModalStackNavigator([
     },
 ]);
 
-const YearPickerStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const YearPickerPage = require('../../../pages/YearPickerPage').default;
-            return YearPickerPage;
-        },
-        name: 'YearPicker_Root',
-    },
-]);
-
 const FlagCommentStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -759,7 +735,6 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
-    YearPickerStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
 };
