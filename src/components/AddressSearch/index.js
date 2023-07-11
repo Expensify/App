@@ -48,12 +48,6 @@ const propTypes = {
     /** A callback function when the value of this field has changed */
     onInputChange: PropTypes.func.isRequired,
 
-    /** A callback when a new country has changed */
-    onCountryChange: PropTypes.func,
-
-    /** A callback when a new state has changed */
-    onStateChange: PropTypes.func,
-
     /** Customize the TextInput container */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -72,6 +66,8 @@ const propTypes = {
     /** Maximum number of characters allowed in search input */
     maxInputLength: PropTypes.number,
 
+    onAddressChange: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -79,8 +75,6 @@ const defaultProps = {
     inputID: undefined,
     shouldSaveDraft: false,
     onBlur: () => {},
-    onCountryChange: () => {},
-    onStateChange: () => {},
     errorText: '',
     hint: '',
     value: undefined,
@@ -94,6 +88,7 @@ const defaultProps = {
         zipCode: 'addressZipCode',
     },
     maxInputLength: undefined,
+    onAddressChange: () => {},
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -179,9 +174,6 @@ function AddressSearch(props) {
         const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
         if (isValidCountryCode) {
             values.country = country;
-            if (props.onCountryChange) {
-                props.onCountryChange(country);
-            }
         }
 
         // If the address is not in the US, use the full length state name since we're displaying the address's
@@ -197,10 +189,6 @@ function AddressSearch(props) {
             values.state = stateFallback;
         }
 
-        if (props.onStateChange) {
-            props.onStateChange(isUS ? state : longStateName, isUS);
-        }
-
         // Not all pages define the Address Line 2 field, so in that case we append any additional address details
         // (e.g. Apt #) to Address Line 1
         if (subpremise && typeof props.renamedInputKeys.street2 === 'undefined') {
@@ -212,8 +200,14 @@ function AddressSearch(props) {
                 const inputKey = lodashGet(props.renamedInputKeys, key, key);
                 props.onInputChange(value, inputKey);
             });
+            if (props.onAddressChange) {
+                props.onAddressChange();
+            }
         } else {
             props.onInputChange(values);
+            if (props.onAddressChange) {
+                props.onAddressChange();
+            }
         }
     };
 

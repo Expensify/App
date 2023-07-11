@@ -1,13 +1,13 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useRef, useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
@@ -15,13 +15,13 @@ import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import compose from '../../../../libs/compose';
+import useNavigationStorage from '../../../../hooks/useNavigationStorage';
 import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
-import useNavigationStorage from '../../../../hooks/useNavigationStorage';
+import useLocalize from '../../../../hooks/useLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -37,8 +37,6 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -61,30 +59,32 @@ function updateAddress(values) {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
 }
 
-function AddressPage({translate, route, navigation, privatePersonalDetails}) {
-    const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
-    const [, saveIntoStorage] = useNavigationStorage('state');
-    const isUSAForm = countryISO === CONST.COUNTRY.US;
+function AddressPage({privatePersonalDetails}) {
+    const countryISO = useRef(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US).current;
+    const {translate} = useLocalize();
+    const [collect] = useNavigationStorage('country');
+    const [currentCountry, setCurrentCountry] = useState(collect() || countryISO);
+    const isUSAForm = currentCountry === CONST.COUNTRY.US;
 
-    const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [countryISO, 'samples'], '');
+    const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     const address = lodashGet(privatePersonalDetails, 'address') || {};
     const [street1, street2] = (address.street || '').split('\n');
 
-    const onCountryUpdate = (newCountry) => {
-        setCountryISO(newCountry);
-    };
-    const onCountryStateUpdate = (selectedCountryState) => {
-        saveIntoStorage(selectedCountryState);
+    const onAddressChange = () => {
+        const savedCountry = collect();
+        setCurrentCountry(savedCountry);
     };
 
-    useEffect(() => {
-        const currentCountryISO = lodashGet(route, 'params.countryISO');
-        if (currentCountryISO) {
-            setCountryISO(currentCountryISO);
-        }
-    }, [route, navigation]);
+    useFocusEffect(
+        useCallback(() => {
+            const savedCountry = collect();
+            if (savedCountry && savedCountry !== currentCountry) {
+                setCurrentCountry(savedCountry);
+            }
+        }, [collect, currentCountry]),
+    );
 
     /**
      * @param {Function} translate - translate function
@@ -152,8 +152,7 @@ function AddressPage({translate, route, navigation, privatePersonalDetails}) {
                         label={translate('common.addressLine', {lineNumber: 1})}
                         defaultValue={street1 || ''}
                         isLimitedToUSA={false}
-                        onCountryChange={onCountryUpdate}
-                        onStateChange={onCountryStateUpdate}
+                        onAddressChange={onAddressChange}
                         renamedInputKeys={{
                             street: 'addressLine1',
                             street2: 'addressLine2',
@@ -176,7 +175,6 @@ function AddressPage({translate, route, navigation, privatePersonalDetails}) {
                 <View style={styles.mhn5}>
                     <CountryPicker
                         inputID="country"
-                        selectedCountryISO={countryISO}
                         countryISO={address.country}
                         defaultValue={PersonalDetails.getCountryISO(address.country)}
                     />
@@ -185,7 +183,7 @@ function AddressPage({translate, route, navigation, privatePersonalDetails}) {
                     <View style={styles.mhn5}>
                         <StatePicker
                             inputID="state"
-                            defaultValue={address.state || ''}
+                            defaultValue={address.state}
                         />
                     </View>
                 ) : (
@@ -220,11 +218,8 @@ function AddressPage({translate, route, navigation, privatePersonalDetails}) {
 AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-    }),
-)(AddressPage);
+export default withOnyx({
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+})(AddressPage);

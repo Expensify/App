@@ -123,11 +123,7 @@ function getCountryISO(countryName) {
  * @param {string} countryISO The ISO code of the country to look up.
  * @returns {string} The name of the country associated with the provided ISO code.
  */
-function getCountryNameBy(countryISO) {
-    if (_.isEmpty(countryISO) || countryISO.length !== 2) {
-        return countryISO;
-    }
-
+function getCountryName(countryISO) {
     return CONST.ALL_COUNTRIES[countryISO] || '';
 }
 /**
@@ -509,5 +505,5 @@ export {
     updateAutomaticTimezone,
     updateSelectedTimezone,
     getCountryISO,
-    getCountryNameBy,
+    getCountryName,
 };

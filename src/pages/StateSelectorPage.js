@@ -1,18 +1,20 @@
 import _ from 'underscore';
-import React, {useCallback, useMemo} from 'react';
+import React, {useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import ScreenWrapper from '../components/ScreenWrapper';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import SelectionListRadio from '../components/SelectionListRadio';
 import useNavigationStorage from '../hooks/useNavigationStorage';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Navigation from '../libs/Navigation/Navigation';
-import compose from '../libs/compose';
+import useLocalize from '../hooks/useLocalize';
 import ONYXKEYS from '../ONYXKEYS';
-import OptionsSelectorWithSearch, {greenCheckmark} from '../components/OptionsSelectorWithSearch';
 
 const propTypes = {
     route: PropTypes.shape({
         params: PropTypes.shape({
             backTo: PropTypes.string,
+            key: PropTypes.string,
         }),
     }).isRequired,
 
@@ -23,8 +25,6 @@ const propTypes = {
             state: PropTypes.string,
         }),
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -35,13 +35,23 @@ const defaultProps = {
     },
 };
 
+function filterOptions(searchValue, data) {
+    const trimmedSearchValue = searchValue.trim();
+    if (trimmedSearchValue.length === 0) {
+        return [];
+    }
+
+    return _.filter(data, (country) => country.text.toLowerCase().includes(searchValue.toLowerCase()));
+}
+
 function StateSelectorPage(props) {
-    const translate = props.translate;
+    const {translate} = useLocalize();
     const route = props.route;
-    const [collect, dispatch] = useNavigationStorage(route.params.key, null, 'page selector');
+    const [collect, dispatch] = useNavigationStorage(route.params.key, null);
     const currentCountryState = collect();
     const allStates = translate('allStates');
     const selectedSearchState = !_.isEmpty(currentCountryState) ? allStates[currentCountryState].stateName : '';
+    const [searchValue, setSearchValue] = useState(selectedSearchState);
 
     const countryStates = useMemo(
         () =>
@@ -49,30 +59,40 @@ function StateSelectorPage(props) {
                 value: state.stateISO,
                 keyForList: state.stateISO,
                 text: state.stateName,
-                customIcon: currentCountryState === state.stateISO ? greenCheckmark : undefined,
+                isSelected: currentCountryState === state.stateISO,
             })),
         [translate, currentCountryState],
     );
 
-    const updateCountryState = useCallback(
-        (selectedState) => {
-            dispatch(selectedState.value);
-            Navigation.goBack(`${decodeURIComponent(route.params.backTo)}`);
-        },
-        [dispatch, route.params.backTo],
-    );
+    const filteredData = filterOptions(searchValue, countryStates);
+    const headerMessage = searchValue.trim() && !filteredData.length ? translate('common.noResultsFound') : '';
+
+    const updateCountryState = (selectedState) => {
+        dispatch(selectedState.value);
+        Navigation.goBack(`${decodeURIComponent(route.params.backTo)}`);
+    };
 
     return (
-        <OptionsSelectorWithSearch
-            title={translate('common.state')}
-            onBackButtonPress={() => Navigation.goBack(`${route.params.backTo}`)}
-            textSearchLabel={translate('common.state')}
-            placeholder={translate('pronounsPage.placeholderText')}
-            onSelectRow={updateCountryState}
-            initialSearchValue={selectedSearchState}
-            initialOption={currentCountryState}
-            data={countryStates}
-        />
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <HeaderWithBackButton
+                title={translate('common.state')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack(`${route.params.backTo}`)}
+            />
+            <SelectionListRadio
+                headerMessage={headerMessage}
+                textInputLabel={translate('common.state')}
+                textInputPlaceholder={translate('pronounsPage.placeholderText')}
+                textInputValue={searchValue}
+                sections={[{data: filteredData, indexOffset: 0}]}
+                onSelectRow={updateCountryState}
+                onChangeText={setSearchValue}
+                shouldFocusOnSelectRow
+                shouldHaveOptionSeparator
+                shouldDelayFocus
+                initiallyFocusedOptionKey={currentCountryState}
+            />
+        </ScreenWrapper>
     );
 }
 
@@ -80,11 +100,8 @@ StateSelectorPage.propTypes = propTypes;
 StateSelectorPage.defaultProps = defaultProps;
 StateSelectorPage.displayName = 'StateSelectorPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-    }),
-)(StateSelectorPage);
+export default withOnyx({
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+})(StateSelectorPage);

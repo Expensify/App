@@ -729,10 +729,10 @@ const CountrySelectorStackNavigator = createModalStackNavigator([
 const UsaStateSelectorStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const usaStateSelectorPage = require('../../../pages/StateSelectorPage').default;
-            return usaStateSelectorPage;
+            const stateSelectorPage = require('../../../pages/StateSelectorPage').default;
+            return stateSelectorPage;
         },
-        name: 'CountrySelector_Root',
+        name: 'StateSelector_Root',
     },
 ]);
 

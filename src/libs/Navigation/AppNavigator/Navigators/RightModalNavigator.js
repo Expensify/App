@@ -98,7 +98,7 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.CountrySelectorStackNavigator}
             />
             <Stack.Screen
-                name="Select_USA_State"
+                name="Select_State"
                 component={ModalStackNavigators.UsaStateSelectorStackNavigator}
             />
             <Stack.Screen

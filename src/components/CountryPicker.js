@@ -1,12 +1,13 @@
-import React, {useCallback, useRef, useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import sizes from '../styles/variables';
+import {useFocusEffect} from '@react-navigation/native';
 import styles from '../styles/styles';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import useNavigationStorage from '../hooks/useNavigationStorage';
 import Navigation from '../libs/Navigation/Navigation';
+import useLocalize from '../hooks/useLocalize';
 import ROUTES from '../ROUTES';
 import FormHelpMessage from './FormHelpMessage';
 
@@ -14,69 +15,77 @@ const propTypes = {
     /** The ISO code of the country */
     countryISO: PropTypes.string,
 
-    /** The ISO selected from CountrySelector */
-    selectedCountryISO: PropTypes.string,
-
     /** Form Error description */
     errorText: PropTypes.string,
 
-    ...withLocalizePropTypes,
+    /** Country to display */
+    // eslint-disable-next-line react/require-default-props
+    value: PropTypes.string,
+
+    /** ID of the input */
+    inputID: PropTypes.string.isRequired,
+
+    /** Callback to call when the input changes */
+    onInputChange: PropTypes.func,
 };
 
 const defaultProps = {
     countryISO: '',
-    selectedCountryISO: undefined,
     errorText: '',
+    onInputChange: () => {},
 };
 
-function BaseCountryPicker(props) {
-    const countryTitle = useRef({title: '', iso: ''});
-    const countryISO = props.countryISO;
-    const selectedCountryISO = props.selectedCountryISO;
-    const onInputChange = props.onInputChange;
+const CountryPicker = React.forwardRef(({value, countryISO, inputID, errorText, onInputChange}, ref) => {
+    const {translate} = useLocalize();
+    const countryValue = value || countryISO || '';
+    const [collect, save] = useNavigationStorage(inputID, countryValue);
 
     useEffect(() => {
-        if (!selectedCountryISO || selectedCountryISO === countryTitle.current.iso) {
+        const savedCountry = collect();
+        if (!countryValue || savedCountry === countryValue) {
             return;
         }
-        countryTitle.current = {title: PersonalDetails.getCountryNameBy(selectedCountryISO || countryISO), iso: selectedCountryISO || countryISO};
+        save(countryValue);
+    }, [countryValue, collect, save]);
 
-        // Needed to call onInputChange, so Form can update the validation and values
-        onInputChange(countryTitle.current.iso);
-    }, [countryISO, selectedCountryISO, onInputChange]);
+    useFocusEffect(
+        useCallback(() => {
+            const savedCountry = collect();
+            if (savedCountry && savedCountry !== countryValue) {
+                save(savedCountry);
+                // Needed to call onInputChange, so Form can update the validation and values
+                onInputChange(savedCountry);
+            }
+            // onInputChange isn't a stable function, so we can't add it to the dependency array
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [collect, countryValue]),
+    );
 
-    const navigateToCountrySelector = useCallback(() => {
-        Navigation.navigate(ROUTES.getCountrySelectionRoute(selectedCountryISO || countryISO, Navigation.getActiveRoute()));
-    }, [countryISO, selectedCountryISO]);
-    const descStyle = countryTitle.current.title.length === 0 ? {fontSize: sizes.fontSizeNormal} : null;
+    const navigateToCountrySelector = () => {
+        Navigation.navigate(ROUTES.getCountrySelectionRoute(inputID, Navigation.getActiveRoute()));
+    };
+
+    const title = PersonalDetails.getCountryName(countryValue);
+    const descStyle = title.length === 0 ? styles.addressPickerDescription : null;
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={props.forwardedRef}
+                ref={ref}
                 shouldShowRightIcon
-                title={countryTitle.current.title}
+                title={title}
                 descriptionTextStyle={descStyle}
-                description={props.translate('common.country')}
+                description={translate('common.country')}
                 onPress={navigateToCountrySelector}
             />
             <View style={styles.ml5}>
-                <FormHelpMessage message={props.errorText} />
+                <FormHelpMessage message={errorText} />
             </View>
         </View>
     );
-}
+});
 
-BaseCountryPicker.propTypes = propTypes;
-BaseCountryPicker.defaultProps = defaultProps;
-
-const CountryPicker = React.forwardRef((props, ref) => (
-    <BaseCountryPicker
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
-
+CountryPicker.propTypes = propTypes;
+CountryPicker.defaultProps = defaultProps;
 CountryPicker.displayName = 'CountryPicker';
 
-export default withLocalize(CountryPicker);
+export default CountryPicker;

@@ -3508,6 +3508,10 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+
+    addressPickerDescription: {
+        fontSize: variables.fontSizeSmall,
+    },
 };
 
 export default styles;

@@ -338,12 +338,12 @@ export default {
                     },
                     Select_Country: {
                         screens: {
-                            CountrySelector_Root: ROUTES.SETTINGS_SELECT_COUNTRY,
+                            CountrySelector_Root: ROUTES.SELECT_COUNTRY,
                         },
                     },
-                    Select_USA_State: {
+                    Select_State: {
                         screens: {
-                            CountrySelector_Root: ROUTES.SETTINGS_USA_STATES,
+                            StateSelector_Root: ROUTES.SELECT_STATE,
                         },
                     },
                     EditRequest: {
