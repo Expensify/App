@@ -9,7 +9,6 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import SelectionListRadio from '../../../components/SelectionListRadio';
 import styles from '../../../styles/styles';
-// import * as App from '../../../libs/actions/App';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
