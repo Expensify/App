@@ -61,13 +61,6 @@ function PopoverMenu(props) {
         {isActive: props.isVisible},
     );
 
-    const removeKeyboardListener = () => {
-        if (!this.unsubscribeEnterKey) {
-            return;
-        }
-        this.unsubscribeEnterKey();
-    }
-
     const resetFocusAndHideModal = () => {
         setFocusedIndex(-1); // Reset the focusedIndex on modal hide
         removeKeyboardListener();
@@ -75,7 +68,7 @@ function PopoverMenu(props) {
         if (selectedItemIndex !== null) {
             props.menuItems[selectedItemIndex].onSelected();
             setSelectedItemIndex(null);
-        } else if (this.props.onModalHide) {
+        } else if (props.onModalHide) {
             // trigger the onModalHide callback only when modal is closed by clicking outside or back button
             props.onModalHide();
         }

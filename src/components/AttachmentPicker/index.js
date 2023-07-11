@@ -28,6 +28,7 @@ function getAcceptableFileTypes(type) {
 function AttachmentPicker(props) {
     const fileInput = useRef();
     const onPicked = useRef();
+    const onModalHide = useRef();
     return (
         <>
             <input
@@ -63,8 +64,9 @@ function AttachmentPicker(props) {
                 accept={getAcceptableFileTypes(props.type)}
             />
             {props.children({
-                openPicker: ({onPicked: newOnPicked}) => {
+                openPicker: ({onPicked: newOnPicked, onModalHide: newOnModalHide}) => {
                     onPicked.current = newOnPicked;
+                    onModalHide = newOnModalHide
                     fileInput.current.click();
                 },
             })}
