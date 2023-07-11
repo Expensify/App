@@ -51,7 +51,6 @@ const defaultProps = {
     session: {
         email: null,
     },
-    parentReport: {},
 };
 
 function MoneyReportHeader(props) {
