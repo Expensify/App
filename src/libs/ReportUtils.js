@@ -1814,7 +1814,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
     const announceChatReportID = announceChatData.reportID;
-    const announceCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_ACCOUNT_ID_FAKE);
+    const announceCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
     const announceReportActionData = {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
