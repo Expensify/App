@@ -188,19 +188,6 @@ function getActiveRoute() {
 }
 
 /**
- * @returns {String}
- */
-function getReportIDFromRoute() {
-    if (!navigationRef.current) {
-        return '';
-    }
-
-    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
-    const reportRoute = lodashGet(drawerState, ['routes', 0]);
-    return lodashGet(reportRoute, ['params', 'reportID'], '');
-}
-
-/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -250,7 +237,6 @@ export default {
     goBack,
     isNavigationReady,
     setIsNavigationReady,
-    getReportIDFromRoute,
     getTopmostReportId,
 };
 

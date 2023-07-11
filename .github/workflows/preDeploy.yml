@@ -81,7 +81,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           ref: main
-          fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
