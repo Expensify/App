@@ -74,6 +74,14 @@
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/statements"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/concierge"/>
             </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="image/*" />
+                <!-- Any other mime types you want to support -->
+            </intent-filter>
         </activity>
 
         <meta-data
