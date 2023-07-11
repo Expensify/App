@@ -240,7 +240,7 @@ function ReportActionsView(props) {
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !props.report.pendingFields || (!props.report.pendingFields.addWorkspaceRoom && !props.report.pendingFields.createChat);
-        if (!didSubscribeToReportTypingEvents && didCreateReportSuccessfully) {
+        if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
             Report.subscribeToReportTypingEvents(props.report.reportID);
             didSubscribeToReportTypingEvents.current = true;
         }
