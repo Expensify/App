@@ -42,7 +42,7 @@ function ReportActionItemThread(props) {
 
     return (
         <View style={[styles.chatItemMessage]}>
-            <PressableWithSecondaryInteraction 
+            <PressableWithSecondaryInteraction
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(props.childReportID);
                 }}
