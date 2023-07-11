@@ -124,6 +124,23 @@ function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails)
     return memberEmailsToAccountIDs;
 }
 
+function getExcludedUsers(policyMembers, personalDetails) {
+    const memberEmailsToExclude = [...CONST.EXPENSIFY_EMAILS];
+    _.each(policyMembers, (policyMember, accountID) => {
+        // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
+        if (policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !_.isEmpty(policyMember.errors)) {
+            return;
+        }
+        const memberEmail = lodashGet(personalDetails, `[${accountID}].login`);
+        if (!memberEmail) {
+            return;
+        }
+        memberEmailsToExclude.push(memberEmail);
+    });
+
+    return memberEmailsToExclude;
+}
+
 export {
     hasPolicyMemberError,
     hasPolicyError,
@@ -134,4 +151,5 @@ export {
     isExpensifyTeam,
     isPolicyAdmin,
     getClientPolicyMemberEmailsToAccountIDs,
+    getExcludedUsers,
 };
