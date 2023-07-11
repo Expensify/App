@@ -11,7 +11,7 @@ import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+import SelectionList from '../../../components/SelectionList';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -116,7 +116,7 @@ class TimezoneSelectPage extends Component {
                     title={this.props.translate('timezonePage.timezone')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
                 />
-                <SelectionListRadio
+                <SelectionList
                     textInputLabel={this.props.translate('timezonePage.timezone')}
                     textInputValue={this.state.timezoneInputText}
                     onChangeText={this.filterShownTimezones}

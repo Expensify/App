@@ -9,7 +9,7 @@ import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
-import {propTypes as selectionListRadioPropTypes, defaultProps as selectionListRadioDefaultProps} from './selectionListRadioPropTypes';
+import {propTypes as selectionListPropTypes, defaultProps as selectionListDefaultProps} from './selectionListPropTypes';
 import RadioListItem from './RadioListItem';
 import CheckboxListItem from './CheckboxListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
@@ -23,10 +23,10 @@ import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     ...keyboardStatePropTypes,
-    ...selectionListRadioPropTypes,
+    ...selectionListPropTypes,
 };
 
-function BaseSelectionListRadio(props) {
+function BaseSelectionList(props) {
     const {translate} = useLocalize();
     const listRef = useRef(null);
     const textInputRef = useRef(null);
@@ -346,8 +346,8 @@ function BaseSelectionListRadio(props) {
     );
 }
 
-BaseSelectionListRadio.displayName = 'BaseSelectionListRadio';
-BaseSelectionListRadio.propTypes = propTypes;
-BaseSelectionListRadio.defaultProps = selectionListRadioDefaultProps;
+BaseSelectionList.displayName = 'BaseSelectionList';
+BaseSelectionList.propTypes = propTypes;
+BaseSelectionList.defaultProps = selectionListDefaultProps;
 
-export default withKeyboardState(BaseSelectionListRadio);
+export default withKeyboardState(BaseSelectionList);

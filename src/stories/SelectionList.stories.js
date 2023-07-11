@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import _ from 'underscore';
-import SelectionListRadio from '../components/SelectionListRadio';
+import SelectionList from '../components/SelectionList';
 import CONST from '../CONST';
 
 /**
@@ -9,8 +9,8 @@ import CONST from '../CONST';
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
 const story = {
-    title: 'Components/SelectionListRadio',
-    component: SelectionListRadio,
+    title: 'Components/SelectionList',
+    component: SelectionList,
 };
 
 const SECTIONS = [
@@ -81,7 +81,7 @@ function Default(args) {
     };
 
     return (
-        <SelectionListRadio
+        <SelectionList
             onSelectRow={onSelectRow}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
@@ -128,7 +128,7 @@ function WithTextInput(args) {
     };
 
     return (
-        <SelectionListRadio
+        <SelectionList
             textInputValue={searchText}
             onChangeText={setSearchText}
             onSelectRow={onSelectRow}
@@ -190,7 +190,7 @@ function WithAlternateText(args) {
         });
     };
     return (
-        <SelectionListRadio
+        <SelectionList
             onSelectRow={onSelectRow}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}

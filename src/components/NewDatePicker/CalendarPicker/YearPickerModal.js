@@ -3,9 +3,9 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import HeaderWithBackButton from '../../HeaderWithBackButton';
 import CONST from '../../../CONST';
-import SelectionListRadio from '../../SelectionListRadio';
+import SelectionList from '../../SelectionList';
 import Modal from '../../Modal';
-import {radioListItemPropTypes} from '../../SelectionListRadio/selectionListRadioPropTypes';
+import {radioListItemPropTypes} from '../../SelectionList/selectionListPropTypes';
 import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
@@ -62,7 +62,7 @@ function YearPickerModal(props) {
                 title={translate('yearPickerPage.year')}
                 onBackButtonPress={props.onClose}
             />
-            <SelectionListRadio
+            <SelectionList
                 shouldDelayFocus
                 textInputLabel={translate('yearPickerPage.selectYear')}
                 textInputValue={searchText}

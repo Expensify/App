@@ -23,7 +23,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
 import * as PolicyUtils from '../../libs/PolicyUtils';
-import SelectionListRadio from '../../components/SelectionListRadio/index';
+import SelectionList from '../../components/SelectionList';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -283,7 +283,7 @@ class WorkspaceInvitePage extends React.Component {
                                 }}
                             />
                             <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
-                                <SelectionListRadio
+                                <SelectionList
                                     canSelectMultiple
                                     sections={sections}
                                     textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}

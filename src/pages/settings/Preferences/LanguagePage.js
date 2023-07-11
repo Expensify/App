@@ -7,7 +7,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as App from '../../../libs/actions/App';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+import SelectionList from '../../../components/SelectionList';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -30,7 +30,7 @@ function LanguagePage(props) {
                 title={props.translate('languagePage.language')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
-            <SelectionListRadio
+            <SelectionList
                 sections={[{data: localesToLanguages}]}
                 onSelectRow={(language) => App.setLocaleAndNavigate(language.value)}
                 initiallyFocusedOptionKey={_.find(localesToLanguages, (locale) => locale.isSelected).keyForList}

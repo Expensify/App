@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import {measurePerformance} from 'reassure';
 import {fireEvent} from '@testing-library/react-native';
-import SelectionListRadio from '../../src/components/SelectionListRadio';
+import SelectionList from '../../src/components/SelectionList';
 
 jest.mock('../../src/components/Icon/Expensicons');
 
-function SelectionListRadioWrapper() {
+function SelectionListWrapper() {
     const [selectedIndex, setSelectedIndex] = useState(0);
 
     const sections = [
@@ -26,7 +26,7 @@ function SelectionListRadioWrapper() {
     };
 
     return (
-        <SelectionListRadio
+        <SelectionList
             textInputLabel="Perf test"
             sections={sections}
             onSelectRow={onSelectRow}
@@ -35,8 +35,8 @@ function SelectionListRadioWrapper() {
     );
 }
 
-test('should render SelectionListRadio with 1 section and a thousand items', () => {
-    measurePerformance(<SelectionListRadioWrapper />);
+test('should render SelectionList with 1 section and a thousand items', () => {
+    measurePerformance(<SelectionListWrapper />);
 });
 
 test('should press a list item', () => {
@@ -44,5 +44,5 @@ test('should press a list item', () => {
         fireEvent.press(screen.getByText('Item 5'));
     };
 
-    measurePerformance(<SelectionListRadioWrapper />, {scenario});
+    measurePerformance(<SelectionListWrapper />, {scenario});
 });

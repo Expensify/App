@@ -5,7 +5,7 @@ import _ from 'underscore';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import styles from '../../styles/styles';
 import Text from '../Text';
-import {checkboxListItemPropTypes} from './selectionListRadioPropTypes';
+import {checkboxListItemPropTypes} from './selectionListPropTypes';
 import Checkbox from '../Checkbox';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Avatar from '../Avatar';

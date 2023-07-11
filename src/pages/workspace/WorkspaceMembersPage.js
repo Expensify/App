@@ -30,7 +30,7 @@ import * as PolicyUtils from '../../libs/PolicyUtils';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import SelectionListRadio from '../../components/SelectionListRadio';
+import SelectionList from '../../components/SelectionList';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -373,7 +373,7 @@ function WorkspaceMembersPage(props) {
                         />
                     </View>
                     <View style={[styles.w100, styles.mt4, styles.flex1]}>
-                        <SelectionListRadio
+                        <SelectionList
                             canSelectMultiple
                             sections={[{data, indexOffset: 0, isDisabled: false}]}
                             textInputLabel={props.translate('optionsSelector.findMember')}
