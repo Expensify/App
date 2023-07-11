@@ -128,8 +128,10 @@ function WorkspaceSettingsPage(props) {
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(props.policy, 'pendingFields.generalSettings')}>
                         <TextInput
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="name"
                             label={props.translate('workspace.editor.nameInputLabel')}
+                            accessibilityLabel={props.translate('workspace.editor.nameInputLabel')}
                             containerStyles={[styles.mt4]}
                             defaultValue={props.policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}

@@ -28,19 +28,15 @@ jobs:
   deployProduction:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/production'
-
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          ref: production
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Checkout production branch
-        run: git checkout production
 
       - name: Get current app version
         run: echo "PRODUCTION_VERSION=$(npm run print-version --silent)" >> "$GITHUB_ENV"

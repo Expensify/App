@@ -153,9 +153,9 @@ function BaseValidateCodeForm(props) {
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        accessibilityLabel={props.translate('contacts.resendMagicCode')}
+                        accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                     >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('contacts.resendMagicCode')}</Text>
+                        <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                     </PressableWithFeedback>
                     {props.hasMagicCodeBeenSent && (
                         <DotIndicatorMessage
@@ -168,7 +168,7 @@ function BaseValidateCodeForm(props) {
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
-                errors={ErrorUtils.getLatestErrorField(loginData, 'validateLogin')}
+                errors={ErrorUtils.getEarliestErrorField(loginData, 'validateLogin')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateLogin')}
             >
