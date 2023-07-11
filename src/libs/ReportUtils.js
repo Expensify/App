@@ -2142,9 +2142,6 @@ function getChatByParticipantsByLoginList(participantsLoginList) {
             return false;
         }
 
-        // TODO: update to use report.participantAccountIDs
-        // Note: To migrate we have to make sure the "duplicate chat report" issue doesn't come back:
-        // https://github.com/Expensify/App/issues/21184
         // Only return the room if it has all the participants and is not a policy room
         return !isUserCreatedPolicyRoom(report) && _.isEqual(participantsLoginList, _.sortBy(report.participants));
     });

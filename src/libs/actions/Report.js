@@ -500,8 +500,6 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 function navigateToAndOpenReport(userLogins) {
     let newChat = {};
     const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
-
-    // TODO: update here too
     const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
     if (!chat) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
