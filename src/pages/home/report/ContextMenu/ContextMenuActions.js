@@ -172,16 +172,19 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
-            const isIOUAction = ReportActionUtils.isMoneyRequestAction(reportAction);
+            console.log('reportAction', reportAction)
+            const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
             const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
-            const displayingMessage = ReportUtils.getReportPreviewMessage(iouReport,reportAction); 
+            const displayingMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const messageHtml = lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
                 const content = selection || messageHtml;
-                if (content) {
+                if (isReportPreviewAction) {
+                    Clipboard.setString(displayingMessage);
+                } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
