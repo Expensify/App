@@ -1767,7 +1767,7 @@ function openLastOpenedPublicRoom(lastOpenedPublicRoomID) {
 function flagComment(reportID, reportAction, severity, environment) {
     const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
     const message = reportAction.message[0];
-    
+
     // This check is to prevent flooding Concierge with test flags
     // If you need to test moderation responses from Concierge on dev, set this to false!
     const isDevRequest = environment === CONST.ENVIRONMENT.DEV;
