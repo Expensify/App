@@ -434,8 +434,10 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             isOptimisticReport: true,
         };
 
-        // TODO: handle case where ownerAccountID is 0! (a.k.a. email is __fake__)
-        const reportOwnerEmail = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
+        let reportOwnerEmail = CONST.REPORT.OWNER_EMAIL_FAKE;
+        if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
+            reportOwnerEmail = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
+        }
         const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(reportOwnerEmail);
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
