@@ -2,20 +2,6 @@ import React, {useMemo, useState} from 'react';
 import _ from 'underscore';
 import SelectionList from '../components/SelectionList';
 import CONST from '../CONST';
-import PropTypes from 'prop-types';
-import OnyxProvider from '../components/OnyxProvider';
-import ComposeProviders from '../components/ComposeProviders';
-import createOnyxContext from '../components/createOnyxContext';
-import ONYXKEYS from '../ONYXKEYS';
-import {LocaleContextProvider} from '../components/withLocalize';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {PortalProvider} from '@gorhom/portal';
-import SafeArea from '../components/SafeArea';
-import HTMLEngineProvider from '../components/HTMLEngineProvider';
-import {WindowDimensionsProvider} from '../components/withWindowDimensions';
-import {KeyboardStateProvider} from '../components/withKeyboardState';
-import {CurrentReportIDContextProvider} from '../components/withCurrentReportID';
-import {PickerStateProvider} from 'react-native-picker-select';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
