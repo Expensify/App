@@ -150,29 +150,30 @@ const _ = __nccwpck_require__(3571);
 const {spawn, execSync} = __nccwpck_require__(3129);
 const CONST = __nccwpck_require__(4097);
 const sanitizeStringForJSONParse = __nccwpck_require__(9338);
+const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = __nccwpck_require__(8007);
 
 /**
  * @param {String} tag
  */
-// eslint-disable-next-line no-unused-vars
-function fetchTagIfNeeded(tag) {
+function fetchTag(tag) {
+    const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
     try {
-        console.log(`Checking if tag ${tag} exists locally`);
-        const command = `git rev-parse --verify ${tag}`;
-        console.log(`Running command: ${command}`);
-        const result = execSync(command).toString();
-        console.log(result);
-    } catch (e) {
-        console.log(`Tag ${tag} not found locally, attempting to fetch it.`);
         let command = `git fetch origin tag ${tag} --no-tags`;
+
+        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
+        // so that we don't have to fetch the full history
+        // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
+        if (previousPatchVersion !== tag) {
+            command += ` --shallow-exclude=${previousPatchVersion}`;
+        }
+
         console.log(`Running command: ${command}`);
-        let result = execSync(command).toString();
-        console.log(result);
-        console.log('Verifying that the tag is now available...');
-        command = `git rev-parse --verify ${tag}`;
+        execSync(command);
+    } catch (e) {
+        // This can happen if the tag was only created locally but does not exist in the remote. In this case, we'll fetch history of the staging branch instead
+        const command = `git fetch origin staging --no-tags --shallow-exclude=${previousPatchVersion}`;
         console.log(`Running command: ${command}`);
-        result = execSync(command).toString();
-        console.log(result);
+        execSync(command);
     }
 }
 
@@ -184,10 +185,8 @@ function fetchTagIfNeeded(tag) {
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    // fetchTagIfNeeded(fromTag);
-    // fetchTagIfNeeded(toTag);
-    // Note: this is a temporary measure until we can figure out a faster way to fetch only what's needed
-    execSync('git fetch --all --tags');
+    fetchTag(fromTag);
+    fetchTag(toTag);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {
@@ -836,6 +835,154 @@ module.exports = function (inputString) {
 
     // Replace any newlines and escape backslashes
     return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+};
+
+
+/***/ }),
+
+/***/ 8007:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const _ = __nccwpck_require__(3571);
+
+const SEMANTIC_VERSION_LEVELS = {
+    MAJOR: 'MAJOR',
+    MINOR: 'MINOR',
+    PATCH: 'PATCH',
+    BUILD: 'BUILD',
+};
+const MAX_INCREMENTS = 99;
+
+/**
+ * Transforms a versions string into a number
+ *
+ * @param {String} versionString
+ * @returns {Array}
+ */
+const getVersionNumberFromString = (versionString) => {
+    const [version, build] = versionString.split('-');
+    const [major, minor, patch] = _.map(version.split('.'), (n) => Number(n));
+
+    return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
+};
+
+/**
+ * Transforms version numbers components into a version string
+ *
+ * @param {Number} major
+ * @param {Number} minor
+ * @param {Number} patch
+ * @param {Number} [build]
+ * @returns {String}
+ */
+const getVersionStringFromNumber = (major, minor, patch, build = 0) => `${major}.${minor}.${patch}-${build}`;
+
+/**
+ * Increments a minor version
+ *
+ * @param {Number} major
+ * @param {Number} minor
+ * @returns {String}
+ */
+const incrementMinor = (major, minor) => {
+    if (minor < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor + 1, 0, 0);
+    }
+
+    return getVersionStringFromNumber(major + 1, 0, 0, 0);
+};
+
+/**
+ * Increments a Patch version
+ *
+ * @param {Number} major
+ * @param {Number} minor
+ * @param {Number} patch
+ * @returns {String}
+ */
+const incrementPatch = (major, minor, patch) => {
+    if (patch < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch + 1, 0);
+    }
+    return incrementMinor(major, minor);
+};
+
+/**
+ * Increments a build version
+ *
+ * @param {Number} version
+ * @param {Number} level
+ * @returns {String}
+ */
+const incrementVersion = (version, level) => {
+    const [major, minor, patch, build] = getVersionNumberFromString(version);
+
+    // Majors will always be incremented
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        return getVersionStringFromNumber(major + 1, 0, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        return incrementMinor(major, minor);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        return incrementPatch(major, minor, patch);
+    }
+
+    if (build < MAX_INCREMENTS) {
+        return getVersionStringFromNumber(major, minor, patch, build + 1);
+    }
+
+    return incrementPatch(major, minor, patch);
+};
+
+/**
+ * @param {String} currentVersion
+ * @param {String} level
+ * @returns {String}
+ */
+function getPreviousVersion(currentVersion, level) {
+    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
+
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        if (major === 1) {
+            return getVersionStringFromNumber(1, 0, 0, 0);
+        }
+        return getVersionStringFromNumber(major - 1, 0, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        if (minor === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
+        }
+        return getVersionStringFromNumber(major, minor - 1, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        if (patch === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
+        }
+        return getVersionStringFromNumber(major, minor, patch - 1, 0);
+    }
+
+    if (build === 0) {
+        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
+    }
+    return getVersionStringFromNumber(major, minor, patch, build - 1);
+}
+
+module.exports = {
+    getVersionNumberFromString,
+    getVersionStringFromNumber,
+    incrementVersion,
+
+    // For tests
+    MAX_INCREMENTS,
+    SEMANTIC_VERSION_LEVELS,
+    incrementMinor,
+    incrementPatch,
+    getPreviousVersion,
 };
 
 

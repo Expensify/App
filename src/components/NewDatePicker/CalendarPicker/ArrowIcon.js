@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import * as Expensicons from '../Icon/Expensicons';
-import * as StyleUtils from '../../styles/StyleUtils';
-import Icon from '../Icon';
-import CONST from '../../CONST';
+import styles from '../../../styles/styles';
+import * as Expensicons from '../../Icon/Expensicons';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import Icon from '../../Icon';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Specifies if the arrow icon should be disabled or not. */
