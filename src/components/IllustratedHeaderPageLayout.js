@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import Lottie from 'lottie-react-native';
