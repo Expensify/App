@@ -172,6 +172,9 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
+            const isIOUAction = ReportActionUtils.isMoneyRequestAction(reportAction);
+            const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
+            const displayingMessage = ReportUtils.getReportPreviewMessage(iouReport,reportAction); 
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const messageHtml = lodashGet(message, 'html', '');
 
