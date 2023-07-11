@@ -1017,25 +1017,21 @@ function isWaitingForIOUActionFromCurrentUser(report) {
         return false;
     }
 
-    let reportToLook = report;
+    // Money request waiting for current user to add their credit bank account
+    if (report.ownerAccountID === currentUserAccountID && report.isWaitingOnBankAccount) {
+        return true;
+    }
 
     if (report.iouReportID) {
         const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (iouReport) {
-            reportToLook = iouReport;
+
+        // Money request waiting for current user to Pay (from chat or from iou report)
+        if (iouReport
+            && iouReport.ownerAccountID
+            && (iouReport.ownerAccountID !== currentUserAccountID || currentUserAccountID === iouReport.managerID)
+            && iouReport.hasOutstandingIOU) {
+            return true;
         }
-    }
-
-    if (!reportToLook.ownerAccountID) {
-        return false;
-    }
-
-    if (reportToLook.ownerAccountID === currentUserAccountID && reportToLook.isWaitingOnBankAccount) {
-        return true;
-    }
-
-    if ((reportToLook.ownerAccountID !== currentUserAccountID || currentUserAccountID === reportToLook.managerID) && reportToLook.hasOutstandingIOU) {
-        return true;
     }
 
     return false;
