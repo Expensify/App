@@ -169,8 +169,8 @@ function NewTaskPage(props) {
                             description={shareDestination.displayName ? shareDestination.subtitle : props.translate('newTaskPage.shareSomewhere')}
                             icon={shareDestination.icons}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
-                            interactive={!Boolean(props.task.parentReportID)}
-                            shouldShowRightIcon={!Boolean(props.task.parentReportID)}
+                            interactive={!props.task.parentReportID}
+                            shouldShowRightIcon={!props.task.parentReportID}
                         />
                     </View>
                     <FormAlertWithSubmitButton
