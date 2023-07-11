@@ -14,6 +14,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import Text from '../../../components/Text';
+import * as User from '../../../libs/actions/User';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -47,6 +48,7 @@ function ThemePage(props) {
 
             <SelectionListRadio
                 sections={[{data: localesToThemes}]}
+                onSelectRow={(mode) => User.updateThemeAndNavigate(mode.value)}
                 initiallyFocusedOptionKey={_.find(localesToThemes, (theme) => theme.isSelected).keyForList}
             />
         </ScreenWrapper>
