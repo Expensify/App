@@ -94,7 +94,7 @@ function ReportScreenWrapper(props) {
         } else {
             App.confirmReadyToOpenApp();
         }
-    }, [props.route, props.navigation, props.reports, props.betas, props.policies, props.isFirstTimeNewExpensifyUser]);
+    }, [props.route, props.navigation, props.reports, canUseDefaultRooms, props.policies, props.isFirstTimeNewExpensifyUser]);
 
     // Wait until there is reportID in the route params
     if (lodashGet(props.route, 'params.reportID', null)) {
