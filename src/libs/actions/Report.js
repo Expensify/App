@@ -496,7 +496,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
  * @param {Array} userLogins list of user logins to start a chat report with.
- * @param {Boolean} shouldDismissModal a flag to determine if we dismiss modal or navigate to the report directly.
+ * @param {Boolean} shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
 function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     let newChat = {};
