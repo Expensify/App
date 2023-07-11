@@ -841,7 +841,6 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
  * @param {String} theme
  */
 function updateTheme(theme) {
-    // Optimistically change preferred locale
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.SET,
