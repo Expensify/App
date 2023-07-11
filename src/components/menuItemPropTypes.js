@@ -125,7 +125,7 @@ const propTypes = {
 
     /** The action accept for anonymous user or not */
     isAnonymousAction: PropTypes.bool,
-    
+
     /**  Whether we should use small avatar subscript sizing the for menu item */
     isSmallAvatarSubscriptMenu: PropTypes.bool,
 
