@@ -1363,7 +1363,9 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
         }
         childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
     } else if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-        if (childVisibleActionCount > 0) childVisibleActionCount -= 1;
+        if (childVisibleActionCount > 0) {
+            childVisibleActionCount -= 1;
+        }
 
         if (childVisibleActionCount === 0) {
             childCommenterCount = 0;
