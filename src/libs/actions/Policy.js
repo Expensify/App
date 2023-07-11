@@ -1038,7 +1038,8 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
     return Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
-            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
+            // We must call goBack() to remove the /transition route from history
+            Navigation.goBack();
         }
 
         // Get the reportID associated with the newly created #admins room and route the user to that chat

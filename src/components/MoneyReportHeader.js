@@ -82,7 +82,7 @@ function MoneyReportHeader(props) {
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={false}
-                shouldShowThreeDotsButton
+                shouldShowThreeDotsButton={false}
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,
