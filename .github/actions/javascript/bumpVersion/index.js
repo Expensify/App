@@ -272,6 +272,41 @@ const incrementVersion = (version, level) => {
     return incrementPatch(major, minor, patch);
 };
 
+/**
+ * @param {String} currentVersion
+ * @param {String} level
+ * @returns {String}
+ */
+function getPreviousVersion(currentVersion, level) {
+    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
+
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        if (major === 1) {
+            return getVersionStringFromNumber(1, 0, 0, 0);
+        }
+        return getVersionStringFromNumber(major - 1, 0, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        if (minor === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
+        }
+        return getVersionStringFromNumber(major, minor - 1, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        if (patch === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
+        }
+        return getVersionStringFromNumber(major, minor, patch - 1, 0);
+    }
+
+    if (build === 0) {
+        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
+    }
+    return getVersionStringFromNumber(major, minor, patch, build - 1);
+}
+
 module.exports = {
     getVersionNumberFromString,
     getVersionStringFromNumber,
@@ -282,6 +317,7 @@ module.exports = {
     SEMANTIC_VERSION_LEVELS,
     incrementMinor,
     incrementPatch,
+    getPreviousVersion,
 };
 
 

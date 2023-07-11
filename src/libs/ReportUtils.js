@@ -1081,10 +1081,10 @@ function getTransactionReportName(reportAction) {
  * Get money request message for an IOU report
  *
  * @param {Object} report
- * @param {Object} reportAction
+ * @param {Object} [reportAction={}]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction) {
+function getReportPreviewMessage(report, reportAction = {}) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1561,26 +1561,27 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
-function buildOptimisticReportPreview(reportID, iouReportID, payeeAccountID) {
+function buildOptimisticReportPreview(chatReport, iouReport) {
+    const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
-        reportID,
-        created: DateUtils.getDBTime(),
+        reportID: chatReport.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        accountID: payeeAccountID,
+        originalMessage: {
+            linkedReportID: iouReport.reportID,
+        },
         message: [
             {
-                html: '',
-                text: '',
+                html: message,
+                text: message,
                 isEdited: false,
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
             },
         ],
-        originalMessage: {
-            linkedReportID: iouReportID,
-        },
-        actorAccountID: currentUserAccountID,
+        created: DateUtils.getDBTime(),
+        accountID: iouReport.managerID || 0,
+        actorAccountID: iouReport.managerID || 0,
     };
 }
 
