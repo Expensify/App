@@ -81,12 +81,7 @@ function WorkspaceInvitePage(props) {
         openWorkspaceInvitePageRef.current();
     }, [props.route.params.policyID]);
 
-    useRef(() => {
-        if (props.network.isOffline) {
-            return;
-        }
-        openWorkspaceInvitePageRef.current();
-    }, [props.network.isOffline]);
+    useOnNetworkReconnect(openWorkspaceInvitePageRef.current);
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(
