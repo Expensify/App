@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
 import avatarPropTypes from '../avatarPropTypes';
-import {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** User's Account ID */
@@ -26,9 +25,6 @@ const propTypes = {
 
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID: PropTypes.number,
-
-    /** Localization props */
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
