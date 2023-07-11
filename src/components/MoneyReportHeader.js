@@ -8,26 +8,18 @@ import iouReportPropTypes from '../pages/iouReportPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
-import Text from './Text';
 import participantPropTypes from './participantPropTypes';
-import Avatar from './Avatar';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import CONST from '../CONST';
 import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
-import Icon from './Icon';
 import SettlementButton from './SettlementButton';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
-import DateUtils from '../libs/DateUtils';
 import reportPropTypes from '../pages/reportPropTypes';
-import * as UserUtils from '../libs/UserUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -71,8 +63,7 @@ function MoneyReportHeader(props) {
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer =
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    // const shouldShowSettlementButton = !isSettled && isPayer;
-    const shouldShowSettlementButton = true;
+    const shouldShowSettlementButton = !isSettled && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const report = props.report;
