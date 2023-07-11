@@ -21,7 +21,7 @@ const propTypes = {
     illustration: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
 };
 
-function IllustratedHeaderPageLayout({children, illustration, backgroundColor, ...propsToPassToHeader}) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, ...propsToPassToHeader}) {
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
