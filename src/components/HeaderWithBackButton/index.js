@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Keyboard} from 'react-native';
+import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import Header from '../Header';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -112,7 +113,7 @@ function HeaderWithBackButton(props) {
                             <PressableWithoutFeedback
                                 onPress={props.onCloseButtonPress}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                             >
                                 <Icon src={Expensicons.Close} />
