@@ -32,17 +32,17 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                 <>
                     {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                     <HeaderWithBackButton {...propsToPassToHeader} />
-                    <View style={[styles.alignItemsCenter, styles.justifyContentEnd]}>
-                        <Lottie
-                            source={illustration}
-                            style={styles.w100}
-                            autoPlay
-                            loop
-                        />
-                    </View>
-                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
-                        <ScrollView contentContainerStyle={styles.illustratedPageScrollView(safeAreaPaddingBottomStyle)}>{children}</ScrollView>
-                    </View>
+                    <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
+                        <View style={[styles.alignItemsCenter, styles.justifyContentEnd]}>
+                            <Lottie
+                                source={illustration}
+                                style={styles.w100}
+                                autoPlay
+                                loop
+                            />
+                        </View>
+                        <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG), styles.pt5]}>{children}</View>
+                    </ScrollView>
                 </>
             )}
         </ScreenWrapper>
