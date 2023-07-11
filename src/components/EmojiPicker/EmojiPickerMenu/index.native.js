@@ -192,6 +192,8 @@ class EmojiPickerMenu extends Component {
                 <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                     <TextInput
                         label={this.props.translate('common.search')}
+                        accessibilityLabel={this.props.translate('common.search')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         onChangeText={this.filterEmojis}
                     />
                 </View>
@@ -220,11 +222,7 @@ class EmojiPickerMenu extends Component {
                     // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
                     removeClippedSubviews={false}
                     contentContainerStyle={styles.flexGrow1}
-                    ListEmptyComponent={
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
-                            <Text style={[styles.disabledText]}>{this.props.translate('common.noResultsFound')}</Text>
-                        </View>
-                    }
+                    ListEmptyComponent={<Text style={[styles.disabledText]}>{this.props.translate('common.noResultsFound')}</Text>}
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}

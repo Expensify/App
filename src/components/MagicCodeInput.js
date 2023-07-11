@@ -349,6 +349,7 @@ function MagicCodeInput(props) {
                                 caretHidden={isMobileSafariOrIOS}
                                 inputStyle={[isMobileSafariOrIOS ? styles.magicCodeInputTransparent : undefined]}
                                 textInputContainerStyles={[isMobileSafariOrIOS ? styles.borderNone : undefined]}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                     </View>

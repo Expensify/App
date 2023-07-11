@@ -173,7 +173,7 @@ function isCompletedTaskReport(report) {
 }
 
 function isTaskAssignee(report) {
-    return lodashGet(report, 'managerEmail') === currentUserEmail;
+    return lodashGet(report, 'managerID') === currentUserAccountID;
 }
 
 /**
@@ -1658,7 +1658,6 @@ function buildOptimisticChatReport(
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
         isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-        lastActorEmail: '',
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: null,
