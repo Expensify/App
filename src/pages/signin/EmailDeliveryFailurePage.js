@@ -32,6 +32,7 @@ function EmailDeliveryFailurePage(props) {
     const {translate} = useLocalize();
     const login = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
 
+    // This view doesn't have a field for user input, so dismiss the device keyboard if shown
     useEffect(() => {
         if (!isKeyboardShown) {
             return;
