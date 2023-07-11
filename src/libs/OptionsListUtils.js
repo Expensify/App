@@ -154,9 +154,14 @@ function addSMSDomainIfPhoneNumber(login) {
  * @returns {Object}
  */
 function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}) {
+    const reversedDefaultValues = {};
+    _.map(Object.entries(defaultValues), (item) => {
+        reversedDefaultValues[item[1]] = item[0];
+    });
+
     return _.map(accountIDs, (accountID) => {
-        const defaultData = _.find(defaultValues, (item) => item === accountID);
-        const userPersonalDetail = lodashGet(personalDetails, accountID, {login: lodashGet(defaultData, 'login', ''), accountID, avatar: ''});
+        const login = lodashGet(reversedDefaultValues, accountID, '');
+        const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
