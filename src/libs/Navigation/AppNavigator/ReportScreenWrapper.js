@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 
 import ONYXKEYS from '../../../ONYXKEYS';
-import Permissions from '../../Permissions';
 
 import ReportScreen from '../../../pages/home/ReportScreen';
 import * as ReportUtils from '../../ReportUtils';
@@ -12,13 +11,11 @@ import reportPropTypes from '../../../pages/reportPropTypes';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import {withNavigationPropTypes} from '../../../components/withNavigation';
 import * as App from '../../actions/App';
+import usePermissions from '../../../hooks/usePermissions';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
     reports: PropTypes.objectOf(reportPropTypes),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The policies which the user has access to */
     policies: PropTypes.objectOf(
@@ -50,7 +47,6 @@ const propTypes = {
 
 const defaultProps = {
     reports: {},
-    betas: [],
     policies: {},
     isFirstTimeNewExpensifyUser: false,
 };
@@ -73,6 +69,8 @@ const getLastAccessedReportID = (reports, ignoreDefaultRooms, policies, isFirstT
 
 // This wrapper is reponsible for opening the last accessed report if there is no reportID specified in the route params
 function ReportScreenWrapper(props) {
+    const {canUseDefaultRooms} = usePermissions();
+
     useEffect(() => {
         // Don't update if there is a reportID in the params already
         if (lodashGet(props.route, 'params.reportID', null)) {
@@ -83,7 +81,7 @@ function ReportScreenWrapper(props) {
         // If there is no reportID in route, try to find last accessed and use it for setParams
         const reportID = getLastAccessedReportID(
             props.reports,
-            !Permissions.canUseDefaultRooms(props.betas),
+            !canUseDefaultRooms,
             props.policies,
             props.isFirstTimeNewExpensifyUser,
             lodashGet(props.route, 'params.openOnAdminRoom', false),
@@ -113,9 +111,6 @@ ReportScreenWrapper.displayName = 'ReportScreenWrapper';
 export default withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
     policies: {
         key: ONYXKEYS.COLLECTION.POLICY,
