@@ -81,23 +81,21 @@ function MoneyRequestHeader(props) {
     const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
+    const isControlPolicyExpenseReport = ReportUtils.isControlPolicyExpenseReport(moneyRequestReport);
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport, props.policies) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerID);
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
         : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const policyType = lodashGet(policy, 'type', '');
     const isPayer =
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
+
     const shouldShowSettlementButton =
-        (policyType !== CONST.POLICY.TYPE.CORPORATE && !isSettled && !props.isSingleTransactionView && isPayer) ||
-        (policyType === CONST.POLICY.TYPE.CORPORATE && isExpenseReport && ReportUtils.isExpenseReportApproved(moneyRequestReport) && Policy.isAdminOfControlPolicy([policy]));
+        (!isControlPolicyExpenseReport && !isSettled && !props.isSingleTransactionView && isPayer) ||
+        (isControlPolicyExpenseReport && isExpenseReport && ReportUtils.isExpenseReportApproved(moneyRequestReport) && Policy.isAdminOfControlPolicy([policy]));
     const shouldShowApproveButton =
-        isExpenseReport &&
-        policyType === CONST.POLICY.TYPE.CORPORATE &&
-        moneyRequestReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING &&
-        moneyRequestReport.statusNum === CONST.REPORT.STATUS.SUBMITTED &&
-        lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID;
+        isControlPolicyExpenseReport && !ReportUtils.isExpenseReportApproved(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID;
+
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     return (
@@ -178,6 +176,7 @@ function MoneyRequestHeader(props) {
                                 <Button
                                     success
                                     text="Approve"
+                                    onPress={() => IOU.approveMoneyRequest(props.report)}
                                 />
                             </View>
                         )}
@@ -201,6 +200,7 @@ function MoneyRequestHeader(props) {
                         <Button
                             success
                             text="Approve"
+                            onPress={() => IOU.approveMoneyRequest(props.report)}
                         />
                     </View>
                 )}

@@ -411,7 +411,11 @@ function isThread(report) {
 }
 
 function isControlPolicyExpenseChat(report) {
-    return getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
+    return isPolicyExpenseChat(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
+}
+
+function isControlPolicyExpenseReport(report) {
+    return isExpenseReport(report) && getPolicyType(report, allPolicies) === CONST.POLICY.TYPE.CORPORATE;
 }
 
 /**
@@ -553,12 +557,12 @@ function isAllowedToComment(report) {
  * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
  * @returns {Boolean}
  */
-function isPolicyExpenseChatAdmin(report, policies) {
+function isPolicyExpenseChatAdmin(report) {
     if (!isPolicyExpenseChat(report)) {
         return false;
     }
 
-    const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']);
+    const policyRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']);
 
     return policyRole === CONST.POLICY.ROLE.ADMIN;
 }
@@ -1392,6 +1396,9 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
 
     let iouMessage;
     switch (type) {
+        case CONST.IOU.REPORT_ACTION_TYPE.APPROVE:
+            iouMessage = `approved ${amount}`;
+            break;
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
             break;
@@ -1402,7 +1409,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
             iouMessage = `deleted the ${amount} request${comment && ` for ${comment}`}`;
             break;
         case CONST.IOU.REPORT_ACTION_TYPE.PAY:
-            iouMessage = isSettlingUp ? `paid ${amount} ${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`} ${paymentMethodMessage}`;
+            iouMessage = isSettlingUp ? `paiddd ${amount} ${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`} ${paymentMethodMessage}`;
             break;
         default:
             break;
@@ -1456,7 +1463,6 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
 
     // IOUs of type split only exist in group DMs and those don't have an iouReport so we need to delete the IOUReportID key
     if (type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
-        delete originalMessage.IOUReportID;
         originalMessage.participants = [currentUserEmail, ..._.pluck(participants, 'login')];
         originalMessage.participantAccountIDs = [currentUserAccountID, ..._.pluck(participants, 'accountID')];
     }
@@ -2228,7 +2234,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
     if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report)) || isControlPolicyExpenseChat(report)) {
-        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT, CONST.IOU.MONEY_REQUEST_TYPE.REQUEST];
+        return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
     // DM chats that only have 2 people will see the Send / Request money options.
@@ -2393,6 +2399,8 @@ export {
     formatReportLastMessageText,
     chatIncludesConcierge,
     isPolicyExpenseChat,
+    isControlPolicyExpenseChat,
+    isControlPolicyExpenseReport,
     getIconsForParticipants,
     getIcons,
     getRoomWelcomeMessage,

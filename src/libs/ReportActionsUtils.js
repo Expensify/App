@@ -436,7 +436,8 @@ function getReportPreviewAction(chatReportID, iouReportID) {
  * @returns {String}
  */
 function getIOUReportIDFromReportActionPreview(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
+    const result = lodashGet(reportAction, 'originalMessage.linkedReportID', '');
+    return result;
 }
 
 function isCreatedTaskReportAction(reportAction) {

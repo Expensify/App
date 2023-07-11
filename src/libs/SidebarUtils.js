@@ -275,7 +275,8 @@ function getOptionData(reportID) {
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.isExpenseReport = ReportUtils.isExpenseReport(report);
     result.policyType = ReportUtils.getPolicyType(report, policies);
-    if (result.policyType === CONST.POLICY.TYPE.CORPORATE) {
+    result.isControlPolicyExpenseChat = ReportUtils.isControlPolicyExpenseChat(report);
+    if (result.isControlPolicyExpenseChat) {
         result.isExpenseReportApproved = ReportUtils.isExpenseReportApproved(report);
         result.isExpenseReportManager = ReportUtils.isExpenseReportManager(report);
     }

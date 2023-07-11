@@ -103,7 +103,7 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
-            (!optionItem.policyType === CONST.POLICY.TYPE.CORPORATE && optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
+            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
             (optionItem.policyType === CONST.POLICY.TYPE.CORPORATE && optionItem.isExpenseReportApproved) ||
             (optionItem.policyType === CONST.POLICY.TYPE.CORPORATE && !optionItem.isExpenseReportApproved && optionItem.isExpenseReportManager) ||
             (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted));

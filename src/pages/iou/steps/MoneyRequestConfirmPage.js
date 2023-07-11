@@ -112,11 +112,25 @@ function MoneyRequestConfirmPage(props) {
         (selectedParticipants) => {
             const trimmedComment = props.iou.comment.trim();
 
+            let participantss = selectedParticipants;
+            if (ReportUtils.isPolicyExpenseChat(props.report)) {
+                const chatReport = selectedParticipants[0];
+                const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${chatReport.policyID}`];
+                const policyOwner = _.find(props.personalDetails, (personalDetail) => personalDetail.login === policy.owner);
+                participantss = [
+                    {
+                        ...chatReport,
+                        login: policyOwner.login,
+                        accountID: policyOwner.accountID,
+                    },
+                ];
+            }
+
             // IOUs created from a group report will have a reportID param in the route.
             // Since the user is already viewing the report, we don't need to navigate them to the report
             if (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT && CONST.REGEX.NUMBER.test(reportID.current)) {
                 IOU.splitBill(
-                    selectedParticipants,
+                    participantss,
                     props.currentUserPersonalDetails.login,
                     props.currentUserPersonalDetails.accountID,
                     props.iou.amount,
@@ -239,6 +253,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(MoneyRequestConfirmPage);

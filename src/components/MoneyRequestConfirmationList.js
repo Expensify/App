@@ -2,6 +2,7 @@ import React, {useState, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
@@ -132,6 +133,7 @@ function MoneyRequestConfirmationList(props) {
 
     const selectedParticipants = useMemo(() => _.filter(props.participants, (participant) => participant.selected), [props.participants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
+    const isControlPolicy = lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.policyID}`, 'type'], '') === CONST.POLICY.TYPE.CORPORATE;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -154,7 +156,7 @@ function MoneyRequestConfirmationList(props) {
                     indexOffset: 0,
                 },
                 {
-                    title: translate('moneyRequestConfirmationList.whoWasThere'),
+                    title: isControlPolicy ? 'Split with' : translate('moneyRequestConfirmationList.whoWasThere'),
                     data: formattedParticipantsList,
                     shouldShow: true,
                     indexOffset: 1,
@@ -169,7 +171,17 @@ function MoneyRequestConfirmationList(props) {
             });
         }
         return sections;
-    }, [selectedParticipants, getParticipantsWithAmount, props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, props.participants, translate, payeePersonalDetails]);
+    }, [
+        selectedParticipants,
+        getParticipantsWithAmount,
+        props.hasMultipleParticipants,
+        props.iouAmount,
+        props.iouCurrencyCode,
+        props.participants,
+        translate,
+        payeePersonalDetails,
+        isControlPolicy,
+    ]);
 
     const selectedOptions = useMemo(() => {
         if (!props.hasMultipleParticipants) {
@@ -309,6 +321,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(MoneyRequestConfirmationList);

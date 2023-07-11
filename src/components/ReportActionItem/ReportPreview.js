@@ -11,6 +11,7 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import Button from '../Button';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
@@ -97,6 +98,10 @@ function ReportPreview(props) {
     const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const displayingMessage = ReportUtils.getReportPreviewMessage(props.iouReport, props.action);
+    const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
+        ? ReportUtils.isPolicyExpenseChatAdmin(props.chatReport) && !ReportUtils.isSettled(props.iouReport.reportID) && ReportUtils.isExpenseReportApproved(props.iouReport)
+        : isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID);
+    const shouldShowApproveButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport) && isCurrentUserManager && !ReportUtils.isExpenseReportApproved(props.iouReport);
     return (
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
@@ -118,7 +123,7 @@ function ReportPreview(props) {
                     fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
                 />
             </PressableWithoutFeedback>
-            {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
+            {shouldShowSettlementButton && (
                 <SettlementButton
                     currency={props.iouReport.currency}
                     policyID={props.iouReport.policyID}
@@ -127,6 +132,14 @@ function ReportPreview(props) {
                     onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
                     enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                     addBankAccountRoute={bankAccountRoute}
+                    style={[styles.requestPreviewBox]}
+                />
+            )}
+            {shouldShowApproveButton && (
+                <Button
+                    success
+                    text="Approve"
+                    onPress={() => IOU.approveMoneyRequest(props.iouReport)}
                     style={[styles.requestPreviewBox]}
                 />
             )}

@@ -586,11 +586,6 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     const hasMultipleParticipants = participants.length > 1 && !groupChatReport.isPolicyExpenseChat;
     _.each(participants, (participant) => {
-        console.log(participant, groupChatReport);
-        if (groupChatReport.isPolicyExpenseChat && !_.isEmpty(participant.login)) {
-            // Skip the manager of the policy expense chat
-            return;
-        }
         const email = participant.login ? OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login).toLowerCase() : '';
         const accountID = participant.accountID ? Number(participant.accountID) : 0;
         if (email === currentUserEmail) {
@@ -749,6 +744,67 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
     resetMoneyRequestInfo();
     Navigation.dismissModal();
     Report.notifyNewAction(groupData.chatReportID, currentUserAccountID);
+}
+
+function approveMoneyRequest(expenseReport) {
+    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
+        CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+        expenseReport.total,
+        expenseReport.currency,
+        '',
+        [],
+        '',
+        '',
+        expenseReport.reportID,
+        true,
+    );
+
+    const optimisticReportActionsData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        value: {
+            [optimisticIOUReportAction.reportActionID]: {
+                ...optimisticIOUReportAction,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        },
+    };
+    const optimisticIOUReportData = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+        value: {
+            ...expenseReport,
+            lastMessageText: optimisticIOUReportAction.message[0].text,
+            lastMessageHtml: optimisticIOUReportAction.message[0].html,
+        },
+    };
+    const optimisticData = [optimisticIOUReportData, optimisticReportActionsData];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticIOUReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [expenseReport.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                },
+            },
+        },
+    ];
+
+    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1371,4 +1427,5 @@ export {
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
+    approveMoneyRequest,
 };

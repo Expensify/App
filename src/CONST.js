@@ -1038,6 +1038,7 @@ const CONST = {
             REQUEST: 'request',
         },
         REPORT_ACTION_TYPE: {
+            APPROVE: 'approve',
             PAY: 'pay',
             CREATE: 'create',
             SPLIT: 'split',
