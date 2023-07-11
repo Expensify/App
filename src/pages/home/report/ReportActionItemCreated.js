@@ -3,6 +3,7 @@ import {View, Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import Animated, {useSharedValue, useAnimatedStyle, useAnimatedSensor, SensorType, withSpring} from 'react-native-reanimated';
 import ONYXKEYS from '../../../ONYXKEYS';
 import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
@@ -18,6 +19,9 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
+
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
     /** The id of the report */
@@ -47,6 +51,34 @@ const defaultProps = {
 };
 
 function ReportActionItemCreated(props) {
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
+
+    // Get data from phone rotation sensor and prep other variables for animation
+    const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
+    const backgroundImageOffsetX = useSharedValue(-windowWidth / 2);
+    const backgroundImageOffsetY = useSharedValue(50);
+
+    // Apply data to create style object
+    const animatedStyles = useAnimatedStyle(() => {
+        /*
+         * We use pitch and roll instead of x and y because Reanimated makes these consistent across iOS and Android by standardizing on the iOS convention.
+         * For a visualization of what these values mean: https://howthingsfly.si.edu/flight-dynamics/roll-pitch-and-yaw
+         * These values are in radians
+         */
+        const {pitch, roll} = animatedSensor.sensor.value;
+        if (isSmallScreenWidth) {
+            return {
+                transform: [
+                    // The x vs y here seems wrong but is the way to make it feel right to the user
+                    {translateX: withSpring(backgroundImageOffsetX.value - roll * 65)},
+                    {translateY: withSpring(backgroundImageOffsetY.value - pitch * 65)},
+                ],
+            };
+        }
+        return {};
+    });
+
     if (!ReportUtils.isChatReport(props.report)) {
         return null;
     }
@@ -60,15 +92,15 @@ function ReportActionItemCreated(props) {
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
-            <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
-                <Image
+            <View style={StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)}>
+                <Animated.Image
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
-                    style={StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth)}
+                    style={[StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth), animatedStyles]}
                 />
                 <View
-                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
-                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
+                    accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
+                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}
                 >
                     <PressableWithoutFeedback
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
