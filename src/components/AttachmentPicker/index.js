@@ -57,7 +57,7 @@ function AttachmentPicker(props) {
 
                     // We add this focus event listener to call the onModalHide callback when user does not select any files
                     // i.e. clicks cancel in the native file picker modal - this is when the app gets the focus back
-                    window.addEventListener('focus', onModalHide, {
+                    window.addEventListener('focus', onModalHide.current, {
                         once: true, // this removes the listener after running once
                     });
                 }}
@@ -66,7 +66,7 @@ function AttachmentPicker(props) {
             {props.children({
                 openPicker: ({onPicked: newOnPicked, onModalHide: newOnModalHide}) => {
                     onPicked.current = newOnPicked;
-                    onModalHide = newOnModalHide
+                    onModalHide.current = newOnModalHide
                     fileInput.current.click();
                 },
             })}
