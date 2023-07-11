@@ -8,7 +8,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import ReportScreen from '../../../pages/home/ReportScreen';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
-import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import {withNavigationPropTypes} from '../../../components/withNavigation';
 import * as App from '../../actions/App';
 import usePermissions from '../../../hooks/usePermissions';
@@ -96,12 +95,7 @@ function ReportScreenWrapper(props) {
         }
     }, [props.route, props.navigation, props.reports, canUseDefaultRooms, props.policies, props.isFirstTimeNewExpensifyUser]);
 
-    // Wait until there is reportID in the route params
-    if (lodashGet(props.route, 'params.reportID', null)) {
-        return <ReportScreen route={props.route} />;
-    }
-
-    return <FullScreenLoadingIndicator initialParams={props.route.params} />;
+    return <ReportScreen route={props.route} />;
 }
 
 ReportScreenWrapper.propTypes = propTypes;
