@@ -63,8 +63,6 @@ function PopoverMenu(props) {
 
     const resetFocusAndHideModal = () => {
         setFocusedIndex(-1); // Reset the focusedIndex on modal hide
-        removeKeyboardListener();
-        setFocusedIndex(-1);
         if (selectedItemIndex !== null) {
             props.menuItems[selectedItemIndex].onSelected();
             setSelectedItemIndex(null);
