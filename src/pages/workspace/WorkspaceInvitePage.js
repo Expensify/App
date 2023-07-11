@@ -77,7 +77,7 @@ function WorkspaceInvitePage(props) {
     useEffect(() => {
         Policy.clearErrors(props.route.params.policyID);
         openWorkspaceInvitePageRef.current();
-    }, [props.route.params.policyID]);
+    }, []);
 
     useOnNetworkReconnect(openWorkspaceInvitePageRef.current);
 
