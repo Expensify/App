@@ -841,18 +841,10 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
  * @param {String} theme
  */
 function updateTheme(theme) {
-    // If user is not signed in, change just locally.
-    if (!currentUserAccountID) {
-        Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
-        return;
-    }
-
-    Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
-
     // Optimistically change preferred locale
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.SET,
+            onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PREFERRED_THEME,
             value: theme,
         },
@@ -865,13 +857,7 @@ function updateTheme(theme) {
         },
         {optimisticData},
     );
-}
 
-/**
- * @param {String} newPreferredTheme
- */
-function updateThemeAndNavigate(newPreferredTheme) {
-    updateTheme(newPreferredTheme);
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
@@ -899,5 +885,5 @@ export {
     addPaypalMeAddress,
     updateChatPriorityMode,
     setContactMethodAsDefault,
-    updateThemeAndNavigate,
+    updateTheme,
 };
