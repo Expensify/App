@@ -1,9 +1,6 @@
 name: 'Get previous npm version'
 description: 'Get the previous app version.'
 inputs:
-  CURRENT_VERSION:
-    description: The current app version
-    required: true
   SEMVER_LEVEL:
     description: Semantic Versioning Level
     required: true
