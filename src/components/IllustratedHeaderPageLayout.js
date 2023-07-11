@@ -8,6 +8,7 @@ import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
+import useOverscrollMeasurement from '../hooks/useOverscrollMeasurement';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
@@ -24,7 +25,7 @@ const propTypes = {
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
-    const [overscrollSpacerHeight, setOverscrollSpacerHeight] = useState(windowHeight / 2);
+    const {measureScrollPosition, overscrollBottom} = useOverscrollMeasurement();
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
@@ -40,14 +41,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                     />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
-                        onScroll={(event) => {
-                            const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
-                            const overscrollBottom = Math.ceil(layoutMeasurement.height + contentOffset.y) - contentSize.height;
-                            if (overscrollBottom < 0) {
-                                return;
-                            }
-                            setOverscrollSpacerHeight(() => windowHeight / 2 + overscrollBottom);
-                        }}
+                        onScroll={measureScrollPosition}
                         scrollEventThrottle={80}
                     >
                         <View style={[styles.alignItemsCenter, styles.justifyContentEnd]}>
@@ -63,7 +57,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                     <View
                         style={{
                             backgroundColor: themeColors.appBG,
-                            height: overscrollSpacerHeight,
+                            height: windowHeight / 2 + overscrollBottom,
                             width: '100%',
                             position: 'absolute',
                             bottom: 0,
