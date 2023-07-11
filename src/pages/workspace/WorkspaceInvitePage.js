@@ -77,6 +77,7 @@ function WorkspaceInvitePage(props) {
     useEffect(() => {
         Policy.clearErrors(props.route.params.policyID);
         openWorkspaceInvitePageRef.current();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
     }, []);
 
     useOnNetworkReconnect(openWorkspaceInvitePageRef.current);
