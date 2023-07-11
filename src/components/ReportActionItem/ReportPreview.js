@@ -24,6 +24,7 @@ import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
+import _ from "underscore";
 
 const propTypes = {
     /** All the data of the action */
@@ -86,7 +87,21 @@ const defaultProps = {
 function ReportPreview(props) {
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
-    const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
+    let reportAmount = ReportUtils.getMoneyRequestTotal(props.iouReport);
+    if (reportAmount) {
+        reportAmount = CurrencyUtils.convertToDisplayString(reportAmount, props.iouReport.currency);
+    } else {
+        // If iouReport is not available, get amount from the action message (Ex: Domain20821's Workspace owes $33.00")
+        reportAmount = '';
+        const actionMessage = _.size(props.action.message) ? (props.action.message[0].text || '') : '';
+        const splits = actionMessage.split(' ');
+        if (_.size(splits) > 0) {
+            const lastWord = splits[_.size(splits) - 1];
+            if (_.contains(lastWord, '.')) {
+                reportAmount = lastWord;
+            }
+        }
+    }
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
 
