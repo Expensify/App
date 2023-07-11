@@ -1,10 +1,12 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import Log from './Log';
 import * as Request from './Request';
 import * as Middleware from './Middleware';
 import * as SequentialQueue from './Network/SequentialQueue';
 import pkg from '../../package.json';
 import CONST from '../CONST';
+import * as Pusher from './Pusher/pusher';
 
 // Setup API middlewares. Each request made will pass through a series of middleware functions that will get called in sequence (each one passing the result of the previous to the next).
 // Note: The ordering here is intentional as we want to Log, Recheck Connection, Reauthenticate, and Save the Response in Onyx. Errors thrown in one middleware will bubble to the next.
@@ -36,6 +38,8 @@ Request.use(Middleware.SaveResponseInOnyx);
  * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
  */
 function write(command, apiCommandParameters = {}, onyxData = {}) {
+    Log.info('Called API write', false, {command, ...apiCommandParameters});
+
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);
@@ -46,6 +50,10 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
         ...apiCommandParameters,
         appversion: pkg.version,
         apiRequestType: CONST.API_REQUEST_TYPE.WRITE,
+
+        // We send the pusherSocketID with all write requests so that the api can include it in push events to prevent Pusher from sending the events to the requesting client. The push event
+        // is sent back to the requesting client in the response data instead, which prevents a replay effect in the UI. See https://github.com/Expensify/App/issues/12775.
+        pusherSocketID: Pusher.getPusherSocketID(),
     };
 
     // Assemble all the request data we'll be storing in the queue
@@ -86,6 +94,8 @@ function write(command, apiCommandParameters = {}, onyxData = {}) {
  * @returns {Promise}
  */
 function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData = {}, apiRequestType = CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+    Log.info('Called API makeRequestWithSideEffects', false, {command, ...apiCommandParameters});
+
     // Optimistically update Onyx
     if (onyxData.optimisticData) {
         Onyx.update(onyxData.optimisticData);
@@ -128,8 +138,4 @@ function read(command, apiCommandParameters, onyxData) {
     SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
 }
 
-export {
-    write,
-    makeRequestWithSideEffects,
-    read,
-};
+export {write, makeRequestWithSideEffects, read};

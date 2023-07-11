@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import Text from '../Text';
+import CONST from '../../CONST';
 
 /**
  * Breaks the text into matrix
@@ -16,7 +17,7 @@ import Text from '../Text';
  * @returns {Array<String[]>}
  */
 function getTextMatrix(text) {
-    return _.map(text.split('\n'), row => _.without(row.split(/(\s)/), ''));
+    return _.map(text.split('\n'), (row) => _.without(row.split(CONST.REGEX.SPACE_OR_EMOJI), ''));
 }
 
 const propTypes = {
@@ -37,7 +38,7 @@ const defaultProps = {
     wordStyles: [],
 };
 
-const WrappedText = (props) => {
+function WrappedText(props) {
     if (!_.isString(props.children)) {
         return null;
     }
@@ -51,20 +52,13 @@ const WrappedText = (props) => {
                     key={`${rowText}-${rowIndex}`}
                 >
                     {_.map(rowText, (colText, colIndex) => (
-
                         // Outer View is important to vertically center the Text
                         <View
                             // eslint-disable-next-line react/no-array-index-key
                             key={`${colText}-${colIndex}`}
                             style={styles.codeWordWrapper}
                         >
-                            <View
-                                style={[
-                                    props.wordStyles,
-                                    colIndex === 0 && styles.codeFirstWordStyle,
-                                    colIndex === rowText.length - 1 && styles.codeLastWordStyle,
-                                ]}
-                            >
+                            <View style={[props.wordStyles, colIndex === 0 && styles.codeFirstWordStyle, colIndex === rowText.length - 1 && styles.codeLastWordStyle]}>
                                 <Text style={props.textStyles}>{colText}</Text>
                             </View>
                         </View>
@@ -73,7 +67,7 @@ const WrappedText = (props) => {
             ))}
         </>
     );
-};
+}
 
 WrappedText.propTypes = propTypes;
 WrappedText.defaultProps = defaultProps;

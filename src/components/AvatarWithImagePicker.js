@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {Pressable, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
@@ -12,6 +12,7 @@ import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import ConfirmModal from './ConfirmModal';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
+import OfflineWithFeedback from './OfflineWithFeedback';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
@@ -20,6 +21,7 @@ import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
 import getImageResolution from '../libs/fileDownload/getImageResolution';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 const propTypes = {
     /** Avatar source to display */
@@ -63,6 +65,19 @@ const propTypes = {
     /** Image crop vector mask */
     editorMaskImage: PropTypes.func,
 
+    /** Additional style object for the error row */
+    errorRowStyles: stylePropTypes,
+
+    /** A function to run when the X button next to the error is clicked */
+    onErrorClose: PropTypes.func,
+
+    /** The type of action that's pending  */
+    pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
+    /** The errors to display  */
+    // eslint-disable-next-line react/forbid-prop-types
+    errors: PropTypes.object,
+
     ...withLocalizePropTypes,
 };
 
@@ -78,6 +93,10 @@ const defaultProps = {
     fallbackIcon: Expensicons.FallbackAvatar,
     type: CONST.ICON_TYPE_AVATAR,
     editorMaskImage: undefined,
+    errorRowStyles: [],
+    onErrorClose: () => {},
+    pendingAction: null,
+    errors: null,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -161,10 +180,13 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Promise}
      */
     isValidResolution(image) {
-        return getImageResolution(image).then(resolution => (
-            (resolution.height >= CONST.AVATAR_MIN_HEIGHT_PX && resolution.width >= CONST.AVATAR_MIN_WIDTH_PX)
-            && (resolution.height <= CONST.AVATAR_MAX_HEIGHT_PX && resolution.width <= CONST.AVATAR_MAX_WIDTH_PX)
-        ));
+        return getImageResolution(image).then(
+            (resolution) =>
+                resolution.height >= CONST.AVATAR_MIN_HEIGHT_PX &&
+                resolution.width >= CONST.AVATAR_MIN_WIDTH_PX &&
+                resolution.height <= CONST.AVATAR_MAX_HEIGHT_PX &&
+                resolution.width <= CONST.AVATAR_MAX_WIDTH_PX,
+        );
     }
 
     /**
@@ -188,28 +210,27 @@ class AvatarWithImagePicker extends React.Component {
             return;
         }
 
-        this.isValidResolution(image)
-            .then((isValidResolution) => {
-                if (!isValidResolution) {
-                    this.showErrorModal(
-                        this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                        this.props.translate('avatarWithImagePicker.resolutionConstraints', {
-                            minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                            minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                            maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                            maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                        }),
-                    );
-                    return;
-                }
+        this.isValidResolution(image).then((isValidResolution) => {
+            if (!isValidResolution) {
+                this.showErrorModal(
+                    this.props.translate('avatarWithImagePicker.imageUploadFailed'),
+                    this.props.translate('avatarWithImagePicker.resolutionConstraints', {
+                        minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
+                        minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
+                        maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
+                        maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
+                    }),
+                );
+                return;
+            }
 
-                this.setState({
-                    isAvatarCropModalOpen: true,
-                    imageUri: image.uri,
-                    imageName: image.name,
-                    imageType: image.type,
-                });
+            this.setState({
+                isAvatarCropModalOpen: true,
+                imageUri: image.uri,
+                imageName: image.name,
+                imageType: image.type,
             });
+        });
     }
 
     hideAvatarCropModal() {
@@ -254,30 +275,40 @@ class AvatarWithImagePicker extends React.Component {
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-                <Pressable
+                <PressableWithoutFeedback
                     onPress={() => this.setState({isMenuVisible: true})}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                    accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
-                        <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
-                            {this.props.source
-                                ? (
-                                    <Avatar
-                                        containerStyles={styles.avatarLarge}
-                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                        source={this.props.source}
-                                        fallbackIcon={this.props.fallbackIcon}
-                                        size={this.props.size}
-                                        type={this.props.type}
-                                    />
-                                )
-                                : (
-                                    <DefaultAvatar />
-                                )}
-                        </Tooltip>
+                        <OfflineWithFeedback
+                            pendingAction={this.props.pendingAction}
+                            errors={this.props.errors}
+                            errorRowStyles={this.props.errorRowStyles}
+                            onClose={this.props.onErrorClose}
+                        >
+                            <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
+                                <View>
+                                    {this.props.source ? (
+                                        <Avatar
+                                            containerStyles={styles.avatarLarge}
+                                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                            source={this.props.source}
+                                            fallbackIcon={this.props.fallbackIcon}
+                                            size={this.props.size}
+                                            type={this.props.type}
+                                        />
+                                    ) : (
+                                        <DefaultAvatar />
+                                    )}
+                                </View>
+                            </Tooltip>
+                        </OfflineWithFeedback>
+
                         <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                             {({openPicker}) => (
                                 <>
-                                    <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
+                                    <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
                                         <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                             <Icon
                                                 src={Expensicons.Camera}
@@ -293,12 +324,13 @@ class AvatarWithImagePicker extends React.Component {
                                         onItemSelected={() => this.setState({isMenuVisible: false})}
                                         menuItems={this.createMenuItems(openPicker)}
                                         anchorPosition={this.props.anchorPosition}
+                                        anchorAlignment={this.props.anchorAlignment}
                                     />
                                 </>
                             )}
                         </AttachmentPicker>
                     </View>
-                </Pressable>
+                </PressableWithoutFeedback>
                 <ConfirmModal
                     title={this.state.errorModalTitle}
                     onConfirm={this.hideErrorModal}

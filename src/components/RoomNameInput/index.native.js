@@ -36,6 +36,8 @@ class RoomNameInput extends Component {
                 ref={this.props.forwardedRef}
                 disabled={this.props.disabled}
                 label={this.props.translate('newRoomPage.roomName')}
+                accessibilityLabel={this.props.translate('newRoomPage.roomName')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 prefixCharacter={CONST.POLICY.ROOM_PREFIX}
                 placeholder={this.props.translate('newRoomPage.social')}
                 onChange={this.setModifiedRoomName}
@@ -57,7 +59,10 @@ RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
 
 export default withLocalize(
     React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-        <RoomNameInput {...props} forwardedRef={ref} />
+        <RoomNameInput
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
     )),
 );

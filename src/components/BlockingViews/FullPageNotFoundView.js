@@ -1,11 +1,10 @@
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import BlockingView from './BlockingView';
 import * as Illustrations from '../Icon/Illustrations';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import HeaderWithCloseButton from '../HeaderWithCloseButton';
+import HeaderWithBackButton from '../HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
@@ -26,20 +25,20 @@ const propTypes = {
     /** The key in the translations file to use for the subtitle */
     subtitleKey: PropTypes.string,
 
-    /** Whether we should show a back icon */
+    /** Whether we should show a link to navigate elsewhere */
+    shouldShowLink: PropTypes.bool,
+
+    /** Whether we should show the back button on the header */
     shouldShowBackButton: PropTypes.bool,
-
-    /** Whether we should show a close button */
-    shouldShowCloseButton: PropTypes.bool,
-
-    /** Whether we should show a go back home link */
-    shouldShowBackHomeLink: PropTypes.bool,
 
     /** The key in the translations file to use for the go back link */
     linkKey: PropTypes.string,
 
     /** Method to trigger when pressing the back button of the header */
     onBackButtonPress: PropTypes.func,
+
+    /** Function to call when pressing the navigation link */
+    onLinkPress: PropTypes.func,
 };
 
 const defaultProps = {
@@ -48,22 +47,20 @@ const defaultProps = {
     titleKey: 'notFound.notHere',
     subtitleKey: 'notFound.pageNotFound',
     linkKey: 'notFound.goBackHome',
+    onBackButtonPress: Navigation.goBack,
+    shouldShowLink: false,
     shouldShowBackButton: true,
-    shouldShowBackHomeLink: false,
-    shouldShowCloseButton: true,
-    onBackButtonPress: () => Navigation.dismissModal(),
+    onLinkPress: () => Navigation.dismissModal(),
 };
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const FullPageNotFoundView = (props) => {
+function FullPageNotFoundView(props) {
     if (props.shouldShow) {
         return (
             <>
-                <HeaderWithCloseButton
-                    shouldShowBackButton={props.shouldShowBackButton}
-                    shouldShowCloseButton={props.shouldShowCloseButton}
+                <HeaderWithBackButton
                     onBackButtonPress={props.onBackButtonPress}
-                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    shouldShowBackButton={props.shouldShowBackButton}
                 />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
@@ -73,16 +70,16 @@ const FullPageNotFoundView = (props) => {
                         title={props.translate(props.titleKey)}
                         subtitle={props.translate(props.subtitleKey)}
                         link={props.translate(props.linkKey)}
-                        shouldShowBackHomeLink={props.shouldShowBackHomeLink}
+                        shouldShowLink={props.shouldShowLink}
+                        onLinkPress={props.onLinkPress}
                     />
                 </View>
             </>
-
         );
     }
 
     return props.children;
-};
+}
 
 FullPageNotFoundView.propTypes = propTypes;
 FullPageNotFoundView.defaultProps = defaultProps;

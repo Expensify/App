@@ -13,8 +13,10 @@ const story = {
     component: MenuItem,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <MenuItem {...args} />;
+function Template(args) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <MenuItem {...args} />;
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -46,6 +48,17 @@ RightIcon.args = {
 
 const RightIconAndDescription = Template.bind({});
 RightIconAndDescription.args = {
+    title: 'Alberta Bobbeth Charleson',
+    description: 'Account ending in 1111',
+    icon: Chase,
+    iconHeight: variables.iconSizeExtraLarge,
+    iconWidth: variables.iconSizeExtraLarge,
+    shouldShowRightIcon: true,
+};
+
+const RightIconAndDescriptionWithLabel = Template.bind({});
+RightIconAndDescriptionWithLabel.args = {
+    label: 'Account number',
     title: 'Alberta Bobbeth Charleson',
     description: 'Account ending in 1111',
     icon: Chase,
@@ -127,4 +140,5 @@ export {
     Disabled,
     BrickRoadIndicatorSuccess,
     BrickRoadIndicatorFailure,
+    RightIconAndDescriptionWithLabel,
 };

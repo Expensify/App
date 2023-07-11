@@ -4,7 +4,7 @@ import Log from '../../libs/Log';
 import CONST from '../../CONST';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 
-const PlaidLink = (props) => {
+function PlaidLink(props) {
     useDeepLinkRedirector();
     usePlaidEmitter((event) => {
         Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
@@ -26,11 +26,11 @@ const PlaidLink = (props) => {
             },
         });
 
-    // We generally do not need to include the token as a dependency here as it is only provided once via props and should not change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // We generally do not need to include the token as a dependency here as it is only provided once via props and should not change
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return null;
-};
+}
 
 PlaidLink.propTypes = plaidLinkPropTypes;
 PlaidLink.defaultProps = plaidLinkDefaultProps;

@@ -15,8 +15,7 @@ const story = {
     component: PopoverMenu,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = (args) => {
+function Template(args) {
     const [isVisible, setIsVisible] = React.useState(false);
     const toggleVisibility = () => setIsVisible(!isVisible);
     return (
@@ -55,7 +54,7 @@ const Template = (args) => {
             </SafeAreaProvider>
         </>
     );
-};
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -74,6 +73,4 @@ Default.args = {
 };
 
 export default story;
-export {
-    Default,
-};
+export {Default};

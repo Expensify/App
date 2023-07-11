@@ -13,7 +13,7 @@ const ENVIRONMENT_SHORT_FORM = {
     [CONST.ENVIRONMENT.ADHOC]: 'ADHOC',
 };
 
-const EnvironmentBadge = (props) => {
+function EnvironmentBadge(props) {
     // If we are on production, don't show any badge
     if (props.environment === CONST.ENVIRONMENT.PRODUCTION) {
         return null;
@@ -26,11 +26,12 @@ const EnvironmentBadge = (props) => {
             success={props.environment === CONST.ENVIRONMENT.STAGING || props.environment === CONST.ENVIRONMENT.ADHOC}
             error={props.environment !== CONST.ENVIRONMENT.STAGING && props.environment !== CONST.ENVIRONMENT.ADHOC}
             text={text}
-            badgeStyles={[styles.alignSelfCenter]}
+            badgeStyles={[styles.alignSelfEnd, styles.headerEnvBadge]}
+            textStyles={[styles.headerEnvBadgeText]}
             environment={props.environment}
         />
     );
-};
+}
 
 EnvironmentBadge.displayName = 'EnvironmentBadge';
 EnvironmentBadge.propTypes = environmentPropTypes;

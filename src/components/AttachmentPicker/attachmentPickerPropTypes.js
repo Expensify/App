@@ -34,7 +34,4 @@ const defaultProps = {
     onModalHide: () => {},
 };
 
-export {
-    propTypes,
-    defaultProps,
-};
+export {propTypes, defaultProps};

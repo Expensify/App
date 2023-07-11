@@ -1,10 +1,11 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {Pressable} from 'react-native';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import Text from '../Text';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */
@@ -61,26 +62,24 @@ class EmojiPickerMenuItem extends PureComponent {
 
     render() {
         return (
-            <Pressable
+            <PressableWithoutFeedback
                 onPress={() => this.props.onPress(this.props.emoji)}
                 onHoverIn={this.props.onHoverIn}
                 onHoverOut={this.props.onHoverOut}
                 onFocus={this.props.onFocus}
                 onBlur={this.props.onBlur}
-                ref={ref => this.ref = ref}
-                style={({
-                    pressed,
-                }) => ([
+                ref={(ref) => (this.ref = ref)}
+                style={({pressed}) => [
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                     this.props.isHighlighted && this.props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
                     this.props.isHighlighted && !this.props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
                     styles.emojiItem,
-                ])}
+                ]}
+                accessibilityLabel={this.props.emoji}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
-                <Text style={[styles.emojiText]}>
-                    {this.props.emoji}
-                </Text>
-            </Pressable>
+                <Text style={[styles.emojiText]}>{this.props.emoji}</Text>
+            </PressableWithoutFeedback>
         );
     }
 }
@@ -100,7 +99,6 @@ EmojiPickerMenuItem.defaultProps = {
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
 export default React.memo(
     EmojiPickerMenuItem,
-    (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted
-        && prevProps.emoji === nextProps.emoji
-        && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
+    (prevProps, nextProps) =>
+        prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji && prevProps.isUsingKeyboardMovement === nextProps.isUsingKeyboardMovement,
 );

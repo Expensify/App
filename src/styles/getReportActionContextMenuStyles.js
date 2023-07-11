@@ -13,13 +13,12 @@ const miniWrapperStyle = [
         borderRadius: variables.buttonBorderRadius,
         borderWidth: 1,
         borderColor: themeColors.border,
+        // In Safari, when welcome messages use a code block (triple backticks), they would overlap the context menu below when there is no scrollbar without the transform style.
+        transform: 'translateZ(0)',
     },
 ];
 
-const bigWrapperStyle = [
-    styles.flexColumn,
-    defaultWrapperStyle,
-];
+const bigWrapperStyle = [styles.flexColumn, defaultWrapperStyle];
 
 /**
  * Generate the wrapper styles for the ReportActionContextMenu.

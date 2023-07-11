@@ -27,10 +27,11 @@ import ValidationStep from './ValidationStep';
 import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -44,6 +45,15 @@ const propTypes = {
 
     /** The token required to initialize the Onfido SDK */
     onfidoToken: PropTypes.string,
+
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
+    /** Holds information about the users account that is logging in */
+    account: PropTypes.shape({
+        /** Whether a sign on form is loading (being submitted) */
+        isLoading: PropTypes.bool,
+    }),
 
     /** Information about the network  */
     network: networkPropTypes.isRequired,
@@ -72,6 +82,8 @@ const defaultProps = {
     reimbursementAccountDraft: {},
     onfidoToken: '',
     plaidLinkToken: '',
+    isLoadingReportData: false,
+    account: {},
     session: {
         email: null,
     },
@@ -105,14 +117,13 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.network.isOffline && !this.props.network.isOffline) {
+        if (prevProps.network.isOffline && !this.props.network.isOffline && prevProps.reimbursementAccount.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             this.fetchData();
         }
         if (!this.state.hasACHDataBeenLoaded) {
             // If the ACHData has not been loaded yet, and we are seeing the default data for props.reimbursementAccount
             // We don't need to do anything yet
-            if (this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps
-                && !this.props.reimbursementAccount.isLoading) {
+            if (this.props.reimbursementAccount !== ReimbursementAccountProps.reimbursementAccountDefaultProps && !this.props.reimbursementAccount.isLoading) {
                 // If we are here, it is because this is the first time we load the ACHData from the server and
                 // this.props.reimbursementAccount.isLoading just changed to false. From now on, it makes sense to run the code
                 // below updating states and the route, and this will happen in the next react lifecycle.
@@ -124,8 +135,10 @@ class ReimbursementAccountPage extends React.Component {
             return;
         }
 
-        if (prevProps.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
-            && this.props.reimbursementAccount.pendingAction !== prevProps.reimbursementAccount.pendingAction) {
+        if (
+            prevProps.reimbursementAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            this.props.reimbursementAccount.pendingAction !== prevProps.reimbursementAccount.pendingAction
+        ) {
             // We are here after the user tried to delete the bank account. We will want to set
             // this.state.shouldShowContinueSetupButton to `false` if the bank account was deleted.
             this.setState({shouldShowContinueSetupButton: this.hasInProgressVBBA()});
@@ -156,9 +169,7 @@ class ReimbursementAccountPage extends React.Component {
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
-        Navigation.navigate(ROUTES.getBankAccountRoute(
-            this.getRouteForCurrentStep(currentStep), lodashGet(this.props.route.params, 'policyID'),
-        ));
+        Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep), lodashGet(this.props.route.params, 'policyID')));
     }
 
     /*
@@ -171,8 +182,7 @@ class ReimbursementAccountPage extends React.Component {
             return false;
         }
         const achData = lodashGet(this.props.reimbursementAccount, 'achData', {});
-        return achData.state === BankAccount.STATE.PENDING
-            || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], this.getStepToOpenFromRouteParams());
+        return achData.state === BankAccount.STATE.PENDING || _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, ''], this.getStepToOpenFromRouteParams());
     }
 
     /**
@@ -305,7 +315,8 @@ class ReimbursementAccountPage extends React.Component {
                     Navigation.goBack();
                 }
                 break;
-            default: Navigation.goBack();
+            default:
+                Navigation.goBack();
         }
     }
 
@@ -319,18 +330,63 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const policyName = lodashGet(this.props.policy, 'name');
 
-        // Don't show the loading indicator if we're offline and restarted the bank account setup process
-        if (this.props.reimbursementAccount.isLoading && !(this.props.network.isOffline && currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)) {
-            const isSubmittingVerificationsData = _.contains([
-                CONST.BANK_ACCOUNT.STEP.COMPANY,
-                CONST.BANK_ACCOUNT.STEP.REQUESTOR,
-                CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
-            ], currentStep);
+        if (_.isEmpty(this.props.policy)) {
+            return (
+                <ScreenWrapper>
+                    <FullPageNotFoundView
+                        shouldShow
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                        shouldShowLink
+                    />
+                </ScreenWrapper>
+            );
+        }
+
+        const isLoading = this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading;
+
+        // Prevent the full-page blocking offline view from being displayed for these steps if the device goes offline.
+        const shouldShowOfflineLoader = !(
+            this.props.network.isOffline &&
+            _.contains([CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT, CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep)
+        );
+
+        // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
+        // or when data is being loaded. Don't show the loading indicator if we're offline and restarted the bank account setup process
+        if ((!this.state.hasACHDataBeenLoaded || isLoading) && shouldShowOfflineLoader) {
+            const isSubmittingVerificationsData = _.contains([CONST.BANK_ACCOUNT.STEP.COMPANY, CONST.BANK_ACCOUNT.STEP.REQUESTOR, CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT], currentStep);
             return (
                 <ReimbursementAccountLoadingIndicator
                     isSubmittingVerificationsData={isSubmittingVerificationsData}
                     onBackButtonPress={this.goBack}
                 />
+            );
+        }
+
+        let errorText;
+        const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
+        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
+        const hasUnsupportedCurrency = lodashGet(this.props.policy, 'outputCurrency', '') !== CONST.CURRENCY.USD;
+
+        if (userHasPhonePrimaryEmail) {
+            errorText = this.props.translate('bankAccount.hasPhoneLoginError');
+        } else if (throttledDate) {
+            errorText = this.props.translate('bankAccount.hasBeenThrottledError');
+        } else if (hasUnsupportedCurrency) {
+            errorText = this.props.translate('bankAccount.hasCurrencyError');
+        }
+
+        if (errorText) {
+            return (
+                <ScreenWrapper>
+                    <HeaderWithBackButton
+                        title={this.props.translate('workspace.common.connectBankAccount')}
+                        subtitle={policyName}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                    />
+                    <View style={[styles.m5, styles.flex1]}>
+                        <Text>{errorText}</Text>
+                    </View>
+                </ScreenWrapper>
             );
         }
 
@@ -341,41 +397,6 @@ class ReimbursementAccountPage extends React.Component {
                     continue={this.continue}
                     policyName={policyName}
                 />
-            );
-        }
-
-        let errorComponent;
-        const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
-
-        if (userHasPhonePrimaryEmail) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
-                </View>
-            );
-        }
-
-        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
-        if (throttledDate) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>
-                        {this.props.translate('bankAccount.hasBeenThrottledError')}
-                    </Text>
-                </View>
-            );
-        }
-
-        if (errorComponent) {
-            return (
-                <ScreenWrapper>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('workspace.common.bankAccount')}
-                        onCloseButtonPress={Navigation.dismissModal}
-                        subtitle={policyName}
-                    />
-                    {errorComponent}
-                </ScreenWrapper>
             );
         }
 
@@ -440,7 +461,10 @@ class ReimbursementAccountPage extends React.Component {
 
         if (currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
             return (
-                <EnableStep reimbursementAccount={this.props.reimbursementAccount} policyName={policyName} />
+                <EnableStep
+                    reimbursementAccount={this.props.reimbursementAccount}
+                    policyName={policyName}
+                />
             );
         }
     }
@@ -466,6 +490,12 @@ export default compose(
         },
         onfidoToken: {
             key: ONYXKEYS.ONFIDO_TOKEN,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+        },
+        account: {
+            key: ONYXKEYS.ACCOUNT,
         },
     }),
     withLocalize,

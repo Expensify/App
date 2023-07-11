@@ -1,16 +1,16 @@
 const _ = require('underscore');
 const core = require('@actions/core');
+const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GithubUtils = require('../../../libs/GithubUtils');
 
 const DEFAULT_PAYLOAD = {
-    owner: GithubUtils.GITHUB_OWNER,
-    repo: GithubUtils.APP_REPO,
+    owner: CONST.GITHUB_OWNER,
+    repo: CONST.APP_REPO,
 };
 
 const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
 const user = core.getInput('USER', {required: true});
-let titleRegex = core.getInput('TITLE_REGEX', {required: false});
 
 if (pullRequestNumber) {
     console.log(`Looking for pull request w/ number: ${pullRequestNumber}`);
@@ -20,80 +20,52 @@ if (user) {
     console.log(`Looking for pull request w/ user: ${user}`);
 }
 
-if (titleRegex) {
-    titleRegex = new RegExp(titleRegex);
-    console.log(`Looking for pull request w/ title matching: ${titleRegex.toString()}`);
-}
-
 /**
- * Process a pull request and outputs it's merge commit hash.
- *
- * @param {Object} PR
- */
-function outputMergeCommitHash(PR) {
-    if (!_.isEmpty(PR)) {
-        console.log(`Found matching pull request: ${PR.html_url}`);
-        core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
-    } else {
-        const err = new Error('Could not find matching pull request');
-        console.error(err);
-        core.setFailed(err);
-    }
-}
-
-/**
- * Process a pull request and outputs it's merge actor
+ * Output pull request merge actor.
  *
  * @param {Object} PR
  */
 function outputMergeActor(PR) {
-    if (!_.isEmpty(PR)) {
-        console.log(`Found matching pull request: ${PR.html_url}`);
-
-        if (user === 'OSBotify') {
-            core.setOutput('MERGE_ACTOR', PR.merged_by.login);
-        } else {
-            core.setOutput('MERGE_ACTOR', user);
-        }
+    if (user === CONST.OS_BOTIFY) {
+        core.setOutput('MERGE_ACTOR', PR.merged_by.login);
     } else {
-        const err = new Error('Could not find matching pull request');
-        console.error(err);
-        core.setFailed(err);
+        core.setOutput('MERGE_ACTOR', user);
     }
 }
 
 /**
- * Handle an unknown API error.
+ * Output forked repo URL if PR includes changes from a fork.
  *
- * @param {Error} err
+ * @param {Object} PR
  */
-function handleUnknownError(err) {
-    console.log(`An unknown error occurred with the GitHub API: ${err}`);
-    core.setFailed(err);
+function outputForkedRepoUrl(PR) {
+    if (PR.head.repo.html_url === CONST.APP_REPO_URL) {
+        core.setOutput('FORKED_REPO_URL', '');
+    } else {
+        core.setOutput('FORKED_REPO_URL', `${PR.head.repo.html_url}.git`);
+    }
 }
 
-if (pullRequestNumber) {
-    GithubUtils.octokit.pulls.get({
+GithubUtils.octokit.pulls
+    .get({
         ...DEFAULT_PAYLOAD,
         pull_number: pullRequestNumber,
     })
-        .then(({data}) => {
-            outputMergeCommitHash(data);
-            outputMergeActor(data);
-        })
-        .catch(handleUnknownError);
-} else {
-    GithubUtils.octokit.pulls.list({
-        ...DEFAULT_PAYLOAD,
-        state: 'all',
+    .then(({data: PR}) => {
+        if (!_.isEmpty(PR)) {
+            console.log(`Found matching pull request: ${PR.html_url}`);
+            core.setOutput('MERGE_COMMIT_SHA', PR.merge_commit_sha);
+            core.setOutput('HEAD_COMMIT_SHA', PR.head.sha);
+            core.setOutput('IS_MERGED', PR.merged);
+            outputMergeActor(PR);
+            outputForkedRepoUrl(PR);
+        } else {
+            const err = new Error('Could not find matching pull request');
+            console.error(err);
+            core.setFailed(err);
+        }
     })
-        .then(({data}) => _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title)).number)
-        .then(matchingPRNum => GithubUtils.octokit.pulls.get({
-            ...DEFAULT_PAYLOAD,
-            pull_number: matchingPRNum,
-        }))
-        .then(({data}) => {
-            outputMergeCommitHash(data);
-            outputMergeActor(data);
-        });
-}
+    .catch((err) => {
+        console.log(`An unknown error occurred with the GitHub API: ${err}`);
+        core.setFailed(err);
+    });

@@ -3,14 +3,14 @@ import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
-import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
 import compose from '../../../libs/compose';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import ReportActionItem from './ReportActionItem';
+import ReportActionItemParentAction from './ReportActionItemParentAction';
 import ReportActionsSkeletonView from '../../../components/ReportActionsSkeletonView';
 import variables from '../../../styles/variables';
 import participantPropTypes from '../../../components/participantPropTypes';
@@ -20,13 +20,15 @@ import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import MoneyRequestDetails from '../../../components/MoneyRequestDetails';
 
 const propTypes = {
     /** Position of the "New" line marker */
     newMarkerReportActionID: PropTypes.string,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetailsList: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -52,8 +54,17 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
-    ...withDrawerPropTypes,
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -61,6 +72,7 @@ const defaultProps = {
     personalDetails: {},
     mostRecentIOUReportActionID: '',
     isLoadingMoreReportActions: false,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 /**
@@ -75,13 +87,14 @@ function keyExtractor(item) {
     return item.reportActionID;
 }
 
-const ReportActionsList = (props) => {
+function ReportActionsList(props) {
+    const reportScrollManager = useReportScrollManager();
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
-        opacity: withTiming(opacity.value, {duration: 100}),
+        opacity: opacity.value,
     }));
     useEffect(() => {
-        opacity.value = 1;
+        opacity.value = withTiming(1, {duration: 100});
     }, [opacity]);
     const [skeletonViewHeight, setSkeletonViewHeight] = useState(0);
 
@@ -93,10 +106,8 @@ const ReportActionsList = (props) => {
      * @return {Number}
      */
     const calculateInitialNumToRender = useCallback(() => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
-            + variables.fontSizeNormalHeight;
-        const availableHeight = windowHeight
-            - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         return Math.ceil(availableHeight / minimumReportActionHeight);
     }, [windowHeight]);
 
@@ -111,52 +122,65 @@ const ReportActionsList = (props) => {
      * @param {Number} args.index
      * @returns {React.Component}
      */
-    const renderItem = useCallback(({
-        item: reportAction,
-        index,
-    }) => {
-        // When the new indicator should not be displayed we explicitly set it to null
-        const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
-        return (
-            <ReportActionItem
-                report={report}
-                action={reportAction}
-                displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
-                shouldDisplayNewMarker={shouldDisplayNewMarker}
-                isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
-                hasOutstandingIOU={hasOutstandingIOU}
-                index={index}
-            />
-        );
-    }, [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID]);
+    const renderItem = useCallback(
+        ({item: reportAction, index}) => {
+            // When the new indicator should not be displayed we explicitly set it to null
+            const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
+            const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report);
+            const shouldHideThreadDividerLine =
+                shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
+            return shouldDisplayParentAction ? (
+                <ReportActionItemParentAction
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    reportID={report.reportID}
+                    parentReportID={`${report.parentReportID}`}
+                    shouldDisplayNewMarker={shouldDisplayNewMarker}
+                />
+            ) : (
+                <ReportActionItem
+                    report={report}
+                    action={reportAction}
+                    displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
+                    shouldDisplayNewMarker={shouldDisplayNewMarker}
+                    shouldShowSubscriptAvatar={
+                        (ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isExpenseReport(report)) &&
+                        _.contains([CONST.REPORT.ACTIONS.TYPE.IOU, CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW], reportAction.actionName)
+                    }
+                    isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
+                    hasOutstandingIOU={hasOutstandingIOU}
+                    index={index}
+                    isOnlyReportAction={sortedReportActions.length === 1}
+                />
+            );
+        },
+        [report, hasOutstandingIOU, newMarkerReportActionID, sortedReportActions, mostRecentIOUReportActionID],
+    );
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = (!props.isDrawerOpen && props.isSmallScreenWidth) ? props.newMarkerReportActionID : undefined;
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report);
+    const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetailsList, props.report, props.currentUserPersonalDetails.accountID);
+
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+    const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
+    const showMoneyRequestDetails = ReportUtils.isMoneyRequestReport(props.report) || isSingleTransactionView;
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
                 accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
-                ref={ReportScrollManager.flatListRef}
+                ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
-                contentContainerStyle={[
-                    styles.chatContentScrollView,
-                    shouldShowReportRecipientLocalTime && styles.pt0,
-                ]}
+                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0, showMoneyRequestDetails && styles.pb0]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={calculateInitialNumToRender()}
                 onEndReached={props.loadMoreChats}
                 onEndReachedThreshold={0.75}
+                ListFooterComponentStyle={showMoneyRequestDetails ? styles.chatFooterAtTheTop : {}}
                 ListFooterComponent={() => {
                     if (props.report.isLoadingMoreReportActions) {
-                        return (
-                            <ReportActionsSkeletonView
-                                containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3}
-                            />
-                        );
+                        return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
                     }
 
                     // Make sure the oldest report action loaded is not the first. This is so we do not show the
@@ -171,7 +195,17 @@ const ReportActionsList = (props) => {
                             />
                         );
                     }
-
+                    if (showMoneyRequestDetails) {
+                        return (
+                            <MoneyRequestDetails
+                                report={props.report}
+                                policy={props.policy}
+                                personalDetails={props.personalDetailsList}
+                                isSingleTransactionView={isSingleTransactionView}
+                                parentReportAction={parentReportAction}
+                            />
+                        );
+                    }
                     return null;
                 }}
                 keyboardShouldPersistTaps="handled"
@@ -184,16 +218,10 @@ const ReportActionsList = (props) => {
             />
         </Animated.View>
     );
-};
+}
 
 ReportActionsList.propTypes = propTypes;
 ReportActionsList.defaultProps = defaultProps;
 ReportActionsList.displayName = 'ReportActionsList';
 
-export default compose(
-    withDrawerState,
-    withWindowDimensions,
-    withLocalize,
-    withPersonalDetails(),
-    withNetwork(),
-)(ReportActionsList);
+export default compose(withWindowDimensions, withLocalize, withPersonalDetails(), withNetwork(), withCurrentUserPersonalDetails)(ReportActionsList);

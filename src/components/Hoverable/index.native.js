@@ -10,12 +10,10 @@ import {propTypes, defaultProps} from './hoverablePropTypes';
  * @param {Object} props
  * @returns {React.Component}
  */
-const Hoverable = (props) => {
-    const childrenWithHoverState = _.isFunction(props.children)
-        ? props.children(false)
-        : props.children;
+function Hoverable(props) {
+    const childrenWithHoverState = _.isFunction(props.children) ? props.children(false) : props.children;
     return <View style={props.containerStyles}>{childrenWithHoverState}</View>;
-};
+}
 
 Hoverable.propTypes = propTypes;
 Hoverable.defaultProps = defaultProps;

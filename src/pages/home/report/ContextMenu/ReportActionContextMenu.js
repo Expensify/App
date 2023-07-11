@@ -5,7 +5,7 @@ const contextMenuRef = React.createRef();
 /**
  * Show the ReportActionContextMenu modal popover.
  *
- * @param {string} type - the context menu type to display [EMAIL, LINK, REPORT_ACTION]
+ * @param {string} type - the context menu type to display [EMAIL, LINK, REPORT_ACTION, REPORT]
  * @param {Object} [event] - A press event.
  * @param {String} [selection] - Copied content.
  * @param {Element} contextMenuAnchor - popoverAnchor
@@ -16,6 +16,8 @@ const contextMenuRef = React.createRef();
  * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
  * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
  * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
+ * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
+ * @param {Boolean} isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
  */
 function showContextMenu(
     type,
@@ -29,6 +31,8 @@ function showContextMenu(
     onHide = () => {},
     isArchivedRoom = false,
     isChronosReport = false,
+    isPinnedChat = false,
+    isUnreadChat = false,
 ) {
     if (!contextMenuRef.current) {
         return;
@@ -45,6 +49,8 @@ function showContextMenu(
         onHide,
         isArchivedRoom,
         isChronosReport,
+        isPinnedChat,
+        isUnreadChat,
     );
 }
 
@@ -112,11 +118,4 @@ function isActiveReportAction(actionID) {
     return contextMenuRef.current.isActiveReportAction(actionID);
 }
 
-export {
-    contextMenuRef,
-    showContextMenu,
-    hideContextMenu,
-    isActiveReportAction,
-    showDeleteModal,
-    hideDeleteModal,
-};
+export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, showDeleteModal, hideDeleteModal};

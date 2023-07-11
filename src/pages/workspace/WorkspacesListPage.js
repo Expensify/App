@@ -3,7 +3,7 @@ import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import ROUTES from '../../ROUTES';
@@ -26,33 +26,37 @@ import BlockingView from '../../components/BlockingViews/BlockingView';
 import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
+import * as CurrencyUtils from '../../libs/CurrencyUtils';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The list of this user's policies */
-    policies: PropTypes.objectOf(PropTypes.shape({
-        /** The ID of the policy */
-        ID: PropTypes.string,
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The ID of the policy */
+            ID: PropTypes.string,
 
-        /** The name of the policy */
-        name: PropTypes.string,
+            /** The name of the policy */
+            name: PropTypes.string,
 
-        /** The type of the policy */
-        type: PropTypes.string,
+            /** The type of the policy */
+            type: PropTypes.string,
 
-        /** The user's role in the policy */
-        role: PropTypes.string,
+            /** The user's role in the policy */
+            role: PropTypes.string,
 
-        /** The current action that is waiting to happen on the policy */
-        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
-    })),
+            /** The current action that is waiting to happen on the policy */
+            pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+        }),
+    ),
 
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
-    /** List of policy members */
-    policyMembers: PropTypes.objectOf(policyMemberPropType),
+    /** A collection of objects for all policies which key policy member objects by accountIDs */
+    allPolicyMembers: PropTypes.objectOf(PropTypes.objectOf(policyMemberPropType)),
 
     /** The user's wallet account */
     userWallet: PropTypes.shape({
@@ -68,7 +72,7 @@ const propTypes = {
 
 const defaultProps = {
     policies: {},
-    policyMembers: {},
+    allPolicyMembers: {},
     reimbursementAccount: {},
     userWallet: {
         currentBalance: 0,
@@ -109,11 +113,7 @@ class WorkspacesListPage extends Component {
      * @returns {Number} the user wallet balance
      */
     getWalletBalance(isPaymentItem) {
-        return (isPaymentItem && Permissions.canUseWallet(this.props.betas))
-            ? this.props.numberFormat(
-                this.props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
-                {style: 'currency', currency: 'USD'},
-            ) : undefined;
+        return isPaymentItem && Permissions.canUseWallet(this.props.betas) ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance) : undefined;
     }
 
     /**
@@ -123,21 +123,21 @@ class WorkspacesListPage extends Component {
     getWorkspaces() {
         const reimbursementAccountBrickRoadIndicator = !_.isEmpty(this.props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(this.props.policies)
-            .filter(policy => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
-            .map(policy => ({
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
+            .map((policy) => ({
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
                 iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
                 iconFill: themeColors.textLight,
                 fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.policyMembers),
+                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.allPolicyMembers),
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
                 disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             }))
-            .sortBy(policy => policy.title.toLowerCase())
+            .sortBy((policy) => policy.title.toLowerCase())
             .value();
     }
 
@@ -156,7 +156,7 @@ class WorkspacesListPage extends Component {
             <OfflineWithFeedback
                 key={`${keyTitle}_${index}`}
                 pendingAction={item.pendingAction}
-                errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
+                errorRowStyles={styles.ph5}
                 onClose={item.dismissError}
                 errors={item.errors}
             >
@@ -181,11 +181,9 @@ class WorkspacesListPage extends Component {
         const workspaces = this.getWorkspaces();
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('common.workspaces')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 />
                 {_.isEmpty(workspaces) ? (
                     <BlockingView
@@ -194,12 +192,11 @@ class WorkspacesListPage extends Component {
                         subtitle={this.props.translate('workspace.emptyWorkspace.subtitle')}
                     />
                 ) : (
-                    <ScrollView style={styles.flex1}>
-                        {_.map(workspaces, (item, index) => this.getMenuItem(item, index))}
-                    </ScrollView>
+                    <ScrollView style={styles.flex1}>{_.map(workspaces, (item, index) => this.getMenuItem(item, index))}</ScrollView>
                 )}
                 <FixedFooter style={[styles.flexGrow0]}>
                     <Button
+                        accessibilityLabel={this.props.translate('workspace.new.newWorkspace')}
                         success
                         text={this.props.translate('workspace.new.newWorkspace')}
                         onPress={() => Policy.createWorkspace()}
@@ -215,13 +212,14 @@ WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
         },
-        policyMembers: {
-            key: ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST,
+        allPolicyMembers: {
+            key: ONYXKEYS.COLLECTION.POLICY_MEMBERS,
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

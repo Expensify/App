@@ -17,7 +17,7 @@ const propTypes = {
     placeholder: PropTypes.string,
 
     /** Error text to display */
-    errorText: PropTypes.string,
+    errorText: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]),
 
     /** Icon to display in right side of text input */
     icon: PropTypes.func,
@@ -40,17 +40,25 @@ const propTypes = {
     /** Disable the virtual keyboard  */
     disableKeyboard: PropTypes.bool,
 
-    /** Autogrow input container size based on the entered text  */
+    /**
+     * Autogrow input container length based on the entered text.
+     * Note: If you use this prop, the text input has to be controlled
+     * by a value prop.
+     */
     autoGrow: PropTypes.bool,
+
+    /**
+     * Autogrow input container height based on the entered text
+     * Note: If you use this prop, the text input has to be controlled
+     * by a value prop.
+     */
+    autoGrowHeight: PropTypes.bool,
 
     /** Hide the focus styles on TextInput */
     hideFocusedState: PropTypes.bool,
 
     /** Forward the inner ref */
-    innerRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.object,
-    ]),
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** Maximum characters allowed */
     maxLength: PropTypes.number,
@@ -108,6 +116,7 @@ const defaultProps = {
     forceActiveLabel: false,
     disableKeyboard: false,
     autoGrow: false,
+    autoGrowHeight: false,
     hideFocusedState: false,
     innerRef: () => {},
     shouldSaveDraft: false,

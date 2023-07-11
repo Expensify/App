@@ -53,17 +53,17 @@ const policyPropTypes = {
          *        [DateUtils.getMicroseconds()]: 'Sorry, there was an unexpected problem updating your workspace name.',
          *     }
          * }
-        */
+         */
         errorFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }),
 
     /** The employee list of this policy */
-    policyMemberList: PropTypes.objectOf(policyMemberPropType),
+    policyMembers: PropTypes.objectOf(policyMemberPropType),
 };
 
 const policyDefaultProps = {
     policy: {},
-    policyMemberList: {},
+    policyMembers: {},
 };
 
 /*
@@ -72,7 +72,7 @@ const policyDefaultProps = {
 export default function (WrappedComponent) {
     const propTypes = {
         /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
-          * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
+         * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
         forwardedRef: PropTypes.func,
 
         ...policyPropTypes,
@@ -84,8 +84,8 @@ export default function (WrappedComponent) {
         ...policyDefaultProps,
     };
 
-    const WithPolicy = (props) => {
-        const currentRoute = _.last(useNavigationState(state => state.routes || []));
+    function WithPolicy(props) {
+        const currentRoute = _.last(useNavigationState((state) => state.routes || []));
         const policyID = getPolicyIDFromRoute(currentRoute);
 
         if (_.isString(policyID) && !_.isEmpty(policyID)) {
@@ -100,27 +100,27 @@ export default function (WrappedComponent) {
                 ref={props.forwardedRef}
             />
         );
-    };
+    }
 
     WithPolicy.propTypes = propTypes;
     WithPolicy.defaultProps = defaultProps;
     WithPolicy.displayName = `withPolicy(${getComponentDisplayName(WrappedComponent)})`;
     const withPolicy = React.forwardRef((props, ref) => (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <WithPolicy {...props} forwardedRef={ref} />
+        <WithPolicy
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
     ));
 
     return withOnyx({
         policy: {
-            key: props => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromRoute(props.route)}`,
         },
-        policyMemberList: {
-            key: props => `${ONYXKEYS.COLLECTION.POLICY_MEMBER_LIST}${getPolicyIDFromRoute(props.route)}`,
+        policyMembers: {
+            key: (props) => `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${getPolicyIDFromRoute(props.route)}`,
         },
     })(withPolicy);
 }
 
-export {
-    policyPropTypes,
-    policyDefaultProps,
-};
+export {policyPropTypes, policyDefaultProps};

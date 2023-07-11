@@ -80,7 +80,10 @@ class WorkspaceReimburseSection extends React.Component {
         if (this.state.shouldShowLoadingSpinner) {
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator color={themeColors.spinner} size="large" />
+                    <ActivityIndicator
+                        color={themeColors.spinner}
+                        size="large"
+                    />
                 </View>
             );
         }
@@ -116,7 +119,7 @@ class WorkspaceReimburseSection extends React.Component {
                             <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                         </View>
                         <Button
-                            text={this.props.translate('workspace.common.bankAccount')}
+                            text={this.props.translate('workspace.common.connectBankAccount')}
                             onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
                             icon={Expensicons.Bank}
                             style={[styles.mt4]}

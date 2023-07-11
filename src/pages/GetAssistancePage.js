@@ -5,9 +5,8 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Section from '../components/Section';
-import Navigation from '../libs/Navigation/Navigation';
 import styles from '../styles/styles';
 import Text from '../components/Text';
 import * as Expensicons from '../components/Icon/Expensicons';
@@ -17,6 +16,8 @@ import * as Link from '../libs/actions/Link';
 import CONST from '../CONST';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Route object from navigation */
@@ -42,23 +43,25 @@ const defaultProps = {
     },
 };
 
-const GetAssistancePage = (props) => {
-    const menuItems = [{
-        title: props.translate('getAssistancePage.chatWithConcierge'),
-        onPress: () => Report.navigateToConciergeChat(),
-        icon: Expensicons.ChatBubble,
-        shouldShowRightIcon: true,
-        wrapperStyle: [styles.cardMenuItem],
-    },
-    {
-        title: props.translate('getAssistancePage.exploreHelpDocs'),
-        onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
-        icon: Expensicons.QuestionMark,
-        shouldShowRightIcon: true,
-        iconRight: Expensicons.NewWindow,
-        wrapperStyle: [styles.cardMenuItem],
-        link: CONST.NEWHELP_URL,
-    }];
+function GetAssistancePage(props) {
+    const menuItems = [
+        {
+            title: props.translate('getAssistancePage.chatWithConcierge'),
+            onPress: () => Report.navigateToConciergeChat(),
+            icon: Expensicons.ChatBubble,
+            shouldShowRightIcon: true,
+            wrapperStyle: [styles.cardMenuItem],
+        },
+        {
+            title: props.translate('getAssistancePage.exploreHelpDocs'),
+            onPress: () => Link.openExternalLink(CONST.NEWHELP_URL),
+            icon: Expensicons.QuestionMark,
+            shouldShowRightIcon: true,
+            iconRight: Expensicons.NewWindow,
+            wrapperStyle: [styles.cardMenuItem],
+            link: CONST.NEWHELP_URL,
+        },
+    ];
 
     // If the user is eligible for calls with their Guide, add the 'Schedule a setup call' item at the second position in the list
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -70,16 +73,15 @@ const GetAssistancePage = (props) => {
             shouldShowRightIcon: true,
             iconRight: Expensicons.NewWindow,
             wrapperStyle: [styles.cardMenuItem],
+            link: guideCalendarLink,
         });
     }
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('getAssistancePage.title')}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             />
             <ScrollView>
                 <Section
@@ -94,7 +96,7 @@ const GetAssistancePage = (props) => {
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 GetAssistancePage.propTypes = propTypes;
 GetAssistancePage.defaultProps = defaultProps;
@@ -105,7 +107,7 @@ export default compose(
     withOnyx({
         account: {
             key: ONYXKEYS.ACCOUNT,
-            selector: account => account && ({guideCalendarLink: account.guideCalendarLink}),
+            selector: (account) => account && {guideCalendarLink: account.guideCalendarLink},
         },
     }),
 )(GetAssistancePage);

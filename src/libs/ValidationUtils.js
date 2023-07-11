@@ -1,10 +1,10 @@
 import moment from 'moment';
 import _ from 'underscore';
 import {URL_REGEX_WITH_REQUIRED_PROTOCOL} from 'expensify-common/lib/Url';
+import {parsePhoneNumber} from 'awesome-phonenumber';
 import CONST from '../CONST';
 import * as CardUtils from './CardUtils';
 import * as LoginUtils from './LoginUtils';
-import * as Localize from './Localize';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -25,7 +25,7 @@ function validateCardNumber(val) {
         }
         sum += intVal;
     }
-    return (sum % 10) === 0;
+    return sum % 10 === 0;
 }
 
 /**
@@ -141,19 +141,6 @@ function isValidDebitCard(string) {
 }
 
 /**
- *
- * @param {String} nameOnCard
- * @returns {Boolean}
- */
-function isValidCardName(nameOnCard) {
-    if (!CONST.REGEX.ALPHABETIC_CHARS.test(nameOnCard)) {
-        return false;
-    }
-
-    return !_.isEmpty(nameOnCard.trim());
-}
-
-/**
  * @param {String} code
  * @returns {Boolean}
  */
@@ -224,22 +211,22 @@ function meetsMaximumAgeRequirement(date) {
  * @param {String} date
  * @param {Number} minimumAge
  * @param {Number} maximumAge
- * @returns {String}
+ * @returns {String|Array}
  */
 function getAgeRequirementError(date, minimumAge, maximumAge) {
     const recentDate = moment().startOf('day').subtract(minimumAge, 'years');
     const longAgoDate = moment().startOf('day').subtract(maximumAge, 'years');
     const testDate = moment(date);
     if (!testDate.isValid()) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return 'common.error.dateInvalid';
     }
     if (testDate.isBetween(longAgoDate, recentDate, undefined, '[]')) {
         return '';
     }
     if (testDate.isSameOrAfter(recentDate)) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+        return ['privatePersonalDetails.error.dateShouldBeBefore', {dateString: recentDate.format(CONST.DATE.MOMENT_FORMAT_STRING)}];
     }
-    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)});
+    return ['privatePersonalDetails.error.dateShouldBeAfter', {dateString: longAgoDate.format(CONST.DATE.MOMENT_FORMAT_STRING)}];
 }
 
 /**
@@ -297,12 +284,11 @@ function validateIdentity(identity) {
  * @returns {Boolean}
  */
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
-    // Remove non alphanumeric characters from the phone number
-    const sanitizedPhone = (phoneNumber || '').replace(CONST.REGEX.NON_ALPHA_NUMERIC, '');
-    const isUsPhone = isCountryCodeOptional
-        ? CONST.REGEX.US_PHONE_WITH_OPTIONAL_COUNTRY_CODE.test(sanitizedPhone) : CONST.REGEX.US_PHONE.test(sanitizedPhone);
+    const phone = phoneNumber || '';
+    const regionCode = isCountryCodeOptional ? CONST.COUNTRY.US : null;
 
-    return CONST.REGEX.PHONE_E164_PLUS.test(sanitizedPhone) && isUsPhone;
+    const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
+    return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
 }
 
 /**
@@ -347,9 +333,7 @@ function isNumericWithSpecialChars(input) {
 function isValidRoutingNumber(number) {
     let n = 0;
     for (let i = 0; i < number.length; i += 3) {
-        n += (parseInt(number.charAt(i), 10) * 3)
-            + (parseInt(number.charAt(i + 1), 10) * 7)
-            + parseInt(number.charAt(i + 2), 10);
+        n += parseInt(number.charAt(i), 10) * 3 + parseInt(number.charAt(i + 1), 10) * 7 + parseInt(number.charAt(i + 2), 10);
     }
 
     // If the resulting sum is an even multiple of ten (but not zero),
@@ -389,7 +373,7 @@ function isValidLegalName(name) {
  */
 function doesContainReservedWord(value, reservedWords) {
     const valueToCheck = value.trim().toLowerCase();
-    return _.some(reservedWords, reservedWord => valueToCheck.includes(reservedWord.toLowerCase()));
+    return _.some(reservedWords, (reservedWord) => valueToCheck.includes(reservedWord.toLowerCase()));
 }
 
 /**
@@ -412,11 +396,7 @@ function isReservedRoomName(roomName) {
  * @returns {Boolean}
  */
 function isExistingRoomName(roomName, reports, policyID) {
-    return _.some(
-        reports,
-        report => report && report.policyID === policyID
-        && report.reportName === roomName,
-    );
+    return _.some(reports, (report) => report && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
@@ -439,7 +419,30 @@ function isValidRoomName(roomName) {
  * @returns {Boolean}
  */
 function isValidTaxID(taxID) {
-    return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+    return taxID && CONST.REGEX.TAX_ID.test(taxID);
+}
+
+/**
+ * Checks if a string value is a number.
+ *
+ * @param {String} value
+ * @returns {Boolean}
+ */
+function isNumeric(value) {
+    if (typeof value !== 'string') {
+        return false;
+    }
+    return /^\d*$/.test(value);
+}
+
+/**
+ * Checks that the provided accountID is a number and bigger than 0.
+ *
+ * @param {Number} accountID
+ * @returns {Boolean}
+ */
+function isValidAccountRoute(accountID) {
+    return CONST.REGEX.NUMBER.test(accountID) && accountID > 0;
 }
 
 export {
@@ -448,7 +451,6 @@ export {
     getAgeRequirementError,
     isValidAddress,
     isValidDate,
-    isValidCardName,
     isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
@@ -474,4 +476,6 @@ export {
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,
+    isNumeric,
+    isValidAccountRoute,
 };

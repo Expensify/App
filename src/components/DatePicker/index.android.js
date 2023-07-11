@@ -45,6 +45,8 @@ class DatePicker extends React.Component {
             <>
                 <TextInput
                     label={this.props.label}
+                    accessibilityLabel={this.props.label}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={dateAsText}
                     forceActiveLabel
                     placeholder={this.props.placeholder}
@@ -87,6 +89,9 @@ DatePicker.propTypes = propTypes;
 DatePicker.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
+    <DatePicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
 ));

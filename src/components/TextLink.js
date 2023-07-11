@@ -5,17 +5,14 @@ import {Linking} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Link to open in new tab */
     href: PropTypes.string,
 
     /** Text content child */
-    children: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.array,
-        PropTypes.object,
-    ]).isRequired,
+    children: PropTypes.oneOfType([PropTypes.string, PropTypes.array, PropTypes.object]).isRequired,
 
     /** Additional style props */
     style: stylePropTypes,
@@ -25,21 +22,26 @@ const propTypes = {
 
     /** Callback that is called when mousedown is triggered */
     onMouseDown: PropTypes.func,
+
+    /** A ref to forward to text */
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 };
 
 const defaultProps = {
+    forwardedRef: undefined,
     href: undefined,
     style: [],
     onPress: undefined,
-    onMouseDown: undefined,
+    onMouseDown: (event) => event.preventDefault(),
 };
 
-const TextLink = (props) => {
+function TextLink(props) {
+    const rest = _.omit(props, _.keys(propTypes));
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
     /**
-   * @param {Event} event
-   */
+     * @param {Event} event
+     */
     const openLink = (event) => {
         event.preventDefault();
         if (props.onPress) {
@@ -51,8 +53,8 @@ const TextLink = (props) => {
     };
 
     /**
-   * @param {Event} event
-   */
+     * @param {Event} event
+     */
     const openLinkIfEnterKeyPressed = (event) => {
         if (event.key !== 'Enter') {
             return;
@@ -63,18 +65,27 @@ const TextLink = (props) => {
     return (
         <Text
             style={[styles.link, ...additionalStyles]}
-            accessibilityRole="link"
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
             href={props.href}
             onPress={openLink}
             onMouseDown={props.onMouseDown}
             onKeyDown={openLinkIfEnterKeyPressed}
+            ref={props.forwardedRef}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
         >
             {props.children}
         </Text>
     );
-};
+}
 
 TextLink.defaultProps = defaultProps;
 TextLink.propTypes = propTypes;
 TextLink.displayName = 'TextLink';
-export default TextLink;
+export default React.forwardRef((props, ref) => (
+    <TextLink
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));

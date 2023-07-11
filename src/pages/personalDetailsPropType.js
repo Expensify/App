@@ -16,6 +16,9 @@ export default PropTypes.shape({
     // Flag to set when Avatar uploading
     avatarUploading: PropTypes.bool,
 
+    // accountID of the current user from their personal details
+    accountID: PropTypes.number,
+
     // login of the current user from their personal details
     login: PropTypes.string,
 
@@ -31,6 +34,8 @@ export default PropTypes.shape({
         selected: PropTypes.string,
 
         // Whether timezone is automatically set
-        automatic: PropTypes.bool,
+        // TODO: remove string type after backend fix
+        // Some personal details return 'true' (string) for this value instead of true (boolean)
+        automatic: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
     }),
 });

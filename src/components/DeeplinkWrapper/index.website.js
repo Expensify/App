@@ -8,6 +8,8 @@ import CONFIG from '../../CONFIG';
 import * as Browser from '../../libs/Browser';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Authentication from '../../libs/Authentication';
+import DeeplinkRedirectLoadingIndicator from './DeeplinkRedirectLoadingIndicator';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Children to render. */
@@ -15,7 +17,6 @@ const propTypes = {
 
     /** Session info for the currently logged-in user. */
     session: PropTypes.shape({
-
         /** Currently logged-in user email */
         email: PropTypes.string,
 
@@ -36,10 +37,12 @@ class DeeplinkWrapper extends PureComponent {
         super(props);
 
         this.state = {
-            appInstallationCheckStatus: (this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV)
-                ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
+            appInstallationCheckStatus:
+                this.isMacOSWeb() && CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV ? CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING : CONST.DESKTOP_DEEPLINK_APP_STATE.NOT_INSTALLED,
+            shouldOpenLinkInBrowser: false,
         };
         this.focused = true;
+        this.openLinkInBrowser = this.openLinkInBrowser.bind(this);
     }
 
     componentDidMount() {
@@ -59,16 +62,24 @@ class DeeplinkWrapper extends PureComponent {
             this.openRouteInDesktopApp(expensifyDeeplinkUrl);
             return;
         }
-        Authentication.getShortLivedAuthToken().then((shortLivedAuthToken) => {
-            params.set('email', this.props.session.email);
-            params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
-            const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
-            this.openRouteInDesktopApp(expensifyDeeplinkUrl);
-        }).catch(() => {
-            // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
-            // If not, we only need to make sure that the state will be updated.
-            this.updateAppInstallationCheckStatus();
-        });
+
+        // There's no support for anonymous users on desktop
+        if (Session.isAnonymousUser()) {
+            return;
+        }
+
+        Authentication.getShortLivedAuthToken()
+            .then((shortLivedAuthToken) => {
+                params.set('email', this.props.session.email);
+                params.set('shortLivedAuthToken', `${shortLivedAuthToken}`);
+                const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
+                this.openRouteInDesktopApp(expensifyDeeplinkUrl);
+            })
+            .catch(() => {
+                // If the request is successful, we call the updateAppInstallationCheckStatus before the prompt pops up.
+                // If not, we only need to make sure that the state will be updated.
+                this.updateAppInstallationCheckStatus();
+            });
     }
 
     updateAppInstallationCheckStatus() {
@@ -84,10 +95,14 @@ class DeeplinkWrapper extends PureComponent {
     openRouteInDesktopApp(expensifyDeeplinkUrl) {
         this.updateAppInstallationCheckStatus();
 
+        const browser = Browser.getBrowser();
+
         // This check is necessary for Safari, otherwise, if the user
         // does NOT have the Expensify desktop app installed, it's gonna
         // show an error in the page saying that the address is invalid
-        if (CONST.BROWSER.SAFARI === Browser.getBrowser()) {
+        // It is also necessary for Firefox, otherwise the window.location.href redirect
+        // will abort the fetch request from NetInfo, which will cause the app to go offline temporarily.
+        if (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX) {
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             document.body.appendChild(iframe);
@@ -110,17 +125,25 @@ class DeeplinkWrapper extends PureComponent {
     }
 
     isMacOSWeb() {
-        return !Browser.isMobile() && (
-            typeof navigator === 'object'
-            && typeof navigator.userAgent === 'string'
-            && /Mac/i.test(navigator.userAgent)
-            && !/Electron/i.test(navigator.userAgent)
-        );
+        return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
+    }
+
+    openLinkInBrowser() {
+        this.setState({shouldOpenLinkInBrowser: true});
+    }
+
+    shouldShowDeeplinkLoadingIndicator() {
+        const routeRegex = new RegExp(CONST.REGEX.ROUTES.VALIDATE_LOGIN);
+        return routeRegex.test(window.location.pathname);
     }
 
     render() {
         if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.CHECKING) {
             return <FullScreenLoadingIndicator style={styles.flex1} />;
+        }
+
+        if (this.state.appInstallationCheckStatus === CONST.DESKTOP_DEEPLINK_APP_STATE.INSTALLED && this.shouldShowDeeplinkLoadingIndicator() && !this.state.shouldOpenLinkInBrowser) {
+            return <DeeplinkRedirectLoadingIndicator openLinkInBrowser={this.openLinkInBrowser} />;
         }
 
         return this.props.children;

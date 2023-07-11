@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
@@ -28,7 +28,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const AboutPage = (props) => {
+function AboutPage(props) {
     let popoverAnchor;
     const menuItems = [
         {
@@ -72,43 +72,28 @@ const AboutPage = (props) => {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithCloseButton
+                    <HeaderWithBackButton
                         title={props.translate('initialSettingsPage.about')}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     />
-                    <ScrollView
-                        contentContainerStyle={[
-                            styles.flexGrow1,
-                            styles.flexColumn,
-                            styles.justifyContentBetween,
-                            safeAreaPaddingBottomStyle,
-                        ]}
-                    >
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween, safeAreaPaddingBottomStyle]}>
                         <View style={[styles.flex1]}>
                             <View style={styles.pageWrapper}>
                                 <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
-                                    <Logo height={80} width={80} />
+                                    <Logo
+                                        height={80}
+                                        width={80}
+                                    />
                                     <Text
                                         selectable
-                                        style={[
-                                            styles.textLabel,
-                                            styles.alignSelfCenter,
-                                            styles.mt6,
-                                            styles.mb2,
-                                            styles.colorMuted,
-                                        ]}
+                                        style={[styles.textLabel, styles.alignSelfCenter, styles.mt6, styles.mb2, styles.colorMuted]}
                                     >
-                                        v
-                                        {Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
+                                        v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}` : pkg.version}
                                     </Text>
-                                    <Text style={[styles.baseFontStyle, styles.mv5]}>
-                                        {props.translate('initialSettingsPage.aboutPage.description')}
-                                    </Text>
+                                    <Text style={[styles.baseFontStyle, styles.mv5]}>{props.translate('initialSettingsPage.aboutPage.description')}</Text>
                                 </View>
                             </View>
-                            {_.map(menuItems, item => (
+                            {_.map(menuItems, (item) => (
                                 <MenuItem
                                     key={item.translationKey}
                                     title={props.translate(item.translationKey)}
@@ -116,9 +101,10 @@ const AboutPage = (props) => {
                                     iconRight={item.iconRight}
                                     onPress={() => item.action()}
                                     shouldBlockSelection={Boolean(item.link)}
-                                    onSecondaryInteraction={!_.isEmpty(item.link)
-                                        ? e => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined}
-                                    ref={el => popoverAnchor = el}
+                                    onSecondaryInteraction={
+                                        !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor) : undefined
+                                    }
+                                    ref={(el) => (popoverAnchor = el)}
                                     shouldShowRightIcon
                                 />
                             ))}
@@ -128,24 +114,19 @@ const AboutPage = (props) => {
                                 style={[styles.chatItemMessageHeaderTimestamp]}
                                 numberOfLines={1}
                             >
-                                {props.translate(
-                                    'initialSettingsPage.readTheTermsAndPrivacy.phrase1',
-                                )}
-                                {' '}
-                                <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.TERMS_URL}>
-                                    {props.translate(
-                                        'initialSettingsPage.readTheTermsAndPrivacy.phrase2',
-                                    )}
-                                </TextLink>
-                                {' '}
-                                {props.translate(
-                                    'initialSettingsPage.readTheTermsAndPrivacy.phrase3',
-                                )}
-                                {' '}
-                                <TextLink style={[styles.textMicroSupporting, styles.link]} href={CONST.PRIVACY_URL}>
-                                    {props.translate(
-                                        'initialSettingsPage.readTheTermsAndPrivacy.phrase4',
-                                    )}
+                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
+                                <TextLink
+                                    style={[styles.textMicroSupporting, styles.link]}
+                                    href={CONST.TERMS_URL}
+                                >
+                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
+                                </TextLink>{' '}
+                                {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
+                                <TextLink
+                                    style={[styles.textMicroSupporting, styles.link]}
+                                    href={CONST.PRIVACY_URL}
+                                >
+                                    {props.translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
                                 </TextLink>
                                 .
                             </Text>
@@ -155,12 +136,9 @@ const AboutPage = (props) => {
             )}
         </ScreenWrapper>
     );
-};
+}
 
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-)(AboutPage);
+export default compose(withLocalize, withWindowDimensions)(AboutPage);

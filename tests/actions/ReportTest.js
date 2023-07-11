@@ -2,16 +2,12 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import moment from 'moment';
-import {
-    beforeEach, beforeAll, afterEach, describe, it, expect,
-} from '@jest/globals';
+import {beforeEach, beforeAll, afterEach, describe, it, expect} from '@jest/globals';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import * as Pusher from '../../src/libs/Pusher/pusher';
-import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
-import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
 import * as Report from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
@@ -30,21 +26,7 @@ jest.mock('../../src/libs/actions/Report', () => {
 
 describe('actions/Report', () => {
     beforeAll(() => {
-        // When using the Pusher mock the act of calling Pusher.isSubscribed will create a
-        // channel already in a subscribed state. These methods are normally used to prevent
-        // duplicated subscriptions, but we don't need them for this test so forcing them to
-        // return false will make the testing less complex.
-        Pusher.isSubscribed = jest.fn().mockReturnValue(false);
-        Pusher.isAlreadySubscribing = jest.fn().mockReturnValue(false);
-
-        // Connect to Pusher
-        PusherConnectionManager.init();
-        Pusher.init({
-            appKey: CONFIG.PUSHER.APP_KEY,
-            cluster: CONFIG.PUSHER.CLUSTER,
-            authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api?command=AuthenticatePusher`,
-        });
-
+        PusherHelper.setup();
         Onyx.init({
             keys: ONYXKEYS,
             registerStorageEventListener: () => {},
@@ -53,11 +35,7 @@ describe('actions/Report', () => {
 
     beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 
-    afterEach(() => {
-        // Unsubscribe from account channel after each test since we subscribe in the function
-        // subscribeToUserEvents and we don't want duplicate event subscriptions.
-        Pusher.unsubscribe(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
-    });
+    afterEach(PusherHelper.teardown);
 
     it('should store a new report action in Onyx when onyxApiUpdate event is handled via Pusher', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
@@ -69,7 +47,6 @@ describe('actions/Report', () => {
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
-            actorEmail: TEST_USER_LOGIN,
             automatic: false,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
             message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
@@ -80,7 +57,7 @@ describe('actions/Report', () => {
         let reportActions;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: val => reportActions = val,
+            callback: (val) => (reportActions = val),
         });
 
         // Set up Onyx with some test user data
@@ -106,21 +83,20 @@ describe('actions/Report', () => {
 
                 // We subscribed to the Pusher channel above and now we need to simulate a reportComment action
                 // Pusher event so we can verify that action was handled correctly and merged into the reportActions.
-                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}1${CONFIG.PUSHER.SUFFIX}`);
-                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                PusherHelper.emitOnyxUpdate([
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
                             notificationPreference: 'always',
                             lastVisibleActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Testing a comment',
-                            lastActorEmail: TEST_USER_LOGIN,
+                            lastActorAccountID: TEST_USER_ACCOUNT_ID,
                         },
                     },
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             [reportActionID]: {pendingAction: null},
@@ -148,21 +124,17 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
-        const REPORT = {
-            reportID: REPORT_ID,
-            isPinned: false,
-        };
 
         let reportIsPinned;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
-            callback: val => reportIsPinned = lodashGet(val, 'isPinned'),
+            callback: (val) => (reportIsPinned = lodashGet(val, 'isPinned')),
         });
 
         // Set up Onyx with some test user data
         return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                Report.togglePinnedState(REPORT);
+                Report.togglePinnedState(REPORT_ID, false);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -200,7 +172,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // THEN only ONE call to AddComment will happen
                 const URL_ARGUMENT_INDEX = 0;
-                const addCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
+                const addCommentCalls = _.filter(global.fetch.mock.calls, (callArguments) => callArguments[URL_ARGUMENT_INDEX].includes('AddComment'));
                 expect(addCommentCalls.length).toBe(1);
             });
     });
@@ -212,20 +184,18 @@ describe('actions/Report', () => {
         let currentTime;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
-            callback: val => report = val,
+            callback: (val) => (report = val),
         });
 
         let reportActions;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: val => reportActions = val,
+            callback: (val) => (reportActions = val),
         });
 
         const USER_1_LOGIN = 'user@test.com';
         const USER_1_ACCOUNT_ID = 1;
-        const USER_2_LOGIN = 'different-user@test.com';
         const USER_2_ACCOUNT_ID = 2;
-        const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${USER_1_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
         return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Test', reportID: REPORT_ID})
             .then(() => TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN))
             .then(() => {
@@ -235,29 +205,29 @@ describe('actions/Report', () => {
             })
             .then(() => TestHelper.setPersonalDetails(USER_1_LOGIN, USER_1_ACCOUNT_ID))
             .then(() => {
-                // When a Pusher event is handled for a new report comment
+                // When a Pusher event is handled for a new report comment that includes a mention of the current user
                 reportActionCreatedDate = DateUtils.getDBTime();
-                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                PusherHelper.emitOnyxUpdate([
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
                             notificationPreference: 'always',
                             lastMessageText: 'Comment 1',
-                            lastActorEmail: USER_2_LOGIN,
+                            lastActorAccountID: USER_2_ACCOUNT_ID,
                             lastVisibleActionCreated: reportActionCreatedDate,
+                            lastMentionedTime: reportActionCreatedDate,
                             lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
                         },
                     },
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             1: {
                                 actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                                 actorAccountID: USER_2_ACCOUNT_ID,
-                                actorEmail: USER_2_LOGIN,
                                 automatic: false,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                                 message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
@@ -275,6 +245,9 @@ describe('actions/Report', () => {
                 // Then the report will be unread
                 expect(ReportUtils.isUnread(report)).toBe(true);
 
+                // And show a green dot for unread mentions in the LHN
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
+
                 // When the user visits the report
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
@@ -286,14 +259,18 @@ describe('actions/Report', () => {
                 expect(ReportUtils.isUnread(report)).toBe(false);
                 expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
 
+                // And no longer show the green dot for unread mentions in the LHN
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
+
                 // When the user manually marks a message as "unread"
                 jest.advanceTimersByTime(10);
                 Report.markCommentAsUnread(REPORT_ID, reportActionCreatedDate);
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // Then the report will be unread
+                // Then the report will be unread and show the green dot for unread mentions in LHN
                 expect(ReportUtils.isUnread(report)).toBe(true);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
                 expect(report.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
                 // When a new comment is added by the current user
@@ -303,8 +280,9 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                // The report will be read and the lastReadTime updated
+                // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
                 expect(ReportUtils.isUnread(report)).toBe(false);
+                expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
                 expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
                 expect(report.lastMessageText).toBe('Current User Comment 1');
 
@@ -335,7 +313,6 @@ describe('actions/Report', () => {
                 const USER_1_BASE_ACTION = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     actorAccountID: USER_1_ACCOUNT_ID,
-                    actorEmail: USER_1_LOGIN,
                     automatic: false,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
@@ -345,7 +322,7 @@ describe('actions/Report', () => {
 
                 jest.advanceTimersByTime(10);
                 const optimisticReportActions = {
-                    onyxMethod: CONST.ONYX.METHOD.MERGE,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                     value: {
                         200: {
@@ -373,15 +350,15 @@ describe('actions/Report', () => {
                 optimisticReportActions.value[400].created = reportActionCreatedDate;
 
                 // When we emit the events for these pending created actions to update them to not pending
-                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                PusherHelper.emitOnyxUpdate([
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
                         value: {
                             reportID: REPORT_ID,
                             notificationPreference: 'always',
                             lastMessageText: 'Current User Comment 3',
-                            lastActorEmail: 'test@test.com',
+                            lastActorAccountID: 1,
                             lastVisibleActionCreated: reportActionCreatedDate,
                             lastReadTime: reportActionCreatedDate,
                         },
@@ -455,8 +432,9 @@ describe('actions/Report', () => {
         originalCommentHTML = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
         newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentHTML);
-        expectedOutput = 'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> '
-            + '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
+        expectedOutput =
+            'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> ' +
+            '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
         // Comment has two links but user deletes only one of them
@@ -513,10 +491,9 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Simulate a Pusher Onyx update with a report action with shouldNotify
-                const channel = Pusher.getChannel(`${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${TEST_USER_ACCOUNT_ID}${CONFIG.PUSHER.SUFFIX}`);
-                channel.emit(Pusher.TYPE.ONYX_API_UPDATE, [
+                PusherHelper.emitOnyxUpdate([
                     {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
+                        onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                         value: {
                             1: REPORT_ACTION,
@@ -525,7 +502,8 @@ describe('actions/Report', () => {
                     },
                 ]);
                 return waitForPromisesToResolve();
-            }).then(() => {
+            })
+            .then(() => {
                 // Ensure we show a notification for this new report action
                 expect(Report.showReportActionNotification).toBeCalledWith(REPORT_ID, REPORT_ACTION);
             });
@@ -549,7 +527,7 @@ describe('actions/Report', () => {
 
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: val => reportActions = val,
+            callback: (val) => (reportActions = val),
         });
 
         // Set up Onyx with some test user data
@@ -576,14 +554,14 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Expect to have the reaction on the message
-                expect(resultAction.message[0].reactions)
-                    .toEqual(expect.arrayContaining([
+                expect(resultAction.message[0].reactions).toEqual(
+                    expect.arrayContaining([
                         expect.objectContaining({
                             emoji: EMOJI_NAME,
-                            users: expect.arrayContaining([
-                                expect.objectContaining({accountID: TEST_USER_ACCOUNT_ID}),
-                            ]),
-                        })]));
+                            users: expect.arrayContaining([expect.objectContaining({accountID: TEST_USER_ACCOUNT_ID})]),
+                        }),
+                    ]),
+                );
 
                 // Now we remove the reaction
                 Report.removeEmojiReaction(REPORT_ID, resultAction, EMOJI);
@@ -603,20 +581,15 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve()
                     .then(() => {
                         const updatedResultAction = _.first(_.values(reportActions));
-                        Report.addEmojiReaction(
-                            REPORT_ID,
-                            updatedResultAction,
-                            EMOJI,
-                            2,
-                        );
+                        Report.addEmojiReaction(REPORT_ID, updatedResultAction, EMOJI, 2);
                         return waitForPromisesToResolve();
                     })
                     .then(() => {
                         const updatedResultAction = _.first(_.values(reportActions));
 
                         // Expect to have the reaction on the message
-                        expect(updatedResultAction.message[0].reactions)
-                            .toEqual(expect.arrayContaining([
+                        expect(updatedResultAction.message[0].reactions).toEqual(
+                            expect.arrayContaining([
                                 expect.objectContaining({
                                     emoji: EMOJI_NAME,
                                     users: expect.arrayContaining([
@@ -628,7 +601,9 @@ describe('actions/Report', () => {
                                             skinTone: EMOJI_SKIN_TONE,
                                         }),
                                     ]),
-                                })]));
+                                }),
+                            ]),
+                        );
 
                         // Now we remove the reaction, and expect that both variations are removed
                         Report.removeEmojiReaction(REPORT_ID, updatedResultAction, EMOJI);
@@ -643,7 +618,7 @@ describe('actions/Report', () => {
             });
     });
 
-    it('shouldn\'t add the same reaction twice when changing preferred skin color and reaction doesn\'t support skin colors', () => {
+    it("shouldn't add the same reaction twice when changing preferred skin color and reaction doesn't support skin colors", () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
         const TEST_USER_ACCOUNT_ID = 1;
@@ -660,7 +635,7 @@ describe('actions/Report', () => {
 
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-            callback: val => reportActions = val,
+            callback: (val) => (reportActions = val),
         });
 
         // Set up Onyx with some test user data
@@ -680,7 +655,7 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -689,7 +664,7 @@ describe('actions/Report', () => {
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
                 // should get removed instead of added again.
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, 2);
+                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI, 2);
                 return waitForPromisesToResolve();
             })
             .then(() => {

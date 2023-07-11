@@ -13,8 +13,7 @@ import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 import FullPageOfflineBlockingView from '../../components/BlockingViews/FullPageOfflineBlockingView';
 import StepPropTypes from './StepPropTypes';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 
 const propTypes = {
@@ -35,25 +34,23 @@ class RequestorOnfidoStep extends React.Component {
     }
 
     submit(onfidoData) {
-        BankAccounts.verifyIdentityForBankAccount(
-            lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
-            onfidoData,
-        );
+        BankAccounts.verifyIdentityForBankAccount(lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0, onfidoData);
 
         BankAccounts.updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
     }
 
     render() {
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                shouldShowOfflineIndicator={false}
+            >
+                <HeaderWithBackButton
                     title={this.props.translate('requestorStep.headerTitle')}
                     stepCounter={{step: 3, total: 5}}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
                     onBackButtonPress={this.props.onBackButtonPress}
-                    onCloseButtonPress={Navigation.dismissModal}
                 />
                 <FullPageOfflineBlockingView>
                     <ScrollView contentContainerStyle={styles.flex1}>

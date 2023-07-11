@@ -2,23 +2,23 @@ const ValidationUtils = require('../../src/libs/ValidationUtils');
 
 describe('ValidationUtils', () => {
     describe('isValidTwoFactorCode', () => {
-        test('numeric two factor code', () => {
+        test('numeric two-factor code', () => {
             expect(ValidationUtils.isValidTwoFactorCode('123456')).toBe(true);
         });
 
-        test('numeric two factor code with leading zeroes', () => {
+        test('numeric two-factor code with leading zeroes', () => {
             expect(ValidationUtils.isValidTwoFactorCode('000001')).toBe(true);
         });
 
-        test('alphanumeric two factor code', () => {
+        test('alphanumeric two-factor code', () => {
             expect(ValidationUtils.isValidTwoFactorCode('abc123')).toBe(false);
         });
 
-        test('special characters two factor code', () => {
+        test('special characters two-factor code', () => {
             expect(ValidationUtils.isValidTwoFactorCode('!@#$%^')).toBe(false);
         });
 
-        test('partial special characters two factor code', () => {
+        test('partial special characters two-factor code', () => {
             expect(ValidationUtils.isValidTwoFactorCode('123$%^')).toBe(false);
         });
     });
@@ -84,6 +84,19 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidWebsite('www.~expensify.com')).toBe(false);
             expect(ValidationUtils.isValidWebsite('https://www.expen$ify.com')).toBe(false);
             expect(ValidationUtils.isValidWebsite('www.expensify😄.com')).toBe(false);
+        });
+    });
+
+    describe('ValidateAccountRoute', () => {
+        test('Valid account route', () => {
+            expect(ValidationUtils.isValidAccountRoute(123123)).toBe(true);
+            expect(ValidationUtils.isValidAccountRoute(5612)).toBe(true);
+        });
+
+        test('Invalid account route', () => {
+            expect(ValidationUtils.isValidAccountRoute(undefined)).toBe(false);
+            expect(ValidationUtils.isValidAccountRoute(0)).toBe(false);
+            expect(ValidationUtils.isValidAccountRoute('123aaa')).toBe(false);
         });
     });
 });

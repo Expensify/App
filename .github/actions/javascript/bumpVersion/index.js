@@ -52,10 +52,7 @@ function updateNativeVersions(version) {
 
 let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
 if (!semanticVersionLevel || !_.contains(versionUpdater.SEMANTIC_VERSION_LEVELS, semanticVersionLevel)) {
-    console.log(
-        `Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`,
-        `Defaulting to: ${versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD}`,
-    );
+    console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD}`);
     semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
 }
 
@@ -94,9 +91,7 @@ const getPatchVersion = __nccwpck_require__(866);
 const getBuildVersion = __nccwpck_require__(14);
 
 // Filepath constants
-const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
-    ? path.resolve(__dirname, '../../android/app/build.gradle')
-    : './android/app/build.gradle';
+const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path.resolve(__dirname, '../../android/app/build.gradle') : './android/app/build.gradle';
 const PLIST_PATH = './ios/NewExpensify/Info.plist';
 const PLIST_PATH_TEST = './ios/NewExpensifyTests/Info.plist';
 
@@ -146,12 +141,13 @@ exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVers
  */
 exports.updateAndroidVersion = function updateAndroidVersion(versionName, versionCode) {
     console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
-    return fs.readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
+    return fs
+        .readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
         .then((content) => {
             let updatedContent = content.toString().replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
-            return updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`);
+            return (updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`));
         })
-        .then(updatedContent => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
+        .then((updatedContent) => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
 };
 
 /**
@@ -200,7 +196,7 @@ const MAX_INCREMENTS = 99;
  */
 const getVersionNumberFromString = (versionString) => {
     const [version, build] = versionString.split('-');
-    const [major, minor, patch] = _.map(version.split('.'), n => Number(n));
+    const [major, minor, patch] = _.map(version.split('.'), (n) => Number(n));
 
     return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };
@@ -276,6 +272,41 @@ const incrementVersion = (version, level) => {
     return incrementPatch(major, minor, patch);
 };
 
+/**
+ * @param {String} currentVersion
+ * @param {String} level
+ * @returns {String}
+ */
+function getPreviousVersion(currentVersion, level) {
+    const [major, minor, patch, build] = getVersionNumberFromString(currentVersion);
+
+    if (level === SEMANTIC_VERSION_LEVELS.MAJOR) {
+        if (major === 1) {
+            return getVersionStringFromNumber(1, 0, 0, 0);
+        }
+        return getVersionStringFromNumber(major - 1, 0, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.MINOR) {
+        if (minor === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MAJOR);
+        }
+        return getVersionStringFromNumber(major, minor - 1, 0, 0);
+    }
+
+    if (level === SEMANTIC_VERSION_LEVELS.PATCH) {
+        if (patch === 0) {
+            return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.MINOR);
+        }
+        return getVersionStringFromNumber(major, minor, patch - 1, 0);
+    }
+
+    if (build === 0) {
+        return getPreviousVersion(currentVersion, SEMANTIC_VERSION_LEVELS.PATCH);
+    }
+    return getVersionStringFromNumber(major, minor, patch, build - 1);
+}
+
 module.exports = {
     getVersionNumberFromString,
     getVersionStringFromNumber,
@@ -286,6 +317,7 @@ module.exports = {
     SEMANTIC_VERSION_LEVELS,
     incrementMinor,
     incrementPatch,
+    getPreviousVersion,
 };
 
 

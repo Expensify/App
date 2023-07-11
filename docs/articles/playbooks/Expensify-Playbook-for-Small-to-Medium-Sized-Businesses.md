@@ -14,7 +14,7 @@ As a small to medium-sized business owner, your main aim is to achieve success a
 This playbook is built on best practices we’ve developed after processing expenses for tens of thousands of companies around the world. As such, use this playbook as your starting point, knowing that you can customize Expensify to suit your business needs. Every company is different, and your dedicated Setup Specialist is always one chat away with any questions you may have.
 
 ### Step 1: Create your Expensify account
-If you don't already have one, go to [Expensify.com](https://expensify.com) and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
+If you don't already have one, go to *[new.expensify.com](https://new.expensify.com)* and sign up for an account with your work email address. The account is free so don’t worry about the cost at this stage.
 
 > _Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical_
 >
@@ -37,7 +37,7 @@ To create your Control Policy:
 2. Select *Group* and click the button that says *New Policy*
 3. Click *Select* under Control
 
-The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in [new.expensify.com](https://new.expensify.com), and in your company’s policy settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Card is only *$9 per user per month* (not taking into account cash back your earn) when you commit annually. That’s a 75% discount off the unbundled price point if you choose to use a different Corporate Card (or no) provider.
+The Control Plan also gives you access to a dedicated Setup Specialist. You can find yours by looking at your policy's *#admins* room in *[new.expensify.com](https://new.expensify.com)*, and in your company’s policy settings in the *Overview* tab, where you can chat with them and schedule an onboarding call to walk through any setup questions. The Control Plan bundled with the Expensify Card is only *$9 per user per month* (not taking into account cash back your earn) when you commit annually. That’s a 75% discount off the unbundled price point if you choose to use a different Corporate Card (or no) provider.
 
 ### Step 3: Connect your accounting system
 As a small to medium-sized business, it's important to maintain proper spend management to ensure the success and stability of your organization. This requires paying close attention to your expenses, streamlining your financial processes, and making sure that your financial information is accurate, compliant, and transparent. Include best practices such as:
@@ -51,7 +51,6 @@ You do this by synchronizing Expensify and your accounting package as follows:
 1. Click *Settings > Policies*
 2. Navigate to the *Connections* tab
 3. Select your accounting system
-   - If you don’t see your accounting solution in the list of integrations we support, you can review an alternative solution in the Feature Deep Dives section below.
 4. Follow the prompts to connect your accounting package
 
 Check out the links below for more information on how to connect to your accounting solution:
@@ -59,6 +58,7 @@ Check out the links below for more information on how to connect to your account
 - *[Xero](https://community.expensify.com/discussion/5282/how-to-connect-your-policy-to-xero)*
 - *[NetSuite](https://community.expensify.com/discussion/5212/how-to-connect-your-policy-to-netsuite-token-based-authentication)*
 - *[Sage Intacct](https://community.expensify.com/discussion/4777/how-to-connect-to-sage-intacct-user-based-permissions-expense-reports)*
+- *[Other Accounting System](https://community.expensify.com/discussion/5271/how-to-set-up-an-indirect-accounting-integration)
 
 
 *“Employees really appreciate how easy it is to use, and the fact that the reimbursement drops right into their bank account. Since most employees are submitting expenses from their phones, the ease of use of the app is critical.”*
@@ -280,4 +280,4 @@ Now that we’ve gone through all of the steps for setting up your account, let�
 4. Click *Accept Terms*
 
 ## You’re all set!
-Congrats, you are all set up! If you need any assistance with anything mentioned above or would like to understand other features available in Expensify, reach out to your Setup Specialist directly in new.expensify.com. Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you. 
+Congrats, you are all set up! If you need any assistance with anything mentioned above or would like to understand other features available in Expensify, reach out to your Setup Specialist directly in *[new.expensify.com](https://new.expensify.com)*. Don’t have one yet? Create a Control Policy, and we’ll automatically assign a dedicated Setup Specialist to you. 

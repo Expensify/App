@@ -7,6 +7,7 @@ import getPlatform from '../../src/libs/getPlatform';
 import AddLastVisibleActionCreated from '../../src/libs/migrations/AddLastVisibleActionCreated';
 import MoveToIndexedDB from '../../src/libs/migrations/MoveToIndexedDB';
 import KeyReportActionsByReportActionID from '../../src/libs/migrations/KeyReportActionsByReportActionID';
+import PersonalDetailsByAccountID from '../../src/libs/migrations/PersonalDetailsByAccountID';
 import ONYXKEYS from '../../src/ONYXKEYS';
 
 jest.mock('../../src/libs/getPlatform');
@@ -45,11 +46,10 @@ describe('Migrations', () => {
             getPlatform.mockImplementation(() => CONST.PLATFORM.ANDROID);
 
             // When the migration runs
-            return MoveToIndexedDB()
-                .then(() => {
-                    // Then we don't expect any storage calls
-                    expect(Onyx.multiSet).not.toHaveBeenCalled();
-                });
+            return MoveToIndexedDB().then(() => {
+                // Then we don't expect any storage calls
+                expect(Onyx.multiSet).not.toHaveBeenCalled();
+            });
         });
 
         it('Should do nothing when there is no old session data', () => {
@@ -57,11 +57,10 @@ describe('Migrations', () => {
             localStorage.removeItem(ONYXKEYS.SESSION);
 
             // When the migration runs
-            return MoveToIndexedDB()
-                .then(() => {
-                    // Then we don't expect any storage calls
-                    expect(Onyx.multiSet).not.toHaveBeenCalled();
-                });
+            return MoveToIndexedDB().then(() => {
+                // Then we don't expect any storage calls
+                expect(Onyx.multiSet).not.toHaveBeenCalled();
+            });
         });
 
         it('Should migrate Onyx keys in localStorage to (new) Onyx', () => {
@@ -75,11 +74,10 @@ describe('Migrations', () => {
             _.forEach(data, (value, key) => localStorage.setItem(key, JSON.stringify(value)));
 
             // When the migration runs
-            return MoveToIndexedDB()
-                .then(() => {
-                    // Then multiset should be called with all the data available in localStorage
-                    expect(Onyx.multiSet).toHaveBeenCalledWith(data);
-                });
+            return MoveToIndexedDB().then(() => {
+                // Then multiset should be called with all the data available in localStorage
+                expect(Onyx.multiSet).toHaveBeenCalledWith(data);
+            });
         });
 
         it('Should not clear non Onyx keys from localStorage', () => {
@@ -88,16 +86,15 @@ describe('Migrations', () => {
             localStorage.setItem('non-onyx-item', 'MOCK');
 
             // When the migration runs
-            return MoveToIndexedDB()
-                .then(() => {
-                    // Then non-Onyx data should remain in localStorage
-                    expect(localStorage.getItem('non-onyx-item')).toEqual('MOCK');
-                });
+            return MoveToIndexedDB().then(() => {
+                // Then non-Onyx data should remain in localStorage
+                expect(localStorage.getItem('non-onyx-item')).toEqual('MOCK');
+            });
         });
     });
 
     describe('AddLastVisibleActionCreated', () => {
-        it('Should add lastVisibleActionCreated wherever lastActionCreated currently is', () => (
+        it('Should add lastVisibleActionCreated wherever lastActionCreated currently is', () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
                     lastActionCreated: '2022-11-16 01:31:13.702',
@@ -122,10 +119,9 @@ describe('Migrations', () => {
                             expect(allReports.report_2.lastVisibleActionCreated).toBe('2022-11-16 01:31:54.821');
                         },
                     });
-                })
-        ));
+                }));
 
-        it('Should skip if the report data already has the correct fields', () => (
+        it('Should skip if the report data already has the correct fields', () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
                     lastVisibleActionCreated: '2022-11-16 01:31:13.702',
@@ -137,33 +133,30 @@ describe('Migrations', () => {
                 .then(AddLastVisibleActionCreated)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
-                })
-        ));
+                }));
 
-        it('Should work even if there is no report data', () => (
-            AddLastVisibleActionCreated()
-                .then(() => {
-                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
-                    const connectionID = Onyx.connect({
-                        key: ONYXKEYS.COLLECTION.REPORT,
-                        waitForCollectionCallback: true,
-                        callback: (allReports) => {
-                            Onyx.disconnect(connectionID);
-                            expect(_.compact(_.values(allReports))).toEqual([]);
-                        },
-                    });
-                })
-        ));
+        it('Should work even if there is no report data', () =>
+            AddLastVisibleActionCreated().then(() => {
+                expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration AddLastVisibleActionCreated');
+                const connectionID = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        Onyx.disconnect(connectionID);
+                        expect(_.compact(_.values(allReports))).toEqual([]);
+                    },
+                });
+            }));
     });
 
     describe('KeyReportActionsByReportActionID', () => {
         // Warning: this test has to come before the others in this suite because Onyx.clear leaves traces and keys with null values aren't cleared out between tests
-        it("Should work even if there's no reportAction data in Onyx", () => (
-            KeyReportActionsByReportActionID()
-                .then(() => expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because there were no reportActions'))
-        ));
+        it("Should work even if there's no reportAction data in Onyx", () =>
+            KeyReportActionsByReportActionID().then(() =>
+                expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration KeyReportActionsByReportActionID because there were no reportActions'),
+            ));
 
-        it("Should work even if there's zombie reportAction data in Onyx", () => (
+        it("Should work even if there's zombie reportAction data in Onyx", () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
@@ -176,13 +169,12 @@ describe('Migrations', () => {
                         waitForCollectionCallback: true,
                         callback: (allReportActions) => {
                             Onyx.disconnect(connectionID);
-                            _.each(allReportActions, reportActionsForReport => expect(reportActionsForReport).toBeNull());
+                            _.each(allReportActions, (reportActionsForReport) => expect(reportActionsForReport).toBeNull());
                         },
                     });
-                })
-        ));
+                }));
 
-        it('Should migrate reportActions to be keyed by reportActionID instead of sequenceNumber', () => (
+        it('Should migrate reportActions to be keyed by reportActionID instead of sequenceNumber', () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
                     1: {
@@ -221,10 +213,9 @@ describe('Migrations', () => {
                             });
                         },
                     });
-                })
-        ));
+                }));
 
-        it('Should return early if the migration has already happened', () => (
+        it('Should return early if the migration has already happened', () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
                     1000: {
@@ -261,7 +252,623 @@ describe('Migrations', () => {
                             });
                         },
                     });
-                })
-        ));
+                }));
+    });
+
+    describe('PersonalDetailsByAccountID', () => {
+        const DEPRECATED_ONYX_KEYS = {
+            // Deprecated personal details object which was keyed by login instead of accountID.
+            PERSONAL_DETAILS: 'personalDetails',
+        };
+
+        it('Should skip any zombie reportAction collections that have no reportAction data in Onyx', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        `[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1 because there were no reportActions`,
+                    );
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        `[Migrate Onyx] Skipped migration PersonalDetailsByAccountID for ${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2 because there were no reportActions`,
+                    );
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            _.each(allReportActions, (reportActionsForReport) => expect(reportActionsForReport).toBeNull());
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have no data in Onyx', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: null,
+                    2: null,
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 1 because the reportAction was empty');
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because the reportAction was empty');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            _.each(allReportActions, (reportActionsForReport) => expect(reportActionsForReport).toMatchObject({}));
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have originalMessage.oldLogin but the matching accountID is not found', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                    2: {
+                        reportActionID: '2',
+                        originalMessage: {
+                            oldLogin: 'non-existent@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because originalMessage.oldAccountID not found');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toHaveProperty('1');
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).not.toHaveProperty('2');
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have originalMessage.newLogin but the matching accountID is not found', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                    2: {
+                        reportActionID: '2',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'non-existent@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because originalMessage.newAccountID not found');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toHaveProperty('1');
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).not.toHaveProperty('2');
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have accountEmail but the matching accountID is not found', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                    2: {
+                        reportActionID: '2',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'non-existent@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because accountID not found');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toHaveProperty('1');
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).not.toHaveProperty('2');
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have actorEmail but the matching accountID is not found', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                    2: {
+                        reportActionID: '2',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'non-existent@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because actorAccountID not found');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toHaveProperty('1');
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).not.toHaveProperty('2');
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have childManagerEmail but the matching accountID is not found', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                    2: {
+                        reportActionID: '2',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'non-existent@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because childManagerAccountID not found');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toHaveProperty('1');
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).not.toHaveProperty('2');
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have whisperedTo but the matching accountID is not found', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                    2: {
+                        reportActionID: '2',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'non-existent@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because whisperedToAccountIDs not found');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toHaveProperty('1');
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).not.toHaveProperty('2');
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have childOldestFourEmails but the matching accountID is not found', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                    2: {
+                        reportActionID: '2',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, non-existent@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because childOldestFourAccountIDs not found');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toHaveProperty('1');
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).not.toHaveProperty('2');
+                        },
+                    });
+                }));
+
+        it('Should remove any individual reportActions that have originalMessage.participants but the matching accountID is not found', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                    2: {
+                        reportActionID: '2',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'non-existent@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        '[Migrate Onyx] PersonalDetailsByAccountID migration: removing reportAction 2 because originalMessage.participantAccountIDs not found',
+                    );
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toHaveProperty('1');
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).not.toHaveProperty('2');
+                        },
+                    });
+                }));
+
+        it('Should succeed in adding all relevant accountID data if it can be found in personalDetails', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        reportActionID: '1',
+                        originalMessage: {
+                            oldLogin: 'test1@account.com',
+                            newLogin: 'test2@account.com',
+                            participants: ['test1@account.com', 'test2@account.com'],
+                        },
+                        actorEmail: 'test2@account.com',
+                        accountEmail: 'test2@account.com',
+                        childManagerEmail: 'test2@account.com',
+                        whisperedTo: ['test1@account.com', 'test2@account.com'],
+                        childOldestFourEmails: 'test1@account.com, test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReportAction = {
+                                reportActionID: '1',
+                                originalMessage: {
+                                    oldLogin: 'test1@account.com',
+                                    oldAccountID: 100,
+                                    newLogin: 'test2@account.com',
+                                    newAccountID: 101,
+                                    participants: ['test1@account.com', 'test2@account.com'],
+                                    participantAccountIDs: [100, 101],
+                                },
+                                actorEmail: 'test2@account.com',
+                                actorAccountID: 101,
+                                accountEmail: 'test2@account.com',
+                                accountID: 101,
+                                childManagerEmail: 'test2@account.com',
+                                childManagerAccountID: 101,
+                                whisperedTo: ['test1@account.com', 'test2@account.com'],
+                                whisperedToAccountIDs: [100, 101],
+                                childOldestFourEmails: 'test1@account.com, test2@account.com',
+                                childOldestFourAccountIDs: '100,101',
+                            };
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`][1]).toMatchObject(expectedReportAction);
+                        },
+                    });
+                }));
+
+        it('Should succeed in removing any policyMemberList objects it finds in Onyx', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}1`]: {
+                    'admin@company1.com': {
+                        role: 'admin',
+                    },
+                    'employee@company1.com': {
+                        role: 'user',
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}2`]: {
+                    'admin@company2.com': {
+                        role: 'admin',
+                    },
+                    'employee@company2.com': {
+                        role: 'user',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        `[Migrate Onyx] PersonalDetailsByAccountID migration: removing policyMemberList ${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}1`,
+                    );
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        `[Migrate Onyx] PersonalDetailsByAccountID migration: removing policyMemberList ${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}2`,
+                    );
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST,
+                        waitForCollectionCallback: true,
+                        callback: (allPolicyMemberLists) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allPolicyMemberLists[`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}1`]).toBeNull();
+                            expect(allPolicyMemberLists[`${ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}2`]).toBeNull();
+                        },
+                    });
+                }));
+
+        it('Should succeed in removing the personalDetails object if found in Onyx', () =>
+            Onyx.multiSet({
+                [`${DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS}`]: {
+                    'test1@account.com': {
+                        accountID: 100,
+                        login: 'test1@account.com',
+                    },
+                    'test2@account.com': {
+                        accountID: 101,
+                        login: 'test2@account.com',
+                    },
+                },
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing personalDetails');
+                    const connectionID = Onyx.connect({
+                        key: DEPRECATED_ONYX_KEYS.PERSONAL_DETAILS,
+                        callback: (allPersonalDetails) => {
+                            Onyx.disconnect(connectionID);
+                            expect(allPersonalDetails).toBeNull();
+                        },
+                    });
+                }));
     });
 });

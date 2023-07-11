@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const core = require('@actions/core');
+const CONST = require('../../../libs/CONST');
 const GithubUtils = require('../../../libs/GithubUtils');
 
 const run = function () {
@@ -7,11 +8,12 @@ const run = function () {
 
     console.log(`Fetching issue number ${issueNumber}`);
 
-    return GithubUtils.octokit.issues.get({
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.APP_REPO,
-        issue_number: issueNumber,
-    })
+    return GithubUtils.octokit.issues
+        .get({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            issue_number: issueNumber,
+        })
         .then(({data}) => {
             console.log('Checking for unverified PRs or unresolved deploy blockers', data);
 
@@ -24,8 +26,8 @@ const run = function () {
             }
 
             return GithubUtils.octokit.issues.listComments({
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 issue_number: issueNumber,
                 per_page: 100,
             });

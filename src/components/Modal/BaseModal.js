@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {StatusBar, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
@@ -31,7 +31,11 @@ class BaseModal extends PureComponent {
     }
 
     componentDidMount() {
-        if (!this.props.isVisible) { return; }
+        if (!this.props.isVisible) {
+            return;
+        }
+
+        Modal.willAlertModalBecomeVisible(true);
 
         // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
         Modal.setCloseModal(this.props.onClose);
@@ -47,8 +51,11 @@ class BaseModal extends PureComponent {
     }
 
     componentWillUnmount() {
-        // we don't want to call the onModalHide on unmount
-        this.hideModal(this.props.isVisible);
+        // Only trigger onClose and setModalVisibility if the modal is unmounting while visible.
+        if (this.props.isVisible) {
+            this.hideModal(true);
+            Modal.willAlertModalBecomeVisible(false);
+        }
 
         // To prevent closing any modal already unmounted when this modal still remains as visible state
         Modal.setCloseModal(null);
@@ -94,12 +101,11 @@ class BaseModal extends PureComponent {
         return (
             <ReactNativeModal
                 onBackdropPress={(e) => {
-                    if (e && e.type === 'keydown' && e.key === 'Enter') {
+                    if (e && e.key === 'Enter') {
                         return;
                     }
                     this.props.onClose();
                 }}
-
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
@@ -120,10 +126,7 @@ class BaseModal extends PureComponent {
                 hasBackdrop={this.props.fullscreen}
                 coverScreen={this.props.fullscreen}
                 style={modalStyle}
-
-                // When `statusBarTranslucent` is true on Android, the modal fully covers the status bar.
-                // Since `windowHeight` doesn't include status bar height, it should be added in the `deviceHeight` calculation.
-                deviceHeight={this.props.windowHeight + ((this.props.statusBarTranslucent && StatusBar.currentHeight) || 0)}
+                deviceHeight={this.props.windowHeight}
                 deviceWidth={this.props.windowWidth}
                 animationIn={this.props.animationIn || animationIn}
                 animationOut={this.props.animationOut || animationOut}
@@ -132,6 +135,8 @@ class BaseModal extends PureComponent {
                 animationInTiming={this.props.animationInTiming}
                 animationOutTiming={this.props.animationOutTiming}
                 statusBarTranslucent={this.props.statusBarTranslucent}
+                onLayout={this.props.onLayout}
+                avoidKeyboard={this.props.avoidKeyboard}
             >
                 <SafeAreaInsetsContext.Consumer>
                     {(insets) => {
@@ -140,7 +145,7 @@ class BaseModal extends PureComponent {
                             paddingBottom: safeAreaPaddingBottom,
                             paddingLeft: safeAreaPaddingLeft,
                             paddingRight: safeAreaPaddingRight,
-                        } = StyleUtils.getSafeAreaPadding(insets, this.props.statusBarTranslucent);
+                        } = StyleUtils.getSafeAreaPadding(insets);
 
                         const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
                             safeAreaPaddingTop,
@@ -166,6 +171,7 @@ class BaseModal extends PureComponent {
                                     ...modalPaddingStyles,
                                 }}
                                 ref={this.props.forwardedRef}
+                                nativeID="no-drag-area"
                             >
                                 {this.props.children}
                             </View>
@@ -181,6 +187,9 @@ BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    <BaseModal {...props} forwardedRef={ref} />
+    <BaseModal
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

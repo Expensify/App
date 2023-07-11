@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {View} from 'react-native';
 import styles from '../styles/styles';
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
@@ -41,6 +42,9 @@ const propTypes = {
 
     /** Whether the form submit action is dangerous */
     isSubmitActionDangerous: PropTypes.bool,
+
+    /** Custom content to display in the footer after submit button */
+    footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 };
 
 const defaultProps = {
@@ -53,37 +57,45 @@ const defaultProps = {
     enabledWhenOffline: false,
     disablePressOnEnter: false,
     isSubmitActionDangerous: false,
+    footerContent: null,
 };
 
-const FormAlertWithSubmitButton = props => (
-    <FormAlertWrapper
-        containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
-        isAlertVisible={props.isAlertVisible}
-        isMessageHtml={props.isMessageHtml}
-        message={props.message}
-        onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
-    >
-        {isOffline => ((isOffline && !props.enabledWhenOffline) ? (
-            <Button
-                success
-                isDisabled
-                text={props.buttonText}
-                style={[styles.mb3]}
-                danger={props.isSubmitActionDangerous}
-            />
-        ) : (
-            <Button
-                success
-                pressOnEnter={!props.disablePressOnEnter}
-                text={props.buttonText}
-                onPress={props.onSubmit}
-                isDisabled={props.isDisabled}
-                isLoading={props.isLoading}
-                danger={props.isSubmitActionDangerous}
-            />
-        ))}
-    </FormAlertWrapper>
-);
+function FormAlertWithSubmitButton(props) {
+    return (
+        <FormAlertWrapper
+            containerStyles={[styles.mh5, styles.mb5, styles.justifyContentEnd, ...props.containerStyles]}
+            isAlertVisible={props.isAlertVisible}
+            isMessageHtml={props.isMessageHtml}
+            message={props.message}
+            onFixTheErrorsLinkPressed={props.onFixTheErrorsLinkPressed}
+        >
+            {(isOffline) => (
+                <View>
+                    {isOffline && !props.enabledWhenOffline ? (
+                        <Button
+                            success
+                            isDisabled
+                            text={props.buttonText}
+                            style={[styles.mb3]}
+                            danger={props.isSubmitActionDangerous}
+                        />
+                    ) : (
+                        <Button
+                            success
+                            pressOnEnter={!props.disablePressOnEnter}
+                            text={props.buttonText}
+                            onPress={props.onSubmit}
+                            isDisabled={props.isDisabled}
+                            isLoading={props.isLoading}
+                            danger={props.isSubmitActionDangerous}
+                        />
+                    )}
+                    {props.footerContent}
+                </View>
+            )}
+        </FormAlertWrapper>
+    );
+}
 
 FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;

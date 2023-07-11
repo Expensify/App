@@ -38,37 +38,25 @@ const setStyles = (containerStyles, isSmallScreenWidth) => {
     return isSmallScreenWidth ? styles.offlineIndicatorMobile : styles.offlineIndicator;
 };
 
-const OfflineIndicator = (props) => {
+function OfflineIndicator(props) {
     if (!props.network.isOffline) {
         return null;
     }
 
     return (
-        <View style={[
-            setStyles(props.containerStyles, props.isSmallScreenWidth),
-            styles.flexRow,
-            styles.alignItemsCenter,
-            ...StyleUtils.parseStyleAsArray(props.style),
-        ]}
-        >
+        <View style={[setStyles(props.containerStyles, props.isSmallScreenWidth), styles.flexRow, styles.alignItemsCenter, ...StyleUtils.parseStyleAsArray(props.style)]}>
             <Icon
                 src={Expensicons.OfflineCloud}
                 width={variables.iconSizeSmall}
                 height={variables.iconSizeSmall}
             />
-            <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>
-                {props.translate('common.youAppearToBeOffline')}
-            </Text>
+            <Text style={[styles.ml3, styles.chatItemComposeSecondaryRowSubText]}>{props.translate('common.youAppearToBeOffline')}</Text>
         </View>
     );
-};
+}
 
 OfflineIndicator.propTypes = propTypes;
 OfflineIndicator.defaultProps = defaultProps;
 OfflineIndicator.displayName = 'OfflineIndicator';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-    withNetwork(),
-)(OfflineIndicator);
+export default compose(withWindowDimensions, withLocalize, withNetwork())(OfflineIndicator);

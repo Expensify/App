@@ -11,28 +11,34 @@ const story = {
     component: Tooltip,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => (
-    <div style={{
-        width: 100,
-    }}
-    >
-        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <Tooltip {...args} maxWidth={args.maxWidth || undefined}>
-            <div style={{
+function Template(args) {
+    return (
+        <div
+            style={{
                 width: 100,
-                height: 60,
-                display: 'flex',
-                backgroundColor: 'red',
-                justifyContent: 'center',
-                alignItems: 'center',
             }}
+        >
+            <Tooltip
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...args}
+                maxWidth={args.maxWidth || undefined}
             >
-                Hover me
-            </div>
-        </Tooltip>
-    </div>
-);
+                <div
+                    style={{
+                        width: 100,
+                        height: 60,
+                        display: 'flex',
+                        backgroundColor: 'red',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                    }}
+                >
+                    Hover me
+                </div>
+            </Tooltip>
+        </div>
+    );
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -41,25 +47,26 @@ Default.args = {
     text: 'Tooltip',
     numberOfLines: 1,
     maxWidth: 0,
-    absolute: false,
 };
 
-const RenderContent = () => {
+function RenderContent() {
     const [size, setSize] = React.useState(40);
 
     const renderTooltipContent = () => (
-        <div style={{
-            width: size,
-            height: size,
-            backgroundColor: 'blue',
-        }}
+        <div
+            style={{
+                width: size,
+                height: size,
+                backgroundColor: 'blue',
+            }}
         />
     );
 
     return (
-        <div style={{
-            width: 100,
-        }}
+        <div
+            style={{
+                width: 100,
+            }}
         >
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
             <Tooltip renderTooltipContent={renderTooltipContent}>
@@ -75,18 +82,13 @@ const RenderContent = () => {
                         alignItems: 'center',
                     }}
                 >
-                    Hover me
-                    {' '}
-                    {'\n'}
+                    Hover me {'\n'}
                     Press me change content
                 </div>
             </Tooltip>
         </div>
     );
-};
+}
 
 export default story;
-export {
-    Default,
-    RenderContent,
-};
+export {Default, RenderContent};

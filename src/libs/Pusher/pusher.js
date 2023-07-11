@@ -17,6 +17,7 @@ Onyx.connect({
 });
 
 let socket;
+let pusherSocketID = '';
 const socketEventCallbacks = [];
 let customAuthorizer;
 
@@ -27,7 +28,7 @@ let customAuthorizer;
  * @param {*} data
  */
 function callSocketEventCallbacks(eventName, data) {
-    _.each(socketEventCallbacks, cb => cb(eventName, data));
+    _.each(socketEventCallbacks, (cb) => cb(eventName, data));
 }
 
 /**
@@ -81,6 +82,7 @@ function init(args, params) {
         });
 
         socket.connection.bind('connected', () => {
+            pusherSocketID = socket.connection.socket_id;
             callSocketEventCallbacks('connected');
             resolve();
         });
@@ -163,7 +165,6 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
         // Only call the event callback if we've received the last packet and we don't have any holes in the complete
         // packet.
         if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === _.keys(chunkedEvent.chunks).length) {
-            eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
@@ -192,12 +193,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}) {
  *
  * @public
  */
-function subscribe(
-    channelName,
-    eventName,
-    eventCallback = () => {},
-    onResubscribe = () => {},
-) {
+function subscribe(channelName, eventName, eventCallback = () => {}, onResubscribe = () => {}) {
     return new Promise((resolve, reject) => {
         // We cannot call subscribe() before init(). Prevent any attempt to do this on dev.
         if (!socket) {
@@ -355,6 +351,7 @@ function disconnect() {
 
     socket.disconnect();
     socket = null;
+    pusherSocketID = '';
 }
 
 /**
@@ -369,6 +366,13 @@ function reconnect() {
     Log.info('[Pusher] Reconnecting to Pusher');
     socket.disconnect();
     socket.connect();
+}
+
+/**
+ * @returns {String}
+ */
+function getPusherSocketID() {
+    return pusherSocketID;
 }
 
 if (window) {
@@ -393,4 +397,5 @@ export {
     registerSocketEventCallback,
     registerCustomAuthorizer,
     TYPE,
+    getPusherSocketID,
 };

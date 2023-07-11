@@ -15,64 +15,54 @@ import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
+import * as ReportActionsUtils from '../ReportActionsUtils';
+import Timing from './Timing';
 
 let currentUserAccountID;
-let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
-        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
 let isSidebarLoaded;
 Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
-    callback: val => isSidebarLoaded = val,
+    callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
-});
-
-let myPersonalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: (val) => {
-        if (!val || !currentUserEmail) {
-            return;
-        }
-
-        myPersonalDetails = val[currentUserEmail];
-    },
-});
-
-let allPolicies = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: policies => allPolicies = policies,
 });
 
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => preferredLocale = val,
+    callback: (val) => (preferredLocale = val),
 });
+
+let resolveIsReadyPromise;
+const isReadyToOpenApp = new Promise((resolve) => {
+    resolveIsReadyPromise = resolve;
+});
+
+function confirmReadyToOpenApp() {
+    resolveIsReadyPromise();
+}
 
 /**
  * @param {Array} policies
  * @return {Array<String>} array of policy ids
-*/
+ */
 function getNonOptimisticPolicyIDs(policies) {
     return _.chain(policies)
-        .reject(policy => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
         .pluck('id')
         .compact()
         .value();
 }
 
 /**
-* @param {String} locale
-*/
+ * @param {String} locale
+ */
 function setLocale(locale) {
     if (locale === preferredLocale) {
         return;
@@ -87,20 +77,24 @@ function setLocale(locale) {
     // Optimistically change preferred locale
     const optimisticData = [
         {
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
             value: locale,
         },
     ];
 
-    API.write('UpdatePreferredLocale', {
-        value: locale,
-    }, {optimisticData});
+    API.write(
+        'UpdatePreferredLocale',
+        {
+            value: locale,
+        },
+        {optimisticData},
+    );
 }
 
 /**
-* @param {String} locale
-*/
+ * @param {String} locale
+ */
 function setLocaleAndNavigate(locale) {
     setLocale(locale);
     Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
@@ -126,38 +120,54 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
+ * @param {boolean} [isReconnecting]
  */
-function openApp() {
-    // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
-    const connectionID = Onyx.connect({
-        key: ONYXKEYS.COLLECTION.POLICY,
-        waitForCollectionCallback: true,
-        callback: (policies) => {
-            Onyx.disconnect(connectionID);
-            API.read('OpenApp', {policyIDList: getNonOptimisticPolicyIDs(policies)}, {
-                optimisticData: [
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                        value: true,
-                    },
-                ],
-                successData: [
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                        value: false,
-                    },
-                ],
-                failureData: [
-                    {
-                        onyxMethod: CONST.ONYX.METHOD.MERGE,
-                        key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                        value: false,
-                    },
-                ],
-            });
-        },
+function openApp(isReconnecting = false) {
+    isReadyToOpenApp.then(() => {
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.COLLECTION.POLICY,
+            waitForCollectionCallback: true,
+            callback: (policies) => {
+                // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+                // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+                //
+                // - Look through the local report actions and reports to find the most recently modified report action or report.
+                // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
+                const params = {policyIDList: getNonOptimisticPolicyIDs(policies)};
+                if (isReconnecting) {
+                    Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+                    params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+                    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+                }
+                Onyx.disconnect(connectionID);
+
+                // eslint-disable-next-line rulesdir/no-multiple-api-calls
+                const apiMethod = isReconnecting ? API.write : API.read;
+                apiMethod(isReconnecting ? 'ReconnectApp' : 'OpenApp', params, {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: true,
+                        },
+                    ],
+                    successData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                    failureData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                });
+            },
+        });
     });
 }
 
@@ -165,23 +175,7 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.write(CONST.NETWORK.COMMAND.RECONNECT_APP, {policyIDList: getNonOptimisticPolicyIDs(allPolicies)}, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: true,
-        }],
-        successData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-            value: false,
-        }],
-    });
+    openApp(true);
 }
 
 /**
@@ -216,7 +210,7 @@ function setUpPoliciesAndNavigate(session) {
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
-    const ownerEmail = url.searchParams.get('ownerEmail');
+    const policyOwnerEmail = url.searchParams.get('ownerEmail');
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName');
 
@@ -226,31 +220,22 @@ function setUpPoliciesAndNavigate(session) {
         Session.signOut();
     }
 
-    const shouldCreateFreePolicy = !isLoggingInAsNewUser
-                        && isTransitioningFromOldDot
-                        && exitTo === ROUTES.WORKSPACE_NEW;
+    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioningFromOldDot && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
+        Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, true);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.isNavigationReady()
-            .then(() => {
-                // The drawer navigation is only created after we have fetched reports from the server.
-                // Thus, if we use the standard navigation and try to navigate to a drawer route before
-                // the reports have been fetched, we will fail to navigate.
-                Navigation.isDrawerReady()
-                    .then(() => {
-                        // We must call dismissModal() to remove the /transition route from history
-                        Navigation.dismissModal();
-                        Navigation.navigate(exitTo);
-                    });
-            });
+        Navigation.isNavigationReady().then(() => {
+            // We must call goBack() to remove the /transition route from history
+            Navigation.goBack();
+            Navigation.navigate(exitTo);
+        });
     }
 }
 
-function openProfile() {
-    const oldTimezoneData = myPersonalDetails.timezone || {};
+function openProfile(personalDetails) {
+    const oldTimezoneData = personalDetails.timezone || {};
     let newTimezoneData = oldTimezoneData;
 
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
@@ -260,38 +245,36 @@ function openProfile() {
         };
     }
 
-    API.write('OpenProfile', {
-        timezone: JSON.stringify(newTimezoneData),
-    }, {
-        optimisticData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    timezone: newTimezoneData,
+    API.write(
+        'OpenProfile',
+        {
+            timezone: JSON.stringify(newTimezoneData),
+        },
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            timezone: newTimezoneData,
+                        },
+                    },
                 },
-            },
-        }],
-        failureData: [{
-            onyxMethod: CONST.ONYX.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
-            value: {
-                [currentUserEmail]: {
-                    timezone: oldTimezoneData,
+            ],
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [currentUserAccountID]: {
+                            timezone: oldTimezoneData,
+                        },
+                    },
                 },
-            },
-        }],
-    });
-
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+            ],
+        },
+    );
 }
 
-export {
-    setLocale,
-    setLocaleAndNavigate,
-    setSidebarLoaded,
-    setUpPoliciesAndNavigate,
-    openProfile,
-    openApp,
-    reconnectApp,
-};
+export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp, confirmReadyToOpenApp};

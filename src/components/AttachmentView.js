@@ -1,5 +1,5 @@
 import React, {memo, useState} from 'react';
-import {View, ActivityIndicator, Pressable} from 'react-native';
+import {View, ActivityIndicator} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -15,6 +15,8 @@ import Tooltip from './Tooltip';
 import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
+import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Whether source url requires authentication */
@@ -34,14 +36,21 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
+    /** Whether this view is the active screen  */
+    isFocused: PropTypes.bool,
+
     /** Function for handle on press */
     onPress: PropTypes.func,
 
-    /** Handles scale changed event in PDF component */
+    /** Handles scale changed event */
     onScaleChanged: PropTypes.func,
 
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
+
+    /** Extra styles to pass to View wrapper */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,
 };
@@ -56,29 +65,33 @@ const defaultProps = {
     onPress: undefined,
     onScaleChanged: () => {},
     onToggleKeyboard: () => {},
+    containerStyles: [],
+    isFocused: false,
 };
 
-const AttachmentView = (props) => {
+function AttachmentView(props) {
     const [loadComplete, setLoadComplete] = useState(false);
     const containerStyles = [styles.flex1, styles.flexRow, styles.alignSelfStretch];
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(props.source)) {
         return (
-            <Icon src={props.source} height={variables.defaultAvatarPreviewSize} width={variables.defaultAvatarPreviewSize} />
+            <Icon
+                src={props.source}
+                height={variables.defaultAvatarPreviewSize}
+                width={variables.defaultAvatarPreviewSize}
+            />
         );
     }
 
     // Check both source and file.name since PDFs dragged into the the text field
     // will appear with a source that is a blob
-    if (Str.isPDF(props.source)
-        || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
-        const sourceURL = props.isAuthTokenRequired
-            ? addEncryptedAuthTokenToURL(props.source)
-            : props.source;
+    if (Str.isPDF(props.source) || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
+        const sourceURL = props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.source) : props.source;
         const children = (
             <PDFView
                 onPress={props.onPress}
+                isFocused={props.isFocused}
                 sourceURL={sourceURL}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
@@ -86,12 +99,18 @@ const AttachmentView = (props) => {
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
             />
         );
-        return (
-            props.onPress ? (
-                <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>
-                    {children}
-                </Pressable>
-            ) : children
+        return props.onPress ? (
+            <PressableWithoutFeedback
+                onPress={props.onPress}
+                disabled={loadComplete}
+                style={containerStyles}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
+            >
+                {children}
+            </PressableWithoutFeedback>
+        ) : (
+            children
         );
     }
 
@@ -99,31 +118,42 @@ const AttachmentView = (props) => {
     // both PDFs and images will appear as images when pasted into the the text field
     const isImage = Str.isImage(props.source);
     if (isImage || (props.file && Str.isImage(props.file.name))) {
-        const children = <ImageView url={props.source} isAuthTokenRequired={isImage && props.isAuthTokenRequired} />;
-        return (
-            props.onPress ? (
-                <Pressable onPress={props.onPress} disabled={loadComplete} style={containerStyles}>
-                    {children}
-                </Pressable>
-            ) : children
+        const children = (
+            <ImageView
+                onScaleChanged={props.onScaleChanged}
+                url={props.source}
+                fileName={props.file.name}
+                isAuthTokenRequired={isImage && props.isAuthTokenRequired}
+            />
+        );
+        return props.onPress ? (
+            <PressableWithoutFeedback
+                onPress={props.onPress}
+                disabled={loadComplete}
+                style={containerStyles}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
+            >
+                {children}
+            </PressableWithoutFeedback>
+        ) : (
+            children
         );
     }
 
     return (
-        <View
-            style={styles.defaultAttachmentView}
-        >
+        <View style={[styles.defaultAttachmentView, ...props.containerStyles]}>
             <View style={styles.mr2}>
                 <Icon src={Expensicons.Paperclip} />
             </View>
 
             <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
             {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
-                <View style={styles.ml2}>
-                    <Tooltip text={props.translate('common.download')}>
+                <Tooltip text={props.translate('common.download')}>
+                    <View style={styles.ml2}>
                         <Icon src={Expensicons.Download} />
-                    </Tooltip>
-                </View>
+                    </View>
+                </Tooltip>
             )}
             {props.shouldShowLoadingSpinnerIcon && (
                 <View style={styles.ml2}>
@@ -137,13 +167,10 @@ const AttachmentView = (props) => {
             )}
         </View>
     );
-};
+}
 
 AttachmentView.propTypes = propTypes;
 AttachmentView.defaultProps = defaultProps;
 AttachmentView.displayName = 'AttachmentView';
 
-export default compose(
-    memo,
-    withLocalize,
-)(AttachmentView);
+export default compose(memo, withLocalize)(AttachmentView);

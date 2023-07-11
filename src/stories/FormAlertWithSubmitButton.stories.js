@@ -11,8 +11,10 @@ const story = {
     component: FormAlertWithSubmitButton,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <FormAlertWithSubmitButton {...args} />;
+function Template(args) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <FormAlertWithSubmitButton {...args} />;
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -33,7 +35,4 @@ const html = '<em>This is</em> a <strong>test</strong>. None of <h1>these string
 HtmlError.args = {...defaultArgs, isMessageHtml: true, message: html};
 
 export default story;
-export {
-    Default,
-    HtmlError,
-};
+export {Default, HtmlError};

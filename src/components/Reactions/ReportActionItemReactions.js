@@ -1,34 +1,18 @@
-import React from 'react';
+import React, {useRef, useContext} from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
-import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
-import getPreferredEmojiCode from './getPreferredEmojiCode';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
+import withLocalize from '../withLocalize';
+import compose from '../../libs/compose';
+import * as Report from '../../libs/actions/Report';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
-
-/**
- * Given an emoji object and a list of senders it will return an
- * array of emoji codes, that represents all used variations of the
- * emoji.
- * @param {{ name: string, code: string, types: string[] }} emoji
- * @param {Array} users
- * @return {string[]}
- * */
-const getUniqueEmojiCodes = (emoji, users) => {
-    const emojiCodes = [];
-    _.forEach(users, (user) => {
-        const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
-
-        if (emojiCode && !emojiCodes.includes(emojiCode)) {
-            emojiCodes.push(emojiCode);
-        }
-    });
-    return emojiCodes;
-};
+import * as EmojiUtils from '../../libs/EmojiUtils';
+import ReportScreenContext from '../../pages/home/ReportScreenContext';
 
 const propTypes = {
     /**
@@ -46,54 +30,86 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     reactions: PropTypes.arrayOf(PropTypes.object).isRequired,
 
+    /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
+    reportActionID: PropTypes.string.isRequired,
+
     /**
      * Function to call when the user presses on an emoji.
      * This can also be an emoji the user already reacted with,
      * hence this function asks to toggle the reaction by emoji.
      */
     toggleReaction: PropTypes.func.isRequired,
+
+    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
-const ReportActionItemReactions = (props) => {
-    const reactionsWithCount = _.filter(props.reactions, reaction => reaction.users.length > 0);
+const defaultProps = {
+    ...withCurrentUserPersonalDetailsDefaultProps,
+};
+
+function ReportActionItemReactions(props) {
+    const {reactionListRef} = useContext(ReportScreenContext);
+    const popoverReactionListAnchor = useRef(null);
+    const reactionsWithCount = _.filter(props.reactions, (reaction) => reaction.users.length > 0);
 
     return (
-        <View style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}>
+        <View
+            ref={popoverReactionListAnchor}
+            style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
+        >
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
-                const reactionUsers = _.map(reaction.users, sender => sender.accountID.toString());
-                const emoji = _.find(emojis, e => e.name === reaction.emoji);
-                const emojiCodes = getUniqueEmojiCodes(emoji, reaction.users);
+                const reactionUsers = _.map(reaction.users, (sender) => sender.accountID);
+                const emoji = EmojiUtils.findEmojiByName(reaction.emoji);
+                const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, reaction.users);
+                const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
                 const onPress = () => {
                     props.toggleReaction(emoji);
+                };
+
+                const onReactionListOpen = (event) => {
+                    reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
                 };
 
                 return (
                     <Tooltip
                         renderTooltipContent={() => (
                             <ReactionTooltipContent
-                                emojiName={reaction.emoji}
+                                emojiName={EmojiUtils.getLocalizedEmojiName(reaction.emoji, props.preferredLocale)}
                                 emojiCodes={emojiCodes}
                                 accountIDs={reactionUsers}
+                                currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
+                        renderTooltipContentKey={[..._.map(reactionUsers, (user) => user.toString()), ...emojiCodes]}
                         key={reaction.emoji}
                     >
-                        <EmojiReactionBubble
-                            count={reactionCount}
-                            emojiCodes={emojiCodes}
-                            onPress={onPress}
-                            reactionUsers={reactionUsers}
-                        />
+                        <View>
+                            <EmojiReactionBubble
+                                ref={props.forwardedRef}
+                                count={reactionCount}
+                                emojiCodes={emojiCodes}
+                                onPress={onPress}
+                                reactionUsers={reactionUsers}
+                                hasUserReacted={hasUserReacted}
+                                onReactionListOpen={onReactionListOpen}
+                            />
+                        </View>
                     </Tooltip>
                 );
             })}
-            {reactionsWithCount.length > 0 && <AddReactionBubble onSelectEmoji={props.toggleReaction} />}
+            {reactionsWithCount.length > 0 && (
+                <AddReactionBubble
+                    onSelectEmoji={props.toggleReaction}
+                    reportAction={{reportActionID: props.reportActionID}}
+                />
+            )}
         </View>
     );
-};
+}
 
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
-export default ReportActionItemReactions;
+ReportActionItemReactions.defaultProps = defaultProps;
+export default compose(withLocalize, withCurrentUserPersonalDetails)(ReportActionItemReactions);

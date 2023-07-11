@@ -40,7 +40,7 @@ const defaultProps = {
     user: {},
 };
 
-const WorkspaceBillsFirstSection = (props) => {
+function WorkspaceBillsFirstSection(props) {
     const emailDomain = Str.extractEmailDomain(props.session.email);
     const manageYourBillsUrl = `reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`;
     return (
@@ -50,9 +50,7 @@ const WorkspaceBillsFirstSection = (props) => {
             menuItems={[
                 {
                     title: props.translate('workspace.bills.viewAllBills'),
-                    onPress: () => (
-                        Link.openOldDotLink(manageYourBillsUrl)
-                    ),
+                    onPress: () => Link.openOldDotLink(manageYourBillsUrl),
                     icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
                     iconRight: Expensicons.NewWindow,
@@ -63,12 +61,10 @@ const WorkspaceBillsFirstSection = (props) => {
             containerStyles={[styles.cardSection]}
         >
             <View style={[styles.mv3]}>
-                <Text>
+                <Text numberOfLines={100}>
                     {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {props.user.isFromPublicDomain ? (
-                        <TextLink
-                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
-                        >
+                        <TextLink onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}>
                             example.com@expensify.cash
                         </TextLink>
                     ) : (
@@ -82,7 +78,7 @@ const WorkspaceBillsFirstSection = (props) => {
             </View>
         </Section>
     );
-};
+}
 
 WorkspaceBillsFirstSection.propTypes = propTypes;
 WorkspaceBillsFirstSection.defaultProps = defaultProps;

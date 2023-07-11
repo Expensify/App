@@ -1,13 +1,9 @@
-import React, {
-    useRef, useState, useCallback,
-} from 'react';
-import {
-    View, TouchableWithoutFeedback, Linking,
-} from 'react-native';
+import React, {useRef, useState, useCallback} from 'react';
+import {View, Linking} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import TextLink from '../../../components/TextLink';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -23,8 +19,9 @@ import * as User from '../../../libs/actions/User';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import variables from '../../../styles/variables';
+import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 
-const AddPayPalMePage = (props) => {
+function AddPayPalMePage(props) {
     const [payPalMeUsername, setPayPalMeUsername] = useState('');
     const [payPalMeUsernameError, setPayPalMeUsernameError] = useState(false);
     const payPalMeInput = useRef(null);
@@ -48,20 +45,18 @@ const AddPayPalMePage = (props) => {
 
     return (
         <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('common.payPalMe')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
             />
             <View style={[styles.flex1, styles.p5]}>
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.mb4]}>
-                        {props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
-                    </Text>
+                    <Text style={[styles.mb4]}>{props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}</Text>
                     <TextInput
                         ref={payPalMeInput}
                         label={props.translate('addPayPalMePage.payPalMe')}
+                        accessibilityLabel={props.translate('addPayPalMePage.payPalMe')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCompleteType="off"
                         autoCorrect={false}
                         value={payPalMeUsername}
@@ -75,11 +70,11 @@ const AddPayPalMePage = (props) => {
                         errorText={payPalMeUsernameError ? props.translate('addPayPalMePage.formatError') : ''}
                     />
                     <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween, styles.alignSelfStart]}>
-                        <Text style={[styles.textMicro, styles.flexRow]}>
-                            {props.translate('addPayPalMePage.checkListOf')}
-                        </Text>
-                        <TouchableWithoutFeedback
-                            // eslint-disable-next-line max-len
+                        <Text style={[styles.textMicro, styles.flexRow]}>{props.translate('addPayPalMePage.checkListOf')}</Text>
+                        <PressableWithoutFeedback
+                            shouldUseAutoHitSlop={false}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                            accessibilityLabel={props.translate('addPayPalMePage.supportedCurrencies')}
                             onPress={() => Linking.openURL('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
                         >
                             <View style={[styles.flexRow, styles.cursorPointer]}>
@@ -91,10 +86,14 @@ const AddPayPalMePage = (props) => {
                                     {props.translate('addPayPalMePage.supportedCurrencies')}
                                 </TextLink>
                                 <View style={[styles.ml1]}>
-                                    <Icon src={Expensicons.NewWindow} height={variables.iconSizeExtraSmall} width={variables.iconSizeExtraSmall} />
+                                    <Icon
+                                        src={Expensicons.NewWindow}
+                                        height={variables.iconSizeExtraSmall}
+                                        width={variables.iconSizeExtraSmall}
+                                    />
                                 </View>
                             </View>
-                        </TouchableWithoutFeedback>
+                        </PressableWithoutFeedback>
                     </View>
                 </View>
             </View>
@@ -110,7 +109,7 @@ const AddPayPalMePage = (props) => {
             </FixedFooter>
         </ScreenWrapper>
     );
-};
+}
 
 AddPayPalMePage.propTypes = {...withLocalizePropTypes};
 AddPayPalMePage.displayName = 'AddPayPalMePage';

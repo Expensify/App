@@ -3,11 +3,23 @@
 const path = require('path');
 const dotenv = require('dotenv');
 const _ = require('underscore');
-const custom = require('../config/webpack/webpack.common')({
-    envFile: '../.env.production',
-});
 
-const env = dotenv.config({path: path.resolve(__dirname, '../.env.staging')}).parsed;
+let envFile;
+switch (process.env.ENV) {
+    case 'production':
+        envFile = '.env.production';
+        break;
+    case 'staging':
+        envFile = '.env.staging';
+        break;
+    default:
+        envFile = '.env';
+}
+
+const env = dotenv.config({path: path.resolve(__dirname, `../${envFile}`)});
+const custom = require('../config/webpack/webpack.common')({
+    envFile,
+});
 
 module.exports = ({config}) => {
     config.resolve.alias = {
@@ -18,16 +30,16 @@ module.exports = ({config}) => {
     };
 
     // Necessary to overwrite the values in the existing DefinePlugin hardcoded to the Config staging values
-    const definePluginIndex = _.findIndex(config.plugins, plugin => plugin.constructor.name === 'DefinePlugin');
+    const definePluginIndex = _.findIndex(config.plugins, (plugin) => plugin.constructor.name === 'DefinePlugin');
     config.plugins[definePluginIndex].definitions.__REACT_WEB_CONFIG__ = JSON.stringify(env);
     config.resolve.extensions = custom.resolve.extensions;
 
-    const babelRulesIndex = _.findIndex(custom.module.rules, rule => rule.loader === 'babel-loader');
+    const babelRulesIndex = _.findIndex(custom.module.rules, (rule) => rule.loader === 'babel-loader');
     const babelRule = custom.module.rules[babelRulesIndex];
     config.module.rules.push(babelRule);
 
     // Allows loading SVG - more context here https://github.com/storybookjs/storybook/issues/6188
-    const fileLoaderRule = _.find(config.module.rules, rule => rule.test && rule.test.test('.svg'));
+    const fileLoaderRule = _.find(config.module.rules, (rule) => rule.test && rule.test.test('.svg'));
     fileLoaderRule.exclude = /\.svg$/;
     config.module.rules.push({
         test: /\.svg$/,

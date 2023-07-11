@@ -24,6 +24,9 @@ export default {
     // Note: These are Persisted Requests - not all requests in the main queue as the key name might lead one to believe
     PERSISTED_REQUESTS: 'networkRequestQueue',
 
+    // Onyx updates from a response, or success or failure data from a request.
+    QUEUED_ONYX_UPDATES: 'queuedOnyxUpdates',
+
     // Stores current date
     CURRENT_DATE: 'currentDate',
 
@@ -39,11 +42,14 @@ export default {
     // Has information about the network status (offline/online)
     NETWORK: 'network',
 
-    // Contains all the personalDetails the user has access to
-    PERSONAL_DETAILS: 'personalDetails',
+    // Contains all the personalDetails the user has access to, keyed by accountID
+    PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
     // Contains all the private personal details of the user
     PRIVATE_PERSONAL_DETAILS: 'private_personalDetails',
+
+    // Contains all the info for Tasks
+    TASK: 'task',
 
     // Contains a list of all currencies available to the user - user can
     // select a currency based on the list
@@ -70,9 +76,6 @@ export default {
     BETAS: 'betas',
 
     // NVP keys
-    // Contains the user's payPalMe address
-    NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
-
     // Contains the user's payPalMe data
     PAYPAL: 'paypal',
 
@@ -84,6 +87,9 @@ export default {
 
     // A unique identifier that each user has that's used to send notifications
     NVP_PRIVATE_PUSH_NOTIFICATION_ID: 'private_pushNotificationID',
+
+    // The NVP with the last payment method used per policy
+    NVP_LAST_PAYMENT_METHOD: 'nvp_lastPaymentMethod',
 
     // Does this user have push notifications enabled for this device?
     PUSH_NOTIFICATIONS_ENABLED: 'pushNotificationsEnabled',
@@ -104,15 +110,21 @@ export default {
     COLLECTION: {
         DOWNLOAD: 'download_',
         POLICY: 'policy_',
-        POLICY_MEMBER_LIST: 'policyMemberList_',
+        POLICY_MEMBERS: 'policyMembers_',
+        WORKSPACE_INVITE_MEMBERS_DRAFT: 'workspaceInviteMembersDraft_',
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
+        REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
+        SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
+
+        // This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init
+        DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
     },
 
     // Indicates which locale should be used
@@ -183,16 +195,22 @@ export default {
         ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
         REIMBURSEMENT_ACCOUNT_FORM: 'reimbursementAccount',
         WORKSPACE_SETTINGS_FORM: 'workspaceSettingsForm',
+        WORKSPACE_RATE_AND_UNIT_FORM: 'workspaceRateAndUnitForm',
         CLOSE_ACCOUNT_FORM: 'closeAccount',
         PROFILE_SETTINGS_FORM: 'profileSettingsForm',
         DISPLAY_NAME_FORM: 'displayNameForm',
+        ROOM_NAME_FORM: 'roomNameForm',
+        WELCOME_MESSAGE_FORM: 'welcomeMessageForm',
         LEGAL_NAME_FORM: 'legalNameForm',
+        WORKSPACE_INVITE_MESSAGE_FORM: 'workspaceInviteMessageForm',
         DATE_OF_BIRTH_FORM: 'dateOfBirthForm',
         HOME_ADDRESS_FORM: 'homeAddressForm',
         NEW_ROOM_FORM: 'newRoomForm',
         ROOM_SETTINGS_FORM: 'roomSettingsForm',
         NEW_TASK_FORM: 'newTaskForm',
+        EDIT_TASK_FORM: 'editTaskForm',
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
+        NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
     },
 
     // Whether we should show the compose input or not
@@ -203,4 +221,13 @@ export default {
 
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
+
+    // Whether we're checking if the room is public or not
+    IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
+
+    // A map of the user's security group IDs they belong to in specific domains
+    MY_DOMAIN_SECURITY_GROUPS: 'myDomainSecurityGroups',
+
+    // Report ID of the last report the user viewed as anonymous user
+    LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
 };

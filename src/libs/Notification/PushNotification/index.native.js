@@ -11,7 +11,7 @@ import configureForegroundNotifications from './configureForegroundNotifications
 let isUserOptedInToPushNotifications = false;
 Onyx.connect({
     key: ONYXKEYS.PUSH_NOTIFICATIONS_ENABLED,
-    callback: val => isUserOptedInToPushNotifications = val,
+    callback: (val) => (isUserOptedInToPushNotifications = val),
 });
 
 const notificationEventActionMap = {};
@@ -58,16 +58,15 @@ function pushNotificationEventCallback(eventType, notification) {
  * Check if a user is opted-in to push notifications on this device and update the `pushNotificationsEnabled` NVP accordingly.
  */
 function refreshNotificationOptInStatus() {
-    Airship.push.getNotificationStatus()
-        .then((notificationStatus) => {
-            const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
-            if (isOptedIn === isUserOptedInToPushNotifications) {
-                return;
-            }
+    Airship.push.getNotificationStatus().then((notificationStatus) => {
+        const isOptedIn = notificationStatus.airshipOptIn && notificationStatus.systemEnabled;
+        if (isOptedIn === isUserOptedInToPushNotifications) {
+            return;
+        }
 
-            Log.info('[PushNotification] Push notification opt-in status changed.', false, {isOptedIn});
-            PushNotification.setPushNotificationOptInStatus(isOptedIn);
-        });
+        Log.info('[PushNotification] Push notification opt-in status changed.', false, {isOptedIn});
+        PushNotification.setPushNotificationOptInStatus(isOptedIn);
+    });
 }
 
 /**
@@ -101,30 +100,29 @@ function init() {
 }
 
 /**
- * Register this device for push notifications for the given accountID.
+ * Register this device for push notifications for the given notificationID.
  *
- * @param {String|Number} accountID
+ * @param {String|Number} notificationID
  */
-function register(accountID) {
-    if (Airship.contact.getNamedUserId() === accountID.toString()) {
-        // No need to register again for this accountID.
+function register(notificationID) {
+    if (Airship.contact.getNamedUserId() === notificationID.toString()) {
+        // No need to register again for this notificationID.
         return;
     }
 
     // Get permissions to display push notifications (prompts user on iOS, but not Android)
-    Airship.push.enableUserNotifications()
-        .then((isEnabled) => {
-            if (isEnabled) {
-                return;
-            }
+    Airship.push.enableUserNotifications().then((isEnabled) => {
+        if (isEnabled) {
+            return;
+        }
 
-            Log.info('[PushNotification] User has disabled visible push notifications for this app.');
-        });
+        Log.info('[PushNotification] User has disabled visible push notifications for this app.');
+    });
 
     // Register this device as a named user in AirshipAPI.
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-    Log.info(`[PushNotification] Subscribing to notifications for account ID ${accountID}`);
-    Airship.contact.identify(accountID.toString());
+    Log.info(`[PushNotification] Subscribing to notifications`);
+    Airship.contact.identify(notificationID.toString());
 
     // Refresh notification opt-in status NVP for the new user.
     refreshNotificationOptInStatus();

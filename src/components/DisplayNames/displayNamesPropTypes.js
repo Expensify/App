@@ -5,13 +5,21 @@ const propTypes = {
     fullTitle: PropTypes.string,
 
     /** Array of objects that map display names to their corresponding tooltip */
-    displayNamesWithTooltips: PropTypes.arrayOf(PropTypes.shape({
-        /** The name to display in bold */
-        displayName: PropTypes.string,
+    displayNamesWithTooltips: PropTypes.arrayOf(
+        PropTypes.shape({
+            /** The name to display in bold */
+            displayName: PropTypes.string,
 
-        /** The tooltip to show when the associated name is hovered */
-        tooltip: PropTypes.string,
-    })),
+            /** The Account ID for the tooltip */
+            accountID: PropTypes.number,
+
+            /** The login for the tooltip fallback */
+            login: PropTypes.string,
+
+            /** The avatar for the tooltip fallback */
+            avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+        }),
+    ),
 
     /** Number of lines before wrapping */
     numberOfLines: PropTypes.number,

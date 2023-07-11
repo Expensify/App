@@ -7,7 +7,7 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Button from '../../../../components/Button';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import CONST from '../../../../CONST';
@@ -58,8 +58,15 @@ const defaultProps = {
     },
 };
 
-const ContactMethodsPage = (props) => {
-    const loginMenuItems = _.map(props.loginList, (login, loginName) => {
+function ContactMethodsPage(props) {
+    const loginNames = _.keys(props.loginList);
+
+    // Sort the login names by placing the one corresponding to the default contact method as the first item before displaying the contact methods.
+    // The default contact method is determined by checking against the session email (the current login).
+    const sortedLoginNames = _.sortBy(loginNames, (loginName) => (props.loginList[loginName].partnerUserID === props.session.email ? 0 : 1));
+
+    const loginMenuItems = _.map(sortedLoginNames, (loginName) => {
+        const login = props.loginList[loginName];
         const pendingAction = lodashGet(login, 'pendingFields.deletedLogin') || lodashGet(login, 'pendingFields.addedLogin');
         if (!login.partnerUserID && _.isEmpty(pendingAction)) {
             return null;
@@ -74,7 +81,7 @@ const ContactMethodsPage = (props) => {
             description = props.translate('contacts.pleaseVerify');
         }
         let indicator = null;
-        if (_.some(lodashGet(login, 'errorFields', {}), errorField => !_.isEmpty(errorField))) {
+        if (_.some(lodashGet(login, 'errorFields', {}), (errorField) => !_.isEmpty(errorField))) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         } else if (!login.validatedDate) {
             indicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
@@ -104,16 +111,14 @@ const ContactMethodsPage = (props) => {
     });
 
     return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
+        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
+            <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             <ScrollView>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <Text>
+                    <Text numberOfLines={100}>
                         {props.translate('contacts.helpTextBeforeEmail')}
                         <CopyTextToClipboard
                             text="receipts@expensify.com"
@@ -134,7 +139,7 @@ const ContactMethodsPage = (props) => {
             </FixedFooter>
         </ScreenWrapper>
     );
-};
+}
 
 ContactMethodsPage.propTypes = propTypes;
 ContactMethodsPage.defaultProps = defaultProps;

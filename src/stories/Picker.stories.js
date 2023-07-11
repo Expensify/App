@@ -12,17 +12,17 @@ const story = {
 };
 
 // eslint-disable-next-line react/jsx-props-no-spreading
-const Template = (args) => {
+function Template(args) {
     const [value, setValue] = useState('');
     return (
         <Picker
             value={value}
-            onInputChange={e => setValue(e)}
+            onInputChange={(e) => setValue(e)}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
         />
     );
-};
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
@@ -100,9 +100,4 @@ Disabled.args = {
 };
 
 export default story;
-export {
-    Default,
-    PickerWithValue,
-    ErrorStory,
-    Disabled,
-};
+export {Default, PickerWithValue, ErrorStory, Disabled};

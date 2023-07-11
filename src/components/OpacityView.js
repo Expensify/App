@@ -1,8 +1,8 @@
 import React from 'react';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
-import * as StyleUtils from '../styles/StyleUtils';
 import variables from '../styles/variables';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /**
@@ -20,7 +20,7 @@ const propTypes = {
      * @default []
      */
     // eslint-disable-next-line react/forbid-prop-types
-    style: PropTypes.arrayOf(PropTypes.object),
+    style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
 
     /**
      * The value to use for the opacity when the view is dimmed
@@ -34,7 +34,7 @@ const defaultProps = {
     dimmingValue: variables.hoverDimValue,
 };
 
-const OpacityView = (props) => {
+function OpacityView(props) {
     const opacity = useSharedValue(1);
     const opacityStyle = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -48,14 +48,8 @@ const OpacityView = (props) => {
         }
     }, [props.shouldDim, props.dimmingValue, opacity]);
 
-    return (
-        <Animated.View
-            style={[opacityStyle, ...StyleUtils.parseStyleAsArray(props.style)]}
-        >
-            {props.children}
-        </Animated.View>
-    );
-};
+    return <Animated.View style={[opacityStyle, ...StyleUtils.parseStyleAsArray(props.style)]}>{props.children}</Animated.View>;
+}
 
 OpacityView.displayName = 'OpacityView';
 OpacityView.propTypes = propTypes;

@@ -16,7 +16,7 @@ let isReadyPromise = new Promise((resolve) => {
 
 let isFirstTimeNewExpensifyUser;
 let isLoadingReportData = true;
-let email = '';
+let currentUserAccountID;
 
 /**
  * Check that a few requests have completed so that the welcome action can proceed:
@@ -92,7 +92,7 @@ Onyx.connect({
             return;
         }
 
-        email = val.email;
+        currentUserAccountID = val.accountID;
     },
 });
 
@@ -114,14 +114,14 @@ function show({routes, showCreateMenu = () => {}, showPopoverMenu = () => {}}) {
         // create menu right now. We should also stay on the workspace page if that is our destination.
         const topRoute = _.last(routes);
         const isWorkspaceRoute = topRoute.name === 'Settings' && topRoute.params.path.includes('workspace');
-        const transitionRoute = _.find(routes, route => route.name === SCREENS.TRANSITION_FROM_OLD_DOT);
+        const transitionRoute = _.find(routes, (route) => route.name === SCREENS.TRANSITION_FROM_OLD_DOT);
         const exitingToWorkspaceRoute = lodashGet(transitionRoute, 'params.exitTo', '') === 'workspace/new';
         const isDisplayingWorkspaceRoute = isWorkspaceRoute || exitingToWorkspaceRoute;
 
         // We want to display the Workspace chat first since that means a user is already in a Workspace and doesn't need to create another one
         const workspaceChatReport = _.find(
             allReports,
-            report => ReportUtils.isPolicyExpenseChat(report) && report.ownerEmail === email && report.statusNum !== CONST.REPORT.STATUS.CLOSED,
+            (report) => ReportUtils.isPolicyExpenseChat(report) && report.ownerAccountID === currentUserAccountID && report.statusNum !== CONST.REPORT.STATUS.CLOSED,
         );
         if (workspaceChatReport && !isDisplayingWorkspaceRoute) {
             // This key is only updated when we call ReconnectApp, setting it to false now allows the user to navigate normally instead of always redirecting to the workspace chat
@@ -154,7 +154,8 @@ function resetReadyCheck() {
     });
 }
 
-export {
-    show,
-    resetReadyCheck,
-};
+function serverDataIsReadyPromise() {
+    return isReadyPromise;
+}
+
+export {show, serverDataIsReadyPromise, resetReadyCheck};

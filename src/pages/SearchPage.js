@@ -5,13 +5,13 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as ReportUtils from '../libs/ReportUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import * as Report from '../libs/actions/Report';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
@@ -57,16 +57,7 @@ class SearchPage extends Component {
         this.onChangeText = this.onChangeText.bind(this);
         this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
 
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getSearchOptions(
-            props.reports,
-            props.personalDetails,
-            '',
-            props.betas,
-        );
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
 
         this.state = {
             searchValue: '',
@@ -75,6 +66,13 @@ class SearchPage extends Component {
             personalDetails,
             userToInvite,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            return;
+        }
+        this.updateOptions();
     }
 
     onChangeText(searchValue = '') {
@@ -91,29 +89,29 @@ class SearchPage extends Component {
         let indexOffset = 0;
 
         if (this.state.recentReports.length > 0) {
-            sections.push(({
+            sections.push({
                 data: this.state.recentReports,
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
             indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.personalDetails.length > 0) {
-            sections.push(({
+            sections.push({
                 data: this.state.personalDetails,
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
             indexOffset += this.state.recentReports.length;
         }
 
         if (this.state.userToInvite) {
-            sections.push(({
+            sections.push({
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset,
-            }));
+            });
         }
 
         return sections;
@@ -125,28 +123,20 @@ class SearchPage extends Component {
     }
 
     updateOptions() {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getSearchOptions(
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(
             this.props.reports,
             this.props.personalDetails,
             this.state.searchValue.trim(),
             this.props.betas,
         );
         this.setState((prevState) => {
-            const headerMessage = OptionsListUtils.getHeaderMessage(
-                (recentReports.length + personalDetails.length) !== 0,
-                Boolean(userToInvite),
-                prevState.searchValue,
-            );
-            return ({
+            const headerMessage = OptionsListUtils.getHeaderMessage(recentReports.length + personalDetails.length !== 0, Boolean(userToInvite), prevState.searchValue);
+            return {
                 headerMessage,
                 userToInvite,
                 recentReports,
                 personalDetails,
-            });
+            };
         });
     }
 
@@ -161,11 +151,14 @@ class SearchPage extends Component {
         }
 
         if (option.reportID) {
-            this.setState({
-                searchValue: '',
-            }, () => {
-                Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-            });
+            this.setState(
+                {
+                    searchValue: '',
+                },
+                () => {
+                    Navigation.dismissModal(option.reportID);
+                },
+            );
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }
@@ -173,14 +166,13 @@ class SearchPage extends Component {
 
     render() {
         const sections = this.getSections();
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                     <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.search')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
+                        <HeaderWithBackButton title={this.props.translate('common.search')} />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <OptionsSelector
                                 sections={sections}
@@ -190,7 +182,7 @@ class SearchPage extends Component {
                                 headerMessage={this.state.headerMessage}
                                 hideSectionHeaders
                                 showTitleTooltip
-                                shouldShowOptions={didScreenTransitionEnd}
+                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
                                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                                 onLayout={this.searchRendered}
                                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
@@ -214,7 +206,7 @@ export default compose(
             key: ONYXKEYS.COLLECTION.REPORT,
         },
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,

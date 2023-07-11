@@ -18,7 +18,7 @@ const documentedShortcuts = {};
  * @returns {Array}
  */
 function getDocumentedShortcuts() {
-    return _.values(documentedShortcuts);
+    return _.sortBy(_.values(documentedShortcuts), 'displayName');
 }
 
 /**
@@ -43,6 +43,12 @@ function getDisplayName(key, modifiers) {
         if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow').toString().toLowerCase())) {
             return ['ARROWDOWN'];
         }
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputLeftArrow', 'keyInputLeftArrow').toString().toLowerCase())) {
+            return ['ARROWLEFT'];
+        }
+        if (_.isEqual(key.toLowerCase(), lodashGet(KeyCommand, 'constants.keyInputRightArrow', 'keyInputRightArrow').toString().toLowerCase())) {
+            return ['ARROWRIGHT'];
+        }
         return [key.toUpperCase()];
     })();
 
@@ -52,7 +58,7 @@ function getDisplayName(key, modifiers) {
         displayName = [..._.sortBy(modifiers), ...displayName];
     }
 
-    displayName = _.map(displayName, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
+    displayName = _.map(displayName, (modifier) => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
 
     return displayName.join(' + ');
 }
@@ -65,10 +71,7 @@ _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
         return;
     }
 
-    KeyCommand.addListener(
-        shortcutTrigger,
-        (keycommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event),
-    );
+    KeyCommand.addListener(shortcutTrigger, (keycommandEvent, event) => bindHandlerToKeydownEvent(getDisplayName, eventHandlers, keycommandEvent, event));
 });
 
 /**
@@ -79,7 +82,7 @@ _.each(CONST.KEYBOARD_SHORTCUTS, (shortcut) => {
  * @private
  */
 function unsubscribe(displayName, callbackID) {
-    eventHandlers[displayName] = _.reject(eventHandlers[displayName], callback => callback.id === callbackID);
+    eventHandlers[displayName] = _.reject(eventHandlers[displayName], (callback) => callback.id === callbackID);
 }
 
 /**

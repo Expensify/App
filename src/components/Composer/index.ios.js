@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import RNTextInput from '../RNTextInput';
 import themeColors from '../../styles/themes/default';
-import CONST from '../../CONST';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 
 const propTypes = {
@@ -33,6 +32,9 @@ const propTypes = {
     /** Whether the full composer can be opened */
     isFullComposerAvailable: PropTypes.bool,
 
+    /** Maximum number of lines in the text input */
+    maxLines: PropTypes.number,
+
     /** Allow the full composer to be opened */
     setIsFullComposerAvailable: PropTypes.func,
 
@@ -42,7 +44,6 @@ const propTypes = {
     /** General styles to apply to the text input */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
-
 };
 
 const defaultProps = {
@@ -55,6 +56,7 @@ const defaultProps = {
         start: 0,
         end: 0,
     },
+    maxLines: undefined,
     isFullComposerAvailable: false,
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
@@ -101,11 +103,12 @@ class Composer extends React.Component {
             <RNTextInput
                 autoComplete="off"
                 placeholderTextColor={themeColors.placeholderText}
-                ref={el => this.textInput = el}
-                maxHeight={this.props.isComposerFullSize ? '100%' : CONST.COMPOSER_MAX_HEIGHT}
-                onContentSizeChange={e => ComposerUtils.updateNumberOfLines(this.props, e)}
+                ref={(el) => (this.textInput = el)}
+                onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(this.props, e)}
                 rejectResponderTermination={false}
                 textAlignVertical="center"
+                smartInsertDelete={false}
+                maximumNumberOfLines={this.props.isComposerFullSize ? undefined : this.props.maxLines}
                 style={this.state.propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...propsToPass}
@@ -119,6 +122,9 @@ Composer.propTypes = propTypes;
 Composer.defaultProps = defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <Composer {...props} forwardedRef={ref} />
+    <Composer
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
 ));

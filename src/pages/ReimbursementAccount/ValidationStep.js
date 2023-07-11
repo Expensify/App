@@ -10,8 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Report from '../../libs/actions/Report';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
@@ -41,8 +40,7 @@ const propTypes = {
 
     /** User's account who is setting up bank account */
     account: PropTypes.shape({
-
-        /** If user has Two factor authentication enabled */
+        /** If user has two-factor authentication enabled */
         requiresTwoFactorAuth: PropTypes.bool,
     }),
 };
@@ -73,7 +71,7 @@ class ValidationStep extends React.Component {
             if (ValidationUtils.isRequiredFulfilled(filteredValue)) {
                 return;
             }
-            errors[key] = this.props.translate('common.error.invalidAmount');
+            errors[key] = 'common.error.invalidAmount';
         });
 
         return errors;
@@ -130,28 +128,23 @@ class ValidationStep extends React.Component {
         const requiresTwoFactorAuth = lodashGet(this.props, 'account.requiresTwoFactorAuth');
 
         return (
-            <ScreenWrapper style={[styles.flex1, styles.justifyContentBetween]} includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+            <ScreenWrapper
+                style={[styles.flex1, styles.justifyContentBetween]}
+                includeSafeAreaPaddingBottom={false}
+            >
+                <HeaderWithBackButton
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
-                    onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowBackButton
                     shouldShowStepCounter={!isVerifying}
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
                         <Text>
-                            {this.props.translate('validationStep.maxAttemptsReached')}
-                            {' '}
-                            {this.props.translate('common.please')}
-                            {' '}
-                            <TextLink onPress={Report.navigateToConciergeChat}>
-                                {this.props.translate('common.contactUs')}
-                            </TextLink>
-                            .
+                            {this.props.translate('validationStep.maxAttemptsReached')} {this.props.translate('common.please')}{' '}
+                            <TextLink onPress={Report.navigateToConciergeChat}>{this.props.translate('common.contactUs')}</TextLink>.
                         </Text>
                     </View>
                 )}
@@ -164,12 +157,8 @@ class ValidationStep extends React.Component {
                         style={[styles.mh5, styles.flexGrow1]}
                     >
                         <View style={[styles.mb2]}>
-                            <Text style={[styles.mb5]}>
-                                {this.props.translate('validationStep.description')}
-                            </Text>
-                            <Text style={[styles.mb2]}>
-                                {this.props.translate('validationStep.descriptionCTA')}
-                            </Text>
+                            <Text style={[styles.mb5]}>{this.props.translate('validationStep.description')}</Text>
+                            <Text style={[styles.mb2]}>{this.props.translate('validationStep.descriptionCTA')}</Text>
                         </View>
                         <View style={[styles.mv5]}>
                             <TextInput
@@ -178,6 +167,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="decimal-pad"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                             <TextInput
                                 inputID="amount2"
@@ -185,6 +175,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="decimal-pad"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                             <TextInput
                                 shouldSaveDraft
@@ -192,6 +183,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="decimal-pad"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                         {!requiresTwoFactorAuth && (
@@ -207,9 +199,7 @@ class ValidationStep extends React.Component {
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={Illustrations.ConciergeBubble}
                         >
-                            <Text>
-                                {this.props.translate('validationStep.letsChatText')}
-                            </Text>
+                            <Text>{this.props.translate('validationStep.letsChatText')}</Text>
                             <Button
                                 text={this.props.translate('validationStep.letsChatCTA')}
                                 onPress={Report.navigateToConciergeChat}
@@ -228,14 +218,8 @@ class ValidationStep extends React.Component {
                                 wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                             />
                         </Section>
-                        {this.props.reimbursementAccount.shouldShowResetModal && (
-                            <WorkspaceResetBankAccountModal
-                                reimbursementAccount={this.props.reimbursementAccount}
-                            />
-                        )}
-                        {!requiresTwoFactorAuth && (
-                            <Enable2FAPrompt />
-                        )}
+                        {this.props.reimbursementAccount.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={this.props.reimbursementAccount} />}
+                        {!requiresTwoFactorAuth && <Enable2FAPrompt />}
                     </ScrollView>
                 )}
             </ScreenWrapper>

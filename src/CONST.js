@@ -10,7 +10,6 @@ const USE_EXPENSIFY_URL = 'https://use.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
 const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
-const USA_COUNTRY_NAME = 'United States';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = lodashGet(Config, 'PULL_REQUEST_NUMBER', '');
 
@@ -22,6 +21,11 @@ const keyInputEscape = lodashGet(KeyCommand, 'constants.keyInputEscape', 'keyInp
 const keyInputEnter = lodashGet(KeyCommand, 'constants.keyInputEnter', 'keyInputEnter');
 const keyInputUpArrow = lodashGet(KeyCommand, 'constants.keyInputUpArrow', 'keyInputUpArrow');
 const keyInputDownArrow = lodashGet(KeyCommand, 'constants.keyInputDownArrow', 'keyInputDownArrow');
+const keyInputLeftArrow = lodashGet(KeyCommand, 'constants.keyInputLeftArrow', 'keyInputLeftArrow');
+const keyInputRightArrow = lodashGet(KeyCommand, 'constants.keyInputRightArrow', 'keyInputRightArrow');
+
+// describes if a shortcut key can cause navigation
+const KEYBOARD_SHORTCUT_NAVIGATION_TYPE = 'NAVIGATION_SHORTCUT';
 
 const CONST = {
     ANDROID_PACKAGE_NAME,
@@ -32,7 +36,62 @@ const CONST = {
 
     API_ATTACHMENT_VALIDATIONS: {
         // Same as the PHP layer allows
-        ALLOWED_EXTENSIONS: ['webp', 'jpg', 'jpeg', 'png', 'gif', 'pdf', 'html', 'txt', 'rtf', 'doc', 'docx', 'htm', 'tiff', 'tif', 'xml', 'mp3', 'mp4', 'mov'],
+        /* eslint-disable-next-line max-len */
+        UNALLOWED_EXTENSIONS: [
+            'ade',
+            'adp',
+            'apk',
+            'appx',
+            'appxbundle',
+            'bat',
+            'cab',
+            'chm',
+            'cmd',
+            'com',
+            'cpl',
+            'diagcab',
+            'diagcfg',
+            'diagpack',
+            'dll',
+            'dmg',
+            'ex',
+            'ex_',
+            'exe',
+            'hta',
+            'img',
+            'ins',
+            'iso',
+            'isp',
+            'jar',
+            'jnlp',
+            'js',
+            'jse',
+            'lib',
+            'lnk',
+            'mde',
+            'msc',
+            'msi',
+            'msix',
+            'msixbundle',
+            'msp',
+            'mst',
+            'nsh',
+            'pif',
+            'ps1',
+            'scr',
+            'sct',
+            'shb',
+            'sys',
+            'vb',
+            'vbe',
+            'vbs',
+            'vhd',
+            'vxd',
+            'wsc',
+            'wsf',
+            'wsh',
+            'xll',
+        ],
 
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -101,6 +160,8 @@ const CONST = {
             VIEW_HEIGHT: 275,
         },
     },
+
+    RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,
 
     NEW_EXPENSIFY_URL: ACTIVE_EXPENSIFY_URL,
     APP_DOWNLOAD_LINKS: {
@@ -207,6 +268,8 @@ const CONST = {
         POLICY_EXPENSE_CHAT: 'policyExpenseChat',
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
+        THREADS: 'threads',
+        SCAN_RECEIPTS: 'scanReceipts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -223,6 +286,7 @@ const CONST = {
         MX: 'MX',
         AU: 'AU',
         CA: 'CA',
+        GB: 'GB',
     },
     DESKTOP_DEEPLINK_APP_STATE: {
         CHECKING: 'checking',
@@ -255,6 +319,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         NEW_GROUP: {
             descriptionKey: 'newGroup',
@@ -265,6 +330,7 @@ const CONST = {
                 [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
                 [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
             },
+            type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
@@ -336,11 +402,34 @@ const CONST = {
                 [PLATFORM_IOS]: {input: keyInputDownArrow},
             },
         },
+        ARROW_LEFT: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowLeft',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputLeftArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputLeftArrow},
+                [PLATFORM_IOS]: {input: keyInputLeftArrow},
+            },
+        },
+        ARROW_RIGHT: {
+            descriptionKey: null,
+            shortcutKey: 'ArrowRight',
+            modifiers: [],
+            trigger: {
+                DEFAULT: {input: keyInputRightArrow},
+                [PLATFORM_OS_MACOS]: {input: keyInputRightArrow},
+                [PLATFORM_IOS]: {input: keyInputRightArrow},
+            },
+        },
         TAB: {
             descriptionKey: null,
             shortcutKey: 'Tab',
             modifiers: [],
         },
+    },
+    KEYBOARD_SHORTCUTS_TYPES: {
+        NAVIGATION_SHORTCUT: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'CTRL',
@@ -362,6 +451,7 @@ const CONST = {
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     CLOUDFRONT_DOMAIN_REGEX: /^https:\/\/\w+\.cloudfront\.net/i,
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
+    CONCIERGE_ICON_URL_2021: `${CLOUDFRONT_URL}/images/icons/concierge_2021.png`,
     CONCIERGE_ICON_URL: `${CLOUDFRONT_URL}/images/icons/concierge_2022.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/App',
@@ -391,15 +481,21 @@ const CONST = {
         DROP_NATIVE_ID: 'report-dropzone',
         ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
+        SPLIT_REPORTID: '-2',
         ACTIONS: {
             LIMIT: 50,
             TYPE: {
                 ADDCOMMENT: 'ADDCOMMENT',
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
+                TASKEDITED: 'TASKEDITED',
+                TASKCANCELED: 'TASKCANCELED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
+                TASKCOMPLETED: 'TASKCOMPLETED',
+                TASKREOPENED: 'TASKREOPENED',
+                REPORTPREVIEW: 'REPORTPREVIEW',
                 POLICYCHANGELOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_CATEGORY: 'POLICYCHANGELOG_ADD_CATEGORY',
@@ -474,6 +570,7 @@ const CONST = {
             CHAT: 'chat',
             EXPENSE: 'expense',
             IOU: 'iou',
+            TASK: 'task',
         },
         CHAT_TYPE: {
             POLICY_ANNOUNCE: 'policyAnnounce',
@@ -488,6 +585,7 @@ const CONST = {
         },
         STATE: {
             SUBMITTED: 'SUBMITTED',
+            PROCESSING: 'PROCESSING',
         },
         STATE_NUM: {
             OPEN: 0,
@@ -506,6 +604,11 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        // Options for which room members can post
+        WRITE_CAPABILITIES: {
+            ALL: 'all',
+            ADMINS: 'admins',
+        },
         VISIBILITY: {
             PUBLIC: 'public',
             PUBLIC_ANNOUNCE: 'public_announce',
@@ -517,6 +620,7 @@ const CONST = {
         MAX_ROOM_NAME_LENGTH: 79,
         LAST_MESSAGE_TEXT_MAX_LENGTH: 200,
         OWNER_EMAIL_FAKE: '__FAKE__',
+        OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
     },
     COMPOSER: {
@@ -549,6 +653,7 @@ const CONST = {
         },
     },
     TIMING: {
+        CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
@@ -569,6 +674,7 @@ const CONST = {
     },
     JSON_CODE: {
         SUCCESS: 200,
+        BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
@@ -602,12 +708,14 @@ const CONST = {
         SAFARI_CANNOT_PARSE_RESPONSE: 'cannot parse response',
         GATEWAY_TIMEOUT: 'Gateway Timeout',
         EXPENSIFY_SERVICE_INTERRUPTED: 'Expensify service interrupted',
+        DUPLICATE_RECORD: 'A record already exists with this ID',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
+        DUPLICATE_RECORD: '400 Unique Constraints Violation',
     },
     NETWORK: {
         METHOD: {
@@ -618,13 +726,17 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
-        COMMAND: {
-            RECONNECT_APP: 'ReconnectApp',
-        },
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: {}, success: '', isLoading: false},
+    FORMS: {
+        LOGIN_FORM: 'LoginForm',
+        VALIDATE_CODE_FORM: 'ValidateCodeForm',
+        VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
+        RESEND_VALIDATION_FORM: 'ResendValidationForm',
+        UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
+    },
     APP_STATE: {
         ACTIVE: 'active',
         BACKGROUND: 'background',
@@ -639,7 +751,7 @@ const CONST = {
 
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
-    VALIDATE_FOR_HTML_TAG_REGEX: /<(.|\n)*?>/g,
+    VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
     PASSWORD_PAGE: {
         ERROR: {
@@ -675,6 +787,9 @@ const CONST = {
         EMAIL: 'email',
     },
 
+    MAGIC_CODE_LENGTH: 6,
+    MAGIC_CODE_EMPTY_CHAR: ' ',
+
     KEYBOARD_TYPE: {
         PHONE_PAD: 'phone-pad',
         NUMBER_PAD: 'number-pad',
@@ -683,9 +798,12 @@ const CONST = {
         EMAIL_ADDRESS: 'email-address',
         ASCII_CAPABLE: 'ascii-capable',
         URL: 'url',
+        DEFAULT: 'default',
     },
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    // This is a placeholder for attachment which is uploading
+    ATTACHMENT_UPLOADING_MESSAGE_HTML: 'Uploading attachment...',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -712,16 +830,25 @@ const CONST = {
         WIDTH: 320,
         HEIGHT: 416,
     },
-    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 256,
+    DESKTOP_HEADER_PADDING: 12,
+    CATEGORY_SHORTCUT_BAR_HEIGHT: 32,
+    SMALL_EMOJI_PICKER_SIZE: {
+        WIDTH: '100%',
+    },
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
+    NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT_WEB: 200,
     EMOJI_PICKER_ITEM_HEIGHT: 32,
     EMOJI_PICKER_HEADER_HEIGHT: 32,
     RECIPIENT_LOCAL_TIME_HEIGHT: 25,
-    EMOJI_SUGGESTER: {
+    AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
-        ITEM_HEIGHT: 36,
+        SUGGESTER_INNER_PADDING: 8,
+        SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
-        MIN_AMOUNT_OF_ITEMS: 3,
-        MAX_AMOUNT_OF_ITEMS: 5,
+        MIN_AMOUNT_OF_SUGGESTIONS: 3,
+        MAX_AMOUNT_OF_SUGGESTIONS: 20,
+        MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
+        HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
     CHAT_FOOTER_MIN_HEIGHT: 65,
@@ -736,22 +863,41 @@ const CONST = {
     LHN_SKELETON_VIEW_ITEM_HEIGHT: 64,
     EXPENSIFY_PARTNER_NAME: 'expensify.com',
     EMAIL: {
-        CONCIERGE: 'concierge@expensify.com',
-        HELP: 'help@expensify.com',
-        RECEIPTS: 'receipts@expensify.com',
+        ACCOUNTING: 'accounting@expensify.com',
+        ADMIN: 'admin@expensify.com',
+        BILLS: 'bills@expensify.com',
         CHRONOS: 'chronos@expensify.com',
-        QA: 'qa@expensify.com',
+        CONCIERGE: 'concierge@expensify.com',
         CONTRIBUTORS: 'contributors@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
-        QA_TRAVIS: 'qa+travisreceipts@expensify.com',
-        BILLS: 'bills@expensify.com',
-        STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
-        ACCOUNTING: 'accounting@expensify.com',
-        PAYROLL: 'payroll@expensify.com',
-        SVFG: 'svfg@expensify.com',
-        INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
-        ADMIN: 'admin@expensify.com',
         GUIDES_DOMAIN: 'team.expensify.com',
+        HELP: 'help@expensify.com',
+        INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+        PAYROLL: 'payroll@expensify.com',
+        QA: 'qa@expensify.com',
+        QA_TRAVIS: 'qa+travisreceipts@expensify.com',
+        RECEIPTS: 'receipts@expensify.com',
+        STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+        SVFG: 'svfg@expensify.com',
+    },
+
+    ACCOUNT_ID: {
+        ACCOUNTING: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_ACCOUNTING', 9645353)),
+        ADMIN: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_ADMIN', -1)),
+        BILLS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_BILLS', 1371)),
+        CHRONOS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_CHRONOS', 10027416)),
+        CONCIERGE: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_CONCIERGE', 8392101)),
+        CONTRIBUTORS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_CONTRIBUTORS', 9675014)),
+        FIRST_RESPONDER: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_FIRST_RESPONDER', 9375152)),
+        HELP: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_HELP', -1)),
+        INTEGRATION_TESTING_CREDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_INTEGRATION_TESTING_CREDS', -1)),
+        PAYROLL: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_PAYROLL', 9679724)),
+        QA: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA', 3126513)),
+        QA_TRAVIS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_QA_TRAVIS', 8595733)),
+        RECEIPTS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_RECEIPTS', -1)),
+        REWARDS: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_REWARDS', 11023767)), // rewards@expensify.com
+        STUDENT_AMBASSADOR: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_STUDENT_AMBASSADOR', 10476956)),
+        SVFG: Number(lodashGet(Config, 'EXPENSIFY_ACCOUNT_ID_SVFG', 2012843)),
     },
 
     ENVIRONMENT: {
@@ -841,7 +987,8 @@ const CONST = {
             USER_CAMERA_DENINED: 'Onfido.OnfidoFlowError',
             USER_CAMERA_PERMISSION: 'Encountered an error: cameraPermission',
             // eslint-disable-next-line max-len
-            USER_CAMERA_CONSENT_DENIED: 'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
+            USER_CAMERA_CONSENT_DENIED:
+                'Unexpected result Intent. It might be a result of incorrect integration, make sure you only pass Onfido intent to handleActivityResult. It might be due to unpredictable crash or error. Please report the problem to android-sdk@onfido.com. Intent: null \n resultCode: 0',
         },
     },
 
@@ -882,6 +1029,7 @@ const CONST = {
             ELSEWHERE: 'Elsewhere',
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
+            VBBA: 'ACH',
         },
         MONEY_REQUEST_TYPE: {
             SEND: 'send',
@@ -894,6 +1042,7 @@ const CONST = {
             SPLIT: 'split',
             DECLINE: 'decline',
             CANCEL: 'cancel',
+            DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
@@ -908,8 +1057,9 @@ const CONST = {
 
     LOCALES: {
         EN: 'en',
-        ES_ES: 'es-ES',
         ES: 'es',
+        ES_ES: 'es-ES',
+        ES_ES_ONFIDO: 'es_ES',
 
         DEFAULT: 'en',
     },
@@ -929,6 +1079,7 @@ const CONST = {
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
+        OWNER_ACCOUNT_ID_FAKE: 0,
     },
 
     CUSTOM_UNITS: {
@@ -956,6 +1107,13 @@ const CONST = {
         SMALL_SUBSCRIPT: 'small-subscript',
         MID_SUBSCRIPT: 'mid-subscript',
         LARGE_BORDERED: 'large-bordered',
+        HEADER: 'header',
+        MENTION_ICON: 'mention-icon',
+        SMALL_NORMAL: 'small-normal',
+    },
+    AVATAR_ROW_SIZE: {
+        DEFAULT: 4,
+        LARGE_SCREEN: 8,
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -963,18 +1121,12 @@ const CONST = {
     },
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
-        US_PHONE: /^\+1\d{10}$/,
-        US_PHONE_WITH_OPTIONAL_COUNTRY_CODE: /^(\+1)?\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
-        PHONE_WITH_SPECIAL_CHARS: /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/,
-        ALPHABETIC_CHARS: /[a-zA-Z]+/,
-        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-Z0-9 ]*$/,
+        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
-        NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
-        ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
+        ZIP_CODE: /^[0-9]{5}(?:[- ][0-9]{4})?$/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
@@ -982,7 +1134,7 @@ const CONST = {
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
-        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
         ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
@@ -993,20 +1145,32 @@ const CONST = {
         // Extract attachment's source from the data's html string
         ATTACHMENT_DATA: /(data-expensify-source|data-name)="([^"]+)"/g,
 
-        NON_NUMERIC_WITH_PLUS: /[^0-9+]/g,
         EMOJI_NAME: /:[\w+-]+:/g,
         EMOJI_SUGGESTIONS: /:[a-zA-Z0-9_+-]{1,40}$/,
         AFTER_FIRST_LINE_BREAK: /\n.*/g,
         CODE_2FA: /^\d{6}$/,
         ATTACHMENT_ID: /chat-attachments\/(\d+)/,
         HAS_COLON_ONLY_AT_THE_BEGINNING: /^:[^:]+$/,
+        HAS_AT_MOST_TWO_AT_SIGNS: /^@[^@]*@?[^@]*$/,
 
-        // eslint-disable-next-line no-misleading-character-class
-        NEW_LINE_OR_WHITE_SPACE_OR_EMOJI: /[\n\s\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+        SPECIAL_CHAR_OR_EMOJI:
+            // eslint-disable-next-line no-misleading-character-class
+            /[\n\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
-        // Define the regular expression pattern to match a string starting with a colon and ending with a space or newline character
-        EMOJI_REPLACER: /^:[^\n\r]+?(?=$|\s)/,
+        SPACE_OR_EMOJI:
+            // eslint-disable-next-line no-misleading-character-class
+            /(\s+|(?:[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)+)/gu,
+
+        // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
+        MENTION_REPLACER:
+            // eslint-disable-next-line no-misleading-character-class
+            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
+
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
+
+        ROUTES: {
+            VALIDATE_LOGIN: /\/v($|(\/\/*))/,
+        },
     },
 
     PRONOUNS: {
@@ -1027,21 +1191,41 @@ const CONST = {
     },
     get EXPENSIFY_EMAILS() {
         return [
-            this.EMAIL.CONCIERGE,
-            this.EMAIL.HELP,
-            this.EMAIL.RECEIPTS,
+            this.EMAIL.ACCOUNTING,
+            this.EMAIL.ADMIN,
+            this.EMAIL.BILLS,
             this.EMAIL.CHRONOS,
-            this.EMAIL.QA,
+            this.EMAIL.CONCIERGE,
             this.EMAIL.CONTRIBUTORS,
             this.EMAIL.FIRST_RESPONDER,
-            this.EMAIL.QA_TRAVIS,
-            this.EMAIL.BILLS,
-            this.EMAIL.STUDENT_AMBASSADOR,
-            this.EMAIL.ACCOUNTING,
-            this.EMAIL.PAYROLL,
-            this.EMAIL.SVFG,
+            this.EMAIL.HELP,
             this.EMAIL.INTEGRATION_TESTING_CREDS,
-            this.EMAIL.ADMIN,
+            this.EMAIL.PAYROLL,
+            this.EMAIL.QA,
+            this.EMAIL.QA_TRAVIS,
+            this.EMAIL.RECEIPTS,
+            this.EMAIL.STUDENT_AMBASSADOR,
+            this.EMAIL.SVFG,
+        ];
+    },
+    get EXPENSIFY_ACCOUNT_IDS() {
+        return [
+            this.ACCOUNT_ID.ACCOUNTING,
+            this.ACCOUNT_ID.ADMIN,
+            this.ACCOUNT_ID.BILLS,
+            this.ACCOUNT_ID.CHRONOS,
+            this.ACCOUNT_ID.CONCIERGE,
+            this.ACCOUNT_ID.CONTRIBUTORS,
+            this.ACCOUNT_ID.FIRST_RESPONDER,
+            this.ACCOUNT_ID.HELP,
+            this.ACCOUNT_ID.INTEGRATION_TESTING_CREDS,
+            this.ACCOUNT_ID.PAYROLL,
+            this.ACCOUNT_ID.QA,
+            this.ACCOUNT_ID.QA_TRAVIS,
+            this.ACCOUNT_ID.RECEIPTS,
+            this.ACCOUNT_ID.REWARDS,
+            this.ACCOUNT_ID.STUDENT_AMBASSADOR,
+            this.ACCOUNT_ID.SVFG,
         ];
     },
 
@@ -1050,6 +1234,8 @@ const CONST = {
 
     // Furthermore, applying markup is very resource-consuming, so let's set a slightly lower limit for that
     MAX_MARKUP_LENGTH: 10000,
+
+    MAX_THREAD_REPLIES_PREVIEW: 99,
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
@@ -1065,13 +1251,6 @@ const CONST = {
         // Since size cant be null, we have to define some initial value.
         INITIAL_SIZE: 1, // 1 was chosen because there is a very low probability that initialized component will have such size.
     },
-
-    ONYX: {
-        METHOD: {
-            MERGE: 'merge',
-            SET: 'set',
-        },
-    },
     MICROSECONDS_PER_MS: 1000,
     RED_BRICK_ROAD_PENDING_ACTION: {
         ADD: 'add',
@@ -1083,11 +1262,17 @@ const CONST = {
         INFO: 'info',
     },
     REPORT_DETAILS_MENU_ITEM: {
+        SHARE_CODE: 'shareCode',
         MEMBERS: 'member',
         SETTINGS: 'settings',
         LEAVE_ROOM: 'leaveRoom',
+        WELCOME_MESSAGE: 'welcomeMessage',
     },
-
+    EDIT_REQUEST_FIELD: {
+        AMOUNT: 'amount',
+        DATE: 'date',
+        DESCRIPTION: 'description',
+    },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
@@ -1139,7 +1324,10 @@ const CONST = {
     TESTING: {
         SCREEN_SIZE: {
             SMALL: {
-                width: 300, height: 700, scale: 1, fontScale: 1,
+                width: 300,
+                height: 700,
+                scale: 1,
+                fontScale: 1,
             },
         },
     },
@@ -1153,13 +1341,7 @@ const CONST = {
         {
             name: '+1',
             code: '👍',
-            types: [
-                '👍🏿',
-                '👍🏾',
-                '👍🏽',
-                '👍🏼',
-                '👍🏻',
-            ],
+            types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
         },
         {
             name: 'heart',
@@ -1178,9 +1360,7 @@ const CONST = {
     TFA_CODE_LENGTH: 6,
     CHAT_ATTACHMENT_TOKEN_KEY: 'X-Chat-Attachment-Token',
 
-    USA_COUNTRY_NAME,
     SPACE_LENGTH: 1,
-    SPACE: 1,
 
     ALL_COUNTRIES: {
         AF: 'Afghanistan',
@@ -1238,7 +1418,7 @@ const CONST = {
         CD: 'Congo - Kinshasa',
         CK: 'Cook Islands',
         CR: 'Costa Rica',
-        CI: 'Côte d\'Ivoire',
+        CI: "Côte d'Ivoire",
         HR: 'Croatia',
         CU: 'Cuba',
         CW: 'Curaçao',
@@ -2265,9 +2445,7 @@ const CONST = {
         EXPECTED_OUTPUT: 'FCFA 123,457',
     },
 
-    PATHS_TO_TREAT_AS_EXTERNAL: [
-        'NewExpensify.dmg',
-    ],
+    PATHS_TO_TREAT_AS_EXTERNAL: ['NewExpensify.dmg'],
 
     // Test tool menu parameters
     TEST_TOOL: {
@@ -2276,15 +2454,76 @@ const CONST = {
     },
 
     PAYPAL_SUPPORTED_CURRENCIES: [
-        'AUD', 'BRL', 'CAD', 'CZK', 'DKK', 'EUR', 'HKD', 'HUF',
-        'ILS', 'JPY', 'MYR', 'MXN', 'TWD', 'NZD', 'NOK', 'PHP',
-        'PLN', 'GBP', 'RUB', 'SGD', 'SEK', 'CHF', 'THB', 'USD',
+        'AUD',
+        'BRL',
+        'CAD',
+        'CZK',
+        'DKK',
+        'EUR',
+        'HKD',
+        'HUF',
+        'ILS',
+        'JPY',
+        'MYR',
+        'MXN',
+        'TWD',
+        'NZD',
+        'NOK',
+        'PHP',
+        'PLN',
+        'GBP',
+        'RUB',
+        'SGD',
+        'SEK',
+        'CHF',
+        'THB',
+        'USD',
     ],
     CONCIERGE_TRAVEL_URL: 'https://community.expensify.com/discussion/7066/introducing-concierge-travel',
     SCREEN_READER_STATES: {
         ALL: 'all',
         ACTIVE: 'active',
         DISABLED: 'disabled',
+    },
+    SPACE_CHARACTER_WIDTH: 4,
+
+    // The attribute used in the SelectionScraper.js helper to query all the DOM elements
+    // that should be removed from the copied contents in the getHTMLOfSelection() method
+    SELECTION_SCRAPER_HIDDEN_ELEMENT: 'selection-scrapper-hidden-element',
+    MODERATION: {
+        MODERATOR_DECISION_PENDING: 'pending',
+        MODERATOR_DECISION_PENDING_HIDE: 'pendingHide',
+        MODERATOR_DECISION_PENDING_REMOVE: 'pendingRemove',
+        MODERATOR_DECISION_APPROVED: 'approved',
+        MODERATOR_DECISION_HIDDEN: 'hidden',
+        FLAG_SEVERITY_SPAM: 'spam',
+        FLAG_SEVERITY_INCONSIDERATE: 'inconsiderate',
+        FLAG_SEVERITY_INTIMIDATION: 'intimidation',
+        FLAG_SEVERITY_BULLYING: 'bullying',
+        FLAG_SEVERITY_HARASSMENT: 'harassment',
+        FLAG_SEVERITY_ASSAULT: 'assault',
+    },
+    EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    QR: {
+        DEFAULT_LOGO_SIZE_RATIO: 0.25,
+        DEFAULT_LOGO_MARGIN_RATIO: 0.02,
+        EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
+        EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
+    },
+    ACCESSIBILITY_ROLE: {
+        BUTTON: 'button',
+        LINK: 'link',
+        MENUITEM: 'menuitem',
+        TEXT: 'text',
+        RADIO: 'radio',
+        IMAGEBUTTON: 'imagebutton',
+        CHECKBOX: 'checkbox',
+        SWITCH: 'switch',
+        ADJUSTABLE: 'adjustable',
+        IMAGE: 'image',
+    },
+    SETTINGS_LOUNGE_ACCESS: {
+        HEADER_IMAGE_ASPECT_RATIO: 0.64,
     },
 };
 

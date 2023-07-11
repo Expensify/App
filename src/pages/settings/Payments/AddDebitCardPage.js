@@ -4,8 +4,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import compose from '../../../libs/compose';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import Navigation from '../../../libs/Navigation/Navigation';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
@@ -22,6 +21,8 @@ import AddressSearch from '../../../components/AddressSearch';
 import * as ComponentUtils from '../../../libs/ComponentUtils';
 import Form from '../../../components/Form';
 import Permissions from '../../../libs/Permissions';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -72,40 +73,40 @@ class DebitCardPage extends Component {
     validate(values) {
         const errors = {};
 
-        if (!values.nameOnCard || !ValidationUtils.isValidCardName(values.nameOnCard)) {
-            errors.nameOnCard = this.props.translate('addDebitCardPage.error.invalidName');
+        if (!values.nameOnCard || !ValidationUtils.isValidLegalName(values.nameOnCard)) {
+            errors.nameOnCard = 'addDebitCardPage.error.invalidName';
         }
 
         if (!values.cardNumber || !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
-            errors.cardNumber = this.props.translate('addDebitCardPage.error.debitCardNumber');
+            errors.cardNumber = 'addDebitCardPage.error.debitCardNumber';
         }
 
         if (!values.expirationDate || !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
-            errors.expirationDate = this.props.translate('addDebitCardPage.error.expirationDate');
+            errors.expirationDate = 'addDebitCardPage.error.expirationDate';
         }
 
         if (!values.securityCode || !ValidationUtils.isValidSecurityCode(values.securityCode)) {
-            errors.securityCode = this.props.translate('addDebitCardPage.error.securityCode');
+            errors.securityCode = 'addDebitCardPage.error.securityCode';
         }
 
         if (!values.addressStreet || !ValidationUtils.isValidAddress(values.addressStreet)) {
-            errors.addressStreet = this.props.translate('addDebitCardPage.error.addressStreet');
+            errors.addressStreet = 'addDebitCardPage.error.addressStreet';
         }
 
         if (!values.addressZipCode || !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = this.props.translate('addDebitCardPage.error.addressZipCode');
+            errors.addressZipCode = 'addDebitCardPage.error.addressZipCode';
         }
 
         if (!values.addressState || !values.addressState) {
-            errors.addressState = this.props.translate('addDebitCardPage.error.addressState');
+            errors.addressState = 'addDebitCardPage.error.addressState';
         }
 
         if (!Permissions.canUsePasswordlessLogins(this.props.betas) && (!values.password || _.isEmpty(values.password.trim()))) {
-            errors.password = this.props.translate('addDebitCardPage.error.password');
+            errors.password = 'addDebitCardPage.error.password';
         }
 
         if (!values.acceptTerms) {
-            errors.acceptTerms = this.props.translate('common.error.acceptTerms');
+            errors.acceptTerms = 'common.error.acceptTerms';
         }
 
         return errors;
@@ -114,11 +115,9 @@ class DebitCardPage extends Component {
     render() {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithCloseButton
+                <HeaderWithBackButton
                     title={this.props.translate('addDebitCardPage.addADebitCard')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
-                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
                 />
                 <Form
                     formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
@@ -126,16 +125,19 @@ class DebitCardPage extends Component {
                     onSubmit={PaymentMethods.addPaymentCard}
                     submitButtonText={this.props.translate('common.save')}
                     scrollContextEnabled
-                    scrollToOverflowEnabled
                     style={[styles.mh5, styles.flexGrow1]}
                 >
                     <TextInput
                         inputID="nameOnCard"
                         label={this.props.translate('addDebitCardPage.nameOnCard')}
+                        accessibilityLabel={this.props.translate('addDebitCardPage.nameOnCard')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     />
                     <TextInput
                         inputID="cardNumber"
                         label={this.props.translate('addDebitCardPage.debitCardNumber')}
+                        accessibilityLabel={this.props.translate('addDebitCardPage.debitCardNumber')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                     />
@@ -144,6 +146,8 @@ class DebitCardPage extends Component {
                             <TextInput
                                 inputID="expirationDate"
                                 label={this.props.translate('addDebitCardPage.expiration')}
+                                accessibilityLabel={this.props.translate('addDebitCardPage.expiration')}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                                 maxLength={4}
@@ -153,6 +157,8 @@ class DebitCardPage extends Component {
                             <TextInput
                                 inputID="securityCode"
                                 label={this.props.translate('addDebitCardPage.cvv')}
+                                accessibilityLabel={this.props.translate('addDebitCardPage.cvv')}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 maxLength={4}
                                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             />
@@ -163,26 +169,29 @@ class DebitCardPage extends Component {
                             inputID="addressStreet"
                             label={this.props.translate('addDebitCardPage.billingAddress')}
                             containerStyles={[styles.mt4]}
+                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     </View>
                     <TextInput
                         inputID="addressZipCode"
                         label={this.props.translate('common.zip')}
+                        accessibilityLabel={this.props.translate('common.zip')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                         hint={this.props.translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
                         containerStyles={[styles.mt4]}
                     />
                     <View style={styles.mt4}>
-                        <StatePicker
-                            inputID="addressState"
-                        />
+                        <StatePicker inputID="addressState" />
                     </View>
                     {!Permissions.canUsePasswordlessLogins(this.props.betas) && (
                         <View style={[styles.mt4]}>
                             <TextInput
                                 inputID="password"
                                 label={this.props.translate('addDebitCardPage.expensifyPassword')}
+                                accessibilityLabel={this.props.translate('addDebitCardPage.expensifyPassword')}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 textContentType="password"
                                 autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                                 secureTextEntry
@@ -190,13 +199,12 @@ class DebitCardPage extends Component {
                         </View>
                     )}
                     <CheckboxWithLabel
+                        accessibilityLabel={`${this.props.translate('common.iAcceptThe')} ${this.props.translate('common.expensifyTermsOfService')}`}
                         inputID="acceptTerms"
                         LabelComponent={() => (
                             <Text>
                                 {`${this.props.translate('common.iAcceptThe')}`}
-                                <TextLink href="https://use.expensify.com/terms">
-                                    {`${this.props.translate('common.expensifyTermsOfService')}`}
-                                </TextLink>
+                                <TextLink href={CONST.TERMS_URL}>{`${this.props.translate('common.expensifyTermsOfService')}`}</TextLink>
                             </Text>
                         )}
                         style={[styles.mt4]}

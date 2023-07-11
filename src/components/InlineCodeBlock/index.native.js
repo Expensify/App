@@ -3,7 +3,7 @@ import styles from '../../styles/styles';
 import WrappedText from './WrappedText';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
-const InlineCodeBlock = (props) => {
+function InlineCodeBlock(props) {
     const TDefaultRenderer = props.TDefaultRenderer;
     return (
         <TDefaultRenderer
@@ -12,16 +12,13 @@ const InlineCodeBlock = (props) => {
         >
             <WrappedText
                 textStyles={[props.textStyle]}
-                wordStyles={[
-                    props.boxModelStyle,
-                    styles.codeWordStyle,
-                ]}
+                wordStyles={[props.boxModelStyle, styles.codeWordStyle]}
             >
                 {props.defaultRendererProps.tnode.data}
             </WrappedText>
         </TDefaultRenderer>
     );
-};
+}
 
 InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;
 InlineCodeBlock.displayName = 'InlineCodeBlock';

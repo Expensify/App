@@ -12,6 +12,7 @@ import KeyboardSpacer from '../KeyboardSpacer';
 import {propTypes as passwordPopoverPropTypes, defaultProps as passwordPopoverDefaultProps} from './passwordPopoverPropTypes';
 import Button from '../Button';
 import withViewportOffsetTop from '../withViewportOffsetTop';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether we should wait before focusing the TextInput, useful when using transitions on Android */
@@ -58,27 +59,18 @@ class BasePasswordPopover extends Component {
                 onModalShow={this.focusInput}
                 outerStyle={{maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
             >
-                <View
-                    style={[
-                        styles.m5,
-                        !this.props.isSmallScreenWidth ? styles.sidebarPopover : '',
-                    ]}
-                >
-                    <Text
-                        style={[
-                            styles.mb3,
-                        ]}
-                    >
-                        {this.props.translate('passwordForm.pleaseFillPassword')}
-                    </Text>
+                <View style={[styles.m5, !this.props.isSmallScreenWidth ? styles.sidebarPopover : '']}>
+                    <Text style={[styles.mb3]}>{this.props.translate('passwordForm.pleaseFillPassword')}</Text>
                     <TextInput
                         label={this.props.translate('common.password')}
-                        ref={el => this.passwordInput = el}
+                        accessibilityLabel={this.props.translate('common.password')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        ref={(el) => (this.passwordInput = el)}
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
                         value={this.state.currentPassword}
-                        onChangeText={password => this.setState({password})}
+                        onChangeText={(password) => this.setState({password})}
                         returnKeyType="done"
                         onSubmitEditing={() => this.props.onSubmit(this.state.password)}
                         style={styles.mt3}
@@ -99,8 +91,4 @@ class BasePasswordPopover extends Component {
 
 BasePasswordPopover.propTypes = propTypes;
 BasePasswordPopover.defaultProps = defaultProps;
-export default compose(
-    withViewportOffsetTop,
-    withWindowDimensions,
-    withLocalize,
-)(BasePasswordPopover);
+export default compose(withViewportOffsetTop, withWindowDimensions, withLocalize)(BasePasswordPopover);

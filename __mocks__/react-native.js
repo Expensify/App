@@ -24,6 +24,7 @@ jest.doMock('react-native', () => {
                 BootSplash: {
                     getVisibilityStatus: jest.fn(),
                     hide: jest.fn(),
+                    navigationBarHeight: 0,
                 },
                 StartupTimer: {stop: jest.fn()},
             },
@@ -41,7 +42,7 @@ jest.doMock('react-native', () => {
                 },
                 emitCurrentTestState(state) {
                     appState = state;
-                    _.each(changeListeners, listener => listener(appState));
+                    _.each(changeListeners, (listener) => listener(appState));
                 },
                 addEventListener(type, listener) {
                     if (type === 'change') {
@@ -65,6 +66,14 @@ jest.doMock('react-native', () => {
                 set: (newDimensions) => {
                     dimensions = newDimensions;
                 },
+            },
+
+            // `runAfterInteractions` method would normally be triggered after the native animation is completed,
+            // we would have to mock waiting for the animation end and more state changes,
+            // so it seems easier to just run the callback immediately in tests.
+            InteractionManager: {
+                ...ReactNative.InteractionManager,
+                runAfterInteractions: (callback) => callback(),
             },
         },
         ReactNative,

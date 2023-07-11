@@ -16,17 +16,20 @@ const defaultProps = {
     message: '',
 };
 
-const InlineSystemMessage = (props) => {
+function InlineSystemMessage(props) {
     if (props.message.length === 0) {
         return null;
     }
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-            <Icon src={Expensicons.Exclamation} fill={theme.danger} />
+            <Icon
+                src={Expensicons.Exclamation}
+                fill={theme.danger}
+            />
             <Text style={[styles.inlineSystemMessage]}>{props.message}</Text>
         </View>
     );
-};
+}
 
 InlineSystemMessage.propTypes = propTypes;
 InlineSystemMessage.defaultProps = defaultProps;

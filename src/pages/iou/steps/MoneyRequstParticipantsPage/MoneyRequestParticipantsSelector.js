@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
+import * as ReportUtils from '../../../../libs/ReportUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -28,10 +29,7 @@ const propTypes = {
     reports: PropTypes.objectOf(reportPropTypes),
 
     /** padding bottom style of safe area */
-    safeAreaPaddingBottomStyle: PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.object),
-        PropTypes.object,
-    ]),
+    safeAreaPaddingBottomStyle: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
     /** The type of IOU report, i.e. bill, request, send */
     iouType: PropTypes.string.isRequired,
@@ -53,11 +51,7 @@ class MoneyRequestParticipantsSelector extends Component {
         this.addSingleParticipant = this.addSingleParticipant.bind(this);
         this.updateOptionsWithSearchTerm = this.updateOptionsWithSearchTerm.bind(this);
 
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = this.getRequestOptions();
+        const {recentReports, personalDetails, userToInvite} = this.getRequestOptions();
 
         this.state = {
             recentReports,
@@ -65,6 +59,13 @@ class MoneyRequestParticipantsSelector extends Component {
             userToInvite,
             searchTerm: '',
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
+            return;
+        }
+        this.updateOptionsWithSearchTerm(this.state.searchTerm);
     }
 
     /**
@@ -81,8 +82,7 @@ class MoneyRequestParticipantsSelector extends Component {
             CONST.EXPENSIFY_EMAILS,
 
             // If we are using this component in the "Request money" flow then we pass the includeOwnedWorkspaceChats argument so that the current user
-            // sees the option to request money from their admin on their own Workspace Chat. These will always be shown in the "Recents" section of the selector
-            // along with any other recent chats.
+            // sees the option to request money from their admin on their own Workspace Chat.
             this.props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
         );
     }
@@ -125,11 +125,7 @@ class MoneyRequestParticipantsSelector extends Component {
     }
 
     updateOptionsWithSearchTerm(searchTerm = '') {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = this.getRequestOptions(searchTerm);
+        const {recentReports, personalDetails, userToInvite} = this.getRequestOptions(searchTerm);
         this.setState({
             searchTerm,
             recentReports,
@@ -144,7 +140,7 @@ class MoneyRequestParticipantsSelector extends Component {
      * @param {Object} option
      */
     addSingleParticipant(option) {
-        this.props.onAddParticipants([option]);
+        this.props.onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
         this.props.onStepComplete();
     }
 
@@ -154,6 +150,8 @@ class MoneyRequestParticipantsSelector extends Component {
             Boolean(this.state.userToInvite),
             this.state.searchTerm,
         );
+        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
+
         return (
             <OptionsSelector
                 sections={this.getSections()}
@@ -164,6 +162,7 @@ class MoneyRequestParticipantsSelector extends Component {
                 textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                 boldStyle
                 safeAreaPaddingBottomStyle={this.props.safeAreaPaddingBottomStyle}
+                shouldShowOptions={isOptionsDataReady}
             />
         );
     }
@@ -176,7 +175,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

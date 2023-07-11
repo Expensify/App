@@ -8,6 +8,8 @@ import styles from '../../../../styles/styles';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import NAVIGATORS from '../../../../NAVIGATORS';
+import SCREENS from '../../../../SCREENS';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
 import PopoverMenu from '../../../../components/PopoverMenu';
@@ -20,18 +22,23 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
-import withDrawerState from '../../../../components/withDrawerState';
+import * as Task from '../../../../libs/actions/Task';
+import * as Session from '../../../../libs/actions/Session';
+import * as IOU from '../../../../libs/actions/IOU';
 
 /**
  * @param {Object} [policy]
  * @returns {Object|undefined}
  */
-const policySelector = policy => policy && ({
-    type: policy.type,
-    role: policy.role,
-});
+const policySelector = (policy) =>
+    policy && {
+        type: policy.type,
+        role: policy.role,
+    };
 
 const propTypes = {
+    ...withLocalizePropTypes,
+
     /* Callback function when the menu is shown */
     onShowCreateMenu: PropTypes.func,
 
@@ -49,8 +56,6 @@ const propTypes = {
 
     /** Indicated whether the report data is loading */
     isLoading: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 const defaultProps = {
     onHideCreateMenu: () => {},
@@ -70,14 +75,21 @@ class FloatingActionButtonAndPopover extends React.Component {
 
         this.showCreateMenu = this.showCreateMenu.bind(this);
         this.hideCreateMenu = this.hideCreateMenu.bind(this);
+        this.interceptAnonymousUser = this.interceptAnonymousUser.bind(this);
 
         this.state = {
             isCreateMenuActive: false,
+            isAnonymousUser: Session.isAnonymousUser(),
         };
     }
 
     componentDidMount() {
-        const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
+        const navigationState = this.props.navigation.getState();
+        const routes = lodashGet(navigationState, 'routes', []);
+        const currentRoute = routes[navigationState.index];
+        if (currentRoute && ![NAVIGATORS.CENTRAL_PANE_NAVIGATOR, SCREENS.HOME].includes(currentRoute.name)) {
+            return;
+        }
         Welcome.show({routes, showCreateMenu: this.showCreateMenu});
     }
 
@@ -98,33 +110,8 @@ class FloatingActionButtonAndPopover extends React.Component {
      * @return {Boolean}
      */
     didScreenBecomeInactive(prevProps) {
-        // When the Drawer gets closed and ReportScreen is shown
-        if (!this.props.isDrawerOpen && prevProps.isDrawerOpen) {
-            return true;
-        }
-
         // When any other page is opened over LHN
         if (!this.props.isFocused && prevProps.isFocused) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if LHN is inactive.
-     * Used to prevent FAB menu showing after opening any other pages.
-     *
-     * @return {Boolean}
-     */
-    isScreenInactive() {
-        // When drawer is closed and Report page is open
-        if (this.props.isSmallScreenWidth && !this.props.isDrawerOpen) {
-            return true;
-        }
-
-        // When any other page is open
-        if (!this.props.isFocused) {
             return true;
         }
 
@@ -135,8 +122,7 @@ class FloatingActionButtonAndPopover extends React.Component {
      * Method called when we click the floating action button
      */
     showCreateMenu() {
-        if (this.isScreenInactive()) {
-            // Prevent showing menu when click FAB icon quickly after opening other pages
+        if (!this.props.isFocused && this.props.isSmallScreenWidth) {
             return;
         }
         this.setState({
@@ -160,79 +146,105 @@ class FloatingActionButtonAndPopover extends React.Component {
         });
     }
 
+    /**
+     * Checks if user is anonymous. If true, shows the sign in modal, else,
+     * executes the callback.
+     *
+     * @param {Function} callback
+     */
+    interceptAnonymousUser(callback) {
+        if (this.state.isAnonymousUser) {
+            Session.signOutAndRedirectToSignIn();
+        } else {
+            callback();
+        }
+    }
+
     render() {
         // Workspaces are policies with type === 'free'
-        const workspaces = _.filter(this.props.allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
+        const workspaces = _.filter(this.props.allPolicies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE);
 
         return (
             <View>
                 <PopoverMenu
                     onClose={this.hideCreateMenu}
                     isVisible={this.state.isCreateMenuActive}
-                    anchorPosition={styles.createMenuPositionSidebar}
+                    anchorPosition={styles.createMenuPositionSidebar(this.props.windowHeight)}
                     onItemSelected={this.hideCreateMenu}
                     fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                     menuItems={[
                         {
                             icon: Expensicons.ChatBubble,
                             text: this.props.translate('sidebarScreen.newChat'),
-                            onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
+                            onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_CHAT)),
                         },
                         {
                             icon: Expensicons.Users,
                             text: this.props.translate('sidebarScreen.newGroup'),
-                            onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
+                            onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.NEW_GROUP)),
                         },
-                        ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length ? [
-                            {
-                                icon: Expensicons.Hashtag,
-                                text: this.props.translate('sidebarScreen.newRoom'),
-                                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseIOUSend(this.props.betas) ? [
-                            {
-                                icon: Expensicons.Send,
-                                text: this.props.translate('iou.sendMoney'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseIOU(this.props.betas) ? [
-                            {
-                                icon: Expensicons.MoneyCircle,
-                                text: this.props.translate('iou.requestMoney'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_REQUEST),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseIOU(this.props.betas) ? [
-                            {
-                                icon: Expensicons.Receipt,
-                                text: this.props.translate('iou.splitBill'),
-                                onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
-                            },
-                        ] : []),
-                        ...(Permissions.canUseTasks(this.props.betas) ? [
-                            {
-                                icon: Expensicons.Task,
-                                text: this.props.translate('newTaskPage.assignTask'),
-                                onSelected: () => Navigation.navigate(ROUTES.NEW_TASK),
-                            },
-                        ] : []),
-                        ...(!this.props.isLoading && !Policy.hasActiveFreePolicy(this.props.allPolicies) ? [
-                            {
-                                icon: Expensicons.NewWorkspace,
-                                iconWidth: 46,
-                                iconHeight: 40,
-                                text: this.props.translate('workspace.new.newWorkspace'),
-                                description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                onSelected: () => Policy.createWorkspace(),
-                            },
-                        ] : []),
+                        ...(Permissions.canUsePolicyRooms(this.props.betas) && workspaces.length
+                            ? [
+                                  {
+                                      icon: Expensicons.Hashtag,
+                                      text: this.props.translate('sidebarScreen.newRoom'),
+                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM)),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseIOUSend(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.Send,
+                                      text: this.props.translate('iou.sendMoney'),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseIOU(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.MoneyCircle,
+                                      text: this.props.translate('iou.requestMoney'),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseIOU(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.Receipt,
+                                      text: this.props.translate('iou.splitBill'),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
+                                  },
+                              ]
+                            : []),
+                        ...(Permissions.canUseTasks(this.props.betas)
+                            ? [
+                                  {
+                                      icon: Expensicons.Task,
+                                      text: this.props.translate('newTaskPage.assignTask'),
+                                      onSelected: () => this.interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                                  },
+                              ]
+                            : []),
+                        ...(!this.props.isLoading && !Policy.hasActiveFreePolicy(this.props.allPolicies)
+                            ? [
+                                  {
+                                      icon: Expensicons.NewWorkspace,
+                                      iconWidth: 46,
+                                      iconHeight: 40,
+                                      text: this.props.translate('workspace.new.newWorkspace'),
+                                      description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
+                                      onSelected: () => this.interceptAnonymousUser(() => Policy.createWorkspace()),
+                                  },
+                              ]
+                            : []),
                     ]}
                 />
                 <FloatingActionButton
                     accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     isActive={this.state.isCreateMenuActive}
                     onPress={this.showCreateMenu}
                 />
@@ -248,7 +260,7 @@ export default compose(
     withLocalize,
     withNavigation,
     withNavigationFocus,
-    withDrawerState,
+    withWindowDimensions,
     withWindowDimensions,
     withOnyx({
         allPolicies: {

@@ -3,13 +3,16 @@ import {usePlaidLink} from 'react-plaid-link';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 import Log from '../../libs/Log';
 
-const PlaidLink = (props) => {
+function PlaidLink(props) {
     const [isPlaidLoaded, setIsPlaidLoaded] = useState(false);
     const onSuccess = props.onSuccess;
     const onError = props.onError;
-    const successCallback = useCallback((publicToken, metadata) => {
-        onSuccess({publicToken, metadata});
-    }, [onSuccess]);
+    const successCallback = useCallback(
+        (publicToken, metadata) => {
+            onSuccess({publicToken, metadata});
+        },
+        [onSuccess],
+    );
 
     const {open, ready, error} = usePlaidLink({
         token: props.token,
@@ -46,7 +49,7 @@ const PlaidLink = (props) => {
     }, [ready, error, isPlaidLoaded, open, onError]);
 
     return null;
-};
+}
 
 PlaidLink.propTypes = plaidLinkPropTypes;
 PlaidLink.defaultProps = plaidLinkDefaultProps;

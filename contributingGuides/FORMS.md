@@ -114,10 +114,10 @@ Here's an example for a form that has two inputs, `routingNumber` and `accountNu
 function validate(values) {
     const errors = {};
     if (!values.routingNumber) {
-        errors.routingNumber = props.translate(CONST.ERRORS.ROUTING_NUMBER);
+        errors.routingNumber = CONST.ERRORS.ROUTING_NUMBER;
     }
     if (!values.accountNumber) {
-        errors.accountNumber = props.translate(CONST.ERRORS.ACCOUNT_NUMBER);
+        errors.accountNumber = CONST.ERRORS.ACCOUNT_NUMBER;
     }
     return errors;
 }
@@ -130,15 +130,15 @@ function validate(values) {
         let errors = {};
 
         if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.hasInvalidCharacter'));
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.hasInvalidCharacter');
         }
 
         if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_FIRST_NAMES)) {
-            errors = ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('personalDetails.error.containsReservedWord'));
+            errors = ErrorUtils.addErrorMessage(errors, 'firstName', 'personalDetails.error.containsReservedWord');
         }
 
         if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            errors.lastName = props.translate('personalDetails.error.hasInvalidCharacter');
+            errors.lastName = 'personalDetails.error.hasInvalidCharacter';
         }
 
         return errors;
@@ -272,6 +272,7 @@ Form.js will automatically provide the following props to any input with the inp
 - value: The input value.
 - errorText: The translated error text that is returned by validate for that specific input.
 - onBlur: An onBlur handler that calls validate.
+- onTouched: An onTouched handler that marks the input as touched.
 - onInputChange: An onChange handler that saves draft values and calls validate for that input (inputA). Passing an inputID as a second param allows inputA to manipulate the input value of the provided inputID (inputB).
 
 ## Dynamic Form Inputs
@@ -302,7 +303,3 @@ In case there's a nested Picker in Form, we should pass the props below to Form,
 #### Enable ScrollContext
 
 Pass the `scrollContextEnabled` prop to enable scrolling up when Picker is pressed, making sure the Picker is always in view and doesn't get covered by virtual keyboards for example.
-
-#### Enable scrolling to overflow
-
-In addition to the `scrollContextEnabled` prop, we can also pass `scrollToOverflowEnabled` when the nested Picker is at the bottom of the Form to prevent the popup selector from covering Picker.

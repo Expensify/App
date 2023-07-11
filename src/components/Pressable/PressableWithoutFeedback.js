@@ -3,22 +3,18 @@ import _ from 'underscore';
 import GenericPressable from './GenericPressable';
 import GenericPressableProps from './GenericPressable/PropTypes';
 
-const omittedProps = [
-    'pressStyle',
-    'hoverStyle',
-    'focusStyle',
-    'activeStyle',
-    'disabledStyle',
-    'screenReaderActiveStyle',
-    'shouldUseHapticsOnPress',
-    'shouldUseHapticsOnLongPress',
-];
+const omittedProps = ['pressStyle', 'hoverStyle', 'focusStyle', 'activeStyle', 'disabledStyle', 'screenReaderActiveStyle', 'shouldUseHapticsOnPress', 'shouldUseHapticsOnLongPress'];
 
-const PressableWithoutFeedback = (props) => {
+const PressableWithoutFeedback = React.forwardRef((props, ref) => {
     const propsWithoutStyling = _.omit(props, omittedProps);
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <GenericPressable {...propsWithoutStyling} />;
-};
+    return (
+        <GenericPressable
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...propsWithoutStyling}
+            ref={ref}
+        />
+    );
+});
 
 PressableWithoutFeedback.displayName = 'PressableWithoutFeedback';
 PressableWithoutFeedback.propTypes = _.omit(GenericPressableProps.pressablePropTypes, omittedProps);

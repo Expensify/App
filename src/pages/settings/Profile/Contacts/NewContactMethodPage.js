@@ -1,16 +1,13 @@
-import React, {
-    useCallback, useMemo, useRef, useState,
-} from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
-import {compose} from 'underscore';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import Button from '../../../../components/Button';
-import FixedFooter from '../../../../components/FixedFooter';
-import HeaderWithCloseButton from '../../../../components/HeaderWithCloseButton';
+import {parsePhoneNumber} from 'awesome-phonenumber';
+import compose from '../../../../libs/compose';
+import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Text from '../../../../components/Text';
 import TextInput from '../../../../components/TextInput';
@@ -22,6 +19,9 @@ import ROUTES from '../../../../ROUTES';
 import styles from '../../../../styles/styles';
 import * as User from '../../../../libs/actions/User';
 import * as LoginUtils from '../../../../libs/LoginUtils';
+import * as ErrorUtils from '../../../../libs/ErrorUtils';
+import Form from '../../../../components/Form';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -54,85 +54,115 @@ const defaultProps = {
     loginList: {},
 };
 
+const getPhoneLogin = (phoneOrEmail) => {
+    if (_.isEmpty(phoneOrEmail)) {
+        return '';
+    }
+
+    return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
+};
+
+const validateNumber = (values) => {
+    const parsedPhoneNumber = parsePhoneNumber(values);
+
+    if (parsedPhoneNumber.possible) {
+        return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
+    }
+
+    return '';
+};
+
+const addNewContactMethod = (values) => {
+    const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+    const validateIfnumber = validateNumber(phoneLogin);
+    const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
+
+    User.addNewContactMethodAndNavigate(submitDetail, values.password);
+};
+
 function NewContactMethodPage(props) {
-    const [login, setLogin] = useState('');
-    const [password, setPassword] = useState('');
     const loginInputRef = useRef(null);
 
-    const handleLoginChange = useCallback((value) => {
-        setLogin(value.trim());
-    }, []);
+    const validate = React.useCallback(
+        (values) => {
+            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+            const validateIfnumber = validateNumber(phoneLogin);
 
-    const handlePasswordChange = useCallback((value) => {
-        setPassword(value.trim());
-    }, []);
+            const errors = {};
 
-    const isFormValid = useMemo(() => {
-        const phoneLogin = LoginUtils.getPhoneNumberWithoutSpecialChars(login);
+            if (_.isEmpty(values.phoneOrEmail)) {
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
+            }
 
-        return (Permissions.canUsePasswordlessLogins(props.betas) || password)
-            && (Str.isValidEmail(login) || Str.isValidPhone(phoneLogin));
-    }, [login, password, props.betas]);
+            if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
+            }
 
-    const submitForm = useCallback(() => {
-        // If this login already exists, just go back.
-        if (lodashGet(props.loginList, login)) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-            return;
-        }
-        User.addNewContactMethodAndNavigate(login, password);
-    }, [login, props.loginList, password]);
+            if (!_.isEmpty(values.phoneOrEmail) && lodashGet(props.loginList, validateIfnumber || values.phoneOrEmail.toLowerCase())) {
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.enteredMethodIsAlreadySubmited');
+            }
+
+            if (!Permissions.canUsePasswordlessLogins(props.betas) && _.isEmpty(values.password)) {
+                errors.password = 'contacts.genericFailureMessages.passwordRequired';
+            }
+
+            return errors;
+        },
+        // We don't need `props.loginList` because when submitting this form
+        // the props.loginList gets updated, causing this function to run again.
+        // https://github.com/Expensify/App/issues/20610
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
+    );
 
     return (
         <ScreenWrapper
-            onTransitionEnd={() => {
+            onEntryTransitionEnd={() => {
                 if (!loginInputRef.current) {
                     return;
                 }
+
                 loginInputRef.current.focus();
             }}
+            includeSafeAreaPaddingBottom={false}
         >
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
             />
-            <ScrollView>
-                <Text style={[styles.ph5, styles.mb5]}>
-                    {props.translate('common.pleaseEnterEmailOrPhoneNumber')}
-                </Text>
-                <View style={[styles.ph5, styles.mb6]}>
+            <Form
+                formID={ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM}
+                validate={validate}
+                onSubmit={addNewContactMethod}
+                submitButtonText={props.translate('common.add')}
+                style={[styles.flexGrow1, styles.mh5]}
+                enabledWhenOffline
+            >
+                <Text style={[styles.mb5]}>{props.translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
+                <View style={[styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        ref={loginInputRef}
-                        value={login}
-                        onChangeText={handleLoginChange}
+                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
+                        ref={(el) => (loginInputRef.current = el)}
+                        inputID="phoneOrEmail"
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
                     />
                 </View>
-                {!Permissions.canUsePasswordlessLogins(props.betas)
-                    && (
-                        <View style={[styles.ph5, styles.mb6]}>
-                            <TextInput
-                                label={props.translate('common.password')}
-                                value={password}
-                                onChangeText={handlePasswordChange}
-                                returnKeyType="done"
-                            />
-                        </View>
-                    )}
-            </ScrollView>
-            <FixedFooter style={[styles.flexGrow0]}>
-                <Button
-                    success
-                    isDisabled={!isFormValid}
-                    text={props.translate('common.add')}
-                    onPress={submitForm}
-                    pressOnEnter
-                />
-            </FixedFooter>
+                {!Permissions.canUsePasswordlessLogins(props.betas) && (
+                    <View style={[styles.mb6]}>
+                        <TextInput
+                            label={props.translate('common.password')}
+                            accessibilityLabel={props.translate('common.password')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            inputID="password"
+                            returnKeyType="done"
+                        />
+                    </View>
+                )}
+            </Form>
         </ScreenWrapper>
     );
 }

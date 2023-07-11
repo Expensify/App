@@ -11,7 +11,7 @@ import CONST from '../CONST';
 import * as Localize from './Localize';
 import * as CurrentDate from './actions/CurrentDate';
 
-let currentUserEmail;
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -20,15 +20,15 @@ Onyx.connect({
             return;
         }
 
-        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
     },
 });
 
 let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        timezone = lodashGet(val, [currentUserEmail, 'timezone'], CONST.DEFAULT_TIME_ZONE);
+        timezone = lodashGet(val, [currentUserAccountID, 'timezone'], CONST.DEFAULT_TIME_ZONE);
     },
 });
 
@@ -65,17 +65,24 @@ function getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone = 
  * @param {String} datetime
  * @param {Boolean} includeTimeZone
  * @param {String} [currentSelectedTimezone]
+ * @param {Boolean} isLowercase
  *
  * @returns {String}
  */
-function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone) {
+function datetimeToCalendarTime(locale, datetime, includeTimeZone = false, currentSelectedTimezone, isLowercase = false) {
     const date = getLocalMomentFromDatetime(locale, datetime, currentSelectedTimezone);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
-    const todayAt = Localize.translate(locale, 'common.todayAt');
-    const tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
-    const yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
+    let todayAt = Localize.translate(locale, 'common.todayAt');
+    let tomorrowAt = Localize.translate(locale, 'common.tomorrowAt');
+    let yesterdayAt = Localize.translate(locale, 'common.yesterdayAt');
     const at = Localize.translate(locale, 'common.conjunctionAt');
+
+    if (isLowercase) {
+        todayAt = todayAt.toLowerCase();
+        tomorrowAt = tomorrowAt.toLowerCase();
+        yesterdayAt = yesterdayAt.toLowerCase();
+    }
 
     return moment(date).calendar({
         sameDay: `[${todayAt}] LT${tz}`,
@@ -172,9 +179,7 @@ function getMicroseconds() {
  */
 function getDBTime(timestamp = '') {
     const datetime = timestamp ? new Date(timestamp) : new Date();
-    return datetime.toISOString()
-        .replace('T', ' ')
-        .replace('Z', '');
+    return datetime.toISOString().replace('T', ' ').replace('Z', '');
 }
 
 /**
@@ -185,6 +190,19 @@ function getDBTime(timestamp = '') {
 function subtractMillisecondsFromDateTime(dateTime, milliseconds) {
     const newTimestamp = moment.utc(dateTime).subtract(milliseconds, 'milliseconds').valueOf();
     return getDBTime(newTimestamp);
+}
+
+/**
+ * @param {string} isoTimestamp example: 2023-05-16 05:34:14.388
+ * @returns {string} example: 2023-05-16
+ */
+function getDateStringFromISOTimestamp(isoTimestamp) {
+    if (!isoTimestamp) {
+        return '';
+    }
+
+    const [dateString] = isoTimestamp.split(' ');
+    return dateString;
 }
 
 /**
@@ -201,6 +219,7 @@ const DateUtils = {
     getMicroseconds,
     getDBTime,
     subtractMillisecondsFromDateTime,
+    getDateStringFromISOTimestamp,
 };
 
 export default DateUtils;

@@ -1,53 +1,32 @@
-import _ from 'underscore';
+import _ from 'lodash';
 import lodashGet from 'lodash/get';
-import {Keyboard} from 'react-native';
-import {CommonActions, DrawerActions, getPathFromState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
+import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
+import {getActionFromState} from '@react-navigation/core';
 import Log from '../Log';
 import DomUtils from '../DomUtils';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
-import DeprecatedCustomActions from './DeprecatedCustomActions';
-import ONYXKEYS from '../../ONYXKEYS';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
+import NAVIGATORS from '../../NAVIGATORS';
+import originalGetTopmostReportId from './getTopmostReportId';
+import getStateFromPath from './getStateFromPath';
 import SCREENS from '../../SCREENS';
-import dismissKeyboardGoingBack from './dismissKeyboardGoingBack';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
 });
 
-let resolveDrawerIsReadyPromise;
-let drawerIsReadyPromise = new Promise((resolve) => {
-    resolveDrawerIsReadyPromise = resolve;
-});
-
-let resolveReportScreenIsReadyPromise;
-let reportScreenIsReadyPromise = new Promise((resolve) => {
-    resolveReportScreenIsReadyPromise = resolve;
-});
-
-let isLoggedIn = false;
 let pendingRoute = null;
 
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => isLoggedIn = Boolean(val && val.authToken),
-});
+let shouldPopAllStateOnUP = false;
 
-// This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
-// If true, this flag will cause the drawer to start in a closed state (which is not the default for small screens)
-// so it doesn't cover the report we're trying to link to.
-let didTapNotificationBeforeReady = false;
-
-function setDidTapNotification() {
-    if (navigationRef.isReady()) {
-        return;
-    }
-
-    didTapNotificationBeforeReady = true;
+/**
+ * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
+ */
+function setShouldPopAllStateOnUP() {
+    shouldPopAllStateOnUP = true;
 }
 
 /**
@@ -63,80 +42,39 @@ function canNavigate(methodName, params = {}) {
     return false;
 }
 
-/**
- * Opens the LHN drawer.
- * @private
- */
-function openDrawer() {
-    if (!canNavigate('openDrawer')) {
-        return;
-    }
-
-    navigationRef.current.dispatch(DrawerActions.openDrawer());
-    Keyboard.dismiss();
-}
+// Re-exporting the getTopmostReportId here to fill in default value for state. The getTopmostReportId isn't defined in this file to avoid cyclic dependencies.
+const getTopmostReportId = (state = navigationRef.getState()) => originalGetTopmostReportId(state);
 
 /**
- * Close the LHN drawer.
- * @private
+ * Method for finding on which index in stack we are.
+ * @param {Object} route
+ * @param {Number} index
+ * @returns {Number}
  */
-function closeDrawer() {
-    if (!canNavigate('closeDrawer')) {
-        return;
+const getActiveRouteIndex = function (route, index) {
+    if (route.routes) {
+        const childActiveRoute = route.routes[route.index || 0];
+        return getActiveRouteIndex(childActiveRoute, route.index || 0);
     }
 
-    navigationRef.current.dispatch(DrawerActions.closeDrawer());
-}
-
-/**
- * @param {Boolean} isSmallScreenWidth
- * @returns {String}
- */
-function getDefaultDrawerState(isSmallScreenWidth) {
-    if (didTapNotificationBeforeReady) {
-        return 'closed';
-    }
-    return isSmallScreenWidth ? 'open' : 'closed';
-}
-
-/**
- * @private
- * @param {Boolean} shouldOpenDrawer
- */
-function goBack(shouldOpenDrawer = true) {
-    if (!canNavigate('goBack')) {
-        return;
+    if (route.state && route.state.routes) {
+        const childActiveRoute = route.state.routes[route.state.index || 0];
+        return getActiveRouteIndex(childActiveRoute, route.state.index || 0);
     }
 
-    if (!navigationRef.current.canGoBack()) {
-        Log.hmmm('[Navigation] Unable to go back');
-        if (shouldOpenDrawer) {
-            openDrawer();
-        }
-        return;
+    if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return 0;
     }
-    navigationRef.current.goBack();
-}
 
-/**
- * We navigate to the certains screens with a custom action so that we can preserve the browser history in web. react-navigation does not handle this well
- * and only offers a "mobile" navigation paradigm e.g. in order to add a history item onto the browser history stack one would need to use the "push" action.
- * However, this is not performant as it would keep stacking ReportScreen instances (which are quite expensive to render).
- * We're also looking to see if we have a participants route since those also have a reportID param, but do not have the problem described above and should not use the custom action.
- *
- * @param {String} route
- * @returns {Boolean}
- */
-function isDrawerRoute(route) {
-    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
-    return reportID && !isSubReportPageRoute;
-}
+    return index;
+};
 
 /**
  * Main navigation method for redirecting to a route.
  * @param {String} route
+ * @param {String} type - Type of action to perform. Currently UP is supported.
  */
-function navigate(route = ROUTES.HOME) {
+function navigate(route = ROUTES.HOME, type) {
     if (!canNavigate('navigate', {route})) {
         // Store intended route if the navigator is not yet available,
         // we will try again after the NavigationContainer is ready
@@ -150,25 +88,38 @@ function navigate(route = ROUTES.HOME) {
     // More info: https://github.com/Expensify/App/issues/13146
     DomUtils.blurActiveElement();
 
-    if (route === ROUTES.HOME) {
-        if (isLoggedIn && pendingRoute === null) {
-            openDrawer();
+    linkTo(navigationRef.current, route, type);
+}
+
+/**
+ * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
+ * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
+ * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
+ */
+function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shouldPopToTop = false) {
+    if (!canNavigate('goBack')) {
+        return;
+    }
+
+    if (shouldPopToTop) {
+        if (shouldPopAllStateOnUP) {
+            shouldPopAllStateOnUP = false;
+            navigationRef.current.dispatch(StackActions.popToTop());
             return;
         }
+    }
 
-        // If we're navigating to the signIn page while logged out, pop whatever screen is on top
-        // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
-        // Also, if we're coming from a link to validate login (pendingRoute is not null), we want to pop the loading screen.
-        navigationRef.current.dispatch(CommonActions.reset({index: 0, routes: [{name: SCREENS.HOME}]}));
+    if (!navigationRef.current.canGoBack()) {
+        Log.hmmm('[Navigation] Unable to go back');
         return;
     }
 
-    if (isDrawerRoute(route)) {
-        navigationRef.current.dispatch(DeprecatedCustomActions.pushDrawerRoute(route));
+    if (shouldEnforceFallback || (!getActiveRouteIndex(navigationRef.current.getState()) && fallbackRoute)) {
+        navigate(fallbackRoute, 'UP');
         return;
     }
 
-    linkTo(navigationRef.current, route);
+    navigationRef.current.goBack();
 }
 
 /**
@@ -185,22 +136,34 @@ function setParams(params, routeKey) {
 }
 
 /**
- * Dismisses a screen presented modally and returns us back to the previous view.
+ * Dismisses the last modal stack if there is any
  *
- * @param {Boolean} [shouldOpenDrawer]
+ * @param {String | undefined} targetReportID - The reportID to navigate to after dismissing the modal
  */
-function dismissModal(shouldOpenDrawer = false) {
+function dismissModal(targetReportID) {
     if (!canNavigate('dismissModal')) {
         return;
     }
+    const rootState = navigationRef.getRootState();
+    const lastRoute = _.last(rootState.routes);
+    switch (lastRoute.name) {
+        case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
+        case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
+        case SCREENS.REPORT_ATTACHMENTS:
+            // if we are not in the target report, we need to navigate to it after dismissing the modal
+            if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
+                const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
 
-    const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
-        ? shouldOpenDrawer
-        : false;
-
-    DeprecatedCustomActions.navigateBackToRootDrawer();
-    if (normalizedShouldOpenDrawer) {
-        openDrawer();
+                const action = getActionFromState(state, linkingConfig.config);
+                action.type = 'REPLACE';
+                navigationRef.current.dispatch(action);
+            } else {
+                navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
+            }
+            break;
+        default: {
+            Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
+        }
     }
 }
 
@@ -209,22 +172,19 @@ function dismissModal(shouldOpenDrawer = false) {
  * @returns {String}
  */
 function getActiveRoute() {
-    return navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config)
-        : '';
-}
-
-/**
- * @returns {String}
- */
-function getReportIDFromRoute() {
-    if (!navigationRef.current) {
+    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
+    if (!currentRouteHasName) {
         return '';
     }
 
-    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
-    const reportRoute = lodashGet(drawerState, ['routes', 0]);
-    return lodashGet(reportRoute, ['params', 'reportID'], '');
+    const routeFromState = getPathFromState(navigationRef.getRootState(), linkingConfig.config);
+
+    if (routeFromState) {
+        return routeFromState;
+    }
+
+    return '';
 }
 
 /**
@@ -266,54 +226,8 @@ function setIsNavigationReady() {
     resolveNavigationIsReadyPromise();
 }
 
-function resetIsReportScreenReadyPromise() {
-    reportScreenIsReadyPromise = new Promise((resolve) => {
-        resolveReportScreenIsReadyPromise = resolve;
-    });
-}
-
-/**
- * @returns {Promise}
- */
-function isDrawerReady() {
-    return drawerIsReadyPromise;
-}
-
-function setIsDrawerReady() {
-    resolveDrawerIsReadyPromise();
-}
-
-function resetDrawerIsReadyPromise() {
-    drawerIsReadyPromise = new Promise((resolve) => {
-        resolveDrawerIsReadyPromise = resolve;
-    });
-}
-
-function isReportScreenReady() {
-    return reportScreenIsReadyPromise;
-}
-
-function setIsReportScreenIsReady() {
-    resolveReportScreenIsReadyPromise();
-}
-
-/**
- * Navigation function with additional logic to dismiss the opened keyboard
- *
- * Navigation events are not fired when we navigate to an existing screen in the navigation stack,
- * that is why we need to manipulate closing keyboard manually
- * @param {string} backRoute - Name of the screen to navigate the user to
- */
-function drawerGoBack(backRoute) {
-    dismissKeyboardGoingBack();
-    if (!backRoute) {
-        goBack();
-        return;
-    }
-    navigate(backRoute);
-}
-
 export default {
+    setShouldPopAllStateOnUP,
     canNavigate,
     navigate,
     setParams,
@@ -321,22 +235,9 @@ export default {
     isActiveRoute,
     getActiveRoute,
     goBack,
-    closeDrawer,
-    getDefaultDrawerState,
-    setDidTapNotification,
     isNavigationReady,
     setIsNavigationReady,
-    getReportIDFromRoute,
-    isDrawerReady,
-    setIsDrawerReady,
-    resetDrawerIsReadyPromise,
-    resetIsReportScreenReadyPromise,
-    isDrawerRoute,
-    isReportScreenReady,
-    setIsReportScreenIsReady,
-    drawerGoBack,
+    getTopmostReportId,
 };
 
-export {
-    navigationRef,
-};
+export {navigationRef};

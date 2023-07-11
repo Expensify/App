@@ -83,6 +83,8 @@ class DatePicker extends React.Component {
                 <TextInput
                     forceActiveLabel
                     label={this.props.label}
+                    accessibilityLabel={this.props.label}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={dateAsText}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}
@@ -110,14 +112,7 @@ class DatePicker extends React.Component {
                     isVisible={this.state.isPickerVisible}
                     onClose={this.selectDate}
                 >
-                    <View style={[
-                        styles.flexRow,
-                        styles.justifyContentBetween,
-                        styles.borderBottom,
-                        styles.pb1,
-                        styles.ph4,
-                    ]}
-                    >
+                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.borderBottom, styles.pb1, styles.ph4]}>
                         <Button
                             title={this.props.translate('common.reset')}
                             color={themeColors.textError}
@@ -157,7 +152,12 @@ DatePicker.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withKeyboardState,
-)(React.forwardRef((props, ref) => (
-    /* eslint-disable-next-line react/jsx-props-no-spreading */
-    <DatePicker {...props} innerRef={ref} />
-)));
+)(
+    React.forwardRef((props, ref) => (
+        <DatePicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

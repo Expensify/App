@@ -11,14 +11,16 @@ const story = {
     component: Button,
 };
 
-// eslint-disable-next-line react/jsx-props-no-spreading
-const Template = args => <Button {...args} />;
+function Template(args) {
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    return <Button {...args} />;
+}
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 const Default = Template.bind({});
 const Loading = Template.bind({});
-const PressOnEnter = (props) => {
+function PressOnEnter(props) {
     const [text, setText] = useState('');
     const onPress = useCallback(() => {
         setText('Button Pressed!');
@@ -26,14 +28,14 @@ const PressOnEnter = (props) => {
     }, []);
     return (
         <Button
-        // eslint-disable-next-line react/jsx-props-no-spreading
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-        // eslint-disable-next-line react/prop-types
+            // eslint-disable-next-line react/prop-types
             text={text || props.text}
             onPress={onPress}
         />
     );
-};
+}
 
 Default.args = {
     text: 'Save & Continue',
@@ -52,8 +54,4 @@ PressOnEnter.args = {
 };
 
 export default story;
-export {
-    Default,
-    Loading,
-    PressOnEnter,
-};
+export {Default, Loading, PressOnEnter};

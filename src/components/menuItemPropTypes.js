@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONST from '../CONST';
 import stylePropTypes from '../styles/stylePropTypes';
 import avatarPropTypes from './avatarPropTypes';
@@ -21,7 +22,7 @@ const propTypes = {
     onPress: PropTypes.func,
 
     /** Icon to display on the left side of component */
-    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
 
     /** Icon Width */
     iconWidth: PropTypes.number,
@@ -30,7 +31,16 @@ const propTypes = {
     iconHeight: PropTypes.number,
 
     /** Text to display for the item */
-    title: PropTypes.string.isRequired,
+    title: PropTypes.string,
+
+    /** Text that appears above the title */
+    label: PropTypes.string,
+
+    /** Boolean whether to display the title right icon */
+    shouldShowTitleIcon: PropTypes.bool,
+
+    /** Icon to display at right side of title */
+    titleIcon: PropTypes.func,
 
     /** Boolean whether to display the right icon */
     shouldShowRightIcon: PropTypes.bool,
@@ -89,6 +99,12 @@ const propTypes = {
     /** Prop to identify if we should load avatars vertically instead of diagonally */
     shouldStackHorizontally: PropTypes.bool,
 
+    /** Prop to represent the size of the float right avatar images to be shown */
+    floatRightAvatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+
+    /** Prop to represent the size of the avatar images to be shown */
+    avatarSize: PropTypes.oneOf(_.values(CONST.AVATAR_SIZE)),
+
     /** The function that should be called when this component is LongPressed or right-clicked. */
     onSecondaryInteraction: PropTypes.func,
 
@@ -96,10 +112,25 @@ const propTypes = {
     shouldBlockSelection: PropTypes.bool,
 
     /** The ref to the menu item */
-    forwardedRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.object,
-    ]),
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
+    /** Any adjustments to style when menu item is hovered or pressed */
+    hoverAndPressStyle: PropTypes.arrayOf(PropTypes.object),
+
+    /** Text to display under the main item */
+    furtherDetails: PropTypes.string,
+
+    /** An icon to display under the main item */
+    furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
+
+    /**  Whether we should use small avatar subscript sizing the for menu item */
+    isSmallAvatarSubscriptMenu: PropTypes.bool,
+
+    /** The max number of lines the title text should occupy before ellipses are added */
+    numberOfLines: PropTypes.number,
+
+    /** Should we grey out the menu item when it is disabled? */
+    shouldGreyOutWhenDisabled: PropTypes.bool,
 };
 
 export default propTypes;

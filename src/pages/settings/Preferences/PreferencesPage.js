@@ -4,7 +4,7 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -42,7 +42,7 @@ const defaultProps = {
     user: {},
 };
 
-const PreferencesPage = (props) => {
+function PreferencesPage(props) {
     const priorityModes = props.translate('priorityModePage.priorityModes');
     const languages = props.translate('languagePage.languages');
 
@@ -51,25 +51,25 @@ const PreferencesPage = (props) => {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <HeaderWithCloseButton
+            <HeaderWithBackButton
                 title={props.translate('common.preferences')}
-                shouldShowBackButton
-                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <ScrollView style={[styles.flex1, styles.mt3]}>
                 <View style={styles.mb6}>
-                    <Text style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]} numberOfLines={1}>
+                    <Text
+                        style={[styles.textLabelSupporting, styles.mb2, styles.ml5, styles.mr8]}
+                        numberOfLines={1}
+                    >
                         {props.translate('common.notifications')}
                     </Text>
                     <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
                         <View style={styles.flex4}>
-                            <Text>
-                                {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                            </Text>
+                            <Text>{props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
+                                accessibilityLabel={props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                                 isOn={lodashGet(props.user, 'isSubscribedToNewsletter', true)}
                                 onToggle={User.updateNewsletterSubscription}
                             />
@@ -87,12 +87,16 @@ const PreferencesPage = (props) => {
                         description={props.translate('languagePage.language')}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                     />
-                    {shouldShowTestToolMenu && <View style={[styles.ml5, styles.mr8, styles.mt6]}><TestToolMenu /></View>}
+                    {shouldShowTestToolMenu && (
+                        <View style={[styles.ml5, styles.mr8, styles.mt6]}>
+                            <TestToolMenu />
+                        </View>
+                    )}
                 </View>
             </ScrollView>
         </ScreenWrapper>
     );
-};
+}
 
 PreferencesPage.propTypes = propTypes;
 PreferencesPage.defaultProps = defaultProps;

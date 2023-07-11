@@ -6,7 +6,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './modalPropTypes';
 
-const Modal = (props) => {
+function Modal(props) {
     const [isVisible, setIsVisible] = useState(false);
 
     // This closes the keyboard before opening the modal to avoid the issue where iOS automatically reopens

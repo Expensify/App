@@ -36,16 +36,10 @@ const propTypes = {
     type: PropTypes.oneOf(_.values(CONST.MODAL.MODAL_TYPE)),
 
     /** A react-native-animatable animation definition for the modal display animation. */
-    animationIn: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.object,
-    ]),
+    animationIn: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 
     /** A react-native-animatable animation definition for the modal hide animation. */
-    animationOut: PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.object,
-    ]),
+    animationOut: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
 
     /** The anchor position of a popover modal. Has no effect on other modal types. */
     popoverAnchorPosition: PropTypes.shape({
@@ -60,6 +54,17 @@ const propTypes = {
 
     /** Whether the modal should go under the system statusbar */
     statusBarTranslucent: PropTypes.bool,
+
+    /** Whether the modal should avoid the keyboard */
+    avoidKeyboard: PropTypes.bool,
+
+    /**
+     * Whether the modal should hide its content while animating. On iOS, set to true
+     * if `useNativeDriver` is also true, to avoid flashes in the UI.
+     *
+     * See: https://github.com/react-native-modal/react-native-modal/pull/116
+     * */
+    hideModalContentWhileAnimating: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 };
@@ -77,6 +82,8 @@ const defaultProps = {
     popoverAnchorPosition: {},
     innerContainerStyle: {},
     statusBarTranslucent: true,
+    avoidKeyboard: false,
+    hideModalContentWhileAnimating: false,
 };
 
 export {propTypes, defaultProps};

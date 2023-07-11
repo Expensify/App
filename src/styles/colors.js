@@ -30,6 +30,7 @@ export default {
     white: '#E7ECE9',
     blueLink: '#5AB0FF',
     blueLinkHover: '#B0D9FF',
+    blueLinkPreview: '#2EAAE2',
     greenDefaultButton: '#184E3D',
     greenDefaultButtonHover: '#2C6755',
     greenDefaultButtonPressed: '#467164',
@@ -37,13 +38,17 @@ export default {
     midnight: '#002140',
 
     // Brand Colors from Figma
+    blue100: '#B0D9FF',
     blue200: '#8DC8FF',
     blue400: '#0185FF',
+    blue600: '#0164BF',
     blue700: '#003C73',
     blue800: '#002140',
 
+    green100: '#B1F2D6',
     green200: '#8EECC4',
     green400: '#03D47C',
+    green600: '#008C59',
     green700: '#085239',
     green800: '#002E22',
 

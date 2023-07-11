@@ -50,7 +50,7 @@ const defaultProps = {
 //
 // This component takes other components as a child prop. It will then render any wrapped components as a function using "render props",
 // and passes it a (bool) isOffline parameter. Child components can then use the isOffline variable to determine offline behavior.
-const FormAlertWrapper = (props) => {
+function FormAlertWrapper(props) {
     let children;
     if (_.isEmpty(props.message)) {
         children = (
@@ -71,20 +71,20 @@ const FormAlertWrapper = (props) => {
     return (
         <View style={props.containerStyles}>
             {props.isAlertVisible && (
-                <FormHelpMessage message={props.message} style={[styles.mb3]}>
+                <FormHelpMessage
+                    message={props.message}
+                    style={[styles.mb3]}
+                >
                     {children}
                 </FormHelpMessage>
             )}
             {props.children(props.network.isOffline)}
         </View>
     );
-};
+}
 
 FormAlertWrapper.propTypes = propTypes;
 FormAlertWrapper.defaultProps = defaultProps;
 FormAlertWrapper.displayName = 'FormAlertWrapper';
 
-export default compose(
-    withLocalize,
-    withNetwork(),
-)(FormAlertWrapper);
+export default compose(withLocalize, withNetwork())(FormAlertWrapper);

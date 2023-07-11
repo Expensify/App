@@ -3,6 +3,7 @@ import _ from 'underscore';
 import focusApp from './focusApp';
 import * as AppUpdate from '../../actions/AppUpdate';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
+import * as ReportUtils from '../../ReportUtils';
 
 const DEFAULT_DELAY = 4000;
 
@@ -26,10 +27,9 @@ function canUseBrowserNotifications() {
         }
 
         // Check their global preferences for browser notifications and ask permission if they have none
-        Notification.requestPermission()
-            .then((status) => {
-                resolve(status === 'granted');
-            });
+        Notification.requestPermission().then((status) => {
+            resolve(status === 'granted');
+        });
     });
 }
 
@@ -47,14 +47,7 @@ function canUseBrowserNotifications() {
  *
  * @return {Promise} - resolves with Notification object or undefined
  */
-function push({
-    title,
-    body,
-    delay = DEFAULT_DELAY,
-    onClick = () => {},
-    tag = '',
-    icon,
-}) {
+function push({title, body, delay = DEFAULT_DELAY, onClick = () => {}, tag = '', icon}) {
     return new Promise((resolve) => {
         if (!title || !body) {
             throw new Error('BrowserNotification must include title and body parameter.');
@@ -100,20 +93,35 @@ export default {
      * Create a report comment notification
      *
      * @param {Object} params
+     * @param {Object} params.report
      * @param {Object} params.reportAction
      * @param {Function} params.onClick
      * @param {Boolean} usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification({reportAction, onClick}, usesIcon = false) {
+    pushReportCommentNotification({report, reportAction, onClick}, usesIcon = false) {
+        let title;
+        let body;
+
+        const isChatRoom = ReportUtils.isChatRoom(report);
+
         const {person, message} = reportAction;
-        const plainTextPerson = _.map(person, f => f.text).join();
+        const plainTextPerson = _.map(person, (f) => f.text).join();
 
         // Specifically target the comment part of the message
-        const plainTextMessage = (_.find(message, f => f.type === 'COMMENT') || {}).text;
+        const plainTextMessage = (_.find(message, (f) => f.type === 'COMMENT') || {}).text;
+
+        if (isChatRoom) {
+            const roomName = _.get(report, 'displayName', '');
+            title = roomName;
+            body = `${plainTextPerson}: ${plainTextMessage}`;
+        } else {
+            title = plainTextPerson;
+            body = plainTextMessage;
+        }
 
         push({
-            title: plainTextPerson,
-            body: plainTextMessage,
+            title,
+            body,
             delay: 0,
             onClick,
             icon: usesIcon ? EXPENSIFY_ICON_URL : '',

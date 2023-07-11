@@ -8,7 +8,7 @@ const useScreenReaderStatus = () => {
     useEffect(() => {
         const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', setIsScreenReaderEnabled);
 
-        return subscription.remove;
+        return subscription && subscription.remove;
     }, []);
 
     return isScreenReaderEnabled;
@@ -18,8 +18,8 @@ const getHitSlopForSize = ({x, y}) => {
     /* according to https://developer.apple.com/design/human-interface-guidelines/ios/visual-design/adaptivity-and-layout/
     the minimum tappable area is 44x44 points */
     const minimumSize = 44;
-    const hitSlopVertical = _.max([minimumSize - x, 0]);
-    const hitSlopHorizontal = _.max([minimumSize - y, 0]);
+    const hitSlopVertical = _.max([minimumSize - x, 0]) / 2;
+    const hitSlopHorizontal = _.max([minimumSize - y, 0]) / 2;
     return {
         top: hitSlopVertical,
         bottom: hitSlopVertical,
@@ -30,12 +30,15 @@ const getHitSlopForSize = ({x, y}) => {
 
 const useAutoHitSlop = () => {
     const [frameSize, setFrameSize] = useState({x: 0, y: 0});
-    const onLayout = useCallback((event) => {
-        const {layout} = event.nativeEvent;
-        if (layout.width !== frameSize.x && layout.height !== frameSize.y) {
-            setFrameSize({x: layout.width, y: layout.height});
-        }
-    }, [frameSize]);
+    const onLayout = useCallback(
+        (event) => {
+            const {layout} = event.nativeEvent;
+            if (layout.width !== frameSize.x && layout.height !== frameSize.y) {
+                setFrameSize({x: layout.width, y: layout.height});
+            }
+        },
+        [frameSize],
+    );
     return [getHitSlopForSize(frameSize), onLayout];
 };
 
