@@ -1,5 +1,5 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useEffect} from 'react';
+import {Keyboard, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -8,6 +8,7 @@ import Text from '../../components/Text';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import useLocalize from '../../hooks/useLocalize';
+import useKeyboardState from '../../hooks/useKeyboardState';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import CONST from '../../CONST';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
@@ -27,8 +28,16 @@ const defaultProps = {
 };
 
 function EmailDeliveryFailurePage(props) {
+    const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
     const login = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
+
+    useEffect(() => {
+        if (isKeyboardShown) {
+            Keyboard.dismiss();
+        }
+    }, []);
+
     return (
         <>
             <View style={[styles.mv3, styles.flexRow, styles.justifyContentetween]}>
