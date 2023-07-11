@@ -2310,7 +2310,7 @@ function canRequestMoney(report) {
 
 /**
  * @param {Object} report
- * @param {Array} reportParticipants
+ * @param {Array<Number>} reportParticipants
  * @param {Array} betas
  * @returns {Array}
  */

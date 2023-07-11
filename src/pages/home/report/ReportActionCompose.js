@@ -368,7 +368,7 @@ class ReportActionCompose extends React.Component {
     /**
      * Returns the list of IOU Options
      *
-     * @param {Array} reportParticipants
+     * @param {Array<Number>} reportParticipants
      * @returns {Array<object>}
      */
     getMoneyRequestOptions(reportParticipants) {
