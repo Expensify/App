@@ -116,6 +116,7 @@ import Linkedin from '../../../assets/images/social-linkedin.svg';
 import Instagram from '../../../assets/images/social-instagram.svg';
 import AddReaction from '../../../assets/images/add-reaction.svg';
 import Task from '../../../assets/images/task.svg';
+import Flash from '../../../assets/images/flash.svg';
 
 export {
     ActiveRoomAvatar,
@@ -171,6 +172,7 @@ export {
     FlagLevelOne,
     FlagLevelTwo,
     FlagLevelThree,
+    Flash,
     Gallery,
     Gear,
     Globe,

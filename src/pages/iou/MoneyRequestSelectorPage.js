@@ -60,7 +60,12 @@ function MoneyRequestSelectorPage(props) {
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         ) : (
-                            <ReceiptSelector />
+                            <ReceiptSelector
+                                route={props.route}
+                                report={props.report}
+                                iou={props.iou}
+                                currentUserPersonalDetails={props.currentUserPersonalDetails}
+                            />
                         )}
                     </View>
                 )}

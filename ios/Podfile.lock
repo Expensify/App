@@ -541,17 +541,9 @@ PODS:
     - RCTTypeSafety
     - React-Core
     - ReactCommon/turbomodule/core
-  - react-native-skia (0.1.197):
-    - React
-    - React-callinvoker
-    - React-Core
   - react-native-view-shot (3.6.0):
     - React-Core
   - react-native-webview (11.23.0):
-    - React-Core
-  - react-native-worklets (0.1.0):
-    - React
-    - React-callinvoker
     - React-Core
   - React-perflogger (0.71.2-alpha.3)
   - React-RCTActionSheet (0.71.2-alpha.3):
@@ -719,29 +711,10 @@ PODS:
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
   - SocketRocket (0.6.0)
-  - TensorFlowLiteC (2.13.0):
-    - TensorFlowLiteC/Core (= 2.13.0)
-  - TensorFlowLiteC/Core (2.13.0)
-  - TensorFlowLiteC/CoreML (2.13.0):
-    - TensorFlowLiteC/Core
-  - TensorFlowLiteC/Metal (2.13.0):
-    - TensorFlowLiteC/Core
-  - TensorFlowLiteObjC (2.13.0):
-    - TensorFlowLiteObjC/Core (= 2.13.0)
-  - TensorFlowLiteObjC/Core (2.13.0):
-    - TensorFlowLiteC (= 2.13.0)
-  - TensorFlowLiteObjC/CoreML (2.13.0):
-    - TensorFlowLiteC/CoreML (= 2.13.0)
-    - TensorFlowLiteObjC/Core (= 2.13.0)
-  - TensorFlowLiteObjC/Metal (2.13.0):
-    - TensorFlowLiteC/Metal (= 2.13.0)
-    - TensorFlowLiteObjC/Core (= 2.13.0)
-  - VisionCamera (3.0.0-rc.3):
+  - VisionCamera (2.15.4):
     - React
     - React-callinvoker
     - React-Core
-    - react-native-skia
-    - react-native-worklets
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
     - Yoga (~> 1.14)
@@ -816,10 +789,8 @@ DEPENDENCIES:
   - react-native-quick-sqlite (from `../node_modules/react-native-quick-sqlite`)
   - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - react-native-webview (from `../node_modules/react-native-webview`)
-  - react-native-worklets (from `../node_modules/react-native-worklets`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
   - React-RCTAnimation (from `../node_modules/react-native/Libraries/NativeAnimation`)
@@ -852,9 +823,6 @@ DEPENDENCIES:
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
-  - TensorFlowLiteObjC
-  - TensorFlowLiteObjC/CoreML
-  - TensorFlowLiteObjC/Metal
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -896,8 +864,6 @@ SPEC REPOS:
     - SDWebImage
     - SDWebImageWebPCoder
     - SocketRocket
-    - TensorFlowLiteC
-    - TensorFlowLiteObjC
     - YogaKit
 
 EXTERNAL SOURCES:
@@ -989,14 +955,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
-  react-native-skia:
-    :path: "../node_modules/@shopify/react-native-skia"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
-  react-native-worklets:
-    :path: "../node_modules/react-native-worklets"
   React-perflogger:
     :path: "../node_modules/react-native/ReactCommon/reactperflogger"
   React-RCTActionSheet:
@@ -1144,10 +1106,8 @@ SPEC CHECKSUMS:
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
-  react-native-skia: e2cb3443442bf7680e3276dc82cd87c97f96b6f9
   react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff
   react-native-webview: e771bc375f789ebfa02a26939a57dbc6fa897336
-  react-native-worklets: c7576ad4ad0f030ff41e8d74ad0077c96054a6c1
   React-perflogger: 9f7c5a9d22d104ae0348f38235ee636d156b5938
   React-RCTActionSheet: 43e74f3a54967bb1d0e9ff261bc076843fb50ca1
   React-RCTAnimation: 6b0afd9bdd8fbd5580e821381e97fb12d21e617a
@@ -1183,12 +1143,10 @@ SPEC CHECKSUMS:
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: fccef3f9c5cedea1353a9ef6ada904fde10d6608
-  TensorFlowLiteC: ac3334fa9dbc90e4744b4497312a393fd02b5408
-  TensorFlowLiteObjC: 56179ff822bd10506d015b1f949f6d4dedeaa04d
-  VisionCamera: 312907200e0476069077d7cbaa5010208fbf47f7
+  VisionCamera: c6356b309f7b8e185b7be2e703ec67bb35acf345
   Yoga: f87bd008d34c18bf990d4371200802f2866ce18c
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 65c6c9b4040f90e633955c1cb27556ae61dbe608
+PODFILE CHECKSUM: 69f576e475be6d130ee96103b131f71bfdbf8a6e
 
 COCOAPODS: 1.11.3

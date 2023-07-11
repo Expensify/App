@@ -1344,6 +1344,13 @@ function setMoneyRequestParticipants(participants) {
     Onyx.merge(ONYXKEYS.IOU, {participants});
 }
 
+/**
+ * @param {Object} receipt
+ */
+function setMoneyRequestReceipt(receipt) {
+    Onyx.merge(ONYXKEYS.IOU, {receipt});
+}
+
 export {
     deleteMoneyRequest,
     splitBill,
@@ -1360,4 +1367,5 @@ export {
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
+    setMoneyRequestReceipt,
 };

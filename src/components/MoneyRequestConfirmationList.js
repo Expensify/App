@@ -20,6 +20,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import Image from './Image';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -290,15 +291,22 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            <MenuItemWithTopDescription
-                shouldShowRightIcon={!props.isReadOnly}
-                title={formattedAmount}
-                description={translate('iou.amount')}
-                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
-                style={[styles.moneyRequestMenuItem, styles.mt2]}
-                titleStyle={styles.moneyRequestConfirmationAmount}
-                disabled={didConfirm || props.isReadOnly}
-            />
+            {props.receipt ? (
+                <Image
+                    style={{height: 200, borderRadius: 16, marginHorizontal: 20, marginTop: 20}}
+                    source={{uri: `file://${props.receipt.path}`}}
+                />
+            ) : (
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!props.isReadOnly}
+                    title={formattedAmount}
+                    description={translate('iou.amount')}
+                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
+                    style={[styles.moneyRequestMenuItem, styles.mt2]}
+                    titleStyle={styles.moneyRequestConfirmationAmount}
+                    disabled={didConfirm || props.isReadOnly}
+                />
+            )}
             <MenuItemWithTopDescription
                 shouldShowRightIcon={!props.isReadOnly}
                 title={props.iouComment}

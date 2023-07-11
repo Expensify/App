@@ -45,10 +45,6 @@ target 'NewExpensify' do
   pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
   pod 'Permission-Camera', :path => "#{permissions_path}/Camera"
 
-  pod 'TensorFlowLiteObjC', :modular_headers => true
-  pod 'TensorFlowLiteObjC/Metal', :modular_headers => true
-  pod 'TensorFlowLiteObjC/CoreML', :modular_headers => true
-
   config = use_native_modules!
 
   # Flags change depending on the env values.
