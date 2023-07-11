@@ -243,7 +243,7 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
-    const prevVisibleMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID);
+    const prevVisibleMessageText = ReportActionsUtils.getLastVisibleMessage(reportID);
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
     const optimisticReport = {
