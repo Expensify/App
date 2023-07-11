@@ -81,6 +81,15 @@ class AddPersonalBankAccountPage extends React.Component {
         BankAccounts.addPersonalBankAccount(selectedPlaidBankAccount);
     }
 
+    exitFlow() {
+        const reportID = Navigation.getTopmostReportId();
+        if (reportID) {
+            Navigation.dismissModal(reportID)
+        } else {
+            Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
+        }
+    }
+
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
 
@@ -92,7 +101,7 @@ class AddPersonalBankAccountPage extends React.Component {
             >
                 <HeaderWithBackButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                    onBackButtonPress={this.exitFlow}
                 />
                 {shouldShowSuccess ? (
                     <ConfirmationPage
@@ -100,9 +109,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         description={this.props.translate('addPersonalBankAccountPage.successMessage')}
                         shouldShowButton
                         buttonText={this.props.translate('common.continue')}
-                        onButtonPress={() => {
-                            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-                        }}
+                        onButtonPress={this.exitFlow}
                     />
                 ) : (
                     <Form

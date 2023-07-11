@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -24,7 +25,6 @@ import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
-import _ from "underscore";
 
 const propTypes = {
     /** All the data of the action */

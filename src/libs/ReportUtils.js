@@ -1036,7 +1036,7 @@ function isWaitingForIOUActionFromCurrentUser(report) {
         && reportToLook.hasOutstandingIOU) {
         return true;
     }
-    
+
     return false;
 }
 
