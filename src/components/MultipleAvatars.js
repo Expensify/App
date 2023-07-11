@@ -148,7 +148,7 @@ function MultipleAvatars(props) {
         }
         avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), StyleUtils.getWidthStyle(width)]);
     }
-    // console.log(props.icons);
+
     return (
         <>
             {props.shouldStackHorizontally ? (
