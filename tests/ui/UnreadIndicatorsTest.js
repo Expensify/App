@@ -521,7 +521,7 @@ describe('Unread Indicators', () => {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         lastMessageText: lastReportAction.message[0].text,
                         lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
-                        lastActorEmail: lastReportAction.actorEmail,
+                        lastActorAccountID: lastReportAction.actorAccountID,
                         reportID: REPORT_ID,
                     });
                     return waitForPromisesToResolve();

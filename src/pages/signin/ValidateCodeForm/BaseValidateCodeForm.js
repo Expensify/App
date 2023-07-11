@@ -91,7 +91,7 @@ function BaseValidateCodeForm(props) {
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
 
     useEffect(() => {
-        if (!(inputValidateCodeRef.current && ((hasError && props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED) || props.account.isLoading))) {
+        if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
             return;
         }
         inputValidateCodeRef.current.blur();
