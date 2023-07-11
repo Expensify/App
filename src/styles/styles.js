@@ -1264,7 +1264,7 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    rhpNavigatorContainer: {
+    RHPNavigatorContainer: {
         position: 'absolute',
         right: 0,
         height: '100%',

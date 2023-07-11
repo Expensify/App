@@ -24,7 +24,7 @@ function RightModalNavigator(props) {
             {!isSmallScreenWidth && <Overlay onPress={props.navigation.goBack} />}
             <View
                 style={[
-                    styles.rhpNavigatorContainer,
+                    styles.RHPNavigatorContainer,
                     {
                         width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
                     },
