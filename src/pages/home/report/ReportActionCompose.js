@@ -893,7 +893,6 @@ function ReportActionCompose({translate, ...props}) {
             highlightedMentionIndex,
             insertSelectedEmoji,
             insertSelectedMention,
-            isCommentEmpty,
             props.isKeyboardShown,
             props.isSmallScreenWidth,
             props.parentReportActions,
@@ -904,6 +903,7 @@ function ReportActionCompose({translate, ...props}) {
             submitForm,
             suggestionValues.suggestedEmojis.length,
             suggestionValues.suggestedMentions.length,
+            value.length,
         ],
     );
 
