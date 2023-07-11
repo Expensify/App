@@ -15,7 +15,7 @@ import * as UserUtils from './UserUtils';
 
 // Note: Earlier SidebarUtils.getOrderedReportIDs() used to have to parameters. All the needed data was loaded here directly
 // using Onyx.connect. We then had to connect SidebarLinks additionally to all the keys that were used in SidebarUtils.getOrderedReportIDs().
-// That's because we wanted to cause a re-render in SidebarLunks to run SidebarUtils.getOrderedReportIDs() again.
+// That's because we wanted to cause a re-render in SidebarLinks to run SidebarUtils.getOrderedReportIDs() again.
 // This caused bugs in the past as we were forgetting to include e.g. very nested data.
 // Now we pass all the data from SidebarLinks props to SidebarUtils.getOrderedReportIDs().
 // This makes the code easier to understand and less error prone.
