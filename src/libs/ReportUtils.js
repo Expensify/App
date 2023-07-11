@@ -2487,10 +2487,11 @@ function getOriginalReportID(reportID, reportAction) {
 }
 
 /**
+ * Return the pendingAction and the errors when we have creating a chat or a workspace room offline
  * @param {Object} report
  * @returns {Object} pending action , errors
  */
-function getReportOfflinePendingActionAndErrors (report){
+function getReportOfflinePendingActionAndErrors(report) {
     // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
     // simply looking up the first truthy value for each case will get the relevant property if it's set.
     const addWorkspaceRoomOrChatPendingAction = lodashGet(report, 'pendingFields.addWorkspaceRoom') || lodashGet(report, 'pendingFields.createChat');
