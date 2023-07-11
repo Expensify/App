@@ -2,7 +2,7 @@ import React, {useRef, useState, useCallback} from 'react';
 import {View, Linking} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get'
+import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
 import compose from '../../../libs/compose';
@@ -27,15 +27,15 @@ import PressableWithoutFeedback from '../../../components/Pressable/PressableWit
 import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
 
 const propTypes = {
-  /** Account details for PayPal.Me */
-  payPalMeData: paypalMeDataPropTypes,
+    /** Account details for PayPal.Me */
+    payPalMeData: paypalMeDataPropTypes,
 
-  ...withLocalizePropTypes, 
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    payPalMeData: {}
-}
+    payPalMeData: {},
+};
 
 function AddPayPalMePage(props) {
     const [payPalMeUsername, setPayPalMeUsername] = useState(lodashGet(props.payPalMeData, 'accountData.username', ''));
@@ -134,7 +134,8 @@ AddPayPalMePage.displayName = 'AddPayPalMePage';
 export default compose(
     withLocalize,
     withOnyx({
-    payPalMeData: {
-        key: ONYXKEYS.PAYPAL,
-    },
-}))(AddPayPalMePage);
+        payPalMeData: {
+            key: ONYXKEYS.PAYPAL,
+        },
+    }),
+)(AddPayPalMePage);

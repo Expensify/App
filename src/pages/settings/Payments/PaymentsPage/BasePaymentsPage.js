@@ -472,13 +472,13 @@ class BasePaymentsPage extends React.Component {
                                     text={this.props.translate('paymentsPage.setDefaultConfirmation')}
                                 />
                             )}
-                            {isPayPalMeSelected && 
+                            {isPayPalMeSelected && (
                                 <Button
                                     onPress={() => this.navigateToAddPaypalRoute()}
                                     style={[styles.mb4]}
                                     text={this.props.translate('common.edit')}
                                 />
-                            }
+                            )}
                             <Button
                                 onPress={() => {
                                     this.setState({
