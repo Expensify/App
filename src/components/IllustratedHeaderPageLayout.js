@@ -54,16 +54,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                         </View>
                         <View style={[styles.flex1, styles.pt5, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>{children}</View>
                     </ScrollView>
-                    <View
-                        style={{
-                            backgroundColor: themeColors.appBG,
-                            height: windowHeight / 2 + overscrollBottom,
-                            width: '100%',
-                            position: 'absolute',
-                            bottom: 0,
-                            zIndex: -1,
-                        }}
-                    />
+                    <View style={styles.overscrollSpacer(windowHeight / 2 + overscrollBottom)} />
                 </>
             )}
         </ScreenWrapper>

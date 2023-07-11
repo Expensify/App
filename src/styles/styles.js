@@ -3515,7 +3515,14 @@ const styles = {
         textAlign: 'center',
     },
 
-    illustratedPageScrollView: (safeAreaPaddingBottomStyle) => [flex.flex1, flex.flexColumn, spacing.pt5, safeAreaPaddingBottomStyle],
+    overscrollSpacer: (height) => ({
+        backgroundColor: themeColors.appBG,
+        height,
+        width: '100%',
+        position: 'absolute',
+        bottom: 0,
+        zIndex: -1,
+    }),
 };
 
 export default styles;
