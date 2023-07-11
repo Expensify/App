@@ -1561,6 +1561,14 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
+/**
+ * Builds an optimistic report preview action with a randomly generated reportActionID.
+ *
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ *
+ * @returns {Object}
+ */
 function buildOptimisticReportPreview(chatReport, iouReport) {
     const message = getReportPreviewMessage(iouReport);
     return {
@@ -1585,6 +1593,14 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
     };
 }
 
+/**
+ * Updates a report preview action that exists for an IOU report.
+ *
+ * @param {Object} iouReport
+ * @param {Object} reportPreviewAction
+ *
+ * @returns {Object}
+ */
 function updateReportPreview(iouReport, reportPreviewAction) {
     const message = getReportPreviewMessage(iouReport, reportPreviewAction);
     return {
