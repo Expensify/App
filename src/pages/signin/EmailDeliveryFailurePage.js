@@ -33,10 +33,11 @@ function EmailDeliveryFailurePage(props) {
     const login = Str.isSMSLogin(props.credentials.login) ? Str.removeSMSDomain(props.credentials.login) : props.credentials.login;
 
     useEffect(() => {
-        if (isKeyboardShown) {
-            Keyboard.dismiss();
+        if (!isKeyboardShown) {
+            return;
         }
-    }, []);
+        Keyboard.dismiss();
+    }, [isKeyboardShown]);
 
     return (
         <>
