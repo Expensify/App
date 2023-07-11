@@ -12,7 +12,7 @@ import themeColors from '../styles/themes/default';
 const propTypes = {
     ...headerWithBackButtonPropTypes,
 
-    children: PropTypes.node,
+    children: PropTypes.node.isRequired,
 
     /** The background color to apply in the upper half of the screen. */
     backgroundColor: PropTypes.string.isRequired,

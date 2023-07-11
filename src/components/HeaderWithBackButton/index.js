@@ -14,26 +14,57 @@ import ThreeDotsMenu from '../ThreeDotsMenu';
 import AvatarWithDisplayName from '../AvatarWithDisplayName';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import PinButton from '../PinButton';
-import {propTypes, defaultProps} from './headerWithBackButtonPropTypes';
+import {propTypes} from './headerWithBackButtonPropTypes';
 import useDelayToggleButtonState from '../../hooks/useDelayToggleButtonState';
 import useLocalize from '../../hooks/useLocalize';
 import useKeyboardState from '../../hooks/useKeyboardState';
 
-function HeaderWithBackButton(props) {
+function HeaderWithBackButton({
+    guidesCallTaskID = '',
+    onBackButtonPress = () => Navigation.goBack(),
+    onCloseButtonPress = () => Navigation.dismissModal(),
+    onDownloadButtonPress = () => {},
+    onThreeDotsButtonPress = () => {},
+    report = null,
+    parentReport = null,
+    policies = {},
+    personalDetails = {},
+    shouldShowAvatarWithDisplay = false,
+    shouldShowBackButton = true,
+    shouldShowBorderBottom = false,
+    shouldShowCloseButton = false,
+    shouldShowDownloadButton = false,
+    shouldShowGetAssistanceButton = false,
+    shouldShowPinButton = false,
+    shouldShowStepCounter = false,
+    shouldShowThreeDotsButton = false,
+    stepCounter = null,
+    subtitle = '',
+    title = '',
+    threeDotsAnchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    },
+    threeDotsAnchorPosition = {
+        vertical: 0,
+        horizontal: 0,
+    },
+    threeDotsMenuItems = [],
+}) {
     const [isDelayButtonStateComplete, toggleDelayButtonState] = useDelayToggleButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     return (
-        <View style={[styles.headerBar, props.shouldShowBorderBottom && styles.borderBottom, props.shouldShowBackButton && styles.pl2]}>
+        <View style={[styles.headerBar, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && styles.pl2]}>
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden]}>
-                {props.shouldShowBackButton && (
+                {shouldShowBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             onPress={() => {
                                 if (isKeyboardShown) {
                                     Keyboard.dismiss();
                                 }
-                                props.onBackButtonPress();
+                                onBackButtonPress();
                             }}
                             style={[styles.touchableButtonImage]}
                             accessibilityRole="button"
@@ -43,21 +74,21 @@ function HeaderWithBackButton(props) {
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
-                {props.shouldShowAvatarWithDisplay && (
+                {shouldShowAvatarWithDisplay && (
                     <AvatarWithDisplayName
-                        report={props.parentReport || props.report}
-                        policies={props.policies}
-                        personalDetails={props.personalDetails}
+                        report={parentReport || report}
+                        policies={policies}
+                        personalDetails={personalDetails}
                     />
                 )}
-                {!props.shouldShowAvatarWithDisplay && (
+                {!shouldShowAvatarWithDisplay && (
                     <Header
-                        title={props.title}
-                        subtitle={props.stepCounter && props.shouldShowStepCounter ? translate('stepCounter', props.stepCounter) : props.subtitle}
+                        title={title}
+                        subtitle={stepCounter && shouldShowStepCounter ? translate('stepCounter', stepCounter) : subtitle}
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
-                    {props.shouldShowDownloadButton && (
+                    {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>
                             <PressableWithoutFeedback
                                 onPress={(e) => {
@@ -69,7 +100,7 @@ function HeaderWithBackButton(props) {
                                         return;
                                     }
 
-                                    props.onDownloadButtonPress();
+                                    onDownloadButtonPress();
                                     toggleDelayButtonState(true);
                                 }}
                                 style={[styles.touchableButtonImage]}
@@ -84,10 +115,10 @@ function HeaderWithBackButton(props) {
                         </Tooltip>
                     )}
 
-                    {props.shouldShowGetAssistanceButton && (
+                    {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
-                                onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(props.guidesCallTaskID))}
+                                onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(guidesCallTaskID))}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
@@ -97,21 +128,21 @@ function HeaderWithBackButton(props) {
                         </Tooltip>
                     )}
 
-                    {props.shouldShowPinButton && <PinButton report={props.report} />}
+                    {shouldShowPinButton && <PinButton report={report} />}
 
-                    {props.shouldShowThreeDotsButton && (
+                    {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
-                            menuItems={props.threeDotsMenuItems}
-                            onIconPress={props.onThreeDotsButtonPress}
-                            anchorPosition={props.threeDotsAnchorPosition}
-                            anchorAlignment={props.threeDotsAnchorAlignment}
+                            menuItems={threeDotsMenuItems}
+                            onIconPress={onThreeDotsButtonPress}
+                            anchorPosition={threeDotsAnchorPosition}
+                            anchorAlignment={threeDotsAnchorAlignment}
                         />
                     )}
 
-                    {props.shouldShowCloseButton && (
+                    {shouldShowCloseButton && (
                         <Tooltip text={translate('common.close')}>
                             <PressableWithoutFeedback
-                                onPress={props.onCloseButtonPress}
+                                onPress={onCloseButtonPress}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
@@ -127,7 +158,6 @@ function HeaderWithBackButton(props) {
 }
 
 HeaderWithBackButton.propTypes = propTypes;
-HeaderWithBackButton.defaultProps = defaultProps;
 HeaderWithBackButton.displayName = 'HeaderWithBackButton';
 
 export default HeaderWithBackButton;
