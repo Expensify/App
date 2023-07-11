@@ -245,7 +245,8 @@ function canDeleteReportAction(reportAction, reportID) {
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
         reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
-        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID))
+        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID)) ||
+        reportAction.actorEmail === CONST.EMAIL.CONCIERGE
     ) {
         return false;
     }
