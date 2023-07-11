@@ -28,6 +28,7 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import withWindowDimensions from '../../components/withWindowDimensions';
 
 const propTypes = {
     /* Onyx Props */
@@ -199,7 +200,7 @@ class WorkspacesListPage extends Component {
                         accessibilityLabel={this.props.translate('workspace.new.newWorkspace')}
                         success
                         text={this.props.translate('workspace.new.newWorkspace')}
-                        onPress={() => Policy.createWorkspace()}
+                        onPress={() => Policy.createWorkspace('', false, '', false, !this.props.isSmallScreenWidth)}
                     />
                 </FixedFooter>
             </ScreenWrapper>
@@ -212,6 +213,7 @@ WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({

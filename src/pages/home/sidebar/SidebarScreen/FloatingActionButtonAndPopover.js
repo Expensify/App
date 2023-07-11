@@ -236,7 +236,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                       iconHeight: 40,
                                       text: this.props.translate('workspace.new.newWorkspace'),
                                       description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Policy.createWorkspace()),
+                                      onSelected: () => this.interceptAnonymousUser(() => Policy.createWorkspace('', false, '', false, !this.props.isSmallScreenWidth)),
                                   },
                               ]
                             : []),
