@@ -186,6 +186,8 @@ function PasswordForm(props) {
                 <TextInput
                     ref={inputPasswordRef}
                     label={props.translate('common.password')}
+                    accessibilityLabel={props.translate('common.password')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     secureTextEntry
                     autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                     textContentType="password"
@@ -202,7 +204,7 @@ function PasswordForm(props) {
                     <PressableWithFeedback
                         style={[styles.mt2]}
                         onPress={resetPassword}
-                        accessibilityRole="link"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                         accessibilityLabel={props.translate('passwordForm.forgot')}
                         hoverDimmingValue={1}
                     >
@@ -216,6 +218,8 @@ function PasswordForm(props) {
                     <TextInput
                         ref={input2FA}
                         label={props.translate('common.twoFactorCode')}
+                        accessibilityLabel={props.translate('common.twoFactorCode')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         value={twoFactorAuthCode}
                         placeholder={props.translate('passwordForm.requiredWhen2FAEnabled')}
                         placeholderTextColor={themeColors.placeholderText}
