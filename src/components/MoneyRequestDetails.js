@@ -112,10 +112,10 @@ function MoneyRequestDetails(props) {
                             />
                             <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                                 <Text
-                                    style={[styles.headerText, styles.pre]}
+                                    style={[textLabelSupporting, styles.lh16, styles.pre]}
                                     numberOfLines={1}
                                 >
-                                    {payeeName}
+                                    {props.translate('workspace.common.workspace')}
                                 </Text>
                                 {isExpenseReport && (
                                     <Text
