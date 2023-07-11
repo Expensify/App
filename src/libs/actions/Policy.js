@@ -60,10 +60,10 @@ Onyx.connect({
     },
 });
 
-let personalDetails;
+let allPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = val),
+    callback: (val) => (allPersonalDetails = val),
 });
 
 let loginList;
@@ -109,11 +109,13 @@ function deleteWorkspace(policyID, reports, policyName) {
         })),
 
         // Add closed actions to all chat reports linked to this policy
-        ..._.map(reports, ({reportID, ownerEmail}) => {
-            // TODO: does ownerEmail make sense here?? If the action is "closing the report" (by deleting the workspace)
-            // wouldn't the action "owner" be the current user? Not the report owner? 
-            // Orrrr wouldn't this always be __fake__ since the policy report owner is always __fake__?
-            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(ownerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+        ..._.map(reports, ({reportID, ownerAccountID}) => {
+            // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
+            let reportOwnerEmail = CONST.POLICY.OWNER_EMAIL_FAKE;
+            if (ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
+                reportOwnerEmail = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
+            }
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(reportOwnerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
             const optimisticReportActions = {};
             optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
             return {
@@ -236,7 +238,7 @@ function removeMembers(accountIDs, policyID) {
     API.write(
         'DeleteMembersFromWorkspace',
         {
-            emailList: _.map(accountIDs, (accountID) => personalDetails[accountID].login).join(','),
+            emailList: _.map(accountIDs, (accountID) => allPersonalDetails[accountID].login).join(','),
             policyID,
         },
         {optimisticData, successData, failureData},
@@ -874,7 +876,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
-                        outputCurrency: lodashGet(personalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                        outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
