@@ -99,7 +99,7 @@ function MoneyRequestDetails(props) {
             pendingAction={addWorkspaceRoomOrChatPendingAction}
             errors={addWorkspaceRoomOrChatErrors}
             shouldShowErrorMessages={false}
-            >
+        >
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
                 <View style={[styles.ph5, styles.pb2]}>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
