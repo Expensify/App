@@ -82,10 +82,6 @@ target 'NewExpensify' do
     __apply_Xcode_12_5_M1_post_install_workaround(installer)
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
 
-    installer.pods_project.build_configurations.each do |config|
-      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
-    end
-
     installer.pods_project.targets.each do |target|
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
         target.build_configurations.each do |config|

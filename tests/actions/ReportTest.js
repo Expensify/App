@@ -47,7 +47,6 @@ describe('actions/Report', () => {
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
             actorAccountID: TEST_USER_ACCOUNT_ID,
-            actorEmail: TEST_USER_LOGIN,
             automatic: false,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
             message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
@@ -93,7 +92,7 @@ describe('actions/Report', () => {
                             notificationPreference: 'always',
                             lastVisibleActionCreated: '2022-11-22 03:48:27.267',
                             lastMessageText: 'Testing a comment',
-                            lastActorEmail: TEST_USER_LOGIN,
+                            lastActorAccountID: TEST_USER_ACCOUNT_ID,
                         },
                     },
                     {
@@ -196,7 +195,6 @@ describe('actions/Report', () => {
 
         const USER_1_LOGIN = 'user@test.com';
         const USER_1_ACCOUNT_ID = 1;
-        const USER_2_LOGIN = 'different-user@test.com';
         const USER_2_ACCOUNT_ID = 2;
         return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportName: 'Test', reportID: REPORT_ID})
             .then(() => TestHelper.signInWithTestUser(USER_1_ACCOUNT_ID, USER_1_LOGIN))
@@ -217,7 +215,7 @@ describe('actions/Report', () => {
                             reportID: REPORT_ID,
                             notificationPreference: 'always',
                             lastMessageText: 'Comment 1',
-                            lastActorEmail: USER_2_LOGIN,
+                            lastActorAccountID: USER_2_ACCOUNT_ID,
                             lastVisibleActionCreated: reportActionCreatedDate,
                             lastMentionedTime: reportActionCreatedDate,
                             lastReadTime: DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1),
@@ -230,7 +228,6 @@ describe('actions/Report', () => {
                             1: {
                                 actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                                 actorAccountID: USER_2_ACCOUNT_ID,
-                                actorEmail: USER_2_LOGIN,
                                 automatic: false,
                                 avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                                 message: [{type: 'COMMENT', html: 'Comment 1', text: 'Comment 1'}],
@@ -316,7 +313,6 @@ describe('actions/Report', () => {
                 const USER_1_BASE_ACTION = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
                     actorAccountID: USER_1_ACCOUNT_ID,
-                    actorEmail: USER_1_LOGIN,
                     automatic: false,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
                     person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
@@ -362,7 +358,7 @@ describe('actions/Report', () => {
                             reportID: REPORT_ID,
                             notificationPreference: 'always',
                             lastMessageText: 'Current User Comment 3',
-                            lastActorEmail: 'test@test.com',
+                            lastActorAccountID: 1,
                             lastVisibleActionCreated: reportActionCreatedDate,
                             lastReadTime: reportActionCreatedDate,
                         },
@@ -659,7 +655,7 @@ describe('actions/Report', () => {
                 const resultAction = _.first(_.values(reportActions));
 
                 // Add a reaction to the comment
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI);
+                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -668,7 +664,7 @@ describe('actions/Report', () => {
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
                 // should get removed instead of added again.
-                Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, 2);
+                Report.toggleEmojiReaction(REPORT_ID, resultAction.reportActionID, EMOJI, 2);
                 return waitForPromisesToResolve();
             })
             .then(() => {
