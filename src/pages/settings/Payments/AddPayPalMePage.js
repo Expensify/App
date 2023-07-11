@@ -1,8 +1,12 @@
 import React, {useRef, useState, useCallback} from 'react';
 import {View, Linking} from 'react-native';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get'
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
+import compose from '../../../libs/compose';
+import ONYXKEYS from '../../../ONYXKEYS';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import TextLink from '../../../components/TextLink';
 import Text from '../../../components/Text';
@@ -20,9 +24,21 @@ import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import variables from '../../../styles/variables';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
+
+const propTypes = {
+  /** Account details for PayPal.Me */
+  payPalMeData: paypalMeDataPropTypes,
+
+  ...withLocalizePropTypes, 
+};
+
+const defaultProps = {
+    payPalMeData: {}
+}
 
 function AddPayPalMePage(props) {
-    const [payPalMeUsername, setPayPalMeUsername] = useState('');
+    const [payPalMeUsername, setPayPalMeUsername] = useState(lodashGet(props.payPalMeData, 'accountData.username', ''));
     const [payPalMeUsernameError, setPayPalMeUsernameError] = useState(false);
     const payPalMeInput = useRef(null);
 
@@ -111,7 +127,14 @@ function AddPayPalMePage(props) {
     );
 }
 
-AddPayPalMePage.propTypes = {...withLocalizePropTypes};
+AddPayPalMePage.propTypes = propTypes;
+AddPayPalMePage.defaultProps = defaultProps;
 AddPayPalMePage.displayName = 'AddPayPalMePage';
 
-export default withLocalize(AddPayPalMePage);
+export default compose(
+    withLocalize,
+    withOnyx({
+    payPalMeData: {
+        key: ONYXKEYS.PAYPAL,
+    },
+}))(AddPayPalMePage);
