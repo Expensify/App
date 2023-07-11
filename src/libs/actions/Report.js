@@ -511,7 +511,7 @@ function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(reportID, userLogins, newChat);
     if (shouldDismissModal) {
-        Navigation.dismissModal(reportID);    
+        Navigation.dismissModal(reportID);
     } else {
         Navigation.navigate(ROUTES.getReportRoute(reportID));
     }
