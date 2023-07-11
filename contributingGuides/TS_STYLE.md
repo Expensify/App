@@ -3,8 +3,6 @@
 ## Table of Contents
 
 - [Other Expensify Resources on TypeScript](#other-expensify-resources-on-typescript)
-- [Learning Resources](#learning-resources)
-- [Exception to Rules](#exception-to-rules)
 - [General Rules](#general-rules)
 - [Guidelines](#guidelines)
   - [1.1 Naming Conventions](#naming-conventions)
@@ -25,35 +23,15 @@
   - [1.16 Reusable Types](#reusable-types)
   - [1.17 `.tsx`](#tsx)
   - [1.18 No inline prop types](#no-inline-prop-types)
+- [Exception to Rules](#exception-to-rules)
 - [Communication Items](#communication-items)
 - [Migration Guidelines](#migration-guidelines)
+- [Learning Resources](#learning-resources)
 
 ## Other Expensify Resources on TypeScript
 
 - [Expensify TypeScript React Native CheatSheet](./TS_CHEATSHEET.md)
 - [Expensify TypeScript PropTypes Conversion Table](./PROPTYPES_CONVERSION_TABLE.md)
-
-## Learning Resources
-
-### Quickest way to learn TypeScript
-
-- Get up to speed quickly
-  - [TypeScript playground](https://www.typescriptlang.org/play?q=231#example)
-    - Go though all examples on the playground. Click on "Example" tab on the top
-- Handy Reference
-  - [TypeScript CheatSheet](https://www.typescriptlang.org/cheatsheets)
-    - [Type](https://www.typescriptlang.org/static/TypeScript%20Types-ae199d69aeecf7d4a2704a528d0fd3f9.png)
-    - [Control Flow Analysis](https://www.typescriptlang.org/static/TypeScript%20Control%20Flow%20Analysis-8a549253ad8470850b77c4c5c351d457.png)
-- TypeScript with React
-  - [React TypeScript CheatSheet](https://react-typescript-cheatsheet.netlify.app/)
-    - [List of built-in utility types](https://react-typescript-cheatsheet.netlify.app/docs/basic/troubleshooting/utilities)
-    - [HOC CheatSheet](https://react-typescript-cheatsheet.netlify.app/docs/hoc/)
-
-## Exception to Rules
-
-Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. Internal engineers will assess the case and suggest alternative or grants an exception. When an exception is granted, link the relevant Slack conversation in your pull request. Suppress ESLint or TypeScript warnings/errors with comments if necessary.
-
-This rule will apply until the migration is done. After the migration, exceptions are assessed and granted by PR reviewers.
 
 ## General Rules
 
@@ -166,7 +144,7 @@ type Foo = {
   const COLORS = ["red", "green", "blue"] as const;
   type Color = TupleToUnion<typeof COLORS>; // type: 'red' | 'green' | 'blue'
 
-  for (const colors of color) {
+  for (const color of COLORS) {
     printColor(color);
   }
 
@@ -426,13 +404,13 @@ type Foo = {
     import { MyComponentProps } from "./types";
 
     export MyComponentProps;
-    export default function MyComponent({ foo }: MyComponentProps) {...}
+    export default function MyComponent({ foo }: MyComponentProps) { /* ios specific implementation */ }
 
     // index.ts
     import { MyComponentProps } from "./types";
 
     export MyComponentProps;
-    export default function MyComponent({ foo }: MyComponentProps) {...}
+    export default function MyComponent({ foo }: MyComponentProps) { /* Default implementation */ }
   ```
 
 <a name="reusable-types"></a><a name="1.16"></a>
@@ -471,6 +449,12 @@ type Foo = {
     // component implementation
   }
   ```
+
+## Exception to Rules
+
+Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. Internal engineers will assess the case and suggest alternative or grants an exception. When an exception is granted, link the relevant Slack conversation in your pull request. Suppress ESLint or TypeScript warnings/errors with comments if necessary.
+
+This rule will apply until the migration is done. After the migration, exceptions are assessed and granted by PR reviewers.
 
 ## Communication Items
 
@@ -513,3 +497,19 @@ declare module "external-library-name" {
   // @ts-expect-error
   const y: number = 123; // TS error: Unused '@ts-expect-error' directive.
   ```
+
+## Learning Resources
+
+### Quickest way to learn TypeScript
+
+- Get up to speed quickly
+  - [TypeScript playground](https://www.typescriptlang.org/play?q=231#example)
+    - Go though all examples on the playground. Click on "Example" tab on the top
+- Handy Reference
+  - [TypeScript CheatSheet](https://www.typescriptlang.org/cheatsheets)
+    - [Type](https://www.typescriptlang.org/static/TypeScript%20Types-ae199d69aeecf7d4a2704a528d0fd3f9.png)
+    - [Control Flow Analysis](https://www.typescriptlang.org/static/TypeScript%20Control%20Flow%20Analysis-8a549253ad8470850b77c4c5c351d457.png)
+- TypeScript with React
+  - [React TypeScript CheatSheet](https://react-typescript-cheatsheet.netlify.app/)
+    - [List of built-in utility types](https://react-typescript-cheatsheet.netlify.app/docs/basic/troubleshooting/utilities)
+    - [HOC CheatSheet](https://react-typescript-cheatsheet.netlify.app/docs/hoc/)
