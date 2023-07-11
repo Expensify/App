@@ -5,172 +5,27 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 39:
+/***/ 509:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const {promisify} = __nccwpck_require__(669);
-const fs = __nccwpck_require__(747);
-const exec = promisify(__nccwpck_require__(129).exec);
-const _ = __nccwpck_require__(571);
 const core = __nccwpck_require__(186);
+const _ = __nccwpck_require__(571);
+const semverValid = __nccwpck_require__(601);
 const versionUpdater = __nccwpck_require__(7);
-const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = __nccwpck_require__(322);
 
-/**
- * Update the native app versions.
- *
- * @param {String} version
- */
-function updateNativeVersions(version) {
-    console.log(`Updating native versions to ${version}`);
-
-    // Update Android
-    const androidVersionCode = generateAndroidVersionCode(version);
-    updateAndroidVersion(version, androidVersionCode)
-        .then(() => {
-            console.log('Successfully updated Android!');
-        })
-        .catch((err) => {
-            console.error('Error updating Android');
-            core.setFailed(err);
-        });
-
-    // Update iOS
-    try {
-        const cfBundleVersion = updateiOSVersion(version);
-        if (_.isString(cfBundleVersion) && cfBundleVersion.split('.').length === 4) {
-            core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
-            console.log('Successfully updated iOS!');
-        } else {
-            core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
-        }
-    } catch (err) {
-        console.error('Error updating iOS');
-        core.setFailed(err);
-    }
+const currentVersion = core.getInput('CURRENT_VERSION', {require: true});
+if (!semverValid(currentVersion)) {
+    core.setFailed(`Error: CURRENT_VERSION ${currentVersion} is not a valid semver version`);
 }
 
-let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {require: true});
-if (!semanticVersionLevel || !_.contains(versionUpdater.SEMANTIC_VERSION_LEVELS, semanticVersionLevel)) {
-    semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
-    console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
+let semverLevel = core.getInput('SEMVER_LEVEL', {require: true});
+if (!semverLevel || !_.contains(versionUpdater.SEMANTIC_VERSION_LEVELS, semverLevel)) {
+    semverLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.PATCH;
+    console.warn(`Invalid input for 'SEMVER_LEVEL': ${semverLevel}`, `Defaulting to: ${semverLevel}`);
 }
 
-const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json'));
-const newVersion = versionUpdater.incrementVersion(previousVersion, semanticVersionLevel);
-console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
-
-updateNativeVersions(newVersion);
-
-console.log(`Setting npm version to ${newVersion}`);
-exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`)
-    .then(({stdout}) => {
-        // NPM and native versions successfully updated, output new version
-        console.log(stdout);
-        core.setOutput('NEW_VERSION', newVersion);
-    })
-    .catch(({stdout, stderr}) => {
-        // Log errors and retry
-        console.log(stdout);
-        console.error(stderr);
-        core.setFailed('An error occurred in the `npm version` command');
-    });
-
-
-/***/ }),
-
-/***/ 322:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-const {execSync} = __nccwpck_require__(129);
-const fs = __nccwpck_require__(747).promises;
-const path = __nccwpck_require__(622);
-const getMajorVersion = __nccwpck_require__(688);
-const getMinorVersion = __nccwpck_require__(447);
-const getPatchVersion = __nccwpck_require__(866);
-const getBuildVersion = __nccwpck_require__(14);
-
-// Filepath constants
-const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path.resolve(__dirname, '../../android/app/build.gradle') : './android/app/build.gradle';
-const PLIST_PATH = './ios/NewExpensify/Info.plist';
-const PLIST_PATH_TEST = './ios/NewExpensifyTests/Info.plist';
-
-exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
-exports.PLIST_PATH = PLIST_PATH;
-exports.PLIST_PATH_TEST = PLIST_PATH_TEST;
-
-/**
- * Pad a number to be two digits (with leading zeros if necessary).
- *
- * @param {Number} number - Must be an integer.
- * @returns {String} - A string representation of the number with length 2.
- */
-function padToTwoDigits(number) {
-    if (number >= 10) {
-        return number.toString();
-    }
-    return `0${number.toString()}`;
-}
-
-/**
- * Generate the 10-digit versionCode for android.
- * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
- * As a result, our max version is 99.99.99-99.
- *
- * @param {String} npmVersion
- * @returns {String}
- */
-exports.generateAndroidVersionCode = function generateAndroidVersionCode(npmVersion) {
-    // All Android versions will be prefixed with '10' due to previous versioning
-    const prefix = '10';
-    return ''.concat(
-        prefix,
-        padToTwoDigits(getMajorVersion(npmVersion) || 0),
-        padToTwoDigits(getMinorVersion(npmVersion) || 0),
-        padToTwoDigits(getPatchVersion(npmVersion) || 0),
-        padToTwoDigits(getBuildVersion(npmVersion) || 0),
-    );
-};
-
-/**
- * Update the Android app versionName and versionCode.
- *
- * @param {String} versionName
- * @param {String} versionCode
- * @returns {Promise}
- */
-exports.updateAndroidVersion = function updateAndroidVersion(versionName, versionCode) {
-    console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
-    return fs
-        .readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'})
-        .then((content) => {
-            let updatedContent = content.toString().replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
-            return (updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`));
-        })
-        .then((updatedContent) => fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'}));
-};
-
-/**
- * Update the iOS app version.
- * Updates the CFBundleShortVersionString and the CFBundleVersion.
- *
- * @param {String} version
- * @returns {String}
- */
-exports.updateiOSVersion = function updateiOSVersion(version) {
-    const shortVersion = version.split('-')[0];
-    const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
-    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
-
-    // Update Plists
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_TEST}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_TEST}`);
-
-    // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
-    return cfVersion;
-};
+const previousVersion = versionUpdater.getPreviousVersion(currentVersion, semverLevel);
+core.setOutput('PREVIOUS_VERSION', previousVersion);
 
 
 /***/ }),
@@ -2378,26 +2233,6 @@ module.exports = SemVer
 
 /***/ }),
 
-/***/ 688:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const SemVer = __nccwpck_require__(88)
-const major = (a, loose) => new SemVer(a, loose).major
-module.exports = major
-
-
-/***/ }),
-
-/***/ 447:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const SemVer = __nccwpck_require__(88)
-const minor = (a, loose) => new SemVer(a, loose).minor
-module.exports = minor
-
-
-/***/ }),
-
 /***/ 925:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -2438,25 +2273,15 @@ module.exports = parse
 
 /***/ }),
 
-/***/ 866:
-/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
-
-const SemVer = __nccwpck_require__(88)
-const patch = (a, loose) => new SemVer(a, loose).patch
-module.exports = patch
-
-
-/***/ }),
-
-/***/ 14:
+/***/ 601:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const parse = __nccwpck_require__(925)
-const prerelease = (version, options) => {
-  const parsed = parse(version, options)
-  return (parsed && parsed.prerelease.length) ? parsed.prerelease : null
+const valid = (version, options) => {
+  const v = parse(version, options)
+  return v ? v.version : null
 }
-module.exports = prerelease
+module.exports = valid
 
 
 /***/ }),
@@ -5573,14 +5398,6 @@ module.exports = require("assert");;
 
 /***/ }),
 
-/***/ 129:
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("child_process");;
-
-/***/ }),
-
 /***/ 614:
 /***/ ((module) => {
 
@@ -5731,6 +5548,6 @@ module.exports = require("util");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(39);
+/******/ 	return __nccwpck_require__(509);
 /******/ })()
 ;
