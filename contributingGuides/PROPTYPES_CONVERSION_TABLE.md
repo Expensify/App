@@ -1,4 +1,4 @@
-# Expensify PropTypes Conversation Table
+# Expensify PropTypes Conversion Table
 
 ## Table of Contents
 

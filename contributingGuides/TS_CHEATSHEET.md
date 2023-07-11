@@ -187,7 +187,7 @@
 
 - [1.7](#try-catch-clauses) **Error in Try-Catch Clauses**
 
-  Errors in try/catch clauses are inferred as `unknown`. If the error dat needs to be accessed, the type of the error needs to be checked and narrowed down.
+  Errors in try/catch clauses are inferred as `unknown`. If the error data needs to be accessed, the type of the error needs to be checked and narrowed down.
 
   ```ts
   try {
@@ -211,7 +211,7 @@
   const greeting2 = "goodbye" as const; // type: "goodbye"
 
   const person1 = { name: "Alice", age: 20 }; // type: { name: string, age: number }
-  const person2 = { name: "Bob", age: 30 } as const; // type: { readonly name: "Bob", readonly age; 30 }
+  const person2 = { name: "Bob", age: 30 } as const; // type: { readonly name: "Bob", readonly age: 30 }
 
   const array1 = ["hello", 1]; // type: (string | number)[]
   const array2 = ["goodbye", 2]; // type: readonly ["goodbye", 2]
@@ -230,7 +230,7 @@
   Use [function overloads](https://www.typescriptlang.org/docs/handbook/2/functions.html#function-overloads) to provide more type information for functions. For the following types of functions, function overloading can be beneficial.
 
   - The return type depends on the input type
-  - When function accept different number of parameters
+  - When function accepts different number of parameters
   - There are type dependencies between parameters
 
   Refer to [this guide](https://medium.com/@hayata.suenaga/when-to-use-function-overloads-acc48f7e3142) to learn how to use functional overloads for each situation.
