@@ -298,7 +298,7 @@ export default [
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, false);
             if (closePopover) {
-                hideContextMenu(false);
+                hideContextMenu(false, ReportActionComposeFocusManager.focus);
             }
         },
         getDescription: () => {},
@@ -311,7 +311,7 @@ export default [
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, true);
             if (closePopover) {
-                hideContextMenu(false);
+                hideContextMenu(false, ReportActionComposeFocusManager.focus);
             }
         },
         getDescription: () => {},
