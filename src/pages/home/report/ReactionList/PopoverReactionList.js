@@ -159,7 +159,7 @@ class PopoverReactionList extends React.Component {
      * @returns {Object}
      */
     getSelectedReaction(reportActions, reportActionID, emojiName) {
-        const reportAction = _.find(reportActions, (action) => action.reportActionID === reportActionID);
+        const reportAction = _.find(reportActions, (action) => lodashGet(action, 'reportActionID', '') === reportActionID);
         if (!reportAction || ReportUtils.isThreadFirstChat(reportAction, this.props.report.reportID)) {
             const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
             return this.getSelectedReactionFromAction(parentReportAction, emojiName);
