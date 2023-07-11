@@ -28,7 +28,7 @@ const propTypes = {
     isHovered: PropTypes.bool.isRequired,
 
     /** The function that is called on secondary interaction, ie: LongPress */
-    onSecondaryInteraction: PropTypes.func,
+    onSecondaryInteraction: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
