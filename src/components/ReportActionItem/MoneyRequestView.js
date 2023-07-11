@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get'
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -28,13 +28,16 @@ const propTypes = {
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
-
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
 
     ...withCurrentUserPersonalDetailsPropTypes,
+};
+
+const defaultProps = {
+    parentReport: {},
 };
 
 function MoneyRequestView(props) {
@@ -86,6 +89,7 @@ function MoneyRequestView(props) {
 }
 
 MoneyRequestView.propTypes = propTypes;
+MoneyRequestView.defaultProps = defaultProps;
 MoneyRequestView.displayName = 'MoneyRequestView';
 
 export default compose(
@@ -97,4 +101,4 @@ export default compose(
             key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
         },
     }),
-    )(MoneyRequestView);
+)(MoneyRequestView);
