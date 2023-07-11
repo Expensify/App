@@ -134,6 +134,8 @@ class ReportScreen extends React.Component {
             isBannerVisible: true,
         };
         this.firstRenderRef = React.createRef();
+        this.firstRenderRef.current = reportActionsListViewHeight === 0;
+
         this.flatListRef = React.createRef();
         this.reactionListRef = React.createRef();
     }
@@ -244,8 +246,8 @@ class ReportScreen extends React.Component {
 
         const shouldHideReport = !ReportUtils.canAccessReport(this.props.report, this.props.policies, this.props.betas);
 
-        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || !this.firstRenderRef.current;
-        this.firstRenderRef.current = true;
+        const isLoading = !reportID || !this.props.isSidebarLoaded || _.isEmpty(this.props.personalDetails) || this.firstRenderRef.current;
+        this.firstRenderRef.current = false;
 
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
         const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
