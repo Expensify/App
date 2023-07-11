@@ -161,7 +161,7 @@ class WorkspaceInvitePage extends React.Component {
         const hideUserToInvite =
             this.state.userToInvite &&
             _.find(this.state.personalDetails, ({login}) => {
-                const phone = `${this.state.userToInvite.login}${CONST.SMS.DOMAIN}`;
+                const phone = OptionsListUtils.addSMSDomainIfPhoneNumber(login);
                 return login === phone;
             });
         if (hasUnselectedUserToInvite && !hideUserToInvite) {
