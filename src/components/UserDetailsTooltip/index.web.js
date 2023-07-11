@@ -51,7 +51,7 @@ function UserDetailsTooltip(props) {
                     />
                 </View>
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
-                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{subtitle}</Text>
+                <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>
             </View>
         ),
         [props.icon, userAvatar, userAccountID, userLogin, title, subtitle],

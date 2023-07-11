@@ -1302,7 +1302,8 @@ export default {
         messages: {
             completed: 'tarea completada',
             canceled: 'tarea cancelada',
-            reopened: 'tarea reabierta',
+            reopened: 'tarea reabrir',
+            error: 'No tiene permiso para realizar la acción solicitada.',
         },
         markAsDone: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
