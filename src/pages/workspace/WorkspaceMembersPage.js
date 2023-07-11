@@ -446,9 +446,11 @@ function WorkspaceMembersPage(props) {
                         </View>
                         <View style={[styles.w100, styles.pv3, styles.ph5]}>
                             <TextInput
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 value={searchValue}
                                 onChangeText={setSearchValue}
                                 label={props.translate('optionsSelector.findMember')}
+                                accessibilityLabel={props.translate('optionsSelector.findMember')}
                             />
                         </View>
                         {data.length > 0 ? (

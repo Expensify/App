@@ -73,6 +73,8 @@ class DatePicker extends React.Component {
                 }}
                 onFocus={this.showDatepicker}
                 label={this.props.label}
+                accessibilityLabel={this.props.label}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onInputChange={this.setDate}
                 value={this.props.value}
                 defaultValue={this.defaultValue}
