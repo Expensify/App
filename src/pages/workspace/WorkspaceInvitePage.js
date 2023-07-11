@@ -18,12 +18,11 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
 import {policyPropTypes, policyDefaultProps} from './withPolicy';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import {withNetwork} from '../../components/OnyxProvider';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
-import networkPropTypes from '../../components/networkPropTypes';
 import ROUTES from '../../ROUTES';
 import * as Browser from '../../libs/Browser';
 import * as PolicyUtils from '../../libs/PolicyUtils';
+import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -55,7 +54,6 @@ const propTypes = {
 
     ...policyPropTypes,
     ...withLocalizePropTypes,
-    network: networkPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -254,7 +252,6 @@ WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 export default compose(
     withLocalize,
     withPolicyAndFullscreenLoading,
-    withNetwork(),
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
