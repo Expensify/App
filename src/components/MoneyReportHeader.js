@@ -25,9 +25,6 @@ const propTypes = {
     /** The report currently being looked at */
     report: iouReportPropTypes.isRequired,
 
-    /** The expense report or iou report (only will have a value if this is a transaction thread) */
-    parentReport: iouReportPropTypes,
-
     /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
         /** Name of the policy */
@@ -140,9 +137,6 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
-        },
-        parentReport: {
-            key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
         },
     }),
 )(MoneyReportHeader);
