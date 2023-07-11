@@ -28,19 +28,16 @@ function Modal(props) {
 
     return (
         <BaseModal
-        // eslint-disable-next-line react/jsx-props-no-spreading
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isVisible={isVisible}
         >
             {props.children}
         </BaseModal>
     );
-};
+}
 
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;
 Modal.displayName = 'Modal';
-export default compose(
-    withWindowDimensions,
-    withKeyboardState,
-)(Modal);
+export default compose(withWindowDimensions, withKeyboardState)(Modal);

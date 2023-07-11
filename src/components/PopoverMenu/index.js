@@ -70,7 +70,7 @@ function PopoverMenu(props) {
             // trigger the onModalHide callback only when modal is closed by clicking outside or back button
             props.onModalHide();
         }
-    }
+    };
 
     return (
         <PopoverWithMeasuredContent

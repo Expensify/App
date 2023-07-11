@@ -66,7 +66,7 @@ function AttachmentPicker(props) {
             {props.children({
                 openPicker: ({onPicked: newOnPicked, onModalHide: newOnModalHide}) => {
                     onPicked.current = newOnPicked;
-                    onModalHide.current = newOnModalHide
+                    onModalHide.current = newOnModalHide;
                     fileInput.current.click();
                 },
             })}
