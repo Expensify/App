@@ -422,13 +422,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Settings_Preferences_Language',
     },
-    {
-        getComponent: () => {
-            const SettingsPreferencesThemePage = require('../../../pages/settings/Preferences/ThemePage').default;
-            return SettingsPreferencesThemePage;
-        },
-        name: 'Settings_Preferences_Theme',
-    },
+    // {
+    //     getComponent: () => {
+    //         const SettingsPreferencesThemePage = require('../../../pages/settings/Preferences/ThemePage').default;
+    //         return SettingsPreferencesThemePage;
+    //     },
+    //     name: 'Settings_Preferences_Theme',
+    // },
     {
         getComponent: () => {
             const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
