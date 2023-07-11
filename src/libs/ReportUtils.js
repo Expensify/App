@@ -143,13 +143,13 @@ function isTaskReport(report) {
 }
 
 /**
- * Checks if a task is completed
+ * Checks if a report is an open task report.
  *
  * @param {Object} report
  * @returns {Boolean}
  */
-function isTaskCompleted(report) {
-    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
+function isOpenTaskReport(report) {
+    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.OPEN && report.statusNum === CONST.REPORT.STATUS.OPEN;
 }
 
 /**
@@ -158,8 +158,22 @@ function isTaskCompleted(report) {
  * @param {Object} report
  * @returns {Boolean}
  */
+function isCanceledTaskReport(report) {
+    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.CLOSED;
+}
+
+/**
+ * Checks if a report is a completed task report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isCompletedTaskReport(report) {
+    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.APPROVED;
+}
+
 function isTaskAssignee(report) {
-    return lodashGet(report, 'managerEmail') === currentUserEmail;
+    return lodashGet(report, 'managerID') === currentUserAccountID;
 }
 
 /**
@@ -587,6 +601,16 @@ function isThreadFirstChat(reportAction, reportID) {
 }
 
 /**
+ * Checks if a report is a child report.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isChildReport(report) {
+    return isThread(report) || isTaskReport(report);
+}
+
+/**
  * An Expense Request is a thread where the parent report is an Expense Report and
  * the parentReportAction is a transaction.
  *
@@ -1004,7 +1028,7 @@ function getMoneyRequestTotal(report, moneyRequestReports = {}) {
  * @returns {String}
  */
 function getPolicyExpenseChatName(report) {
-    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || report.ownerEmail || report.reportName;
+    const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || lodashGet(allPersonalDetails, [report.ownerAccountID, 'login']) || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
@@ -1138,7 +1162,7 @@ function getReportName(report) {
  * @returns {Object}
  */
 function getRootReportAndWorkspaceName(report) {
-    if (isThread(report) && !isMoneyRequestReport(report)) {
+    if (isChildReport(report) && !isMoneyRequestReport(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         return getRootReportAndWorkspaceName(parentReport);
     }
@@ -1634,7 +1658,6 @@ function buildOptimisticChatReport(
         hasOutstandingIOU: false,
         isOwnPolicyExpenseChat,
         isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
-        lastActorEmail: '',
         lastActorAccountID: 0,
         lastMessageHtml: '',
         lastMessageText: null,
@@ -2535,7 +2558,9 @@ export {
     isExpenseRequest,
     isIOUReport,
     isTaskReport,
-    isTaskCompleted,
+    isOpenTaskReport,
+    isCanceledTaskReport,
+    isCompletedTaskReport,
     isTaskAssignee,
     isMoneyRequestReport,
     chatIncludesChronos,
@@ -2552,6 +2577,7 @@ export {
     isChatThread,
     isThreadParent,
     isThreadFirstChat,
+    isChildReport,
     shouldReportShowSubscript,
     isReportDataReady,
     isSettled,

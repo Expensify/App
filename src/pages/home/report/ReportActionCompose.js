@@ -48,7 +48,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
-import * as TaskUtils from '../../../libs/actions/Task';
+import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
@@ -238,14 +238,6 @@ class ReportActionCompose extends React.Component {
             this.focus(false);
         });
 
-        // This listener is used for focusing the composer again after going back to a report without remounting it.
-        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
-            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
-                return;
-            }
-            this.focus();
-        });
-
         this.updateComment(this.comment);
 
         // Shows Popover Menu on Workspace Chat at first sign-in
@@ -262,10 +254,10 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+        // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.willBlurTextInputOnTapOutside && this.props.isFocused && prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        if (this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && this.props.isFocused && (prevProps.modal.isVisible || !prevProps.isFocused)) {
             this.focus();
         }
 
@@ -284,10 +276,6 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-        if (!this.unsubscribeNavFocus) {
-            return;
-        }
-        this.unsubscribeNavFocus();
     }
 
     onSelectionChange(e) {
@@ -442,7 +430,7 @@ class ReportActionCompose extends React.Component {
             {
                 icon: Expensicons.Task,
                 text: this.props.translate('newTaskPage.assignTask'),
-                onSelected: () => TaskUtils.clearOutTaskInfoAndNavigate(this.props.reportID),
+                onSelected: () => Task.clearOutTaskInfoAndNavigate(this.props.reportID),
             },
         ];
     }
@@ -536,7 +524,7 @@ class ReportActionCompose extends React.Component {
             shouldShowEmojiSuggestionMenu: false,
             isAutoSuggestionPickerLarge,
         };
-        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString);
+        const newSuggestedEmojis = EmojiUtils.suggestEmojis(leftString, this.props.preferredLocale);
 
         if (newSuggestedEmojis.length && isCurrentlyShowingEmojiSuggestion) {
             nextState.suggestedEmojis = newSuggestedEmojis;
@@ -749,7 +737,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.preferredSkinTone);
+        const {text: newComment = '', emojis = []} = EmojiUtils.replaceEmojis(comment, this.props.preferredSkinTone, this.props.preferredLocale);
 
         if (!_.isEmpty(emojis)) {
             this.insertedEmojis = [...this.insertedEmojis, ...emojis];
@@ -841,7 +829,7 @@ class ReportActionCompose extends React.Component {
         if (
             e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
             this.textInput.selectionStart === 0 &&
-            this.state.isCommentEmpty &&
+            this.state.value.length === 0 &&
             !ReportUtils.chatIncludesChronos(this.props.report)
         ) {
             e.preventDefault();
