@@ -14,7 +14,7 @@ Onyx.connect({
         frequentlyUsedEmojis = _.map(val, (item) => {
             const emoji = Emojis.emojiCodeTable[item.code];
             if (emoji) {
-                return {name: emoji.name, code: emoji.code, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
+                return {name: emoji.name, code: emoji.code, count: item.count, lastUpdatedAt: item.lastUpdatedAt, types: emoji.types};
             }
         });
     },
