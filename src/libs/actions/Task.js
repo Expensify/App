@@ -10,7 +10,9 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as Expensicons from '../../components/Icon/Expensicons';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -73,7 +75,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
-        lastActorEmail: currentUserEmail,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
@@ -144,7 +145,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
             lastMessageText: lastAssigneeCommentText,
-            lastActorEmail: currentUserEmail,
             lastActorAccountID: currentUserAccountID,
             lastReadTime: currentTime,
         };
@@ -226,7 +226,11 @@ function completeTask(taskReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[completedTaskReportAction.reportActionID]: {pendingAction: null}},
+            value: {
+                [completedTaskReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                },
+            },
         },
     ];
 
@@ -258,7 +262,6 @@ function reopenTask(taskReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.OPEN,
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: currentUserEmail,
                 lastActorAccountID: reopenedTaskReportAction.actorAccountID,
                 lastReadTime: reopenedTaskReportAction.created,
             },
@@ -283,7 +286,11 @@ function reopenTask(taskReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[reopenedTaskReportAction.reportActionID]: {pendingAction: null}},
+            value: {
+                [reopenedTaskReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                },
+            },
         },
     ];
 
@@ -561,7 +568,7 @@ function getAssignee(details) {
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
     return {
-        icons: ReportUtils.getIcons(report, personalDetails),
+        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
         subtitle: ReportUtils.getChatRoomSubtitle(report),
     };
@@ -594,7 +601,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: currentUserEmail,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
             },
         },

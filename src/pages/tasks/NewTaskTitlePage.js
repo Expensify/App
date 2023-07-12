@@ -15,6 +15,7 @@ import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
 import * as Task from '../../libs/actions/Task';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Beta features list */
@@ -92,10 +93,12 @@ function NewTaskTitlePage(props) {
             >
                 <View style={styles.mb5}>
                     <TextInput
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
                         label={props.translate('task.title')}
+                        accessibilityLabel={props.translate('task.title')}
                     />
                 </View>
             </Form>
