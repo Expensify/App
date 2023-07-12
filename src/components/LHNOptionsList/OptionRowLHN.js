@@ -104,8 +104,8 @@ function OptionRowLHN(props) {
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
             (optionItem.policyType !== CONST.POLICY.TYPE.CORPORATE && optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
-            (optionItem.isControlPolicyExpenseReport && !optionItem.isExpenseReportApproved && optionItem.isExpenseReportManager) ||
-            (optionItem.isControlPolicyExpenseReport && optionItem.isExpenseReportApproved && optionItem.isAdminOfControlPolicy) ||
+            (optionItem.isControlPolicyExpenseReport && !optionItem.isExpenseReportApproved && optionItem.isExpenseReportManager && optionItem.hasOutstandingIOU) ||
+            (optionItem.isControlPolicyExpenseReport && optionItem.isExpenseReportApproved && optionItem.isAdminOfControlPolicy && optionItem.hasOutstandingIOU) ||
             (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
     if (optionItem.reportID === '7968441077953408') {
         console.log(optionItem.isControlPolicyExpenseReport && optionItem.isExpenseReportApproved && !optionItem.isAdminOfControlPolicy);

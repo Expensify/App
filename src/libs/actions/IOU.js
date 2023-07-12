@@ -825,7 +825,7 @@ function approveMoneyRequest(chatReport, expenseReport) {
         },
     ];
 
-    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID}, {optimisticData, successData, failureData});
+    API.write('ApproveMoneyRequest', {reportID: expenseReport.reportID, approvedReportActionID: optimisticIOUReportAction.reportActionID}, {optimisticData, successData, failureData});
 }
 
 /**

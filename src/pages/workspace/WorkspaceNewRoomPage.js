@@ -110,7 +110,7 @@ function WorkspaceNewRoomPage(props) {
     const workspaceOptions = useMemo(
         () =>
             _.map(
-                _.filter(props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
+                _.filter(props.policies, (policy) => policy && (policy.type === CONST.POLICY.TYPE.FREE || policy.type === CONST.POLICY.TYPE.CORPORATE)),
                 (policy) => ({label: policy.name, key: policy.id, value: policy.id}),
             ),
         [props.policies],
