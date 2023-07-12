@@ -2003,7 +2003,7 @@ function isIOUOwnedByCurrentUser(report) {
     let reportToLook = report;
     if (report.iouReportID) {
         const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
-        if (iouReport && iouReport.ownerAccountID) {
+        if (iouReport) {
             reportToLook = iouReport;
         }
     }

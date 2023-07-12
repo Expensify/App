@@ -25,7 +25,6 @@ import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
-import _ from "underscore";
 
 const propTypes = {
     /** All the data of the action */
