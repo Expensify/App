@@ -93,7 +93,7 @@ function ReportPreview(props) {
     } else {
         // If iouReport is not available, get amount from the action message (Ex: Domain20821's Workspace owes $33.00")
         reportAmount = '';
-        const actionMessage = _.size(props.action.message) ? (props.action.message[0].text || '') : '';
+        const actionMessage = _.size(props.action.message) ? props.action.message[0].text || '' : '';
         const splits = actionMessage.split(' ');
         if (_.size(splits) > 0) {
             const lastWord = splits[_.size(splits) - 1];

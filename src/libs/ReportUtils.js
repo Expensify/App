@@ -1031,9 +1031,7 @@ function isWaitingForIOUActionFromCurrentUser(report) {
     }
 
     // Money request waiting for current user to Pay (from chat or from iou report)
-    if (reportToLook.ownerAccountID
-        && (reportToLook.ownerAccountID !== currentUserAccountID || currentUserAccountID === reportToLook.managerID)
-        && reportToLook.hasOutstandingIOU) {
+    if (reportToLook.ownerAccountID && (reportToLook.ownerAccountID !== currentUserAccountID || currentUserAccountID === reportToLook.managerID) && reportToLook.hasOutstandingIOU) {
         return true;
     }
 

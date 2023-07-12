@@ -57,8 +57,8 @@ function MoneyRequestHeader(props) {
     const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const isPayer = Policy.isAdminOfFreePolicy([policy]) ||
-        (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
+    const isPayer =
+        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
     const report = props.report;
     if (props.isSingleTransactionView) {
         report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);

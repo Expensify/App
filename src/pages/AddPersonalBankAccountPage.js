@@ -84,7 +84,7 @@ class AddPersonalBankAccountPage extends React.Component {
     exitFlow() {
         const reportID = Navigation.getTopmostReportId();
         if (reportID) {
-            Navigation.dismissModal(reportID)
+            Navigation.dismissModal(reportID);
         } else {
             Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
         }
