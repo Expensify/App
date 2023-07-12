@@ -317,6 +317,6 @@ export default compose(
         },
         isUsingMemoryOnlyKeys: {
             key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
-        }
+        },
     }),
 )(AuthScreens);

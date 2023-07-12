@@ -46,18 +46,14 @@ export default function () {
     window.enableMemoryOnlyKeys = () => {
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.set(ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS, true);
-        Onyx.setMemoryOnlyKeys([
-            ONYXKEYS.COLLECTION.REPORT,
-            ONYXKEYS.COLLECTION.POLICY,
-            ONYXKEYS.PERSONAL_DETAILS_LIST,
-        ]);
+        Onyx.setMemoryOnlyKeys([ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.POLICY, ONYXKEYS.PERSONAL_DETAILS_LIST]);
     };
 
     window.disableMemoryOnlyKeys = () => {
         // eslint-disable-next-line rulesdir/prefer-actions-set-data
         Onyx.set(ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS, false);
         Onyx.setMemoryOnlyKeys([]);
-    }
+    };
 
     Device.setDeviceID();
 
