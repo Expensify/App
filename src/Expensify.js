@@ -7,6 +7,7 @@ import ShareMenu from 'react-native-share-menu';
 import _ from 'underscore';
 
 import ONYXKEYS from './ONYXKEYS';
+import ROUTES from './ROUTES';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -168,7 +169,12 @@ function Expensify(props) {
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
 
-        const handleShare = () => Navigation.navigate('share');
+        const handleShare = (share) => {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.SHARE);
+                Navigation.setParams({share});
+            });
+        };
         ShareMenu.getInitialShare(handleShare);
         const shareListener = ShareMenu.addNewShareListener(handleShare);
 

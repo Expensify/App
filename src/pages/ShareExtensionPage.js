@@ -1,12 +1,13 @@
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {ShareMenuReactView} from 'react-native-share-menu';
 import _ from 'underscore';
 
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import ROUTES from '../ROUTES';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import OptionsSelector from '../components/OptionsSelector';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -197,7 +198,9 @@ class ShareExtensionPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        Navigation.navigate('shareMessage', {option});
+        const share = this.props.route.params.share;
+        Navigation.navigate(ROUTES.SHARE_MESSAGE);
+        Navigation.setParams({option, share});
     }
 
     /**
@@ -238,7 +241,7 @@ class ShareExtensionPage extends Component {
                         <HeaderWithBackButton
                             // title={this.props.translate('common.share')}
                             title="Share to Expensify"
-                            onCloseButtonPress={() => ShareMenuReactView.dismissExtension()}
+                            onCloseButtonPress={Platform.select({default: Navigation.goBack, ios: ShareMenuReactView.dismissExtension})}
                             shouldShowCloseButton
                             shouldShowBackButton={false}
                         />

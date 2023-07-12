@@ -1,7 +1,6 @@
 import lodashGet from 'lodash/get';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {Pressable, Text, View} from 'react-native';
-import {ShareMenuReactView} from 'react-native-share-menu';
 
 import Button from '../components/Button';
 import MenuItem from '../components/MenuItem';
@@ -14,14 +13,19 @@ import * as Report from '../libs/actions/Report';
 import styles from '../styles/styles';
 
 const ShareMessagePage = withLocalize((props) => {
-    console.log({params: props.route.params});
+    const attachment = props.route.params.share;
     const toDetails = props.route.params.option;
-    const [attachment, setAttachment] = useState();
+    // const [attachment, setAttachment] = useState();
     const [message, setMessage] = useState('');
 
-    useEffect(() => {
-        ShareMenuReactView.data().then(({data}) => setAttachment(data[0]));
-    }, []);
+    // useEffect(() => {
+    //     ShareMenuReactView.data().then((share) => {
+    //         console.log({share});
+    //         if (share) {
+    //             setAttachment(share.data[0]);
+    //         }
+    //     });
+    // }, []);
 
     return (
         <View style={{backgroundColor: '#07271F', flex: 1}}>
