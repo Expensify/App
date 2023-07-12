@@ -82,6 +82,11 @@ function navigate(route = ROUTES.HOME, type) {
     linkTo(navigationRef.current, route, type);
 }
 
+/**
+ * Replaces the current route in the main chat pane, without adding the existing route to the stack.
+ * Makes it so that the back button will not return to the previous route.
+ * @param {String} route
+ */
 function replaceCentralPaneScreen(route) {
     if (!canNavigate('replace', {route})) {
         return;
