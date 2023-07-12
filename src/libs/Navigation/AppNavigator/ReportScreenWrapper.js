@@ -45,6 +45,8 @@ const propTypes = {
         }),
     }).isRequired,
 
+    isSidebarLoaded: PropTypes.bool,
+
     ...withNavigationPropTypes,
 };
 
@@ -53,6 +55,7 @@ const defaultProps = {
     betas: [],
     policies: {},
     isFirstTimeNewExpensifyUser: false,
+    isSidebarLoaded: false,
 };
 
 /**
@@ -97,6 +100,10 @@ class ReportScreenWrapper extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
+        if (nextProps.isSidebarLoaded !== this.props.isSidebarLoaded) {
+            return true;
+        }
+
         // Don't update if there is a reportID in the params already
         if (lodashGet(this.props.route, 'params.reportID', null)) {
             App.confirmReadyToOpenApp();
@@ -122,7 +129,7 @@ class ReportScreenWrapper extends Component {
     render() {
         // Wait until there is reportID in the route params
         if (lodashGet(this.props.route, 'params.reportID', null)) {
-            return <ReportScreen route={this.props.route} />;
+            return <ReportScreen route={this.props.route} isSidebarLoaded={this.props.isSidebarLoaded} />;
         }
 
         return <FullScreenLoadingIndicator initialParams={this.props.route.params} />;
@@ -134,6 +141,9 @@ ReportScreenWrapper.defaultProps = defaultProps;
 ReportScreenWrapper.displayName = 'ReportScreenWrapper';
 
 export default withOnyx({
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    },
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
     },
