@@ -109,102 +109,102 @@ function DebitCardPage(props) {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithBackButton
-                    title={translate('addDebitCardPage.addADebitCard')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+            <HeaderWithBackButton
+                title={translate('addDebitCardPage.addADebitCard')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+            />
+            <Form
+                formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
+                validate={validate}
+                onSubmit={PaymentMethods.addPaymentCard}
+                submitButtonText={translate('common.save')}
+                scrollContextEnabled
+                style={[styles.mh5, styles.flexGrow1]}
+            >
+                <TextInput
+                    inputID="nameOnCard"
+                    label={translate('addDebitCardPage.nameOnCard')}
+                    accessibilityLabel={translate('addDebitCardPage.nameOnCard')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 />
-                <Form
-                    formID={ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM}
-                    validate={validate}
-                    onSubmit={PaymentMethods.addPaymentCard}
-                    submitButtonText={translate('common.save')}
-                    scrollContextEnabled
-                    style={[styles.mh5, styles.flexGrow1]}
-                >
-                    <TextInput
-                        inputID="nameOnCard"
-                        label={translate('addDebitCardPage.nameOnCard')}
-                        accessibilityLabel={translate('addDebitCardPage.nameOnCard')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    />
-                    <TextInput
-                        inputID="cardNumber"
-                        label={translate('addDebitCardPage.debitCardNumber')}
-                        accessibilityLabel={translate('addDebitCardPage.debitCardNumber')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                    />
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex1, styles.mr2]}>
-                            <TextInput
-                                inputID="expirationDate"
-                                label={translate('addDebitCardPage.expiration')}
-                                accessibilityLabel={translate('addDebitCardPage.expiration')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                placeholder={translate('addDebitCardPage.expirationDate')}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                maxLength={4}
-                            />
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <TextInput
-                                inputID="securityCode"
-                                label={translate('addDebitCardPage.cvv')}
-                                accessibilityLabel={translate('addDebitCardPage.cvv')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                maxLength={4}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                            />
-                        </View>
-                    </View>
-                    <View>
-                        <AddressSearch
-                            inputID="addressStreet"
-                            label={translate('addDebitCardPage.billingAddress')}
-                            containerStyles={[styles.mt4]}
-                            maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                <TextInput
+                    inputID="cardNumber"
+                    label={translate('addDebitCardPage.debitCardNumber')}
+                    accessibilityLabel={translate('addDebitCardPage.debitCardNumber')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    containerStyles={[styles.mt4]}
+                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                />
+                <View style={[styles.flexRow, styles.mt4]}>
+                    <View style={[styles.flex1, styles.mr2]}>
+                        <TextInput
+                            inputID="expirationDate"
+                            label={translate('addDebitCardPage.expiration')}
+                            accessibilityLabel={translate('addDebitCardPage.expiration')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            placeholder={translate('addDebitCardPage.expirationDate')}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            maxLength={4}
                         />
                     </View>
-                    <TextInput
-                        inputID="addressZipCode"
-                        label={translate('common.zip')}
-                        accessibilityLabel={translate('common.zip')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                        hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
-                        containerStyles={[styles.mt4]}
-                    />
-                    <View style={styles.mt4}>
-                        <StatePicker inputID="addressState" />
+                    <View style={[styles.flex1]}>
+                        <TextInput
+                            inputID="securityCode"
+                            label={translate('addDebitCardPage.cvv')}
+                            accessibilityLabel={translate('addDebitCardPage.cvv')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            maxLength={4}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        />
                     </View>
-                    {!Permissions.canUsePasswordlessLogins(props.betas) && (
-                        <View style={[styles.mt4]}>
-                            <TextInput
-                                inputID="password"
-                                label={translate('addDebitCardPage.expensifyPassword')}
-                                accessibilityLabel={translate('addDebitCardPage.expensifyPassword')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                textContentType="password"
-                                autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
-                                secureTextEntry
-                            />
-                        </View>
-                    )}
-                    <CheckboxWithLabel
-                        accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
-                        inputID="acceptTerms"
-                        LabelComponent={() => (
-                            <Text>
-                                {`${translate('common.iAcceptThe')}`}
-                                <TextLink href={CONST.TERMS_URL}>{`${translate('common.expensifyTermsOfService')}`}</TextLink>
-                            </Text>
-                        )}
-                        style={[styles.mt4]}
+                </View>
+                <View>
+                    <AddressSearch
+                        inputID="addressStreet"
+                        label={translate('addDebitCardPage.billingAddress')}
+                        containerStyles={[styles.mt4]}
+                        maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     />
-                </Form>
-            </ScreenWrapper>
+                </View>
+                <TextInput
+                    inputID="addressZipCode"
+                    label={translate('common.zip')}
+                    accessibilityLabel={translate('common.zip')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                    hint={translate('common.zipCodeExampleFormat', {zipSampleFormat: CONST.COUNTRY_ZIP_REGEX_DATA.US.samples})}
+                    containerStyles={[styles.mt4]}
+                />
+                <View style={styles.mt4}>
+                    <StatePicker inputID="addressState" />
+                </View>
+                {!Permissions.canUsePasswordlessLogins(props.betas) && (
+                    <View style={[styles.mt4]}>
+                        <TextInput
+                            inputID="password"
+                            label={translate('addDebitCardPage.expensifyPassword')}
+                            accessibilityLabel={translate('addDebitCardPage.expensifyPassword')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            textContentType="password"
+                            autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
+                            secureTextEntry
+                        />
+                    </View>
+                )}
+                <CheckboxWithLabel
+                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
+                    inputID="acceptTerms"
+                    LabelComponent={() => (
+                        <Text>
+                            {`${translate('common.iAcceptThe')}`}
+                            <TextLink href={CONST.TERMS_URL}>{`${translate('common.expensifyTermsOfService')}`}</TextLink>
+                        </Text>
+                    )}
+                    style={[styles.mt4]}
+                />
+            </Form>
+        </ScreenWrapper>
     );
 }
 
