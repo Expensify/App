@@ -91,10 +91,14 @@ const propTypes = {
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: PropTypes.string,
 
+    /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
+    isUsingMemoryOnlyKeys: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
+    isUsingMemoryOnlyKeys: false,
     session: {
         email: null,
     },
@@ -122,7 +126,10 @@ class AuthScreens extends React.Component {
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-        if (SessionUtils.didUserLogInDuringSession()) {
+        // Note: If a Guide has enabled the memory only key mode then we do want to run OpenApp as their app will not be rehydrated with
+        // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
+        // the optimizations performed during ReconnectApp.
+        if (this.props.isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession()) {
             App.openApp();
         } else {
             App.reconnectApp();
@@ -307,6 +314,9 @@ export default compose(
         },
         lastOpenedPublicRoomID: {
             key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+        },
+        isUsingMemoryOnlyKeys: {
+            key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
         },
     }),
 )(AuthScreens);
