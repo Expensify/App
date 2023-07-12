@@ -179,7 +179,7 @@ let newActionSubscribers = []
  * Add subscriber for report id
  * @param {String} reportID
  * @param {Function} callback
- * @returns {Function} remove subscriber for report id
+ * @returns {Function} Remove subscriber for report id
  */
 function subscribeToNewActionEvent(reportID, callback) {
     newActionSubscribers.push({callback, reportID})
