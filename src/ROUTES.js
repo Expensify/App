@@ -31,6 +31,7 @@ export default {
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
+    SETTINGS_THEME: 'settings/preferences/theme',
     SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
@@ -171,11 +172,17 @@ export default {
      * @returns {Object}
      */
     parseReportRouteParams: (route) => {
-        if (!route.startsWith(Url.addTrailingForwardSlash(REPORT))) {
+        let parsingRoute = route;
+        if (parsingRoute.at(0) === '/') {
+            // remove the first slash
+            parsingRoute = parsingRoute.slice(1);
+        }
+
+        if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(REPORT))) {
             return {reportID: '', isSubReportPageRoute: false};
         }
 
-        const pathSegments = route.split('/');
+        const pathSegments = parsingRoute.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
             isSubReportPageRoute: Boolean(lodashGet(pathSegments, 2)),

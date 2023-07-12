@@ -53,6 +53,8 @@ import * as IOU from '../../../libs/actions/IOU';
 import useArrowKeyFocusManager from '../../../hooks/useArrowKeyFocusManager';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../../hooks/usePrevious';
+import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
+import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -418,6 +420,61 @@ function ReportActionCompose({translate, ...props}) {
         [],
     );
 
+    /**
+     * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
+     * @param {String} text
+     * @param {Boolean} shouldAddTrailSpace
+     */
+    const replaceSelectionWithText = useCallback(
+        (text, shouldAddTrailSpace = true) => {
+            const updatedText = shouldAddTrailSpace ? `${text} ` : text;
+            const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
+            updateComment(ComposerUtils.insertText(comment, selection, updatedText));
+            setSelection((prevSelection) => ({
+                start: prevSelection.start + text.length + selectionSpaceLength,
+                end: prevSelection.start + text.length + selectionSpaceLength,
+            }));
+        },
+        [selection, updateComment],
+    );
+
+    /**
+     * Check if the composer is visible. Returns true if the composer is not covered up by emoji picker or menu. False otherwise.
+     * @returns {Boolean}
+     */
+    const checkComposerVisibility = useCallback(() => {
+        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || isMenuVisible || props.modal.isVisible;
+        return !isComposerCoveredUp;
+    }, [isMenuVisible, props.modal.isVisible]);
+
+    const focusComposerOnKeyPress = useCallback(
+        (e) => {
+            const isComposerVisible = checkComposerVisibility();
+            if (!isComposerVisible) {
+                return;
+            }
+
+            // If the key pressed is non-character keys like Enter, Shift, ... do not focus
+            if (e.key.length > 1) {
+                return;
+            }
+
+            // If a key is pressed in combination with Meta, Control or Alt do not focus
+            if (e.metaKey || e.ctrlKey || e.altKey) {
+                return;
+            }
+
+            // if we're typing on another input/text area, do not focus
+            if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
+                return;
+            }
+
+            focus();
+            replaceSelectionWithText(e.key, false);
+        },
+        [checkComposerVisibility, focus, replaceSelectionWithText],
+    );
+
     useEffect(() => {
         // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
         // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
@@ -428,6 +485,10 @@ function ReportActionCompose({translate, ...props}) {
 
             focus(false);
         });
+
+        const unsubscribeNavigationBlur = props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
+        const unsubscribeNavigationFocus = props.navigation.addListener('focus', () => KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress));
+        KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
 
         updateComment(comment.current);
 
@@ -445,6 +506,10 @@ function ReportActionCompose({translate, ...props}) {
 
         return () => {
             ReportActionComposeFocusManager.clear();
+
+            KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
+            unsubscribeNavigationBlur();
+            unsubscribeNavigationFocus();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -763,22 +828,6 @@ function ReportActionCompose({translate, ...props}) {
     );
 
     /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
-     * @param {String} emoji
-     */
-    const addEmojiToTextBox = useCallback(
-        (emoji) => {
-            updateComment(ComposerUtils.insertText(comment.current, selection, `${emoji} `));
-            setSelection({
-                start: selection.start + emoji.length + CONST.SPACE_LENGTH,
-                end: selection.start + emoji.length + CONST.SPACE_LENGTH,
-            });
-        },
-        [selection, updateComment],
-    );
-
-    /**
      * Update the number of lines for a comment in Onyx
      * @param {Number} numberOfLines
      */
@@ -1093,6 +1142,7 @@ function ReportActionCompose({translate, ...props}) {
                                         disabled={props.disabled}
                                     >
                                         <Composer
+                                            checkComposerVisibility={checkComposerVisibility}
                                             autoFocus={shouldAutoFocus}
                                             multiline
                                             ref={setTextInputRef}
@@ -1143,7 +1193,7 @@ function ReportActionCompose({translate, ...props}) {
                         <EmojiPickerButton
                             isDisabled={isBlockedFromConcierge || props.disabled}
                             onModalHide={() => focus(true)}
-                            onEmojiSelected={addEmojiToTextBox}
+                            onEmojiSelected={replaceSelectionWithText}
                         />
                     )}
                     <View
