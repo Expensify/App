@@ -25,6 +25,7 @@ import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
+import _ from "underscore";
 
 const propTypes = {
     /** All the data of the action */
@@ -85,6 +86,8 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
+    const managerID = props.iouReport.managerID || 0;
+    const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     let reportAmount = ReportUtils.getMoneyRequestTotal(props.iouReport);
     if (reportAmount) {
         reportAmount = CurrencyUtils.convertToDisplayString(reportAmount, props.iouReport.currency);
@@ -100,11 +103,7 @@ function ReportPreview(props) {
             }
         }
     }
-    const managerEmail = props.iouReport.managerEmail || '';
-    const managerAccountID = props.iouReport.managerID || 0;
-    const managerName =
-        (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerAccountID, true)) || managerEmail;
-    const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
+    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
 
     return (
