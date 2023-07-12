@@ -26,6 +26,7 @@ import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as Localize from '../Localize';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -243,7 +244,14 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
-    const prevVisibleMessageText = ReportActionsUtils.getLastVisibleMessageText(reportID);
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(reportID);
+    let prevVisibleMessageText;
+    if (lastVisibleMessage.lastMessageTranslationKey) {
+        prevVisibleMessageText = Localize.translateLocal(prevVisibleMessageText);
+    } else {
+        prevVisibleMessageText = lastVisibleMessage.lastMessageText;
+    }
+
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
     const optimisticReport = {
