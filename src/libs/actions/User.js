@@ -837,6 +837,29 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
+/**
+ * @param {String} theme
+ */
+function updateTheme(theme) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.PREFERRED_THEME,
+            value: theme,
+        },
+    ];
+
+    API.write(
+        'UpdateTheme',
+        {
+            value: theme,
+        },
+        {optimisticData},
+    );
+
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+}
+
 export {
     updatePassword,
     closeAccount,
@@ -861,4 +884,5 @@ export {
     addPaypalMeAddress,
     updateChatPriorityMode,
     setContactMethodAsDefault,
+    updateTheme,
 };

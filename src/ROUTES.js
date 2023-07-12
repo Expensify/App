@@ -31,6 +31,7 @@ export default {
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
+    SETTINGS_THEME: 'settings/preferences/theme',
     SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
@@ -70,8 +71,6 @@ export default {
     getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
     REPORT_ATTACHMENTS: 'r/:reportID/attachment',
     getReportAttachmentRoute: (reportID, source) => `r/${reportID}/attachment?source=${encodeURI(source)}`,
-    SELECT_YEAR: 'select-year',
-    getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
@@ -173,11 +172,17 @@ export default {
      * @returns {Object}
      */
     parseReportRouteParams: (route) => {
-        if (!route.startsWith(Url.addTrailingForwardSlash(REPORT))) {
+        let parsingRoute = route;
+        if (parsingRoute.at(0) === '/') {
+            // remove the first slash
+            parsingRoute = parsingRoute.slice(1);
+        }
+
+        if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(REPORT))) {
             return {reportID: '', isSubReportPageRoute: false};
         }
 
-        const pathSegments = route.split('/');
+        const pathSegments = parsingRoute.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
             isSubReportPageRoute: Boolean(lodashGet(pathSegments, 2)),
