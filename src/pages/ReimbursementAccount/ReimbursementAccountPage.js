@@ -31,6 +31,7 @@ import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
+import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -306,7 +307,7 @@ class ReimbursementAccountPage extends React.Component {
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 if (_.contains([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP], achData.state)) {
                     BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
-                } else if (achData.state === BankAccount.STATE.PENDING) {
+                } else if (!this.props.network.isOffline && achData.state === BankAccount.STATE.PENDING) {
                     this.setState({
                         shouldShowContinueSetupButton: true,
                     });
@@ -329,6 +330,18 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const policyName = lodashGet(this.props.policy, 'name');
 
+        if (_.isEmpty(this.props.policy)) {
+            return (
+                <ScreenWrapper>
+                    <FullPageNotFoundView
+                        shouldShow
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                        shouldShowLink
+                    />
+                </ScreenWrapper>
+            );
+        }
+
         const isLoading = this.props.isLoadingReportData || this.props.account.isLoading || this.props.reimbursementAccount.isLoading;
 
         // Prevent the full-page blocking offline view from being displayed for these steps if the device goes offline.
@@ -349,27 +362,20 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        let errorComponent;
+        let errorText;
         const userHasPhonePrimaryEmail = Str.endsWith(this.props.session.email, CONST.SMS.DOMAIN);
+        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
+        const hasUnsupportedCurrency = lodashGet(this.props.policy, 'outputCurrency', '') !== CONST.CURRENCY.USD;
 
         if (userHasPhonePrimaryEmail) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
-                </View>
-            );
+            errorText = this.props.translate('bankAccount.hasPhoneLoginError');
+        } else if (throttledDate) {
+            errorText = this.props.translate('bankAccount.hasBeenThrottledError');
+        } else if (hasUnsupportedCurrency) {
+            errorText = this.props.translate('bankAccount.hasCurrencyError');
         }
 
-        const throttledDate = lodashGet(this.props.reimbursementAccount, 'throttledDate');
-        if (throttledDate) {
-            errorComponent = (
-                <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasBeenThrottledError')}</Text>
-                </View>
-            );
-        }
-
-        if (errorComponent) {
+        if (errorText) {
             return (
                 <ScreenWrapper>
                     <HeaderWithBackButton
@@ -377,7 +383,9 @@ class ReimbursementAccountPage extends React.Component {
                         subtitle={policyName}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     />
-                    {errorComponent}
+                    <View style={[styles.m5, styles.flex1]}>
+                        <Text>{errorText}</Text>
+                    </View>
                 </ScreenWrapper>
             );
         }

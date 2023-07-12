@@ -88,18 +88,21 @@ class ReportSettingsPage extends Component {
      * @returns {Boolean}
      */
     shouldDisableWelcomeMessage(linkedWorkspace) {
-        return !ReportUtils.isArchivedRoom(this.props.report) && !_.isEmpty(linkedWorkspace) && Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role === CONST.POLICY.ROLE.ADMIN;
+        return ReportUtils.isArchivedRoom(this.props.report) || !ReportUtils.isChatRoom(this.props.report) || _.isEmpty(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
     }
 
     render() {
-        const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report) && !ReportUtils.isThread(this.props.report);
+        const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report) && !ReportUtils.isChatThread(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
-        const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isThread(this.props.report);
+        const shouldDisableRename = this.shouldDisableRename(linkedWorkspace) || ReportUtils.isChatThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
-        const shouldDisableWelcomeMessage = this.shouldDisableRename(linkedWorkspace);
-        const writeCapability = this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+        const shouldDisableWelcomeMessage = this.shouldDisableWelcomeMessage(linkedWorkspace);
+        const writeCapability = ReportUtils.isAdminRoom(this.props.report)
+            ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS
+            : this.props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+
         const writeCapabilityText = this.props.translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
-        const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
+        const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN && !ReportUtils.isAdminRoom(this.props.report);
 
         return (
             <ScreenWrapper>
@@ -119,6 +122,7 @@ class ReportSettingsPage extends Component {
                             <OfflineWithFeedback
                                 pendingAction={lodashGet(this.props.report, 'pendingFields.reportName', null)}
                                 errors={lodashGet(this.props.report, 'errorFields.reportName', null)}
+                                errorRowStyles={[styles.ph5]}
                                 onClose={() => Report.clearPolicyRoomNameErrors(this.props.report.reportID)}
                             >
                                 {shouldDisableRename ? (

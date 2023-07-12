@@ -58,7 +58,7 @@ export default [
             };
 
             const onEmojiSelected = (emoji) => {
-                Report.toggleEmojiReaction(reportID, reportAction, emoji);
+                Report.toggleEmojiReaction(reportID, reportAction.reportActionID, emoji);
                 closeContextMenu();
             };
 
@@ -69,6 +69,7 @@ export default [
                         onEmojiSelected={onEmojiSelected}
                         onPressOpenPicker={openContextMenu}
                         onEmojiPickerClosed={closeContextMenu}
+                        reportAction={reportAction}
                     />
                 );
             }
@@ -78,6 +79,7 @@ export default [
                     key="BaseQuickEmojiReactions"
                     closeContextMenu={closeContextMenu}
                     onEmojiSelected={onEmojiSelected}
+                    reportAction={reportAction}
                 />
             );
         },
@@ -115,10 +117,15 @@ export default [
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) =>
             type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID),
         onPress: (closePopover, {reportAction, reportID}) => {
-            Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
             if (closePopover) {
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
+                });
+                return;
             }
+
+            Report.navigateToAndOpenChildReport(lodashGet(reportAction, 'childReportID', '0'), reportAction, reportID);
         },
         getDescription: () => {},
     },
@@ -165,13 +172,18 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
+            const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const messageHtml = lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
                 const content = selection || messageHtml;
-                if (content) {
+                if (isReportPreviewAction) {
+                    const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
+                    const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
+                    Clipboard.setString(displayMessage);
+                } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
@@ -217,9 +229,24 @@ export default [
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
-        shouldShow: (type) => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
             Report.markCommentAsUnread(reportID, reportAction.created);
+            if (closePopover) {
+                hideContextMenu(true, ReportActionComposeFocusManager.focus);
+            }
+        },
+        getDescription: () => {},
+    },
+
+    {
+        textTranslateKey: 'reportActionContextMenu.markAsRead',
+        icon: Expensicons.Mail,
+        successIcon: Expensicons.Checkmark,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat, isUnreadChat) => type === CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
+        onPress: (closePopover, {reportID}) => {
+            Report.readNewestAction(reportID);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -271,11 +298,12 @@ export default [
     {
         textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
+            type === CONTEXT_MENU_TYPES.REPORT && !isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, false);
             if (closePopover) {
-                hideContextMenu(false);
+                hideContextMenu(false, ReportActionComposeFocusManager.focus);
             }
         },
         getDescription: () => {},
@@ -283,11 +311,12 @@ export default [
     {
         textTranslateKey: 'common.unPin',
         icon: Expensicons.Pin,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) => type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
+            type === CONTEXT_MENU_TYPES.REPORT && isPinnedChat && !ReportUtils.isMoneyRequestReport(reportID),
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, true);
             if (closePopover) {
-                hideContextMenu(false);
+                hideContextMenu(false, ReportActionComposeFocusManager.focus);
             }
         },
         getDescription: () => {},
@@ -301,7 +330,7 @@ export default [
             !isArchivedRoom &&
             !isChronosReport &&
             !ReportUtils.isConciergeChatReport(reportID) &&
-            reportAction.actorEmail !== CONST.EMAIL.CONCIERGE,
+            reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));

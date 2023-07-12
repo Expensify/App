@@ -66,6 +66,12 @@ Onyx.connect({
     callback: (val) => (personalDetails = val),
 });
 
+let loginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: (val) => (loginList = val),
+});
+
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
@@ -157,7 +163,7 @@ function isAdminOfFreePolicy(policies) {
  * @returns {Boolean}
  */
 function isPolicyOwner(policy) {
-    return policy.owner === sessionEmail;
+    return _.keys(loginList).includes(policy.owner);
 }
 
 /**
@@ -394,18 +400,17 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     ];
 
     const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
-    API.write(
-        'AddMembersToWorkspace',
-        {
-            employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
+    const params = {
+        employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
-            // Escape HTML special chars to enable them to appear in the invite email
-            welcomeNote: _.escape(welcomeNote),
-            policyID,
-            reportCreationData: JSON.stringify(membersChats.reportCreationData),
-        },
-        {optimisticData, successData, failureData},
-    );
+        // Escape HTML special chars to enable them to appear in the invite email
+        welcomeNote: _.escape(welcomeNote),
+        policyID,
+    };
+    if (!_.isEmpty(membersChats.reportCreationData)) {
+        params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
+    }
+    API.write('AddMembersToWorkspace', params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -531,9 +536,12 @@ function clearAvatarErrors(policyID) {
 function updateGeneralSettings(policyID, name, currency) {
     const optimisticData = [
         {
-            onyxMethod: Onyx.METHOD.MERGE,
+            // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...allPolicies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+
                 pendingFields: {
                     generalSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
@@ -813,15 +821,15 @@ function generatePolicyID() {
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
- * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @returns {Promise}
  */
-function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
     const policyID = generatePolicyID();
-    const workspaceName = policyName || generateDefaultWorkspaceName(ownerEmail);
+    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {
         announceChatReportID,
@@ -845,7 +853,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             announceChatReportID,
             adminsChatReportID,
             expenseChatReportID,
-            ownerEmail,
+            ownerEmail: policyOwnerEmail,
             makeMeAdmin,
             policyName: workspaceName,
             type: CONST.POLICY.TYPE.FREE,
@@ -864,7 +872,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
-                        outputCurrency: 'USD',
+                        outputCurrency: lodashGet(personalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
@@ -1030,7 +1038,8 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
 
     return Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
-            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
+            // We must call goBack() to remove the /transition route from history
+            Navigation.goBack();
         }
 
         // Get the reportID associated with the newly created #admins room and route the user to that chat

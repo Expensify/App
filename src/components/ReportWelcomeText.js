@@ -19,7 +19,7 @@ import CONST from '../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
+    login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
     the person doesn't have their own avatar uploaded yet, except for anon users) */
@@ -72,8 +72,9 @@ function ReportWelcomeText(props) {
                     <>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartOne')}</Text>
                         <Text style={[styles.textStrong]}>
-                            {/* Use the policyExpenseChat owner's first name or their email if it's undefined or an empty string */}
-                            {lodashGet(props.personalDetails, [props.report.ownerAccountID, 'firstName']) || props.report.ownerEmail}
+                            {/* Use the policyExpenseChat owner's first name or their display name if it's undefined or an empty string */}
+                            {lodashGet(props.personalDetails, [props.report.ownerAccountID, 'firstName']) ||
+                                lodashGet(props.personalDetails, [props.report.ownerAccountID, 'displayName'], '')}
                         </Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatPartTwo')}</Text>
                         <Text style={[styles.textStrong]}>{ReportUtils.getPolicyName(props.report)}</Text>

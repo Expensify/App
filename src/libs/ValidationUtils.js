@@ -141,19 +141,6 @@ function isValidDebitCard(string) {
 }
 
 /**
- *
- * @param {String} nameOnCard
- * @returns {Boolean}
- */
-function isValidCardName(nameOnCard) {
-    if (!CONST.REGEX.ALPHABETIC_CHARS.test(nameOnCard)) {
-        return false;
-    }
-
-    return !_.isEmpty(nameOnCard.trim());
-}
-
-/**
  * @param {String} code
  * @returns {Boolean}
  */
@@ -432,7 +419,7 @@ function isValidRoomName(roomName) {
  * @returns {Boolean}
  */
 function isValidTaxID(taxID) {
-    return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+    return taxID && CONST.REGEX.TAX_ID.test(taxID);
 }
 
 /**
@@ -448,13 +435,22 @@ function isNumeric(value) {
     return /^\d*$/.test(value);
 }
 
+/**
+ * Checks that the provided accountID is a number and bigger than 0.
+ *
+ * @param {Number} accountID
+ * @returns {Boolean}
+ */
+function isValidAccountRoute(accountID) {
+    return CONST.REGEX.NUMBER.test(accountID) && accountID > 0;
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
     isValidAddress,
     isValidDate,
-    isValidCardName,
     isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
@@ -481,4 +477,5 @@ export {
     isValidLegalName,
     doesContainReservedWord,
     isNumeric,
+    isValidAccountRoute,
 };

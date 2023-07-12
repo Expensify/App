@@ -28,6 +28,13 @@ const propTypes = {
      */
     onEmojiPickerClosed: PropTypes.func,
 
+    /**
+     * ReportAction for EmojiPicker.
+     */
+    reportAction: PropTypes.shape({
+        reportActionID: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 };
@@ -35,6 +42,7 @@ const propTypes = {
 const defaultProps = {
     onEmojiPickerClosed: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    reportAction: {},
 };
 
 /**
@@ -56,6 +64,9 @@ function MiniQuickEmojiReactions(props) {
                 props.onEmojiSelected(emojiObject);
             },
             ref.current,
+            undefined,
+            () => {},
+            props.reportAction,
         );
     };
 
@@ -65,7 +76,7 @@ function MiniQuickEmojiReactions(props) {
                 <BaseMiniContextMenuItem
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
-                    tooltipText={`:${emoji.name}:`}
+                    tooltipText={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, props.preferredLocale)}:`}
                     onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
                 >
                     <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>

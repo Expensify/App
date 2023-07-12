@@ -1,9 +1,8 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -15,16 +14,16 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
-import * as StyleUtils from '../../styles/StyleUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import SettlementButton from '../SettlementButton';
-import themeColors from '../../styles/themes/default';
-import getButtonState from '../../libs/getButtonState';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import themeColors from '../../styles/themes/default';
+import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -39,21 +38,15 @@ const propTypes = {
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
-    chatReport: PropTypes.shape({
-        /** The participants of this report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** Whether the chat report has an outstanding IOU */
-        hasOutstandingIOU: PropTypes.bool.isRequired,
-    }),
+    chatReport: reportPropTypes,
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** AccountID of the manager in this iou report */
+        managerID: PropTypes.number,
 
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
+        /** AccountID of the creator of this iou report */
+        ownerAccountID: PropTypes.number,
 
         /** Outstanding amount in cents of this transaction */
         total: PropTypes.number,
@@ -67,8 +60,8 @@ const propTypes = {
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     /** Popover context menu anchor, used for showing context menu */
@@ -77,83 +70,73 @@ const propTypes = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive: PropTypes.func,
 
-    /** Whether the IOU is hovered so we can modify its style */
-    isHovered: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     contextMenuAnchor: null,
-    isHovered: false,
     chatReport: {},
     iouReport: {},
     checkIfContextMenuActive: () => {},
     session: {
-        email: null,
+        accountID: null,
     },
 };
 
 function ReportPreview(props) {
+    const managerID = props.iouReport.managerID || 0;
+    const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
-    const managerEmail = props.iouReport.managerEmail || '';
-    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerEmail, true);
-    const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
+    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
-        <View style={[styles.chatItemMessage]}>
-            {_.map(props.action.message, (message, index) => (
-                <Pressable
-                    key={`ReportPreview-${props.action.reportActionID}-${index}`}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
-                    }}
-                    onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
-                    onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
-                    style={[styles.flexRow, styles.justifyContentBetween]}
-                    focusable
-                >
-                    <View style={[styles.flexShrink1]}>
-                        {props.iouReport.hasOutstandingIOU ? (
-                            <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                {lodashGet(message, 'html', props.translate('iou.payerOwesAmount', {payer: managerName, amount: reportAmount}))}
+        <View style={styles.chatItemMessage}>
+            <PressableWithoutFeedback
+                onPress={() => {
+                    Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
+                }}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
+                style={[styles.flexRow, styles.justifyContentBetween]}
+                accessibilityRole="button"
+                accessibilityLabel={props.translate('iou.viewDetails')}
+            >
+                <View style={[styles.iouPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
+                    <View style={styles.flexRow}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>
+                                {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
                             </Text>
-                        ) : (
-                            <View style={[styles.flexRow]}>
-                                <Text style={[styles.chatItemMessage, styles.cursorPointer, styles.colorMuted]}>
-                                    {lodashGet(message, 'html', props.translate('iou.payerSettled', {amount: reportAmount}))}
-                                </Text>
-                                {!props.iouReport.hasOutstandingIOU && (
-                                    <View style={styles.iouPreviewBoxCheckmark}>
-                                        <Icon
-                                            style={[styles.ml10]}
-                                            src={Expensicons.Checkmark}
-                                            fill={themeColors.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
-                            </View>
-                        )}
+                        </View>
                     </View>
-                    <Icon
-                        src={Expensicons.ArrowRight}
-                        fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
-                    />
-                </Pressable>
-            ))}
-            {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
-                <SettlementButton
-                    currency={props.iouReport.currency}
-                    policyID={props.iouReport.policyID}
-                    chatReportID={props.chatReportID}
-                    iouReport={props.iouReport}
-                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                    addBankAccountRoute={bankAccountRoute}
-                    style={[styles.requestPreviewBox]}
-                />
-            )}
+                    <View style={styles.flexRow}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={styles.textHeadline}>{reportAmount}</Text>
+                            {ReportUtils.isSettled(props.iouReportID) && (
+                                <View style={styles.defaultCheckmarkWrapper}>
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={themeColors.iconSuccessFill}
+                                    />
+                                </View>
+                            )}
+                        </View>
+                    </View>
+                    {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
+                        <SettlementButton
+                            currency={props.iouReport.currency}
+                            policyID={props.iouReport.policyID}
+                            chatReportID={props.chatReportID}
+                            iouReport={props.iouReport}
+                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
+                            enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                            addBankAccountRoute={bankAccountRoute}
+                            style={[styles.requestPreviewBox]}
+                        />
+                    )}
+                </View>
+            </PressableWithoutFeedback>
         </View>
     );
 }
