@@ -11,15 +11,19 @@ import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
 
 let currentUserEmail = '';
+let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: (val) => (currentUserEmail = val ? val.email : ''),
+    callback: (val) => {
+        currentUserEmail = val ? val.email : '';
+        currentUserAccountID = val ? val.accountID : -1;
+    },
 });
 
-let personalDetails;
+let allPersonalDetails;
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
-    callback: (val) => (personalDetails = val),
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (allPersonalDetails = val),
 });
 
 /**
@@ -33,7 +37,7 @@ function getDisplayName(login, personalDetail) {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
-    const userDetails = personalDetail || lodashGet(personalDetails, login);
+    const userDetails = personalDetail || lodashGet(allPersonalDetails, login);
 
     if (!userDetails) {
         return userLogin;
@@ -44,6 +48,27 @@ function getDisplayName(login, personalDetail) {
     const fullName = `${firstName} ${lastName}`.trim();
 
     return fullName || userLogin;
+}
+
+/**
+ * @param {String} userAccountIDOrLogin
+ * @param {String} [defaultDisplayName] display name to use if user details don't exist in Onyx or if
+ *                                      found details don't include the user's displayName or login
+ * @returns {String}
+ */
+function getDisplayNameForTypingIndicator(userAccountIDOrLogin, defaultDisplayName = '') {
+    // Try to convert to a number, which means we have an accountID
+    const accountID = Number(userAccountIDOrLogin);
+
+    // If the user is typing on OldDot, userAccountIDOrLogin will be a string (the user's login),
+    // so Number(string) is NaN. Search for personalDetails by login to get the display name.
+    if (_.isNaN(accountID)) {
+        const detailsByLogin = _.findWhere(allPersonalDetails, {login: userAccountIDOrLogin}) || {};
+        return detailsByLogin.displayName || userAccountIDOrLogin;
+    }
+
+    const detailsByAccountID = lodashGet(allPersonalDetails, accountID, {});
+    return detailsByAccountID.displayName || detailsByAccountID.login || defaultDisplayName;
 }
 
 /**
@@ -102,9 +127,9 @@ function updatePronouns(pronouns) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             pronouns,
                         },
                     },
@@ -127,9 +152,9 @@ function updateDisplayName(firstName, lastName) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             firstName,
                             lastName,
                             displayName: getDisplayName(currentUserEmail, {
@@ -252,9 +277,9 @@ function updateAutomaticTimezone(timezone) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             timezone,
                         },
                     },
@@ -283,9 +308,9 @@ function updateSelectedTimezone(selectedTimezone) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
-                        [currentUserEmail]: {
+                        [currentUserAccountID]: {
                             timezone,
                         },
                     },
@@ -294,13 +319,6 @@ function updateSelectedTimezone(selectedTimezone) {
         },
     );
     Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
-}
-
-/**
- * Fetches the local currency based on location and sets currency code/symbol to Onyx
- */
-function openMoneyRequestModalPage() {
-    API.read('OpenIOUModalPage');
 }
 
 /**
@@ -362,9 +380,9 @@ function updateAvatar(file) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserEmail]: {
+                [currentUserAccountID]: {
                     avatar: file.uri,
                     avatarThumbnail: file.uri,
                     originalFileName: file.name,
@@ -382,9 +400,9 @@ function updateAvatar(file) {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserEmail]: {
+                [currentUserAccountID]: {
                     pendingFields: {
                         avatar: null,
                     },
@@ -395,11 +413,11 @@ function updateAvatar(file) {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserEmail]: {
-                    avatar: personalDetails[currentUserEmail].avatar,
-                    avatarThumbnail: personalDetails[currentUserEmail].avatarThumbnail || personalDetails[currentUserEmail].avatar,
+                [currentUserAccountID]: {
+                    avatar: allPersonalDetails[currentUserAccountID].avatar,
+                    avatarThumbnail: allPersonalDetails[currentUserAccountID].avatarThumbnail || allPersonalDetails[currentUserAccountID].avatar,
                     pendingFields: {
                         avatar: null,
                     },
@@ -407,48 +425,6 @@ function updateAvatar(file) {
             },
         },
     ];
-
-    const accountID = lodashGet(personalDetails, [currentUserEmail, 'accountID'], '');
-    if (accountID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [accountID]: {
-                    avatar: file.uri,
-                    errorFields: {
-                        avatar: null,
-                    },
-                    pendingFields: {
-                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
-                },
-            },
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [accountID]: {
-                    pendingFields: {
-                        avatar: null,
-                    },
-                },
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [accountID]: {
-                    avatar: personalDetails[currentUserEmail].avatar,
-                    pendingFields: {
-                        avatar: null,
-                    },
-                },
-            },
-        });
-    }
 
     API.write('UpdateUserAvatar', {file}, {optimisticData, successData, failureData});
 }
@@ -458,14 +434,14 @@ function updateAvatar(file) {
  */
 function deleteAvatar() {
     // We want to use the old dot avatar here as this affects both platforms.
-    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserEmail);
+    const defaultAvatar = UserUtils.getDefaultAvatarURL(currentUserAccountID);
 
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserEmail]: {
+                [currentUserAccountID]: {
                     avatar: defaultAvatar,
                 },
             },
@@ -474,36 +450,14 @@ function deleteAvatar() {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserEmail]: {
-                    avatar: personalDetails[currentUserEmail].avatar,
+                [currentUserAccountID]: {
+                    avatar: allPersonalDetails[currentUserAccountID].avatar,
                 },
             },
         },
     ];
-
-    const accountID = lodashGet(personalDetails, [currentUserEmail, 'accountID'], '');
-    if (accountID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [personalDetails[currentUserEmail].accountID]: {
-                    avatar: defaultAvatar,
-                },
-            },
-        });
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [personalDetails[currentUserEmail].accountID]: {
-                    avatar: personalDetails[currentUserEmail].avatar,
-                },
-            },
-        });
-    }
 
     API.write('DeleteUserAvatar', {}, {optimisticData, failureData});
 }
@@ -512,8 +466,8 @@ function deleteAvatar() {
  * Clear error and pending fields for the current user's avatar
  */
 function clearAvatarErrors() {
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
-        [currentUserEmail]: {
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [currentUserAccountID]: {
             errorFields: {
                 avatar: null,
             },
@@ -526,9 +480,9 @@ function clearAvatarErrors() {
 
 export {
     getDisplayName,
+    getDisplayNameForTypingIndicator,
     updateAvatar,
     deleteAvatar,
-    openMoneyRequestModalPage,
     openPersonalDetailsPage,
     openPublicProfilePage,
     extractFirstAndLastNameFromAvailableDetails,

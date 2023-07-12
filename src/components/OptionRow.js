@@ -100,7 +100,7 @@ class OptionRow extends Component {
             this.props.option.descriptiveText !== nextProps.option.descriptiveText ||
             this.props.option.brickRoadIndicator !== nextProps.option.brickRoadIndicator ||
             this.props.option.shouldShowSubscript !== nextProps.option.shouldShowSubscript ||
-            this.props.option.ownerEmail !== nextProps.option.ownerEmail ||
+            this.props.option.ownerAccountID !== nextProps.option.ownerAccountID ||
             this.props.option.subtitle !== nextProps.option.subtitle ||
             this.props.option.pendingAction !== nextProps.option.pendingAction ||
             this.props.option.customIcon !== nextProps.option.customIcon
@@ -132,9 +132,13 @@ class OptionRow extends Component {
         const hoveredBackgroundColor = this.props.hoverStyle && this.props.hoverStyle.backgroundColor ? this.props.hoverStyle.backgroundColor : this.props.backgroundColor;
         const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
         const isMultipleParticipant = lodashGet(this.props.option, 'participantsList.length', 0) > 1;
+        const defaultSubscriptSize = this.props.option.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
 
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((this.props.option.participantsList || []).slice(0, 10), isMultipleParticipant);
+        const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(
+            (this.props.option.participantsList || (this.props.option.accountID ? [this.props.option] : [])).slice(0, 10),
+            isMultipleParticipant,
+        );
         let subscriptColor = themeColors.appBG;
         if (this.props.optionIsFocused) {
             subscriptColor = focusedBackgroundColor;
@@ -179,10 +183,9 @@ class OptionRow extends Component {
                                 !this.props.onSelectRow && !this.props.isDisabled ? styles.cursorDefault : null,
                             ]}
                             accessibilityLabel={this.props.option.text}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             hoverDimmingValue={1}
                             hoverStyle={this.props.hoverStyle}
-                            focusStyle={this.props.hoverStyle}
                         >
                             <View style={sidebarInnerRowStyle}>
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -191,9 +194,8 @@ class OptionRow extends Component {
                                             <SubscriptAvatar
                                                 mainAvatar={this.props.option.icons[0]}
                                                 secondaryAvatar={this.props.option.icons[1]}
-                                                mainTooltip={this.props.option.ownerEmail}
-                                                secondaryTooltip={this.props.option.subtitle}
                                                 backgroundColor={hovered && !this.props.optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                                size={defaultSubscriptSize}
                                             />
                                         ) : (
                                             <MultipleAvatars

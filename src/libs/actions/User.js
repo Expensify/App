@@ -24,20 +24,20 @@ let currentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserAccountID = lodashGet(val, 'accountID', -1);
         currentEmail = lodashGet(val, 'email', '');
     },
 });
 
 let myPersonalDetails = {};
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS,
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
-        if (!val || !currentEmail) {
+        if (!val || !currentUserAccountID) {
             return;
         }
 
-        myPersonalDetails = val[currentEmail];
+        myPersonalDetails = val[currentUserAccountID];
     },
 });
 
@@ -223,13 +223,6 @@ function updateNewsletterSubscription(isSubscribed) {
  */
 function deleteContactMethod(contactMethod, loginList) {
     const oldLoginData = loginList[contactMethod];
-
-    // If the contact method failed to be added to the account, then it should only be deleted locally.
-    if (lodashGet(oldLoginData, 'errorFields.addedLogin', null)) {
-        Onyx.merge(ONYXKEYS.LOGIN_LIST, {[contactMethod]: null});
-        Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
-        return;
-    }
 
     const optimisticData = [
         {
@@ -431,6 +424,9 @@ function validateSecondaryLogin(contactMethod, validateCode) {
                 [contactMethod]: {
                     pendingFields: {
                         validateLogin: null,
+                    },
+                    errorFields: {
+                        validateCodeSent: null,
                     },
                 },
             },
@@ -785,14 +781,12 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [newDefaultContactMethod]: {
-                    ...myPersonalDetails,
+                [currentUserAccountID]: {
                     login: newDefaultContactMethod,
                     displayName: PersonalDetails.getDisplayName(newDefaultContactMethod, myPersonalDetails),
                 },
-                [oldDefaultContactMethod]: null,
             },
         },
     ];
@@ -833,15 +827,37 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [newDefaultContactMethod]: null,
-                [oldDefaultContactMethod]: {...myPersonalDetails},
+                [currentUserAccountID]: {...myPersonalDetails},
             },
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+}
+
+/**
+ * @param {String} theme
+ */
+function updateTheme(theme) {
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.PREFERRED_THEME,
+            value: theme,
+        },
+    ];
+
+    API.write(
+        'UpdateTheme',
+        {
+            value: theme,
+        },
+        {optimisticData},
+    );
+
+    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
 }
 
 export {
@@ -868,4 +884,5 @@ export {
     addPaypalMeAddress,
     updateChatPriorityMode,
     setContactMethodAsDefault,
+    updateTheme,
 };

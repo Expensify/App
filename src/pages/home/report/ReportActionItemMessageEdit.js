@@ -12,7 +12,6 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -30,10 +29,12 @@ import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import Hoverable from '../../../components/Hoverable';
+import getButtonState from '../../../libs/getButtonState';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
 
 const propTypes = {
     /** All the data of the action */
@@ -60,6 +61,8 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -76,6 +79,7 @@ const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 function ReportActionItemMessageEdit(props) {
+    const reportScrollManager = useReportScrollManager();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     const {isSmallScreenWidth} = useWindowDimensions();
@@ -95,6 +99,7 @@ function ReportActionItemMessageEdit(props) {
 
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
+    const insertedEmojis = useRef([]);
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -139,16 +144,30 @@ function ReportActionItemMessageEdit(props) {
     );
 
     /**
+     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
+     * API is not called too often.
+     */
+    const debouncedUpdateFrequentlyUsedEmojis = useMemo(
+        () =>
+            _.debounce(() => {
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis.current));
+                insertedEmojis.current = [];
+            }, 1000),
+        [],
+    );
+
+    /**
      * Update the value of the draft in Onyx
      *
      * @param {String} newDraftInput
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, isSmallScreenWidth, props.preferredSkinTone);
+            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
+                insertedEmojis.current = [...insertedEmojis.current, ...emojis];
+                debouncedUpdateFrequentlyUsedEmojis();
             }
             setDraft((prevDraft) => {
                 if (newDraftInput !== newDraft) {
@@ -172,7 +191,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, isSmallScreenWidth, props.preferredSkinTone],
+        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, props.preferredLocale],
     );
 
     /**
@@ -187,11 +206,11 @@ function ReportActionItemMessageEdit(props) {
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (props.index === 0) {
             const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-                ReportScrollManager.scrollToIndex({animated: true, index: props.index}, false);
+                reportScrollManager.scrollToIndex({animated: true, index: props.index}, false);
                 keyboardDidHideListener.remove();
             });
         }
-    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID]);
+    }, [props.action.reportActionID, debouncedSaveDraft, props.index, props.reportID, reportScrollManager]);
 
     /**
      * Save the draft of the comment to be the new comment message. This will take the comment out of "edit mode" with
@@ -223,10 +242,10 @@ function ReportActionItemMessageEdit(props) {
      */
     const addEmojiToTextBox = (emoji) => {
         setSelection((prevSelection) => ({
-            start: prevSelection.start + emoji.length,
-            end: prevSelection.start + emoji.length,
+            start: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
+            end: prevSelection.start + emoji.length + CONST.SPACE_LENGTH,
         }));
-        updateDraft(ComposerUtils.insertText(draft, selection, emoji));
+        updateDraft(ComposerUtils.insertText(draft, selection, `${emoji} `));
     };
 
     /**
@@ -255,27 +274,25 @@ function ReportActionItemMessageEdit(props) {
             <View style={[styles.chatItemMessage, styles.flexRow]}>
                 <View style={[styles.justifyContentEnd]}>
                     <Tooltip text={translate('common.cancel')}>
-                        <Hoverable>
-                            {(hovered) => (
-                                <PressableWithFeedback
-                                    onPress={deleteDraft}
-                                    style={styles.chatItemSubmitButton}
-                                    nativeID={cancelButtonID}
-                                    accessibilityRole="button"
-                                    accessibilityLabel={translate('common.close')}
-                                    // disable dimming
-                                    hoverDimmingValue={1}
-                                    pressDimmingValue={1}
-                                    hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
-                                    pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
-                                >
-                                    <Icon
-                                        src={Expensicons.Close}
-                                        fill={StyleUtils.getIconFillColor(hovered ? CONST.BUTTON_STATES.ACTIVE : CONST.BUTTON_STATES.DEFAULT)}
-                                    />
-                                </PressableWithFeedback>
+                        <PressableWithFeedback
+                            onPress={deleteDraft}
+                            style={styles.chatItemSubmitButton}
+                            nativeID={cancelButtonID}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessibilityLabel={translate('common.close')}
+                            // disable dimming
+                            hoverDimmingValue={1}
+                            pressDimmingValue={1}
+                            hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
+                            pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    src={Expensicons.Close}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                />
                             )}
-                        </Hoverable>
+                        </PressableWithFeedback>
                     </Tooltip>
                 </View>
                 <View
@@ -303,7 +320,7 @@ function ReportActionItemMessageEdit(props) {
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
-                                ReportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
+                                reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
                                 ComposerActions.setShouldShowComposeInput(false);
                             }}
                             onBlur={(event) => {
@@ -320,7 +337,7 @@ function ReportActionItemMessageEdit(props) {
                                 }
                                 openReportActionComposeViewWhenClosingMessageEdit();
                             }}
-                            selection={selection}
+                            selection={!isFocused ? undefined : selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                         />
                     </View>
@@ -340,7 +357,7 @@ function ReportActionItemMessageEdit(props) {
                                 onPress={publishDraft}
                                 nativeID={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
@@ -366,10 +383,12 @@ ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default React.forwardRef((props, ref) => (
-    <ReportActionItemMessageEdit
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default withLocalize(
+    React.forwardRef((props, ref) => (
+        <ReportActionItemMessageEdit
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            forwardedRef={ref}
+        />
+    )),
+);

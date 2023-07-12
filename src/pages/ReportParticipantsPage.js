@@ -54,12 +54,12 @@ const defaultProps = {
  * @return {Array}
  */
 const getAllParticipants = (report, personalDetails) => {
-    const {participants} = report;
+    const {participantAccountIDs} = report;
 
-    return _.chain(participants)
-        .map((login) => {
-            const userLogin = Str.removeSMSDomain(login);
-            const userPersonalDetail = lodashGet(personalDetails, login, {displayName: userLogin, avatar: ''});
+    return _.chain(participantAccountIDs)
+        .map((accountID, index) => {
+            const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || 'Hidden', avatar: ''});
+            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || 'Hidden';
 
             return {
                 alternateText: userLogin,
@@ -67,16 +67,17 @@ const getAllParticipants = (report, personalDetails) => {
                 accountID: userPersonalDetail.accountID,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(userPersonalDetail.avatar, login),
-                        name: login,
+                        id: accountID,
+                        source: UserUtils.getAvatar(userPersonalDetail.avatar, accountID),
+                        name: userLogin,
                         type: CONST.ICON_TYPE_AVATAR,
                     },
                 ],
-                keyForList: userLogin,
-                login,
+                keyForList: `${index}-${userLogin}`,
+                login: userLogin,
                 text: userPersonalDetail.displayName,
                 tooltipText: userLogin,
-                participantsList: [{login, displayName: userPersonalDetail.displayName}],
+                participantsList: [{accountID, displayName: userPersonalDetail.displayName}],
             };
         })
         .sortBy((participant) => participant.displayName.toLowerCase())
@@ -92,7 +93,9 @@ function ReportParticipantsPage(props) {
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report) ? 'common.members' : 'common.details',
+                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isChatThread(props.report)
+                                ? 'common.members'
+                                : 'common.details',
                         )}
                     />
                     <View
@@ -110,7 +113,7 @@ function ReportParticipantsPage(props) {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.accountID));
+                                    Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip
@@ -136,7 +139,7 @@ export default compose(
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(ReportParticipantsPage);

@@ -16,6 +16,7 @@ import themeColors from '../styles/themes/default';
 import variables from '../styles/variables';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Whether source url requires authentication */
@@ -34,6 +35,9 @@ const propTypes = {
 
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
+
+    /** Whether this view is the active screen  */
+    isFocused: PropTypes.bool,
 
     /** Function for handle on press */
     onPress: PropTypes.func,
@@ -62,6 +66,7 @@ const defaultProps = {
     onScaleChanged: () => {},
     onToggleKeyboard: () => {},
     containerStyles: [],
+    isFocused: false,
 };
 
 function AttachmentView(props) {
@@ -86,6 +91,7 @@ function AttachmentView(props) {
         const children = (
             <PDFView
                 onPress={props.onPress}
+                isFocused={props.isFocused}
                 sourceURL={sourceURL}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
@@ -98,7 +104,7 @@ function AttachmentView(props) {
                 onPress={props.onPress}
                 disabled={loadComplete}
                 style={containerStyles}
-                accessibilityRole="imagebutton"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
             >
                 {children}
@@ -116,6 +122,7 @@ function AttachmentView(props) {
             <ImageView
                 onScaleChanged={props.onScaleChanged}
                 url={props.source}
+                fileName={props.file.name}
                 isAuthTokenRequired={isImage && props.isAuthTokenRequired}
             />
         );
@@ -124,7 +131,7 @@ function AttachmentView(props) {
                 onPress={props.onPress}
                 disabled={loadComplete}
                 style={containerStyles}
-                accessibilityRole="imagebutton"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                 accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
             >
                 {children}

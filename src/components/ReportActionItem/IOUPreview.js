@@ -57,11 +57,11 @@ const propTypes = {
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** Account ID of the manager in this iou report */
+        managerID: PropTypes.number,
 
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
+        /** Account ID of the creator of this iou report */
+        ownerAccountID: PropTypes.number,
 
         /** Outstanding amount in cents of this transaction */
         total: PropTypes.number,
@@ -83,7 +83,7 @@ const propTypes = {
     personalDetails: PropTypes.objectOf(
         PropTypes.shape({
             /** This is either the user's full name, or their login if full name is an empty string */
-            displayName: PropTypes.string.isRequired,
+            displayName: PropTypes.string,
         }),
     ),
 
@@ -128,14 +128,14 @@ function IOUPreview(props) {
     if (_.isEmpty(props.iouReport) && !props.isBillSplit) {
         return null;
     }
-    const sessionEmail = lodashGet(props.session, 'email', null);
-    const managerEmail = props.iouReport.managerEmail || '';
-    const ownerEmail = props.iouReport.ownerEmail || '';
-    const participantEmails = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participants', []) : [managerEmail, ownerEmail];
-    const participantAvatars = OptionsListUtils.getAvatarsForLogins(participantEmails, props.personalDetails);
+    const sessionAccountID = lodashGet(props.session, 'accountID', null);
+    const managerID = props.iouReport.managerID || '';
+    const ownerAccountID = props.iouReport.ownerAccountID || '';
+    const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
+    const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
 
     // Pay button should only be visible to the manager of the report.
-    const isCurrentUserManager = managerEmail === sessionEmail;
+    const isCurrentUserManager = managerID === sessionAccountID;
 
     const moneyRequestAction = ReportUtils.getMoneyRequestAction(props.action);
 
@@ -183,7 +183,7 @@ function IOUPreview(props) {
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewHeaderText()}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                             {Boolean(getSettledMessage()) && (
                                 <>
                                     <Icon
@@ -201,7 +201,7 @@ function IOUPreview(props) {
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
                             {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
-                                <View style={styles.iouPreviewBoxCheckmark}>
+                                <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={themeColors.iconSuccessFill}
@@ -224,14 +224,14 @@ function IOUPreview(props) {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1]}>
                             {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
                             )}
-                            {!_.isEmpty(requestComment) && <Text style={[styles.colorMuted]}>{requestComment}</Text>}
+                            {!_.isEmpty(requestComment) && <Text style={[styles.mt1, styles.colorMuted]}>{requestComment}</Text>}
                         </View>
-                        {props.isBillSplit && !_.isEmpty(participantEmails) && (
+                        {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
                                 {props.translate('iou.amountEach', {
-                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantEmails.length - 1, requestAmount), requestCurrency),
+                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount), requestCurrency),
                                 })}
                             </Text>
                         )}
@@ -267,7 +267,7 @@ export default compose(
     withLocalize,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`,

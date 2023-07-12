@@ -7,9 +7,6 @@ inputs:
   PULL_REQUEST_NUMBER:
     description: The number of the pull request
     required: false
-  TITLE_REGEX:
-    description: Regex to match PR titles for
-    required: false
   USER:
     description: The creator of the pull request
     required: true

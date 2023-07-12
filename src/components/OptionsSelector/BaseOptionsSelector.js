@@ -296,6 +296,8 @@ class BaseOptionsSelector extends Component {
                 ref={(el) => (this.textInput = el)}
                 value={this.props.value}
                 label={this.props.textInputLabel}
+                accessibilityLabel={this.props.textInputLabel}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onChangeText={this.props.onChangeText}
                 placeholder={this.props.placeholderText}
                 maxLength={this.props.maxLength}
@@ -345,6 +347,7 @@ class BaseOptionsSelector extends Component {
                 focusedIndex={this.state.focusedIndex}
                 maxIndex={this.state.allOptions.length - 1}
                 onFocusedIndexChanged={this.props.disableArrowKeysActions ? () => {} : this.updateFocusedIndex}
+                shouldResetIndexOnEndReached={false}
             >
                 <View style={[styles.flexGrow1, styles.flexShrink1, styles.flexBasisAuto]}>
                     {this.props.shouldTextInputAppearBelowOptions ? (

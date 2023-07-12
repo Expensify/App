@@ -153,6 +153,7 @@ function signInAndGetAppWithUnreadChat() {
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
                 participants: [USER_B_EMAIL],
+                participantAccountIDs: [USER_B_ACCOUNT_ID],
                 type: CONST.REPORT.TYPE.CHAT,
             });
             const createdReportActionID = NumberUtils.rand64();
@@ -175,18 +176,18 @@ function signInAndGetAppWithUnreadChat() {
                         },
                     ],
                 },
-                1: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
-                2: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
-                3: TestHelper.buildTestReportComment(USER_B_EMAIL, reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
-                4: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
-                5: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
-                6: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
-                7: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
-                8: TestHelper.buildTestReportComment(USER_B_EMAIL, MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
-                9: TestHelper.buildTestReportComment(USER_B_EMAIL, reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
+                1: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(10, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '1'),
+                2: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(20, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '2'),
+                3: TestHelper.buildTestReportComment(reportAction3CreatedDate, USER_B_ACCOUNT_ID, '3'),
+                4: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(40, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '4'),
+                5: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(50, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '5'),
+                6: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(60, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '6'),
+                7: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(70, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '7'),
+                8: TestHelper.buildTestReportComment(MOMENT_TEN_MINUTES_AGO.clone().add(80, 'seconds').format(MOMENT_FORMAT), USER_B_ACCOUNT_ID, '8'),
+                9: TestHelper.buildTestReportComment(reportAction9CreatedDate, USER_B_ACCOUNT_ID, '9'),
             });
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {
-                [USER_B_EMAIL]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
             });
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
@@ -305,6 +306,7 @@ describe('Unread Indicators', () => {
                             lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
                             lastMessageText: 'Comment 1',
                             participants: [USER_C_EMAIL],
+                            participantAccountIDs: [USER_C_ACCOUNT_ID],
                         },
                     },
                     {
@@ -319,7 +321,6 @@ describe('Unread Indicators', () => {
                             },
                             [commentReportActionID]: {
                                 actionName: CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
-                                actorEmail: USER_C_EMAIL,
                                 actorAccountID: USER_C_ACCOUNT_ID,
                                 person: [{type: 'TEXT', style: 'strong', text: 'User C'}],
                                 created: NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.format(MOMENT_FORMAT),
@@ -331,9 +332,9 @@ describe('Unread Indicators', () => {
                     },
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                         value: {
-                            [USER_C_EMAIL]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
+                            [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
                         },
                     },
                 ]);
@@ -520,7 +521,7 @@ describe('Unread Indicators', () => {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                         lastMessageText: lastReportAction.message[0].text,
                         lastVisibleActionCreated: DateUtils.getDBTime(lastReportAction.timestamp),
-                        lastActorEmail: lastReportAction.actorEmail,
+                        lastActorAccountID: lastReportAction.actorAccountID,
                         reportID: REPORT_ID,
                     });
                     return waitForPromisesToResolve();

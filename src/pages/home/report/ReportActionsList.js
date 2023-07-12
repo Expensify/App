@@ -4,7 +4,6 @@ import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-nati
 import _ from 'underscore';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
-import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import styles from '../../../styles/styles';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -21,13 +20,15 @@ import CONST from '../../../CONST';
 import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
+import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import MoneyRequestDetails from '../../../components/MoneyRequestDetails';
 
 const propTypes = {
     /** Position of the "New" line marker */
     newMarkerReportActionID: PropTypes.string,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetailsList: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -52,6 +53,15 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
 
     ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -78,6 +88,7 @@ function keyExtractor(item) {
 }
 
 function ReportActionsList(props) {
+    const reportScrollManager = useReportScrollManager();
     const opacity = useSharedValue(0);
     const animatedStyles = useAnimatedStyle(() => ({
         opacity: opacity.value,
@@ -115,7 +126,7 @@ function ReportActionsList(props) {
         ({item: reportAction, index}) => {
             // When the new indicator should not be displayed we explicitly set it to null
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
-            const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isThread(report);
+            const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report);
             const shouldHideThreadDividerLine =
                 shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
             return shouldDisplayParentAction ? (
@@ -138,6 +149,7 @@ function ReportActionsList(props) {
                     isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     index={index}
+                    isOnlyReportAction={sortedReportActions.length === 1}
                 />
             );
         },
@@ -147,20 +159,25 @@ function ReportActionsList(props) {
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
     const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
-    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetails, props.report, props.currentUserPersonalDetails.login);
+    const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetailsList, props.report, props.currentUserPersonalDetails.accountID);
+
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+    const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
+    const showMoneyRequestDetails = ReportUtils.isMoneyRequestReport(props.report) || isSingleTransactionView;
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
                 accessibilityLabel={props.translate('sidebarScreen.listOfChatMessages')}
-                ref={ReportScrollManager.flatListRef}
+                ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
-                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
+                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0, showMoneyRequestDetails && styles.pb0]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={calculateInitialNumToRender()}
                 onEndReached={props.loadMoreChats}
                 onEndReachedThreshold={0.75}
+                ListFooterComponentStyle={showMoneyRequestDetails ? styles.chatFooterAtTheTop : {}}
                 ListFooterComponent={() => {
                     if (props.report.isLoadingMoreReportActions) {
                         return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
@@ -178,7 +195,17 @@ function ReportActionsList(props) {
                             />
                         );
                     }
-
+                    if (showMoneyRequestDetails) {
+                        return (
+                            <MoneyRequestDetails
+                                report={props.report}
+                                policy={props.policy}
+                                personalDetails={props.personalDetailsList}
+                                isSingleTransactionView={isSingleTransactionView}
+                                parentReportAction={parentReportAction}
+                            />
+                        );
+                    }
                     return null;
                 }}
                 keyboardShouldPersistTaps="handled"

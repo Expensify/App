@@ -63,20 +63,16 @@ function ReportDetailsPage(props) {
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(props.report), [props.report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
-    const isThread = useMemo(() => ReportUtils.isThread(props.report), [props.report]);
+    const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => ReportUtils.getChatRoomSubtitle(props.report), [props.report, policy]);
     const canLeaveRoom = useMemo(() => ReportUtils.canLeaveRoom(props.report, !_.isEmpty(policy)), [policy, props.report]);
-    const participants = useMemo(() => lodashGet(props.report, 'participants', []), [props.report]);
+    const participants = useMemo(() => lodashGet(props.report, 'participantAccountIDs', []), [props.report]);
 
     const menuItems = useMemo(() => {
-        if (isArchivedRoom) {
-            return [];
-        }
-
         const items = [
             {
                 key: CONST.REPORT_DETAILS_MENU_ITEM.SHARE_CODE,
@@ -85,6 +81,10 @@ function ReportDetailsPage(props) {
                 action: () => Navigation.navigate(ROUTES.getReportShareCodeRoute(props.report.reportID)),
             },
         ];
+
+        if (isArchivedRoom) {
+            return items;
+        }
 
         if (participants.length) {
             items.push({
@@ -123,7 +123,7 @@ function ReportDetailsPage(props) {
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
-        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), hasMultipleParticipants);
+        return ReportUtils.getDisplayNamesWithTooltips(OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails), hasMultipleParticipants);
     }, [participants, props.personalDetails]);
 
     const chatRoomSubtitleText = chatRoomSubtitle ? (
@@ -157,7 +157,7 @@ function ReportDetailsPage(props) {
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.report.policyID));
@@ -200,7 +200,7 @@ export default compose(
     withReportOrNotFound,
     withOnyx({
         personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,

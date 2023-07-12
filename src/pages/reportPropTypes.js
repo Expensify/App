@@ -25,8 +25,8 @@ export default PropTypes.shape({
     /** Indicates if the report is pinned to the LHN or not */
     isPinned: PropTypes.bool,
 
-    /** The email of the last message's actor */
-    lastActorEmail: PropTypes.string,
+    /** The accountID of the last message's actor */
+    lastActorAccountID: PropTypes.number,
 
     /** The text of the last message on the report */
     lastMessageText: PropTypes.string,
@@ -47,11 +47,14 @@ export default PropTypes.shape({
     /** The policy name to use for an archived report */
     oldPolicyName: PropTypes.string,
 
-    /** The email address of the report owner */
-    ownerEmail: PropTypes.string,
+    /** The accountID of the report owner */
+    ownerAccountID: PropTypes.number,
 
     /** List of primarylogins of participants of the report */
-    participants: PropTypes.arrayOf(PropTypes.string),
+    participants: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
+
+    /** List of accountIDs of participants of the report */
+    participantAccountIDs: PropTypes.arrayOf(PropTypes.number),
 
     /** Linked policy's ID */
     policyID: PropTypes.string,
