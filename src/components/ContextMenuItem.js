@@ -48,6 +48,7 @@ const defaultProps = {
     successText: '',
     autoReset: true,
     description: '',
+    isAnonymousAction: false,
 };
 
 class ContextMenuItem extends Component {
