@@ -35,7 +35,7 @@ function ReportActionItemThread(props) {
     const numberOfRepliesText = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 
-    const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply, false, true);
+    const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply, false);
 
     return (
         <View style={[styles.chatItemMessage]}>
@@ -65,7 +65,9 @@ function ReportActionItemThread(props) {
                             selectable={false}
                             numberOfLines={1}
                             style={[styles.ml2, styles.textMicroSupporting, styles.flex1]}
-                        >{`${props.translate('threads.lastReply')} ${timeStamp}`}</Text>
+                        >
+                            {timeStamp}
+                        </Text>
                     </View>
                 </View>
             </PressableWithoutFeedback>

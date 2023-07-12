@@ -359,7 +359,10 @@ export default {
         splitAmount: ({amount}) => `dividir ${amount}`,
         amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
+        payerOwes: ({payer}) => `${payer} debe: `,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
+        payerPaid: ({payer}) => `${payer} pagó: `,
+        payerSettled: ({amount}) => `pagó ${amount}`,
         settledElsewhereWithAmount: ({amount}) => `pagó ${amount} de otra forma`,
         settledPaypalMeWithAmount: ({amount}) => `pagó ${amount} con PayPal.me`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
@@ -438,7 +441,6 @@ export default {
             'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
-        resendMagicCode: 'Reenviar código mágico',
         failedNewContact: 'Hubo un error al añadir este método de contacto.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
@@ -566,7 +568,7 @@ export default {
     },
     twoFactorAuthForm: {
         error: {
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
             incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo',
         },
     },
@@ -682,6 +684,21 @@ export default {
             },
         },
     },
+    themePage: {
+        theme: 'Tema',
+        themes: {
+            dark: {
+                label: 'Oscuro',
+            },
+            light: {
+                label: 'Claro',
+            },
+            system: {
+                label: 'Utiliza los ajustes del dispositivo',
+            },
+        },
+        chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
+    },
     signInPage: {
         expensifyDotCash: 'Nuevo Expensify',
         theCode: 'el código',
@@ -712,7 +729,7 @@ export default {
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
         },
     },
     passwordForm: {
@@ -775,6 +792,18 @@ export default {
         unlink: 'Desvincular',
         linkSent: '¡Enlace enviado!',
         succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
+    },
+    emailDeliveryFailurePage: {
+        ourEmailProvider: ({login}) =>
+            `Nuestro proveedor de correo electrónico ha suspendido temporalmente los correos electrónicos a ${login} debido a problemas de entrega. Para desbloquear el inicio de sesión, sigue estos pasos:`,
+        confirmThat: ({login}) => `Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos. `,
+        emailAliases:
+            'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a su propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
+        ensureYourEmailClient: 'Asegúrese de que su cliente de correo electrónico permita correos electrónicos de expensify.com. ',
+        youCanFindDirections: 'Puedes encontrar instrucciones sobre cómo completar este paso ',
+        helpConfigure: ', pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.',
+        onceTheAbove: 'Una vez completados los pasos anteriores, ponte en contacto con ',
+        toUnblock: ' para desbloquear el inicio de sesión.',
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -1282,29 +1311,30 @@ export default {
         },
     },
     newTaskPage: {
-        task: 'Tarea',
         assignTask: 'Asignar tarea',
-        assignee: 'Cesionario',
-        assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario.',
         assignMe: 'Asignar a mí mismo',
         confirmTask: 'Confirmar tarea',
-        confirmError: 'Por favor introduce un título y selecciona un destino de tarea.',
-        title: 'Título',
-        description: 'Descripción',
+        confirmError: 'Por favor, introduce un título y selecciona un destino de tarea.',
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
-        pleaseEnterTaskName: 'Por favor introduce un título',
-        markAsDone: 'Marcar como hecho',
-        markAsIncomplete: 'Marcar como incompleta',
-        pleaseEnterTaskDestination: 'Por favor selecciona con quien deseas compartir.',
+        pleaseEnterTaskName: 'Por favor, introduce un título',
+        pleaseEnterTaskDestination: 'Por favor, selecciona con quién deseas compartir.',
     },
     task: {
+        task: 'Tarea',
+        title: 'Título',
+        description: 'Descripción',
+        assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
             completed: 'tarea completada',
             canceled: 'tarea cancelada',
             reopened: 'tarea reabrir',
+            error: 'No tiene permiso para realizar la acción solicitada.',
         },
+        markAsDone: 'Marcar como completada',
+        markAsIncomplete: 'Marcar como incompleta',
+        assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
@@ -1890,7 +1920,6 @@ export default {
         deletedMessage: '[Mensaje eliminado]',
     },
     threads: {
-        lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,

@@ -360,7 +360,10 @@ export default {
         splitAmount: ({amount}) => `split ${amount}`,
         amountEach: ({amount}) => `${amount} each`,
         payerOwesAmount: ({payer, amount}) => `${payer} owes ${amount}`,
+        payerOwes: ({payer}) => `${payer} owes: `,
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
+        payerPaid: ({payer}) => `${payer} paid: `,
+        payerSettled: ({amount}) => `paid ${amount}`,
         settledElsewhereWithAmount: ({amount}) => `paid ${amount} elsewhere`,
         settledPaypalMeWithAmount: ({amount}) => `paid ${amount} using Paypal.me`,
         noReimbursableExpenses: 'This report has an invalid amount',
@@ -438,7 +441,6 @@ export default {
             'This is your current default contact method. You will not be able to delete this contact method until you set an alternative default by selecting another contact method and pressing “Set as default”.',
         removeContactMethod: 'Remove contact method',
         removeAreYouSure: 'Are you sure you want to remove this contact method? This action cannot be undone.',
-        resendMagicCode: 'Resend magic code',
         failedNewContact: 'Failed to add this contact method.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'Failed to send a new magic code. Please wait a bit and try again.',
@@ -565,7 +567,7 @@ export default {
     },
     twoFactorAuthForm: {
         error: {
-            pleaseFillTwoFactorAuth: 'Please enter your two-factor code',
+            pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
             incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
         },
     },
@@ -680,6 +682,21 @@ export default {
             },
         },
     },
+    themePage: {
+        theme: 'Theme',
+        themes: {
+            dark: {
+                label: 'Dark',
+            },
+            light: {
+                label: 'Light',
+            },
+            system: {
+                label: 'Use Device Settings',
+            },
+        },
+        chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
+    },
     signInPage: {
         expensifyDotCash: 'New Expensify',
         theCode: 'the code',
@@ -710,7 +727,7 @@ export default {
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
-            pleaseFillTwoFactorAuth: 'Please enter your two-factor code',
+            pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
         },
     },
     passwordForm: {
@@ -773,6 +790,16 @@ export default {
         unlink: 'Unlink',
         linkSent: 'Link sent!',
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
+    },
+    emailDeliveryFailurePage: {
+        ourEmailProvider: ({login}) => `Our email provider has temporarily suspended emails to ${login} due to delivery issues. To unblock your login, please follow these steps:`,
+        confirmThat: ({login}) => `Confirm that ${login} is spelled correctly and is a real, deliverable email address. `,
+        emailAliases: 'Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.',
+        ensureYourEmailClient: 'Ensure your email client allows expensify.com emails. ',
+        youCanFindDirections: 'You can find directions on how to complete this step ',
+        helpConfigure: ' but you may need your IT department to help configure your email settings.',
+        onceTheAbove: 'Once the above steps are completed, please reach out to ',
+        toUnblock: ' to unblock your login.',
     },
     detailsPage: {
         localTime: 'Local time',
@@ -1273,29 +1300,30 @@ export default {
         },
     },
     newTaskPage: {
-        task: 'Task',
         assignTask: 'Assign task',
-        assignee: 'Assignee',
-        assigneeError: 'There was an error assigning this task, please try another assignee.',
         assignMe: 'Assign to me',
         confirmTask: 'Confirm task',
         confirmError: 'Please enter a title and select a share destination.',
-        title: 'Title',
-        description: 'Description',
         descriptionOptional: 'Description (optional)',
         shareSomewhere: 'Share somewhere',
         pleaseEnterTaskName: 'Please enter a title',
-        markAsDone: 'Mark as done',
-        markAsIncomplete: 'Mark as incomplete',
         pleaseEnterTaskDestination: 'Please select with whom you want to share.',
     },
     task: {
+        task: 'Task',
+        title: 'Title',
+        description: 'Description',
+        assignee: 'Assignee',
         completed: 'Completed',
         messages: {
             completed: 'completed task',
             canceled: 'canceled task',
             reopened: 'reopened task',
+            error: 'You do not have the permission to do the requested action.',
         },
+        markAsDone: 'Mark as done',
+        markAsIncomplete: 'Mark as incomplete',
+        assigneeError: 'There was an error assigning this task, please try another assignee.',
     },
     statementPage: {
         generatingPDF: "We're generating your PDF right now. Please come back later!",
@@ -1421,7 +1449,6 @@ export default {
         deletedMessage: '[Deleted message]',
     },
     threads: {
-        lastReply: 'Last reply',
         replies: 'Replies',
         reply: 'Reply',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,

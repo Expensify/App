@@ -672,6 +672,12 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    THEME: {
+        DEFAULT: 'dark',
+        LIGHT: 'light',
+        DARK: 'dark',
+        SYSTEM: 'system',
+    },
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
@@ -1109,6 +1115,7 @@ const CONST = {
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
+        SMALL_NORMAL: 'small-normal',
     },
     AVATAR_ROW_SIZE: {
         DEFAULT: 4,
@@ -1125,7 +1132,7 @@ const CONST = {
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
-        ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
+        ZIP_CODE: /^[0-9]{5}(?:[- ][0-9]{4})?$/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
@@ -2523,6 +2530,9 @@ const CONST = {
     },
     SETTINGS_LOUNGE_ACCESS: {
         HEADER_IMAGE_ASPECT_RATIO: 0.64,
+    },
+    TRANSLATION_KEYS: {
+        ATTACHMENT: 'common.attachment',
     },
 };
 

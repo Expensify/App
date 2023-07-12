@@ -16,6 +16,7 @@ import styles from '../../styles/styles';
 import Text from '../Text';
 import isEnterWhileComposition from '../../libs/KeyboardShortcut/isEnterWhileComposition';
 import CONST from '../../CONST';
+import withNavigation from '../withNavigation';
 
 const propTypes = {
     /** Maximum number of lines in the text input */
@@ -77,6 +78,9 @@ const propTypes = {
     /** Should we calculate the caret position */
     shouldCalculateCaretPosition: PropTypes.bool,
 
+    /** Function to check whether composer is covered up or not */
+    checkComposerVisibility: PropTypes.func,
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
@@ -104,6 +108,7 @@ const defaultProps = {
     setIsFullComposerAvailable: () => {},
     isComposerFullSize: false,
     shouldCalculateCaretPosition: false,
+    checkComposerVisibility: () => false,
 };
 
 const IMAGE_EXTENSIONS = {
@@ -143,6 +148,8 @@ class Composer extends React.Component {
         this.shouldCallUpdateNumberOfLines = this.shouldCallUpdateNumberOfLines.bind(this);
         this.addCursorPositionToSelectionChange = this.addCursorPositionToSelectionChange.bind(this);
         this.textRef = React.createRef(null);
+        this.unsubscribeBlur = () => null;
+        this.unsubscribeFocus = () => null;
     }
 
     componentDidMount() {
@@ -159,8 +166,15 @@ class Composer extends React.Component {
         // There is no onPaste or onDrag for TextInput in react-native so we will add event
         // listeners here and unbind when the component unmounts
         if (this.textInput) {
-            this.textInput.addEventListener('paste', this.handlePaste);
             this.textInput.addEventListener('wheel', this.handleWheel);
+
+            // we need to handle listeners on navigation focus/blur as Composer is not unmounting
+            // when navigating away to different report
+            this.unsubscribeFocus = this.props.navigation.addListener('focus', () => document.addEventListener('paste', this.handlePaste));
+            this.unsubscribeBlur = this.props.navigation.addListener('blur', () => document.removeEventListener('paste', this.handlePaste));
+
+            // We need to add paste listener manually as well as navigation focus event is not triggered on component mount
+            document.addEventListener('paste', this.handlePaste);
         }
     }
 
@@ -193,7 +207,9 @@ class Composer extends React.Component {
             return;
         }
 
-        this.textInput.removeEventListener('paste', this.handlePaste);
+        document.removeEventListener('paste', this.handlePaste);
+        this.unsubscribeFocus();
+        this.unsubscribeBlur();
         this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
@@ -262,6 +278,7 @@ class Composer extends React.Component {
      */
     paste(text) {
         try {
+            this.textInput.focus();
             document.execCommand('insertText', false, text);
             this.updateNumberOfLines();
 
@@ -289,6 +306,10 @@ class Composer extends React.Component {
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
+        if (!this.props.checkComposerVisibility() && !this.state.isFocused) {
+            return;
+        }
+
         event.preventDefault();
 
         const {files, types} = event.clipboardData;
@@ -474,6 +495,7 @@ Composer.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNavigation,
 )(
     React.forwardRef((props, ref) => (
         <Composer
