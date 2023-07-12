@@ -9,7 +9,6 @@ const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber,
             'DEPLOYBLOCKER',
             'Checkout',
             [
-                {key: 'fetch-depth', value: '0'},
                 {key: 'token', value: '***'},
             ],
             [],

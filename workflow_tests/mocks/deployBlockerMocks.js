@@ -1,7 +1,7 @@
 const utils = require('../utils/utils');
 
 // deployblocker
-const DEPLOYBLOCKER__DEPLOYBLOCKER__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'DEPLOYBLOCKER', ['fetch-depth', 'token'], []);
+const DEPLOYBLOCKER__DEPLOYBLOCKER__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'DEPLOYBLOCKER', ['token'], []);
 const DEPLOYBLOCKER__DEPLOYBLOCKER__GET_URL_TITLE_AND_NUMBER_OF_NEW_DEPLOY_BLOCKER_ISSUE__STEP_MOCK = utils.createMockStep(
     'Get URL, title, & number of new deploy blocker (issue)',
     'Get URL, title and number of new deploy blocker - issue',
