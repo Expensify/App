@@ -90,7 +90,7 @@ function isReportPreviewAction(reportAction) {
  * @returns {Boolean}
  */
 function hasCommentThread(reportAction) {
-    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
 }
 
 /**
