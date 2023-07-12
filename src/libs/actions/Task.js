@@ -213,7 +213,17 @@ function completeTask(taskReportID, taskTitle) {
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            value: {
+                [completedTaskReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -273,7 +283,17 @@ function reopenTask(taskReportID, taskTitle) {
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            value: {
+                [reopenedTaskReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
