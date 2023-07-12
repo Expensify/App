@@ -3515,6 +3515,10 @@ const styles = {
         textAlign: 'center',
     },
 
+    shiftUpOnePixel: {
+        marginTop: -1,
+    },
+
     overscrollSpacer: (height) => ({
         backgroundColor: themeColors.appBG,
         height,

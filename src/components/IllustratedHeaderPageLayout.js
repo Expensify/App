@@ -6,10 +6,7 @@ import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBack
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
-import useOverscrollMeasurement from '../hooks/useOverscrollMeasurement';
-import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -24,11 +21,8 @@ const propTypes = {
 };
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, ...propsToPassToHeader}) {
-    const {windowHeight} = useWindowDimensions();
-    const {measureScrollPosition, overscrollBottom} = useOverscrollMeasurement();
     return (
         <ScreenWrapper
-            style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
         >
@@ -40,11 +34,10 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                         backgroundColor={backgroundColor}
                     />
                     <ScrollView
+                        style={styles.shiftUpOnePixel}
                         contentContainerStyle={safeAreaPaddingBottomStyle}
-                        onScroll={measureScrollPosition}
-                        scrollEventThrottle={80}
                     >
-                        <View style={[styles.alignItemsCenter, styles.justifyContentEnd]}>
+                        <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
                             <Lottie
                                 source={illustration}
                                 style={styles.w100}
@@ -52,9 +45,8 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                                 loop
                             />
                         </View>
-                        <View style={[styles.flex1, styles.pt5, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>{children}</View>
+                        <View style={[styles.pt5]}>{children}</View>
                     </ScrollView>
-                    <View style={styles.overscrollSpacer(windowHeight / 2 + overscrollBottom)} />
                 </>
             )}
         </ScreenWrapper>
