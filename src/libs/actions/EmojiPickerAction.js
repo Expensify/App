@@ -45,4 +45,11 @@ function isActiveReportAction(actionID) {
     return emojiPickerRef.current.isActiveReportAction(actionID);
 }
 
-export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActiveReportAction};
+function isEmojiPickerVisible() {
+    if (!emojiPickerRef.current) {
+        return;
+    }
+    return emojiPickerRef.current.isEmojiPickerVisible;
+}
+
+export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActiveReportAction, isEmojiPickerVisible};

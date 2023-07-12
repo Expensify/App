@@ -672,6 +672,12 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    THEME: {
+        DEFAULT: 'dark',
+        LIGHT: 'light',
+        DARK: 'dark',
+        SYSTEM: 'system',
+    },
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
@@ -2524,6 +2530,9 @@ const CONST = {
     },
     SETTINGS_LOUNGE_ACCESS: {
         HEADER_IMAGE_ASPECT_RATIO: 0.64,
+    },
+    TRANSLATION_KEYS: {
+        ATTACHMENT: 'common.attachment',
     },
 };
 
