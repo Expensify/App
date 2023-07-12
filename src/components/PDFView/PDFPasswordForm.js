@@ -11,6 +11,8 @@ import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
+import * as Browser from '../../libs/Browser';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** If the submitted password is invalid (show an error message) */
@@ -27,6 +29,9 @@ const propTypes = {
 
     /** Notify parent that a text field has been focused or blurred */
     onPasswordFieldFocused: PropTypes.func,
+
+    /** Should focus to the password input  */
+    isFocused: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -52,6 +57,13 @@ class PDFPasswordForm extends Component {
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
         this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isFocused || !this.props.isFocused || !this.textInputRef) {
+            return;
+        }
+        this.textInputRef.focus();
     }
 
     submitPassword() {
@@ -103,8 +115,15 @@ class PDFPasswordForm extends Component {
                             <Text>{this.props.translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
                         </View>
                         <TextInput
+                            ref={(el) => (this.textInputRef = el)}
                             label={this.props.translate('common.password')}
-                            autoComplete="off"
+                            accessibilityLabel={this.props.translate('common.password')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            /**
+                             * This is a workaround to bypass Safari's autofill odd behaviour.
+                             * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
+                             */
+                            autoComplete={Browser.getBrowser() === CONST.BROWSER.SAFARI ? 'username' : 'off'}
                             autoCorrect={false}
                             textContentType="password"
                             onChangeText={this.updatePassword}

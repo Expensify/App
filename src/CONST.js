@@ -269,6 +269,7 @@ const CONST = {
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
+        SCAN_RECEIPTS: 'scanReceipts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -652,6 +653,7 @@ const CONST = {
         },
     },
     TIMING: {
+        CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
@@ -669,6 +671,12 @@ const CONST = {
     PRIORITY_MODE: {
         GSD: 'gsd',
         DEFAULT: 'default',
+    },
+    THEME: {
+        DEFAULT: 'dark',
+        LIGHT: 'light',
+        DARK: 'dark',
+        SYSTEM: 'system',
     },
     JSON_CODE: {
         SUCCESS: 200,
@@ -724,13 +732,10 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
-        COMMAND: {
-            RECONNECT_APP: 'ReconnectApp',
-        },
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: {}, success: '', isLoading: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -752,7 +757,7 @@ const CONST = {
 
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
-    VALIDATE_FOR_HTML_TAG_REGEX: /<(.|\n)*?>/g,
+    VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
 
     PASSWORD_PAGE: {
         ERROR: {
@@ -844,10 +849,11 @@ const CONST = {
     AUTO_COMPLETE_SUGGESTER: {
         SUGGESTER_PADDING: 6,
         SUGGESTER_INNER_PADDING: 8,
-        ITEM_HEIGHT: 40,
+        SUGGESTION_ROW_HEIGHT: 40,
         SMALL_CONTAINER_HEIGHT_FACTOR: 2.5,
-        MIN_AMOUNT_OF_ITEMS: 3,
-        MAX_AMOUNT_OF_ITEMS: 5,
+        MIN_AMOUNT_OF_SUGGESTIONS: 3,
+        MAX_AMOUNT_OF_SUGGESTIONS: 20,
+        MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER: 5,
         HERE_TEXT: '@here',
     },
     COMPOSER_MAX_HEIGHT: 125,
@@ -1109,6 +1115,11 @@ const CONST = {
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
+        SMALL_NORMAL: 'small-normal',
+    },
+    AVATAR_ROW_SIZE: {
+        DEFAULT: 4,
+        LARGE_SCREEN: 8,
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -1117,12 +1128,11 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_CHARS: /[a-zA-Z]+/,
         ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
-        ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
+        ZIP_CODE: /^[0-9]{5}(?:[- ][0-9]{4})?$/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
@@ -1131,7 +1141,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
-        ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
+        ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -1151,7 +1161,7 @@ const CONST = {
 
         SPECIAL_CHAR_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
-            /[\n\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
+            /[\n\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
         SPACE_OR_EMOJI:
             // eslint-disable-next-line no-misleading-character-class
@@ -1160,7 +1170,7 @@ const CONST = {
         // Define the regular expression pattern to match a string starting with an at sign and ending with a space or newline character
         MENTION_REPLACER:
             // eslint-disable-next-line no-misleading-character-class
-            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%$#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
+            /^@[^\n\r]*?(?=$|[\s,/?"{}[\]()&^%\\;`$=#<>!*\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3)/u,
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/,
 
@@ -1264,7 +1274,11 @@ const CONST = {
         LEAVE_ROOM: 'leaveRoom',
         WELCOME_MESSAGE: 'welcomeMessage',
     },
-
+    EDIT_REQUEST_FIELD: {
+        AMOUNT: 'amount',
+        DATE: 'date',
+        DESCRIPTION: 'description',
+    },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
         SPEND_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/spend-management`,
@@ -2501,6 +2515,24 @@ const CONST = {
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
         EXPENSIFY_LOGO_MARGIN_RATIO: 0.03,
+    },
+    ACCESSIBILITY_ROLE: {
+        BUTTON: 'button',
+        LINK: 'link',
+        MENUITEM: 'menuitem',
+        TEXT: 'text',
+        RADIO: 'radio',
+        IMAGEBUTTON: 'imagebutton',
+        CHECKBOX: 'checkbox',
+        SWITCH: 'switch',
+        ADJUSTABLE: 'adjustable',
+        IMAGE: 'image',
+    },
+    SETTINGS_LOUNGE_ACCESS: {
+        HEADER_IMAGE_ASPECT_RATIO: 0.64,
+    },
+    TRANSLATION_KEYS: {
+        ATTACHMENT: 'common.attachment',
     },
 };
 

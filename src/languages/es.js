@@ -44,6 +44,7 @@ export default {
         details: 'Detalles',
         privacy: 'Privacidad',
         hidden: 'Oculto',
+        visible: 'Visible',
         delete: 'Eliminar',
         archived: 'archivado',
         contacts: 'Contactos',
@@ -144,6 +145,7 @@ export default {
         mi: 'milla',
         km: 'kilómetro',
         copied: '¡Copiado!',
+        someone: 'Alguien',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -193,8 +195,6 @@ export default {
         signInHere: 'simplemente inicia sesión aquí',
         expiredCodeTitle: 'Código mágico caducado',
         expiredCodeDescription: 'Vuelve al dispositivo original y solicita un código nuevo.',
-        requestNewCode: '¡También puedes',
-        requestNewCodeLink: 'solicitar un nuevo código aquí',
         successfulNewCodeRequest: 'Código solicitado. Por favor, comprueba tu dispositivo.',
         tfaRequiredTitle: 'Se requiere autenticación\nde dos factores',
         tfaRequiredDescription: 'Por favor, introduce el código de autenticación de dos factores\ndonde estás intentando iniciar sesión.',
@@ -297,6 +297,9 @@ export default {
         sayHello: '¡Saluda!',
         usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
     },
+    reportAction: {
+        asCopilot: 'como copiloto de',
+    },
     mentionSuggestions: {
         hereAlternateText: 'Notificar a todos los que estén en linea de esta sala',
     },
@@ -349,15 +352,18 @@ export default {
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
         settleExpensify: 'Pagar con Expensify',
-        settleElsewhere: 'Voy a pagar de otra forma',
-        payExpenseElsewhere: 'Pagar de otra forma',
+        payElsewhere: 'Pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
         requestAmount: ({amount}) => `solicitar ${amount}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
         amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
+        payerOwes: ({payer}) => `${payer} debe: `,
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
+        payerPaid: ({payer}) => `${payer} pagó: `,
         payerSettled: ({amount}) => `pagó ${amount}`,
+        settledElsewhereWithAmount: ({amount}) => `pagó ${amount} de otra forma`,
+        settledPaypalMeWithAmount: ({amount}) => `pagó ${amount} con PayPal.me`,
         noReimbursableExpenses: 'El monto de este informe es inválido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         threadRequestReportName: ({formattedAmount, comment}) => `Solicitud de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -407,6 +413,15 @@ export default {
         offline: 'Desconectado',
         syncing: 'Sincronizando',
     },
+    loungeAccessPage: {
+        loungeAccess: 'Acceso a la sala vip',
+        headline: 'Podrás acceder a nuestras salas vip exclusivas.',
+        description:
+            'La sala vip Expensify es el punto de encuentro entre una "sala vip de aeropuerto de alta gama" y un vibrante "espacio de co-working" optimizado para personas con ideas afines.',
+        coffeePromo: 'Buen café y buenos cócteles',
+        networkingPromo: 'Conecta con otros miembros',
+        viewsPromo: 'Increíbles vistas de San Francisco',
+    },
     pronounsPage: {
         pronouns: 'Pronombres',
         isShownOnProfile: 'Tus pronombres se muestran en tu perfil.',
@@ -425,7 +440,6 @@ export default {
             'Este es tu método de contacto predeterminado. No podrás eliminarlo hasta que añadas otro método de contacto y lo marques como predeterminado pulsando "Establecer como predeterminado".',
         removeContactMethod: 'Eliminar método de contacto',
         removeAreYouSure: '¿Estás seguro de que quieres eliminar este método de contacto? Esta acción no se puede deshacer.',
-        resendMagicCode: 'Reenviar código mágico',
         failedNewContact: 'Hubo un error al añadir este método de contacto.',
         genericFailureMessages: {
             requestContactMethodValidateCode: 'No se ha podido enviar un nuevo código mágico. Espera un rato y vuelve a intentarlo.',
@@ -548,13 +562,12 @@ export default {
         stepSuccess: 'Finalizado',
         enabled: '¡La autenticación de dos factores ahora está habilitada!',
         congrats: 'Felicidades, ahora tienes esa seguridad adicional.',
-        copyCodes: 'Copiar códigos',
         copy: 'Copiar',
         disable: 'Deshabilitar',
     },
     twoFactorAuthForm: {
         error: {
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
             incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo',
         },
     },
@@ -583,7 +596,7 @@ export default {
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         expensifyPassword: 'Contraseña de Expensify',
         error: {
-            invalidName: 'Por favor, introduce un nombre válido',
+            invalidName: 'El nombre solo puede contener números y caracteres latinos.',
             addressZipCode: 'Por favor, introduce un código postal válido',
             debitCardNumber: 'Por favor, introduce un número de tarjeta de débito válido',
             expirationDate: 'Por favor, selecciona una fecha de vencimiento válida',
@@ -670,6 +683,21 @@ export default {
             },
         },
     },
+    themePage: {
+        theme: 'Tema',
+        themes: {
+            dark: {
+                label: 'Oscuro',
+            },
+            light: {
+                label: 'Claro',
+            },
+            system: {
+                label: 'Utiliza los ajustes del dispositivo',
+            },
+        },
+        chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
+    },
     signInPage: {
         expensifyDotCash: 'Nuevo Expensify',
         theCode: 'el código',
@@ -695,11 +723,12 @@ export default {
         magicCodeNotReceived: '¿No recibiste un código mágico?',
         enterAuthenticatorCode: 'Por favor, introduce el código de autenticador',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
-        codeSent: '¡Código mágico enviado!',
+        requestNewCode: 'Pedir un código nuevo en ',
+        requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
         },
     },
     passwordForm: {
@@ -762,6 +791,18 @@ export default {
         unlink: 'Desvincular',
         linkSent: '¡Enlace enviado!',
         succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
+    },
+    emailDeliveryFailurePage: {
+        ourEmailProvider: ({login}) =>
+            `Nuestro proveedor de correo electrónico ha suspendido temporalmente los correos electrónicos a ${login} debido a problemas de entrega. Para desbloquear el inicio de sesión, sigue estos pasos:`,
+        confirmThat: ({login}) => `Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos. `,
+        emailAliases:
+            'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a su propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
+        ensureYourEmailClient: 'Asegúrese de que su cliente de correo electrónico permita correos electrónicos de expensify.com. ',
+        youCanFindDirections: 'Puedes encontrar instrucciones sobre cómo completar este paso ',
+        helpConfigure: ', pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.',
+        onceTheAbove: 'Una vez completados los pasos anteriores, ponte en contacto con ',
+        toUnblock: ' para desbloquear el inicio de sesión.',
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -839,6 +880,7 @@ export default {
             restrictedBusiness: 'Por favor, confirma que la empresa no está en la lista de negocios restringidos',
             routingNumber: 'Por favor, introduce un número de ruta válido',
             accountNumber: 'Por favor, introduce un número de cuenta válido',
+            routingAndAccountNumberCannotBeSame: 'El número de ruta y el número de cuenta no pueden ser iguales',
             companyType: 'Por favor, selecciona un tipo de compañía válido',
             tooManyAttempts:
                 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduce los detalles manualmente.',
@@ -1268,29 +1310,30 @@ export default {
         },
     },
     newTaskPage: {
-        task: 'Tarea',
         assignTask: 'Asignar tarea',
-        assignee: 'Cesionario',
-        assigneeError: 'Hubo un error al asignar esta tarea, intente con otro cesionario.',
         assignMe: 'Asignar a mí mismo',
         confirmTask: 'Confirmar tarea',
-        confirmError: 'Por favor introduce un título y selecciona un destino de tarea.',
-        title: 'Título',
-        description: 'Descripción',
+        confirmError: 'Por favor, introduce un título y selecciona un destino de tarea.',
         descriptionOptional: 'Descripción (opcional)',
         shareSomewhere: 'Compartir en algún lugar',
-        pleaseEnterTaskName: 'Por favor introduce un título',
-        markAsDone: 'Marcar como hecho',
-        markAsIncomplete: 'Marcar como incompleta',
-        pleaseEnterTaskDestination: 'Por favor selecciona con quien deseas compartir.',
+        pleaseEnterTaskName: 'Por favor, introduce un título',
+        pleaseEnterTaskDestination: 'Por favor, selecciona con quién deseas compartir.',
     },
     task: {
+        task: 'Tarea',
+        title: 'Título',
+        description: 'Descripción',
+        assignee: 'Usuario asignado',
         completed: 'Completada',
         messages: {
             completed: 'tarea completada',
             canceled: 'tarea cancelada',
             reopened: 'tarea reabrir',
+            error: 'No tiene permiso para realizar la acción solicitada.',
         },
+        markAsDone: 'Marcar como completada',
+        markAsIncomplete: 'Marcar como incompleta',
+        assigneeError: 'Hubo un error al asignar esta tarea, inténtalo con otro usuario.',
     },
     statementPage: {
         generatingPDF: 'Estamos generando tu PDF ahora mismo. ¡Por favor, vuelve más tarde!',
@@ -1876,10 +1919,9 @@ export default {
         deletedMessage: '[Mensaje eliminado]',
     },
     threads: {
-        lastReply: 'Última respuesta',
         replies: 'Respuestas',
         reply: 'Respuesta',
-        from: 'De',
+        parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {
         copyUrlToClipboard: 'Copiar URL al portapapeles',

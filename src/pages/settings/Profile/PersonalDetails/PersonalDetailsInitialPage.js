@@ -109,6 +109,7 @@ function PersonalDetailsInitialPage(props) {
                         description={props.translate('common.dob')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS_DATE_OF_BIRTH)}
+                        titleStyle={[styles.flex1]}
                     />
                     <MenuItemWithTopDescription
                         title={getFormattedAddress()}
