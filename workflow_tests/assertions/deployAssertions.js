@@ -23,11 +23,10 @@ const assertDeployStagingJobExecuted = (workflowResult, didExecute = true) => {
 const assertDeployProductionJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
         utils.createStepAssertion('Checkout', true, null, 'DEPLOY_PRODUCTION', 'Checking out', [
-            {key: 'fetch-depth', value: '0'},
+            {key: 'ref', value: 'production'},
             {key: 'token', value: '***'},
         ]),
         utils.createStepAssertion('Setup git for OSBotify', true, null, 'DEPLOY_PRODUCTION', 'Setting up git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}]),
-        utils.createStepAssertion('Checkout production branch', true, null, 'DEPLOY_PRODUCTION', 'Checking out production branch'),
         utils.createStepAssertion('Get current app version', true, null, 'DEPLOY_PRODUCTION', 'Getting current app version'),
         utils.createStepAssertion('Get Release Pull Request List', true, null, 'DEPLOY_PRODUCTION', 'Getting release PR list', [
             {key: 'TAG', value: '1.2.3'},
