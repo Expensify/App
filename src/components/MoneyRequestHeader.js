@@ -75,7 +75,7 @@ function MoneyRequestHeader(props) {
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
     }, [parentReportAction]);
-    
+
     if (props.isSingleTransactionView && isDeletedParentAction) {
         return (
             <HeaderView
