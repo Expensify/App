@@ -210,7 +210,7 @@ function buildOnyxDataForMoneyRequest(
             },
         },
     ];
-
+    const previousPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID) || {};
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -228,19 +228,21 @@ function buildOnyxDataForMoneyRequest(
                     : {}),
             },
         },
-        ...(isNewIOUReport
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                      value: {
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                // Store the previous last message text so we can revert set it when the error is dismissed
+                previousLastMessageText: iouReport.lastMessageText,
+                ...(isNewIOUReport
+                    ? {
                           errorFields: {
                               createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
                           },
-                      },
-                  },
-              ]
-            : []),
+                      }
+                    : {}),
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -263,6 +265,7 @@ function buildOnyxDataForMoneyRequest(
                       }
                     : {
                           [reportPreviewAction.reportActionID]: {
+                              previousCreated: previousPreviewAction.created || '',
                               created: reportPreviewAction.created,
                           },
                       }),
@@ -291,6 +294,34 @@ function buildOnyxDataForMoneyRequest(
     ];
 
     return [optimisticData, successData, failureData];
+}
+
+function cleanUpFailedMoneyRequest(chatReport, iouReport, transaction, chatCreatedAction, iouCreatedAction, iouAction, optimisticPersonalDetailListAction, isNewChatReport, isNewIOUReport) {
+    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+
+    // If the report failed to create, delete it.
+    if (lodashGet(iouReport, 'errorFields.createChat')) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, null);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, null);
+
+        // Delete the report preview action
+        if (reportPreviewAction) {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {[reportPreviewAction.reportActionID]: null});
+        }
+    } else {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, null);
+
+        // We already had a report, but we're deleting the failed request action so we need to revert to the previous last message text
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {lastMessageText: iouReport.previousLastMessageText});
+
+        // Update the preview action after clearing the failed request
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+            [reportPreviewAction.reportActionID]: {
+                created: reportPreviewAction.previousCreated,
+                message: [{html: message, text: message}],
+            },
+        });
+    }
 }
 
 /**
@@ -1408,4 +1439,5 @@ export {
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
+    cleanUpFailedMoneyRequest,
 };
