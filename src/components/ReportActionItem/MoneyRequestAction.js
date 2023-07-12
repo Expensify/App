@@ -21,6 +21,7 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import OfflineWithFeedback from '../OfflineWithFeedback';
 
 const propTypes = {
     /** All the data of the action */
@@ -139,18 +140,22 @@ function MoneyRequestAction(props) {
     }
 
     return (
-        <IOUPreview
-            iouReportID={props.requestReportID}
-            chatReportID={props.chatReportID}
-            isBillSplit={isSplitBillAction}
-            action={props.action}
-            contextMenuAnchor={props.contextMenuAnchor}
-            checkIfContextMenuActive={props.checkIfContextMenuActive}
-            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-            onPreviewPressed={onIOUPreviewPressed}
-            containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
-            isHovered={props.isHovered}
-        />
+        <OfflineWithFeedback
+            errors={props.transactionErrors}
+        >
+            <IOUPreview
+                iouReportID={props.requestReportID}
+                chatReportID={props.chatReportID}
+                isBillSplit={isSplitBillAction}
+                action={props.action}
+                contextMenuAnchor={props.contextMenuAnchor}
+                checkIfContextMenuActive={props.checkIfContextMenuActive}
+                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+                onPreviewPressed={onIOUPreviewPressed}
+                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
+                isHovered={props.isHovered}
+            />
+        </OfflineWithFeedback>
     );
 }
 
@@ -173,6 +178,10 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        transactionErrors: {
+            key: ({requestReportID, action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(requestReportID, action.reportActionID)}`,
+            selector: (transaction) => transaction.errors || {},
         },
     }),
     withNetwork(),
