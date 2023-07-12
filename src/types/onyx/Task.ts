@@ -7,6 +7,7 @@ type Task = {
     /** Description of the Task */
     description?: string;
 
+    // TODO: Make sure this field exists in the API
     /** Share destination of the Task */
     shareDestination?: string;
 
