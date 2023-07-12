@@ -165,16 +165,71 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             lastReadTime: currentTime,
         };
 
+        // If we're optimistically creating a new chat report for the assignee then we need to create the report and reportAction
+        if (assigneeChatReport && assigneeChatReport.isOptimisticReport) {
+            const optimisticChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(assigneeChatReportID);
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                    value: {
+                        ...assigneeChatReport,
+                        pendingFields: {
+                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                        ...optimisticAssigneeReport
+                    }
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                    value: {[optimisticChatCreatedReportAction.reportActionID]: optimisticChatCreatedReportAction},
+
+                }
+            );
+
+            successData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                    value: {
+                        pendingFields: {
+                            createChat: null,
+                        },
+                        isOptimisticReport: false,
+                    },
+                }
+            );
+
+            failureData.push(
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                    value: null,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                    value: {[optimisticChatCreatedReportAction.reportActionID]: {pendingAction: null}},
+                }
+            );
+
+        } else {
+            // If the assignee already has a chat report, we just need to update some fields
+            optimisticData.push(
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                    value: optimisticAssigneeReport,
+                },
+            );
+        }
+
         optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
                 value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
-                value: optimisticAssigneeReport,
             },
         );
 
