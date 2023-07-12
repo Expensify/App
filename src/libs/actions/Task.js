@@ -55,16 +55,18 @@ function clearOutTaskInfo() {
  */
 
 function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0, assigneeChatReport = {}) {
-
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
-
-    // Grab the assigneeChatReportID if there is an assignee and if it's not the same as the parentReportID
-    // then we create an optimistic add comment report action on the assignee's chat to notify them of the task
-    // You can share a task to various locations. If you're choosing to share it in the same DM as the assignee
+    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
+    
     const assigneeChatReportID = assigneeChatReport.reportID;
     const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
+
+    // If you're choosing to share the task in the same DM as the assignee then 
+    // we don't need to create another reportAction indicating that you've been assigned
+    // Additionally, tasks can be unassigned in which case we don't need to create a reportAction either
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
+        // ReportAction indicating that the assignee has been assigned a task
         optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
             taskReportID,
             title,
@@ -75,16 +77,14 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         );
     }
 
-    // Create the CreatedReportAction on the task
-    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
+    // Parent ReportAction indicating that a task has been created
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Created a task: ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
-
     const lastCommentText = ReportUtils.formatReportLastMessageText(optimisticAddCommentReport.reportAction.message[0].text);
 
-    const optimisticReport = {
+    const optimisticParentReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
         lastActorAccountID: currentUserAccountID,
@@ -92,6 +92,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     };
 
     const optimisticData = [
+        // Task Report
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
@@ -103,20 +104,23 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 isOptimisticReport: true,
             },
         },
+        // Task Report Actions
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
             value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction},
         },
+        // Parent Report
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+            value: optimisticParentReport,
+        },
+        // Parent Report Actions
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
-            value: optimisticReport,
         },
     ];
 
@@ -522,6 +526,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
         let chatReport = ReportUtils.getChatByParticipants([newAssigneeAccountID]);
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([newAssigneeAccountID]);
+            chatReport.isOptimisticReport = true;
         }
         const reportID = chatReport.reportID;
         setAssigneeChatReport(chatReport);
