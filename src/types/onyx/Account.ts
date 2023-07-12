@@ -32,6 +32,15 @@ type Account = OnyxCommon.BaseState & {
 
     /** Whether the user forgot their password */
     forgotPassword?: boolean;
+
+    /** Whether the account exists */
+    accountExists?: boolean;
+
+    /** Is the account / domain under domain control? */
+    domainControlled?: boolean;
+
+    /** Whether the validation code has expired */
+    validateCodeExpired?: boolean;
 };
 
 export default Account;
