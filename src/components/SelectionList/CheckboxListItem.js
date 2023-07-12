@@ -7,9 +7,9 @@ import styles from '../../styles/styles';
 import Text from '../Text';
 import {checkboxListItemPropTypes} from './selectionListPropTypes';
 import Checkbox from '../Checkbox';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Avatar from '../Avatar';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** The section list item */
@@ -23,8 +23,6 @@ const propTypes = {
 
     /** Callback to fire when an error is dismissed */
     onDismissError: PropTypes.func,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -35,6 +33,7 @@ const defaultProps = {
 };
 
 function CheckboxListItem(props) {
+    const {translate} = useLocalize();
     const hasError = !_.isEmpty(props.item.errors);
 
     return (
@@ -88,7 +87,7 @@ function CheckboxListItem(props) {
                 </View>
                 {props.item.isAdmin && (
                     <View style={[styles.badge, styles.peopleBadge]}>
-                        <Text style={[styles.peopleBadgeText]}>{props.translate('common.admin')}</Text>
+                        <Text style={[styles.peopleBadgeText]}>{translate('common.admin')}</Text>
                     </View>
                 )}
             </PressableWithFeedback>
@@ -100,4 +99,4 @@ CheckboxListItem.displayName = 'CheckboxListItem';
 CheckboxListItem.propTypes = propTypes;
 CheckboxListItem.defaultProps = defaultProps;
 
-export default withLocalize(CheckboxListItem);
+export default CheckboxListItem;

@@ -325,6 +325,7 @@ function BaseSelectionList(props) {
                             windowSize={5}
                             viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
                             onLayout={() => scrollToIndex(focusedIndex, false)}
+                            testID="selection-list"
                         />
 
                         {shouldShowConfirmButton && (
