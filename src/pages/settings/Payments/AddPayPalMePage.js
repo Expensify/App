@@ -42,7 +42,9 @@ function AddPayPalMePage(props) {
     const [payPalMeUsernameError, setPayPalMeUsernameError] = useState(false);
     const payPalMeInput = useRef(null);
 
-    const growlMessageOnSave = props.translate('addPayPalMePage.growlMessageOnSave');
+    const hasPaypalAccount = !_.isEmpty(props.payPalMeData);
+
+    const growlMessageOnSave = props.translate(hasPaypalAccount ? 'addPayPalMePage.growlMessageOnUpdate' : 'addPayPalMePage.growlMessageOnSave');
 
     /**
      * Sets the payPalMe username and error data for the current user
@@ -120,7 +122,7 @@ function AddPayPalMePage(props) {
                     pressOnEnter
                     style={[styles.mt3]}
                     isDisabled={_.isEmpty(payPalMeUsername.trim())}
-                    text={props.translate('addPayPalMePage.addPayPalAccount')}
+                    text={props.translate(hasPaypalAccount ? 'addPayPalMePage.updatePaypalAccount' : 'addPayPalMePage.addPayPalAccount')}
                 />
             </FixedFooter>
         </ScreenWrapper>

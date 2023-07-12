@@ -582,6 +582,8 @@ export default {
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+        updatePaypalAccount: 'Save PayPal account',
+        growlMessageOnUpdate: 'Your PayPal username was successfully saved',
         formatError: 'Invalid PayPal.me username',
         checkListOf: 'Check the list of ',
         supportedCurrencies: 'supported currencies',

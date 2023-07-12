@@ -583,6 +583,8 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Tu nombre de usuario de PayPal se agregó correctamente',
+        updatePaypalAccount: 'Guardar cuenta PayPal',
+        growlMessageOnUpdate: 'Su nombre de usuario de PayPal se guardó con éxito',
         formatError: 'Usuario PayPal.me no válido',
         checkListOf: 'Consulta la lista de ',
         supportedCurrencies: 'monedas admitidas',
