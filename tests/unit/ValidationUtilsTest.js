@@ -47,6 +47,10 @@ describe('ValidationUtils', () => {
         test('room name with lowercase letters, numbers, and dashes', () => {
             expect(ValidationUtils.isValidRoomName('#this-is-a-room1')).toBe(true);
         });
+
+        test('room name with spanish Accented letters and dashes', () => {
+            expect(ValidationUtils.isValidRoomName('#sala-de-opinión')).toBe(true);
+        });
     });
 
     describe('isValidWebsite', () => {
