@@ -352,8 +352,7 @@ export default {
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
         settleExpensify: 'Pagar con Expensify',
-        settleElsewhere: 'Voy a pagar de otra forma',
-        payExpenseElsewhere: 'Pagar de otra forma',
+        payElsewhere: 'Pagar de otra forma',
         settlePaypalMe: 'Pagar con PayPal.me',
         requestAmount: ({amount}) => `solicitar ${amount}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
@@ -568,7 +567,7 @@ export default {
     },
     twoFactorAuthForm: {
         error: {
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
             incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo',
         },
     },
@@ -684,6 +683,21 @@ export default {
             },
         },
     },
+    themePage: {
+        theme: 'Tema',
+        themes: {
+            dark: {
+                label: 'Oscuro',
+            },
+            light: {
+                label: 'Claro',
+            },
+            system: {
+                label: 'Utiliza los ajustes del dispositivo',
+            },
+        },
+        chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
+    },
     signInPage: {
         expensifyDotCash: 'Nuevo Expensify',
         theCode: 'el código',
@@ -714,7 +728,7 @@ export default {
         error: {
             pleaseFillMagicCode: 'Por favor, introduce el código mágico',
             incorrectMagicCode: 'Código mágico incorrecto.',
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
         },
     },
     passwordForm: {
@@ -777,6 +791,18 @@ export default {
         unlink: 'Desvincular',
         linkSent: '¡Enlace enviado!',
         succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
+    },
+    emailDeliveryFailurePage: {
+        ourEmailProvider: ({login}) =>
+            `Nuestro proveedor de correo electrónico ha suspendido temporalmente los correos electrónicos a ${login} debido a problemas de entrega. Para desbloquear el inicio de sesión, sigue estos pasos:`,
+        confirmThat: ({login}) => `Confirma que ${login} está escrito correctamente y que es una dirección de correo electrónico real que puede recibir correos. `,
+        emailAliases:
+            'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a su propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
+        ensureYourEmailClient: 'Asegúrese de que su cliente de correo electrónico permita correos electrónicos de expensify.com. ',
+        youCanFindDirections: 'Puedes encontrar instrucciones sobre cómo completar este paso ',
+        helpConfigure: ', pero es posible que necesites que el departamento de informática te ayude a configurar los ajustes de correo electrónico.',
+        onceTheAbove: 'Una vez completados los pasos anteriores, ponte en contacto con ',
+        toUnblock: ' para desbloquear el inicio de sesión.',
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -1302,7 +1328,8 @@ export default {
         messages: {
             completed: 'tarea completada',
             canceled: 'tarea cancelada',
-            reopened: 'tarea reabierta',
+            reopened: 'tarea reabrir',
+            error: 'No tiene permiso para realizar la acción solicitada.',
         },
         markAsDone: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
