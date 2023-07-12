@@ -94,7 +94,7 @@ function ResendValidationForm(props) {
             <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     onPress={() => redirectToSignIn()}
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={props.translate('common.back')}
                     // disable hover dim for switch
                     hoverDimmingValue={1}
