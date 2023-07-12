@@ -46,8 +46,7 @@ const defaultProps = {
     description: '',
 };
 
-function ContextMenuItem(props) {
-    const {isDelayButtonStateComplete, onPress, successIcon, successText, autoReset, toggleDelayButtonState} = props;
+function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, successText, autoReset, toggleDelayButtonState, icon, text, isMini, description}) {
     const {windowWidth} = useWindowDimensions();
 
     const triggerPressAndUpdateSuccess = useCallback(() => {
@@ -61,31 +60,31 @@ function ContextMenuItem(props) {
         }
     }, [isDelayButtonStateComplete, onPress, successIcon, successText, autoReset, toggleDelayButtonState]);
 
-    const icon = isDelayButtonStateComplete ? successIcon || props.icon : props.icon;
-    const text = isDelayButtonStateComplete ? successText || props.text : props.text;
+    const itemIcon = isDelayButtonStateComplete && successIcon ? successIcon : icon;
+    const itemText = isDelayButtonStateComplete && successText ? successText : text;
 
-    return props.isMini ? (
+    return isMini ? (
         <BaseMiniContextMenuItem
-            tooltipText={text}
+            tooltipText={itemText}
             onPress={triggerPressAndUpdateSuccess}
             isDelayButtonStateComplete={isDelayButtonStateComplete}
         >
             {({hovered, pressed}) => (
                 <Icon
                     small
-                    src={icon}
+                    src={itemIcon}
                     fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, isDelayButtonStateComplete))}
                 />
             )}
         </BaseMiniContextMenuItem>
     ) : (
         <MenuItem
-            title={text}
-            icon={icon}
+            title={itemText}
+            icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
             wrapperStyle={styles.pr9}
             success={isDelayButtonStateComplete}
-            description={props.description}
+            description={description}
             descriptionTextStyle={styles.breakAll}
             style={getContextMenuItemStyles(windowWidth)}
         />
