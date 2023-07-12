@@ -29,7 +29,6 @@ const assertCherryPickJobExecuted = (
     user = 'Dummy Author',
     pullRequestNumber = '1234',
     didExecute = true,
-    inputNewVersion = '',
     hasConflicts = false,
     isSuccessful = true,
 ) => {
@@ -47,12 +46,13 @@ const assertCherryPickJobExecuted = (
             [],
         ),
         utils.createStepAssertion('Set up git for OSBotify', true, null, 'CHERRYPICK', 'Setting up git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}], []),
+        utils.createStepAssertion('Get version bump commit', true, null, 'CHERRYPICK', 'Get version bump commit', [], []),
         utils.createStepAssertion(
-            'Get merge commit for CP pull request',
+            'Get merge commit for pull request to CP',
             true,
             null,
             'CHERRYPICK',
-            'Getting merge commit for CP pull request',
+            'Get merge commit for pull request to CP',
             [
                 {key: 'GITHUB_TOKEN', value: '***'},
                 {key: 'USER', value: user},
@@ -60,7 +60,8 @@ const assertCherryPickJobExecuted = (
             ],
             [],
         ),
-        utils.createStepAssertion('Save correct NEW_VERSION to env', true, inputNewVersion ? `New version is ${inputNewVersion}` : 'New version is'),
+        utils.createStepAssertion('Get previous app version', true, null, 'CHERRYPICK', 'Get previous app version', [{key: 'SEMVER_LEVEL', value: 'PATCH'}]),
+        utils.createStepAssertion('Fetch history of relevant refs', true, null, 'CHERRYPICK', 'Fetch history of relevant refs'),
         utils.createStepAssertion('Cherry-pick the version-bump to staging', true, null, 'CHERRYPICK', 'Cherry-picking the version-bump to staging', [], []),
         utils.createStepAssertion('Cherry-pick the merge commit of target PR', true, null, 'CHERRYPICK', 'Cherry-picking the merge commit of target PR', [], []),
         utils.createStepAssertion('Push changes', true, null, 'CHERRYPICK', 'Pushing changes', [], []),

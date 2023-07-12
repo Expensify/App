@@ -59,7 +59,6 @@ describe('test workflow cherryPick', () => {
                     null,
                     {
                         PULL_REQUEST_NUMBER: '1234',
-                        NEW_VERSION: '',
                     },
                 );
                 const testMockSteps = {
@@ -91,7 +90,6 @@ describe('test workflow cherryPick', () => {
         });
         describe('actor is OSBotify', () => {
             const actor = 'OSBotify';
-            const newVersion = '';
             const mergeConflicts = false;
             const versionsMatch = true;
             it('behaviour is the same as with actor being the deployer', async () => {
@@ -125,7 +123,6 @@ describe('test workflow cherryPick', () => {
                     null,
                     {
                         PULL_REQUEST_NUMBER: '1234',
-                        NEW_VERSION: newVersion,
                     },
                 );
                 const result = await act.runEvent(event, {
@@ -138,419 +135,206 @@ describe('test workflow cherryPick', () => {
 
                 assertions.assertValidateActorJobExecuted(result);
                 assertions.assertCreateNewVersionJobExecuted(result);
-                assertions.assertCherryPickJobExecuted(result, actor, '1234', true, newVersion);
+                assertions.assertCherryPickJobExecuted(result, actor, '1234', true);
             });
         });
         describe('actor is a deployer', () => {
             const actor = 'Dummy Author';
-            describe('input version not set', () => {
-                const newVersion = '';
-                describe('no merge conflicts', () => {
-                    const mergeConflicts = false;
-                    describe('version match', () => {
-                        const versionsMatch = true;
-                        it('workflow executes, new version created, PR approved and merged automatically', async () => {
-                            const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
-                            const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                            const testMockSteps = {
-                                validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                            };
-                            testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                            const testMockJobs = {
-                                createNewVersion: {
-                                    steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
-                                    outputs: {
-                                        // eslint-disable-next-line no-template-curly-in-string
-                                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                                    },
-                                    runsOn: 'ubuntu-latest',
+            describe('no merge conflicts', () => {
+                const mergeConflicts = false;
+                describe('version match', () => {
+                    const versionsMatch = true;
+                    it('workflow executes, PR approved and merged automatically', async () => {
+                        const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
+                        const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
+                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        const testMockSteps = {
+                            validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
+                        };
+                        testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
+                        const testMockJobs = {
+                            createNewVersion: {
+                                steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                outputs: {
+                                    // eslint-disable-next-line no-template-curly-in-string
+                                    NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                 },
-                            };
-                            act = utils.setUpActParams(
-                                act,
-                                event,
-                                null,
-                                {
-                                    OS_BOTIFY_TOKEN: 'dummy_token',
-                                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                                },
-                                'dummy_github_token',
-                                null,
-                                {
-                                    PULL_REQUEST_NUMBER: '1234',
-                                    NEW_VERSION: newVersion,
-                                },
-                            );
-                            const result = await act.runEvent(event, {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                mockSteps: testMockSteps,
-                                actor,
-                                logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                mockJobs: testMockJobs,
-                            });
-
-                            assertions.assertValidateActorJobExecuted(result);
-                            assertions.assertCreateNewVersionJobExecuted(result);
-                            assertions.assertCherryPickJobExecuted(result, actor, '1234', true, newVersion);
+                                runsOn: 'ubuntu-latest',
+                            },
+                        };
+                        act = utils.setUpActParams(
+                            act,
+                            event,
+                            null,
+                            {
+                                OS_BOTIFY_TOKEN: 'dummy_token',
+                                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                                SLACK_WEBHOOK: 'dummy_slack_webhook',
+                            },
+                            'dummy_github_token',
+                            null,
+                            {
+                                PULL_REQUEST_NUMBER: '1234',
+                            },
+                        );
+                        const result = await act.runEvent(event, {
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                            mockSteps: testMockSteps,
+                            actor,
+                            logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                            mockJobs: testMockJobs,
                         });
-                    });
-                    describe('version do not match', () => {
-                        const versionsMatch = false;
-                        it('workflow executes, new version created, PR auto-assigned and commented, approved and merged automatically', async () => {
-                            const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
-                            const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                            const testMockSteps = {
-                                validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                            };
-                            testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                            const testMockJobs = {
-                                createNewVersion: {
-                                    steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
-                                    outputs: {
-                                        // eslint-disable-next-line no-template-curly-in-string
-                                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                                    },
-                                    runsOn: 'ubuntu-latest',
-                                },
-                            };
-                            act = utils.setUpActParams(
-                                act,
-                                event,
-                                null,
-                                {
-                                    OS_BOTIFY_TOKEN: 'dummy_token',
-                                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                                },
-                                'dummy_github_token',
-                                null,
-                                {
-                                    PULL_REQUEST_NUMBER: '1234',
-                                    NEW_VERSION: newVersion,
-                                },
-                            );
-                            const result = await act.runEvent(event, {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                mockSteps: testMockSteps,
-                                actor,
-                                logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                mockJobs: testMockJobs,
-                            });
 
-                            assertions.assertValidateActorJobExecuted(result);
-                            assertions.assertCreateNewVersionJobExecuted(result);
-                            assertions.assertCherryPickJobExecuted(result, actor, '1234', true, newVersion);
-                        });
+                        assertions.assertValidateActorJobExecuted(result);
+                        assertions.assertCreateNewVersionJobExecuted(result);
+                        assertions.assertCherryPickJobExecuted(result, actor, '1234', true);
                     });
                 });
-                describe('merge conflicts', () => {
-                    const mergeConflicts = true;
-                    describe('version match', () => {
-                        const versionsMatch = true;
-                        it('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
-                            const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
-                            const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                            const testMockSteps = {
-                                validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                            };
-                            testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                            const testMockJobs = {
-                                createNewVersion: {
-                                    steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
-                                    outputs: {
-                                        // eslint-disable-next-line no-template-curly-in-string
-                                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                                    },
-                                    runsOn: 'ubuntu-latest',
+                describe('version do not match', () => {
+                    const versionsMatch = false;
+                    it('workflow executes, PR auto-assigned and commented, approved and merged automatically', async () => {
+                        const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
+                        const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
+                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        const testMockSteps = {
+                            validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
+                        };
+                        testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
+                        const testMockJobs = {
+                            createNewVersion: {
+                                steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                outputs: {
+                                    // eslint-disable-next-line no-template-curly-in-string
+                                    NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                 },
-                            };
-                            act = utils.setUpActParams(
-                                act,
-                                event,
-                                null,
-                                {
-                                    OS_BOTIFY_TOKEN: 'dummy_token',
-                                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                                },
-                                'dummy_github_token',
-                                null,
-                                {
-                                    PULL_REQUEST_NUMBER: '1234',
-                                    NEW_VERSION: newVersion,
-                                },
-                            );
-                            const result = await act.runEvent(event, {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                mockSteps: testMockSteps,
-                                actor,
-                                logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                mockJobs: testMockJobs,
-                            });
-
-                            assertions.assertValidateActorJobExecuted(result);
-                            assertions.assertCreateNewVersionJobExecuted(result);
-                            assertions.assertCherryPickJobExecuted(result, actor, '1234', true, newVersion, true);
+                                runsOn: 'ubuntu-latest',
+                            },
+                        };
+                        act = utils.setUpActParams(
+                            act,
+                            event,
+                            null,
+                            {
+                                OS_BOTIFY_TOKEN: 'dummy_token',
+                                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                                SLACK_WEBHOOK: 'dummy_slack_webhook',
+                            },
+                            'dummy_github_token',
+                            null,
+                            {
+                                PULL_REQUEST_NUMBER: '1234',
+                            },
+                        );
+                        const result = await act.runEvent(event, {
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                            mockSteps: testMockSteps,
+                            actor,
+                            logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                            mockJobs: testMockJobs,
                         });
-                    });
-                    describe('version do not match', () => {
-                        const versionsMatch = false;
-                        it('workflow executes, new version created, PR auto-assigned and commented, not merged automatically', async () => {
-                            const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
-                            const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                            const testMockSteps = {
-                                validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                            };
-                            testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                            const testMockJobs = {
-                                createNewVersion: {
-                                    steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
-                                    outputs: {
-                                        // eslint-disable-next-line no-template-curly-in-string
-                                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                                    },
-                                    runsOn: 'ubuntu-latest',
-                                },
-                            };
-                            act = utils.setUpActParams(
-                                act,
-                                event,
-                                null,
-                                {
-                                    OS_BOTIFY_TOKEN: 'dummy_token',
-                                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                                },
-                                'dummy_github_token',
-                                null,
-                                {
-                                    PULL_REQUEST_NUMBER: '1234',
-                                    NEW_VERSION: newVersion,
-                                },
-                            );
-                            const result = await act.runEvent(event, {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                mockSteps: testMockSteps,
-                                actor,
-                                logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                mockJobs: testMockJobs,
-                            });
 
-                            assertions.assertValidateActorJobExecuted(result);
-                            assertions.assertCreateNewVersionJobExecuted(result);
-                            assertions.assertCherryPickJobExecuted(result, actor, '1234', true, newVersion, true);
-                        });
+                        assertions.assertValidateActorJobExecuted(result);
+                        assertions.assertCreateNewVersionJobExecuted(result);
+                        assertions.assertCherryPickJobExecuted(result, actor, '1234', true);
                     });
                 });
             });
-
-            describe('input version set', () => {
-                const newVersion = '1.2.3';
-                describe('no merge conflicts', () => {
-                    const mergeConflicts = false;
-                    describe('version match', () => {
-                        const versionsMatch = true;
-                        it('workflow executes, PR approved and merged automatically', async () => {
-                            const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
-                            const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                            const testMockSteps = {
-                                validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                            };
-                            testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                            const testMockJobs = {
-                                createNewVersion: {
-                                    steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
-                                    outputs: {
-                                        // eslint-disable-next-line no-template-curly-in-string
-                                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                                    },
-                                    runsOn: 'ubuntu-latest',
+            describe('merge conflicts', () => {
+                const mergeConflicts = true;
+                describe('version match', () => {
+                    const versionsMatch = true;
+                    it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
+                        const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
+                        const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
+                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        const testMockSteps = {
+                            validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
+                        };
+                        testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
+                        const testMockJobs = {
+                            createNewVersion: {
+                                steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                outputs: {
+                                    // eslint-disable-next-line no-template-curly-in-string
+                                    NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                 },
-                            };
-                            act = utils.setUpActParams(
-                                act,
-                                event,
-                                null,
-                                {
-                                    OS_BOTIFY_TOKEN: 'dummy_token',
-                                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                                },
-                                'dummy_github_token',
-                                null,
-                                {
-                                    PULL_REQUEST_NUMBER: '1234',
-                                    NEW_VERSION: newVersion,
-                                },
-                            );
-                            const result = await act.runEvent(event, {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                mockSteps: testMockSteps,
-                                actor,
-                                logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                mockJobs: testMockJobs,
-                            });
-
-                            assertions.assertValidateActorJobExecuted(result);
-                            assertions.assertCreateNewVersionJobExecuted(result, false);
-                            assertions.assertCherryPickJobExecuted(result, actor, '1234', true, newVersion);
+                                runsOn: 'ubuntu-latest',
+                            },
+                        };
+                        act = utils.setUpActParams(
+                            act,
+                            event,
+                            null,
+                            {
+                                OS_BOTIFY_TOKEN: 'dummy_token',
+                                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                                SLACK_WEBHOOK: 'dummy_slack_webhook',
+                            },
+                            'dummy_github_token',
+                            null,
+                            {
+                                PULL_REQUEST_NUMBER: '1234',
+                            },
+                        );
+                        const result = await act.runEvent(event, {
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                            mockSteps: testMockSteps,
+                            actor,
+                            logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                            mockJobs: testMockJobs,
                         });
-                    });
-                    describe('version do not match', () => {
-                        const versionsMatch = false;
-                        it('workflow executes, PR auto-assigned and commented, approved and merged automatically', async () => {
-                            const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
-                            const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                            const testMockSteps = {
-                                validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                            };
-                            testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                            const testMockJobs = {
-                                createNewVersion: {
-                                    steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
-                                    outputs: {
-                                        // eslint-disable-next-line no-template-curly-in-string
-                                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                                    },
-                                    runsOn: 'ubuntu-latest',
-                                },
-                            };
-                            act = utils.setUpActParams(
-                                act,
-                                event,
-                                null,
-                                {
-                                    OS_BOTIFY_TOKEN: 'dummy_token',
-                                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                                },
-                                'dummy_github_token',
-                                null,
-                                {
-                                    PULL_REQUEST_NUMBER: '1234',
-                                    NEW_VERSION: newVersion,
-                                },
-                            );
-                            const result = await act.runEvent(event, {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                mockSteps: testMockSteps,
-                                actor,
-                                logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                mockJobs: testMockJobs,
-                            });
 
-                            assertions.assertValidateActorJobExecuted(result);
-                            assertions.assertCreateNewVersionJobExecuted(result, false);
-                            assertions.assertCherryPickJobExecuted(result, actor, '1234', true, newVersion);
-                        });
+                        assertions.assertValidateActorJobExecuted(result);
+                        assertions.assertCreateNewVersionJobExecuted(result);
+                        assertions.assertCherryPickJobExecuted(result, actor, '1234', true, true);
                     });
                 });
-                describe('merge conflicts', () => {
-                    const mergeConflicts = true;
-                    describe('version match', () => {
-                        const versionsMatch = true;
-                        it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
-                            const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
-                            const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                            const testMockSteps = {
-                                validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                            };
-                            testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                            const testMockJobs = {
-                                createNewVersion: {
-                                    steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
-                                    outputs: {
-                                        // eslint-disable-next-line no-template-curly-in-string
-                                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                                    },
-                                    runsOn: 'ubuntu-latest',
+                describe('version do not match', () => {
+                    const versionsMatch = false;
+                    it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
+                        const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
+                        const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
+                        let act = new eAct.ExtendedAct(repoPath, workflowPath);
+                        const testMockSteps = {
+                            validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
+                        };
+                        testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
+                        const testMockJobs = {
+                            createNewVersion: {
+                                steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
+                                outputs: {
+                                    // eslint-disable-next-line no-template-curly-in-string
+                                    NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
                                 },
-                            };
-                            act = utils.setUpActParams(
-                                act,
-                                event,
-                                null,
-                                {
-                                    OS_BOTIFY_TOKEN: 'dummy_token',
-                                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                                },
-                                'dummy_github_token',
-                                null,
-                                {
-                                    PULL_REQUEST_NUMBER: '1234',
-                                    NEW_VERSION: newVersion,
-                                },
-                            );
-                            const result = await act.runEvent(event, {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                mockSteps: testMockSteps,
-                                actor,
-                                logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                mockJobs: testMockJobs,
-                            });
-
-                            assertions.assertValidateActorJobExecuted(result);
-                            assertions.assertCreateNewVersionJobExecuted(result, false);
-                            assertions.assertCherryPickJobExecuted(result, actor, '1234', true, newVersion, true);
+                                runsOn: 'ubuntu-latest',
+                            },
+                        };
+                        act = utils.setUpActParams(
+                            act,
+                            event,
+                            null,
+                            {
+                                OS_BOTIFY_TOKEN: 'dummy_token',
+                                LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
+                                SLACK_WEBHOOK: 'dummy_slack_webhook',
+                            },
+                            'dummy_github_token',
+                            null,
+                            {
+                                PULL_REQUEST_NUMBER: '1234',
+                            },
+                        );
+                        const result = await act.runEvent(event, {
+                            workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
+                            mockSteps: testMockSteps,
+                            actor,
+                            logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
+                            mockJobs: testMockJobs,
                         });
-                    });
-                    describe('version do not match', () => {
-                        const versionsMatch = false;
-                        it('workflow executes, PR auto-assigned and commented, not merged automatically', async () => {
-                            const repoPath = mockGithub.repo.getPath('testCherryPickWorkflowRepo') || '';
-                            const workflowPath = path.join(repoPath, '.github', 'workflows', 'cherryPick.yml');
-                            let act = new eAct.ExtendedAct(repoPath, workflowPath);
-                            const testMockSteps = {
-                                validateActor: mocks.CHERRYPICK__VALIDATEACTOR__TRUE__STEP_MOCKS,
-                            };
-                            testMockSteps.cherryPick = mocks.getCherryPickMockSteps(versionsMatch, mergeConflicts);
-                            const testMockJobs = {
-                                createNewVersion: {
-                                    steps: mocks.CHERRYPICK__CREATENEWVERSION__STEP_MOCKS,
-                                    outputs: {
-                                        // eslint-disable-next-line no-template-curly-in-string
-                                        NEW_VERSION: '${{ steps.createNewVersion.outputs.NEW_VERSION }}',
-                                    },
-                                    runsOn: 'ubuntu-latest',
-                                },
-                            };
-                            act = utils.setUpActParams(
-                                act,
-                                event,
-                                null,
-                                {
-                                    OS_BOTIFY_TOKEN: 'dummy_token',
-                                    LARGE_SECRET_PASSPHRASE: '3xtr3m3ly_53cr3t_p455w0rd',
-                                    SLACK_WEBHOOK: 'dummy_slack_webhook',
-                                },
-                                'dummy_github_token',
-                                null,
-                                {
-                                    PULL_REQUEST_NUMBER: '1234',
-                                    NEW_VERSION: newVersion,
-                                },
-                            );
-                            const result = await act.runEvent(event, {
-                                workflowFile: path.join(repoPath, '.github', 'workflows', 'cherryPick.yml'),
-                                mockSteps: testMockSteps,
-                                actor,
-                                logFile: utils.getLogFilePath('cherryPick', expect.getState().currentTestName),
-                                mockJobs: testMockJobs,
-                            });
 
-                            assertions.assertValidateActorJobExecuted(result);
-                            assertions.assertCreateNewVersionJobExecuted(result, false);
-                            assertions.assertCherryPickJobExecuted(result, actor, '1234', true, newVersion, true);
-                        });
+                        assertions.assertValidateActorJobExecuted(result);
+                        assertions.assertCreateNewVersionJobExecuted(result);
+                        assertions.assertCherryPickJobExecuted(result, actor, '1234', true, true);
                     });
                 });
             });
@@ -575,7 +359,6 @@ describe('test workflow cherryPick', () => {
                 null,
                 {
                     PULL_REQUEST_NUMBER: '1234',
-                    NEW_VERSION: '',
                 },
             );
             const testMockSteps = {
