@@ -85,8 +85,6 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
-    const managerID = props.iouReport.managerID || 0;
-    const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     let reportAmount = ReportUtils.getMoneyRequestTotal(props.iouReport);
     if (reportAmount) {
         reportAmount = CurrencyUtils.convertToDisplayString(reportAmount, props.iouReport.currency);
@@ -102,7 +100,11 @@ function ReportPreview(props) {
             }
         }
     }
-    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
+    const managerEmail = props.iouReport.managerEmail || '';
+    const managerAccountID = props.iouReport.managerID || 0;
+    const managerName =
+        (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerAccountID, true)) || managerEmail;
+    const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
 
     return (
