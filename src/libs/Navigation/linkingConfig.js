@@ -54,6 +54,10 @@ export default {
                                 path: ROUTES.SETTINGS_LANGUAGE,
                                 exact: true,
                             },
+                            Settings_Preferences_Theme: {
+                                path: ROUTES.SETTINGS_THEME,
+                                exact: true,
+                            },
                             Settings_Close: {
                                 path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
@@ -218,9 +222,6 @@ export default {
                             },
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
-                            },
-                            YearPicker_Root: {
-                                path: ROUTES.SELECT_YEAR,
                             },
                         },
                     },
