@@ -145,19 +145,19 @@ class SettlementButton extends React.Component {
     }
 
     render() {
+        const hasErrors = !_.isEmpty(this.props.iouReport.errorFields) || !_.isEmpty(this.props.iouReport.errors);
         return (
             <KYCWall
                 onSuccessfulKYC={(iouPaymentType) => this.props.onPress(iouPaymentType)}
                 enablePaymentsRoute={this.props.enablePaymentsRoute}
                 addBankAccountRoute={this.props.addBankAccountRoute}
                 addDebitCardRoute={this.props.addDebitCardRoute}
-                isDisabled={this.props.network.isOffline}
                 chatReportID={this.props.chatReportID}
                 iouReport={this.props.iouReport}
             >
                 {(triggerKYCFlow) => (
                     <ButtonWithDropdownMenu
-                        isDisabled={this.props.isDisabled}
+                        isDisabled={this.props.network.isOffline || hasErrors}
                         isLoading={this.props.isLoading}
                         onPress={(event, iouPaymentType) => {
                             if (iouPaymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || iouPaymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
