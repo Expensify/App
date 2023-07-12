@@ -625,7 +625,7 @@ function getLoginPagePromoStyle() {
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
         },
         {
-            backgroundColor: colors.floralwhite,
+            backgroundColor: colors.ivory,
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
             redirectUri: `${CONST.USE_EXPENSIFY_URL}/accountants`,
         },

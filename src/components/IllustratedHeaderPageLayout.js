@@ -32,8 +32,12 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                    <HeaderWithBackButton {...propsToPassToHeader} />
+                    <HeaderWithBackButton
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...propsToPassToHeader}
+                        titleColor={themeColors.iconColorfulBackground}
+                        iconFill={themeColors.iconColorfulBackground}
+                    />
                     <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
                         <ScrollView
                             style={[styles.shiftUpOnePixel]}

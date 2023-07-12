@@ -6,7 +6,7 @@ export default {
     black: '#000000',
     blue: '#0185ff',
     blueHover: '#B0D9FF',
-    floralwhite: '#fffaf0',
+    ivory: '#fffaf0',
     orange: '#FF7101',
     pink: '#F68DFE',
     green: '#03D47C',

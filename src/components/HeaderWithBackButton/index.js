@@ -20,6 +20,7 @@ import useLocalize from '../../hooks/useLocalize';
 import useKeyboardState from '../../hooks/useKeyboardState';
 
 function HeaderWithBackButton({
+    iconFill = undefined,
     guidesCallTaskID = '',
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
@@ -41,6 +42,7 @@ function HeaderWithBackButton({
     stepCounter = null,
     subtitle = '',
     title = '',
+    titleColor = undefined,
     threeDotsAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -70,7 +72,10 @@ function HeaderWithBackButton({
                             accessibilityRole="button"
                             accessibilityLabel={translate('common.back')}
                         >
-                            <Icon src={Expensicons.BackArrow} />
+                            <Icon
+                                src={Expensicons.BackArrow}
+                                fill={iconFill}
+                            />
                         </PressableWithoutFeedback>
                     </Tooltip>
                 )}
@@ -85,6 +90,7 @@ function HeaderWithBackButton({
                     <Header
                         title={title}
                         subtitle={stepCounter && shouldShowStepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                        textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
@@ -109,7 +115,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Download}
-                                    fill={StyleUtils.getIconFillColor(getButtonState(false, false, isDelayButtonStateComplete))}
+                                    fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, isDelayButtonStateComplete))}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
@@ -123,7 +129,10 @@ function HeaderWithBackButton({
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('getAssistancePage.questionMarkButtonTooltip')}
                             >
-                                <Icon src={Expensicons.QuestionMark} />
+                                <Icon
+                                    src={Expensicons.QuestionMark}
+                                    fill={iconFill}
+                                />
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
@@ -147,7 +156,10 @@ function HeaderWithBackButton({
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
                             >
-                                <Icon src={Expensicons.Close} />
+                                <Icon
+                                    src={Expensicons.Close}
+                                    fill={iconFill}
+                                />
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
