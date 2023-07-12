@@ -33,8 +33,12 @@ import ConfirmContent from '../../../../components/ConfirmContent';
 import Button from '../../../../components/Button';
 import themeColors from '../../../../styles/themes/default';
 import variables from '../../../../styles/variables';
+import useLocalize from '../../../../hooks/useLocalize';
+import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 
 function BasePaymentsPage(props) {
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [showPassword, setShowPassword] = useState({
@@ -81,12 +85,12 @@ function BasePaymentsPage(props) {
                 anchorPositionTop: position.top + position.height + variables.addPaymentPopoverTopSpacing,
 
                 // We want the position to be 13px to the right of the left border
-                anchorPositionRight: props.windowWidth - position.right + variables.addPaymentPopoverRightSpacing,
+                anchorPositionRight: windowWidth - position.right + variables.addPaymentPopoverRightSpacing,
                 anchorPositionHorizontal: position.x,
                 anchorPositionVertical: position.y,
             });
         },
-        [props.windowWidth],
+        [windowWidth],
     );
 
     const setMenuPosition = useCallback(() => {
@@ -318,7 +322,7 @@ function BasePaymentsPage(props) {
                             >
                                 {(triggerKYCFlow) => (
                                     <MenuItem
-                                        title={props.translate('common.transferBalance')}
+                                        title={translate('common.transferBalance')}
                                         icon={Expensicons.Transfer}
                                         onPress={triggerKYCFlow}
                                         shouldShowRightIcon
@@ -330,7 +334,7 @@ function BasePaymentsPage(props) {
                     )}
                 </>
             )}
-            <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{props.translate('paymentsPage.paymentMethodsTitle')}</Text>
+            <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('paymentsPage.paymentMethodsTitle')}</Text>
         </>
     );
 
@@ -401,12 +405,12 @@ function BasePaymentsPage(props) {
         !(paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT && paymentMethod.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
 
     // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
-    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || props.isSmallScreenWidth;
+    const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || isSmallScreenWidth;
 
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
-                title={props.translate('common.payments')}
+                title={translate('common.payments')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <View style={[styles.flex1, styles.mb4]}>
@@ -445,7 +449,7 @@ function BasePaymentsPage(props) {
                 }}
             >
                 {!showConfirmDeleteContent ? (
-                    <View style={[styles.m5, !props.isSmallScreenWidth ? styles.sidebarPopover : '']}>
+                    <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
                         {isPopoverBottomMount && (
                             <MenuItem
                                 title={paymentMethod.formattedSelectedPaymentMethod.title || ''}
@@ -469,12 +473,12 @@ function BasePaymentsPage(props) {
                                         } else {
                                             setShowPassword({
                                                 shouldShowPasswordPrompt: true,
-                                                passwordButtonText: props.translate('paymentsPage.setDefaultConfirmation'),
+                                                passwordButtonText: translate('paymentsPage.setDefaultConfirmation'),
                                             });
                                         }
                                     });
                                 }}
-                                text={props.translate('paymentsPage.setDefaultConfirmation')}
+                                text={translate('paymentsPage.setDefaultConfirmation')}
                             />
                         )}
                         <Button
@@ -482,7 +486,7 @@ function BasePaymentsPage(props) {
                                 setShowConfirmDeleteContent(true);
                             }}
                             style={[shouldShowMakeDefaultButton ? styles.mt4 : {}]}
-                            text={props.translate('common.delete')}
+                            text={translate('common.delete')}
                             danger
                         />
                     </View>
@@ -493,11 +497,11 @@ function BasePaymentsPage(props) {
                             deletePaymentMethod();
                         }}
                         onCancel={hideDefaultDeleteMenu}
-                        contentStyles={!props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
-                        title={props.translate('paymentsPage.deleteAccount')}
-                        prompt={props.translate('paymentsPage.deleteConfirmation')}
-                        confirmText={props.translate('common.delete')}
-                        cancelText={props.translate('common.cancel')}
+                        contentStyles={!isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
+                        title={translate('paymentsPage.deleteAccount')}
+                        prompt={translate('paymentsPage.deleteConfirmation')}
+                        confirmText={translate('common.delete')}
+                        cancelText={translate('common.cancel')}
                         anchorPosition={{
                             top: anchorPosition.anchorPositionTop,
                             right: anchorPosition.anchorPositionRight,
@@ -529,8 +533,6 @@ BasePaymentsPage.defaultProps = defaultProps;
 BasePaymentsPage.displayName = BasePaymentsPage;
 
 export default compose(
-    withWindowDimensions,
-    withLocalize,
     withNetwork(),
     withOnyx({
         betas: {
