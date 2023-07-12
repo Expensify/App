@@ -91,6 +91,7 @@ function ReportPreview(props) {
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const hasErrors = !_.isEmpty(props.iouReport.errorFields) || !_.isEmpty(props.iouReport.errors);
     return (
         <View style={styles.chatItemMessage}>
             <PressableWithoutFeedback
@@ -106,10 +107,16 @@ function ReportPreview(props) {
             >
                 <View style={[styles.iouPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
                     <View style={styles.flexRow}>
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>
                                 {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
                             </Text>
+                            {hasErrors && (
+                                <Icon
+                                    src={Expensicons.DotIndicator}
+                                    fill={themeColors.danger}
+                                />
+                            )}
                         </View>
                     </View>
                     <View style={styles.flexRow}>
