@@ -97,8 +97,7 @@ function WorkspacePageWithSections(props) {
 
     useEffect(() => {
         fetchData(shouldSkipVBBACall);
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- It should run when component mounts
-    }, []);
+    }, [shouldSkipVBBACall]);
 
     return (
         <ScreenWrapper
