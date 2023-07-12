@@ -34,8 +34,9 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                         backgroundColor={backgroundColor}
                     />
                     <ScrollView
-                        style={styles.shiftUpOnePixel}
+                        style={[styles.shiftUpOnePixel]}
                         contentContainerStyle={safeAreaPaddingBottomStyle}
+                        showsVerticalScrollIndicator={false}
                     >
                         <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
                             <Lottie
