@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 
 import ONYXKEYS from '../../../ONYXKEYS';
 
-import ReportScreen from '../../../pages/home/ReportScreen';
+import ReportScreen, {BaseReportScreen} from '../../../pages/home/ReportScreen';
 import * as ReportUtils from '../../ReportUtils';
 import reportPropTypes from '../../../pages/reportPropTypes';
 import {withNavigationPropTypes} from '../../../components/withNavigation';
@@ -95,7 +95,13 @@ function ReportScreenWrapper(props) {
         }
     }, [props.route, props.navigation, props.reports, canUseDefaultRooms, props.policies, props.isFirstTimeNewExpensifyUser]);
 
-    return <ReportScreen route={props.route} />;
+    // Wait until there is reportID in the route params
+    if (lodashGet(props.route, 'params.reportID', null)) {
+        return <ReportScreen route={props.route} />;
+    }
+
+    // If there is no reportID in route, display stripped down version of the report screen
+    return <BaseReportScreen />;
 }
 
 ReportScreenWrapper.propTypes = propTypes;

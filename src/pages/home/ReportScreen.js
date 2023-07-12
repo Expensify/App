@@ -47,8 +47,8 @@ const propTypes = {
         params: PropTypes.shape({
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
-        }).isRequired,
-    }).isRequired,
+        }),
+    }),
 
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: PropTypes.bool,
@@ -91,8 +91,9 @@ const propTypes = {
 };
 
 const defaultProps = {
+    route: {},
     isSidebarLoaded: false,
-    reportActions: {},
+    reportActions: [],
     report: {
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
@@ -383,39 +384,37 @@ class ReportScreen extends React.Component {
 ReportScreen.propTypes = propTypes;
 ReportScreen.defaultProps = defaultProps;
 
-export default compose(
-    withViewportOffsetTop,
-    withLocalize,
-    withWindowDimensions,
-    withNavigationFocus,
-    withNavigation,
-    withNetwork(),
-    withOnyx({
-        isSidebarLoaded: {
-            key: ONYXKEYS.IS_SIDEBAR_LOADED,
-        },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
-            canEvict: false,
-            selector: ReportActionsUtils.getSortedReportActionsForDisplay,
-        },
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
-        },
-        isComposerFullSize: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        accountManagerReportID: {
-            key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-    }),
-)(ReportScreen);
+// A stripped-down version of the ReportScreen without an Onyx connection. Used to display
+// skeleton views while the reportID is still loading in the ReportScreenWrapper.
+const BaseReportScreen = compose(withViewportOffsetTop, withLocalize, withWindowDimensions, withNavigationFocus, withNavigation, withNetwork())(ReportScreen);
+
+export default withOnyx({
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    },
+    reportActions: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+        canEvict: false,
+        selector: ReportActionsUtils.getSortedReportActionsForDisplay,
+    },
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
+    isComposerFullSize: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${getReportID(route)}`,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    policies: {
+        key: ONYXKEYS.COLLECTION.POLICY,
+    },
+    accountManagerReportID: {
+        key: ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    },
+})(BaseReportScreen);
+
+export {BaseReportScreen};
