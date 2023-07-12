@@ -1,11 +1,11 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View } from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import Tooltip from '../Tooltip';
 import UserDetailsTooltip from '../UserDetailsTooltip';
-import {defaultProps, propTypes} from './displayNamesPropTypes';
+import { defaultProps, propTypes } from './displayNamesPropTypes';
 
 function DisplayNames(props) {
     const [isEllipsisActive, setIsEllipsisActive] = useState(false);
@@ -68,28 +68,32 @@ function DisplayNames(props) {
                 props.fullTitle
             ) : (
                 <>
-                    {_.map(props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
-                        <React.Fragment key={index}>
-                            <UserDetailsTooltip
-                                key={index}
-                                accountID={accountID}
-                                fallbackUserDetails={{
-                                    avatar,
-                                    login,
-                                    displayName,
-                                }}
-                                shiftHorizontal={() => getTooltipShiftX(index)}
-                            >
-                                <Text
-                                    ref={(el) => (childRefs.current[index] = el)}
-                                    style={[...props.textStyles, styles.pre]}
+                    {_.map(props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => {
+                        const getTooltipShiftXBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
+
+                        return (
+                            <React.Fragment key={index}>
+                                <UserDetailsTooltip
+                                    key={index}
+                                    accountID={accountID}
+                                    fallbackUserDetails={{
+                                        avatar,
+                                        login,
+                                        displayName,
+                                    }}
+                                    shiftHorizontal={getTooltipShiftXBridge}
                                 >
-                                    {displayName}
-                                </Text>
-                            </UserDetailsTooltip>
-                            {index < props.displayNamesWithTooltips.length - 1 && <Text style={props.textStyles}>,&nbsp;</Text>}
-                        </React.Fragment>
-                    ))}
+                                    <Text
+                                        ref={(el) => (childRefs.current[index] = el)}
+                                        style={[...props.textStyles, styles.pre]}
+                                    >
+                                        {displayName}
+                                    </Text>
+                                </UserDetailsTooltip>
+                                {index < props.displayNamesWithTooltips.length - 1 && <Text style={props.textStyles}>,&nbsp;</Text>}
+                            </React.Fragment>
+                        );
+                    })}
                     {props.displayNamesWithTooltips.length > 1 && Boolean(isEllipsisActive) && (
                         <View style={styles.displayNameTooltipEllipsis}>
                             <Tooltip text={props.fullTitle}>
