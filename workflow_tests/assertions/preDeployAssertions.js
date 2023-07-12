@@ -164,7 +164,6 @@ const assertUpdateStagingJobExecuted = (workflowResult, didExecute = true) => {
         ]),
         utils.createStepAssertion('Checkout main', true, null, 'UPDATE_STAGING', 'Checkout main', [
             {key: 'ref', value: 'main'},
-            {key: 'fetch-depth', value: '0'},
             {key: 'token', value: '***'},
         ]),
         utils.createStepAssertion('Setup Git for OSBotify', true, null, 'UPDATE_STAGING', 'Setup Git for OSBotify', [{key: 'GPG_PASSPHRASE', value: '***'}]),

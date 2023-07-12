@@ -70,7 +70,7 @@ const CREATE_NEW_VERSION_JOB_MOCK_STEPS = [CREATE_NEW_VERSION_MOCK_STEP];
 
 // update_staging
 const RUN_TURNSTYLE_MOCK_STEP = utils.createMockStep('Run turnstyle', 'Running turnstyle', 'UPDATE_STAGING', ['poll-interval-seconds'], ['GITHUB_TOKEN']);
-const CHECKOUT_MAIN_MOCK_STEP = utils.createMockStep('Checkout main', 'Checkout main', 'UPDATE_STAGING', ['ref', 'fetch-depth', 'token']);
+const CHECKOUT_MAIN_MOCK_STEP = utils.createMockStep('Checkout main', 'Checkout main', 'UPDATE_STAGING', ['ref', 'token']);
 const SETUP_GIT_FOR_OSBOTIFY_MOCK_STEP = utils.createMockStep('Setup Git for OSBotify', 'Setup Git for OSBotify', 'UPDATE_STAGING', ['GPG_PASSPHRASE']);
 const UPDATE_STAGING_BRANCH_FROM_MAIN_MOCK_STEP = utils.createMockStep('Update staging branch from main', 'Update staging branch from main', 'UPDATE_STAGING');
 const TAG_STAGING_MOCK_STEP = utils.createMockStep('Tag staging', 'Tagging staging', 'UPDATE_STAGING');
