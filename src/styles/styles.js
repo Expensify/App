@@ -3519,13 +3519,19 @@ const styles = {
         marginTop: -1,
     },
 
-    overscrollSpacer: (height) => ({
-        backgroundColor: themeColors.appBG,
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
         height,
         width: '100%',
         position: 'absolute',
-        bottom: 0,
-        zIndex: -1,
+        top: -height,
+        left: 0,
+        right: 0,
     }),
 };
 

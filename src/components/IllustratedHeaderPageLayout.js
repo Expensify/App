@@ -7,6 +7,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
+import useWindowDimensions from '../hooks/useWindowDimensions';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -21,6 +22,7 @@ const propTypes = {
 };
 
 function IllustratedHeaderPageLayout({backgroundColor, children, illustration, ...propsToPassToHeader}) {
+    const {windowHeight} = useWindowDimensions();
     return (
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
@@ -38,6 +40,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                         contentContainerStyle={safeAreaPaddingBottomStyle}
                         showsVerticalScrollIndicator={false}
                     >
+                        <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
                         <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
                             <Lottie
                                 source={illustration}
