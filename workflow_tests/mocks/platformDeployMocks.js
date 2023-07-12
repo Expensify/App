@@ -21,7 +21,7 @@ const PLATFORM_DEPLOY__VALIDATE_ACTOR__TEAM_MEMBER__STEP_MOCKS = [PLATFORM_DEPLO
 const PLATFORM_DEPLOY__VALIDATE_ACTOR__OUTSIDER__STEP_MOCKS = [PLATFORM_DEPLOY__VALIDATE_ACTOR__CHECK_USER_DEPLOYER__OUTSIDER__STEP_MOCK];
 
 // android
-const PLATFORM_DEPLOY__ANDROID__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'ANDROID', ['fetch-depth']);
+const PLATFORM_DEPLOY__ANDROID__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'ANDROID');
 const PLATFORM_DEPLOY__ANDROID__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'ANDROID');
 const PLATFORM_DEPLOY__ANDROID__SETUP_RUBY__STEP_MOCK = utils.createMockStep('Setup Ruby', 'Setting up Ruby', 'ANDROID', ['ruby-version', 'bundler-cache']);
 const PLATFORM_DEPLOY__ANDROID__DECRYPT_KEYSTORE__STEP_MOCK = utils.createMockStep('Decrypt keystore', 'Decrypting keystore', 'ANDROID', null, ['LARGE_SECRET_PASSPHRASE']);
@@ -62,7 +62,7 @@ const PLATFORM_DEPLOY__ANDROID__STEP_MOCKS = [
 ];
 
 // desktop
-const PLATFORM_DEPLOY__DESKTOP__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'DESKTOP', ['fetch-depth']);
+const PLATFORM_DEPLOY__DESKTOP__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'DESKTOP');
 const PLATFORM_DEPLOY__DESKTOP__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'DESKTOP');
 const PLATFORM_DEPLOY__DESKTOP__DECRYPT_ID__STEP_MOCK = utils.createMockStep('Decrypt Developer ID Certificate', 'Decrypting developer id certificate', 'DESKTOP', null, [
     'DEVELOPER_ID_SECRET_PASSPHRASE',
@@ -92,7 +92,7 @@ const PLATFORM_DEPLOY__DESKTOP__STEP_MOCKS = [
 ];
 
 // ios
-const PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'IOS', ['fetch-depth']);
+const PLATFORM_DEPLOY__IOS__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'IOS');
 const PLATFORM_DEPLOY__IOS__SETUP_RUBY__STEP_MOCK = utils.createMockStep('Setup Ruby', 'Setting up Ruby', 'IOS', ['ruby-version', 'bundler-cache']);
 const PLATFORM_DEPLOY__IOS__COCOAPODS__STEP_MOCK = utils.createMockStep('Install cocoapods', 'Installing cocoapods', 'IOS', ['timeout_minutes', 'max_attempts', 'command']);
@@ -135,7 +135,7 @@ const PLATFORM_DEPLOY__IOS__STEP_MOCKS = [
 ];
 
 // web
-const PLATFORM_DEPLOY__WEB__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'WEB', ['fetch-depth']);
+const PLATFORM_DEPLOY__WEB__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'WEB');
 const PLATFORM_DEPLOY__WEB__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'WEB');
 const PLATFORM_DEPLOY__WEB__CLOUDFLARE__STEP_MOCK = utils.createMockStep('Setup Cloudflare CLI', 'Setting up Cloudflare CLI', 'WEB');
 const PLATFORM_DEPLOY__WEB__AWS_CREDENTIALS__STEP_MOCK = utils.createMockStep('Configure AWS Credentials', 'Configuring AWS credentials', 'WEB', [
@@ -204,7 +204,7 @@ const PLATFORM_DEPLOY__POST_SLACK_SUCCESS__STEP_MOCKS = [
 ];
 
 // post github comment
-const PLATFORM_DEPLOY__POST_GIHUB_COMMENT__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'POST_GITHUB_COMMENT', ['fetch-depth']);
+const PLATFORM_DEPLOY__POST_GIHUB_COMMENT__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'POST_GITHUB_COMMENT');
 const PLATFORM_DEPLOY__POST_GIHUB_COMMENT__SETUP_NODE__STEP_MOCK = utils.createMockStep('Setup Node', 'Setting up Node', 'POST_GITHUB_COMMENT');
 const PLATFORM_DEPLOY__POST_GIHUB_COMMENT__SET_VERSION__STEP_MOCK = utils.createMockStep('Set version', 'Setting version', 'POST_GITHUB_COMMENT', null, null, null, {VERSION: '1.2.3'});
 const PLATFORM_DEPLOY__POST_GIHUB_COMMENT__GET_PR_LIST__STEP_MOCK = utils.createMockStep(

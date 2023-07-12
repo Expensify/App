@@ -14,7 +14,7 @@ const assertVerifyActorJobExecuted = (workflowResult, username, didExecute = tru
 
 const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProduction = true, isSuccessful = true) => {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'ANDROID', 'Checking out', [{key: 'fetch-depth', value: '0'}]),
+        utils.createStepAssertion('Checkout', true, null, 'ANDROID', 'Checking out'),
         utils.createStepAssertion('Setup Node', true, null, 'ANDROID', 'Setting up Node'),
         utils.createStepAssertion('Setup Ruby', true, null, 'ANDROID', 'Setting up Ruby', [
             {key: 'ruby-version', value: '2.7'},
@@ -82,7 +82,7 @@ const assertAndroidJobExecuted = (workflowResult, didExecute = true, isProductio
 
 const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProduction = true) => {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'DESKTOP', 'Checking out', [{key: 'fetch-depth', value: '0'}]),
+        utils.createStepAssertion('Checkout', true, null, 'DESKTOP', 'Checking out'),
         utils.createStepAssertion('Setup Node', true, null, 'DESKTOP', 'Setting up Node'),
         utils.createStepAssertion('Decrypt Developer ID Certificate', true, null, 'DESKTOP', 'Decrypting developer id certificate', null, [
             {key: 'DEVELOPER_ID_SECRET_PASSPHRASE', value: '***'},
@@ -123,7 +123,7 @@ const assertDesktopJobExecuted = (workflowResult, didExecute = true, isProductio
 
 const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = true, isSuccessful = true) => {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'IOS', 'Checking out', [{key: 'fetch-depth', value: '0'}]),
+        utils.createStepAssertion('Checkout', true, null, 'IOS', 'Checking out'),
         utils.createStepAssertion('Setup Node', true, null, 'IOS', 'Setting up Node'),
         utils.createStepAssertion('Setup Ruby', true, null, 'IOS', 'Setting up Ruby', [
             {key: 'ruby-version', value: '2.7'},
@@ -132,7 +132,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
         utils.createStepAssertion('Install cocoapods', true, null, 'IOS', 'Installing cocoapods', [
             {key: 'timeout_minutes', value: '10'},
             {key: 'max_attempts', value: '5'},
-            {key: 'command', value: 'cd ios && pod install'},
+            {key: 'command', value: 'cd ios && bundle exec pod install'},
         ]),
         utils.createStepAssertion('Decrypt profile', true, null, 'IOS', 'Decrypting profile', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
         utils.createStepAssertion('Decrypt certificate', true, null, 'IOS', 'Decrypting certificate', null, [{key: 'LARGE_SECRET_PASSPHRASE', value: '***'}]),
@@ -197,7 +197,7 @@ const assertIOSJobExecuted = (workflowResult, didExecute = true, isProduction = 
 
 const assertWebJobExecuted = (workflowResult, didExecute = true, isProduction = true) => {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'WEB', 'Checking out', [{key: 'fetch-depth', value: '0'}]),
+        utils.createStepAssertion('Checkout', true, null, 'WEB', 'Checking out'),
         utils.createStepAssertion('Setup Node', true, null, 'WEB', 'Setting up Node'),
         utils.createStepAssertion('Setup Cloudflare CLI', true, null, 'WEB', 'Setting up Cloudflare CLI'),
         utils.createStepAssertion('Configure AWS Credentials', true, null, 'WEB', 'Configuring AWS credentials', [
@@ -301,7 +301,7 @@ const assertPostSlackOnSuccessJobExecuted = (workflowResult, didExecute = true, 
 
 const assertPostGithubCommentJobExecuted = (workflowResult, didExecute = true, isProduction = true, didDeploy = true) => {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'POST_GITHUB_COMMENT', 'Checking out', [{key: 'fetch-depth', value: '0'}]),
+        utils.createStepAssertion('Checkout', true, null, 'POST_GITHUB_COMMENT', 'Checking out'),
         utils.createStepAssertion('Setup Node', true, null, 'POST_GITHUB_COMMENT', 'Setting up Node'),
         utils.createStepAssertion('Set version', true, null, 'POST_GITHUB_COMMENT', 'Setting version'),
         utils.createStepAssertion('Get Release Pull Request List', true, null, 'POST_GITHUB_COMMENT', 'Getting release pull request list', [
