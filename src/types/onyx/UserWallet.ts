@@ -1,24 +1,25 @@
 import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 
+type WalletLinkedAccountType = 'debitCard' | 'bankAccount';
+
+type ErrorCode = 'ssnError' | 'kbaNeeded' | 'kycFailed';
+
 type UserWallet = {
     /** The user's available wallet balance */
-    availableBalance?: number;
+    availableBalance: number;
 
     /** The user's current wallet balance */
-    currentBalance?: number;
+    currentBalance: number;
 
     /** What step in the activation flow are we on? */
-    currentStep?: ValueOf<typeof CONST.WALLET.STEP>;
-
-    /** Error code returned by the server */
-    errorCode?: string;
+    currentStep: ValueOf<typeof CONST.WALLET.STEP>;
 
     /** If we should show the FailedKYC view after the user submitted their info with a non fixable error */
     shouldShowFailedKYC?: boolean;
 
     /** Status of wallet - e.g. SILVER or GOLD */
-    tierName?: ValueOf<typeof CONST.WALLET.TIER_NAME>;
+    tierName: ValueOf<typeof CONST.WALLET.TIER_NAME>;
 
     /** The user's wallet tier */
     tier?: number;
@@ -27,13 +28,10 @@ type UserWallet = {
     shouldShowWalletActivationSuccess?: boolean;
 
     /** The ID of the linked account */
-    walletLinkedAccountID?: number;
+    walletLinkedAccountID: number;
 
     /** The type of the linked account (debitCard or bankAccount) */
-    walletLinkedAccountType?: string;
-
-    /** An error message to display to the user */
-    errors?: Record<string, string>;
+    walletLinkedAccountType: WalletLinkedAccountType;
 
     /** The user's bank account ID */
     bankAccountID?: number;
@@ -43,6 +41,12 @@ type UserWallet = {
 
     /** The user's current wallet limit enforcement period */
     walletLimitEnforcementPeriod?: number;
+
+    /** Error code returned by the server */
+    errorCode?: ErrorCode;
+
+    /** An error message to display to the user */
+    errors?: Record<string, string>;
 };
 
 export default UserWallet;
