@@ -73,7 +73,7 @@ jobs:
             staging \
             ${{ steps.getVersionBumpCommit.outputs.VERSION_BUMP_SHA }} \
             ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} \
-            --no-tags
+            --no-tags \
             --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
 
       - name: Cherry-pick the version-bump to staging
