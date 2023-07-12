@@ -1,7 +1,7 @@
 const utils = require('../utils/utils');
 
 // lockstagingdeploys
-const LOCKDEPLOYS__LOCKSTAGINGDEPLOYS__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'LOCKSTAGINGDEPLOYS', ['ref', 'fetch-depth', 'token'], []);
+const LOCKDEPLOYS__LOCKSTAGINGDEPLOYS__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checking out', 'LOCKSTAGINGDEPLOYS', ['ref', 'token'], []);
 const LOCKDEPLOYS__LOCKSTAGINGDEPLOYS__WAIT_FOR_STAGING_DEPLOYS_TO_FINISH__STEP_MOCK = utils.createMockStep(
     'Wait for staging deploys to finish',
     'Waiting for staging deploys to finish',

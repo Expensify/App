@@ -10,7 +10,6 @@ const assertlockStagingDeploysJobExecuted = (workflowResult, didExecute = true, 
             'Checking out',
             [
                 {key: 'ref', value: 'main'},
-                {key: 'fetch-depth', value: '0'},
                 {key: 'token', value: '***'},
             ],
             [],
@@ -58,7 +57,6 @@ const assertlockStagingDeploysJobFailedAfterFirstStep = (workflowResult) => {
             'Checking out',
             [
                 {key: 'ref', value: 'main'},
-                {key: 'fetch-depth', value: '0'},
                 {key: 'token', value: '***'},
             ],
             [],
