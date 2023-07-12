@@ -114,10 +114,7 @@ function TaskView(props) {
                 <MenuItem
                     label={props.translate('task.assignee')}
                     title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                    icon={UserUtils.getAvatar(
-                        avatarURL,
-                        props.report.managerID,
-                    )}
+                    icon={UserUtils.getAvatar(avatarURL, props.report.managerID)}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     avatarSize={CONST.AVATAR_SIZE.SMALLER}
                     titleStyle={styles.assigneeTextStyle}
