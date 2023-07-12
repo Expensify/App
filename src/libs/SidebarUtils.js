@@ -13,6 +13,7 @@ import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+import * as Policy from './actions/Policy';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -278,9 +279,11 @@ function getOptionData(reportID) {
     result.isExpenseReport = ReportUtils.isExpenseReport(report);
     result.policyType = ReportUtils.getPolicyType(report, policies);
     result.isControlPolicyExpenseChat = ReportUtils.isControlPolicyExpenseChat(report);
-    if (result.isControlPolicyExpenseChat) {
+    result.isControlPolicyExpenseReport = ReportUtils.isControlPolicyExpenseReport(report);
+    if (result.isControlPolicyExpenseReport) {
         result.isExpenseReportApproved = ReportUtils.isExpenseReportApproved(report);
         result.isExpenseReportManager = ReportUtils.isExpenseReportManager(report);
+        result.isAdminOfControlPolicy = Policy.isAdminOfControlPolicy([policies[report.policyID]]);
     }
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;

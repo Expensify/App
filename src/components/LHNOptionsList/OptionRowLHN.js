@@ -103,10 +103,13 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
-            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
-            (optionItem.policyType === CONST.POLICY.TYPE.CORPORATE && optionItem.isExpenseReportApproved) ||
-            (optionItem.policyType === CONST.POLICY.TYPE.CORPORATE && !optionItem.isExpenseReportApproved && optionItem.isExpenseReportManager) ||
+            (optionItem.policyType !== CONST.POLICY.TYPE.CORPORATE && optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
+            (optionItem.isControlPolicyExpenseReport && !optionItem.isExpenseReportApproved && optionItem.isExpenseReportManager) ||
+            (optionItem.isControlPolicyExpenseReport && optionItem.isExpenseReportApproved && optionItem.isAdminOfControlPolicy) ||
             (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
+    if (optionItem.reportID === '7968441077953408') {
+        console.log(optionItem.isControlPolicyExpenseReport && optionItem.isExpenseReportApproved && !optionItem.isAdminOfControlPolicy);
+    }
 
     /**
      * Show the ReportActionContextMenu modal popover.

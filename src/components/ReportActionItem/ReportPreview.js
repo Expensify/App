@@ -11,7 +11,6 @@ import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import Button from '../Button';
 import ControlSelection from '../../libs/ControlSelection';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import {showContextMenuForReport} from '../ShowContextMenuContext';
@@ -20,6 +19,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import SettlementButton from '../SettlementButton';
+import Button from '../Button';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
@@ -92,10 +92,11 @@ function ReportPreview(props) {
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const displayingMessage = ReportUtils.getReportPreviewMessage(props.iouReport, props.action);
-    const shouldShowSettlementButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport)
-        ? ReportUtils.isPolicyExpenseChatAdmin(props.chatReport) && !ReportUtils.isSettled(props.iouReport.reportID) && ReportUtils.isExpenseReportApproved(props.iouReport)
-        : isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID);
+    const isControlPolicyExpenseChat = ReportUtils.isControlPolicyExpenseChat(props.chatReport);
+    const isControlPolicyExpenseReport = ReportUtils.isControlPolicyExpenseReport(props.iouReport);
+    const shouldShowSettlementButton =
+        (!isControlPolicyExpenseReport && isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID)) ||
+        (isControlPolicyExpenseReport && ReportUtils.isExpenseReportApproved(props.iouReport));
     const shouldShowApproveButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport) && isCurrentUserManager && !ReportUtils.isExpenseReportApproved(props.iouReport);
     return (
         <View style={styles.chatItemMessage}>
@@ -131,7 +132,7 @@ function ReportPreview(props) {
                             )}
                         </View>
                     </View>
-                    {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
+                    {shouldShowSettlementButton && (
                         <SettlementButton
                             currency={props.iouReport.currency}
                             policyID={props.iouReport.policyID}
@@ -145,26 +146,6 @@ function ReportPreview(props) {
                     )}
                 </View>
             </PressableWithoutFeedback>
-            {shouldShowSettlementButton && (
-                <SettlementButton
-                    currency={props.iouReport.currency}
-                    policyID={props.iouReport.policyID}
-                    chatReportID={props.chatReportID}
-                    iouReport={props.iouReport}
-                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.iouReport)}
-                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                    addBankAccountRoute={bankAccountRoute}
-                    style={[styles.requestPreviewBox]}
-                />
-            )}
-            {shouldShowApproveButton && (
-                <Button
-                    success
-                    text="Approve"
-                    onPress={() => IOU.approveMoneyRequest(props.iouReport)}
-                    style={[styles.requestPreviewBox]}
-                />
-            )}
         </View>
     );
 }

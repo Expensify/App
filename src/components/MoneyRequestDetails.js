@@ -18,6 +18,7 @@ import compose from '../libs/compose';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
 import SettlementButton from './SettlementButton';
+import Button from './Button';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
@@ -79,16 +80,25 @@ function MoneyRequestDetails(props) {
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
 
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
+
     const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
-    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerID);
     const payeeAvatar = isExpenseReport
         ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
         : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
-    const isPayer =
-        Policy.isAdminOfFreePolicy([props.policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = true;
+
+    const isPayer = Policy.isAdminOfFreePolicy([props.policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && isCurrentUserManager);
+    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isCurrentUserManager = lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID;
+    const isControlPolicyExpenseReport = ReportUtils.isControlPolicyExpenseReport(moneyRequestReport);
+    const isExpenseReportApproved = ReportUtils.isExpenseReportApproved(moneyRequestReport);
+
+    const shouldShowSettlementButton =
+        (!isControlPolicyExpenseReport && !isSettled && !props.isSingleTransactionView && isPayer) ||
+        (isControlPolicyExpenseReport && Policy.isAdminOfControlPolicy([props.policy]) && isExpenseReportApproved);
+    const shouldShowApproveButton = isControlPolicyExpenseReport && !isExpenseReportApproved && isCurrentUserManager;
+
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
     return (
@@ -145,6 +155,15 @@ function MoneyRequestDetails(props) {
                                 />
                             </View>
                         )}
+                        {shouldShowApproveButton && !props.isSmallScreenWidth && (
+                            <View style={[styles.ml4]}>
+                                <Button
+                                    success
+                                    text="Approve"
+                                    onPress={() => IOU.approveMoneyRequest(props.chatReport, props.report)}
+                                />
+                            </View>
+                        )}
                     </View>
                 </View>
                 {shouldShowSettlementButton && props.isSmallScreenWidth && (
@@ -158,6 +177,13 @@ function MoneyRequestDetails(props) {
                         enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
+                    />
+                )}
+                {shouldShowApproveButton && props.isSmallScreenWidth && (
+                    <Button
+                        success
+                        text="Approve"
+                        onPress={() => IOU.approveMoneyRequest(props.chatReport, props.report)}
                     />
                 )}
             </View>
