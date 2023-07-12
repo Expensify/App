@@ -61,6 +61,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     const assigneeChatReportID = assigneeChatReport.reportID;
     const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
+    let optimisticChatCreatedReportAction;
 
     // If you're choosing to share the task in the same DM as the assignee then 
     // we don't need to create another reportAction indicating that you've been assigned
@@ -167,7 +168,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
 
         // If we're optimistically creating a new chat report for the assignee then we need to create the report and reportAction
         if (assigneeChatReport && assigneeChatReport.isOptimisticReport) {
-            const optimisticChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(assigneeChatReportID);
+            optimisticChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(assigneeChatReportID);
             optimisticData.push(
                 {
                     onyxMethod: Onyx.METHOD.SET,
@@ -247,13 +248,14 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             parentReportID,
             taskReportID: optimisticTaskReport.reportID,
             createdTaskReportActionID: optimisticTaskCreatedAction.reportActionID,
-            reportName: optimisticTaskReport.reportName,
             title: optimisticTaskReport.reportName,
             description: optimisticTaskReport.description,
             assignee,
             assigneeAccountID,
             assigneeChatReportID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
+            assigneeChatCreatedReportActionID: optimisticChatCreatedReportAction ? optimisticChatCreatedReportAction.reportActionID : 0,
+
         },
         {optimisticData, successData, failureData},
     );

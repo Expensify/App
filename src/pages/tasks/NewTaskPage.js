@@ -118,7 +118,7 @@ function NewTaskPage(props) {
             return;
         }
 
-        Task.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID);
+        Task.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID, props.task.assigneeChatReport);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
