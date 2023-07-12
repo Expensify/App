@@ -158,14 +158,7 @@ class WorkspaceInvitePage extends React.Component {
         indexOffset += personalDetailsWithoutSelected.length;
 
         const hasUnselectedUserToInvite = this.state.userToInvite && !_.contains(selectedLogins, this.state.userToInvite.login);
-        const userToInvitePhone = this.state.userToInvite && OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.userToInvite.login);
-        const hideUserToInvite =
-            userToInvitePhone &&
-            _.find(this.state.personalDetails, ({login}) => {
-                return login === userToInvitePhone;
-            });
-
-        if (hasUnselectedUserToInvite && !hideUserToInvite) {
+        if (hasUnselectedUserToInvite) {
             sections.push({
                 title: undefined,
                 data: [this.state.userToInvite],
