@@ -12,6 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize from '../withLocalize';
 import compose from '../../libs/compose';
 import * as UserUtils from '../../libs/UserUtils';
+import CONST from '../../CONST';
 import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 function UserDetailsTooltip(props) {
@@ -32,27 +33,30 @@ function UserDetailsTooltip(props) {
         userAccountID = props.delegateAccountID;
     }
 
+    let title = String(userDisplayName).trim() ? userDisplayName : '';
+    const subtitle = (userLogin || '').trim() && !_.isEqual(LocalePhoneNumber.formatPhoneNumber(userLogin || ''), userDisplayName) ? Str.removeSMSDomain(userLogin) : '';
+    if (props.icon && props.icon.type === CONST.ICON_TYPE_WORKSPACE) {
+        title = props.icon.name;
+    }
     const renderTooltipContent = useCallback(
         () => (
             <View style={[styles.alignItemsCenter, styles.ph2, styles.pv2]}>
                 <View style={styles.emptyAvatar}>
                     <Avatar
                         containerStyles={[styles.actionAvatar]}
-                        source={UserUtils.getAvatar(userAvatar, userAccountID)}
+                        source={props.icon ? props.icon.source : UserUtils.getAvatar(userAvatar, userAccountID)}
+                        type={props.icon ? props.icon.type : CONST.ICON_TYPE_AVATAR}
+                        name={props.icon ? props.icon.name : userLogin}
                     />
                 </View>
-
-                <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{userDisplayName}</Text>
-
-                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>
-                    {(userLogin || '').trim() && !_.isEqual(LocalePhoneNumber.formatPhoneNumber(userLogin || ''), userDisplayName) ? Str.removeSMSDomain(userLogin) : ''}
-                </Text>
+                <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
+                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{subtitle}</Text>
             </View>
         ),
-        [userAvatar, userDisplayName, userLogin, userAccountID],
+        [props.icon, userAvatar, userAccountID, userLogin, title, subtitle],
     );
 
-    if (!userDisplayName && !userLogin) {
+    if (!props.icon && !userDisplayName && !userLogin) {
         return props.children;
     }
 
