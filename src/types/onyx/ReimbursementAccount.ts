@@ -1,8 +1,10 @@
+import {ValueOf} from 'type-fest';
 import * as OnyxCommon from './OnyxCommon';
+import CONST from '../../CONST';
 
 type ACHData = {
     /** Step of the setup flow that we are on. Determines which view is presented. */
-    currentStep?: string;
+    currentStep?: ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
     /** Bank account state */
     state?: string;
