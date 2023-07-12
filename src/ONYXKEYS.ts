@@ -1,5 +1,5 @@
 import {ValueOf} from 'type-fest';
-import * as UtilTypes from './types/utils';
+import DeepValueOf from './types/utils/DeepValueOf';
 import * as OnyxTypes from './types/onyx';
 import CONST from './CONST';
 
@@ -235,7 +235,7 @@ const ONYXKEYS = {
 
 type OnyxKeysMap = typeof ONYXKEYS;
 type CollectionKey = `${ValueOf<OnyxKeysMap['COLLECTION']>}${string}`;
-type OnyxKey = UtilTypes.DeepValueOf<Omit<OnyxKeysMap, 'COLLECTION'>> | CollectionKey;
+type OnyxKey = DeepValueOf<Omit<OnyxKeysMap, 'COLLECTION'>> | CollectionKey;
 
 type OnyxValues = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
