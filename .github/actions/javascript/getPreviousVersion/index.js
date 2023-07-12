@@ -13,10 +13,9 @@ const core = __nccwpck_require__(186);
 const _ = __nccwpck_require__(571);
 const versionUpdater = __nccwpck_require__(7);
 
-let semverLevel = core.getInput('SEMVER_LEVEL', {require: true});
+const semverLevel = core.getInput('SEMVER_LEVEL', {require: true});
 if (!semverLevel || !_.contains(versionUpdater.SEMANTIC_VERSION_LEVELS, semverLevel)) {
-    semverLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.PATCH;
-    console.warn(`Invalid input for 'SEMVER_LEVEL': ${semverLevel}`, `Defaulting to: ${semverLevel}`);
+    core.setFailed(`'Error: Invalid input for 'SEMVER_LEVEL': ${semverLevel}`);
 }
 
 const {version: currentVersion} = JSON.parse(readFileSync('./package.json'));
