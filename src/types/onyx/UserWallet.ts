@@ -20,6 +20,9 @@ type UserWallet = {
     /** Status of wallet - e.g. SILVER or GOLD */
     tierName?: ValueOf<typeof CONST.WALLET.TIER_NAME>;
 
+    /** The user's wallet tier */
+    tier?: number;
+
     /** Whether we should show the ActivateStep success view after the user finished the KYC flow */
     shouldShowWalletActivationSuccess?: boolean;
 
@@ -28,6 +31,18 @@ type UserWallet = {
 
     /** The type of the linked account (debitCard or bankAccount) */
     walletLinkedAccountType?: string;
+
+    /** An error message to display to the user */
+    errors?: Record<string, string>;
+
+    /** The user's bank account ID */
+    bankAccountID?: number;
+
+    /** The user's current wallet limit */
+    walletLimit?: number;
+
+    /** The user's current wallet limit enforcement period */
+    walletLimitEnforcementPeriod?: number;
 };
 
 export default UserWallet;
