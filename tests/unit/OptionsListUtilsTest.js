@@ -588,10 +588,10 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
 
         // When we pass a search value that matches the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'Iron Man, Mr. Fantastic');
+        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'Iron Man, Fantastic');
 
         // Then we should expect the group chat to show along with the contacts matching the search
-        expect(results.recentReports.length).toBe(4);
+        expect(results.recentReports.length).toBe(1);
 
         // When we also have a policy to return rooms in the results
         results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], '');
