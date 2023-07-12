@@ -804,13 +804,13 @@ function getWorkspaceIcon(report) {
  * @param {Number} [defaultAccountID]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) {
+function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '', defaultAccountID = -1) {
     if (_.isEmpty(report)) {
         const fallbackIcon = {
             source: defaultIcon || Expensicons.FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
-            name: '',
-            id: -1,
+            name: defaultName,
+            id: defaultAccountID,
         };
         return [fallbackIcon];
     }
@@ -1324,6 +1324,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
             created: DateUtils.getDBTime(),
             message: [
                 {
+                    translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
@@ -1660,6 +1661,7 @@ function buildOptimisticChatReport(
         isOwnPolicyExpenseChat,
         isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
         lastActorAccountID: 0,
+        lastMessageTranslationKey: '',
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadTime: currentTime,
