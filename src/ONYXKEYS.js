@@ -222,6 +222,10 @@ export default {
     // Whether the auth token is valid
     IS_TOKEN_VALID: 'isTokenValid',
 
+    // The theme setting set by the user in preferences.
+    // This can be either "light", "dark" or "system"
+    PREFERRED_THEME: 'preferredTheme',
+
     // Whether we're checking if the room is public or not
     IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
 

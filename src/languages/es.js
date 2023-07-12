@@ -684,6 +684,21 @@ export default {
             },
         },
     },
+    themePage: {
+        theme: 'Tema',
+        themes: {
+            dark: {
+                label: 'Oscuro',
+            },
+            light: {
+                label: 'Claro',
+            },
+            system: {
+                label: 'Utiliza los ajustes del dispositivo',
+            },
+        },
+        chooseThemeBelowOrSync: 'Elige un tema a continuación o sincronízalo con los ajustes de tu dispositivo.',
+    },
     signInPage: {
         expensifyDotCash: 'Nuevo Expensify',
         theCode: 'el código',
