@@ -27,7 +27,7 @@ const propTypes = {
     /** Whether the thread item / message is being hovered */
     isHovered: PropTypes.bool.isRequired,
 
-    /** The function that is called on secondary interaction, ie: LongPress */
+    /** The function that should be called when the thread is LongPressed or right-clicked */
     onSecondaryInteraction: PropTypes.func.isRequired,
 
     ...withLocalizePropTypes,
