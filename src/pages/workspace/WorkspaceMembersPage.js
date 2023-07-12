@@ -404,7 +404,8 @@ function WorkspaceMembersPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(props.policy)}
+                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithBackButton
