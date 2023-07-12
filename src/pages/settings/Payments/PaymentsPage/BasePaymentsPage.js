@@ -474,7 +474,7 @@ class BasePaymentsPage extends React.Component {
                             )}
                             {isPayPalMeSelected && (
                                 <Button
-                                    onPress={() => this.navigateToAddPaypalRoute()}
+                                    onPress={this.navigateToAddPaypalRoute}
                                     style={[styles.mb4]}
                                     text={this.props.translate('common.edit')}
                                 />
