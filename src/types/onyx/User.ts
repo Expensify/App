@@ -1,18 +1,18 @@
 type User = {
     /** Whether or not the user is subscribed to news updates */
-    isSubscribedToNewsletter?: boolean;
+    isSubscribedToNewsletter: boolean;
 
     /** Whether we should use the staging version of the secure API server */
     shouldUseStagingServer?: boolean;
 
     /** Is the user account validated? */
-    validated?: boolean;
+    validated: boolean;
 
     /** Whether or not the user is on a public domain email account or not */
-    isFromPublicDomain?: boolean;
+    isFromPublicDomain: boolean;
 
     /** Whether or not the user use expensify card */
-    isUsingExpensifyCard?: boolean;
+    isUsingExpensifyCard: boolean;
 
     /** Whever Expensify Card approval flow is ongoing - checking loginList for private domains */
     isCheckingDomain?: boolean;
