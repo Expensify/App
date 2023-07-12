@@ -173,8 +173,6 @@ export default [
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
             const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
-            const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
-            const displayingMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const messageHtml = lodashGet(message, 'html', '');
 
@@ -182,7 +180,9 @@ export default [
             if (!isAttachment) {
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
-                    Clipboard.setString(displayingMessage);
+                    const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
+                    const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
