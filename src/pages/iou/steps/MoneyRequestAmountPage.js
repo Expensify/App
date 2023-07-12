@@ -369,6 +369,13 @@ function MoneyRequestAmountPage(props) {
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(selectedCurrencyCode);
 
+        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(selectedCurrencyCode, amountInSmallestCurrencyUnits).toString();
+        setAmount(amountAsStringForState);
+        setSelection({
+            start: amountAsStringForState.length,
+            end: amountAsStringForState.length,
+        });
+
         if (isEditing.current) {
             Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
             return;
