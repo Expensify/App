@@ -158,7 +158,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             [
                 {key: 'timeout_minutes', value: '10'},
                 {key: 'max_attempts', value: '5'},
-                {key: 'command', value: 'cd ios && pod install'},
+                {key: 'command', value: 'cd ios && bundle exec pod install'},
             ],
             [],
         ),
@@ -232,7 +232,6 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
             'Checkout',
             [
                 {key: 'ref', value: ref},
-                {key: 'fetch-depth', value: '0'},
             ],
             [],
         ),
@@ -304,7 +303,6 @@ const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, fails
             'WEB',
             'Checkout',
             [
-                {key: 'fetch-depth', value: '0'},
                 {key: 'ref', value: ref},
             ],
             [],

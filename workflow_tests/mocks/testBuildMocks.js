@@ -129,7 +129,7 @@ const TESTBUILD__IOS__STEP_MOCKS = [
 ];
 
 // desktop
-const TESTBUILD__DESKTOP__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'DESKTOP', ['ref', 'fetch-depth'], []);
+const TESTBUILD__DESKTOP__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'DESKTOP', ['ref'], []);
 const TESTBUILD__DESKTOP__CREATE_ENV_ADHOC__STEP_MOCK = utils.createMockStep(
     'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
     'Creating .env.adhoc file based on staging',
@@ -169,7 +169,7 @@ const TESTBUILD__DESKTOP__STEP_MOCKS = [
 ];
 
 // web
-const TESTBUILD__WEB__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'WEB', ['fetch-depth', 'ref'], []);
+const TESTBUILD__WEB__CHECKOUT__STEP_MOCK = utils.createMockStep('Checkout', 'Checkout', 'WEB', ['ref'], []);
 const TESTBUILD__WEB__CREATE_ENV_ADHOC__STEP_MOCK = utils.createMockStep(
     'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
     'Creating .env.adhoc file based on staging',
