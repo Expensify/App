@@ -235,13 +235,13 @@ PODS:
     - React-RCTFabric
     - ReactCommon/turbomodule/core
   - OpenSSL-Universal (1.1.1100)
-  - Permission-Camera (3.6.1):
+  - Permission-Camera (3.8.4):
     - RNPermissions
-  - Permission-LocationAccuracy (3.6.1):
+  - Permission-LocationAccuracy (3.8.4):
     - RNPermissions
-  - Permission-LocationAlways (3.6.1):
+  - Permission-LocationAlways (3.8.4):
     - RNPermissions
-  - Permission-LocationWhenInUse (3.6.1):
+  - Permission-LocationWhenInUse (3.8.4):
     - RNPermissions
   - Plaid (4.1.0)
   - PromisesObjC (2.2.0)
@@ -1143,7 +1143,7 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - react-native-document-picker (8.1.2):
+  - react-native-document-picker (9.0.1):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1190,7 +1190,7 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - react-native-pdf (6.6.2):
+  - react-native-pdf (6.7.1):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1421,7 +1421,23 @@ PODS:
     - React-Core
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - RNDateTimePicker (6.7.1):
+  - RNDateTimePicker (7.4.0):
+    - hermes-engine
+    - RCT-Folly (= 2021.07.22.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-utils
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
+  - RNDeviceInfo (10.4.0):
     - RCT-Folly
     - RCTRequired
     - RCTTypeSafety
@@ -1429,8 +1445,6 @@ PODS:
     - React-Codegen
     - React-RCTFabric
     - ReactCommon/turbomodule/core
-  - RNDeviceInfo (10.6.0):
-    - React-Core
   - RNDevMenu (4.1.1):
     - React-Core
     - React-Core/DevSupport
@@ -1472,14 +1486,22 @@ PODS:
     - ReactCommon/turbomodule/core
   - RNLocalize (2.2.6):
     - React-Core
-  - RNPermissions (3.6.1):
-    - RCT-Folly
+  - RNPermissions (3.8.4):
+    - hermes-engine
+    - RCT-Folly (= 2021.07.22.00)
     - RCTRequired
     - RCTTypeSafety
-    - React
     - React-Codegen
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-graphics
+    - React-NativeModulesApple
     - React-RCTFabric
+    - React-utils
+    - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
+    - Yoga
   - RNReactNativeHapticFeedback (2.0.0):
     - RCT-Folly
     - RCTRequired
@@ -1921,10 +1943,10 @@ SPEC CHECKSUMS:
   Onfido: e36f284b865adcf99d9c905590a64ac09d4a576b
   onfido-react-native-sdk: 448b08db971604fb7bcbbd30a779421b5a4a2dd2
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
-  Permission-Camera: bf6791b17c7f614b6826019fcfdcc286d3a107f6
-  Permission-LocationAccuracy: 76df17de5c6b8bc2eee34e61ee92cdd7a864c73d
-  Permission-LocationAlways: 8d99b025c9f73c696e0cdb367e42525f2e9a26f2
-  Permission-LocationWhenInUse: 3ba99e45c852763f730eabecec2870c2382b7bd4
+  Permission-Camera: 7ec9ee99704766ff9b90198183387a7f5d82b0c1
+  Permission-LocationAccuracy: a38ddb5c5d0b8e656f3c86e4a500f9bb88bc099d
+  Permission-LocationAlways: 8fd5518716c3045f9c4edf77b901126098d79b60
+  Permission-LocationWhenInUse: 24d97eeb25d8ff9f2232e070f792eeb1360ccaf0
   Plaid: 7d340abeadb46c7aa1a91f896c5b22395a31fcf2
   PromisesObjC: 09985d6d70fbe7878040aa746d78236e6946d2ef
   RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
@@ -1949,12 +1971,12 @@ SPEC CHECKSUMS:
   react-native-blob-util: 7d610cbae50f39e0489df6b135d891db88d6159e
   react-native-cameraroll: 67edd0eec4102eb6a8d6c20f921f696780149095
   react-native-config: 5ce986133b07fc258828b20b9506de0e683efc1c
-  react-native-document-picker: 2178704739867574667da2c325f25a81e52e17c4
+  react-native-document-picker: c9ac93d7b511413f4a0ed61c92ff6c7b1bcf4f94
   react-native-image-manipulator: 39f7fded66a1170ccb5055095beafa657d0cb36a
   react-native-image-picker: ee3960a0f1da5ecc6dba6686a784485dc8299a22
   react-native-key-command: c25a8fe48b499b8f2c1507879356c12a397335f3
   react-native-netinfo: 20ae59b6777f1114a7bdad5010b1230959daf9cf
-  react-native-pdf: 98810171111685a679dfb6beaf638090ba3a9eb9
+  react-native-pdf: 0c7d4e821e9f1385ee1cf0d8c877d07dd1344079
   react-native-performance: 8d52c16b63aa3728464aa10a1e75dff23412ea2e
   react-native-plaid-link-sdk: 4235a8135027ebffb9fd37e1c30e1ed1de457217
   react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
@@ -1980,11 +2002,11 @@ SPEC CHECKSUMS:
   React-runtimescheduler: 24614bcd31643eacb06c78c0b9101b453d6aac47
   React-utils: c12d2e75c8bbc727939ddc4319ed95493395ed5a
   ReactCommon: 517b45ed311ba9146aa8b55a8ef6617425f7448e
-  RNCAsyncStorage: ce38f699d96005604ea2b5ce07714066ac6e3cae
+  RNCAsyncStorage: deda39ef298830cae67c4d01fb9d76fa228cc717
   RNCClipboard: 472660b493222f5b351439c03e1874caafc5471e
   RNCPicker: d7db5fb87007968ac14bd2266f96be30f8d738d6
-  RNDateTimePicker: cf5f81f92f817f4908cfa02ed7944baf94b97f68
-  RNDeviceInfo: 475a4c447168d0ad4c807e48ef5e0963a0f4eb1b
+  RNDateTimePicker: 7f7e179002895da374e2409a6c3b828ce9d2d37f
+  RNDeviceInfo: c7412c8706d7c92b27048f1ea6f52e5836e434fb
   RNDevMenu: 72807568fe4188bd4c40ce32675d82434b43c45d
   RNFastImage: fdf8c03d43026a4af81e15e483e457d8b60067c6
   RNFBAnalytics: f76bfa164ac235b00505deb9fc1776634056898c
@@ -1994,7 +2016,7 @@ SPEC CHECKSUMS:
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: d8224aad6d7081834ae6e6cf925397059485b69e
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
-  RNPermissions: 5c43d3f6c3ca216a0cffa79362827ff102a5fcd0
+  RNPermissions: efc847cd6dc46e89f3ecd7d30ed7de3432a8d4bd
   RNReactNativeHapticFeedback: b4a73cb674ecae432b5b09a4a10f91f16dff3da6
   RNReanimated: 3ce2aec600ad2ef47a5927abf2742329d7a190e9
   RNScreens: 8e13360d58411c3f6ef6ee6592f19a89655dfc57
@@ -2007,4 +2029,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 31ce589e3fb831d539ac50b609d2b100c2880bbf
 
-COCOAPODS: 1.11.3
+COCOAPODS: 1.12.1
