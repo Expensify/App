@@ -83,16 +83,14 @@ function fetchData(skipVBBACal) {
     BankAccounts.openWorkspaceView();
 }
 
-function WorkspacePageWithSections(props) {
-    const {children, footer, shouldSkipVBBACall} = props;
-
+function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCallTaskID, headerText, policy, reimbursementAccount, route, shouldUseScrollView, shouldSkipVBBACall, user}) {
     useOnNetworkReconnect(() => fetchData(shouldSkipVBBACall));
 
-    const achState = lodashGet(props.reimbursementAccount, 'achData.state', '');
+    const achState = lodashGet(reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;
-    const isUsingECard = lodashGet(props.user, 'isUsingExpensifyCard', false);
-    const policyID = lodashGet(props.route, 'params.policyID');
-    const policyName = lodashGet(props.policy, 'name');
+    const isUsingECard = lodashGet(user, 'isUsingExpensifyCard', false);
+    const policyID = lodashGet(route, 'params.policyID');
+    const policyName = lodashGet(policy, 'name');
     const content = children(hasVBA, policyID, isUsingECard);
 
     useEffect(() => {
@@ -106,17 +104,17 @@ function WorkspacePageWithSections(props) {
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
-                subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
+                shouldShow={_.isEmpty(policy) || !Policy.isPolicyOwner(policy)}
+                subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton
-                    title={props.headerText}
+                    title={headerText}
                     subtitle={policyName}
                     shouldShowGetAssistanceButton
-                    guidesCallTaskID={props.guidesCallTaskID}
-                    onBackButtonPress={() => Navigation.goBack(props.backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
+                    guidesCallTaskID={guidesCallTaskID}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
                 />
-                {props.shouldUseScrollView ? (
+                {shouldUseScrollView ? (
                     <ScrollViewWithContext
                         keyboardShouldPersistTaps="handled"
                         style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
