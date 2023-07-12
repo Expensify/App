@@ -132,7 +132,7 @@ const Onfido = forwardRef((props, ref) => {
         const logOnFidoEvent = (event) => Log.hmmm('Receiving Onfido analytic event', event.detail);
 
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
-        return () => window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
+        return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
         // Onfido should be initialized only once on mount
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
