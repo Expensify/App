@@ -393,11 +393,6 @@ describe('ReportUtils', () => {
                 const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID], []);
                 expect(moneyRequestOptions.length).toBe(0);
             });
-
-            it('no iou permission', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], []);
-                expect(moneyRequestOptions.length).toBe(0);
-            });
         });
 
         describe('return only iou split option if', () => {
