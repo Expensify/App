@@ -183,7 +183,7 @@ export default compose(
         },
         transactionErrors: {
             key: ({requestReportID, action}) => `${ONYXKEYS.COLLECTION.TRANSACTION}${ReportActionsUtils.getLinkedTransactionID(requestReportID, action.reportActionID)}`,
-            selector: (transaction) => transaction.errors || {},
+            selector: (transaction) => (transaction && transaction.errors) || {},
         },
     }),
     withNetwork(),
