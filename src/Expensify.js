@@ -233,6 +233,7 @@ export default compose(
         },
         isSidebarLoaded: {
             key: ONYXKEYS.IS_SIDEBAR_LOADED,
+            initWithStoredValues: false,
         },
         screenShareRequest: {
             key: ONYXKEYS.SCREEN_SHARE_REQUEST,
