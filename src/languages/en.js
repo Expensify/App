@@ -1266,6 +1266,7 @@ export default {
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
         publicDescription: 'Anyone can find this room',
+        public_announceDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: ({reservedName}) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
