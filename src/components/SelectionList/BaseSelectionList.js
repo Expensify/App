@@ -57,9 +57,7 @@ function BaseSelectionList(props) {
         let selectedCount = 0;
 
         _.each(props.sections, (section, sectionIndex) => {
-            // We're not rendering any section header, but we need to push to the array
-            // because React Native accounts for it in getItemLayout
-            const sectionHeaderHeight = 0;
+            const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
 
@@ -180,7 +178,7 @@ function BaseSelectionList(props) {
     };
 
     const renderSectionHeader = ({section}) => {
-        if (!section.title) {
+        if (!section.title || _.isEmpty(section.data)) {
             return null;
         }
 
@@ -315,19 +313,17 @@ function BaseSelectionList(props) {
                             onScroll={props.onScroll}
                             onScrollBeginDrag={props.onScrollBeginDrag}
                             keyExtractor={(item) => item.keyForList}
+                            onLayout={() => scrollToIndex(focusedIndex, false)}
                             extraData={focusedIndex}
                             indicatorStyle="white"
                             keyboardShouldPersistTaps="always"
                             showsVerticalScrollIndicator={false}
-                            OP
                             initialNumToRender={12}
                             maxToRenderPerBatch={5}
                             windowSize={5}
                             viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                            onLayout={() => scrollToIndex(focusedIndex, false)}
                             testID="selection-list"
                         />
-
                         {shouldShowConfirmButton && (
                             <FixedFooter>
                                 <Button

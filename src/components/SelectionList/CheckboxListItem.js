@@ -47,7 +47,6 @@ function CheckboxListItem(props) {
                 style={[styles.peopleRow, styles.userSelectNone, props.isFocused && styles.sidebarLinkActive, hasError && styles.borderColorDanger]}
                 onPress={() => props.onSelectRow(props.item)}
                 disabled={props.item.isDisabled}
-                disabledStyle={styles.buttonOpacityDisabled}
                 accessibilityLabel={props.item.text}
                 accessibilityRole="checkbox"
                 accessibilityState={{checked: props.item.isSelected}}
@@ -60,6 +59,7 @@ function CheckboxListItem(props) {
                     disabled={props.item.isDisabled}
                     isChecked={props.item.isSelected}
                     onPress={() => props.onSelectRow(props.item)}
+                    style={props.item.isDisabled ? styles.buttonOpacityDisabled : {}}
                 />
                 {props.item.avatar && (
                     <Avatar

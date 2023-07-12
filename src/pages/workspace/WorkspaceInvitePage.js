@@ -282,17 +282,15 @@ class WorkspaceInvitePage extends React.Component {
                                     Navigation.goBack(ROUTES.getWorkspaceMembersRoute(this.props.route.params.policyID));
                                 }}
                             />
-                            <View style={[styles.flexGrow1, styles.flexShrink0, styles.flexBasisAuto]}>
-                                <SelectionList
-                                    canSelectMultiple
-                                    sections={sections}
-                                    textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                    textInputValue={this.state.searchTerm}
-                                    onChangeText={this.updateOptionsWithSearchTerm}
-                                    headerMessage={headerMessage}
-                                    onSelectRow={this.toggleOption}
-                                />
-                            </View>
+                            <SelectionList
+                                canSelectMultiple
+                                sections={sections}
+                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                textInputValue={this.state.searchTerm}
+                                onChangeText={this.updateOptionsWithSearchTerm}
+                                headerMessage={headerMessage}
+                                onSelectRow={this.toggleOption}
+                            />
                             <View style={[styles.flexShrink0]}>
                                 <FormAlertWithSubmitButton
                                     isDisabled={!this.state.selectedOptions.length}
