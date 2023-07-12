@@ -32,7 +32,7 @@ class ScreenWrapper extends React.Component {
         this.keyboardDissmissPanResponder = PanResponder.create({
             onMoveShouldSetPanResponderCapture: (e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                if(isHorizontalSwipe && this.props.shouldDismissKeyboardBeforeClose) {
+                if (isHorizontalSwipe && this.props.shouldDismissKeyboardBeforeClose) {
                     return true;
                 }
                 return false;
@@ -107,12 +107,15 @@ class ScreenWrapper extends React.Component {
 
                     return (
                         <View
-                        style={styles.flex1}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...(this.props.environment === CONST.ENVIRONMENT.DEV ? {...this.panResponder.panHandlers} : undefined)}
+                            style={styles.flex1}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? {...this.panResponder.panHandlers} : undefined)}
                         >
-                            {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-                            <View style={[...this.props.style, styles.flex1, paddingStyle]} {...this.keyboardDissmissPanResponder.panHandlers}>
+                            <View
+                                style={[...this.props.style, styles.flex1, paddingStyle]}
+                                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                                {...this.keyboardDissmissPanResponder.panHandlers}
+                            >
                                 <KeyboardAvoidingView
                                     style={[styles.w100, styles.h100, {maxHeight}]}
                                     behavior={this.props.keyboardAvoidingViewBehavior}
@@ -129,10 +132,10 @@ class ScreenWrapper extends React.Component {
                                             // If props.children is a function, call it to provide the insets to the children.
                                             _.isFunction(this.props.children)
                                                 ? this.props.children({
-                                                    insets,
-                                                    safeAreaPaddingBottomStyle,
-                                                    didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                                })
+                                                      insets,
+                                                      safeAreaPaddingBottomStyle,
+                                                      didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                                  })
                                                 : this.props.children
                                         }
                                         {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator />}
