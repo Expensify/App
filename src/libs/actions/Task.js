@@ -519,13 +519,12 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
         newAssigneeAccountID = UserUtils.generateAccountID();
     }
     if (!isCurrentUser) {
-        let newChat = {};
-        const chat = ReportUtils.getChatByParticipants([newAssigneeAccountID]);
-        if (!chat) {
-            newChat = ReportUtils.buildOptimisticChatReport([newAssigneeAccountID]);
+        let chatReport = ReportUtils.getChatByParticipants([newAssigneeAccountID]);
+        if (!chatReport) {
+            chatReport = ReportUtils.buildOptimisticChatReport([newAssigneeAccountID]);
         }
-        const reportID = chat ? chat.reportID : newChat.reportID;
-        setAssigneeChatReport(chat || newChat);
+        const reportID = chatReport.reportID;
+        setAssigneeChatReport(chatReport);
 
         if (!shareDestination) {
             setShareDestinationValue(reportID);
