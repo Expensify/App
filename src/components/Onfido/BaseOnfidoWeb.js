@@ -116,10 +116,6 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             },
         },
     });
-
-    window.addEventListener('userAnalyticsEvent', (event) => {
-        Log.hmmm('Receiving Onfido analytic event', event.detail);
-    });
 }
 
 const Onfido = forwardRef((props, ref) => {
@@ -132,7 +128,14 @@ const Onfido = forwardRef((props, ref) => {
             preferredLocale: props.preferredLocale,
             translate: props.translate,
         });
-    }, [props.sdkToken, props.onSuccess, props.onError, props.onUserExit, props.preferredLocale, props.translate]);
+
+        const logOnFidoEvent = (event) => Log.hmmm('Receiving Onfido analytic event', event.detail);
+
+        window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
+        return () => window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
+        // Onfido should be initialized only once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <div
