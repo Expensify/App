@@ -60,7 +60,7 @@ git fetch origin main # This will fetch the full history of the main branch, plu
 # Good
 git fetch origin main --no-tags --depth=1 # This will just fetch the latest commit from main
 git fetch origin tag 1.0.0-0 --no-tags --depth=1 # This will fetch the latest commit from the 1.0.0-0 tag and create a local tag to match
-git fetch origin staging --no-tags --shallow-since="$(( $(date -%s) - 3600 ))" # This will fetch all commits made to the staging branch in the last hour
+git fetch origin staging --no-tags --shallow-since="$(( $(date +%s) - 3600 ))" # This will fetch all commits made to the staging branch in the last hour
 git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fetch all commits from the 1.0.1-0 tag, except for those that are reachable from the 1.0.0-0 tag.
 ```
 
