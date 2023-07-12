@@ -1379,6 +1379,7 @@ function buildOptimisticAddCommentReportAction(text, file) {
             created: DateUtils.getDBTime(),
             message: [
                 {
+                    translationKey: isAttachment ? CONST.TRANSLATION_KEYS.ATTACHMENT : '',
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     html: htmlForNewComment,
                     text: textForNewComment,
@@ -1715,6 +1716,7 @@ function buildOptimisticChatReport(
         isOwnPolicyExpenseChat,
         isPinned: reportName === CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
         lastActorAccountID: 0,
+        lastMessageTranslationKey: '',
         lastMessageHtml: '',
         lastMessageText: null,
         lastReadTime: currentTime,
