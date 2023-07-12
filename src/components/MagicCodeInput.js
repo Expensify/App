@@ -149,7 +149,7 @@ function MagicCodeInput(props) {
 
         // We have not added the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.value, props.shouldSubmitOnComplete, props.onFulfill]);
+    }, [props.value, props.shouldSubmitOnComplete]);
 
     useEffect(() => {
         if (!props.autoFocus) {
