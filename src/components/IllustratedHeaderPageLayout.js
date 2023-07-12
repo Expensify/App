@@ -6,6 +6,7 @@ import headerWithBackButtonPropTypes from './HeaderWithBackButton/headerWithBack
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 
@@ -25,32 +26,32 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
     const {windowHeight} = useWindowDimensions();
     return (
         <ScreenWrapper
+            style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...propsToPassToHeader}
-                        backgroundColor={backgroundColor}
-                    />
-                    <ScrollView
-                        style={[styles.shiftUpOnePixel]}
-                        contentContainerStyle={safeAreaPaddingBottomStyle}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
-                        <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
-                            <Lottie
-                                source={illustration}
-                                style={styles.w100}
-                                autoPlay
-                                loop
-                            />
-                        </View>
-                        <View style={[styles.pt5]}>{children}</View>
-                    </ScrollView>
+                    {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                    <HeaderWithBackButton {...propsToPassToHeader} />
+                    <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
+                        <ScrollView
+                            style={[styles.shiftUpOnePixel]}
+                            contentContainerStyle={safeAreaPaddingBottomStyle}
+                            showsVerticalScrollIndicator={false}
+                        >
+                            <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
+                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
+                                <Lottie
+                                    source={illustration}
+                                    style={styles.w100}
+                                    autoPlay
+                                    loop
+                                />
+                            </View>
+                            <View style={[styles.pt5]}>{children}</View>
+                        </ScrollView>
+                    </View>
                 </>
             )}
         </ScreenWrapper>
