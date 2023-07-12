@@ -15,6 +15,10 @@ import withLocalize from '../withLocalize';
 import Text from '../Text';
 import compose from '../../libs/compose';
 
+/**
+ * Each page has a default border. The app should take this size into account
+ * when calculates the page width and height.
+ */
 const PAGE_BORDER = 9;
 
 class PDFView extends Component {
@@ -80,20 +84,31 @@ class PDFView extends Component {
         });
     }
 
-    // TODO: Add a comment
+    /**
+     * Calculates a proper page height.
+     * It is based on a ratio between the specific page viewport width and provided page width.
+     * Also, the app should take into account the page borders.
+     * @param {*} pageIndex
+     * @returns {Number}
+     */
     calculatePageHeight(pageIndex) {
         if (this.state.pageViewports.length === 0) {
             throw new Error('calculatePageHeight() called too early');
         }
 
         const pageViewport = this.state.pageViewports[pageIndex];
-        const scale = this.calculatePageWidth() / pageViewport.width;
+        const pageWidth = this.calculatePageWidth();
+        const scale = pageWidth / pageViewport.width;
         const actualHeight = pageViewport.height * scale + PAGE_BORDER * 2;
 
         return actualHeight;
     }
 
-    // TODO: Add a comment
+    /**
+     * Calculates a proper page width.
+     * It depends on a screen size. Also, the app should take into account the page borders.
+     * @returns {Number}
+     */
     calculatePageWidth() {
         const pdfContainerWidth = this.state.containerWidth;
         const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
@@ -147,6 +162,13 @@ class PDFView extends Component {
         this.props.onToggleKeyboard(isKeyboardOpen);
     }
 
+    /**
+     * Renders a specific page based on its index.
+     * It includes a wrapper to apply virtualized styles.
+     * @param {Number} index
+     * @param {Object} style
+     * @returns {JSX.Element}
+     */
     renderPage({index, style}) {
         const pageWidth = this.calculatePageWidth();
 
