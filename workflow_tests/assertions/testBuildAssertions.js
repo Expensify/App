@@ -224,17 +224,7 @@ const assertIOSJobExecuted = (workflowResult, ref = '', didExecute = true, fails
 };
 const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'DESKTOP',
-            'Checkout',
-            [
-                {key: 'ref', value: ref},
-            ],
-            [],
-        ),
+        utils.createStepAssertion('Checkout', true, null, 'DESKTOP', 'Checkout', [{key: 'ref', value: ref}], []),
         utils.createStepAssertion(
             'Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it',
             true,
@@ -296,17 +286,7 @@ const assertDesktopJobExecuted = (workflowResult, ref = '', didExecute = true, f
 };
 const assertWebJobExecuted = (workflowResult, ref = '', didExecute = true, failsAt = -1) => {
     const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'WEB',
-            'Checkout',
-            [
-                {key: 'ref', value: ref},
-            ],
-            [],
-        ),
+        utils.createStepAssertion('Checkout', true, null, 'WEB', 'Checkout', [{key: 'ref', value: ref}], []),
         utils.createStepAssertion('Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it', true, null, 'WEB', 'Creating .env.adhoc file based on staging', [], []),
         utils.createStepAssertion('Setup Node', true, null, 'WEB', 'Setup Node', [], []),
         utils.createStepAssertion(

@@ -24,14 +24,7 @@ const assertCreateNewVersionJobExecuted = (workflowResult, didExecute = true) =>
     });
 };
 
-const assertCherryPickJobExecuted = (
-    workflowResult,
-    user = 'Dummy Author',
-    pullRequestNumber = '1234',
-    didExecute = true,
-    hasConflicts = false,
-    isSuccessful = true,
-) => {
+const assertCherryPickJobExecuted = (workflowResult, user = 'Dummy Author', pullRequestNumber = '1234', didExecute = true, hasConflicts = false, isSuccessful = true) => {
     const steps = [
         utils.createStepAssertion(
             'Checkout staging branch',

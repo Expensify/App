@@ -2,17 +2,7 @@ const utils = require('../utils/utils');
 
 const assertDeployBlockerJobExecuted = (workflowResult, issueTitle, issueNumber, didExecute = true, isSuccessful = true) => {
     const steps = [
-        utils.createStepAssertion(
-            'Checkout',
-            true,
-            null,
-            'DEPLOYBLOCKER',
-            'Checkout',
-            [
-                {key: 'token', value: '***'},
-            ],
-            [],
-        ),
+        utils.createStepAssertion('Checkout', true, null, 'DEPLOYBLOCKER', 'Checkout', [{key: 'token', value: '***'}], []),
         utils.createStepAssertion(
             'Get URL, title, & number of new deploy blocker (issue)',
             true,
