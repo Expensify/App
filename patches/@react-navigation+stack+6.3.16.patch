@@ -1,12 +1,12 @@
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
-index 95e6871..18bb14d 100644
+index 95e6871..c87c0f6 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 +++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
-@@ -353,6 +353,14 @@ export default class CardStack extends React.Component {
+@@ -353,6 +353,11 @@ export default class CardStack extends React.Component {
            extrapolate: 'clamp'
          }) : STATE_TRANSITIONING_OR_BELOW_TOP;
        }
-+      
++
 +      if (route.name === 'Home' && isScreenActive !== STATE_ON_TOP) {
 +        isScreenActive = STATE_TRANSITIONING_OR_BELOW_TOP;
 +      }
