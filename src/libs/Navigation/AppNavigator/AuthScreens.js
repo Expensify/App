@@ -122,9 +122,7 @@ class AuthScreens extends React.Component {
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-        // Note: There is an experimental Onyx mode that will allow the user to avoid persisting some data entirely - if we have this mode enabled then
-        // always call OpenApp when the app starts since these users will not be able to rehydrate data they didn't save (outside of memory).
-        if (Onyx.hasMemoryOnlyKeys() || SessionUtils.didUserLogInDuringSession()) {
+        if (this.props.isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession()) {
             App.openApp();
         } else {
             App.reconnectApp();
@@ -310,5 +308,8 @@ export default compose(
         lastOpenedPublicRoomID: {
             key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
         },
+        isUsingMemoryOnlyKeys: {
+            key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
+        }
     }),
 )(AuthScreens);

@@ -230,4 +230,7 @@ export default {
 
     // Report ID of the last report the user viewed as anonymous user
     LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
+
+    // Experimental memory only Onyx mode flag
+    IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 };
