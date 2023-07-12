@@ -194,7 +194,7 @@ function TaskAssigneeSelectorModal(props) {
                             headerMessage={headerMessage}
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
-                            placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>
