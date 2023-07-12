@@ -32,9 +32,20 @@ function clearOutTaskInfo() {
 }
 
 /**
- * Assign a task to a user
- * Function title is createTask for consistency with the rest of the actions
- * and also because we can create a task without assigning it to anyone
+ * A task needs two things to be created - a title and a parent report
+ * When you create a task report, there are a few things that happen:
+ * A task report is created, along with a CreatedReportAction for that new task report
+ * A reportAction indicating that a task was created is added to the parent report (share destination)
+ * If you assign the task to someone, a reportAction is created in the chat between you and the assignee to inform them of the task
+ * 
+ * So you have the following optimistic items potentially being created:
+ * 1. The task report
+ * 1a. The CreatedReportAction for the task report
+ * 2. The TaskReportAction on the parent report
+ * 3. The chat report between you and the assignee
+ * 3a. The CreatedReportAction for the assignee chat report
+ * 3b. The TaskReportAction on the assignee chat report
+ *   
  * @param {String} parentReportID
  * @param {String} title
  * @param {String} description
@@ -43,13 +54,14 @@ function clearOutTaskInfo() {
  *
  */
 
-function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0) {
-    // Create the task report
+function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0, assigneeChatReport = {}) {
+
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
     // Grab the assigneeChatReportID if there is an assignee and if it's not the same as the parentReportID
     // then we create an optimistic add comment report action on the assignee's chat to notify them of the task
-    const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants([assigneeAccountID]), 'reportID');
+    // You can share a task to various locations. If you're choosing to share it in the same DM as the assignee
+    const assigneeChatReportID = assigneeChatReport.reportID;
     const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
     if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
@@ -465,6 +477,14 @@ function setShareDestinationValue(shareDestination) {
 }
 
 /**
+ * Sets the assigneeChatReport details for the task
+ * @param {Object} chatReport
+ */
+function setAssigneeChatReport(chatReport) {
+    Onyx.merge(ONYXKEYS.TASK, {assigneeChatReport: chatReport});
+}
+
+/**
  * Auto-assign participant when creating a task in a DM
  * @param {String} reportID
  */
@@ -505,12 +525,11 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             newChat = ReportUtils.buildOptimisticChatReport([newAssigneeAccountID]);
         }
         const reportID = chat ? chat.reportID : newChat.reportID;
+        setAssigneeChatReport(chat || newChat);
 
         if (!shareDestination) {
             setShareDestinationValue(reportID);
         }
-
-        Report.openReport(reportID, [assignee], newChat);
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
