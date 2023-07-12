@@ -36,6 +36,9 @@ const propTypes = {
     /** A description text to show under the title */
     description: PropTypes.string,
 
+    /** The action accept for anonymous user or not */
+    isAnonymousAction: PropTypes.bool,
+
     ...withDelayToggleButtonStatePropTypes,
 };
 
@@ -97,6 +100,7 @@ class ContextMenuItem extends Component {
                 description={this.props.description}
                 descriptionTextStyle={styles.breakAll}
                 style={getContextMenuItemStyles(this.props.windowWidth)}
+                isAnonymousAction={this.props.isAnonymousAction}
             />
         );
     }
