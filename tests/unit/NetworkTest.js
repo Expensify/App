@@ -11,9 +11,7 @@ import * as NetworkStore from '../../src/libs/Network/NetworkStore';
 import * as Session from '../../src/libs/actions/Session';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import Log from '../../src/libs/Log';
-import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
-import * as Request from '../../src/libs/Request';
 import * as App from '../../src/libs/actions/App';
 import NetworkConnection from '../../src/libs/NetworkConnection';
 

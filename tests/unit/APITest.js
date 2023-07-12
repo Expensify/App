@@ -11,7 +11,6 @@ import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import * as MainQueue from '../../src/libs/Network/MainQueue';
 import * as API from '../../src/libs/API';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
-import * as Network from '../../src/libs/Network';
 import * as Request from '../../src/libs/Request';
 
 jest.mock('../../src/libs/Log');
@@ -44,6 +43,8 @@ afterEach(() => {
     jest.clearAllMocks();
 });
 
+/* eslint-disable rulesdir/no-multiple-api-calls */
+/* eslint-disable rulesdir/no-api-side-effects-method */
 describe('APITests', () => {
     test('All writes should be persisted while offline', () => {
         // We don't expect calls `xhr` so we make the test fail if such call is made
