@@ -585,11 +585,12 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             chatReport = ReportUtils.buildOptimisticChatReport([newAssigneeAccountID]);
             chatReport.isOptimisticReport = true;
         }
-        const reportID = chatReport.reportID;
         setAssigneeChatReport(chatReport);
 
+        // If there is no share destination set, automatically set it to the assignee chat report
+        // This allows for a much quicker process when creating a new task and is likely the desired share destination most times
         if (!shareDestination) {
-            setShareDestinationValue(reportID);
+            setShareDestinationValue(chatReport.reportID);
         }
     }
 
