@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import {ShareMenuReactView} from 'react-native-share-menu';
 import _ from 'underscore';
-import {navigationRef} from '../../index.share';
+
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
@@ -12,6 +12,7 @@ import OptionsSelector from '../components/OptionsSelector';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import Navigation from '../libs/Navigation/Navigation';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Report from '../libs/actions/Report';
@@ -196,8 +197,7 @@ class ShareExtensionPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        // Report.navigateToAndOpenReport([option.login]);
-        navigationRef.current.navigate('Message', {option});
+        Navigation.navigate('shareMessage', {option});
     }
 
     /**

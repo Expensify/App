@@ -1,7 +1,7 @@
-import ROUTES from '../../ROUTES';
-import SCREENS from '../../SCREENS';
 import CONST from '../../CONST';
 import NAVIGATORS from '../../NAVIGATORS';
+import ROUTES from '../../ROUTES';
+import SCREENS from '../../SCREENS';
 
 export default {
     prefixes: ['new-expensify://', 'https://www.expensify.cash', 'https://staging.expensify.cash', 'http://localhost', CONST.NEW_EXPENSIFY_URL, CONST.STAGING_NEW_EXPENSIFY_URL],
@@ -13,6 +13,8 @@ export default {
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
+            Share: ROUTES.SHARE,
+            ShareMessage: ROUTES.SHARE_MESSAGE,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
             // Sidebar

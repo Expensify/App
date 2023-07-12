@@ -1,38 +1,38 @@
+import lodashGet from 'lodash/get';
+import moment from 'moment';
+import PropTypes from 'prop-types';
 import React from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
-import moment from 'moment';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import CONFIG from '../../../CONFIG';
 import CONST from '../../../CONST';
-import compose from '../../compose';
-import * as PersonalDetails from '../../actions/PersonalDetails';
+import NAVIGATORS from '../../../NAVIGATORS';
+import ONYXKEYS from '../../../ONYXKEYS';
+import ROUTES from '../../../ROUTES';
+import SCREENS from '../../../SCREENS';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import styles from '../../../styles/styles';
+import KeyboardShortcut from '../../KeyboardShortcut';
+import NetworkConnection from '../../NetworkConnection';
 import * as Pusher from '../../Pusher/pusher';
 import PusherConnectionManager from '../../PusherConnectionManager';
-import ROUTES from '../../../ROUTES';
-import ONYXKEYS from '../../../ONYXKEYS';
-import Timing from '../../actions/Timing';
-import NetworkConnection from '../../NetworkConnection';
-import CONFIG from '../../../CONFIG';
-import KeyboardShortcut from '../../KeyboardShortcut';
-import Navigation from '../Navigation';
-import * as User from '../../actions/User';
-import * as Modal from '../../actions/Modal';
-import * as Report from '../../actions/Report';
-import modalCardStyleInterpolator from './modalCardStyleInterpolator';
-import createResponsiveStackNavigator from './createResponsiveStackNavigator';
-import SCREENS from '../../../SCREENS';
-import defaultScreenOptions from './defaultScreenOptions';
+import * as SessionUtils from '../../SessionUtils';
 import * as App from '../../actions/App';
 import * as Download from '../../actions/Download';
+import * as Modal from '../../actions/Modal';
+import * as PersonalDetails from '../../actions/PersonalDetails';
+import * as Report from '../../actions/Report';
 import * as Session from '../../actions/Session';
-import RightModalNavigator from './Navigators/RightModalNavigator';
+import Timing from '../../actions/Timing';
+import * as User from '../../actions/User';
+import compose from '../../compose';
+import Navigation from '../Navigation';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
-import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
-import styles from '../../../styles/styles';
-import * as SessionUtils from '../../SessionUtils';
+import RightModalNavigator from './Navigators/RightModalNavigator';
+import createResponsiveStackNavigator from './createResponsiveStackNavigator';
+import defaultScreenOptions from './defaultScreenOptions';
+import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 
 let currentUserEmail;
 Onyx.connect({
@@ -291,6 +291,22 @@ class AuthScreens extends React.Component {
                     options={rightModalNavigatorScreenOptions}
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="Share"
+                    options={defaultScreenOptions}
+                    getComponent={() => {
+                        const ShareExtensionPage = require('../../../pages/ShareExtensionPage').default;
+                        return ShareExtensionPage;
+                    }}
+                />
+                <RootStack.Screen
+                    name="ShareMessage"
+                    options={defaultScreenOptions}
+                    getComponent={() => {
+                        const ShareMessagePage = require('../../../pages/ShareMessagePage').default;
+                        return ShareMessagePage;
+                    }}
                 />
             </RootStack.Navigator>
         );

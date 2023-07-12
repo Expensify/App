@@ -168,8 +168,9 @@ function Expensify(props) {
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
 
-        ShareMenu.getInitialShare(console.log);
-        const shareListener = ShareMenu.addNewShareListener(console.log);
+        const handleShare = () => Navigation.navigate('share');
+        ShareMenu.getInitialShare(handleShare);
+        const shareListener = ShareMenu.addNewShareListener(handleShare);
 
         return () => {
             if (!appStateChangeListener.current) {
