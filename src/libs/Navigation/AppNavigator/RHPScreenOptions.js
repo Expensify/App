@@ -1,7 +1,7 @@
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
 
-const defaultModalScreenOptions = {
+const RHPScreenOptions = {
     headerShown: false,
     animationEnabled: true,
     gestureDirection: 'horizontal',
@@ -9,4 +9,4 @@ const defaultModalScreenOptions = {
     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
 };
 
-export default defaultModalScreenOptions;
+export default RHPScreenOptions;
