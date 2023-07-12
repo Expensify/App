@@ -802,7 +802,7 @@ function getOptions(
         userToInvite.icons = [
             {
                 source: UserUtils.getAvatar('', optimisticAccountID),
-                login: searchValue,
+                name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ];
