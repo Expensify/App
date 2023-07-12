@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import Tooltip from '../Tooltip';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import useLocalize from '../../hooks/useLocalize';
 import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -20,16 +20,15 @@ const propTypes = {
 
     /** The function to call when an emoji is selected */
     onPress: PropTypes.func.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 function CategoryShortcutButton(props) {
+    const {translate} = useLocalize();
     const [isHighlighted, setIsHighlighted] = useState(false);
 
     return (
         <Tooltip
-            text={props.translate(`emojiPicker.headers.${props.code}`)}
+            text={translate(`emojiPicker.headers.${props.code}`)}
             shiftVertical={-4}
         >
             <PressableWithoutFeedback
@@ -52,4 +51,4 @@ function CategoryShortcutButton(props) {
 }
 CategoryShortcutButton.propTypes = propTypes;
 CategoryShortcutButton.displayName = 'CategoryShortcutButton';
-export default withLocalize(CategoryShortcutButton);
+export default React.memo(CategoryShortcutButton);
