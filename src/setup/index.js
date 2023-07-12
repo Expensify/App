@@ -42,6 +42,13 @@ export default function () {
         },
     });
 
+    // When enabled we will skip persisting to disk any server-side downloaded objects (e.g. workspaces, chats, etc) that can hog up a user's resources.
+    window.enableMemoryOnlyKeys = () => Onyx.setMemoryOnlyKeys([
+        ONYXKEYS.COLLECTION.REPORT,
+        ONYXKEYS.COLLECTION.POLICY,
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+    ]);
+
     Device.setDeviceID();
 
     // Force app layout to work left to right because our design does not currently support devices using this mode
