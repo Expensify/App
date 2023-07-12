@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -47,6 +48,7 @@ function TaskView(props) {
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
+    const avatarURL = lodashGet(PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID), [0, 'avatar'], '');
 
     return (
         <View>
@@ -113,7 +115,7 @@ function TaskView(props) {
                     label={props.translate('task.assignee')}
                     title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
                     icon={UserUtils.getAvatar(
-                        PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID)[0].avatar,
+                        avatarURL,
                         props.report.managerID,
                     )}
                     iconType={CONST.ICON_TYPE_AVATAR}
