@@ -22,6 +22,7 @@ import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import OfflineWithFeedback from '../OfflineWithFeedback';
+import * as IOU from '../../libs/actions/IOU';
 
 const propTypes = {
     /** All the data of the action */
@@ -144,7 +145,10 @@ function MoneyRequestAction(props) {
     }
 
     return (
-        <OfflineWithFeedback errors={props.transactionErrors}>
+        <OfflineWithFeedback
+            errors={props.transactionErrors}
+            onClose={() => IOU.cleanUpFailedMoneyRequest(props.iouReport.chatReportID, props.iouReport, props.action)}
+        >
             <IOUPreview
                 iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}

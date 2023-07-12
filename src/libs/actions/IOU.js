@@ -19,6 +19,7 @@ import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
+import Log from '../Log';
 
 const chatReports = {};
 const iouReports = {};
@@ -232,8 +233,6 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: {
-                // Store the previous last message text so we can revert set it when the error is dismissed
-                previousLastMessageText: iouReport.lastMessageText,
                 ...(isNewIOUReport
                     ? {
                           errorFields: {
@@ -296,26 +295,42 @@ function buildOnyxDataForMoneyRequest(
     return [optimisticData, successData, failureData];
 }
 
-function cleanUpFailedMoneyRequest(chatReport, iouReport, transaction, chatCreatedAction, iouCreatedAction, iouAction, optimisticPersonalDetailListAction, isNewChatReport, isNewIOUReport) {
-    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+function cleanUpFailedMoneyRequest(chatReportID, iouReport, iouAction) {
+    const transactionID = ReportActionsUtils.getLinkedTransactionID(iouReport.reportID, iouAction.reportActionID);
+    if (!transactionID) {
+        Log.warn('[cleanUpFailedMoneyRequest] No transactionID for reportID, actionID', {reportID: iouReport.reportID, reportActionID: iouAction.reportActionID});
+        return;
+    }
+    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReportID, iouReport.reportID);
 
     // If the report failed to create, delete it.
     if (lodashGet(iouReport, 'errorFields.createChat')) {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, null);
+        Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, null);
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, null);
 
         // Delete the report preview action
         if (reportPreviewAction) {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {[reportPreviewAction.reportActionID]: null});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {[reportPreviewAction.reportActionID]: null});
         }
     } else {
-        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, null);
+        console.log('iouReport.reportID, iouAction.reportActionID', iouReport.reportID, iouAction.reportActionID);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {
+            [iouAction.reportActionID]: null,
+        });
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
+        const lastMessageText = OptionsListUtils.getLastMessageTextFromActions(iouReport.reportID);
 
-        // We already had a report, but we're deleting the failed request action so we need to revert to the previous last message text
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {lastMessageText: iouReport.previousLastMessageText});
+        // Subtract the amount of the deleted request from the total (we actually add because totals are negative)
+        const newTotal = iouReport.total - -1 * iouAction.amount;
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {lastMessageText, lastMessageHtml: lastMessageText, total: newTotal});
+
+        // Get the report with the updated total
+        const updatedIOUReport = iouReports[iouReport.reportID] || {};
 
         // Update the preview action after clearing the failed request
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+        const message = ReportUtils.getReportPreviewMessage(updatedIOUReport, reportPreviewAction);
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {
             [reportPreviewAction.reportActionID]: {
                 created: reportPreviewAction.previousCreated,
                 message: [{html: message, text: message}],
