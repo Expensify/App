@@ -70,6 +70,9 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.arrayOf(PropTypes.object),
 
+    /** Errors on the money request transaction keyed by microtime */
+    transactionErrors: PropTypes.objectOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -84,6 +87,7 @@ const defaultProps = {
         email: null,
     },
     style: [],
+    transactionErrors: {},
 };
 
 function MoneyRequestAction(props) {
@@ -140,9 +144,7 @@ function MoneyRequestAction(props) {
     }
 
     return (
-        <OfflineWithFeedback
-            errors={props.transactionErrors}
-        >
+        <OfflineWithFeedback errors={props.transactionErrors}>
             <IOUPreview
                 iouReportID={props.requestReportID}
                 chatReportID={props.chatReportID}
