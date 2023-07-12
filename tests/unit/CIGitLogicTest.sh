@@ -11,6 +11,7 @@ declare -r SEMVER_LEVEL_BUILD='BUILD'
 declare -r SEMVER_LEVEL_PATCH='PATCH'
 
 declare -r bumpVersion="$TEST_DIR/utils/bumpVersion.mjs"
+declare -r getPreviousVersion="$TEST_DIR/utils/getPreviousVersion.mjs"
 declare -r getPullRequestsMergedBetween="$TEST_DIR/utils/getPullRequestsMergedBetween.mjs"
 
 source "$SCRIPTS_DIR/shellUtils.sh"
@@ -127,9 +128,10 @@ function cherry_pick_pr {
   bump_version "$SEMVER_LEVEL_BUILD"
   VERSION_BUMP_COMMIT="$(git rev-parse HEAD)"
 
-  if ! git rev-parse --verify staging 2>/dev/null; then
-    git fetch origin staging --depth=1
-  fi
+  checkout_repo
+  setup_git_as_osbotify
+  PREVIOUS_PATCH_VERSION="$(node "$getPreviousVersion" "$(print_version)" "$SEMVER_LEVEL_PATCH")"
+  git fetch origin staging "$VERSION_BUMP_COMMIT" "$PR_MERGE_COMMIT" --no-tags --shallow-exclude="$PREVIOUS_PATCH_VERSION"
 
   git switch staging
   git switch -c cherry-pick-staging
