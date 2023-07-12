@@ -2,7 +2,7 @@ const utils = require('../utils/utils');
 
 const assertVerifyJobExecuted = (workflowResult, didExecute = true) => {
     const steps = [
-        utils.createStepAssertion('Checkout', true, null, 'VERIFY', 'Checkout', [{key: 'fetch-depth', value: '0'}], []),
+        utils.createStepAssertion('Checkout', true, null, 'VERIFY', 'Checkout'),
         utils.createStepAssertion('Setup Node', true, null, 'VERIFY', 'Setup Node', [], []),
         utils.createStepAssertion('Verify podfile', true, null, 'VERIFY', 'Verify podfile', [], []),
     ];
