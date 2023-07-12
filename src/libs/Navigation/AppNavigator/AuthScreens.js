@@ -91,10 +91,14 @@ const propTypes = {
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: PropTypes.string,
 
+    /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
+    isUsingMemoryOnlyKeys: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
+    isUsingMemoryOnlyKeys: false,
     session: {
         email: null,
     },
