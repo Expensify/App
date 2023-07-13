@@ -167,7 +167,15 @@ class ReportScreen extends React.Component {
 
         // navigate to concierge when the room removed from another device (e.g. user leaving a room)
         // the report will not really null when removed, it will have defaultProps properties and values
-        if (prevOnyxReportID && prevOnyxReportID === routeReportID && !onyxReportID && _.isEqual(this.props.report, defaultProps.report)) {
+        if (
+            prevOnyxReportID &&
+            prevOnyxReportID === routeReportID &&
+            !onyxReportID &&
+            // non-optimistic case
+            (_.isEqual(this.props.report, defaultProps.report) ||
+                // optimistic case
+                (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
+        ) {
             Navigation.goBack();
             Report.navigateToConciergeChat();
             // isReportRemoved will prevent <FullPageNotFoundView> showing when navigating
