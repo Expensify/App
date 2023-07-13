@@ -245,7 +245,8 @@ function canDeleteReportAction(reportAction, reportID) {
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
         reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
-        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID))
+        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID)) ||
+        reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
     ) {
         return false;
     }
@@ -1463,10 +1464,8 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
             paymentMethodMessage = ' elsewhere';
             break;
-        case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-            paymentMethodMessage = ' using PayPal.me';
-            break;
         default:
+            paymentMethodMessage = ` using ${paymentType}`;
             break;
     }
 
