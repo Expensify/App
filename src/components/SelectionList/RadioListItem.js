@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -9,47 +8,28 @@ import * as Expensicons from '../Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
 import {radioListItemPropTypes} from './selectionListPropTypes';
 
-const propTypes = {
-    /** The section list item */
-    item: PropTypes.shape(radioListItemPropTypes),
-
-    /** Whether this item is focused (for arrow key controls) */
-    isFocused: PropTypes.bool,
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: PropTypes.func,
-};
-
-const defaultProps = {
-    item: {},
-    isFocused: false,
-    onSelectRow: () => {},
-};
-
-function RadioListItem(props) {
+function RadioListItem({item, isFocused = false, onSelectRow = () => {}}) {
     return (
         <PressableWithFeedback
-            onPress={() => props.onSelectRow(props.item)}
-            accessibilityLabel={props.item.text}
+            onPress={() => onSelectRow(item)}
+            accessibilityLabel={item.text}
             accessibilityRole="button"
             hoverDimmingValue={1}
             hoverStyle={styles.hoveredComponentBG}
             focusStyle={styles.hoveredComponentBG}
         >
-            <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, styles.userSelectNone, props.isFocused && styles.sidebarLinkActive]}>
+            <View style={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.optionRow, styles.userSelectNone, isFocused && styles.sidebarLinkActive]}>
                 <View style={[styles.flex1, styles.alignItemsStart]}>
-                    <Text style={[styles.optionDisplayName, props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, props.item.isSelected && styles.sidebarLinkTextBold]}>
-                        {props.item.text}
+                    <Text style={[styles.optionDisplayName, isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, item.isSelected && styles.sidebarLinkTextBold]}>
+                        {item.text}
                     </Text>
 
-                    {Boolean(props.item.alternateText) && (
-                        <Text style={[props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}>
-                            {props.item.alternateText}
-                        </Text>
+                    {Boolean(item.alternateText) && (
+                        <Text style={[isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}>{item.alternateText}</Text>
                     )}
                 </View>
 
-                {props.item.isSelected && (
+                {item.isSelected && (
                     <View
                         style={[styles.flexRow, styles.alignItemsCenter]}
                         accessible={false}
@@ -68,7 +48,6 @@ function RadioListItem(props) {
 }
 
 RadioListItem.displayName = 'RadioListItem';
-RadioListItem.propTypes = propTypes;
-RadioListItem.defaultProps = defaultProps;
+RadioListItem.propTypes = radioListItemPropTypes;
 
 export default RadioListItem;

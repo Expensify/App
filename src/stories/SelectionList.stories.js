@@ -209,7 +209,7 @@ WithAlternateText.args = {
 function MultipleSelection(args) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
-    const {sections, allIds} = useMemo(() => {
+    const memo = useMemo(() => {
         const allIds = [];
 
         const sections = _.map(args.sections, (section) => {
@@ -239,10 +239,10 @@ function MultipleSelection(args) {
     };
 
     const onSelectAll = () => {
-        if (selectedIds.length === allIds.length) {
+        if (selectedIds.length === memo.allIds.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(allIds);
+            setSelectedIds(memo.allIds);
         }
     };
 
@@ -250,7 +250,7 @@ function MultipleSelection(args) {
         <SelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
-            sections={sections}
+            sections={memo.sections}
             onSelectRow={onSelectRow}
             onSelectAll={onSelectAll}
         />
@@ -266,7 +266,7 @@ MultipleSelection.args = {
 function WithSectionHeader(args) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
-    const {sections, allIds} = useMemo(() => {
+    const memo = useMemo(() => {
         const allIds = [];
 
         const sections = _.map(args.sections, (section, sectionIndex) => {
@@ -296,10 +296,10 @@ function WithSectionHeader(args) {
     };
 
     const onSelectAll = () => {
-        if (selectedIds.length === allIds.length) {
+        if (selectedIds.length === memo.allIds.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(allIds);
+            setSelectedIds(memo.allIds);
         }
     };
 
@@ -307,7 +307,7 @@ function WithSectionHeader(args) {
         <SelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
-            sections={sections}
+            sections={memo.sections}
             onSelectRow={onSelectRow}
             onSelectAll={onSelectAll}
         />
@@ -321,7 +321,7 @@ WithSectionHeader.args = {
 function WithConfirmButton(args) {
     const [selectedIds, setSelectedIds] = useState(['option-1', 'option-2']);
 
-    const {sections, allIds} = useMemo(() => {
+    const memo = useMemo(() => {
         const allIds = [];
 
         const sections = _.map(args.sections, (section, sectionIndex) => {
@@ -351,10 +351,10 @@ function WithConfirmButton(args) {
     };
 
     const onSelectAll = () => {
-        if (selectedIds.length === allIds.length) {
+        if (selectedIds.length === memo.allIds.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(allIds);
+            setSelectedIds(memo.allIds);
         }
     };
 
@@ -362,7 +362,7 @@ function WithConfirmButton(args) {
         <SelectionList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...args}
-            sections={sections}
+            sections={memo.sections}
             onSelectRow={onSelectRow}
             onSelectAll={onSelectAll}
         />

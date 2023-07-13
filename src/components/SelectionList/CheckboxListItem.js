@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import _ from 'underscore';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import styles from '../../styles/styles';
@@ -10,20 +9,6 @@ import Checkbox from '../Checkbox';
 import Avatar from '../Avatar';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import useLocalize from '../../hooks/useLocalize';
-
-const propTypes = {
-    /** The section list item */
-    item: PropTypes.shape(checkboxListItemPropTypes).isRequired,
-
-    /** Whether this item is focused (for arrow key controls) */
-    isFocused: PropTypes.bool,
-
-    /** Callback to fire when the item is pressed */
-    onSelectRow: PropTypes.func,
-
-    /** Callback to fire when an error is dismissed */
-    onDismissError: PropTypes.func,
-};
 
 function CheckboxListItem({item, isFocused = false, onSelectRow = () => {}, onDismissError = () => {}}) {
     const {translate} = useLocalize();
@@ -89,6 +74,6 @@ function CheckboxListItem({item, isFocused = false, onSelectRow = () => {}, onDi
 }
 
 CheckboxListItem.displayName = 'CheckboxListItem';
-CheckboxListItem.propTypes = propTypes;
+CheckboxListItem.propTypes = checkboxListItemPropTypes;
 
 export default CheckboxListItem;

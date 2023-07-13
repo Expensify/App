@@ -3,56 +3,77 @@ import _ from 'underscore';
 import CONST from '../../CONST';
 
 const checkboxListItemPropTypes = {
-    /** Text to display */
-    text: PropTypes.string.isRequired,
+    /** The section list item */
+    item: PropTypes.shape({
+        /** Text to display */
+        text: PropTypes.string.isRequired,
 
-    /** Alternate text to display */
-    alternateText: PropTypes.string,
+        /** Alternate text to display */
+        alternateText: PropTypes.string,
 
-    /** Key used internally by React */
-    keyForList: PropTypes.string.isRequired,
+        /** Key used internally by React */
+        keyForList: PropTypes.string.isRequired,
 
-    /** Whether this option is selected */
-    isSelected: PropTypes.bool,
+        /** Whether this option is selected */
+        isSelected: PropTypes.bool,
 
-    /** Whether this option is disabled for selection */
-    isDisabled: PropTypes.bool,
+        /** Whether this option is disabled for selection */
+        isDisabled: PropTypes.bool,
 
-    /** User accountID */
-    accountID: PropTypes.number,
+        /** User accountID */
+        accountID: PropTypes.number,
 
-    /** User login */
-    login: PropTypes.string,
+        /** User login */
+        login: PropTypes.string,
 
-    /** Whether this user is an admin */
-    isAdmin: PropTypes.bool,
+        /** Whether this user is an admin */
+        isAdmin: PropTypes.bool,
 
-    /** Avatar for the user */
-    avatar: PropTypes.shape({
-        source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-        name: PropTypes.string,
-        type: PropTypes.string,
-    }),
+        /** Avatar for the user */
+        avatar: PropTypes.shape({
+            source: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
+            name: PropTypes.string,
+            type: PropTypes.string,
+        }),
 
-    /** Errors that this user may contain */
-    errors: PropTypes.objectOf(PropTypes.string),
+        /** Errors that this user may contain */
+        errors: PropTypes.objectOf(PropTypes.string),
 
-    /** The type of action that's pending  */
-    pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+        /** The type of action that's pending  */
+        pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+    }).isRequired,
+
+    /** Whether this item is focused (for arrow key controls) */
+    isFocused: PropTypes.bool,
+
+    /** Callback to fire when the item is pressed */
+    onSelectRow: PropTypes.func,
+
+    /** Callback to fire when an error is dismissed */
+    onDismissError: PropTypes.func,
 };
 
 const radioListItemPropTypes = {
-    /** Text to display */
-    text: PropTypes.string.isRequired,
+    /** The section list item */
+    item: PropTypes.shape({
+        /** Text to display */
+        text: PropTypes.string.isRequired,
 
-    /** Alternate text to display */
-    alternateText: PropTypes.string,
+        /** Alternate text to display */
+        alternateText: PropTypes.string,
 
-    /** Key used internally by React */
-    keyForList: PropTypes.string.isRequired,
+        /** Key used internally by React */
+        keyForList: PropTypes.string.isRequired,
 
-    /** Whether this option is selected */
-    isSelected: PropTypes.bool,
+        /** Whether this option is selected */
+        isSelected: PropTypes.bool,
+    }).isRequired,
+
+    /** Whether this item is focused (for arrow key controls) */
+    isFocused: PropTypes.bool,
+
+    /** Callback to fire when the item is pressed */
+    onSelectRow: PropTypes.func,
 };
 
 const propTypes = {
