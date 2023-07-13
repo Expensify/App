@@ -561,6 +561,26 @@ function invalidateAuthToken() {
 }
 
 /**
+ * Sets the SupportToken
+ * @param {String} supportToken
+ * @param {String} email
+ * @param {Number} accountID
+ */
+function setSupportAuthToken(supportToken, email, accountID) {
+    if (supportToken) {
+        Onyx.merge(ONYXKEYS.SESSION, {
+            authToken: '1',
+            supportAuthToken: supportToken,
+            email: email,
+            accountID: accountID,
+        });
+    } else {
+        Onyx.set(ONYXKEYS.SESSION, {});
+    }
+    NetworkStore.setSupportAuthToken(supportToken);
+}
+
+/**
  * Clear the credentials and partial sign in session so the user can taken back to first Login step
  */
 function clearSignInData() {
@@ -877,6 +897,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
 export {
     beginSignIn,
+    setSupportAuthToken,
     checkIfActionIsAllowed,
     updatePasswordAndSignin,
     signIn,

@@ -18,25 +18,12 @@ import * as Environment from './libs/Environment/Environment';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
-import * as NetworkStore from './libs/Network/NetworkStore';
-import ONYXKEYS from './ONYXKEYS';
+import {setSupportAuthToken} from './libs/actions/Session';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
     window.Onyx = Onyx;
-    window.setSupportToken = function (supportToken, email, accountID) {
-        if (supportToken) {
-            Onyx.merge(ONYXKEYS.SESSION, {
-                authToken: '1',
-                supportAuthToken: supportToken,
-                email: email,
-                accountID: accountID,
-            });
-        } else {
-            Onyx.set(ONYXKEYS.SESSION, {});
-        }
-        NetworkStore.setSupportAuthToken(supportToken);
-    };
+    window.setSupportToken = setSupportAuthToken;
 }
 
 LogBox.ignoreLogs([
