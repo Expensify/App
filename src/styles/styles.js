@@ -25,10 +25,6 @@ import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 
-function getTransparentColor(color, transparency = '') {
-    return `${color}${transparency}`;
-}
-
 const picker = {
     backgroundColor: themeColors.transparent,
     color: themeColors.text,
@@ -3388,7 +3384,7 @@ const styles = {
     linkPreviewWrapper: {
         marginTop: 16,
         borderLeftWidth: 4,
-        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        borderLeftColor: themeColors.border,
         paddingLeft: 12,
     },
 
