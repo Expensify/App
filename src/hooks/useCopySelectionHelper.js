@@ -16,19 +16,6 @@ export default function useCopySelectionHelper() {
             false,
         );
 
-        function copySelectionToClipboard() {
-            const selection = SelectionScraper.getCurrentSelection();
-            if (!selection) {
-                return;
-            }
-            const parser = new ExpensiMark();
-            if (!Clipboard.canSetHtml()) {
-                Clipboard.setString(parser.htmlToMarkdown(selection));
-                return;
-            }
-            Clipboard.setHtml(selection, parser.htmlToText(selection));
-        }
-
         return () => {
             if (!unsubscribeCopyShortcut) {
                 return;
@@ -37,4 +24,17 @@ export default function useCopySelectionHelper() {
             unsubscribeCopyShortcut();
         };
     }, []);
+
+    function copySelectionToClipboard() {
+        const selection = SelectionScraper.getCurrentSelection();
+        if (!selection) {
+            return;
+        }
+        const parser = new ExpensiMark();
+        if (!Clipboard.canSetHtml()) {
+            Clipboard.setString(parser.htmlToMarkdown(selection));
+            return;
+        }
+        Clipboard.setHtml(selection, parser.htmlToText(selection));
+    }
 }
