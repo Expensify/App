@@ -804,13 +804,13 @@ function getWorkspaceIcon(report) {
  * @param {Number} [defaultAccountID]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) {
+function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '', defaultAccountID = -1) {
     if (_.isEmpty(report)) {
         const fallbackIcon = {
             source: defaultIcon || Expensicons.FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
-            name: '',
-            id: -1,
+            name: defaultName,
+            id: defaultAccountID,
         };
         return [fallbackIcon];
     }
