@@ -37,6 +37,7 @@ import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import withNavigation from '../../../components/withNavigation';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as UserUtils from '../../../libs/UserUtils';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
@@ -493,7 +494,7 @@ class ReportActionCompose extends React.Component {
                 icons: [
                     {
                         name: detail.login,
-                        source: detail.avatar,
+                        source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                         type: 'avatar',
                     },
                 ],
