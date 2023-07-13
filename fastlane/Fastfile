@@ -123,6 +123,10 @@ platform :ios do
     )
   end
 
+  def output_ipa_path
+    sh("echo IPA_PATH=#{lane_context[SharedValues::IPA_OUTPUT_PATH]} >> $GITHUB_OUTPUT")
+  end
+
   desc "Build iOS app for production"
   lane :build do
     ENV["ENVFILE"]=".env.production"
@@ -137,6 +141,7 @@ platform :ios do
             manageAppVersionAndBuildNumber: false
         }
     )
+    output_ipa_path
   end
 
   desc "Build iOS app for internal testing"
@@ -160,6 +165,7 @@ platform :ios do
             manageAppVersionAndBuildNumber: false
         }
     )
+    output_ipa_path
   end
 
   desc "Upload to TestFlight"
