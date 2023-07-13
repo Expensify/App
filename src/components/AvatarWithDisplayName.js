@@ -70,8 +70,6 @@ function AvatarWithDisplayName(props) {
                             backgroundColor={themeColors.highlightBG}
                             mainAvatar={icons[0]}
                             secondaryAvatar={icons[1]}
-                            mainTooltip={props.report.ownerEmail}
-                            secondaryTooltip={subtitle}
                             size={props.size}
                         />
                     ) : (
@@ -98,7 +96,7 @@ function AvatarWithDisplayName(props) {
                                     Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
                                 }}
                                 accessibilityLabel={subtitle}
-                                accessibilityRole="link"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             >
                                 <Text
                                     style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
