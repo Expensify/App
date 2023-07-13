@@ -25,7 +25,7 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    const persistedRequestsCopy = JSON.parse(JSON.stringify(persistedRequests));
+    const persistedRequestsCopy = _.clone(persistedRequests);
     const index = _.findIndex(persistedRequestsCopy, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
     if (index !== -1) {
         persistedRequestsCopy.splice(index, 1);
