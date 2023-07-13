@@ -20,7 +20,6 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
-import * as PolicyUtils from "./PolicyUtils"
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -80,6 +79,12 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     waitForCollectionCallback: true,
     callback: (val) => (allPolicies = val),
+});
+
+let loginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: (val) => (loginList = val),
 });
 
 function getChatType(report) {
@@ -2508,7 +2513,7 @@ function shouldDisableRename(report, policy) {
 
     // If there is a linked workspace, that means the user is a member of the workspace the report is in.
     // Still, we only want policy owners and admins to be able to modify the name.
-    return PolicyUtils.isPolicyMember(policy);
+    return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;;
 }
 
 export {
