@@ -66,7 +66,7 @@ function MoneyReportHeader(props) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.pl0]}>
+        <View style={[styles.pt0]}>
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={false}
@@ -84,7 +84,7 @@ function MoneyReportHeader(props) {
                 personalDetails={props.personalDetails}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                shouldShowBorderBottom={!props.isSmallScreenWidth}
+                shouldShowBorderBottom={!shouldShowSettlementButton || !props.isSmallScreenWidth}
             >
                 {shouldShowSettlementButton && !props.isSmallScreenWidth && (
                     <View style={[styles.pv2]}>
@@ -104,22 +104,22 @@ function MoneyReportHeader(props) {
                     </View>
                 )}
             </HeaderWithBackButton>
+            {shouldShowSettlementButton && props.isSmallScreenWidth && (
             <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
-                {shouldShowSettlementButton && props.isSmallScreenWidth && (
-                    <SettlementButton
-                        currency={props.report.currency}
-                        policyID={props.report.policyID}
-                        shouldShowPaypal={shouldShowPaypal}
-                        chatReportID={props.report.chatReportID}
-                        iouReport={props.report}
-                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
-                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                        addBankAccountRoute={bankAccountRoute}
-                        shouldShowPaymentOptions
-                        formattedAmount={formattedAmount}
-                    />
-                )}
+                <SettlementButton
+                    currency={props.report.currency}
+                    policyID={props.report.policyID}
+                    shouldShowPaypal={shouldShowPaypal}
+                    chatReportID={props.report.chatReportID}
+                    iouReport={props.report}
+                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                    addBankAccountRoute={bankAccountRoute}
+                    shouldShowPaymentOptions
+                    formattedAmount={formattedAmount}
+                />
             </View>
+            )}
         </View>
     );
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes}  from '../withWindowDimensions';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -31,7 +31,7 @@ function MoneyReportView(props) {
     const {translate} = useLocalize();
 
     return (
-        <>
+        <View>
             <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
                 <Image
                     pointerEvents="none"
@@ -66,7 +66,7 @@ function MoneyReportView(props) {
                 </View>
             </View>
             {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
-        </>
+        </View>
     );
 }
 
