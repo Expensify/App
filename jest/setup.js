@@ -31,3 +31,10 @@ jest.mock('react-native-fs', () => ({
     unlink: jest.fn(() => new Promise((res) => res())),
     CachesDirectoryPath: jest.fn(),
 }));
+
+// Added to prevent the following errors when running unit tests:
+// - Invariant Violation: requireNativeComponent: "RCTText" was not found in the UIManager.
+// - Invariant Violation: Tried to register two views with the same name RCTText
+// They are related to the patch file created for this PR: https://github.com/facebook/react-native/pull/35703
+// TODO: Consider removing this when the upstream PR is merged and available in a future release.
+jest.mock('react-native/Libraries/ReactNative/getNativeComponentAttributes');
