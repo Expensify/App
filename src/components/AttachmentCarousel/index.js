@@ -367,7 +367,7 @@ class AttachmentCarousel extends React.Component {
                     </>
                 )}
 
-                {this.state.isMounted > 0 && (
+                {this.state.isMounted && (
                     <FlatList
                         keyboardShouldPersistTaps="handled"
                         listKey="AttachmentCarousel"
