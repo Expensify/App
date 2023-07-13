@@ -133,7 +133,7 @@ function FlagCommentPage(props) {
         const reportAction = getActionToFlag();
 
         // Handle threads if needed
-        if (reportAction === undefined || reportAction.reportActionID === undefined) {
+        if (ReportUtils.isChatThread(props.report)) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
         }
 
