@@ -9,7 +9,7 @@ type PersonalDetails = {
     lastName?: string;
 
     /** Display name of the current user from their personal details */
-    displayName?: string;
+    displayName: string;
 
     /** Is current user validated */
     validated?: boolean;
@@ -18,7 +18,7 @@ type PersonalDetails = {
     phoneNumber?: string;
 
     /** Avatar URL of the current user from their personal details */
-    avatar?: string;
+    avatar: string;
 
     /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;
