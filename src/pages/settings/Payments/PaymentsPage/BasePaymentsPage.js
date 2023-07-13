@@ -5,7 +5,6 @@ import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import PasswordPopover from '../../../../components/PasswordPopover';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
@@ -490,19 +489,6 @@ class BasePaymentsPage extends React.Component {
                         />
                     )}
                 </Popover>
-                <PasswordPopover
-                    isVisible={this.state.shouldShowPasswordPrompt}
-                    onClose={this.hidePasswordPrompt}
-                    anchorPosition={{
-                        top: this.state.anchorPositionTop,
-                        right: this.state.anchorPositionRight,
-                    }}
-                    onSubmit={(password) => {
-                        this.hidePasswordPrompt(false);
-                        this.makeDefaultPaymentMethod(password);
-                    }}
-                    submitButtonText={this.state.passwordButtonText}
-                />
             </ScreenWrapper>
         );
     }
