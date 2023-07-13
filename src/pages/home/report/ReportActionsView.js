@@ -86,15 +86,6 @@ function ReportActionsView(props) {
      */
     const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(props.isFocused), [props.isFocused]);
 
-    const openReportIfNecessary = () => {
-        // If the report is optimistic (AKA not yet created) we don't need to call openReport again
-        if (props.report.isOptimisticReport) {
-            return;
-        }
-
-        Report.openReport(props.report.reportID);
-    };
-
     useEffect(() => {
         unsubscribeVisibilityListener.current = Visibility.onVisibilityChange(() => {
             if (!isReportFullyVisible) {
@@ -117,7 +108,7 @@ function ReportActionsView(props) {
     }, []);
 
     useEffect(() => {
-        openReportIfNecessary();
+        props.fetchReportIfNeeded();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -168,7 +159,7 @@ function ReportActionsView(props) {
         const wasNetworkChangeDetected = lodashGet(prevNetwork, 'isOffline') && !lodashGet(props.network, 'isOffline');
         if (wasNetworkChangeDetected) {
             if (isReportFullyVisible) {
-                openReportIfNecessary();
+                props.fetchReportIfNeeded();
             } else {
                 Report.reconnect(props.report.reportID);
             }
@@ -186,7 +177,7 @@ function ReportActionsView(props) {
         const didReportBecomeVisible = isReportFullyVisible && didScreenSizeIncrease;
         if (didReportBecomeVisible) {
             setNewMarkerReportActionID(ReportUtils.isUnread(props.report) ? ReportUtils.getNewMarkerReportActionID(props.report, props.reportActions) : '');
-            openReportIfNecessary();
+            props.fetchReportIfNeeded();
         }
         // update ref with current state
         prevIsSmallScreenWidthRef.current = props.isSmallScreenWidth;
