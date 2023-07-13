@@ -365,7 +365,6 @@ function WorkspaceMembersPage(props) {
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const removableMembers = {};
     let data = [];
-
     _.each(props.policyMembers, (policyMember, accountID) => {
         if (isDeletedPolicyMember(policyMember)) {
             return;

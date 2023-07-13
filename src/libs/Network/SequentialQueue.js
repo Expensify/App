@@ -83,8 +83,7 @@ function flush() {
                 isSequentialQueueRunning = false;
                 resolveIsReadyPromise();
                 currentRequest = null;
-                const queuedOnyxUpdates = QueuedOnyxUpdates.getQueuedUpdates();
-                Onyx.update(queuedOnyxUpdates).then(QueuedOnyxUpdates.clear);
+                Onyx.update(QueuedOnyxUpdates.getQueuedUpdates()).then(QueuedOnyxUpdates.clear);
             });
         },
     });
