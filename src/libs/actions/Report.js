@@ -457,6 +457,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails = {};
+        const failurePersonalDetails = {};
         _.map(participantLoginList, (login, index) => {
             const accountID = newReportObject.participantAccountIDs[index];
             optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
@@ -465,11 +466,19 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
                 displayName: login,
             };
+
+            failurePersonalDetails[accountID] = allPersonalDetails[accountID] || null;
         });
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetails,
+        });
+
+        onyxData.failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: failurePersonalDetails,
         });
 
         // Add the createdReportActionID parameter to the API call
@@ -1704,7 +1713,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
     InteractionManager.runAfterInteractions(() => {
         SidebarUtils.isSidebarLoadedReady().then(() => {
             if (reportID) {
-                Navigation.navigate(ROUTES.getReportRoute(reportID));
+                Navigation.navigate(ROUTES.getReportRoute(reportID), 'UP');
             }
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat();
