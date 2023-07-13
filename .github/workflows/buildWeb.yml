@@ -1,0 +1,50 @@
+name: Build web app
+
+on:
+  workflow_call:
+    inputs:
+      ENV:
+        description: The environment to build for. Must be one of ("staging", "production", "ad-hoc")
+        required: true
+        type: string
+
+jobs:
+  buildWeb:
+    name: Build web app
+    runs-on: ubuntu-latest-xl
+    steps:
+      - id: validateEnv
+        run: |
+          if [[ ${{ contains(fromJSON('["staging", "production", "ad-hoc"]'), inputs.ENV) }} == 'true' ]]; then
+            echo "Environment ${{ inputs.ENV }} is valid for iOS"
+          else
+            echo "Environment ${{ inputs.ENV }} is not valid for iOS."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v3
+
+      - uses: Expensify/App/.github/actions/composite/setupNode@main
+
+      - name: Create .env.adhoc file based on staging
+        if: inputs.ENV == 'ad-hoc'
+        run: |
+          cp .env.staging .env.adhoc
+          sed -i 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
+          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
+
+      - name: Run web build
+        run: |
+          if [[ ${{ inputs.ENV }} == 'ad-hoc' ]]; then
+            npm run build-adhoc
+          elif [[ ${{ inputs.ENV }} == 'staging' ]]; then
+            npm run build-staging
+          else
+            npm run build
+          fi
+
+      - name: Post a message in slack if the build fails
+        if: failure()
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
