@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -258,7 +257,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         reportCreationData: {},
     };
 
-    // Add optimistic personal details for new participants
+    // TODO: Add comment
     const optimisticPersonalDetails = {};
     const successPersonalDetails = {};
 
@@ -358,12 +357,6 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         });
     });
 
-    // TODO: Remove
-    console.group('createPolicyExpenseChats');
-    console.log('optimisticPersonalDetails', optimisticPersonalDetails);
-    console.log('successPersonalDetails', successPersonalDetails);
-    console.groupEnd();
-
     // TODO: Add comment
     workspaceMembersChats.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -415,7 +408,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
                 accountIDs,
                 (memo, accountID) => {
                     let value = null;
-                    const isExistedAccount = Boolean(personalDetails[accountID]);
+                    const isExistedAccount = !_.isEmpty(personalDetails[accountID]);
 
                     if (isExistedAccount) {
                         value = {pendingAction: null, errors: null};
@@ -431,7 +424,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...membersChats.onyxSuccessData,
     ];
-    console.log('successData', successData);
 
     const failureData = [
         {
