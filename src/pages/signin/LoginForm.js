@@ -205,7 +205,7 @@ function LoginForm(props) {
                             containerStyles={[styles.mh0]}
                         />
                         <View style={[getSignInWithStyles()]}>
-                            <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{props.translate('common.signInWith')}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{props.translate('common.signInWith')}</Text>
                             <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                 <AppleSignIn />
                             </View>
