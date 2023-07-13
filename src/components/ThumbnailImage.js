@@ -84,7 +84,7 @@ function ThumbnailImage(props) {
     );
     return (
         <View style={[props.style, styles.overflowHidden]}>
-            <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth ?? 200, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth || 200, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={props.previewSourceURL}
                     onMeasure={updateImageSize}
