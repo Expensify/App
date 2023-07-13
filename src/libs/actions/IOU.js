@@ -891,7 +891,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       value: {
                           hasOutstandingIOU: false,
                           iouReportID: null,
-                          lastMessageText: ReportActionsUtils.lastMessageText(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
+                          lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
                           lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).created,
                       },
                   },
