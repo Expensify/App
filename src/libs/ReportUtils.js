@@ -1464,10 +1464,8 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
             paymentMethodMessage = ' elsewhere';
             break;
-        case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-            paymentMethodMessage = ' using PayPal.me';
-            break;
         default:
+            paymentMethodMessage = ` using ${paymentType}`;
             break;
     }
 
