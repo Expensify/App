@@ -104,8 +104,8 @@ class SettlementButton extends React.Component {
 
         // To achieve the one tap pay experience we need to choose the correct payment type as default,
         // if user already paid for some request or expense, let's use the last payment method or use default.
+        let paymentMethod = this.props.nvp_lastPaymentMethod[this.props.policyID] || '';
         if (!this.props.shouldShowPaymentOptions) {
-            let paymentMethod = this.props.nvp_lastPaymentMethod[this.props.policyID];
             if (!paymentMethod) {
                 // In case the user hasn't paid a request yet, let's default to VBBA payment type in case of expense reports
                 if (isExpenseReport) {
@@ -141,6 +141,13 @@ class SettlementButton extends React.Component {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]);
         }
         buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+
+        // Put the prefered payment method to the front of the array
+        if (paymentMethod) {
+            const indexOfElement = _.findIndex(buttonOptions, method => method === paymentMethod);
+            buttonOptions.splice(indexOfElement, 1);
+            buttonOptions.unshift(paymentMethod);
+        }
         return buttonOptions;
     }
 
