@@ -1126,6 +1126,12 @@ function getReportName(report) {
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
+        if (
+            lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
+            lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
+        ) {
+            return Localize.translateLocal('parentReportAction.hiddenMessage');
+        }
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     if (isChatRoom(report) || isTaskReport(report)) {

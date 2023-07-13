@@ -1918,6 +1918,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
         replies: 'Respuestas',
