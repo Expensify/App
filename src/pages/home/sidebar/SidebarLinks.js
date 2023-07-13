@@ -60,11 +60,9 @@ const propTypes = {
                 error: PropTypes.string,
                 message: PropTypes.arrayOf(
                     PropTypes.shape({
-                        moderationDecisions: PropTypes.arrayOf(
-                            PropTypes.shape({
-                                decision: PropTypes.string,
-                            }),
-                        ),
+                        moderationDecision: PropTypes.shape({
+                            decision: PropTypes.string,
+                        }),
                     }),
                 ),
             }),
@@ -335,7 +333,7 @@ const reportActionsSelector = (reportActions) =>
         errors: reportAction.errors,
         message: [
             {
-                moderationDecisions: [{decision: lodashGet(reportAction, 'message[0].moderationDecisions[0].decision')}],
+                moderationDecision: {decision: lodashGet(reportAction, 'message[0].moderationDecision.decision')},
             },
         ],
     }));
