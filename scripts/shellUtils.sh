@@ -1,10 +1,10 @@
 #!/bin/bash
 
-GREEN=$'\e[1;32m'
-RED=$'\e[1;31m'
-BLUE=$'\e[1;34m'
-TITLE=$'\e[1;4;34m'
-RESET=$'\e[0m'
+declare -r GREEN=$'\e[1;32m'
+declare -r RED=$'\e[1;31m'
+declare -r BLUE=$'\e[1;34m'
+declare -r TITLE=$'\e[1;4;34m'
+declare -r RESET=$'\e[0m'
 
 function success {
   echo "🎉 $GREEN$1$RESET"

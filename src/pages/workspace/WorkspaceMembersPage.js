@@ -332,6 +332,7 @@ function WorkspaceMembersPage(props) {
                                     participantsList: [item],
                                     icons: [
                                         {
+                                            id: item.accountID,
                                             source: UserUtils.getAvatar(item.avatar, item.accountID),
                                             name: item.login,
                                             type: CONST.ICON_TYPE_AVATAR,
@@ -454,9 +455,11 @@ function WorkspaceMembersPage(props) {
                         </View>
                         <View style={[styles.w100, styles.pv3, styles.ph5]}>
                             <TextInput
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 value={searchValue}
                                 onChangeText={setSearchValue}
                                 label={props.translate('optionsSelector.findMember')}
+                                accessibilityLabel={props.translate('optionsSelector.findMember')}
                             />
                         </View>
                         {data.length > 0 ? (

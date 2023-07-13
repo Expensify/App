@@ -1,5 +1,5 @@
 import moment from 'moment';
-import CONST from '../../CONST';
+import CONST from '../../../CONST';
 
 /**
  * Generates a matrix representation of a month's calendar given the year and month.
