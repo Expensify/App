@@ -264,7 +264,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         const cleanAccountID = Number(accountID);
         const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
 
-        if (!personalDetails[accountID]) {
+        if (_.isEmpty(personalDetails[accountID])) {
             optimisticPersonalDetails[accountID] = {
                 login,
                 accountID,
