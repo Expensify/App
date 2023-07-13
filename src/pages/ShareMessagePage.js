@@ -18,6 +18,8 @@ function ShareMessagePage(props) {
     const [attachment, setAttachment] = useState(props.route.params.share);
     const [message, setMessage] = useState('');
 
+    console.log({reportID: toDetails.reportID});
+
     useEffect(() => {
         if (Platform.OS !== 'ios') return;
         ShareMenuReactView.data().then((share) => {
@@ -67,6 +69,7 @@ function ShareMessagePage(props) {
                     onPress={() => {
                         const name = attachment.data.split('/').pop();
                         const source = attachment.data;
+                        console.log('attachment', {reportID: toDetails.reportID, name, source, type: attachment.mimeType, uri: source, message});
                         Report.addAttachment(toDetails.reportID, {name, source, type: attachment.mimeType, uri: source}, message);
                         if (Platform.OS === 'ios') {
                             ShareMenuReactView.dismissExtension();
