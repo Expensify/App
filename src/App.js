@@ -24,19 +24,19 @@ import ONYXKEYS from './ONYXKEYS';
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
     window.Onyx = Onyx;
-    window.setSupportToken = function(supportToken, email) {
-        if(supportToken){
+    window.setSupportToken = function (supportToken, email, accountID) {
+        if (supportToken) {
             Onyx.merge(ONYXKEYS.SESSION, {
                 authToken: '1',
                 supportAuthToken: supportToken,
                 email: email,
+                accountID: accountID,
             });
         } else {
-            Onyx.set(ONYXKEYS.SESSION, {
-            });
+            Onyx.set(ONYXKEYS.SESSION, {});
         }
         NetworkStore.setSupportAuthToken(supportToken);
-    }
+    };
 }
 
 LogBox.ignoreLogs([

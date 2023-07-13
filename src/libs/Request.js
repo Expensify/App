@@ -21,7 +21,7 @@ function makeXHR(request) {
         if (NetworkStore.getSupportAuthToken() && !NetworkStore.isSupportRequest(request.command)) {
             return new Promise((resolve) => resolve());
         }
-        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure)
+        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
     });
 }
 
