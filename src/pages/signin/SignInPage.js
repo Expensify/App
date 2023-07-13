@@ -135,8 +135,8 @@ function SignInPage({credentials, account}) {
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
                 shouldShowWelcomeText={shouldShowWelcomeText}
             >
-                {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
-                    so that password managers can access the values. Conditionally rendering these components will break this feature. */}
+                {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
+                    so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}

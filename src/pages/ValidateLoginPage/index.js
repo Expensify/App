@@ -44,7 +44,6 @@ function ValidateLoginPage(props) {
         const validateCode = lodashGet(props.route.params, 'validateCode', '');
 
         // A fresh session will not have credentials.login available.
-        // In that case, we directly allow users to go through password less flow
         if (!login) {
             if (lodashGet(props, 'session.authToken')) {
                 // If already signed in, do not show the validate code if not on web,
