@@ -2,9 +2,7 @@ import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -16,6 +14,7 @@ import * as Expensicons from '../Icon/Expensicons';
 import variables from '../../styles/variables';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -23,15 +22,12 @@ const propTypes = {
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
-
-    ...withLocalizePropTypes,
-
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 function MoneyReportView(props) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
     const isSettled = ReportUtils.isSettled(props.report.reportID);
+    const {translate} = useLocalize();
 
     return (
         <>
@@ -45,10 +41,10 @@ function MoneyReportView(props) {
             <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <Text
-                        style={[styles.textLabelSupporting, styles.lineHeightNormal, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
+                        style={[styles.textLabelSupporting, styles.lhNormal, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
                         numberOfLines={1}
                     >
-                        {props.translate('common.total')}
+                        {translate('common.total')}
                     </Text>
                 </View>
                 <View style={[styles.flexRow, styles.justifyContentCenter]}>
@@ -68,7 +64,7 @@ function MoneyReportView(props) {
                     </Text>
                 </View>
             </View>
-            {props.shouldShowHorizontalRule && <View style={styles.taskHorizontalRule} />}
+            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </>
     );
 }
@@ -76,4 +72,4 @@ function MoneyReportView(props) {
 MoneyReportView.propTypes = propTypes;
 MoneyReportView.displayName = 'MoneyReportView';
 
-export default compose(withWindowDimensions, withLocalize, withCurrentUserPersonalDetails)(MoneyReportView);
+export default compose(withWindowDimensions)(MoneyReportView);

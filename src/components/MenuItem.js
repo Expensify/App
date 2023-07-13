@@ -94,7 +94,7 @@ function MenuItem(props) {
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
-        styles.lineHeightNormal,
+        styles.lhNormal,
         props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         props.descriptionTextStyle,
         isDeleted ? styles.offlineFeedback.deleted : undefined,

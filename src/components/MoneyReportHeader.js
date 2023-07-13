@@ -20,6 +20,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import reportPropTypes from '../pages/reportPropTypes';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -42,8 +43,6 @@ const propTypes = {
         /** Currently logged in user email */
         email: PropTypes.string,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -62,8 +61,9 @@ function MoneyReportHeader(props) {
     const shouldShowSettlementButton = !isSettled && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
-    const report = props.report;
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
+    const {translate} = useLocalize();
+
     return (
         <View style={[styles.pl0]}>
             <HeaderWithBackButton
@@ -73,12 +73,12 @@ function MoneyReportHeader(props) {
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,
-                        text: props.translate('common.delete'),
+                        text: translate('common.delete'),
                         onSelected: () => {},
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={report}
+                report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton
