@@ -18,7 +18,6 @@ import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
-import HeaderView from '../pages/home/HeaderView';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -70,21 +69,10 @@ function MoneyRequestHeader(props) {
 
     // These are only used for the single transaction view and not for expense and iou reports
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
 
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
     }, [parentReportAction]);
-
-    if (props.isSingleTransactionView && isDeletedParentAction) {
-        return (
-            <HeaderView
-                onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME)}
-                personalDetails={props.personalDetails}
-                report={props.report}
-            />
-        );
-    }
 
     return (
         <View style={[styles.highlightBG, styles.pl0]}>

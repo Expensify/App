@@ -250,6 +250,7 @@ class ReportScreen extends React.Component {
         this.firstRenderRef.current = false;
 
         const parentReportAction = ReportActionsUtils.getParentReportAction(this.props.report);
+        const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
         const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
@@ -277,7 +278,7 @@ class ReportScreen extends React.Component {
                             errors={addWorkspaceRoomOrChatErrors}
                             shouldShowErrorMessages={false}
                         >
-                            {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
+                            {ReportUtils.isMoneyRequestReport(this.props.report) || (isSingleTransactionView && !isDeletedParentAction) ? (
                                 <MoneyRequestHeader
                                     report={this.props.report}
                                     policies={this.props.policies}
