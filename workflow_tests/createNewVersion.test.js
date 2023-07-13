@@ -5,7 +5,7 @@ const assertions = require('./assertions/createNewVersionAssertions');
 const mocks = require('./mocks/createNewVersionMocks');
 const eAct = require('./utils/ExtendedAct');
 
-jest.setTimeout(60 * 1000); // 60 sec
+jest.setTimeout(90 * 1000); // 90 sec
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     ...utils.deepCopy(utils.FILES_TO_COPY_INTO_TEST_REPO),

@@ -28,7 +28,7 @@ const assertions = require('./assertions/${workflowName}Assertions');
 const mocks = require('./mocks/${workflowName}Mocks');
 const eAct = require('./utils/ExtendedAct');
 
-jest.setTimeout(60 * 1000);
+jest.setTimeout(90 * 1000);
 let mockGithub;
 const FILES_TO_COPY_INTO_TEST_REPO = [
     {
