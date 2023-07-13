@@ -126,7 +126,7 @@ function FlagCommentPage(props) {
         }
 
         return reportAction;
-    }, [props.report, props.reportActions, props.route.params.reportActionID])
+    }, [props.report, props.reportActions, props.route.params.reportActionID]);
 
     const flagComment = (severity) => {
         let reportID = getReportID(props.route);
