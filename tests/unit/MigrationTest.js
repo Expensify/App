@@ -870,5 +870,105 @@ describe('Migrations', () => {
                         },
                     });
                 }));
+
+        it('Should remove any instances of ownerEmail found in a report', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.REPORT}1`]: {
+                    reportID: 1,
+                    ownerEmail: 'fake@test.com',
+                    ownerAccountID: 5,
+                }
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing ownerEmail from report 1');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReport = {
+                                reportID: 1,
+                                ownerAccountID: 5,
+                            };
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`][1]).toMatchObject(expectedReport);
+                        },
+                    });
+                }));
+
+        it('Should remove any instances of managerEmail found in a report', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.REPORT}1`]: {
+                    reportID: 1,
+                    managerEmail: 'fake@test.com',
+                    managerID: 5,
+                }
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing managerEmail from report 1');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReport = {
+                                reportID: 1,
+                                managerID: 5,
+                            };
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`][1]).toMatchObject(expectedReport);
+                        },
+                    });
+                }));
+
+        it('Should remove any instances of lastActorEmail found in a report', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.REPORT}1`]: {
+                    reportID: 1,
+                    lastActorEmail: 'fake@test.com',
+                    lastActorAccountID: 5,
+                }
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing lastActorEmail from report 1');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReport = {
+                                reportID: 1,
+                                lastActorAccountID: 5,
+                            };
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`][1]).toMatchObject(expectedReport);
+                        },
+                    });
+                }));
+
+        it('Should remove any instances of participants found in a report', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.REPORT}1`]: {
+                    reportID: 1,
+                    participants: ['fake@test.com'],
+                    participantAccountIDs: 5,
+                }
+            })
+                .then(PersonalDetailsByAccountID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] PersonalDetailsByAccountID migration: removing participants from report 1');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        waitForCollectionCallback: true,
+                        callback: (allReports) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReport = {
+                                reportID: 1,
+                                participantAccountIDs: 5,
+                            };
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`][1]).toMatchObject(expectedReport);
+                        },
+                    });
+                }));
     });
 });
