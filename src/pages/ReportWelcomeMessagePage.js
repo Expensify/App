@@ -1,6 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import compose from '../libs/compose';
@@ -17,6 +17,8 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import Form from '../components/Form';
+import * as PolicyUtils from '../libs/PolicyUtils';
+import policyPropType from './policyPropType';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -31,6 +33,12 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
+
+    policy: PropTypes.objectOf(policyPropType),
+};
+
+const defaultProps = {
+    policy: {},
 };
 
 function ReportWelcomeMessagePage(props) {
@@ -55,7 +63,7 @@ function ReportWelcomeMessagePage(props) {
                 welcomeMessageInputRef.current.focus();
             }}
         >
-            <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
+            <FullPageNotFoundView shouldShow={!PolicyUtils.isPolicyAdmin(props.policy)}>
                 <HeaderWithBackButton title={props.translate('welcomeMessagePage.welcomeMessage')} />
                 <Form
                     style={[styles.flexGrow1, styles.ph5]}
@@ -87,5 +95,16 @@ function ReportWelcomeMessagePage(props) {
     );
 }
 
+ReportWelcomeMessagePage.displayName = 'ReportWelcomeMessagePage';
 ReportWelcomeMessagePage.propTypes = propTypes;
-export default compose(withLocalize, withReportOrNotFound)(ReportWelcomeMessagePage);
+ReportWelcomeMessagePage.defaultProps = defaultProps;
+
+export default compose(
+    withLocalize,
+    withReportOrNotFound,
+    withOnyx({
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
+        },
+    }),
+)(ReportWelcomeMessagePage);
