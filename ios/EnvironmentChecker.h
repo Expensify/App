@@ -1,6 +1,6 @@
 //
 //  EnvironmentChecker.h
-//  NewExpensify
+//  ExpensifyChat
 //
 
 #ifndef EnvironmentChecker_h

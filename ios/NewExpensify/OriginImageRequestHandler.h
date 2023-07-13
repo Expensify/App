@@ -1,6 +1,6 @@
 //
 //  OriginImageRequestHandler.h
-//  NewExpensify
+//  ExpensifyChat
 //
 //  Created by ntdiary on 2022/8/8.
 //

@@ -1,6 +1,6 @@
 //
 //  BridgingFile.swift
-//  NewExpensify
+//  ExpensifyChat
 //
 // Needed because iOS implementation is written in Swift.
 //

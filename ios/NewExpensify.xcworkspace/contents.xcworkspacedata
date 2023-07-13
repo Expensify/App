@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:NewExpensify.xcodeproj">
+      location = "group:/Users/jules/Projects/Expensidev/App/ios/ExpensifyChat.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:Pods/Pods.xcodeproj">

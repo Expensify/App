@@ -1,6 +1,6 @@
 //
 //  RCTBootSplash.m
-//  NewExpensify
+//  ExpensifyChat
 //
 //  Created by Mathieu Acthernoene on 07/01/2022.
 //
