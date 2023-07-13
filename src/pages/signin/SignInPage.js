@@ -80,13 +80,7 @@ function SignInPage({credentials, account}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
 
-    const {
-        shouldShowLoginForm,
-        shouldShowUnlinkLoginForm,
-        shouldShowValidateCodeForm,
-        shouldShowWelcomeHeader,
-        shouldShowWelcomeText,
-    } = getRenderOptions({
+    const {shouldShowLoginForm, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions({
         hasLogin: Boolean(credentials.login),
         hasValidateCode: Boolean(credentials.validateCode),
         hasAccount: !_.isEmpty(account),
