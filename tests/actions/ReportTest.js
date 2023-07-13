@@ -49,7 +49,7 @@ describe('actions/Report', () => {
             actorAccountID: TEST_USER_ACCOUNT_ID,
             automatic: false,
             avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_3.png',
-            message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment'}],
+            message: [{type: 'COMMENT', html: 'Testing a comment', text: 'Testing a comment', translationKey: ''}],
             person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
             shouldShow: true,
         };
