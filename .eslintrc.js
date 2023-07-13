@@ -133,6 +133,7 @@ module.exports = {
                 'rulesdir/onyx-props-must-have-default': 'off',
                 'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',
+                'react/require-default-props': 'off',
                 'no-restricted-syntax': [
                     'error',
                     {
