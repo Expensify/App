@@ -74,4 +74,4 @@ function MoneyReportView(props) {
 MoneyReportView.propTypes = propTypes;
 MoneyReportView.displayName = 'MoneyReportView';
 
-export default compose(withWindowDimensions)(MoneyReportView);
+export default withWindowDimensions(MoneyReportView);
