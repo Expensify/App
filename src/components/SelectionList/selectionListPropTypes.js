@@ -47,7 +47,7 @@ const checkboxListItemPropTypes = {
     isFocused: PropTypes.bool,
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: PropTypes.func,
+    onSelectRow: PropTypes.func.isRequired,
 
     /** Callback to fire when an error is dismissed */
     onDismissError: PropTypes.func,
@@ -73,7 +73,7 @@ const radioListItemPropTypes = {
     isFocused: PropTypes.bool,
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: PropTypes.func,
+    onSelectRow: PropTypes.func.isRequired,
 };
 
 const propTypes = {
@@ -87,7 +87,7 @@ const propTypes = {
             indexOffset: PropTypes.number,
 
             /** Array of options */
-            data: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes)),
+            data: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.shape(checkboxListItemPropTypes.item), PropTypes.shape(radioListItemPropTypes.item)])),
 
             /** Whether this section items disabled for selection */
             isDisabled: PropTypes.bool,
@@ -98,7 +98,7 @@ const propTypes = {
     canSelectMultiple: PropTypes.bool,
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: PropTypes.func,
+    onSelectRow: PropTypes.func.isRequired,
 
     /** Callback to fire when "Select All" checkbox is pressed. Only use along with `canSelectMultiple` */
     onSelectAll: PropTypes.func,

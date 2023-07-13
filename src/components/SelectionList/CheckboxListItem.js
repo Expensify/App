@@ -10,7 +10,7 @@ import Avatar from '../Avatar';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import useLocalize from '../../hooks/useLocalize';
 
-function CheckboxListItem({item, isFocused = false, onSelectRow = () => {}, onDismissError = () => {}}) {
+function CheckboxListItem({item, isFocused = false, onSelectRow, onDismissError = () => {}}) {
     const {translate} = useLocalize();
     const hasError = !_.isEmpty(item.errors);
 
@@ -65,7 +65,7 @@ function CheckboxListItem({item, isFocused = false, onSelectRow = () => {}, onDi
                 </View>
                 {item.isAdmin && (
                     <View style={[styles.badge, styles.peopleBadge]}>
-                        <Text style={[styles.peopleBadgeText]}>{translate('common.admin')}</Text>
+                        <Text style={styles.peopleBadgeText}>{translate('common.admin')}</Text>
                     </View>
                 )}
             </PressableWithFeedback>
