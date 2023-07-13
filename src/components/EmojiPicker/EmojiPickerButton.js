@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';

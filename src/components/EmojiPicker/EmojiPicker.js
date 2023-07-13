@@ -115,7 +115,7 @@ const EmojiPicker = forwardRef((props, ref) => {
      */
     const isActiveReportAction = (actionID) => Boolean(actionID) && reportAction.reportActionID === actionID;
 
-    const resetEmojiPopoverAnchor = () => emojiPopoverAnchor.current = null;
+    const resetEmojiPopoverAnchor = () => (emojiPopoverAnchor.current = null);
 
     useImperativeHandle(ref, () => ({showEmojiPicker, isActiveReportAction, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
 
