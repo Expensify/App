@@ -672,6 +672,12 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    THEME: {
+        DEFAULT: 'dark',
+        LIGHT: 'light',
+        DARK: 'dark',
+        SYSTEM: 'system',
+    },
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
@@ -1135,7 +1141,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
-        ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
+        ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -2524,6 +2530,9 @@ const CONST = {
     },
     SETTINGS_LOUNGE_ACCESS: {
         HEADER_IMAGE_ASPECT_RATIO: 0.64,
+    },
+    TRANSLATION_KEYS: {
+        ATTACHMENT: 'common.attachment',
     },
 };
 
