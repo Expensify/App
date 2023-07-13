@@ -220,17 +220,6 @@ class ReportScreen extends React.Component {
     }
 
     fetchReportIfNeeded() {
-        // this function will also be called from child component (ReportActionsView),
-        // props might be undefined when it's called from a child element for the first time
-        if(!this.props){
-            return;
-        }
-
-        // If the report is optimistic (AKA not yet created) we don't need to call openReport again
-        if (this.props.report.isOptimisticReport) {
-            return;
-        }
-
         const reportIDFromPath = getReportID(this.props.route);
 
         // Report ID will be empty when the reports collection is empty.
@@ -242,7 +231,7 @@ class ReportScreen extends React.Component {
         // It possible that we may not have the report object yet in Onyx yet e.g. we navigated to a URL for an accessible report that
         // is not stored locally yet. If props.report.reportID exists, then the report has been stored locally and nothing more needs to be done.
         // If it doesn't exist, then we fetch the report from the API.
-        if (this.props.report.reportID && this.props.report.reportID === reportIDFromPath) {
+        if (this.props.report.reportID && this.props.report.reportID === getReportID(this.props.route)) {
             return;
         }
 
