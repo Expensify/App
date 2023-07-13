@@ -77,3 +77,9 @@ jobs:
           name: ${{ inputs.ARTIFACT_NAME }}.aab
           # Note: this output comes from inside the Fastfile
           path: ${{ steps.build.outputs.AAB_PATH }}
+
+      - name: Archive Android sourcemaps
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-sourcemap
+          path: android/app/build/generated/sourcemaps/react/release/*.map
