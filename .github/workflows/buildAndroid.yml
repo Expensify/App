@@ -3,7 +3,12 @@ name: Build Android app
 on:
   workflow_call:
     inputs:
+      ARTIFACT_NAME:
+        description: The name of the workflow artifact where the APK should be uploaded
+        required: true
+        type: string
       ENV:
+        description: The environment to build for. Must be one of ("release", "ad-hoc", "e2e")
         required: true
         type: string
 
@@ -12,12 +17,16 @@ jobs:
     name: Build Android app
     runs-on: ubuntu-latest-xl
     steps:
-      - uses: actions/checkout@v3
+      - id: validateEnv
+        run: |
+          if [[ ${{ contains(fromJSON('["release", "ad-hoc", "e2e"]'), inputs.ENV) }} == 'true' ]]; then
+            echo "Environment ${{ inputs.ENV }} is valid for Android"
+          else
+            echo "Environment ${{ inputs.ENV }} is not valid for Android."
+            exit 1
+          fi
 
-      - uses: Expensify/App/.github/actions/composite/validateBuildEnvironment@main
-        with:
-          PLATFORM: android
-          ENV: ${{ inputs.ENV }}
+      - uses: actions/checkout@v3
 
       - uses: Expensify/App/.github/actions/composite/setupNode@main
 
@@ -25,6 +34,8 @@ jobs:
         with:
           ruby-version: '2.7'
           bundler-cache: true
+
+      - uses: gradle/gradle-build-action@v2
 
       - name: Decrypt keystore
         run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output my-upload-key.keystore my-upload-key.keystore.gpg
@@ -37,7 +48,32 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Set version in ENV
-        run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
+        run: |
+          echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
+          echo "NPM_VERSION=$(< package.json jq -r .version)" >> "$GITHUB_ENV"
 
       - name: Run Fastlane build
-        run: bundle exec fastlane ${{ inputs.ENV }}
+        id: build
+        run: |
+          if [[ ${{ inputs.ENV }} == "release" ]]; then
+            bundle exec fastlane android build
+          elif [[ ${{ inputs.ENV }} == "ad-hoc" ]]; then
+            bundle exec fastlane android build_internal
+          else
+            bundle exec fastlane android build_e2e
+          fi
+
+      - name: Upload APK as workflow artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.ARTIFACT_NAME }}.apk
+          # Note: this output comes from inside the Fastfile
+          path: ${{ steps.build.outputs.APK_PATH }}
+
+      - name: Upload AAB as workflow artifact
+        if: inputs.ENV == "release"
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.ARTIFACT_NAME }}.aab
+          # Note: this output comes from inside the Fastfile
+          path: ${{ steps.build.outputs.AAB_PATH }}
