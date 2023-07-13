@@ -15,7 +15,7 @@ const darkTheme = {
     iconHovered: colors.white,
     iconSuccessFill: colors.green,
     iconReversed: colors.greenAppBackground,
-    iconColorfulBackground: colors.ivory,
+    iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.greenSupportingText,
     text: colors.white,
     link: colors.blueLink,
