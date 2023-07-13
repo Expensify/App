@@ -150,11 +150,18 @@ function addSMSDomainIfPhoneNumber(login) {
  *
  * @param {Array<Number>} accountIDs
  * @param {Object} personalDetails
+ * @param {Object} defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns {Object}
  */
-function getAvatarsForAccountIDs(accountIDs, personalDetails) {
+function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}) {
+    const reversedDefaultValues = {};
+    _.map(Object.entries(defaultValues), (item) => {
+        reversedDefaultValues[item[1]] = item[0];
+    });
+
     return _.map(accountIDs, (accountID) => {
-        const userPersonalDetail = lodashGet(personalDetails, accountID, {login: '', accountID, avatar: ''});
+        const login = lodashGet(reversedDefaultValues, accountID, '');
+        const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
