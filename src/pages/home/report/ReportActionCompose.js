@@ -998,7 +998,7 @@ class ReportActionCompose extends React.Component {
                 // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
                 runOnJS(setCommentEmpty)();
                 const updates = {text: ''};
-                if([CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].includes(getPlatform())) {
+                if ([CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].includes(getPlatform())) {
                     // eslint-disable-next-line no-undef
                     _updatePropsPaper(viewTag, viewName, updates); // clears native text input on the UI thread
                 }
@@ -1227,16 +1227,19 @@ class ReportActionCompose extends React.Component {
                             <Tooltip text={this.props.translate('common.send')}>
                                 <GestureDetector gesture={Tap}>
                                     <PressableWithFeedback
-                                        style={({pressed, isDisabled}) => [styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess]}
+                                        style={({pressed, isDisabled}) => [
+                                            styles.chatItemSubmitButton,
+                                            this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                        ]}
                                         accessibilityRole="button"
                                         accessibilityLabel={this.props.translate('common.send')}
                                     >
                                         {({pressed}) => (
-                                                <Icon
-                                                    src={Expensicons.Send}
-                                                    fill={this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed ? themeColors.icon : themeColors.textLight}
-                                                />    
-                                                )}
+                                            <Icon
+                                                src={Expensicons.Send}
+                                                fill={this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed ? themeColors.icon : themeColors.textLight}
+                                            />
+                                        )}
                                     </PressableWithFeedback>
                                 </GestureDetector>
                             </Tooltip>
