@@ -67,10 +67,29 @@ class AttachmentCarousel extends React.Component {
         this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
 
         this.state = this.createInitialState();
+
+        this.containerWidth = React.createRef();
+        this.containerWidth.current = 0;
     }
 
     componentDidMount() {
         this.autoHideArrow();
+        this.setState({isMounted: true, containerWidth: this.containerWidth.current});
+    }
+
+    getContainerWidth() {
+        if (this.state.isMounted) {
+            return this.state.containerWidth;
+        }
+        return this.containerWidth.current;
+    }
+
+    setContainerWidth(width) {
+        if (this.state.isMounted) {
+            this.setState({containerWidth: width});
+        } else {
+            this.containerWidth.current = width;
+        }
     }
 
     /**
@@ -81,8 +100,8 @@ class AttachmentCarousel extends React.Component {
      */
     getItemLayout(data, index) {
         return {
-            length: this.state.containerWidth,
-            offset: this.state.containerWidth * index,
+            length: this.getContainerWidth(),
+            offset: this.getContainerWidth() * index,
             index,
         };
     }
@@ -149,7 +168,7 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Constructs the initial component state from report actions
-     * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
+     * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isMounted: Boolean, isZoomed: Boolean}}
      */
     createInitialState() {
         const actions = [ReportActionsUtils.getParentReportAction(this.props.report), ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
@@ -202,6 +221,7 @@ class AttachmentCarousel extends React.Component {
             attachments,
             shouldShowArrow: this.canUseTouchScreen,
             containerWidth: 0,
+            isMounted: false,
             isZoomed: false,
             activeSource: null,
         };
@@ -298,7 +318,9 @@ class AttachmentCarousel extends React.Component {
         return (
             <View
                 style={[styles.attachmentModalArrowsContainer, styles.flex1]}
-                onLayout={({nativeEvent}) => this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width)})}
+                onLayout={({nativeEvent}) => {
+                    this.setContainerWidth(PixelRatio.roundToNearestPixel(nativeEvent.layout.width))
+                }}
                 onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
                 onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
             >
@@ -345,7 +367,7 @@ class AttachmentCarousel extends React.Component {
                     </>
                 )}
 
-                {this.state.containerWidth > 0 && (
+                {this.state.isMounted > 0 && (
                     <FlatList
                         keyboardShouldPersistTaps="handled"
                         listKey="AttachmentCarousel"
@@ -357,7 +379,7 @@ class AttachmentCarousel extends React.Component {
                         disableIntervalMomentum
                         pagingEnabled
                         snapToAlignment="start"
-                        snapToInterval={this.state.containerWidth}
+                        snapToInterval={this.getContainerWidth()}
                         // Enable scrolling by swiping on mobile (touch) devices only
                         // disable scroll for desktop/browsers because they add their scrollbars
                         // Enable scrolling FlatList only when PDF is not in a zoomed state
