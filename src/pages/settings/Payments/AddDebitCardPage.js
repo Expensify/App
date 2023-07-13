@@ -114,7 +114,10 @@ class DebitCardPage extends Component {
 
     render() {
         return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <ScreenWrapper
+                onEntryTransitionEnd={() => this.nameOnCardRef && this.nameOnCardRef.focus()}
+                includeSafeAreaPaddingBottom={false}
+            >
                 <HeaderWithBackButton
                     title={this.props.translate('addDebitCardPage.addADebitCard')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
@@ -132,6 +135,7 @@ class DebitCardPage extends Component {
                         label={this.props.translate('addDebitCardPage.nameOnCard')}
                         accessibilityLabel={this.props.translate('addDebitCardPage.nameOnCard')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        ref={(el) => (this.nameOnCardRef = el)}
                     />
                     <TextInput
                         inputID="cardNumber"
