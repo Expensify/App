@@ -184,7 +184,6 @@ function BaseValidateCodeForm(props) {
         setTimeRemaining(30);
     };
 
-
     /**
      * Clear local sign in states
      */
@@ -192,7 +191,7 @@ function BaseValidateCodeForm(props) {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
-    }
+    };
 
     /**
      * Clears local and Onyx sign in states
