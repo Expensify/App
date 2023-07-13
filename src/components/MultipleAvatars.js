@@ -112,6 +112,10 @@ function MultipleAvatars(props) {
             <UserDetailsTooltip
                 accountID={props.icons[0].id}
                 icon={props.icons[0]}
+                fallbackUserDetails={{
+                    displayName: props.icons[0].name,
+                    avatar: props.icons[0].avatar,
+                }}
             >
                 <View style={avatarContainerStyles}>
                     <Avatar
@@ -158,6 +162,10 @@ function MultipleAvatars(props) {
                                 key={`stackedAvatars-${index}`}
                                 accountID={icon.id}
                                 icon={icon}
+                                fallbackUserDetails={{
+                                    displayName: icon.name,
+                                    avatar: icon.avatar,
+                                }}
                             >
                                 <View
                                     style={[
@@ -226,6 +234,10 @@ function MultipleAvatars(props) {
                         <UserDetailsTooltip
                             accountID={props.icons[0].id}
                             icon={props.icons[0]}
+                            fallbackUserDetails={{
+                                displayName: props.icons[0].name,
+                                avatar: props.icons[0].avatar,
+                            }}
                         >
                             {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                             <View>
@@ -244,6 +256,10 @@ function MultipleAvatars(props) {
                                 <UserDetailsTooltip
                                     accountID={props.icons[1].id}
                                     icon={props.icons[1]}
+                                    fallbackUserDetails={{
+                                        displayName: props.icons[1].name,
+                                        avatar: props.icons[1].avatar,
+                                    }}
                                 >
                                     <View>
                                         <Avatar
