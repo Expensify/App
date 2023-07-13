@@ -32,6 +32,7 @@ function CategoryShortcutButton(props) {
             shiftVertical={-4}
         >
             <PressableWithoutFeedback
+                shouldUseAutoHitSlop={false}
                 onPress={props.onPress}
                 onHoverIn={() => setIsHighlighted(true)}
                 onHoverOut={() => setIsHighlighted(false)}

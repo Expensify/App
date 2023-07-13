@@ -12,6 +12,7 @@ import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as Task from '../../libs/actions/Task';
+import CONST from '../../CONST';
 import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
@@ -65,9 +66,11 @@ function TaskDescriptionPage(props) {
             >
                 <View style={[styles.mb4]}>
                     <TextInput
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="description"
                         name="description"
                         label={props.translate('newTaskPage.descriptionOptional')}
+                        accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         defaultValue={(props.task.report && props.task.report.description) || ''}
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
