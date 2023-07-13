@@ -54,7 +54,7 @@ class DeeplinkWrapper extends PureComponent {
             this.focused = false;
         });
 
-        const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+        const expensifyUrl = new URL(CONFIG.EXPENSIFY.EXPENSIFY_CHAT_URL);
         const params = new URLSearchParams();
         params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
         if (!this.props.session.authToken) {

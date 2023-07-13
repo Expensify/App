@@ -80,7 +80,7 @@ For an M1 Mac, read this [SO](https://stackoverflow.com/c/expensify/questions/11
 Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when
 variables referenced here get updated since your local `.env` file is ignored.
 
-- `NEW_EXPENSIFY_URL` - The root URL used for the website
+- `EXPENSIFY_CHAT_URL` - The root URL used for the website
 - `SECURE_EXPENSIFY_URL` - The URL used to hit the Expensify secure API
 - `EXPENSIFY_URL` - The URL used to hit the Expensify API
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
