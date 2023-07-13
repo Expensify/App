@@ -320,6 +320,21 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
+    // Optimistically update the parent report action if the report is a thread
+    const report = ReportUtils.getReport(reportID);
+    if (report && report.parentReportActionID) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        if (parentReportAction && parentReportAction.reportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(parentReportAction, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+                },
+            });
+        }
+    }
+
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone()) {
         const timezone = DateUtils.getCurrentTimezone();
@@ -934,6 +949,24 @@ function deleteReportComment(reportID, reportAction) {
             value: optimisticReport,
         },
     ];
+
+    const report = ReportUtils.getReport(reportID);
+    if (report && report.parentReportActionID) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        if (parentReportAction && parentReportAction.reportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(
+                        parentReportAction,
+                        optimisticReport.lastVisibleActionCreated,
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    ),
+                },
+            });
+        }
+    }
 
     const parameters = {
         reportID: originalReportID,

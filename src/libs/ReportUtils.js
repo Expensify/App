@@ -1341,6 +1341,49 @@ function buildOptimisticAddCommentReportAction(text, file) {
 }
 
 /**
+ * update optimistic parent reportAction when a comment is added or remove in the child report
+ * @param {String} parentReportAction - Parent report action of the child report
+ * @param {String} lastVisibleActionCreated - Last visible action created of the child report
+ * @param {String} type - The type of action in the child report
+ * @returns {Object}
+ */
+
+function updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type) {
+    let childVisibleActionCount = parentReportAction.childVisibleActionCount || 0;
+    let childCommenterCount = parentReportAction.childCommenterCount || 0;
+    let childOldestFourAccountIDs = parentReportAction.childOldestFourAccountIDs;
+
+    if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        childVisibleActionCount += 1;
+        const oldestFourAccountIDs = childOldestFourAccountIDs ? childOldestFourAccountIDs.split(',') : [];
+        if (oldestFourAccountIDs.length < 4) {
+            const index = _.findIndex(oldestFourAccountIDs, (accountID) => accountID === currentUserAccountID.toString());
+            if (index === -1) {
+                childCommenterCount += 1;
+                oldestFourAccountIDs.push(currentUserAccountID);
+            }
+        }
+        childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
+    } else if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (childVisibleActionCount > 0) {
+            childVisibleActionCount -= 1;
+        }
+
+        if (childVisibleActionCount === 0) {
+            childCommenterCount = 0;
+            childOldestFourAccountIDs = '';
+        }
+    }
+
+    return {
+        childVisibleActionCount,
+        childCommenterCount,
+        childLastVisibleActionCreated: lastVisibleActionCreated,
+        childOldestFourAccountIDs,
+    };
+}
+
+/**
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param {String} taskReportID - Report ID of the task
  * @param {String} taskTitle - Title of the task
@@ -2548,6 +2591,7 @@ export {
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
+    updateOptimisticParentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsByLoginList,
