@@ -124,7 +124,6 @@ function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails)
     return memberEmailsToAccountIDs;
 }
 
-
 export {
     hasPolicyMemberError,
     hasPolicyError,

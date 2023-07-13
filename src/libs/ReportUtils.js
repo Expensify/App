@@ -2513,7 +2513,7 @@ function shouldDisableRename(report, policy) {
 
     // If there is a linked workspace, that means the user is a member of the workspace the report is in.
     // Still, we only want policy owners and admins to be able to modify the name.
-    return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;;
+    return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
 }
 
 export {
