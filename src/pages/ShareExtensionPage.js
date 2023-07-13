@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import {ShareMenuReactView} from 'react-native-share-menu';
 import _ from 'underscore';
 
+import {navigationRef} from '../../index.share';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 import ROUTES from '../ROUTES';
@@ -198,9 +199,13 @@ class ShareExtensionPage extends Component {
      * @param {Object} option
      */
     createChat(option) {
-        const share = this.props.route.params.share;
-        Navigation.navigate(ROUTES.SHARE_MESSAGE);
-        Navigation.setParams({option, share});
+        if (Platform.OS === 'ios') {
+            navigationRef.current.navigate(ROUTES.SHARE_MESSAGE, {option});
+        } else {
+            const share = this.props.route.params.share;
+            Navigation.navigate(ROUTES.SHARE_MESSAGE);
+            Navigation.setParams({option, share});
+        }
     }
 
     /**

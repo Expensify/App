@@ -24,6 +24,7 @@ import ShareMessagePage from './src/pages/ShareMessagePage';
 // import additionalAppSetup from './src/setup';
 import CONST from './src/CONST';
 import * as Metrics from './src/libs/Metrics';
+import ROUTES from './src/ROUTES';
 
 // TODO: can/should we use additionalAppSetup here?
 Onyx.init({
@@ -93,11 +94,11 @@ const ShareExtension = withOnyx({
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator screenOptions={{headerShown: false}}>
                         <Stack.Screen
-                            name="Share"
+                            name={ROUTES.SHARE}
                             component={ShareExtensionPage}
                         />
                         <Stack.Screen
-                            name="ShareMessage"
+                            name={ROUTES.SHARE_MESSAGE}
                             component={ShareMessagePage}
                         />
                     </Stack.Navigator>

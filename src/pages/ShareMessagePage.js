@@ -1,31 +1,29 @@
 import lodashGet from 'lodash/get';
-import {useState} from 'react';
-import {Pressable, Text, View} from 'react-native';
+import {useEffect, useState} from 'react';
+import {Platform, Pressable, Text, View} from 'react-native';
+import {ShareMenuReactView} from 'react-native-share-menu';
 
+import AttachmentView from '../components/AttachmentView';
 import Button from '../components/Button';
 import MenuItem from '../components/MenuItem';
 import TextInput from '../components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import * as UserUtils from '../libs/UserUtils';
 // import additionalAppSetup from './src/setup';
-import AttachmentView from '../components/AttachmentView';
 import * as Report from '../libs/actions/Report';
 import styles from '../styles/styles';
 
-const ShareMessagePage = withLocalize((props) => {
-    const attachment = props.route.params.share;
+function ShareMessagePage(props) {
     const toDetails = props.route.params.option;
-    // const [attachment, setAttachment] = useState();
+    const [attachment, setAttachment] = useState(props.route.params.share);
     const [message, setMessage] = useState('');
 
-    // useEffect(() => {
-    //     ShareMenuReactView.data().then((share) => {
-    //         console.log({share});
-    //         if (share) {
-    //             setAttachment(share.data[0]);
-    //         }
-    //     });
-    // }, []);
+    useEffect(() => {
+        if (Platform.OS !== 'ios') return;
+        ShareMenuReactView.data().then((share) => {
+            share && setAttachment(share.data[0]);
+        });
+    }, []);
 
     return (
         <View style={{backgroundColor: '#07271F', flex: 1}}>
@@ -70,16 +68,22 @@ const ShareMessagePage = withLocalize((props) => {
                         const name = attachment.data.split('/').pop();
                         const source = attachment.data;
                         Report.addAttachment(toDetails.reportID, {name, source, type: attachment.mimeType, uri: source}, message);
+                        if (Platform.OS === 'ios') {
+                            ShareMenuReactView.dismissExtension();
+                        } else {
+                            props.navigation.goBack();
+                            props.navigation.goBack();
+                        }
                     }}
                 />
             </View>
         </View>
     );
-});
+}
 
 ShareMessagePage.propTypes = {
     ...withLocalizePropTypes,
 };
 ShareMessagePage.defaultProps = {};
 
-export default ShareMessagePage;
+export default withLocalize(ShareMessagePage);

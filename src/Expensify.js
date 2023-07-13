@@ -170,6 +170,7 @@ function Expensify(props) {
         Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
 
         const handleShare = (share) => {
+            if (!share || !share.data) return;
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.SHARE);
                 Navigation.setParams({share});
