@@ -36,7 +36,7 @@ function UserDetailsTooltip(props) {
 
     let title = String(userDisplayName).trim() ? userDisplayName : '';
     const subtitle = (userLogin || '').trim() && !_.isEqual(LocalePhoneNumber.formatPhoneNumber(userLogin || ''), userDisplayName) ? Str.removeSMSDomain(userLogin) : '';
-    if (props.icon && props.icon.type === CONST.ICON_TYPE_WORKSPACE) {
+    if (props.icon && (props.icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = props.icon.name;
     }
     const renderTooltipContent = useCallback(
@@ -51,7 +51,7 @@ function UserDetailsTooltip(props) {
                     />
                 </View>
                 <Text style={[styles.mt2, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{title}</Text>
-                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{subtitle}</Text>
+                <Text style={[styles.textMicro, styles.fontColorReactionLabel, styles.breakWord, styles.textAlignCenter]}>{subtitle}</Text>
             </View>
         ),
         [props.icon, userAvatar, userAccountID, userLogin, title, subtitle],
