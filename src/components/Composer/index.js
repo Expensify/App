@@ -310,10 +310,6 @@ class Composer extends React.Component {
             return;
         }
 
-        if (['INPUT', 'TEXTAREA'].includes(event.target.nodeName)) {
-            return;
-        }
-
         event.preventDefault();
 
         const {files, types} = event.clipboardData;

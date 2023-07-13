@@ -1447,6 +1447,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        hiddenMessage: '[Hidden message]',
     },
     threads: {
         replies: 'Replies',
