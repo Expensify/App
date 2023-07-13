@@ -166,16 +166,13 @@ class PDFView extends Component {
     }
 
     /**
-     * Renders a specific page based on its index.
-     * It includes a wrapper to apply virtualized styles.
-     * @param {Number} index
-     * @param {Object} style
+     * It is a currying method that returns a function that renders a specific page based on its index.
+     * The function includes a wrapper to apply virtualized styles.
+     * @param {Number} pageWidth
      * @returns {JSX.Element}
      */
-    renderPage({index, style}) {
-        const pageWidth = this.calculatePageWidth();
-
-        return (
+    renderPage(pageWidth) {
+        return ({index, style}) => (
             <View style={style}>
                 <Page
                     key={`page_${index}`}
@@ -231,7 +228,7 @@ class PDFView extends Component {
                                 itemCount={this.state.numPages}
                                 itemSize={this.calculatePageHeight}
                             >
-                                {this.renderPage}
+                                {this.renderPage(pageWidth)}
                             </List>
                         )}
                     </Document>
