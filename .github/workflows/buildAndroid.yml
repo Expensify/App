@@ -83,3 +83,9 @@ jobs:
         with:
           name: android-sourcemap
           path: android/app/build/generated/sourcemaps/react/release/*.map
+
+      - name: Post a message in slack if the build fails
+        if: failure()
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
