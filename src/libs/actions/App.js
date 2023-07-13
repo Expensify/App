@@ -197,8 +197,9 @@ function reconnectApp() {
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
+ * @param {Boolean} shouldNavigateToAdminChat Should we navigate to admin chat after creating workspace
  */
-function setUpPoliciesAndNavigate(session) {
+function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
@@ -222,7 +223,7 @@ function setUpPoliciesAndNavigate(session) {
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioningFromOldDot && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, true);
+        Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, true, shouldNavigateToAdminChat);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
