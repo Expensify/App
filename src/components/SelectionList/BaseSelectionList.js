@@ -9,7 +9,7 @@ import TextInput from '../TextInput';
 import ArrowKeyFocusManager from '../ArrowKeyFocusManager';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
-import {propTypes as selectionListPropTypes, defaultProps as selectionListDefaultProps} from './selectionListPropTypes';
+import {propTypes as selectionListPropTypes} from './selectionListPropTypes';
 import RadioListItem from './RadioListItem';
 import CheckboxListItem from './CheckboxListItem';
 import useKeyboardShortcut from '../../hooks/useKeyboardShortcut';
@@ -20,21 +20,41 @@ import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 import FixedFooter from '../FixedFooter';
 import Button from '../Button';
 import useLocalize from '../../hooks/useLocalize';
+import Log from '../../libs/Log';
 
 const propTypes = {
     ...keyboardStatePropTypes,
     ...selectionListPropTypes,
 };
 
-function BaseSelectionList(props) {
+function BaseSelectionList({
+    sections,
+    canSelectMultiple = false,
+    onSelectRow,
+    onSelectAll,
+    onDismissError,
+    textInputLabel = '',
+    textInputPlaceholder = '',
+    textInputValue = '',
+    textInputMaxLength,
+    keyboardType = CONST.KEYBOARD_TYPE.DEFAULT,
+    onChangeText,
+    initiallyFocusedOptionKey = '',
+    shouldDelayFocus = false,
+    onScroll,
+    onScrollBeginDrag,
+    headerMessage = '',
+    confirmButtonText = '',
+    onConfirm,
+    isKeyboardShown = false,
+}) {
     const {translate} = useLocalize();
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
-    const shouldShowTextInput = Boolean(props.textInputLabel);
-    const shouldShowSelectAll = Boolean(props.onSelectAll);
-    const confirmButtonText = props.confirmButtonText || translate('common.confirm');
-    const shouldShowConfirmButton = Boolean(props.onConfirm);
+    const shouldShowTextInput = Boolean(textInputLabel);
+    const shouldShowSelectAll = Boolean(onSelectAll);
+    const shouldShowConfirmButton = Boolean(onConfirm);
 
     /**
      * Iterates through the sections and items inside each section, and builds 3 arrays along the way:
@@ -56,7 +76,7 @@ function BaseSelectionList(props) {
 
         let selectedCount = 0;
 
-        _.each(props.sections, (section, sectionIndex) => {
+        _.each(sections, (section, sectionIndex) => {
             const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
             itemLayouts.push({length: sectionHeaderHeight, offset});
             offset += sectionHeaderHeight;
@@ -94,8 +114,8 @@ function BaseSelectionList(props) {
         // because React Native accounts for it in getItemLayout
         itemLayouts.push({length: 0, offset});
 
-        if (selectedCount > 1 && !props.canSelectMultiple) {
-            throw new Error(
+        if (selectedCount > 1 && !canSelectMultiple) {
+            Log.alert(
                 'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
             );
         }
@@ -113,7 +133,7 @@ function BaseSelectionList(props) {
     const [focusedIndex, setFocusedIndex] = useState(() => {
         const defaultIndex = 0;
 
-        const indexOfInitiallyFocusedOption = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === props.initiallyFocusedOptionKey);
+        const indexOfInitiallyFocusedOption = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === initiallyFocusedOptionKey);
 
         if (indexOfInitiallyFocusedOption >= 0) {
             return indexOfInitiallyFocusedOption;
@@ -143,7 +163,7 @@ function BaseSelectionList(props) {
         // Otherwise, it will cause an index-out-of-bounds error and crash the app.
         let adjustedSectionIndex = sectionIndex;
         for (let i = 0; i < sectionIndex; i++) {
-            if (_.isEmpty(lodashGet(props.sections, `[${i}].data`))) {
+            if (_.isEmpty(lodashGet(sections, `[${i}].data`))) {
                 adjustedSectionIndex--;
             }
         }
@@ -196,13 +216,13 @@ function BaseSelectionList(props) {
     const renderItem = ({item, index, section}) => {
         const isFocused = focusedIndex === index + lodashGet(section, 'indexOffset', 0);
 
-        if (props.canSelectMultiple) {
+        if (canSelectMultiple) {
             return (
                 <CheckboxListItem
                     item={item}
                     isFocused={isFocused}
-                    onSelectRow={props.onSelectRow}
-                    onDismissError={props.onDismissError}
+                    onSelectRow={onSelectRow}
+                    onDismissError={onDismissError}
                 />
             );
         }
@@ -211,7 +231,7 @@ function BaseSelectionList(props) {
             <RadioListItem
                 item={item}
                 isFocused={isFocused}
-                onSelectRow={props.onSelectRow}
+                onSelectRow={onSelectRow}
             />
         );
     };
@@ -219,7 +239,7 @@ function BaseSelectionList(props) {
     /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
     useEffect(() => {
         if (shouldShowTextInput) {
-            if (props.shouldDelayFocus) {
+            if (shouldDelayFocus) {
                 focusTimeoutRef.current = setTimeout(() => textInputRef.current.focus(), CONST.ANIMATED_TRANSITION);
             } else {
                 textInputRef.current.focus();
@@ -232,7 +252,7 @@ function BaseSelectionList(props) {
             }
             clearTimeout(focusTimeoutRef.current);
         };
-    }, [props.shouldDelayFocus, shouldShowTextInput]);
+    }, [shouldDelayFocus, shouldShowTextInput]);
 
     /** Selects row when pressing enter */
     useKeyboardShortcut(
@@ -244,7 +264,7 @@ function BaseSelectionList(props) {
                 return;
             }
 
-            props.onSelectRow(focusedOption);
+            onSelectRow(focusedOption);
         },
         {
             captureOnInputs: true,
@@ -264,32 +284,32 @@ function BaseSelectionList(props) {
         >
             <SafeAreaConsumer>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, !props.isKeyboardShown && safeAreaPaddingBottomStyle]}>
+                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
                         {shouldShowTextInput && (
                             <View style={[styles.ph5, styles.pv5]}>
                                 <TextInput
                                     ref={textInputRef}
-                                    label={props.textInputLabel}
-                                    accessibilityLabel={props.textInputLabel}
+                                    label={textInputLabel}
+                                    accessibilityLabel={textInputLabel}
                                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                                    value={props.textInputValue}
-                                    placeholder={props.textInputPlaceholder}
-                                    maxLength={props.textInputMaxLength}
-                                    onChangeText={props.onChangeText}
-                                    keyboardType={props.keyboardType}
+                                    value={textInputValue}
+                                    placeholder={textInputPlaceholder}
+                                    maxLength={textInputMaxLength}
+                                    onChangeText={onChangeText}
+                                    keyboardType={keyboardType}
                                     selectTextOnFocus
                                 />
                             </View>
                         )}
-                        {Boolean(props.headerMessage) && (
+                        {Boolean(headerMessage) && (
                             <View style={[styles.ph5, styles.pb5]}>
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.headerMessage}</Text>
+                                <Text style={[styles.textLabel, styles.colorMuted]}>{headerMessage}</Text>
                             </View>
                         )}
-                        {!props.headerMessage && props.canSelectMultiple && shouldShowSelectAll && (
+                        {!headerMessage && canSelectMultiple && shouldShowSelectAll && (
                             <PressableWithFeedback
                                 style={[styles.peopleRow, styles.userSelectNone, styles.ph5, styles.pb3]}
-                                onPress={props.onSelectAll}
+                                onPress={onSelectAll}
                                 accessibilityLabel={translate('workspace.people.selectAll')}
                                 accessibilityRole="button"
                                 accessibilityState={{checked: flattenedSections.allSelected}}
@@ -297,7 +317,7 @@ function BaseSelectionList(props) {
                                 <Checkbox
                                     accessibilityLabel={translate('workspace.people.selectAll')}
                                     isChecked={flattenedSections.allSelected}
-                                    onPress={props.onSelectAll}
+                                    onPress={onSelectAll}
                                 />
                                 <View style={[styles.flex1]}>
                                     <Text style={[styles.textStrong, styles.ph5]}>{translate('workspace.people.selectAll')}</Text>
@@ -306,12 +326,12 @@ function BaseSelectionList(props) {
                         )}
                         <SectionList
                             ref={listRef}
-                            sections={props.sections}
+                            sections={sections}
                             renderSectionHeader={renderSectionHeader}
                             renderItem={renderItem}
                             getItemLayout={getItemLayout}
-                            onScroll={props.onScroll}
-                            onScrollBeginDrag={props.onScrollBeginDrag}
+                            onScroll={onScroll}
+                            onScrollBeginDrag={onScrollBeginDrag}
                             keyExtractor={(item) => item.keyForList}
                             onLayout={() => scrollToIndex(focusedIndex, false)}
                             extraData={focusedIndex}
@@ -329,8 +349,8 @@ function BaseSelectionList(props) {
                                 <Button
                                     success
                                     style={[styles.w100]}
-                                    text={confirmButtonText}
-                                    onPress={props.onConfirm}
+                                    text={confirmButtonText || translate('common.confirm')}
+                                    onPress={onConfirm}
                                     pressOnEnter
                                     enterKeyEventListenerPriority={1}
                                 />
@@ -345,6 +365,5 @@ function BaseSelectionList(props) {
 
 BaseSelectionList.displayName = 'BaseSelectionList';
 BaseSelectionList.propTypes = propTypes;
-BaseSelectionList.defaultProps = selectionListDefaultProps;
 
 export default withKeyboardState(BaseSelectionList);

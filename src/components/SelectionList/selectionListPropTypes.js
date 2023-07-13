@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import CONST from '../../CONST';
 
 const checkboxListItemPropTypes = {
@@ -37,7 +38,7 @@ const checkboxListItemPropTypes = {
     errors: PropTypes.objectOf(PropTypes.string),
 
     /** The type of action that's pending  */
-    pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+    pendingAction: PropTypes.oneOf(_.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
 };
 
 const radioListItemPropTypes = {
@@ -124,24 +125,4 @@ const propTypes = {
     onConfirm: PropTypes.func,
 };
 
-const defaultProps = {
-    canSelectMultiple: false,
-    onSelectRow: () => {},
-    onSelectAll: undefined,
-    onDismissError: () => {},
-    textInputLabel: '',
-    textInputPlaceholder: '',
-    textInputValue: '',
-    textInputMaxLength: undefined,
-    keyboardType: CONST.KEYBOARD_TYPE.DEFAULT,
-    onChangeText: () => {},
-    initiallyFocusedOptionKey: '',
-    shouldDelayFocus: false,
-    onScroll: () => {},
-    onScrollBeginDrag: () => {},
-    headerMessage: '',
-    confirmButtonText: '',
-    onConfirm: undefined,
-};
-
-export {propTypes, defaultProps, radioListItemPropTypes, checkboxListItemPropTypes};
+export {propTypes, radioListItemPropTypes, checkboxListItemPropTypes};
