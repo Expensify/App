@@ -164,6 +164,15 @@ function IOUPreview(props) {
         if (props.isBillSplit) {
             return props.translate('iou.split');
         }
+        if (props.iouReport.reportID === '7968441077953408') {
+            console.log('isControlPolicyExpenseReport', ReportUtils.isControlPolicyExpenseReport(props.iouReport));
+            console.log('isApproved', ReportUtils.isExpenseReportApproved(props.iouReport));
+            console.log('hasOutstandingIOU', props.iouReport.hasOutstandingIOU);
+        }
+
+        if (ReportUtils.isControlPolicyExpenseReport(props.iouReport) && ReportUtils.isExpenseReportApproved(props.iouReport) && props.iouReport.hasOutstandingIOU) {
+            return `${props.translate('iou.cash')} • ${props.translate('iou.approved')}`;
+        }
 
         return `${props.translate('iou.cash')}${!props.iouReport.hasOutstandingIOU ? ` • ${props.translate('iou.settledExpensify')}` : ''}`;
     };

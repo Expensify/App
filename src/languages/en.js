@@ -341,6 +341,7 @@ export default {
     },
     iou: {
         amount: 'Amount',
+        approved: 'Approved',
         cash: 'Cash',
         split: 'Split',
         participants: 'Participants',
