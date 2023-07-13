@@ -32,13 +32,14 @@ const defaultProps = {
     isShortcutsModalOpen: false,
 };
 
+const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+const closeShortcutEnterModalConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
+const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
+const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
+
 function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidth, translate}) {
     const subscribedOpenModalShortcuts = useRef([]);
-    const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-    const closeShortcutEnterModalConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-    const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
-    const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
-    const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
     const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
     const shortcuts = KeyboardShortcut.getDocumentedShortcuts();
 
