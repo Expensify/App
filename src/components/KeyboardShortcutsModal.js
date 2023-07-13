@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -32,8 +32,15 @@ const defaultProps = {
     isShortcutsModalOpen: false,
 };
 
-function KeyboardShortcutsModal(props) {
-    const [subscribedOpenModalShortcuts, setSubscribedOpenModalShortcuts] = useState([]);
+function KeyboardShortcutsModal({isShortcutsModalOpen = false, isSmallScreenWidth, translate}) {
+    const subscribedOpenModalShortcuts = useRef([]);
+    const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+    const closeShortcutEnterModalConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+    const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
+    const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
+    const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
+    const modalType = isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
+    const shortcuts = KeyboardShortcut.getDocumentedShortcuts();
 
     /*
      * Subscribe shortcuts that only are used when the modal is open
@@ -42,12 +49,8 @@ function KeyboardShortcutsModal(props) {
         // Allow closing the modal with the both Enter and Escape keys
         // Both callbacks have the lowest priority (0) to ensure that they are called before any other callbacks
         // and configured so that event propagation is stopped after the callback is called (only when the modal is open)
-        const closeShortcutEscapeModalConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        const closeShortcutEnterModalConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
-        const arrowUpConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_UP;
-        const arrowDownConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN;
 
-        setSubscribedOpenModalShortcuts([
+        subscribedOpenModalShortcuts.current = [
             KeyboardShortcut.subscribe(
                 closeShortcutEscapeModalConfig.shortcutKey,
                 () => {
@@ -74,15 +77,15 @@ function KeyboardShortcutsModal(props) {
             // Intercept arrow up and down keys to prevent scrolling ArrowKeyFocusManager while this modal is open
             KeyboardShortcut.subscribe(arrowUpConfig.shortcutKey, () => {}, arrowUpConfig.descriptionKey, arrowUpConfig.modifiers, true),
             KeyboardShortcut.subscribe(arrowDownConfig.shortcutKey, () => {}, arrowDownConfig.descriptionKey, arrowDownConfig.modifiers, true),
-        ]);
+        ];
     };
 
     /*
      * Unsubscribe all shortcuts that were subscribed when the modal opened
      */
     const unsubscribeOpenModalShortcuts = () => {
-        _.each(subscribedOpenModalShortcuts, (unsubscribe) => unsubscribe());
-        setSubscribedOpenModalShortcuts([]);
+        _.each(subscribedOpenModalShortcuts.current, (unsubscribe) => unsubscribe());
+        subscribedOpenModalShortcuts.current = [];
     };
 
     /**
@@ -100,17 +103,16 @@ function KeyboardShortcutsModal(props) {
                 <Text>{shortcut.displayName}</Text>
             </View>
             <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
-                <Text>{props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
+                <Text>{translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
             </View>
         </View>
     );
 
     useEffect(() => {
-        const openShortcutModalConfig = CONST.KEYBOARD_SHORTCUTS.SHORTCUT_MODAL;
         const unsubscribeShortcutModal = KeyboardShortcut.subscribe(
             openShortcutModalConfig.shortcutKey,
             () => {
-                if (props.isShortcutsModalOpen) {
+                if (isShortcutsModalOpen) {
                     return;
                 }
 
@@ -122,7 +124,7 @@ function KeyboardShortcutsModal(props) {
             true,
         );
 
-        if (props.isShortcutsModalOpen) {
+        if (isShortcutsModalOpen) {
             // The modal started open, which can happen if you reload the page when the modal is open.
             subscribeOpenModalShortcuts();
         }
@@ -138,7 +140,7 @@ function KeyboardShortcutsModal(props) {
     }, []);
 
     useEffect(() => {
-        if (props.isShortcutsModalOpen) {
+        if (isShortcutsModalOpen) {
             subscribeOpenModalShortcuts();
         } else {
             // Modal is closing, remove keyboard shortcuts
@@ -146,26 +148,23 @@ function KeyboardShortcutsModal(props) {
         }
         // subscribeOpenModalShortcuts and unsubscribeOpenModalShortcuts functions are not added as dependencies since they don't change between renders
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.isShortcutsModalOpen]);
-
-    const shortcuts = KeyboardShortcut.getDocumentedShortcuts();
-    const modalType = props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE;
+    }, [isShortcutsModalOpen]);
 
     return (
         <Modal
-            isVisible={props.isShortcutsModalOpen}
+            isVisible={isShortcutsModalOpen}
             type={modalType}
-            innerContainerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(props.isSmallScreenWidth)}}
+            innerContainerStyle={{...styles.keyboardShortcutModalContainer, ...StyleUtils.getKeyboardShortcutsModalWidth(isSmallScreenWidth)}}
             onClose={KeyboardShortcutsActions.hideKeyboardShortcutModal}
         >
             <HeaderWithBackButton
-                title={props.translate('keyboardShortcutModal.title')}
+                title={translate('keyboardShortcutModal.title')}
                 shouldShowCloseButton
                 shouldShowBackButton={false}
                 onCloseButtonPress={KeyboardShortcutsActions.hideKeyboardShortcutModal}
             />
             <ScrollView style={[styles.p5, styles.pt0]}>
-                <Text style={styles.mb5}>{props.translate('keyboardShortcutModal.subtitle')}</Text>
+                <Text style={styles.mb5}>{translate('keyboardShortcutModal.subtitle')}</Text>
                 <View style={[styles.keyboardShortcutTableWrapper]}>
                     <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
                         {_.map(shortcuts, (shortcut, index) => {
@@ -181,6 +180,7 @@ function KeyboardShortcutsModal(props) {
 
 KeyboardShortcutsModal.propTypes = propTypes;
 KeyboardShortcutsModal.defaultProps = defaultProps;
+KeyboardShortcutsModal.displayName = 'KeyboardShortcutsModal';
 
 export default compose(
     withWindowDimensions,
