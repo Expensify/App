@@ -10,6 +10,8 @@ type Session = {
 
     /** Currently logged in user accountID */
     accountID?: number;
+
+    autoAuthState?: string;
 };
 
 export default Session;

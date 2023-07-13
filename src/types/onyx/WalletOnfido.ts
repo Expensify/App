@@ -1,4 +1,4 @@
-type OnfidoWallet = {
+type WalletOnfido = {
     /** Unique identifier returned from openOnfidoFlow then re-sent to ActivateWallet with Onfido response data */
     applicantID?: string;
 
@@ -18,4 +18,4 @@ type OnfidoWallet = {
     hasAcceptedPrivacyPolicy?: boolean;
 };
 
-export default OnfidoWallet;
+export default WalletOnfido;
