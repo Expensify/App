@@ -126,7 +126,8 @@ const EmojiPicker = forwardRef((props, ref) => {
 
         const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
             if (!emojiPopoverAnchor.current) {
-                if (isEmojiPickerVisible) {
+                // In small screen width, the window size change might be due to keyboard open/hide, we should avoid hide EmojiPicker in those cases
+                if (isEmojiPickerVisible && !props.isSmallScreenWidth) {
                     hideEmojiPicker();
                 }
                 return;
@@ -138,7 +139,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         return () => {
             emojiPopoverDimensionListener.remove();
         };
-    }, [isEmojiPickerVisible]);
+    }, [isEmojiPickerVisible, props.isSmallScreenWidth]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
