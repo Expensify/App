@@ -94,7 +94,8 @@ function WorkspaceReimburseView(props) {
     );
 
 const getRateLabel = useCallback(
-        (customUnitRate) => getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
+        (customUnitRate) => getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) /
+            CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
         [getRateDisplayValue],
     );
 
@@ -107,7 +108,7 @@ const getRateLabel = useCallback(
 
     const getCurrentRatePerUnitLabel = useCallback(() => {
         const customUnitRate = _.find(distanceCustomUnit && distanceCustomUnit.rates, (rate) => rate && rate.name === 'Default Rate');
-        const currentUnit = getUnitLabel((distanceCustomUnit && distanceCustomUnit.attributes && distanceCustomUnit.attributes.unit) || 'mi');
+        const currentUnit = getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'));
         const currentRate = getRateLabel(customUnitRate);
         const perWord = translate('common.per');
         return `${currentRate} ${perWord} ${currentUnit}`;
@@ -117,27 +118,29 @@ const getRateLabel = useCallback(
         // Instead of setting the reimbursement account loading within the optimistic data of the API command, use a separate action so that the Onyx value is updated right away.
         // openWorkspaceReimburseView uses API.read which will not make the request until all WRITE requests in the sequential queue have finished responding, so there would be a delay in
         // updating Onyx with the optimistic data.
-        const propsPolicyId = props.policy.id;
         BankAccounts.setReimbursementAccountLoading(true);
-        Policy.openWorkspaceReimburseView(propsPolicyId);
+        Policy.openWorkspaceReimburseView(props.policy.id);
     }, [props.policy.id]);
 
     useEffect(() => {
-        setCurrentRatePerUnit(getCurrentRatePerUnitLabel());
         if (props.network.isOffline) {
             return;
         }
         fetchData();
-    }, [props.policy.customUnits, props.network.isOffline, getCurrentRatePerUnitLabel, fetchData]);
+    }, [props.network.isOffline, fetchData]);
+
+    useEffect(() => {
+        setCurrentRatePerUnit(getCurrentRatePerUnitLabel());
+    }, [props.policy.customUnits, getCurrentRatePerUnitLabel])
 
     return (
         <>
             <Section
-                title={props.translate('workspace.reimburse.captureReceipts')}
+                title={translate('workspace.reimburse.captureReceipts')}
                 icon={Illustrations.MoneyReceipts}
                 menuItems={[
                     {
-                        title: props.translate('workspace.reimburse.viewAllReceipts'),
+                        title: translate('workspace.reimburse.viewAllReceipts'),
                         onPress: () => Link.openOldDotLink(viewAllReceiptsUrl),
                         icon: Expensicons.Receipt,
                         shouldShowRightIcon: true,
@@ -149,22 +152,22 @@ const getRateLabel = useCallback(
             >
                 <View style={[styles.mv3, styles.flexRow, styles.flexWrap]}>
                     <Text numberOfLines={100}>
-                        {props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                        {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                         <CopyTextToClipboard
                             text="receipts@expensify.com"
                             textStyles={[styles.textBlue]}
                         />
-                        <Text>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                        <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
                     </Text>
                 </View>
             </Section>
 
             <Section
-                title={props.translate('workspace.reimburse.trackDistance')}
+                title={translate('workspace.reimburse.trackDistance')}
                 icon={Illustrations.TrackShoe}
             >
                 <View style={[styles.mv3]}>
-                    <Text>{props.translate('workspace.reimburse.trackDistanceCopy')}</Text>
+                    <Text>{translate('workspace.reimburse.trackDistanceCopy')}</Text>
                 </View>
                 <OfflineWithFeedback
                     pendingAction={lodashGet(distanceCustomUnit, 'pendingAction') || lodashGet(distanceCustomRate, 'pendingAction')}
@@ -172,7 +175,7 @@ const getRateLabel = useCallback(
                 >
                     <MenuItemWithTopDescription
                         title={currentRatePerUnit}
-                        description={props.translate('workspace.reimburse.trackDistanceRate')}
+                        description={translate('workspace.reimburse.trackDistanceRate')}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.getWorkspaceRateAndUnitRoute(props.policy.id))}
                         wrapperStyle={[styles.mhn5, styles.wAuto]}
@@ -185,7 +188,7 @@ const getRateLabel = useCallback(
                 policy={props.policy}
                 reimbursementAccount={props.reimbursementAccount}
                 network={props.network}
-                translate={props.translate}
+                translate={translate}
             />
         </>
     );
