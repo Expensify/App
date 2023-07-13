@@ -25,4 +25,18 @@ function canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown) {
     return (isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
 }
 
-export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys};
+/**
+ * Find length of common ending of two strings
+ * @param {String} str1
+ * @param {String} str2
+ * @returns {Number}
+ */
+function getCommonEndingLength(str1, str2) {
+    let i = 0;
+    while (str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {
+        i++;
+    }
+    return i;
+}
+
+export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, getCommonEndingLength};
