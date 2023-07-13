@@ -4,7 +4,6 @@ import Log from '../../../libs/Log';
 import IconButton from '../IconButton';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
-import * as Expensicons from '../../Icon/Expensicons';
 
 /**
  * Apple Sign In Configuration for Android.
@@ -49,7 +48,7 @@ function AppleSignIn() {
     return (
         <IconButton
             onPress={handleSignIn}
-            icon={Expensicons.AppleLogo}
+            provider={CONST.SIGN_IN_METHOD.APPLE}
         />
     );
 }
