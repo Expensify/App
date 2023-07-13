@@ -6,6 +6,7 @@ import StylesContext from './ThemeStylesContext';
 import defaultStyles from './styles';
 
 const propTypes = {
+    /** Rendered child component */
     children: PropTypes.node.isRequired,
 };
 

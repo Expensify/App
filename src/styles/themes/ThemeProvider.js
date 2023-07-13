@@ -9,6 +9,7 @@ import CONST from '../../CONST';
 import darkTheme from './default';
 
 const propTypes = {
+    /** Rendered child component */
     children: PropTypes.node.isRequired,
 };
 
