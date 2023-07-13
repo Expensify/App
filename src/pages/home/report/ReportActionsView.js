@@ -49,6 +49,9 @@ const propTypes = {
         avatar: PropTypes.string,
     }),
 
+    /** The function to re-fetch the report when required */
+    fetchReportIfNeeded: PropTypes.func.isRequired,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
