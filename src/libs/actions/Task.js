@@ -10,6 +10,7 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
 
@@ -225,7 +226,11 @@ function completeTask(taskReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[completedTaskReportAction.reportActionID]: {pendingAction: null}},
+            value: {
+                [completedTaskReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                },
+            },
         },
     ];
 
@@ -281,7 +286,11 @@ function reopenTask(taskReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[reopenedTaskReportAction.reportActionID]: {pendingAction: null}},
+            value: {
+                [reopenedTaskReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                },
+            },
         },
     ];
 

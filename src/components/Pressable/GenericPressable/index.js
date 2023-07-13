@@ -14,6 +14,7 @@ const WebGenericPressable = forwardRef((props, ref) => (
         aria-label={props.accessibilityLabel}
         aria-labelledby={props.accessibilityLabelledBy}
         aria-valuenow={props.accessibilityValue}
+        nativeID={props.nativeID || 'no-drag-area'}
     />
 ));
 
