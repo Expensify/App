@@ -9,7 +9,7 @@ import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
 import participantPropTypes from './participantPropTypes';
 import styles from '../styles/styles';
-import withWindowDimensions from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
@@ -42,6 +42,8 @@ const propTypes = {
         /** Currently logged in user email */
         email: PropTypes.string,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {

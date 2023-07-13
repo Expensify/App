@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
-import withWindowDimensions from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes}  from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
@@ -22,6 +22,8 @@ const propTypes = {
 
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
+
+    ...windowDimensionsPropTypes,
 };
 
 function MoneyReportView(props) {
