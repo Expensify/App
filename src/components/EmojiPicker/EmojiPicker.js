@@ -34,21 +34,6 @@ const EmojiPicker = forwardRef((props, ref) => {
     const onEmojiSelected = useRef(() => {});
     const emojiSearchInput = useRef();
 
-    useEffect(() => {
-        if (isEmojiPickerVisible) {
-            Keyboard.dismiss();
-        }
-
-        const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
-            calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
-                setEmojiPopoverAnchorPosition(value);
-            });
-        });
-        return () => {
-            emojiPopoverDimensionListener.remove();
-        };
-    }, [isEmojiPickerVisible]);
-
     /**
      * Show the emoji picker menu.
      *
@@ -130,7 +115,30 @@ const EmojiPicker = forwardRef((props, ref) => {
      */
     const isActiveReportAction = (actionID) => Boolean(actionID) && reportAction.reportActionID === actionID;
 
-    useImperativeHandle(ref, () => ({showEmojiPicker, isActiveReportAction, hideEmojiPicker, isEmojiPickerVisible}));
+    const resetEmojiPopoverAnchor = () => emojiPopoverAnchor.current = null;
+
+    useImperativeHandle(ref, () => ({showEmojiPicker, isActiveReportAction, hideEmojiPicker, isEmojiPickerVisible, resetEmojiPopoverAnchor}));
+
+    useEffect(() => {
+        if (isEmojiPickerVisible) {
+            Keyboard.dismiss();
+        }
+
+        const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
+            if (!emojiPopoverAnchor.current) {
+                if (isEmojiPickerVisible) {
+                    hideEmojiPicker();
+                }
+                return;
+            }
+            calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+                setEmojiPopoverAnchorPosition(value);
+            });
+        });
+        return () => {
+            emojiPopoverDimensionListener.remove();
+        };
+    }, [isEmojiPickerVisible]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out

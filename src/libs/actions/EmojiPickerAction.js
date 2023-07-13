@@ -52,4 +52,11 @@ function isEmojiPickerVisible() {
     return emojiPickerRef.current.isEmojiPickerVisible;
 }
 
-export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActiveReportAction, isEmojiPickerVisible};
+function resetEmojiPopoverAnchor() {
+    if (!emojiPickerRef.current) {
+        return;
+    }
+    return emojiPickerRef.current.resetEmojiPopoverAnchor();
+}
+
+export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActiveReportAction, isEmojiPickerVisible, resetEmojiPopoverAnchor};

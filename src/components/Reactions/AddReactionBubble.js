@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
@@ -55,6 +55,7 @@ const defaultProps = {
 
 function AddReactionBubble(props) {
     const ref = useRef();
+    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     const onPress = () => {
         const openPicker = (refParam, anchorOrigin) => {
