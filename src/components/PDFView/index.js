@@ -14,6 +14,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import withLocalize from '../withLocalize';
 import Text from '../Text';
 import compose from '../../libs/compose';
+import Log from '../../libs/Log';
 
 /**
  * Each page has a default border. The app should take this size into account
@@ -85,7 +86,7 @@ class PDFView extends Component {
     }
 
     /**
-     * Calculates a proper page height.
+     * Calculates a proper page height. The method should be called only when there are page viewports.
      * It is based on a ratio between the specific page viewport width and provided page width.
      * Also, the app should take into account the page borders.
      * @param {*} pageIndex
@@ -93,7 +94,9 @@ class PDFView extends Component {
      */
     calculatePageHeight(pageIndex) {
         if (this.state.pageViewports.length === 0) {
-            throw new Error('calculatePageHeight() called too early');
+            Log.warn('Dev error: calculatePageHeight() in PDFView called too early');
+
+            return 0;
         }
 
         const pageViewport = this.state.pageViewports[pageIndex];
@@ -111,7 +114,7 @@ class PDFView extends Component {
      */
     calculatePageWidth() {
         const pdfContainerWidth = this.state.containerWidth;
-        const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
+        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth, variables.pdfPageMaxWidth);
         const pageWidth = this.props.isSmallScreenWidth ? this.state.containerWidth : pageWidthOnLargeScreen;
 
         return pageWidth + PAGE_BORDER * 2;
