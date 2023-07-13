@@ -92,7 +92,7 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    reportActions: {},
+    reportActions: [],
     report: {
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
@@ -113,7 +113,7 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    return route.params.reportID.toString();
+    return String(lodashGet(route, 'params.reportID', null));
 }
 
 // Keep a reference to the list view height so we can use it when a new ReportScreen component mounts
