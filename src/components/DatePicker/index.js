@@ -1,11 +1,11 @@
-import React, {useEffect, useRef} from 'react';
 import moment from 'moment';
+import React, { useEffect, useRef } from 'react';
 import _ from 'underscore';
-import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
-import {propTypes, defaultProps} from './datepickerPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import TextInput from '../TextInput';
+import withWindowDimensions, { windowDimensionsPropTypes } from '../withWindowDimensions';
+import { defaultProps, propTypes } from './datepickerPropTypes';
 import './styles.css';
 
 const datePickerPropTypes = {
@@ -18,10 +18,10 @@ function DatePicker(props) {
     const defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
     useEffect(() => {
-        inputRef.setAttribute('type', 'date');
-        inputRef.setAttribute('max', moment(props.maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-        inputRef.setAttribute('min', moment(props.minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-        inputRef.classList.add('expensify-datepicker');
+        inputRef.current.setAttribute('type', 'date');
+        inputRef.current.setAttribute('max', moment(props.maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        inputRef.current.setAttribute('min', moment(props.minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        inputRef.current.classList.add('expensify-datepicker');
     }, []);
 
     /**
