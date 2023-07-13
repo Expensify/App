@@ -30,7 +30,7 @@ export default function enhanceParameters(command, parameters) {
             finalParameters.authToken = NetworkStore.getSupportAuthToken();
         } else if (!parameters.authToken) {
             finalParameters.authToken = NetworkStore.getAuthToken();
-        }``
+        }
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;

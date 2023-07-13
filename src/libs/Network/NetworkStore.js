@@ -54,6 +54,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         authToken = lodashGet(val, 'authToken', null);
+        supportAuthToken = lodashGet(val, 'supportAuthToken', null);
         currentUserEmail = lodashGet(val, 'email', null);
         checkRequiredData();
     },
