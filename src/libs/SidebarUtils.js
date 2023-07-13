@@ -12,6 +12,7 @@ import * as OptionsListUtils from './OptionsListUtils';
 import * as CollectionUtils from './CollectionUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 // Note: It is very important that the keys subscribed to here are the same
 // keys that are connected to SidebarLinks withOnyx(). If there was a key missing from SidebarLinks and it's data was updated
@@ -183,7 +184,7 @@ function getOrderedReportIDs(currentReportId) {
             return;
         }
 
-        if (ReportUtils.isTaskReport(report) && ReportUtils.isTaskCompleted(report)) {
+        if (ReportUtils.isTaskReport(report) && ReportUtils.isCompletedTaskReport(report)) {
             archivedReports.push(report);
             return;
         }
@@ -234,7 +235,6 @@ function getOptionData(reportID) {
         brickRoadIndicator: null,
         icons: null,
         tooltipText: null,
-        ownerEmail: null,
         ownerAccountID: null,
         subtitle: null,
         participantsList: null,
@@ -258,6 +258,7 @@ function getOptionData(reportID) {
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
+        isExpenseRequest: false,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -267,17 +268,17 @@ function getOptionData(reportID) {
     result.isChatRoom = ReportUtils.isChatRoom(report);
     result.isTaskReport = ReportUtils.isTaskReport(report);
     if (result.isTaskReport) {
-        result.isTaskCompleted = ReportUtils.isTaskCompleted(report);
+        result.isCompletedTaskReport = ReportUtils.isCompletedTaskReport(report);
         result.isTaskAssignee = ReportUtils.isTaskAssignee(report);
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    result.ownerEmail = report.ownerEmail;
     result.ownerAccountID = report.ownerAccountID;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
@@ -308,7 +309,6 @@ function getOptionData(reportID) {
         lastActorDetails = lastActorDisplayName
             ? {
                   displayName: lastActorDisplayName,
-                  login: report.lastActorEmail,
                   accountID: report.lastActorAccountID,
               }
             : null;
@@ -322,7 +322,7 @@ function getOptionData(reportID) {
             (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
             CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-            displayName: archiveReason.displayName || report.lastActorEmail,
+            displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
             policyName: ReportUtils.getPolicyName(report),
         });
     }
@@ -332,6 +332,10 @@ function getOptionData(reportID) {
         if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
+        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}: ${report.reportName}`;
+        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}: ${report.reportName}`;
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }
