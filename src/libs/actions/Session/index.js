@@ -318,12 +318,11 @@ function signInWithShortLivedAuthToken(email, authToken) {
  * then it will create a temporary login for them which is used when re-authenticating
  * after an authToken expires.
  *
- * @param {String} password This will be removed after passwordless beta ends
- * @param {String} [validateCode] Code for passwordless login
+ * @param {String} validateCode 6 digit code required for login
  * @param {String} [twoFactorAuthCode]
  * @param {String} [preferredLocale] Indicates which language to use when the user lands in the app
  */
-function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
+function signIn(validateCode, twoFactorAuthCode, preferredLocale = CONST.LOCALES.DEFAULT) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -374,8 +373,6 @@ function signIn(password, validateCode, twoFactorAuthCode, preferredLocale = CON
     // Conditionally pass a password or validateCode to command since we temporarily allow both flows
     if (validateCode || twoFactorAuthCode) {
         params.validateCode = validateCode || credentials.validateCode;
-    } else {
-        params.password = password;
     }
     Device.getDeviceInfoWithID().then((deviceInfo) => {
         API.write('SigninUser', {...params, deviceInfo}, {optimisticData, successData, failureData});
