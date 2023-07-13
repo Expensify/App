@@ -1,5 +1,5 @@
 import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
@@ -96,19 +96,21 @@ const composeToString = (value) => _.map(value, (v) => (v === undefined || v ===
 const getInputPlaceholderSlots = (length) => Array.from(Array(length).keys());
 
 function MagicCodeInput(props) {
-    const inputRefs = useRef([]);
+    const inputRefs = useRef();
     const [input, setInput] = useState('');
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
+    const shouldFocusLast = useRef(false);
+    const lastFocusedIndex = useRef(0);
 
     const blurMagicCodeInput = () => {
-        inputRefs.current[editIndex].blur();
+        inputRefs.current.blur();
         setFocusedIndex(undefined);
     };
 
     const focusMagicCodeInput = () => {
         setFocusedIndex(0);
-        inputRefs.current[0].focus();
+        inputRefs.current.focus();
     };
 
     useImperativeHandle(props.innerRef, () => ({
@@ -123,7 +125,7 @@ function MagicCodeInput(props) {
             setInput('');
             setFocusedIndex(0);
             setEditIndex(0);
-            inputRefs.current[0].focus();
+            inputRefs.current.focus();
             props.onChangeText('');
         },
         blur() {
@@ -158,9 +160,9 @@ function MagicCodeInput(props) {
 
         let focusTimeout = null;
         if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => inputRefs.current[0].focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeout = setTimeout(() => inputRefs.current.focus(), CONST.ANIMATED_TRANSITION);
         } else {
-            inputRefs.current[0].focus();
+            inputRefs.current.focus();
         }
 
         return () => {
@@ -180,7 +182,13 @@ function MagicCodeInput(props) {
      * @param {Number} index
      */
     const onFocus = (event) => {
+        if (shouldFocusLast.current) {
+            setInput('');
+            setFocusedIndex(lastFocusedIndex.current);
+            setEditIndex(lastFocusedIndex.current);
+        }
         event.preventDefault();
+        shouldFocusLast.current = true;
     };
 
     /**
@@ -190,8 +198,9 @@ function MagicCodeInput(props) {
      * @param {Object} event
      * @param {Number} index
      */
-    const onPress = (event, index) => {
-        event.preventDefault();
+    const onPress = (index) => {
+        shouldFocusLast.current = false;
+        inputRefs.current.focus();
         setInput('');
         setFocusedIndex(index);
         setEditIndex(index);
@@ -273,7 +282,7 @@ function MagicCodeInput(props) {
             props.onChangeText(composeToString(numbers));
 
             if (!_.isUndefined(newFocusedIndex)) {
-                inputRefs.current[newFocusedIndex].focus();
+                inputRefs.current.focus();
             }
         }
         if (keyValue === 'ArrowLeft' && !_.isUndefined(focusedIndex)) {
@@ -281,13 +290,13 @@ function MagicCodeInput(props) {
             setInput('');
             setFocusedIndex(newFocusedIndex);
             setEditIndex(newFocusedIndex);
-            inputRefs.current[newFocusedIndex].focus();
+            inputRefs.current.focus();
         } else if (keyValue === 'ArrowRight' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.min(focusedIndex + 1, props.maxLength - 1);
             setInput('');
             setFocusedIndex(newFocusedIndex);
             setEditIndex(newFocusedIndex);
-            inputRefs.current[newFocusedIndex].focus();
+            inputRefs.current.focus();
         } else if (keyValue === 'Enter') {
             // We should prevent users from submitting when it's offline.
             if (props.network.isOffline) {
@@ -306,9 +315,37 @@ function MagicCodeInput(props) {
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
+                <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
+                    <TextInput
+                        ref={(ref) => (inputRefs.current = ref)}
+                        autoFocus={props.autoFocus && !props.shouldDelayFocus}
+                        inputMode="numeric"
+                        textContentType="oneTimeCode"
+                        name={props.name}
+                        maxLength={props.maxLength}
+                        value={input}
+                        hideFocusedState
+                        autoComplete={props.autoComplete}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                        onChangeText={(value) => {
+                            onChangeText(value);
+                        }}
+                        onKeyPress={onKeyPress}
+                        onFocus={onFocus}
+                        onBlur={() => {
+                            console.log('blur', focusedIndex);
+                            lastFocusedIndex.current = focusedIndex;
+                            setFocusedIndex(undefined);
+                        }}
+                        caretHidden={isMobileSafari}
+                        inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    />
+                </View>
                 {_.map(getInputPlaceholderSlots(props.maxLength), (index) => (
-                    <View
+                    <Pressable
                         key={index}
+                        onPress={() => onPress(index)}
                         style={[styles.w15]}
                     >
                         <View
@@ -321,37 +358,7 @@ function MagicCodeInput(props) {
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value, props.maxLength)[index] || ''}</Text>
                         </View>
-                        <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
-                            <TextInput
-                                ref={(ref) => (inputRefs.current[index] = ref)}
-                                autoFocus={index === 0 && props.autoFocus && !props.shouldDelayFocus}
-                                inputMode="numeric"
-                                textContentType="oneTimeCode"
-                                name={props.name}
-                                maxLength={props.maxLength}
-                                value={input}
-                                hideFocusedState
-                                autoComplete={index === 0 ? props.autoComplete : 'off'}
-                                keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                                onChangeText={(value) => {
-                                    // Do not run when the event comes from an input that is
-                                    // not currently being responsible for the input, this is
-                                    // necessary to avoid calls when the input changes due to
-                                    // deleted characters. Only happens in mobile.
-                                    if (index !== editIndex || _.isUndefined(focusedIndex)) {
-                                        return;
-                                    }
-                                    onChangeText(value);
-                                }}
-                                onKeyPress={onKeyPress}
-                                onPress={(event) => onPress(event, index)}
-                                onFocus={onFocus}
-                                caretHidden={isMobileSafari}
-                                inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            />
-                        </View>
-                    </View>
+                    </Pressable>
                 ))}
             </View>
             {!_.isEmpty(props.errorText) && (
