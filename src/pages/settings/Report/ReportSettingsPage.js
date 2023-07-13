@@ -10,7 +10,6 @@ import styles from '../../../styles/styles';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Report from '../../../libs/actions/Report';
-import * as Policy from '../../../libs/actions/Policy';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -69,7 +68,7 @@ class ReportSettingsPage extends Component {
     render() {
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report) && !ReportUtils.isChatThread(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
-        const shouldDisableRename = Policy.shouldDisableRename(linkedWorkspace, this.props.report) || ReportUtils.isChatThread(this.props.report);
+        const shouldDisableRename = ReportUtils.shouldDisableRename(this.props.report, linkedWorkspace) || ReportUtils.isChatThread(this.props.report);
         const notificationPreference = this.props.translate(`notificationPreferencesPage.notificationPreferences.${this.props.report.notificationPreference}`);
         const shouldDisableWelcomeMessage = this.shouldDisableWelcomeMessage(linkedWorkspace);
         const writeCapability = ReportUtils.isAdminRoom(this.props.report)

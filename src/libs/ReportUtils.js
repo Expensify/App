@@ -20,6 +20,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import * as PolicyUtils from "./PolicyUtils"
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -2489,6 +2490,27 @@ function getOriginalReportID(reportID, reportAction) {
     return isThreadFirstChat(reportAction, reportID) ? lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'parentReportID']) : reportID;
 }
 
+/**
+ * @param {Object|null} report
+ * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
+ * @returns {Boolean}
+ */
+function shouldDisableRename(report, policy) {
+    if (isDefaultRoom(report) || isArchivedRoom(report)) {
+        return true;
+    }
+
+    // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
+    // which means this has to be a public room we want to disable renaming for
+    if (!policy) {
+        return true;
+    }
+
+    // If there is a linked workspace, that means the user is a member of the workspace the report is in.
+    // Still, we only want policy owners and admins to be able to modify the name.
+    return PolicyUtils.isPolicyMember(policy);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2592,4 +2614,5 @@ export {
     shouldHideComposer,
     getOriginalReportID,
     canAccessReport,
+    shouldDisableRename,
 };

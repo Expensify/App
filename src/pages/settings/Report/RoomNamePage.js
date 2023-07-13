@@ -18,7 +18,7 @@ import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
 import RoomNameInput from '../../../components/RoomNameInput';
-import * as Policy from '../../../libs/actions/Policy';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
@@ -78,12 +78,8 @@ function RoomNamePage(props) {
     );
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            // Room name input autofocusing may block screen transition on Safari
-            onEntryTransitionEnd={() => roomNameInputRef.current && roomNameInputRef.current.focus()}
-        >
-            <FullPageNotFoundView shouldShow={Policy.shouldDisableRename(policy, report)}>
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report, policy)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}

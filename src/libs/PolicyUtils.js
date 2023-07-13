@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
+import * as Policy from "../libs/actions/Policy"
 
 /**
  * Checks if we have any errors stored within the POLICY_MEMBERS. Determines whether we should show a red brick road error or not.
@@ -124,6 +125,16 @@ function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails)
     return memberEmailsToAccountIDs;
 }
 
+/**
+ * Is the user the member of the given policy?
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPolicyMember(policy) {
+    return !Policy.isPolicyOwner(policy) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+}
+
 export {
     hasPolicyMemberError,
     hasPolicyError,
@@ -134,4 +145,5 @@ export {
     isExpensifyTeam,
     isPolicyAdmin,
     getClientPolicyMemberEmailsToAccountIDs,
+    isPolicyMember,
 };
