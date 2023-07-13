@@ -56,7 +56,7 @@ export default (isSmallScreenWidth) => ({
     centralPaneNavigator: {
         title: 'New Expensify',
         ...commonScreenOptions,
-        animationEnabled: isSmallScreenWidth ? true : false,
+        animationEnabled: isSmallScreenWidth,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
 
         // Prevent unnecessary scrolling
