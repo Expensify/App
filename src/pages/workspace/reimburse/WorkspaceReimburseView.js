@@ -100,9 +100,7 @@ const getRateLabel = useCallback(
     );
 
     const getUnitLabel = useCallback(
-        (value) => {
-            translate(`common.${value}`);
-        },
+        (value) => translate(`common.${value}`),
         [translate],
     );
 
