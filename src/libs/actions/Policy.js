@@ -257,7 +257,6 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         reportCreationData: {},
     };
 
-    // TODO: Add comment
     const optimisticPersonalDetails = {};
     const successPersonalDetails = {};
 
@@ -357,7 +356,6 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         });
     });
 
-    // TODO: Add comment
     workspaceMembersChats.onyxOptimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -403,7 +401,8 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
-            // TODO: Add comment
+            // Convert to object with each key clearing pendingAction, when it is an existed account.
+            // Remove the object, when it is a new created account.
             value: _.reduce(
                 accountIDs,
                 (memo, accountID) => {
