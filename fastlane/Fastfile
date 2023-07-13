@@ -14,6 +14,11 @@ skip_docs
 opt_out_usage
 
 platform :android do
+  def output_build_artifact_paths
+    sh("echo APK_PATH=#{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]} >> $GITHUB_OUTPUT")
+    sh("echo AAB_PATH=#{lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH]} >> $GITHUB_OUTPUT")
+  end
+
   desc "Generate a new release build APK"
   lane :build do
     ENV["ENVFILE"]=".env.production"
@@ -22,6 +27,7 @@ platform :android do
       task: 'assemble',
       build_type: 'Release',
     )
+    output_build_artifact_paths
   end
 
   desc "Generate a new test build APK"
@@ -32,6 +38,7 @@ platform :android do
       task: 'assemble',
       build_type: 'InternalRelease',
     )
+    output_build_artifact_paths
   end
 
   desc "Generate a new e2e testing APK"
@@ -44,6 +51,7 @@ platform :android do
       project_dir: './android',
       task: ':app:assembleE2eRelease',
     )
+    output_build_artifact_paths
   end
 
   desc "Upload to Google Play (beta)"
