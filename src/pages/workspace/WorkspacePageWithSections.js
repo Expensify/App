@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -11,23 +11,18 @@ import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import {withNetwork} from '../../components/OnyxProvider';
-import networkPropTypes from '../../components/networkPropTypes';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScrollViewWithContext from '../../components/ScrollViewWithContext';
+import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,
-
-    /** Information about the network from Onyx */
-    network: networkPropTypes.isRequired,
 
     /** The text to display in the header */
     headerText: PropTypes.string.isRequired,
@@ -67,8 +62,6 @@ const propTypes = {
 
     /** Option to use the default scroll view  */
     shouldUseScrollView: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -82,73 +75,65 @@ const defaultProps = {
     backButtonRoute: '',
 };
 
-class WorkspacePageWithSections extends React.Component {
-    componentDidMount() {
-        this.fetchData();
+function fetchData(skipVBBACal) {
+    if (skipVBBACal) {
+        return;
     }
 
-    componentDidUpdate(prevProps) {
-        if (!prevProps.network.isOffline || this.props.network.isOffline) {
-            return;
-        }
+    BankAccounts.openWorkspaceView();
+}
 
-        this.fetchData();
-    }
+function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCallTaskID, headerText, policy, reimbursementAccount, route, shouldUseScrollView, shouldSkipVBBACall, user}) {
+    useOnNetworkReconnect(() => fetchData(shouldSkipVBBACall));
 
-    fetchData() {
-        if (this.props.shouldSkipVBBACall) {
-            return;
-        }
+    const achState = lodashGet(reimbursementAccount, 'achData.state', '');
+    const hasVBA = achState === BankAccount.STATE.OPEN;
+    const isUsingECard = lodashGet(user, 'isUsingExpensifyCard', false);
+    const policyID = lodashGet(route, 'params.policyID');
+    const policyName = lodashGet(policy, 'name');
+    const content = children(hasVBA, policyID, isUsingECard);
 
-        BankAccounts.openWorkspaceView();
-    }
+    useEffect(() => {
+        fetchData(shouldSkipVBBACall);
+    }, [shouldSkipVBBACall]);
 
-    render() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        const hasVBA = achState === BankAccount.STATE.OPEN;
-        const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
-        const policyID = lodashGet(this.props.route, 'params.policyID');
-        const policyName = lodashGet(this.props.policy, 'name');
-
-        return (
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                shouldEnablePickerAvoiding={false}
+    return (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnablePickerAvoiding={false}
+        >
+            <FullPageNotFoundView
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
+                shouldShow={_.isEmpty(policy) || !Policy.isPolicyOwner(policy)}
+                subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
-                <FullPageNotFoundView
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                    shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
-                    subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
-                >
-                    <HeaderWithBackButton
-                        title={this.props.headerText}
-                        subtitle={policyName}
-                        shouldShowGetAssistanceButton
-                        guidesCallTaskID={this.props.guidesCallTaskID}
-                        onBackButtonPress={() => Navigation.goBack(this.props.backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
-                    />
-                    {this.props.shouldUseScrollView ? (
-                        <ScrollViewWithContext
-                            keyboardShouldPersistTaps="handled"
-                            style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                        >
-                            <View style={[styles.w100, styles.flex1]}>{this.props.children(hasVBA, policyID, isUsingECard)}</View>
-                        </ScrollViewWithContext>
-                    ) : (
-                        this.props.children(hasVBA, policyID, isUsingECard)
-                    )}
-                    {this.props.footer}
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        );
-    }
+                <HeaderWithBackButton
+                    title={headerText}
+                    subtitle={policyName}
+                    shouldShowGetAssistanceButton
+                    guidesCallTaskID={guidesCallTaskID}
+                    onBackButtonPress={() => Navigation.goBack(backButtonRoute || ROUTES.getWorkspaceInitialRoute(policyID))}
+                />
+                {shouldUseScrollView ? (
+                    <ScrollViewWithContext
+                        keyboardShouldPersistTaps="handled"
+                        style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                    >
+                        <View style={[styles.w100, styles.flex1]}>{content}</View>
+                    </ScrollViewWithContext>
+                ) : (
+                    content
+                )}
+                {footer}
+            </FullPageNotFoundView>
+        </ScreenWrapper>
+    );
 }
 
 WorkspacePageWithSections.propTypes = propTypes;
 WorkspacePageWithSections.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
@@ -158,5 +143,4 @@ export default compose(
         },
     }),
     withPolicyAndFullscreenLoading,
-    withNetwork(),
 )(WorkspacePageWithSections);
