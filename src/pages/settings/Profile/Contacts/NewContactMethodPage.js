@@ -72,7 +72,7 @@ const addNewContactMethod = (values) => {
     const validateIfnumber = validateNumber(phoneLogin);
     const submitDetail = (validateIfnumber || values.phoneOrEmail).trim().toLowerCase();
 
-    User.addNewContactMethodAndNavigate(submitDetail, values.password);
+    User.addNewContactMethodAndNavigate(submitDetail);
 };
 
 function NewContactMethodPage(props) {
