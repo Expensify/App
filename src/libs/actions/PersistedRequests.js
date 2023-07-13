@@ -25,14 +25,12 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    const persistedRequestsCopy = _.clone(persistedRequests);
-    const index = _.findIndex(persistedRequestsCopy, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
+    const index = _.findIndex(persistedRequests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
     if (index !== -1) {
-        persistedRequestsCopy.splice(index, 1);
-        persistedRequests = persistedRequestsCopy;
+        persistedRequests.splice(index, 1);
     }
 
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequestsCopy);
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
 /**
