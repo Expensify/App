@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
 import participantPropTypes from './participantPropTypes';
@@ -129,7 +128,6 @@ MoneyReportHeader.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withLocalize,
     withOnyx({
         chatReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
