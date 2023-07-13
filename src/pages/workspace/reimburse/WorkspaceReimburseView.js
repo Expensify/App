@@ -105,7 +105,7 @@ const getRateLabel = useCallback(
     );
 
     const getCurrentRatePerUnitLabel = useCallback(() => {
-        const customUnitRate = _.find(distanceCustomUnit && distanceCustomUnit.rates, (rate) => rate && rate.name === 'Default Rate');
+        const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', '{}'), (rate) => rate && rate.name === 'Default Rate');
         const currentUnit = getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'));
         const currentRate = getRateLabel(customUnitRate);
         const perWord = translate('common.per');
