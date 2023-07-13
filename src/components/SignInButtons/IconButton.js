@@ -22,9 +22,9 @@ const defaultProps = {
 const providerData = {
     [CONST.SIGN_IN_METHOD.APPLE]: {
         icon: Expensicons.AppleLogo,
-        accessibilityLabel: 'common.signInWithApple'
+        accessibilityLabel: 'common.signInWithApple',
     },
-}
+};
 
 function IconButton({onPress, translate, provider}) {
     return (
