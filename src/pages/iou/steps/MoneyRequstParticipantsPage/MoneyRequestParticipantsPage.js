@@ -74,7 +74,7 @@ function MoneyRequestParticipantsPage(props) {
             IOU.resetMoneyRequestInfo(moneyRequestId);
         }
 
-        if (props.iou.amount === 0 || shouldReset) {
+        if ((props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
             navigateBack(true);
         }
 

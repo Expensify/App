@@ -1,45 +1,60 @@
 import {View} from 'react-native';
 import React from 'react';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import TabSelectorItem from './TabSelectorItem';
-import lodashGet from 'lodash/get';
+import Tab from '../libs/actions/Tab';
+
+const TAB_MANUAL = 'manual';
+const TAB_SCAN = 'scan';
+
+const propTypes = {
+    /** Which tab has been selected */
+    tabSelected: PropTypes.string,
+};
+
+const defaultProps = {
+    tabSelected: TAB_MANUAL,
+};
 
 function TabSelector(props) {
-    const selectedTab = lodashGet(props.tabSelected, 'selected', 'manual');
+    const selectedTab = lodashGet(props.tabSelected, 'selected', TAB_MANUAL);
     return (
         <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
             <TabSelectorItem
                 title="Manual"
-                selected={selectedTab === 'manual'}
+                selected={selectedTab === TAB_MANUAL}
                 icon={Expensicons.Pencil}
-                callback={() => {
-                    Onyx.merge(ONYXKEYS.TAB_SELECTOR, {selected: 'manual'});
+                onPress={() => {
+                    Tab.onTabPress(TAB_MANUAL);
                 }}
             />
             <TabSelectorItem
                 title="Scan"
-                selected={selectedTab === 'scan'}
+                selected={selectedTab === TAB_SCAN}
                 icon={Expensicons.Receipt}
-                callback={() => {
-                    Onyx.merge(ONYXKEYS.TAB_SELECTOR, {selected: 'scan'});
+                onPress={() => {
+                    Tab.onTabPress(TAB_SCAN);
                 }}
             />
         </View>
     );
 }
 
+TabSelector.propTypes = propTypes;
+TabSelector.defaultProps = defaultProps;
 TabSelector.displayName = 'TabSelector';
 
 export default compose(
     withLocalize,
     withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
+        tabSelected: {
+            key: ONYXKEYS.TAB_SELECTOR,
         },
-        tabSelected: {key: ONYXKEYS.TAB_SELECTOR},
     }),
 )(TabSelector);

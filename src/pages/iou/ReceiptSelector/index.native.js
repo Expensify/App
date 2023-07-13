@@ -1,7 +1,9 @@
 import {Text, View} from 'react-native';
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import {PressableWithFeedback} from '../../../components/Pressable';
 import Colors from '../../../styles/colors';
 import Icon from '../../../components/Icon';
@@ -12,14 +14,13 @@ import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import * as IOU from '../../../libs/actions/IOU';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import _ from 'underscore';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import lodashGet from 'lodash/get';
 
 function ReceiptSelector(props) {
     const devices = useCameraDevices();
     const device = devices.back;
     const camera = useRef(null);
+    let flash = useState(false);
 
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
@@ -56,14 +57,15 @@ function ReceiptSelector(props) {
     };
 
     const takePhoto = () => {
+        console.log(flash);
         camera.current
             .takePhoto({
                 qualityPrioritization: 'speed',
-                flash: 'on',
+                flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                console.log(photo);
-                IOU.setMoneyRequestReceipt(photo);
+                console.log(photo.path);
+                IOU.setMoneyRequestReceipt(photo.path);
                 navigateToNextPage();
             })
             .catch((error) => {
@@ -90,6 +92,7 @@ function ReceiptSelector(props) {
             />
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter]}>
                 <PressableWithFeedback
+                    accessibilityRole="button"
                     style={[styles.alignItemsStart]}
                     onPress={() => console.log('Gallery')}
                 >
@@ -100,6 +103,7 @@ function ReceiptSelector(props) {
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
+                    accessibilityRole="button"
                     style={[styles.alignItemsCenter]}
                     onPress={() => takePhoto()}
                 >
@@ -109,8 +113,9 @@ function ReceiptSelector(props) {
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
+                    accessibilityRole="button"
                     style={[styles.alignItemsEnd]}
-                    onPress={() => console.log('Flash')}
+                    onPress={() => (flash = !flash)}
                 >
                     <Icon
                         height={32}

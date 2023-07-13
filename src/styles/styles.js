@@ -3516,6 +3516,13 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+
+    moneyRequestImage: {
+        height: 200,
+        borderRadius: 16,
+        marginHorizontal: 20,
+        marginTop: 20,
+    },
 };
 
 export default styles;

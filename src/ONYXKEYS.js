@@ -238,5 +238,6 @@ export default {
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 
+    // Manual request tab selector
     TAB_SELECTOR: 'tabSelector',
 };

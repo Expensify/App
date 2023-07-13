@@ -293,7 +293,7 @@ function MoneyRequestConfirmationList(props) {
         >
             {props.receipt ? (
                 <Image
-                    style={{height: 200, borderRadius: 16, marginHorizontal: 20, marginTop: 20}}
+                    style={styles.moneyRequestImage}
                     source={{uri: `file://${props.receipt.path}`}}
                 />
             ) : (
