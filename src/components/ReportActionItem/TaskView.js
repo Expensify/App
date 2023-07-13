@@ -52,6 +52,7 @@ function TaskView(props) {
     const avatarURL = lodashGet(PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID), [0, 'avatar'], '');
     const policy = ReportUtils.getPolicy(props.report.policyID);
     const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
+    const disableState = !canEdit || !isOpen;
     return (
         <View>
             <PressableWithSecondaryInteraction
@@ -62,9 +63,9 @@ function TaskView(props) {
 
                     Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
                 })}
-                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, !isOpen), true)]}
+                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState), true)]}
                 ref={props.forwardedRef}
-                disabled={!isOpen || !canEdit}
+                disabled={disableState}
                 accessibilityLabel={taskTitle || props.translate('task.task')}
             >
                 {({hovered, pressed}) => (
@@ -94,7 +95,7 @@ function TaskView(props) {
                                     <Icon
                                         additionalStyles={[styles.alignItemsCenter]}
                                         src={Expensicons.ArrowRight}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, !isOpen))}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                     />
                                 </View>
                             )}
@@ -107,7 +108,7 @@ function TaskView(props) {
                 title={props.report.description || ''}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 shouldShowRightIcon={isOpen}
-                disabled={!isOpen || !canEdit}
+                disabled={disableState}
                 wrapperStyle={[styles.pv2]}
                 numberOfLinesTitle={3}
                 shouldGreyOutWhenDisabled={false}
@@ -122,7 +123,7 @@ function TaskView(props) {
                     titleStyle={styles.assigneeTextStyle}
                     onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                     shouldShowRightIcon={isOpen}
-                    disabled={!isOpen || !canEdit}
+                    disabled={disableState}
                     wrapperStyle={[styles.pv2]}
                     isSmallAvatarSubscriptMenu
                     shouldGreyOutWhenDisabled={false}
@@ -132,7 +133,7 @@ function TaskView(props) {
                     description={props.translate('task.assignee')}
                     onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                     shouldShowRightIcon={isOpen}
-                    disabled={!isOpen || !canEdit}
+                    disabled={disableState}
                     wrapperStyle={[styles.pv2]}
                     shouldGreyOutWhenDisabled={false}
                 />
