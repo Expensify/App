@@ -25,11 +25,14 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    const index = _.findIndex(persistedRequests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
+    const persistedRequestsCopy = JSON.parse(JSON.stringify(persistedRequests));
+    const index = _.findIndex(persistedRequestsCopy, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
     if (index !== -1) {
-        persistedRequests.splice(index, 1);
+        persistedRequestsCopy.splice(index, 1);
+        persistedRequests = persistedRequestsCopy;
     }
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequestsCopy);
 }
 
 /**
