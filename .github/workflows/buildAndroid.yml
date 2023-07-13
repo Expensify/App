@@ -3,10 +3,7 @@ name: Build Android app
 on:
   workflow_call:
     inputs:
-      ARTIFACT_NAME:
-        description: The name of the workflow artifact where the APK should be uploaded
-        required: true
-        type: string
+      # TODO: Rename to BUILD_TYPE
       ENV:
         description: The environment to build for. Must be one of ("release", "ad-hoc", "e2e")
         required: true
@@ -46,11 +43,6 @@ jobs:
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Decrypt json key
-        run: cd android/app && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output android-fastlane-json-key.json android-fastlane-json-key.json.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
       - name: Set version in ENV
         run: |
           echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> "$GITHUB_ENV"
@@ -70,7 +62,7 @@ jobs:
       - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.ARTIFACT_NAME }}.apk
+          name: android-${{ inputs.ENV }}-${{ github.ref }}.apk
           # Note: this output comes from inside the Fastfile
           path: ${{ steps.build.outputs.APK_PATH }}
 
@@ -78,14 +70,14 @@ jobs:
         if: inputs.ENV == "release"
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.ARTIFACT_NAME }}.aab
+          name: android-${{ inputs.ENV }}-${{ github.ref }}.aab
           # Note: this output comes from inside the Fastfile
           path: ${{ steps.build.outputs.AAB_PATH }}
 
       - name: Archive Android sourcemaps
         uses: actions/upload-artifact@v3
         with:
-          name: android-sourcemap
+          name: android-${{ inputs.ENV }}-sourcemap-${{ github.ref }}
           path: android/app/build/generated/sourcemaps/react/release/*.map
 
       - name: Post a message in slack if the build fails
