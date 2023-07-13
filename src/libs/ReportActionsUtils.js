@@ -288,22 +288,28 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
 /**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @return {String}
+ * @return {Object}
  */
-function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
+function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
     const message = lodashGet(lastVisibleAction, ['message', 0], {});
 
     if (isReportMessageAttachment(message)) {
-        return CONST.ATTACHMENT_MESSAGE_TEXT;
+        return {
+            lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+        };
     }
 
     if (isCreatedAction(lastVisibleAction)) {
-        return '';
+        return {
+            lastMessageText: '',
+        };
     }
 
     const messageText = lodashGet(message, 'text', '');
-    return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return {
+        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
+    };
 }
 
 /**
@@ -535,7 +541,7 @@ function isWhisperAction(action) {
 export {
     getSortedReportActions,
     getLastVisibleAction,
-    getLastVisibleMessageText,
+    getLastVisibleMessage,
     getMostRecentIOURequestActionID,
     extractLinksFromMessageHtml,
     isDeletedAction,
