@@ -791,7 +791,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
     // 2. Update the iouPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
-    const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessageText(transactionThreadID).length === 0 : false;
+    const shouldDeleteTransactionThread = transactionThreadID ? ReportActionsUtils.getLastVisibleMessage(transactionThreadID).lastMessageText.length === 0 : false;
     const shouldShowDeletedRequestMessage = transactionThreadID && !shouldDeleteTransactionThread;
 
     // STEP 3: Update the IOU reportAction and decide if the iouReport should be deleted. We delete the iouReport if there are no visible comments left in the report.
@@ -816,7 +816,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     };
 
     const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(iouReport.reportID, updatedReportAction);
-    const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessageText(iouReport.reportID, updatedReportAction);
+    const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessage(iouReport.reportID, updatedReportAction).lastMessageText;
     const shouldDeleteIOUReport =
         iouReportLastMessageText.length === 0 && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && (!transactionThreadID || shouldDeleteTransactionThread);
 
@@ -891,7 +891,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
                       value: {
                           hasOutstandingIOU: false,
                           iouReportID: null,
-                          lastMessageText: ReportActionsUtils.getLastVisibleMessageText(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}),
+                          lastMessageText: ReportActionsUtils.lastMessageText(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).lastMessageText,
                           lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport.chatReportID, {[reportPreviewAction.reportActionID]: null}).created,
                       },
                   },
