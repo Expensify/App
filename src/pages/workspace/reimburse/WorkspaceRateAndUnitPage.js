@@ -87,7 +87,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     submit(values) {
         this.saveUnitAndRate(values.unit, values.rate);
         Keyboard.dismiss();
-        Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(this.props.policy.id));
+        Navigation.goBack(ROUTES.getWorkspaceReimburseRoute(this.props.policy.id));
     }
 
     validate(values) {

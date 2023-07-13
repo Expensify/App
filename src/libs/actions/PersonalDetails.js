@@ -137,7 +137,7 @@ function updatePronouns(pronouns) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -167,7 +167,7 @@ function updateDisplayName(firstName, lastName) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -191,7 +191,7 @@ function updateLegalName(legalFirstName, legalLastName) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -213,7 +213,7 @@ function updateDateOfBirth({dob}) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -256,7 +256,7 @@ function updateAddress(street, street2, city, state, zip, country) {
             },
         ],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -318,7 +318,7 @@ function updateSelectedTimezone(selectedTimezone) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
+    Navigation.goBack(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**

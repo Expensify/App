@@ -60,7 +60,7 @@ function openEditor(policyID) {
  * @param {string} policyID
  */
 function dismissError(policyID) {
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     Policy.removeWorkspace(policyID);
 }
 
@@ -78,8 +78,7 @@ function WorkspaceInitialPage(props) {
         Policy.deleteWorkspace(policy.id, policyReports, policy.name);
         setIsDeleteModalOpen(false);
         // Pop the deleted workspace page before opening workspace settings.
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
 
     useEffect(() => {

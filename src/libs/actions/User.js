@@ -275,7 +275,7 @@ function deleteContactMethod(contactMethod, loginList) {
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -679,7 +679,7 @@ function updateChatPriorityMode(mode) {
         },
         {optimisticData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
@@ -834,7 +834,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
