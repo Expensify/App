@@ -189,6 +189,13 @@ const ONYXKEYS = {
     /** Report ID of the last report the user viewed as anonymous user */
     LAST_OPENED_PUBLIC_ROOM_ID: 'lastOpenedPublicRoomID',
 
+    // The theme setting set by the user in preferences.
+    // This can be either "light", "dark" or "system"
+    PREFERRED_THEME: 'preferredTheme',
+
+    // Experimental memory only Onyx mode flag
+    IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -298,6 +305,8 @@ type OnyxValues = {
     [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
+    [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
+    [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
 
     // Collections
     [download: `${typeof ONYXKEYS.COLLECTION.DOWNLOAD}${string}`]: OnyxTypes.Download;
