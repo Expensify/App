@@ -8,6 +8,10 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: build-android-${{ inputs.ENV }}
+  cancel-in-progress: ${{ inputs.ENV == "ad-hoc" }}
+
 jobs:
   buildWeb:
     name: Build desktop app

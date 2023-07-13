@@ -12,6 +12,10 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: build-android-${{ inputs.ENV }}
+  cancel-in-progress: ${{ inputs.ENV != "release" }}
+
 jobs:
   buildIOS:
     name: Build iOS app
