@@ -3,7 +3,7 @@ import _ from 'underscore';
 import CONFIG from '../../CONFIG';
 import getPlatform from '../getPlatform';
 import * as NetworkStore from './NetworkStore';
-import {isSupportRequests} from './NetworkStore';
+import {isSupportRequest} from './NetworkStore';
 
 /**
  * Does this command require an authToken?
@@ -26,7 +26,7 @@ export default function enhanceParameters(command, parameters) {
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command)) {
-        if (NetworkStore.getSupportAuthToken() && NetworkStore.isSupportRequests(command)) {
+        if (NetworkStore.getSupportAuthToken() && NetworkStore.isSupportRequest(command)) {
             finalParameters.authToken = NetworkStore.getSupportAuthToken();
         } else if (!parameters.authToken) {
             finalParameters.authToken = NetworkStore.getAuthToken();

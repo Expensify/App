@@ -111,7 +111,7 @@ function getAuthToken() {
  * @param {String} command
  * @returns {[String]}
  */
-function isSupportRequests(command) {
+function isSupportRequest(command) {
     return _.contains(['OpenApp', 'ReconnectApp', 'OpenReport'], command);
 }
 
@@ -178,5 +178,5 @@ export {
     checkRequiredData,
     getSupportAuthToken,
     setSupportAuthToken,
-    isSupportRequests,
+    isSupportRequest,
 };
