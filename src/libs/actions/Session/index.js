@@ -571,8 +571,8 @@ function setSupportAuthToken(supportToken, email, accountID) {
         Onyx.merge(ONYXKEYS.SESSION, {
             authToken: '1',
             supportAuthToken: supportToken,
-            email: email,
-            accountID: accountID,
+            email,
+            accountID,
         });
     } else {
         Onyx.set(ONYXKEYS.SESSION, {});

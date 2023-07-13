@@ -3,7 +3,6 @@ import _ from 'underscore';
 import CONFIG from '../../CONFIG';
 import getPlatform from '../getPlatform';
 import * as NetworkStore from './NetworkStore';
-import {isSupportRequest} from './NetworkStore';
 
 /**
  * Does this command require an authToken?
