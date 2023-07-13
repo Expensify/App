@@ -184,13 +184,21 @@ function BaseValidateCodeForm(props) {
         setTimeRemaining(30);
     };
 
+
+    /**
+     * Clear local sign in states
+     */
+    const clearLocalSignInData = () => {
+        setTwoFactorAuthCode('');
+        setFormError({});
+        setValidateCode('');
+    }
+
     /**
      * Clears local and Onyx sign in states
      */
     const clearSignInData = () => {
-        setTwoFactorAuthCode('');
-        setFormError({});
-        setValidateCode('');
+        clearLocalSignInData();
         Session.clearSignInData();
     };
 
@@ -198,7 +206,7 @@ function BaseValidateCodeForm(props) {
         if (!isLoadingValidateCodeForm) {
             return;
         }
-        clearSignInData();
+        clearLocalSignInData();
     }, [isLoadingValidateCodeForm]);
 
     /**
