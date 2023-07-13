@@ -57,6 +57,20 @@ platform :android do
     )
   end
 
+  desc "Upload test build to S3"
+  lane :upload_s3 do
+    aws_s3(
+      access_key: ENV['S3_ACCESS_KEY'],
+      secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
+      bucket: ENV['S3_BUCKET'],
+      region: ENV['S3_REGION'],
+
+      apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
+      app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
+    )
+    sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
+  end
+
   desc "Release Google Play beta to production"
   lane :release_production
     google_play_track_version_codes(
@@ -80,40 +94,12 @@ platform :android do
       skip_upload_screenshots: true
     )
   end
-
-  desc "Upload test build to S3"
-  lane :upload_s3 do
-    aws_s3(
-      access_key: ENV['S3_ACCESS_KEY'],
-      secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
-      bucket: ENV['S3_BUCKET'],
-      region: ENV['S3_REGION'],
-
-      apk: lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH],
-      app_directory: "android/#{ENV['PULL_REQUEST_NUMBER']}",
-    )
-    sh("echo '{\"apk_path\": \"#{lane_context[SharedValues::S3_APK_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../android_paths.json")
-  end
 end
 
 platform :ios do
-  desc "Generate a local iOS production build"
-  lane :build do
-    ENV["ENVFILE"]=".env.production"
-
-    build_app(
-        workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "NewExpensify"
-    )
-  end
-
-  desc "Build app for testing"
-  lane :build_internal do
+  def config_ios_credentials
     require 'securerandom'
-    ENV["ENVFILE"]=".env.adhoc"
-
     keychain_password = SecureRandom.uuid
-
     create_keychain(
         name: "ios-build.keychain",
         password: keychain_password,
@@ -122,17 +108,36 @@ platform :ios do
         timeout: "3600",
         add_to_search_list: "true"
     )
-
     import_certificate(
         certificate_path: "./ios/Certificates.p12",
         keychain_name: "ios-build.keychain",
         keychain_password: keychain_password
     )
+  end
 
+  desc "Build iOS app for production"
+  lane :build do
+    ENV["ENVFILE"]=".env.production"
+    config_ios_credentials
+    install_provisioning_profile(
+        path: "./ios/chat_expensify_appstore.mobileprovision"
+    )
+    build_app(
+        workspace: "./ios/NewExpensify.xcworkspace",
+        scheme: "NewExpensify",
+        export_options: {
+            manageAppVersionAndBuildNumber: false
+        }
+    )
+  end
+
+  desc "Build iOS app for internal testing"
+  lane :build_internal do
+    ENV["ENVFILE"]=".env.adhoc"
+    config_ios_credentials
     install_provisioning_profile(
         path: "./ios/chat_expensify_adhoc.mobileprovision"
     )
-
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
@@ -147,54 +152,10 @@ platform :ios do
             manageAppVersionAndBuildNumber: false
         }
     )
-
-    aws_s3(
-      access_key: ENV['S3_ACCESS_KEY'],
-      secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
-      bucket: ENV['S3_BUCKET'],
-      region: ENV['S3_REGION'],
-
-      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
-      app_directory: "ios/#{ENV['PULL_REQUEST_NUMBER']}",
-    )
-
-    sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
   end
 
-  desc "Build and upload app to TestFlight"
-  lane :beta do
-    require 'securerandom'
-    ENV["ENVFILE"]=".env.production"
-
-    keychain_password = SecureRandom.uuid
-
-    create_keychain(
-        name: "ios-build.keychain",
-        password: keychain_password,
-        default_keychain: "true",
-        unlock: "true",
-        timeout: "3600",
-        add_to_search_list: "true"
-    )
-
-    import_certificate(
-        certificate_path: "./ios/Certificates.p12",
-        keychain_name: "ios-build.keychain",
-        keychain_password: keychain_password
-    )
-
-    install_provisioning_profile(
-        path: "./ios/chat_expensify_appstore.mobileprovision"
-    )
-
-    build_app(
-        workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "NewExpensify",
-        export_options: {
-            manageAppVersionAndBuildNumber: false
-        }
-    )
-
+  desc "Upload to TestFlight"
+  lane :upload_beta do
     begin
       upload_to_testflight(
           api_key_path: "./ios/ios-fastlane-json-key.json",
@@ -233,8 +194,23 @@ platform :ios do
     )
   end
 
+  desc "Upload test build to S3"
+  lane :upload_s3 do
+    aws_s3(
+      access_key: ENV['S3_ACCESS_KEY'],
+      secret_access_key: ENV['S3_SECRET_ACCESS_KEY'],
+      bucket: ENV['S3_BUCKET'],
+      region: ENV['S3_REGION'],
+
+      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
+      app_directory: "ios/#{ENV['PULL_REQUEST_NUMBER']}",
+    )
+
+    sh("echo '{\"ipa_path\": \"#{lane_context[SharedValues::S3_IPA_OUTPUT_PATH]}\",\"html_path\": \"#{lane_context[SharedValues::S3_HTML_OUTPUT_PATH]}\"}' > ../ios_paths.json")
+  end
+
   desc "Move app to App Store Review"
-  lane :production do
+  lane :release_production do
     deliver(
       api_key_path: "./ios/ios-fastlane-json-key.json",
 
@@ -293,6 +269,5 @@ platform :ios do
         'en-US' => "Improvements and bug fixes"
       }
     )
-
   end
 end
