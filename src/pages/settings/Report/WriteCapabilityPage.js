@@ -28,7 +28,7 @@ const propTypes = {
     /** The report for which we are setting write capability */
     report: reportPropTypes.isRequired,
 
-     /** The policy of which the room os a part of */
+    /** The policy of which the room os a part of */
     policy: PropTypes.objectOf(policyPropType),
 };
 
