@@ -1164,11 +1164,11 @@ const styles = {
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: 279,
+        maxWidth: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     signInPageWelcomeTextContainer: {
-        width: 279,
+        width: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     changeExpensifyLoginLinkContainer: {
