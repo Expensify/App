@@ -44,12 +44,12 @@ function WindowDimensionsProvider(props) {
     useEffect(() => {
         const onDimensionChange = (newDimensions) => {
             const {window} = newDimensions;
-    
+
             setWindowDimension({
                 windowHeight: window.height,
                 windowWidth: window.width,
             });
-        }
+        };
 
         const dimensionsEventListener = Dimensions.addEventListener('change', onDimensionChange);
 
@@ -58,7 +58,7 @@ function WindowDimensionsProvider(props) {
                 return;
             }
             dimensionsEventListener.remove();
-        }
+        };
     }, []);
 
     return (
@@ -84,7 +84,7 @@ function WindowDimensionsProvider(props) {
                 );
             }}
         </SafeAreaInsetsContext.Consumer>
-    )
+    );
 }
 
 WindowDimensionsProvider.propTypes = windowDimensionsProviderPropTypes;
