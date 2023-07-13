@@ -16,6 +16,12 @@
     box-shadow: none !important;
 }
 
+.onfido-sdk-ui-NavigationBar-iconBack {
+    /* Onfido's back icon with our theme colors. */
+    --back-icon-svg: url("data:image/svg+xml,%3Csvg width='32' height='32' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Ccircle fill='none' cx='16' cy='16' r='16'/%3E%3Cpath d='M16.668 11.811L11.738 16l4.93 4.189a1.014 1.014 0 0 1 0 1.5 1.191 1.191 0 0 1-1.604 0l-5.736-4.873A1.01 1.01 0 0 1 9.003 16a1.01 1.01 0 0 1 .325-.816l5.736-4.873a1.191 1.191 0 0 1 1.604 0 1.014 1.014 0 0 1 0 1.5z' fill='%238B9C8F' fill-rule='nonzero'/%3E%3Crect fill='%238B9C8F' fill-rule='nonzero' x='9' y='15' width='16' height='2' rx='1'/%3E%3C/g%3E%3C/svg%3E");
+    background-image: var(--back-icon-svg) !important;
+}
+
 @media only screen and (max-width: 600px) {
     .onfido-sdk-ui-Modal-inner {
         /* This keeps the bottom of the Onfido window from being cut off on mobile web because the height was being
