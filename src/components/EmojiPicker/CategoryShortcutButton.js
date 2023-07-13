@@ -39,6 +39,7 @@ class CategoryShortcutButton extends PureComponent {
                 shiftVertical={-4}
             >
                 <PressableWithoutFeedback
+                    shouldUseAutoHitSlop={false}
                     onPress={this.props.onPress}
                     onHoverIn={() => this.setState({isHighlighted: true})}
                     onHoverOut={() => this.setState({isHighlighted: false})}
