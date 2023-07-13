@@ -47,7 +47,7 @@ function MoneyRequestView(props) {
 
     const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
-    const translate = useLocalize();
+    const {translate} = useLocalize();
 
     return (
         <View>
