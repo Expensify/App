@@ -218,13 +218,6 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
         },
         name: 'ReportParticipants_Root',
     },
-    {
-        getComponent: () => {
-            const ProfilePage = require('../../../pages/ProfilePage').default;
-            return ProfilePage;
-        },
-        name: 'ReportParticipants_Details',
-    },
 ]);
 
 const SearchModalStackNavigator = createModalStackNavigator([
@@ -429,6 +422,14 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Settings_Preferences_Language',
     },
+    // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
+    // {
+    //     getComponent: () => {
+    //         const SettingsPreferencesThemePage = require('../../../pages/settings/Preferences/ThemePage').default;
+    //         return SettingsPreferencesThemePage;
+    //     },
+    //     name: 'Settings_Preferences_Theme',
+    // },
     {
         getComponent: () => {
             const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
@@ -621,13 +622,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const YearPickerPage = require('../../../pages/YearPickerPage').default;
-            return YearPickerPage;
-        },
-        name: 'YearPicker_Root',
-    },
-    {
-        getComponent: () => {
             const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
             return SettingsTwoFactorAuthIsEnabled;
         },
@@ -703,16 +697,6 @@ const WalletStatementStackNavigator = createModalStackNavigator([
     },
 ]);
 
-const YearPickerStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const YearPickerPage = require('../../../pages/YearPickerPage').default;
-            return YearPickerPage;
-        },
-        name: 'YearPicker_Root',
-    },
-]);
-
 const FlagCommentStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -752,7 +736,6 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
-    YearPickerStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
 };
