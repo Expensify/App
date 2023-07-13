@@ -26,6 +26,7 @@ import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as Environment from '../Environment/Environment';
 import * as Localize from '../Localize';
 
 let currentUserAccountID;
@@ -1892,6 +1893,9 @@ function flagComment(reportID, reportAction, severity) {
     const parameters = {
         severity,
         reportActionID,
+        // This check is to prevent flooding Concierge with test flags
+        // If you need to test moderation responses from Concierge on dev, set this to false!
+        isDevRequest: Environment.isDevelopment(),
     };
 
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
