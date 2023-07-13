@@ -36,7 +36,7 @@ function UserDetailsTooltip(props) {
 
     let title = String(userDisplayName).trim() ? userDisplayName : '';
     const subtitle = (userLogin || '').trim() && !_.isEqual(LocalePhoneNumber.formatPhoneNumber(userLogin || ''), userDisplayName) ? Str.removeSMSDomain(userLogin) : '';
-    if (props.icon && props.icon.type === CONST.ICON_TYPE_WORKSPACE) {
+    if (props.icon && (props.icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = props.icon.name;
     }
     const renderTooltipContent = useCallback(
