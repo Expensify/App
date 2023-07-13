@@ -105,20 +105,20 @@ function MoneyReportHeader(props) {
                 )}
             </HeaderWithBackButton>
             {shouldShowSettlementButton && props.isSmallScreenWidth && (
-            <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
-                <SettlementButton
-                    currency={props.report.currency}
-                    policyID={props.report.policyID}
-                    shouldShowPaypal={shouldShowPaypal}
-                    chatReportID={props.report.chatReportID}
-                    iouReport={props.report}
-                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
-                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                    addBankAccountRoute={bankAccountRoute}
-                    shouldShowPaymentOptions
-                    formattedAmount={formattedAmount}
-                />
-            </View>
+                <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
+                    <SettlementButton
+                        currency={props.report.currency}
+                        policyID={props.report.policyID}
+                        shouldShowPaypal={shouldShowPaypal}
+                        chatReportID={props.report.chatReportID}
+                        iouReport={props.report}
+                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                        addBankAccountRoute={bankAccountRoute}
+                        shouldShowPaymentOptions
+                        formattedAmount={formattedAmount}
+                    />
+                </View>
             )}
         </View>
     );

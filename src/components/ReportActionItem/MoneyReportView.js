@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes}  from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
