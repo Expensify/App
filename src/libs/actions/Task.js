@@ -24,6 +24,12 @@ Onyx.connect({
     },
 });
 
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (allPersonalDetails = val || {}),
+});
+
 /**
  * Clears out the task info from the store
  */
@@ -354,11 +360,11 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
                 reportName,
                 description: reportDescription,
                 managerID: assigneeAccountID || report.managerID,
-                managerEmail: assignee || report.managerEmail,
             },
         },
     ];
     const successData = [];
+    const reportManager = lodashGet(allPersonalDetails, [report.managerID, 'login'], '');
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -368,7 +374,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {reportName: report.reportName, description: report.description, assignee: report.managerEmail, assigneeAccountID: report.managerID},
+            value: {reportName: report.reportName, description: report.description, assignee: reportManager, assigneeAccountID: report.managerID},
         },
     ];
 
@@ -409,7 +415,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
             taskReportID: report.reportID,
             title: reportName,
             description: reportDescription,
-            assignee: assignee || report.managerEmail,
+            assignee: assignee || reportManager,
             assigneeAccountID: assigneeAccountID || report.managerID,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
@@ -468,7 +474,6 @@ function setShareDestinationValue(shareDestination) {
  * Auto-assign participant when creating a task in a DM
  * @param {String} reportID
  */
-
 function setAssigneeValueWithParentReportID(reportID) {
     const report = ReportUtils.getReport(reportID);
     const isDefault = !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report));
@@ -490,7 +495,6 @@ function setAssigneeValueWithParentReportID(reportID) {
  * @param {string} shareDestination
  * @param {boolean} isCurrentUser
  */
-
 function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurrentUser = false) {
     let newAssigneeAccountID = Number(assigneeAccountID);
 

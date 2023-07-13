@@ -11,11 +11,10 @@ let iouReport;
 let reportActions;
 const ownerEmail = 'owner@iou.com';
 const ownerAccountID = 5;
-const managerEmail = 'manager@iou.com';
 const managerID = 10;
 
 function createIOUReportAction(type, amount, currency, isOffline = false, IOUTransactionID = NumberUtils.rand64()) {
-    const moneyRequestAction = ReportUtils.buildOptimisticIOUReportAction(type, amount, currency, 'Test comment', [managerEmail], IOUTransactionID, '', iouReport.reportID);
+    const moneyRequestAction = ReportUtils.buildOptimisticIOUReportAction(type, amount, currency, 'Test comment', [{accountID: managerID}], IOUTransactionID, '', iouReport.reportID);
 
     // Default is to create requests online, if `isOffline` is not specified then we need to remove the pendingAction
     if (!isOffline) {

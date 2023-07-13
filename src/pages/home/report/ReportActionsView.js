@@ -406,10 +406,6 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
-    if (lodashGet(newProps, 'report.managerEmail') !== lodashGet(oldProps, 'report.managerEmail')) {
-        return false;
-    }
-
     return _.isEqual(lodashGet(newProps.report, 'icons', []), lodashGet(oldProps.report, 'icons', []));
 }
 
