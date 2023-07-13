@@ -144,7 +144,7 @@ class SettlementButton extends React.Component {
 
         // Put the prefered payment method to the front of the array so its shown as default
         if (paymentMethod) {
-            const indexOfElement = _.findIndex(buttonOptions, method => method === paymentMethod);
+            const indexOfElement = _.findIndex(buttonOptions, method => method.value === paymentMethod);
             buttonOptions.splice(indexOfElement, 1);
             buttonOptions.unshift(paymentMethods[paymentMethod]);
         }
