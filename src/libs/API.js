@@ -129,13 +129,13 @@ function makeRequestWithSideEffects(command, apiCommandParameters = {}, onyxData
  *                             the same way as an API response.
  * @param {Object} [onyxData.optimisticData] - Onyx instructions that will be passed to Onyx.update() before the request is made.
  * @param {Object} [onyxData.successData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode === 200.
- * @param {Object} [onyxData.failureData] - Onyx instructions that will be passed to Onyx.update() when the response has jsonCode !== 200.
+ * @param {requestCallback} callback:  to know when call ended.
  */
-function read(command, apiCommandParameters, onyxData) {
+function read(command, apiCommandParameters, onyxData, callback) {
     // Ensure all write requests on the sequential queue have finished responding before running read requests.
     // Responses from read requests can overwrite the optimistic data inserted by
     // write requests that use the same Onyx keys and haven't responded yet.
-    SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ));
+    SequentialQueue.waitForIdle().then(() => makeRequestWithSideEffects(command, apiCommandParameters, onyxData, CONST.API_REQUEST_TYPE.READ).then(() => (callback ? callback() : null)));
 }
 
 export {write, makeRequestWithSideEffects, read};

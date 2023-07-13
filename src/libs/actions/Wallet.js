@@ -252,9 +252,10 @@ function acceptWalletTerms(parameters) {
  * @property {Number} currentBalance
  * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
  * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to receive funds only.
+ * @param {requestCallback} callback: to know when call ended.
  */
-function openInitialSettingsPage() {
-    API.read('OpenInitialSettingsPage');
+function openInitialSettingsPage(callback) {
+    API.read('OpenInitialSettingsPage', {}, {}, callback);
 }
 
 /**

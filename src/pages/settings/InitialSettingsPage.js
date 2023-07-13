@@ -137,11 +137,12 @@ class InitialSettingsPage extends React.Component {
 
         this.state = {
             shouldShowSignoutConfirmModal: false,
+            refreshKey: 0,
         };
     }
 
     componentDidMount() {
-        Wallet.openInitialSettingsPage();
+        Wallet.openInitialSettingsPage(this.callFinished.bind(this));
     }
 
     /**
@@ -303,6 +304,16 @@ class InitialSettingsPage extends React.Component {
         Navigation.navigate(ROUTES.SETTINGS_PROFILE);
     }
 
+    refreshScrollView() {
+        this.setState((prevState) => ({
+            refreshKey: prevState.refreshKey + 1,
+        }));
+    }
+
+    callFinished() {
+        this.refreshScrollView();
+    }
+
     render() {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -310,6 +321,7 @@ class InitialSettingsPage extends React.Component {
                     <>
                         <HeaderWithBackButton title={this.props.translate('common.settings')} />
                         <ScrollView
+                            key={this.state.refreshKey}
                             contentContainerStyle={safeAreaPaddingBottomStyle}
                             style={[styles.settingsPageBackground]}
                         >
