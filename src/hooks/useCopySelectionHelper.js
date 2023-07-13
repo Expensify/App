@@ -6,6 +6,19 @@ import Clipboard from '../libs/Clipboard';
 import SelectionScraper from '../libs/SelectionScraper';
 
 export default function useCopySelectionHelper() {
+    function copySelectionToClipboard() {
+        const selection = SelectionScraper.getCurrentSelection();
+        if (!selection) {
+            return;
+        }
+        const parser = new ExpensiMark();
+        if (!Clipboard.canSetHtml()) {
+            Clipboard.setString(parser.htmlToMarkdown(selection));
+            return;
+        }
+        Clipboard.setHtml(selection, parser.htmlToText(selection));
+    }
+
     useEffect(() => {
         const copyShortcutConfig = CONST.KEYBOARD_SHORTCUTS.COPY;
         const unsubscribeCopyShortcut = KeyboardShortcut.subscribe(
@@ -24,17 +37,4 @@ export default function useCopySelectionHelper() {
             unsubscribeCopyShortcut();
         };
     }, []);
-
-    function copySelectionToClipboard() {
-        const selection = SelectionScraper.getCurrentSelection();
-        if (!selection) {
-            return;
-        }
-        const parser = new ExpensiMark();
-        if (!Clipboard.canSetHtml()) {
-            Clipboard.setString(parser.htmlToMarkdown(selection));
-            return;
-        }
-        Clipboard.setHtml(selection, parser.htmlToText(selection));
-    }
 }
