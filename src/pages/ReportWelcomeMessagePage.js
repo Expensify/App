@@ -34,6 +34,7 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** The policy of which the room os a part of */
     policy: PropTypes.objectOf(policyPropType),
 };
 
