@@ -663,6 +663,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
     return {
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
+        ...styles.cursorDefault,
         position: 'absolute',
         zIndex: 1,
     };
