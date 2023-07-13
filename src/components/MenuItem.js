@@ -23,7 +23,7 @@ import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import ControlSelection from '../libs/ControlSelection';
 import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
-import Hoverable from "./Hoverable";
+import Hoverable from './Hoverable';
 
 const propTypes = {
     ...menuItemPropTypes,
@@ -139,7 +139,9 @@ function MenuItem(props) {
                             <View style={[styles.flexColumn, styles.flex1]}>
                                 {Boolean(props.label) && (
                                     <View style={props.icon ? styles.mb2 : null}>
-                                        <Text style={StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre)}>{props.label}</Text>
+                                        <Text style={StyleUtils.combineStyles(styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre)}>
+                                            {props.label}
+                                        </Text>
                                     </View>
                                 )}
                                 <View style={[styles.flexRow, styles.pointerEventsAuto, props.disabled && styles.cursorDisabled]}>
@@ -165,7 +167,10 @@ function MenuItem(props) {
                                                     height={props.iconHeight}
                                                     fill={
                                                         props.iconFill ||
-                                                        StyleUtils.getIconFillColor(getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive), true)
+                                                        StyleUtils.getIconFillColor(
+                                                            getButtonState(props.focused || isHovered, pressed, props.success, props.disabled, props.interactive),
+                                                            true,
+                                                        )
                                                     }
                                                 />
                                             )}
@@ -247,7 +252,11 @@ function MenuItem(props) {
                                 {Boolean(props.badgeText) && (
                                     <Badge
                                         text={props.badgeText}
-                                        badgeStyles={[styles.alignSelfCenter, props.brickRoadIndicator ? styles.mr2 : undefined, props.focused || isHovered || pressed ? styles.hoveredButton : {}]}
+                                        badgeStyles={[
+                                            styles.alignSelfCenter,
+                                            props.brickRoadIndicator ? styles.mr2 : undefined,
+                                            props.focused || isHovered || pressed ? styles.hoveredButton : {},
+                                        ]}
                                     />
                                 )}
                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}
