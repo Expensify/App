@@ -18,10 +18,12 @@ import * as Environment from './libs/Environment/Environment';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
+import * as NetworkStore from './libs/Network/NetworkStore';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
 if (window && Environment.isDevelopment()) {
     window.Onyx = Onyx;
+    window.setSupportToken = NetworkStore.setSupportAuthToken;
 }
 
 LogBox.ignoreLogs([

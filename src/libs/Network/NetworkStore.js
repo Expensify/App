@@ -5,6 +5,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 let credentials;
 let authToken;
+let supportAuthToken;
 let currentUserEmail;
 let offline = false;
 let authenticating = false;
@@ -106,6 +107,28 @@ function getAuthToken() {
 }
 
 /**
+ * @param {String} command
+ * @returns {[String]}
+ */
+function isSupportRequests(command) {
+    return _.contains(['OpenApp', 'ReconnectApp', 'OpenReport'], command);
+}
+
+/**
+ * @returns {String}
+ */
+function getSupportAuthToken() {
+    return supportAuthToken;
+}
+
+/**
+ * @param {String} newSupportAuthToken
+ */
+function setSupportAuthToken(newSupportAuthToken) {
+    supportAuthToken = newSupportAuthToken;
+}
+
+/**
  * @param {String} newAuthToken
  */
 function setAuthToken(newAuthToken) {
@@ -152,4 +175,7 @@ export {
     setIsAuthenticating,
     getCredentials,
     checkRequiredData,
+    getSupportAuthToken,
+    setSupportAuthToken,
+    isSupportRequests,
 };
