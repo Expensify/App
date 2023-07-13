@@ -17,6 +17,7 @@ import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import * as UserUtils from '../../libs/UserUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as Task from '../../libs/actions/Task';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import Checkbox from '../Checkbox';
 import convertToLTR from '../../libs/convertToLTR';
@@ -49,7 +50,8 @@ function TaskView(props) {
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
     const avatarURL = lodashGet(PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID), [0, 'avatar'], '');
-
+    const policy = ReportUtils.getPolicy(props.report.policyID);
+    const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
     return (
         <View>
             <PressableWithSecondaryInteraction
@@ -62,7 +64,7 @@ function TaskView(props) {
                 })}
                 style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, !isOpen), true)]}
                 ref={props.forwardedRef}
-                disabled={!isOpen}
+                disabled={!isOpen || !canEdit}
                 accessibilityLabel={taskTitle || props.translate('task.task')}
             >
                 {({hovered, pressed}) => (
@@ -77,7 +79,7 @@ function TaskView(props) {
                                 containerBorderRadius={8}
                                 caretSize={16}
                                 accessibilityLabel={taskTitle || props.translate('task.task')}
-                                disabled={isCanceled}
+                                disabled={isCanceled || !canEdit}
                             />
                             <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
@@ -105,7 +107,7 @@ function TaskView(props) {
                 title={props.report.description || ''}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 shouldShowRightIcon={isOpen}
-                disabled={!isOpen}
+                disabled={!isOpen || !canEdit}
                 wrapperStyle={[styles.pv2]}
                 numberOfLinesTitle={3}
                 shouldGreyOutWhenDisabled={false}
@@ -120,7 +122,7 @@ function TaskView(props) {
                     titleStyle={styles.assigneeTextStyle}
                     onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                     shouldShowRightIcon={isOpen}
-                    disabled={!isOpen}
+                    disabled={!isOpen || !canEdit}
                     wrapperStyle={[styles.pv2]}
                     isSmallAvatarSubscriptMenu
                     shouldGreyOutWhenDisabled={false}
@@ -130,7 +132,7 @@ function TaskView(props) {
                     description={props.translate('task.assignee')}
                     onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                     shouldShowRightIcon={isOpen}
-                    disabled={!isOpen}
+                    disabled={!isOpen || !canEdit}
                     wrapperStyle={[styles.pv2]}
                     shouldGreyOutWhenDisabled={false}
                 />

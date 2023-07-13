@@ -2488,6 +2488,17 @@ function getOriginalReportID(reportID, reportAction) {
     return isThreadFirstChat(reportAction, reportID) ? lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'parentReportID']) : reportID;
 }
 
+/**
+ * Returns policy
+ *
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getPolicy(policyID) {
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
+    return policy;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2591,4 +2602,5 @@ export {
     shouldHideComposer,
     getOriginalReportID,
     canAccessReport,
+    getPolicy,
 };
