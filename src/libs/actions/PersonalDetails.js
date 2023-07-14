@@ -328,7 +328,7 @@ function openPersonalDetailsPage() {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 isLoading: true,
             },
@@ -338,7 +338,7 @@ function openPersonalDetailsPage() {
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 isLoading: false,
             },
@@ -348,7 +348,7 @@ function openPersonalDetailsPage() {
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
             value: {
                 isLoading: false,
             },
