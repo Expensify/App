@@ -1,4 +1,4 @@
-import React, {createContext, useState, useEffect, forwardRef} from 'react';
+import React, {createContext, useState, useEffect, forwardRef, useContext} from 'react';
 import PropTypes from 'prop-types';
 import * as Environment from '../libs/Environment/Environment';
 import CONST from '../CONST';
@@ -33,19 +33,18 @@ EnvironmentProvider.propTypes = {
 };
 
 export default function withEnvironment(WrappedComponent) {
-    const WithEnvironment = forwardRef((props, ref) => (
-        <EnvironmentContext.Consumer>
-            {({environment, environmentURL}) => (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={ref}
-                    environment={environment}
-                    environmentURL={environmentURL}
-                />
-            )}
-        </EnvironmentContext.Consumer>
-    ));
+    const WithEnvironment = forwardRef((props, ref) => {
+        const {environment, environmentURL} = useContext(EnvironmentContext);
+        return (
+            <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                ref={ref}
+                environment={environment}
+                environmentURL={environmentURL}
+            />
+        );
+    });
 
     WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
 
