@@ -1,6 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
 import React, {createContext, useContext, useEffect, useRef, useState, useMemo, useImperativeHandle} from 'react';
-import {ActivityIndicator, PixelRatio, StyleSheet, View, useWindowDimensions} from 'react-native';
+import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Gesture, GestureDetector, GestureHandlerRootView, createNativeWrapper} from 'react-native-gesture-handler';
 import Animated, {
@@ -20,6 +20,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import PagerView from 'react-native-pager-view';
 import _ from 'underscore';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Image from '../Image';
 import styles from '../../styles/styles';
 
@@ -69,7 +70,7 @@ function getScaledDimensions({canvasWidth, canvasHeight, imageWidth, imageHeight
 // eslint-disable-next-line react/prop-types
 function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, isActive, onSwipe, onSwipeSuccess, renderImage, renderFallback, onTap}) {
     const {pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
-    const windowDimensions = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
 
     const [showFallback, setShowFallback] = useState(typeof imageHeight === 'undefined' || typeof imageWidth === 'undefined');
 
@@ -85,12 +86,12 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
     );
 
     const dimensionsWithScale = useMemo(() => {
-        const scaleFactorX = windowDimensions.width / imageDimensions.width;
-        const scaleFactorY = windowDimensions.height / imageDimensions.height;
+        const scaleFactorX = windowWidth / imageDimensions.width;
+        const scaleFactorY = windowHeight / imageDimensions.height;
 
         const scaledWidth = imageDimensions.width * scaleFactorY;
 
-        if (scaledWidth > windowDimensions.width) {
+        if (scaledWidth > windowWidth) {
             return {
                 ...imageDimensions,
                 scale: scaleFactorX,
@@ -101,7 +102,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
             ...imageDimensions,
             scale: scaleFactorY,
         };
-    }, [imageDimensions, windowDimensions]);
+    }, [imageDimensions, windowHeight, windowWidth]);
 
     const canvasX = useSharedValue(canvasWidth);
     const canvasY = useSharedValue(canvasHeight);
