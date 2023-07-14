@@ -24,8 +24,12 @@ function isAuthTokenRequired(command) {
 export default function enhanceParameters(command, parameters) {
     const finalParameters = {...parameters};
 
-    if (isAuthTokenRequired(command) && !parameters.authToken) {
-        finalParameters.authToken = NetworkStore.getAuthToken();
+    if (isAuthTokenRequired(command)) {
+        if (NetworkStore.getSupportAuthToken() && NetworkStore.isSupportRequest(command)) {
+            finalParameters.authToken = NetworkStore.getSupportAuthToken();
+        } else if (!parameters.authToken) {
+            finalParameters.authToken = NetworkStore.getAuthToken();
+        }
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
