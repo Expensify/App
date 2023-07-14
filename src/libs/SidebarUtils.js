@@ -14,7 +14,7 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
-// Note: Earlier SidebarUtils.getOrderedReportIDs() used to have to parameters. All the needed data was loaded here directly
+// Note: Earlier SidebarUtils.getOrderedReportIDs() used to have no parameters. All the needed data was loaded here directly
 // using Onyx.connect. We then had to connect SidebarLinks additionally to all the keys that were used in SidebarUtils.getOrderedReportIDs().
 // That's because we wanted to cause a re-render in SidebarLinks to run SidebarUtils.getOrderedReportIDs() again.
 // This caused bugs in the past as we were forgetting to include e.g. very nested data.
