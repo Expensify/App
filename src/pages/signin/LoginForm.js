@@ -25,6 +25,8 @@ import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
+import * as PolicyUtils from '../../libs/PolicyUtils';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -94,6 +96,13 @@ function LoginForm(props) {
         [props.account, props.closeAccount, input, setFormError, setLogin],
     );
 
+    const setEnableMemoryOnlyKeys = () => {
+        if (!window) {
+            return;
+        }
+        window.enableMemoryOnlyKeys();
+    };
+
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
@@ -123,6 +132,12 @@ function LoginForm(props) {
                 setFormError('loginForm.error.invalidFormatEmailLogin');
             }
             return;
+        }
+
+        // If the user has entered a guide email, then we are going to enable an experimental Onyx mode to help with performance
+        if (PolicyUtils.isExpensifyGuideTeam(loginTrim)) {
+            Log.info('Detected guide email in login field, setting memory only keys.');
+            setEnableMemoryOnlyKeys();
         }
 
         setFormError(null);
