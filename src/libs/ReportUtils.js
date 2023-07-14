@@ -2166,7 +2166,7 @@ function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || (report.participantAccountIDs || []).length === 0 || isChatThread(report)) {
+        if (!report || _.isEmpty(report.participantAccountIDs) || isChatThread(report)) {
             return false;
         }
 
@@ -2188,7 +2188,7 @@ function getChatByParticipantsByLoginList(participantsLoginList) {
     participantsLoginList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || (report.participantAccountIDs || []).length === 0 || isThread(report)) {
+        if (!report || _.isEmpty(report.participantAccountIDs) || isThread(report)) {
             return false;
         }
 
