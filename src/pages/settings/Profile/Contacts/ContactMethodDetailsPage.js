@@ -68,6 +68,9 @@ const propTypes = {
         }),
     }),
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -195,7 +198,7 @@ class ContactMethodDetailsPage extends Component {
         const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
 
         const loginData = this.props.loginList[contactMethod];
-        if (!contactMethod || !loginData) {
+        if (!this.props.isLoadingReportData && (!contactMethod || !loginData)) {
             return <NotFoundPage />;
         }
 
@@ -302,5 +305,8 @@ export default compose(
         securityGroups: {
             key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
         },
+        isLoadingReportData: {
+            key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`
+        }
     }),
 )(ContactMethodDetailsPage);
