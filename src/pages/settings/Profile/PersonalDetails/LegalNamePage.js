@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React, {useCallback} from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
@@ -17,24 +15,21 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import FullscreenLoadingIndicator from "../../../../components/FullscreenLoadingIndicator";
+import withPrivatePersonalDetails, {
+    // eslint-disable-next-line import/named
+    withPrivatePersonalDetailsDefaultProps,
+    withPrivatePersonalDetailsPropTypes
+} from "../../../../components/withPrivatePersonalDetails";
 
 const propTypes = {
     /* Onyx Props */
-
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-    }),
-
+    ...withPrivatePersonalDetailsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    privatePersonalDetails: {
-        legalFirstName: '',
-        legalLastName: '',
-    },
+    ...withPrivatePersonalDetailsDefaultProps,
 };
 
 const updateLegalName = (values) => {
@@ -62,6 +57,10 @@ function LegalNamePage(props) {
 
         return errors;
     }, []);
+
+    if (props.privatePersonalDetails.isLoading) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -109,9 +108,5 @@ LegalNamePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-    }),
+    withPrivatePersonalDetails,
 )(LegalNamePage);

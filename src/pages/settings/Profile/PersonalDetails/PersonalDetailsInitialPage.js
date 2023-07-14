@@ -1,7 +1,5 @@
-import React, {useEffect} from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
 import {ScrollView, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -11,32 +9,24 @@ import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
-import ONYXKEYS from '../../../../ONYXKEYS';
 import {withNetwork} from '../../../../components/OnyxProvider';
-import privatePersonalDetailsPropTypes, {privatePersonalDetailsDefaultProps} from './privatePersonalDetailsPropTypes';
+import withPrivatePersonalDetails, {
+    withPrivatePersonalDetailsDefaultProps,
+    withPrivatePersonalDetailsPropTypes
+} from "../../../../components/withPrivatePersonalDetails";
+import FullscreenLoadingIndicator from "../../../../components/FullscreenLoadingIndicator";
 
 const propTypes = {
     /* Onyx Props */
-
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.objectOf(privatePersonalDetailsPropTypes),
-
+    ...withPrivatePersonalDetailsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    privatePersonalDetails: privatePersonalDetailsDefaultProps,
+    ...withPrivatePersonalDetailsDefaultProps,
 };
 
 function PersonalDetailsInitialPage(props) {
-    useEffect(() => {
-        if (props.network.isOffline) {
-            return;
-        }
-        PersonalDetails.openPersonalDetailsPage();
-    }, [props.network.isOffline]);
-
     const privateDetails = props.privatePersonalDetails || {};
     const address = privateDetails.address || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
@@ -62,6 +52,10 @@ function PersonalDetailsInitialPage(props) {
         // Remove the last comma of the address
         return formattedAddress.trim().replace(/,$/, '');
     };
+
+    if (props.privatePersonalDetails.isLoading) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper>
@@ -105,10 +99,5 @@ PersonalDetailsInitialPage.displayName = 'PersonalDetailsInitialPage';
 
 export default compose(
     withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-    }),
-    withNetwork(),
+    withPrivatePersonalDetails,
 )(PersonalDetailsInitialPage);

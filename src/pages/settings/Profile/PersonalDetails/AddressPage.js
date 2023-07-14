@@ -1,10 +1,8 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {useState, useCallback} from 'react';
-import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -21,35 +19,20 @@ import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import withPrivatePersonalDetails, {
+    withPrivatePersonalDetailsDefaultProps,
+    withPrivatePersonalDetailsPropTypes
+} from "../../../../components/withPrivatePersonalDetails";
+import FullscreenLoadingIndicator from "../../../../components/FullscreenLoadingIndicator";
 
 const propTypes = {
     /* Onyx Props */
-
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        /** User's home address */
-        address: PropTypes.shape({
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zip: PropTypes.string,
-            country: PropTypes.string,
-        }),
-    }),
-
+    ...withPrivatePersonalDetailsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    privatePersonalDetails: {
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
-    },
+    ...withPrivatePersonalDetailsDefaultProps,
 };
 
 /**
@@ -116,6 +99,10 @@ function AddressPage(props) {
 
         return errors;
     }, []);
+
+    if (props.privatePersonalDetails.isLoading) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -215,9 +202,5 @@ AddressPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-    }),
+    withPrivatePersonalDetails,
 )(AddressPage);
