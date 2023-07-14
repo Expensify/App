@@ -89,10 +89,10 @@ function FloatingActionButtonAndPopover(props) {
      * @param {Object} prevProps
      * @return {Boolean}
      */
-    const didScreenBecomeInactive = useCallback(() => {
+    const didScreenBecomeInactive = useCallback(() =>
         // When any other page is opened over LHN
-        return !props.isFocused && prevIsFocused;
-    }, [props.isFocused, prevIsFocused]);
+        !props.isFocused && prevIsFocused
+    , [props.isFocused, prevIsFocused]);
 
     /**
      * Method called when we click the floating action button
