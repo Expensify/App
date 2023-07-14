@@ -47,6 +47,10 @@ describe('ValidationUtils', () => {
         test('room name with lowercase letters, numbers, and dashes', () => {
             expect(ValidationUtils.isValidRoomName('#this-is-a-room1')).toBe(true);
         });
+
+        test('room name with spanish Accented letters and dashes', () => {
+            expect(ValidationUtils.isValidRoomName('#sala-de-opinión')).toBe(true);
+        });
     });
 
     describe('isValidWebsite', () => {
@@ -84,6 +88,19 @@ describe('ValidationUtils', () => {
             expect(ValidationUtils.isValidWebsite('www.~expensify.com')).toBe(false);
             expect(ValidationUtils.isValidWebsite('https://www.expen$ify.com')).toBe(false);
             expect(ValidationUtils.isValidWebsite('www.expensify😄.com')).toBe(false);
+        });
+    });
+
+    describe('ValidateAccountRoute', () => {
+        test('Valid account route', () => {
+            expect(ValidationUtils.isValidAccountRoute(123123)).toBe(true);
+            expect(ValidationUtils.isValidAccountRoute(5612)).toBe(true);
+        });
+
+        test('Invalid account route', () => {
+            expect(ValidationUtils.isValidAccountRoute(undefined)).toBe(false);
+            expect(ValidationUtils.isValidAccountRoute(0)).toBe(false);
+            expect(ValidationUtils.isValidAccountRoute('123aaa')).toBe(false);
         });
     });
 });

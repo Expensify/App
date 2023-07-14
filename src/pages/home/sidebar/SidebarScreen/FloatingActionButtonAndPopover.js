@@ -22,8 +22,9 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
-import * as TaskUtils from '../../../../libs/actions/Task';
+import * as Task from '../../../../libs/actions/Task';
 import * as Session from '../../../../libs/actions/Session';
+import * as IOU from '../../../../libs/actions/IOU';
 
 /**
  * @param {Object} [policy]
@@ -196,34 +197,26 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Send,
                                       text: this.props.translate('iou.sendMoney'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_SEND)),
+                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SEND)),
                                   },
                               ]
                             : []),
-                        ...(Permissions.canUseIOU(this.props.betas)
-                            ? [
-                                  {
-                                      icon: Expensicons.MoneyCircle,
-                                      text: this.props.translate('iou.requestMoney'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_REQUEST)),
-                                  },
-                              ]
-                            : []),
-                        ...(Permissions.canUseIOU(this.props.betas)
-                            ? [
-                                  {
-                                      icon: Expensicons.Receipt,
-                                      text: this.props.translate('iou.splitBill'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Navigation.navigate(ROUTES.IOU_BILL)),
-                                  },
-                              ]
-                            : []),
+                        {
+                            icon: Expensicons.MoneyCircle,
+                            text: this.props.translate('iou.requestMoney'),
+                            onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
+                        },
+                        {
+                            icon: Expensicons.Receipt,
+                            text: this.props.translate('iou.splitBill'),
+                            onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
+                        },
                         ...(Permissions.canUseTasks(this.props.betas)
                             ? [
                                   {
                                       icon: Expensicons.Task,
                                       text: this.props.translate('newTaskPage.assignTask'),
-                                      onSelected: () => this.interceptAnonymousUser(() => TaskUtils.clearOutTaskInfoAndNavigate()),
+                                      onSelected: () => this.interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
                                   },
                               ]
                             : []),
@@ -243,7 +236,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                 />
                 <FloatingActionButton
                     accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     isActive={this.state.isCreateMenuActive}
                     onPress={this.showCreateMenu}
                 />
