@@ -1,5 +1,5 @@
 import {View} from 'react-native';
-import React, {Component} from 'react';
+import React, {useState, useRef} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import Text from '../Text';
@@ -27,68 +27,58 @@ const defaultProps = {
     ...passwordPopoverDefaultProps,
 };
 
-class BasePasswordPopover extends Component {
-    constructor(props) {
-        super(props);
-
-        this.passwordInput = undefined;
-
-        this.focusInput = this.focusInput.bind(this);
-
-        this.state = {
-            password: '',
-        };
-    }
+function BasePasswordPopover({isVisible, onClose, anchorPosition, windowHeight, viewportOffsetTop, isSmallScreenWidth, translate, shouldDelayFocus, onSubmit, submitButtonText}) {
+    const [password, setPassword] = useState('');
+    const passwordInput = useRef(null);
 
     /**
      * Focus the password input
      */
-    focusInput() {
-        if (!this.passwordInput) {
+    const focusInput = () => {
+        if (!passwordInput.current) {
             return;
         }
-        this.passwordInput.focus();
-    }
+        passwordInput.current.focus();
+    };
 
-    render() {
-        return (
-            <Popover
-                isVisible={this.props.isVisible}
-                onClose={this.props.onClose}
-                anchorPosition={this.props.anchorPosition}
-                onModalShow={this.focusInput}
-                outerStyle={{maxHeight: this.props.windowHeight, marginTop: this.props.viewportOffsetTop}}
-            >
-                <View style={[styles.m5, !this.props.isSmallScreenWidth ? styles.sidebarPopover : '']}>
-                    <Text style={[styles.mb3]}>{this.props.translate('passwordForm.pleaseFillPassword')}</Text>
-                    <TextInput
-                        label={this.props.translate('common.password')}
-                        accessibilityLabel={this.props.translate('common.password')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={(el) => (this.passwordInput = el)}
-                        secureTextEntry
-                        autoCompleteType="password"
-                        textContentType="password"
-                        value={this.state.currentPassword}
-                        onChangeText={(password) => this.setState({password})}
-                        returnKeyType="done"
-                        onSubmitEditing={() => this.props.onSubmit(this.state.password)}
-                        style={styles.mt3}
-                        autoFocus
-                        shouldDelayFocus={this.props.shouldDelayFocus}
-                    />
-                    <Button
-                        onPress={() => this.props.onSubmit(this.state.password)}
-                        style={styles.mt3}
-                        text={this.props.submitButtonText}
-                    />
-                </View>
-                <KeyboardSpacer />
-            </Popover>
-        );
-    }
+    return (
+        <Popover
+            isVisible={isVisible}
+            onClose={onClose}
+            anchorPosition={anchorPosition}
+            onModalShow={focusInput}
+            outerStyle={{maxHeight: windowHeight, marginTop: viewportOffsetTop}}
+        >
+            <View style={[styles.m5, !isSmallScreenWidth ? styles.sidebarPopover : '']}>
+                <Text style={[styles.mb3]}>{translate('passwordForm.pleaseFillPassword')}</Text>
+                <TextInput
+                    label={translate('common.password')}
+                    accessibilityLabel={translate('common.password')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    ref={passwordInput}
+                    secureTextEntry
+                    autoCompleteType="password"
+                    textContentType="password"
+                    value={password}
+                    onChangeText={setPassword}
+                    returnKeyType="done"
+                    onSubmitEditing={() => onSubmit(password)}
+                    style={styles.mt3}
+                    autoFocus
+                    shouldDelayFocus={shouldDelayFocus}
+                />
+                <Button
+                    onPress={() => onSubmit(password)}
+                    style={styles.mt3}
+                    text={submitButtonText}
+                />
+            </View>
+            <KeyboardSpacer />
+        </Popover>
+    );
 }
 
 BasePasswordPopover.propTypes = propTypes;
 BasePasswordPopover.defaultProps = defaultProps;
+BasePasswordPopover.displayName = 'BasePasswordPopover';
 export default compose(withViewportOffsetTop, withWindowDimensions, withLocalize)(BasePasswordPopover);
