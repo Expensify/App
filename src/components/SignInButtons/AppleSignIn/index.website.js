@@ -89,7 +89,7 @@ function AppleSignInDiv({isDesktopFlow}) {
             data-color="white"
             data-border="false"
             data-border-radius="50"
-            data-width="279"
+            data-width={CONST.SIGN_IN_FORM_WIDTH}
             data-height="52"
             style={{cursor: 'pointer'}}
         />

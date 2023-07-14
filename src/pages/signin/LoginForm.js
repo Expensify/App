@@ -169,6 +169,8 @@ function LoginForm(props) {
                 <TextInput
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
+                    accessibilityLabel={translate('loginForm.phoneOrEmail')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
                     autoCompleteType="username"
                     textContentType="username"
@@ -206,7 +208,7 @@ function LoginForm(props) {
                             containerStyles={[styles.mh0]}
                         />
                         <View style={[getSignInWithStyles()]}>
-                            <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{props.translate('common.signInWith')}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{props.translate('common.signInWith')}</Text>
                             <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                 <AppleSignIn />
                                 <GoogleSignIn />
