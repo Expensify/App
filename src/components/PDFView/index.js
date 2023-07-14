@@ -13,6 +13,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import withLocalize from '../withLocalize';
 import Text from '../Text';
 import compose from '../../libs/compose';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 class PDFView extends Component {
     constructor(props) {
@@ -105,7 +106,7 @@ class PDFView extends Component {
         this.props.onToggleKeyboard(isKeyboardOpen);
     }
 
-    render() {
+    renderPDFView() {
         const pdfContainerWidth = this.state.windowWidth - 100;
         const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
         const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth : pageWidthOnLargeScreen;
@@ -158,6 +159,21 @@ class PDFView extends Component {
                     />
                 )}
             </View>
+        );
+    }
+
+    render() {
+        return this.props.onPress ? (
+            <PressableWithoutFeedback
+                onPress={this.props.onPress}
+                style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
+            >
+                {this.renderPDFView()}
+            </PressableWithoutFeedback>
+        ) : (
+            this.renderPDFView()
         );
     }
 }

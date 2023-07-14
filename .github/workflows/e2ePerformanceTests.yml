@@ -44,7 +44,7 @@ jobs:
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}
         run: |
           git fetch origin tag ${{ steps.getMostRecentRelease.outputs.VERSION }} --no-tags --depth=1
-          git switch ${{ steps.getMostRecentRelease.outputs.VERSION }}
+          git switch --detach ${{ steps.getMostRecentRelease.outputs.VERSION }}
 
       - name: Build APK
         if: ${{ !fromJSON(steps.checkForExistingArtifact.outputs.exists) }}

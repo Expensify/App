@@ -147,6 +147,7 @@ export default {
         copied: '¡Copiado!',
         someone: 'Alguien',
         total: 'Total',
+        edit: 'Editar',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -582,6 +583,8 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Tu nombre de usuario de PayPal se agregó correctamente',
+        updatePaypalAccount: 'Guardar cuenta PayPal',
+        growlMessageOnUpdate: 'Su nombre de usuario de PayPal se guardó con éxito',
         formatError: 'Usuario PayPal.me no válido',
         checkListOf: 'Consulta la lista de ',
         supportedCurrencies: 'monedas admitidas',
@@ -1292,6 +1295,7 @@ export default {
         restrictedDescription: 'Sólo las personas en tu espacio de trabajo pueden encontrar esta sala',
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
         publicDescription: 'Cualquier persona puede unirse a esta sala',
+        public_announceDescription: 'Cualquier persona puede unirse a esta sala',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: ({reservedName}) => `${reservedName} es el nombre una sala por defecto de todos los espacios de trabajo. Por favor, elige otro nombre.`,
@@ -1918,6 +1922,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
         replies: 'Respuestas',
