@@ -1,12 +1,11 @@
 import PropTypes from 'prop-types';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {FlatList, View} from 'react-native';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import OptionRowLHNData from './OptionRowLHNData';
 import variables from '../../styles/variables';
-import OptionRowLHN from './OptionRowLHN';
 
 const propTypes = {
     /** Extra styles for the section list container */
