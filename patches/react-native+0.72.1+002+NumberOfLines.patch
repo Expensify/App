@@ -202,19 +202,23 @@ index df89097..3b223ec 100644
          onChange={_onChange}
          onFocus={_onFocus}
 diff --git a/node_modules/react-native/Libraries/Text/Text.js b/node_modules/react-native/Libraries/Text/Text.js
-index df548af..ecdca4b 100644
+index df548af..d9ff432 100644
 --- a/node_modules/react-native/Libraries/Text/Text.js
 +++ b/node_modules/react-native/Libraries/Text/Text.js
-@@ -18,7 +18,7 @@ import processColor from '../StyleSheet/processColor';
+@@ -18,7 +18,11 @@ import processColor from '../StyleSheet/processColor';
  import {getAccessibilityRoleFromRole} from '../Utilities/AcessibilityMapping';
  import Platform from '../Utilities/Platform';
  import TextAncestor from './TextAncestor';
 -import {NativeText, NativeVirtualText} from './TextNativeComponent';
-+import {NativeText, NativeVirtualText, CONTAINS_MAX_NUMBER_OF_LINES_RENAME} from './TextNativeComponent';
++import {
++  CONTAINS_MAX_NUMBER_OF_LINES_RENAME,
++  NativeText,
++  NativeVirtualText,
++} from './TextNativeComponent';
  import * as React from 'react';
  import {useContext, useMemo, useState} from 'react';
  
-@@ -59,6 +59,7 @@ const Text: React.AbstractComponent<
+@@ -59,6 +63,7 @@ const Text: React.AbstractComponent<
      pressRetentionOffset,
      role,
      suppressHighlighting,
@@ -222,7 +226,7 @@ index df548af..ecdca4b 100644
      ...restProps
    } = props;
  
-@@ -192,14 +193,22 @@ const Text: React.AbstractComponent<
+@@ -192,14 +197,26 @@ const Text: React.AbstractComponent<
      }
    }
  
@@ -236,18 +240,22 @@ index df548af..ecdca4b 100644
 +    numberOfLinesValue = 0;
    }
  
-+  const numberOfLinesProps = useMemo(() => {
-+    return {
-+      [CONTAINS_MAX_NUMBER_OF_LINES_RENAME
-+        ? 'maximumNumberOfLines'
-+        : 'numberOfLines']: numberOfLinesValue,
-+    };
++  const numberOfLinesProps = useMemo((): {maximumNumberOfLines?: ?number, numberOfLines?: ?number } => {
++    if (CONTAINS_MAX_NUMBER_OF_LINES_RENAME) {
++      return {
++        maximumNumberOfLines: numberOfLinesValue,
++      };
++    } else {
++      return {
++        numberOfLines: numberOfLinesValue,
++      };
++    }
 +  }, [numberOfLinesValue]);
 +
    const hasTextAncestor = useContext(TextAncestor);
  
    const _accessible = Platform.select({
-@@ -241,7 +250,6 @@ const Text: React.AbstractComponent<
+@@ -241,7 +258,6 @@ const Text: React.AbstractComponent<
        isHighlighted={isHighlighted}
        isPressable={isPressable}
        nativeID={id ?? nativeID}
@@ -255,7 +263,7 @@ index df548af..ecdca4b 100644
        ref={forwardedRef}
        selectable={_selectable}
        selectionColor={selectionColor}
-@@ -252,6 +260,7 @@ const Text: React.AbstractComponent<
+@@ -252,6 +268,7 @@ const Text: React.AbstractComponent<
        <NativeText
          {...restProps}
          {...eventHandlersForText}
@@ -263,7 +271,7 @@ index df548af..ecdca4b 100644
          accessibilityLabel={ariaLabel ?? accessibilityLabel}
          accessibilityRole={
            role ? getAccessibilityRoleFromRole(role) : accessibilityRole
-@@ -267,7 +276,6 @@ const Text: React.AbstractComponent<
+@@ -267,7 +284,6 @@ const Text: React.AbstractComponent<
          ellipsizeMode={ellipsizeMode ?? 'tail'}
          isHighlighted={isHighlighted}
          nativeID={id ?? nativeID}
@@ -372,14 +380,18 @@ index 413ac42..56d039c 100644
    return shadowView;
  }
 diff --git a/node_modules/react-native/Libraries/Text/TextNativeComponent.js b/node_modules/react-native/Libraries/Text/TextNativeComponent.js
-index 0d59904..6c349d7 100644
+index 0d59904..3216e43 100644
 --- a/node_modules/react-native/Libraries/Text/TextNativeComponent.js
 +++ b/node_modules/react-native/Libraries/Text/TextNativeComponent.js
-@@ -15,9 +15,11 @@ import {type HostComponent} from '../Renderer/shims/ReactNativeTypes';
- import {type ProcessedColorValue} from '../StyleSheet/processColor';
- import {type PressEvent} from '../Types/CoreEventTypes';
- import {type TextProps} from './TextProps';
+@@ -9,6 +9,7 @@
+  */
+ 
+ import {createViewConfig} from '../NativeComponent/ViewConfig';
 +import getNativeComponentAttributes from '../ReactNative/getNativeComponentAttributes';
+ import UIManager from '../ReactNative/UIManager';
+ import createReactNativeComponentClass from '../Renderer/shims/createReactNativeComponentClass';
+ import {type HostComponent} from '../Renderer/shims/ReactNativeTypes';
+@@ -18,6 +19,7 @@ import {type TextProps} from './TextProps';
  
  type NativeTextProps = $ReadOnly<{
    ...TextProps,
@@ -396,13 +408,15 @@ index 0d59904..6c349d7 100644
      ellipsizeMode: true,
      allowFontScaling: true,
      dynamicTypeRamp: true,
-@@ -73,6 +75,10 @@ export const NativeText: HostComponent<NativeTextProps> =
+@@ -73,6 +75,12 @@ export const NativeText: HostComponent<NativeTextProps> =
      createViewConfig(textViewConfig),
    ): any);
  
-+export const CONTAINS_MAX_NUMBER_OF_LINES_RENAME =
-+  getNativeComponentAttributes('RCTText')?.NativeProps?.maximumNumberOfLines ===
-+  'number';
++const jestIsDefined = typeof jest !== 'undefined';
++export const CONTAINS_MAX_NUMBER_OF_LINES_RENAME: boolean = jestIsDefined
++  ? true
++  : getNativeComponentAttributes('RCTText')?.NativeProps
++      ?.maximumNumberOfLines === 'number';
 +
  export const NativeVirtualText: HostComponent<NativeTextProps> =
    !global.RN$Bridgeless && !UIManager.hasViewManagerConfig('RCTVirtualText')
