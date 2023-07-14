@@ -162,8 +162,6 @@ class SidebarLinks extends React.PureComponent {
     }
 
     render() {
-        const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
-
         return (
             <View
                 accessibilityElementsHidden={!this.props.isFocused}
@@ -220,7 +218,7 @@ class SidebarLinks extends React.PureComponent {
                     </PressableWithoutFeedback>
                 </View>
                 {this.props.isLoading ? (
-                    skeletonPlaceholder
+                    <OptionsListSkeletonView shouldAnimate />
                 ) : (
                     <LHNOptionsList
                         contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
