@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 // import PropTypes from 'prop-types';
 // import {SafeAreaView} from 'react-native-safe-area-context';
 // import styles from '../../styles/styles';
@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 // import variables from '../../styles/variables';
 // import colors from '../../styles/colors';
 import DeeplinkRedirectLoadingIndicator from '../../components/DeeplinkWrapper/DeeplinkRedirectLoadingIndicator';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Which sign in provider we are using. */
@@ -37,6 +38,10 @@ function DesktopRedirectPage(props) {
     // const goBack = () => {
     //     Navigation.navigate(ROUTES.HOME);
     // };
+
+    useEffect(() => {
+        Session.setSignInAttemptPlatform(null);
+    }, []);
 
     return <DeeplinkRedirectLoadingIndicator linkText="deeplinkWrapper.continueInBrowser" />;
 }
