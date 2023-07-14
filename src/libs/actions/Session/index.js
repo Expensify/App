@@ -106,10 +106,11 @@ function signOutAndRedirectToSignIn() {
 
 /**
  * @param {Function} callback The callback to execute if the action is allowed
+ * @param {Boolean} isAnonymousAction The action is allowed for anonymous or not
  * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
-function checkIfActionIsAllowed(callback) {
-    if (isAnonymousUser()) {
+function checkIfActionIsAllowed(callback, isAnonymousAction = false) {
+    if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }
     return callback;
