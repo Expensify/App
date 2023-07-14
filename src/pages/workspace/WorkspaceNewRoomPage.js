@@ -137,7 +137,7 @@ function WorkspaceNewRoomPage(props) {
         Navigation.dismissModal();
     }, [props.betas, workspaceOptions]);
 
-    if (!Permissions.canUsePolicyRooms(props.betas)) {
+    if (!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length) {
         return null;
     }
 
