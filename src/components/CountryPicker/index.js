@@ -56,7 +56,7 @@ const CountryPicker = React.forwardRef(({value, countryISO, errorText, onCountry
             return;
         }
         onCountryUpdated(countryValue);
-    }, [countryValue]);
+    }, [countryValue, onCountryUpdated]);
 
     const title = PersonalDetails.getCountryName(countryValue);
     const descStyle = title.length === 0 ? styles.addressPickerDescription : null;
