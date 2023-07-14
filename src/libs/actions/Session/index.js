@@ -170,33 +170,11 @@ function resendValidateCode(login = credentials.login) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: true,
                 errors: null,
-                loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
             },
         },
     ];
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-            },
-        },
-    ];
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                loadingForm: null,
-            },
-        },
-    ];
-    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData});
 }
 
 /**
@@ -561,6 +539,26 @@ function invalidateAuthToken() {
 }
 
 /**
+ * Sets the SupportToken
+ * @param {String} supportToken
+ * @param {String} email
+ * @param {Number} accountID
+ */
+function setSupportAuthToken(supportToken, email, accountID) {
+    if (supportToken) {
+        Onyx.merge(ONYXKEYS.SESSION, {
+            authToken: '1',
+            supportAuthToken: supportToken,
+            email,
+            accountID,
+        });
+    } else {
+        Onyx.set(ONYXKEYS.SESSION, {});
+    }
+    NetworkStore.setSupportAuthToken(supportToken);
+}
+
+/**
  * Clear the credentials and partial sign in session so the user can taken back to first Login step
  */
 function clearSignInData() {
@@ -877,6 +875,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
 export {
     beginSignIn,
+    setSupportAuthToken,
     checkIfActionIsAllowed,
     updatePasswordAndSignin,
     signIn,

@@ -26,8 +26,9 @@ import * as Welcome from './Welcome';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import SidebarUtils from '../SidebarUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
+import * as Environment from '../Environment/Environment';
+import * as Localize from '../Localize';
 
-let currentUserEmail;
 let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -37,7 +38,6 @@ Onyx.connect({
             return;
         }
 
-        currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
     },
 });
@@ -245,13 +245,21 @@ function addActions(reportID, text = '', file) {
 
     const currentTime = DateUtils.getDBTime();
 
+    const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(reportID);
+    let prevVisibleMessageText;
+    if (lastVisibleMessage.lastMessageTranslationKey) {
+        prevVisibleMessageText = Localize.translateLocal(prevVisibleMessageText);
+    } else {
+        prevVisibleMessageText = lastVisibleMessage.lastMessageText;
+    }
+
     const lastCommentText = ReportUtils.formatReportLastMessageText(lastAction.message[0].text);
 
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
+        lastMessageTranslationKey: lodashGet(lastAction, 'message[0].translationKey', ''),
         lastMessageText: lastCommentText,
         lastMessageHtml: lastCommentText,
-        lastActorEmail: currentUserEmail,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
@@ -294,7 +302,15 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
+    const failureReport = {
+        lastMessageText: prevVisibleMessageText,
+    };
     const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: failureReport,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -304,6 +320,21 @@ function addActions(reportID, text = '', file) {
             })),
         },
     ];
+
+    // Optimistically update the parent report action if the report is a thread
+    const report = ReportUtils.getReport(reportID);
+    if (report && report.parentReportActionID) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        if (parentReportAction && parentReportAction.reportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(parentReportAction, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+                },
+            });
+        }
+    }
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
     if (DateUtils.canUpdateTimezone()) {
@@ -442,6 +473,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
 
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails = {};
+        const failurePersonalDetails = {};
         _.map(participantLoginList, (login, index) => {
             const accountID = newReportObject.participantAccountIDs[index];
             optimisticPersonalDetails[accountID] = allPersonalDetails[accountID] || {
@@ -450,11 +482,19 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
                 displayName: login,
             };
+
+            failurePersonalDetails[accountID] = allPersonalDetails[accountID] || null;
         });
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetails,
+        });
+
+        onyxData.failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: failurePersonalDetails,
         });
 
         // Add the createdReportActionID parameter to the API call
@@ -835,6 +875,7 @@ function deleteReportComment(reportID, reportAction) {
     const reportActionID = reportAction.reportActionID;
     const deletedMessage = [
         {
+            translationKey: '',
             type: 'COMMENT',
             html: '',
             text: '',
@@ -854,13 +895,15 @@ function deleteReportComment(reportID, reportAction) {
     // If we are deleting the last visible message, let's find the previous visible one (or set an empty one if there are none) and update the lastMessageText in the LHN.
     // Similarly, if we are deleting the last read comment we will want to update the lastVisibleActionCreated to use the previous visible message.
     let optimisticReport = {
+        lastMessageTranslationKey: '',
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const lastMessageText = ReportActionsUtils.getLastVisibleMessageText(originalReportID, optimisticReportActions);
-    if (lastMessageText.length > 0) {
+    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+    if (lastMessageText || lastMessageTranslationKey) {
         const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions).created;
         optimisticReport = {
+            lastMessageTranslationKey,
             lastMessageText,
             lastVisibleActionCreated,
         };
@@ -907,6 +950,24 @@ function deleteReportComment(reportID, reportAction) {
             value: optimisticReport,
         },
     ];
+
+    const report = ReportUtils.getReport(reportID);
+    if (report && report.parentReportActionID) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        if (parentReportAction && parentReportAction.reportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(
+                        parentReportAction,
+                        optimisticReport.lastVisibleActionCreated,
+                        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    ),
+                },
+            });
+        }
+    }
 
     const parameters = {
         reportID: originalReportID,
@@ -1020,6 +1081,7 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     if (reportActionID === lastVisibleAction.reportActionID) {
         const lastMessageText = ReportUtils.formatReportLastMessageText(reportComment);
         const optimisticReport = {
+            lastMessageTranslationKey: '',
             lastMessageText,
         };
         optimisticData.push({
@@ -1177,7 +1239,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
 function navigateToConciergeChat() {
     if (!conciergeChatReportID) {
         // In order not to delay the report life cycle, we first navigate to the unknown report
-        if (!Navigation.getReportIDFromRoute()) {
+        if (!Navigation.getTopmostReportId()) {
             Navigation.navigate(ROUTES.REPORT);
         }
         // In order to avoid creating concierge repeatedly,
@@ -1640,17 +1702,18 @@ function removeEmojiReaction(reportID, originalReportAction, emoji) {
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * @param {String} reportID
  * @param {String} reportActionID
- * @param {Object} emoji
+ * @param {Object} reactionEmoji
  * @param {number} paramSkinTone
  * @returns {Promise}
  */
-function toggleEmojiReaction(reportID, reportActionID, emoji, paramSkinTone = preferredSkinTone) {
+function toggleEmojiReaction(reportID, reportActionID, reactionEmoji, paramSkinTone = preferredSkinTone) {
     const reportAction = ReportActionsUtils.getReportAction(reportID, reportActionID);
 
     if (_.isEmpty(reportAction)) {
         return;
     }
 
+    const emoji = EmojiUtils.findEmojiByCode(reactionEmoji.code);
     const message = reportAction.message[0];
     const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
     const skinTone = emoji.types === undefined ? null : paramSkinTone; // only use skin tone if emoji supports it
@@ -1687,7 +1750,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
     InteractionManager.runAfterInteractions(() => {
         SidebarUtils.isSidebarLoadedReady().then(() => {
             if (reportID) {
-                Navigation.navigate(ROUTES.getReportRoute(reportID));
+                Navigation.navigate(ROUTES.getReportRoute(reportID), 'UP');
             }
             if (route === ROUTES.CONCIERGE) {
                 navigateToConciergeChat();
@@ -1833,6 +1896,9 @@ function flagComment(reportID, reportAction, severity) {
     const parameters = {
         severity,
         reportActionID,
+        // This check is to prevent flooding Concierge with test flags
+        // If you need to test moderation responses from Concierge on dev, set this to false!
+        isDevRequest: Environment.isDevelopment(),
     };
 
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
