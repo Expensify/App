@@ -176,13 +176,18 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
+            const isReportPreviewAction = ReportActionUtils.isReportPreviewAction(reportAction);
             const message = _.last(lodashGet(reportAction, 'message', [{}]));
             const messageHtml = lodashGet(message, 'html', '');
 
             const isAttachment = _.has(reportAction, 'isAttachment') ? reportAction.isAttachment : ReportUtils.isReportMessageAttachment(message);
             if (!isAttachment) {
                 const content = selection || messageHtml;
-                if (content) {
+                if (isReportPreviewAction) {
+                    const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
+                    const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
+                    Clipboard.setString(displayMessage);
+                } else if (content) {
                     const parser = new ExpensiMark();
                     if (!Clipboard.canSetHtml()) {
                         Clipboard.setString(parser.htmlToMarkdown(content));
@@ -302,7 +307,7 @@ export default [
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, false);
             if (closePopover) {
-                hideContextMenu(false);
+                hideContextMenu(false, ReportActionComposeFocusManager.focus);
             }
         },
         getDescription: () => {},
@@ -315,7 +320,7 @@ export default [
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, true);
             if (closePopover) {
-                hideContextMenu(false);
+                hideContextMenu(false, ReportActionComposeFocusManager.focus);
             }
         },
         getDescription: () => {},
