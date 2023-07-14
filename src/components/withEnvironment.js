@@ -1,8 +1,7 @@
-import React, {Component} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
-import * as Environment from '../libs/Environment/Environment';
-import CONST from '../CONST';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
+import useEnvironment from '../hooks/useEnvironment';
 
 const environmentPropTypes = {
     /** The string value representing the current environment */
@@ -13,36 +12,18 @@ const environmentPropTypes = {
 };
 
 export default function (WrappedComponent) {
-    class WithEnvironment extends Component {
-        constructor(props) {
-            super(props);
+    function WithEnvironment(props) {
+        const {environment, environmentURL} = useEnvironment();
 
-            this.state = {
-                environment: CONST.ENVIRONMENT.PRODUCTION,
-                environmentURL: CONST.NEW_EXPENSIFY_URL,
-            };
-        }
-
-        componentDidMount() {
-            Environment.getEnvironment().then((environment) => {
-                this.setState({environment});
-            });
-            Environment.getEnvironmentURL().then((environmentURL) => {
-                this.setState({environmentURL});
-            });
-        }
-
-        render() {
-            return (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    ref={this.props.forwardedRef}
-                    environment={this.state.environment}
-                    environmentURL={this.state.environmentURL}
-                />
-            );
-        }
+        return (
+            <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                ref={props.forwardedRef}
+                environment={environment}
+                environmentURL={environmentURL}
+            />
+        );
     }
 
     WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;

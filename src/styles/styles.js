@@ -1073,6 +1073,10 @@ const styles = {
         lineHeight: '140%',
     },
 
+    lhNormal: {
+        lineHeight: variables.lineHeightNormal,
+    },
+
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
@@ -2352,6 +2356,12 @@ const styles = {
         paddingBottom: 20,
     },
 
+    avatarSectionWrapperSkeleton: {
+        width: '100%',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
@@ -3441,7 +3451,7 @@ const styles = {
         ...spacing.mr3,
     },
 
-    taskHorizontalRule: {
+    reportHorizontalRule: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.mh5,
