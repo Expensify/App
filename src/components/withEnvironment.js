@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
-import useEnvironemnt from '../hooks/useEnvironment';
+import useEnvironment from '../hooks/useEnvironment';
 
 const environmentPropTypes = {
     /** The string value representing the current environment */
@@ -13,7 +13,7 @@ const environmentPropTypes = {
 
 export default function (WrappedComponent) {
     function WithEnvironment(props) {
-        const {environment, environmentURL} = useEnvironemnt();
+        const {environment, environmentURL} = useEnvironment();
 
         return (
             <WrappedComponent

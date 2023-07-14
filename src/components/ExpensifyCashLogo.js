@@ -24,6 +24,7 @@ const logoComponents = {
 
 function ExpensifyCashLogo(props) {
     const {environment} = useEnvironment();
+    
     // PascalCase is required for React components, so capitalize the const here
     const LogoComponent = logoComponents[environment];
     return (
