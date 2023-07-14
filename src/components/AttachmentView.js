@@ -88,29 +88,17 @@ function AttachmentView(props) {
     // will appear with a source that is a blob
     if (Str.isPDF(props.source) || (props.file && Str.isPDF(props.file.name || props.translate('attachmentView.unknownFilename')))) {
         const sourceURL = props.isAuthTokenRequired ? addEncryptedAuthTokenToURL(props.source) : props.source;
-        const children = (
+        return (
             <PDFView
                 onPress={props.onPress}
                 isFocused={props.isFocused}
                 sourceURL={sourceURL}
+                fileName={props.file.name}
                 style={styles.imageModalPDF}
                 onToggleKeyboard={props.onToggleKeyboard}
                 onScaleChanged={props.onScaleChanged}
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
             />
-        );
-        return props.onPress ? (
-            <PressableWithoutFeedback
-                onPress={props.onPress}
-                disabled={loadComplete}
-                style={containerStyles}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                accessibilityLabel={props.file.name || props.translate('attachmentView.unknownFilename')}
-            >
-                {children}
-            </PressableWithoutFeedback>
-        ) : (
-            children
         );
     }
 
