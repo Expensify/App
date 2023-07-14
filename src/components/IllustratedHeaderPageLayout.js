@@ -40,7 +40,6 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                     />
                     <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
                         <ScrollView
-                            style={[styles.shiftUpOnePixel]}
                             contentContainerStyle={safeAreaPaddingBottomStyle}
                             showsVerticalScrollIndicator={false}
                         >

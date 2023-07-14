@@ -3517,10 +3517,6 @@ const styles = {
         textAlign: 'center',
     },
 
-    shiftUpOnePixel: {
-        marginTop: -1,
-    },
-
     /**
      * @param {String} backgroundColor
      * @param {Number} height
