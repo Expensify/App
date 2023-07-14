@@ -15,7 +15,7 @@ import AvatarWithDisplayName from '../AvatarWithDisplayName';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import PinButton from '../PinButton';
 import headerWithBackButtonPropTypes from './headerWithBackButtonPropTypes';
-import useDelayToggleButtonState from '../../hooks/useDelayToggleButtonState';
+import useThrottledButtonState from '../../hooks/useThrottledButtonState';
 import useLocalize from '../../hooks/useLocalize';
 import useKeyboardState from '../../hooks/useKeyboardState';
 
@@ -53,7 +53,7 @@ function HeaderWithBackButton({
     },
     threeDotsMenuItems = [],
 }) {
-    const [isDelayButtonStateComplete, toggleDelayButtonState] = useDelayToggleButtonState();
+    const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const {isKeyboardShown} = useKeyboardState();
     return (
@@ -102,12 +102,12 @@ function HeaderWithBackButton({
                                     // We do not want to overlap Growl with the Tooltip (#15271)
                                     e.currentTarget.blur();
 
-                                    if (isDelayButtonStateComplete) {
+                                    if (!isDownloadButtonActive) {
                                         return;
                                     }
 
                                     onDownloadButtonPress();
-                                    toggleDelayButtonState(true);
+                                    temporarilyDisableDownloadButton(true);
                                 }}
                                 style={[styles.touchableButtonImage]}
                                 accessibilityRole="button"
@@ -115,7 +115,7 @@ function HeaderWithBackButton({
                             >
                                 <Icon
                                     src={Expensicons.Download}
-                                    fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, isDelayButtonStateComplete))}
+                                    fill={iconFill || StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
                                 />
                             </PressableWithoutFeedback>
                         </Tooltip>
