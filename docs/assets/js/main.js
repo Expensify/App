@@ -46,6 +46,16 @@ function isInRange(num, min, max) {
 }
 
 function navigateBack() {
+    const currentHost = window.location.host;
+    const referrer = document.referrer;
+    
+    // Check if the referrer is the same as the current host
+    if (referrer.includes(currentHost) && window.history.length > 1) {
+        window.history.back(); // Use browser history to go back
+        return; // Exit the function
+    }
+
+    // If the referrer is not the same as the current host, use the following logic
     const hubs = JSON.parse(document.getElementById('hubs-data').value);
     const hubToNavigate = hubs.find((hub) => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
     if (hubToNavigate) {
