@@ -4,6 +4,7 @@ import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import CurrentUserPersonalDetailsSkeletonView from '../../components/CurrentUserPersonalDetailsSkeletonView';
 import {withNetwork} from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
@@ -22,7 +23,7 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
 import * as App from '../../libs/actions/App';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
@@ -40,6 +41,7 @@ import * as ReportActionContextMenu from '../home/report/ContextMenu/ReportActio
 import {CONTEXT_MENU_TYPES} from '../home/report/ContextMenu/ContextMenuActions';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /** The session of the logged in person */
@@ -123,6 +125,7 @@ const defaultProps = {
 
 function InitialSettingsPage(props) {
     const popoverAnchor = useRef(null);
+    const {translate} = useLocalize();
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -242,7 +245,7 @@ function InitialSettingsPage(props) {
     };
 
     const getMenuItem = (item, index) => {
-        const keyTitle = item.translationKey ? props.translate(item.translationKey) : item.title;
+        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
 
         return (
@@ -297,61 +300,65 @@ function InitialSettingsPage(props) {
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={props.translate('common.settings')} />
+                    <HeaderWithBackButton title={translate('common.settings')} />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
                         style={[styles.settingsPageBackground]}
                     >
                         <View style={styles.w100}>
-                            <View style={styles.avatarSectionWrapper}>
-                                <Tooltip text={props.translate('common.profile')}>
+                            {_.isEmpty(props.currentUserPersonalDetails) || _.isUndefined(props.currentUserPersonalDetails.displayName) ? (
+                                <CurrentUserPersonalDetailsSkeletonView />
+                            ) : (
+                                <View style={styles.avatarSectionWrapper}>
+                                    <Tooltip text={translate('common.profile')}>
+                                        <PressableWithoutFeedback
+                                            style={[styles.mb3]}
+                                            onPress={openProfileSettings}
+                                            accessibilityLabel={translate('common.profile')}
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        >
+                                            <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                                                <Avatar
+                                                    imageStyles={[styles.avatarLarge]}
+                                                    source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
+                                                    size={CONST.AVATAR_SIZE.LARGE}
+                                                />
+                                            </OfflineWithFeedback>
+                                        </PressableWithoutFeedback>
+                                    </Tooltip>
                                     <PressableWithoutFeedback
-                                        style={[styles.mb3]}
+                                        style={[styles.mt1, styles.mw100]}
                                         onPress={openProfileSettings}
-                                        accessibilityLabel={props.translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        accessibilityLabel={translate('common.profile')}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                     >
-                                        <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                            <Avatar
-                                                imageStyles={[styles.avatarLarge]}
-                                                source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.session.accountID)}
-                                                size={CONST.AVATAR_SIZE.LARGE}
-                                            />
-                                        </OfflineWithFeedback>
+                                        <Tooltip text={translate('common.profile')}>
+                                            <Text
+                                                style={[styles.textHeadline, styles.pre]}
+                                                numberOfLines={1}
+                                            >
+                                                {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
+                                            </Text>
+                                        </Tooltip>
                                     </PressableWithoutFeedback>
-                                </Tooltip>
-                                <PressableWithoutFeedback
-                                    style={[styles.mt1, styles.mw100]}
-                                    onPress={openProfileSettings}
-                                    accessibilityLabel={props.translate('common.profile')}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                                >
-                                    <Tooltip text={props.translate('common.profile')}>
+                                    {Boolean(props.currentUserPersonalDetails.displayName) && (
                                         <Text
-                                            style={[styles.textHeadline, styles.pre]}
+                                            style={[styles.textLabelSupporting, styles.mt1]}
                                             numberOfLines={1}
                                         >
-                                            {props.currentUserPersonalDetails.displayName ? props.currentUserPersonalDetails.displayName : props.formatPhoneNumber(props.session.email)}
+                                            {props.formatPhoneNumber(props.session.email)}
                                         </Text>
-                                    </Tooltip>
-                                </PressableWithoutFeedback>
-                                {Boolean(props.currentUserPersonalDetails.displayName) && (
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mt1]}
-                                        numberOfLines={1}
-                                    >
-                                        {props.formatPhoneNumber(props.session.email)}
-                                    </Text>
-                                )}
-                            </View>
+                                    )}
+                                </View>
+                            )}
                             {_.map(getDefaultMenuItems(), (item, index) => getMenuItem(item, index))}
 
                             <ConfirmModal
                                 danger
-                                title={props.translate('common.areYouSure')}
-                                prompt={props.translate('initialSettingsPage.signOutConfirmationText')}
-                                confirmText={props.translate('initialSettingsPage.signOut')}
-                                cancelText={props.translate('common.cancel')}
+                                title={translate('common.areYouSure')}
+                                prompt={translate('initialSettingsPage.signOutConfirmationText')}
+                                confirmText={translate('initialSettingsPage.signOut')}
+                                cancelText={translate('common.cancel')}
                                 isVisible={shouldShowSignoutConfirmModal}
                                 onConfirm={() => signOut(true)}
                                 onCancel={() => toggleSignoutConfirmModal(false)}
