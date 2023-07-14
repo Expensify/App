@@ -41,7 +41,7 @@ const secureURLRoot = useNgrok && secureNgrokURL ? secureNgrokURL : secureExpens
 const expensifyURLRoot = useNgrok && ngrokURL ? ngrokURL : expensifyComWithProxy;
 
 export default {
-    APP_NAME: 'Expensify Chat',
+    APP_NAME: 'ExpensifyChat',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     ENVIRONMENT,
     EXPENSIFY: {
