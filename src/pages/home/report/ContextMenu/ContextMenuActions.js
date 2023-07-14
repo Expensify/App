@@ -115,7 +115,10 @@ export default [
         successTextTranslateKey: '',
         successIcon: null,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && !ReportUtils.isThreadFirstChat(reportAction, reportID),
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION &&
+            reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
+            !ReportUtils.isThreadFirstChat(reportAction, reportID) &&
+            ReportUtils.isAllowedToComment(ReportUtils.getReport(reportID)),
         onPress: (closePopover, {reportAction, reportID}) => {
             if (closePopover) {
                 hideContextMenu(false, () => {
@@ -257,8 +260,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Expensicons.Pencil,
-        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport) =>
-            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction) && !isArchivedRoom && !isChronosReport,
+        shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && ReportUtils.canEditReportAction(reportAction, reportID) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             const editAction = () => Report.saveReportActionDraft(reportID, reportAction.reportActionID, _.isEmpty(draftMessage) ? getActionText(reportAction) : '');
 

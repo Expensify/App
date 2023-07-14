@@ -889,7 +889,7 @@ class ReportActionCompose extends React.Component {
 
             const parentReportActionID = lodashGet(this.props.report, 'parentReportActionID', '');
             const parentReportAction = lodashGet(this.props.parentReportActions, [parentReportActionID], {});
-            const lastReportAction = _.find([...this.props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action));
+            const lastReportAction = _.find([...this.props.reportActions, parentReportAction], (action) => ReportUtils.canEditReportAction(action, this.props.reportID));
 
             if (lastReportAction !== -1 && lastReportAction) {
                 Report.saveReportActionDraft(this.props.reportID, lastReportAction.reportActionID, _.last(lastReportAction.message).html);

@@ -209,16 +209,19 @@ function sortReportsByLastRead(reports) {
  * - It's not pending deletion
  *
  * @param {Object} reportAction
+ * @param {String} reportID
  * @returns {Boolean}
  */
-function canEditReportAction(reportAction) {
+function canEditReportAction(reportAction, reportID) {
     return (
         reportAction.actorAccountID === currentUserAccountID &&
         reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT &&
         !isReportMessageAttachment(lodashGet(reportAction, ['message', 0], {})) &&
         !ReportActionsUtils.isDeletedAction(reportAction) &&
         !ReportActionsUtils.isCreatedTaskReportAction(reportAction) &&
-        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        // eslint-disable-next-line no-use-before-define
+        isAllowedToComment(getReport(reportID))
     );
 }
 
@@ -246,7 +249,9 @@ function canDeleteReportAction(reportAction, reportID) {
         reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
         (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID)) ||
-        reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
+        reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE ||
+        // eslint-disable-next-line no-use-before-define
+        !isAllowedToComment(getReport(reportID))
     ) {
         return false;
     }
