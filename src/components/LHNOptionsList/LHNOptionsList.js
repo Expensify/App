@@ -62,7 +62,7 @@ function LHNOptionsList(props) {
         <OptionRowLHNData
             reportID={item}
             viewMode={props.optionMode}
-            shouldDisableFocusOptions={this.props.shouldDisableFocusOptions}
+            shouldDisableFocusOptions={props.shouldDisableFocusOptions}
             onSelectRow={props.onSelectRow}
         />
     );
