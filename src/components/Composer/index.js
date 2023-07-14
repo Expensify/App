@@ -306,7 +306,7 @@ class Composer extends React.Component {
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
-        if (!this.props.checkComposerVisibility() && !this.state.isFocused) {
+        if (!this.props.checkComposerVisibility()) {
             return;
         }
 
