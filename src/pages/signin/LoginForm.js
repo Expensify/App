@@ -67,6 +67,13 @@ const defaultProps = {
     blurOnSubmit: false,
 };
 
+/**
+ * Enables experimental "memory only keys" mode in Onyx
+ */
+const setEnableMemoryOnlyKeys = () => {
+    window.enableMemoryOnlyKeys();
+};
+
 function LoginForm(props) {
     const input = useRef();
     const [login, setLogin] = useState('');
@@ -95,13 +102,6 @@ function LoginForm(props) {
         },
         [props.account, props.closeAccount, input, setFormError, setLogin],
     );
-
-    /**
-     * Enables experimental "memory only keys" mode in Onyx
-     */
-    const setEnableMemoryOnlyKeys = () => {
-        window.enableMemoryOnlyKeys();
-    };
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
