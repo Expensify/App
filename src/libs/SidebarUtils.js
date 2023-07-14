@@ -239,6 +239,7 @@ function getOptionData(reportID) {
         participantsList: null,
         login: null,
         accountID: null,
+        managerID: null,
         reportID: null,
         phoneNumber: null,
         payPalMeAddress: null,
@@ -280,6 +281,7 @@ function getOptionData(reportID) {
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
+    result.managerID = report.managerID;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
