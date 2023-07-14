@@ -1043,8 +1043,14 @@ function isWaitingForIOUActionFromCurrentUser(report) {
  * @returns {Number}
  */
 function getMoneyRequestTotal(report) {
-    if (report.hasOutstandingIOU || isMoneyRequestReport(report)) {
-        const moneyRequestReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`] || report;
+    let moneyRequestReport;
+    if (isMoneyRequestReport(report)) {
+        moneyRequestReport = report;
+    }
+    if (report.hasOutstandingIOU && report.iouReportID) {
+        moneyRequestReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+    }
+    if (moneyRequestReport) {
         const total = lodashGet(moneyRequestReport, 'total', 0);
 
         if (total !== 0) {
