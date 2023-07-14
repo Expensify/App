@@ -4,6 +4,7 @@ import {render} from '@testing-library/react-native';
 import ComposeProviders from '../../src/components/ComposeProviders';
 import OnyxProvider from '../../src/components/OnyxProvider';
 import {LocaleContextProvider} from '../../src/components/withLocalize';
+import {EnvironmentProvider} from '../../src/components/withEnvironment';
 import SidebarLinks from '../../src/pages/home/sidebar/SidebarLinks';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
@@ -191,7 +192,7 @@ function getDefaultRenderedSidebarLinks(currentReportID = '') {
  */
 function MockedSidebarLinks({currentReportID}) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider]}>
             <SidebarLinks
                 onLinkClick={() => {}}
                 insets={{
