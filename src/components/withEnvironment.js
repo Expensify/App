@@ -1,4 +1,4 @@
-import React, {createContext, useState, useEffect, forwardRef, useContext} from 'react';
+import React, {createContext, useState, useEffect, forwardRef, useContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import * as Environment from '../libs/Environment/Environment';
 import CONST from '../CONST';
@@ -23,7 +23,15 @@ function EnvironmentProvider({children}) {
         Environment.getEnvironmentURL().then(setEnvironmentURL);
     }, []);
 
-    return <EnvironmentContext.Provider value={{environment, environmentURL}}>{children}</EnvironmentContext.Provider>;
+    const contextValue = useMemo(
+        () => ({
+            environment,
+            environmentURL,
+        }),
+        [environment, environmentURL],
+    );
+
+    return <EnvironmentContext.Provider value={contextValue}>{children}</EnvironmentContext.Provider>;
 }
 
 EnvironmentProvider.displayName = 'EnvironmentProvider';
