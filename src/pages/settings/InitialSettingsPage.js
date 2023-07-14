@@ -22,7 +22,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
-import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
@@ -44,6 +43,8 @@ import PressableWithoutFeedback from '../../components/Pressable/PressableWithou
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
+    /* Onyx Props */
+
     /** The session of the logged in person */
     session: PropTypes.shape({
         /** Email of the logged in person */
@@ -187,7 +188,7 @@ function InitialSettingsPage(props) {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
                 action: () => {
-                    App.openProfile();
+                    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
                 },
                 brickRoadIndicator: profileBrickRoadIndicator,
             },
@@ -237,8 +238,7 @@ function InitialSettingsPage(props) {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
                 action: () => {
-                    // eslint-disable-next-line no-use-before-define
-                    signOut(false);
+                    signout(false);
                 },
             },
         ];
