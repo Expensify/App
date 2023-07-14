@@ -19,9 +19,6 @@ const propTypes = {
     // eslint-disable-next-line react/require-default-props
     value: PropTypes.string,
 
-    /** ID of the input */
-    inputID: PropTypes.string.isRequired,
-
     /** Callback to call when the input changes */
     onInputChange: PropTypes.func,
 
@@ -55,9 +52,10 @@ const CountryPicker = React.forwardRef(({value, countryISO, errorText, onCountry
     };
 
     useEffect(() => {
-        if (onCountryUpdated && countryValue.length > 0) {
-            onCountryUpdated(countryValue);
+        if (!onCountryUpdated || countryValue.length === 0) {
+            return;
         }
+        onCountryUpdated(countryValue);
     }, [countryValue]);
 
     const title = PersonalDetails.getCountryName(countryValue);

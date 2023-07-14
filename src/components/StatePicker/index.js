@@ -18,9 +18,6 @@ const propTypes = {
     // eslint-disable-next-line react/require-default-props
     value: PropTypes.string,
 
-    /** ID of the input */
-    inputID: PropTypes.string.isRequired,
-
     /** Callback to call when the input changes */
     onInputChange: PropTypes.func,
 };

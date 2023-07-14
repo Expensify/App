@@ -24,7 +24,7 @@ const propTypes = {
 
 const defaultProps = {
     onClose: () => {},
-    onStateSelected: () => {},
+    onCountrySelected: () => {},
 };
 
 function filterOptions(searchValue, data) {
