@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {withEnvironmentPropTypes} from '../withEnvironment';
+import {environmentPropTypes} from '../withEnvironment';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -37,7 +37,7 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
 
-    ...withEnvironmentPropTypes,
+    ...environmentPropTypes,
 
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator: PropTypes.bool,

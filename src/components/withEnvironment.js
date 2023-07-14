@@ -6,7 +6,7 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const EnvironmentContext = createContext(null);
 
-const withEnvironmentPropTypes = {
+const environmentPropTypes = {
     /** The string value representing the current environment */
     environment: PropTypes.string.isRequired,
 
@@ -59,4 +59,4 @@ export default function withEnvironment(WrappedComponent) {
     return WithEnvironment;
 }
 
-export {EnvironmentContext, withEnvironmentPropTypes, EnvironmentProvider};
+export {EnvironmentContext, environmentPropTypes, EnvironmentProvider};

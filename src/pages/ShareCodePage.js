@@ -19,7 +19,7 @@ import CONST from '../CONST';
 import ContextMenuItem from '../components/ContextMenuItem';
 import * as UserUtils from '../libs/UserUtils';
 import ROUTES from '../ROUTES';
-import withEnvironment, {withEnvironmentPropTypes} from '../components/withEnvironment';
+import withEnvironment, {environmentPropTypes} from '../components/withEnvironment';
 import * as Url from '../libs/Url';
 
 const propTypes = {
@@ -28,7 +28,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
-    ...withEnvironmentPropTypes,
+    ...environmentPropTypes,
 };
 
 const defaultProps = {

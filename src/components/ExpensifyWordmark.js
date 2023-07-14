@@ -7,7 +7,7 @@ import DevLogo from '../../assets/images/expensify-logo--dev.svg';
 import StagingLogo from '../../assets/images/expensify-logo--staging.svg';
 import AdHocLogo from '../../assets/images/expensify-logo--adhoc.svg';
 import CONST from '../CONST';
-import withEnvironment, {withEnvironmentPropTypes} from './withEnvironment';
+import withEnvironment, {environmentPropTypes} from './withEnvironment';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import themeColors from '../styles/themes/default';
@@ -19,7 +19,7 @@ const propTypes = {
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
-    ...withEnvironmentPropTypes,
+    ...environmentPropTypes,
     ...windowDimensionsPropTypes,
 };
 

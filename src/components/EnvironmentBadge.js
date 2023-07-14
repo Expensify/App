@@ -1,6 +1,6 @@
 import React from 'react';
 import CONST from '../CONST';
-import withEnvironment, {withEnvironmentPropTypes} from './withEnvironment';
+import withEnvironment, {environmentPropTypes} from './withEnvironment';
 import Badge from './Badge';
 import styles from '../styles/styles';
 import * as Environment from '../libs/Environment/Environment';
@@ -34,5 +34,5 @@ function EnvironmentBadge(props) {
 }
 
 EnvironmentBadge.displayName = 'EnvironmentBadge';
-EnvironmentBadge.propTypes = withEnvironmentPropTypes;
+EnvironmentBadge.propTypes = environmentPropTypes;
 export default withEnvironment(EnvironmentBadge);
