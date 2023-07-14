@@ -77,7 +77,7 @@ function PressableWithDelayToggle(props) {
         if (props.isDelayButtonStateComplete) {
             return;
         }
-        props.toggleDelayButtonState(true);
+        props.toggleDelayButtonState();
         props.onPress();
     };
 
