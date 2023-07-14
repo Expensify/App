@@ -1,7 +1,5 @@
 import {useState, useEffect, useContext} from 'react';
 import {Appearance} from 'react-native';
-// import Onyx from 'react-native-onyx';
-// import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import {PreferredThemeContext} from '../../components/OnyxProvider';
 
