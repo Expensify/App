@@ -7,12 +7,15 @@ export default function useDelayToggleButtonState() {
     const [isDelayButtonStateComplete, setIsDelayButtonStateComplete] = useState(false);
 
     const resetButtonStateCompleteTimer = useRef(null);
-    useEffect(() => () => {
-        if (!resetButtonStateCompleteTimer.current) {
-            return;
-        }
-        clearTimeout(resetButtonStateCompleteTimer.current);
-    });
+    useEffect(
+        () => () => {
+            if (!resetButtonStateCompleteTimer.current) {
+                return;
+            }
+            clearTimeout(resetButtonStateCompleteTimer.current);
+        },
+        [],
+    );
 
     const toggleDelayButtonState = useCallback((resetAfterDelay) => {
         setIsDelayButtonStateComplete(true);
