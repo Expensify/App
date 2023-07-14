@@ -163,7 +163,9 @@ function ReportActionsList(props) {
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
-    const showMoneyRequestDetails = ReportUtils.isMoneyRequestReport(props.report) || isSingleTransactionView;
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
+    const showMoneyRequestDetails = ReportUtils.isMoneyRequestReport(props.report) || (isSingleTransactionView && !isDeletedParentAction);
+
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
