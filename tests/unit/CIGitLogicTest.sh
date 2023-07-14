@@ -131,7 +131,7 @@ function cherry_pick_pr {
   checkout_repo
   setup_git_as_osbotify
   PREVIOUS_PATCH_VERSION="$(node "$getPreviousVersion" "$(print_version)" "$SEMVER_LEVEL_PATCH")"
-  git fetch origin staging "$VERSION_BUMP_COMMIT" "$PR_MERGE_COMMIT" --no-tags --shallow-exclude="$PREVIOUS_PATCH_VERSION"
+  git fetch origin main staging --no-tags --shallow-exclude="$PREVIOUS_PATCH_VERSION"
 
   git switch staging
   git switch -c cherry-pick-staging

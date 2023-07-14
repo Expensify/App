@@ -14,6 +14,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import withLocalize from '../withLocalize';
 import Text from '../Text';
 import compose from '../../libs/compose';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import Log from '../../libs/Log';
 
 /**
@@ -186,7 +187,7 @@ class PDFView extends Component {
         );
     }
 
-    render() {
+    renderPDFView() {
         const pageWidth = this.calculatePageWidth();
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
@@ -243,6 +244,21 @@ class PDFView extends Component {
                     />
                 )}
             </View>
+        );
+    }
+
+    render() {
+        return this.props.onPress ? (
+            <PressableWithoutFeedback
+                onPress={this.props.onPress}
+                style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
+            >
+                {this.renderPDFView()}
+            </PressableWithoutFeedback>
+        ) : (
+            this.renderPDFView()
         );
     }
 }
