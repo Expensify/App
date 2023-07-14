@@ -13,6 +13,9 @@ import privatePersonalDetailsPropTypes, {privatePersonalDetailsDefaultProps} fro
 const PrivatePersonalDetailsContext = createContext(null);
 
 const withPrivatePersonalDetailsPropTypes = {
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     /** User's private personal details */
     privatePersonalDetails: privatePersonalDetailsPropTypes,
 };
@@ -22,9 +25,6 @@ const withPrivatePersonalDetailsDefaultProps = {
 };
 
 const privatePersonalDetailsProviderPropTypes = {
-    /** Information about the network */
-    network: networkPropTypes.isRequired,
-
     /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
 

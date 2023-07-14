@@ -9,7 +9,6 @@ import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import {withNetwork} from '../../../../components/OnyxProvider';
 import withPrivatePersonalDetails, {withPrivatePersonalDetailsDefaultProps, withPrivatePersonalDetailsPropTypes} from '../../../../components/withPrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
