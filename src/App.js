@@ -17,6 +17,8 @@ import SafeArea from './components/SafeArea';
 import * as Environment from './libs/Environment/Environment';
 import {WindowDimensionsProvider} from './components/withWindowDimensions';
 import {KeyboardStateProvider} from './components/withKeyboardState';
+import ThemeProvider from './styles/themes/ThemeProvider';
+import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
 import * as Session from './libs/actions/Session';
 import {PrivatePersonalDetailsProvider} from "./components/withPrivatePersonalDetails";
@@ -50,8 +52,10 @@ function App() {
                     WindowDimensionsProvider,
                     KeyboardStateProvider,
                     CurrentReportIDContextProvider,
-                    PickerStateProvider,
                     PrivatePersonalDetailsProvider,
+                    PickerStateProvider,
+                    ThemeProvider,
+                    ThemeStylesProvider,
                 ]}
             >
                 <CustomStatusBar />
