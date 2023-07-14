@@ -32,9 +32,10 @@ describe('Sidebar', () => {
         }),
     );
 
-    // Initialize the network key for OfflineWithFeedback
     beforeEach(() => {
+        // Wrap Onyx each onyx action with waitForPromiseToResolve
         wrapOnyxWithWaitForPromisesToResolve(Onyx);
+        // Initialize the network key for OfflineWithFeedback
         Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
     });
 
