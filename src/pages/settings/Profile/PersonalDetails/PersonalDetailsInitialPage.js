@@ -14,43 +14,19 @@ import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDe
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import {withNetwork} from '../../../../components/OnyxProvider';
+import privatePersonalDetailsPropTypes, {privatePersonalDetailsDefaultProps} from './privatePersonalDetailsPropTypes';
 
 const propTypes = {
     /* Onyx Props */
 
     /** User's private personal details */
-    privatePersonalDetails: PropTypes.shape({
-        legalFirstName: PropTypes.string,
-        legalLastName: PropTypes.string,
-        dob: PropTypes.string,
-
-        /** User's home address */
-        address: PropTypes.shape({
-            street: PropTypes.string,
-            city: PropTypes.string,
-            state: PropTypes.string,
-            zip: PropTypes.string,
-            country: PropTypes.string,
-        }),
-    }),
+    privatePersonalDetails: PropTypes.objectOf(privatePersonalDetailsPropTypes),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    privatePersonalDetails: {
-        legalFirstName: '',
-        legalLastName: '',
-        dob: '',
-        address: {
-            street: '',
-            street2: '',
-            city: '',
-            state: '',
-            zip: '',
-            country: '',
-        },
-    },
+    privatePersonalDetails: privatePersonalDetailsDefaultProps,
 };
 
 function PersonalDetailsInitialPage(props) {
