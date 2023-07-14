@@ -13,6 +13,7 @@ import useWindowDimensions from '../hooks/useWindowDimensions';
 const propTypes = {
     ...headerWithBackButtonPropTypes,
 
+    /** Children to display in the lower half of the page (below the header section w/ an animation) */
     children: PropTypes.node.isRequired,
 
     /** The background color to apply in the upper half of the screen. */
