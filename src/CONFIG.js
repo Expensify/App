@@ -11,7 +11,7 @@ const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const expensifyChatURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
+const newExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
 const expensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
 const stagingExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGING_EXPENSIFY_URL', 'https://staging.expensify.com/'));
 const stagingSecureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
@@ -47,7 +47,7 @@ export default {
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
         EXPENSIFY_URL: expensifyURL,
-        NEW_EXPENSIFY_URL: expensifyChatURL,
+        NEW_EXPENSIFY_URL: newExpensifyURL,
 
         // The DEFAULT API is the API used by most environments, except staging, where we use STAGING (defined below)
         // The "staging toggle" in settings toggles between DEFAULT and STAGING APIs
@@ -73,7 +73,7 @@ export default {
         SUFFIX: lodashGet(Config, 'PUSHER_DEV_SUFFIX', ''),
         CLUSTER: 'mt1',
     },
-    SITE_TITLE: 'Expensify Chat',
+    SITE_TITLE: 'New Expensify',
     FAVICON: {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
