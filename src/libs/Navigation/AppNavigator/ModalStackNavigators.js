@@ -422,6 +422,14 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Settings_Preferences_Language',
     },
+    // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
+    // {
+    //     getComponent: () => {
+    //         const SettingsPreferencesThemePage = require('../../../pages/settings/Preferences/ThemePage').default;
+    //         return SettingsPreferencesThemePage;
+    //     },
+    //     name: 'Settings_Preferences_Theme',
+    // },
     {
         getComponent: () => {
             const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;

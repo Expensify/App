@@ -307,7 +307,7 @@ class ReimbursementAccountPage extends React.Component {
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 if (_.contains([BankAccount.STATE.VERIFYING, BankAccount.STATE.SETUP], achData.state)) {
                     BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT);
-                } else if (achData.state === BankAccount.STATE.PENDING) {
+                } else if (!this.props.network.isOffline && achData.state === BankAccount.STATE.PENDING) {
                     this.setState({
                         shouldShowContinueSetupButton: true,
                     });
