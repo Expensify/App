@@ -1,10 +1,9 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -23,6 +22,7 @@ import ROUTES from '../../ROUTES';
 import * as Browser from '../../libs/Browser';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
+import useLocalize from '../../hooks/useLocalize';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -53,7 +53,6 @@ const propTypes = {
     }).isRequired,
 
     ...policyPropTypes,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -63,6 +62,7 @@ const defaultProps = {
 };
 
 function WorkspaceInvitePage(props) {
+    const {translate, preferredLocale} = useLocalize();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
@@ -122,7 +122,7 @@ function WorkspaceInvitePage(props) {
         const hasUnselectedUserToInvite = userToInvite && !_.contains(selectedLogins, userToInvite.login);
 
         sections.push({
-            title: props.translate('common.contacts'),
+            title: translate('common.contacts'),
             data: personalDetailsWithoutSelected,
             shouldShow: !_.isEmpty(personalDetailsWithoutSelected),
             indexOffset,
@@ -184,9 +184,15 @@ function WorkspaceInvitePage(props) {
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(props.route.params.policyID));
     };
 
-    const headerMessage = OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchTerm);
-    const policyName = lodashGet(props.policy, 'name');
-    const shouldShowAlertPrompt = _.size(lodashGet(props.policy, 'errors', {})) > 0 || lodashGet(props.policy, 'alertMessage', '').length > 0;
+    const headerMessage = useMemo(() => {
+        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchTerm);
+    }, [personalDetails, userToInvite, searchTerm, preferredLocale]);
+    const [policyName, shouldShowAlertPrompt] = useMemo(() => {
+        return [
+            lodashGet(props.policy, 'name'),
+            _.size(lodashGet(props.policy, 'errors', {})) > 0 || lodashGet(props.policy, 'alertMessage', '').length > 0,
+        ];
+    }, [props.policy]);
 
     return (
         <ScreenWrapper shouldEnableMaxHeight>
@@ -198,7 +204,7 @@ function WorkspaceInvitePage(props) {
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
                         <HeaderWithBackButton
-                            title={props.translate('workspace.invite.invitePeople')}
+                            title={translate('workspace.invite.invitePeople')}
                             subtitle={policyName}
                             shouldShowGetAssistanceButton
                             guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
@@ -224,14 +230,14 @@ function WorkspaceInvitePage(props) {
                                 boldStyle
                                 shouldDelayFocus
                                 shouldFocusOnSelectRow={!Browser.isMobile()}
-                                textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                                textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             />
                         </View>
                         <View style={[styles.flexShrink0]}>
                             <FormAlertWithSubmitButton
                                 isDisabled={!selectedOptions.length}
                                 isAlertVisible={shouldShowAlertPrompt}
-                                buttonText={props.translate('common.next')}
+                                buttonText={translate('common.next')}
                                 onSubmit={inviteUser}
                                 message={props.policy.alertMessage}
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto, styles.mb5]}
@@ -251,7 +257,6 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
 export default compose(
-    withLocalize,
     withPolicyAndFullscreenLoading,
     withOnyx({
         personalDetails: {
