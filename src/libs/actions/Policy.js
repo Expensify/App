@@ -12,6 +12,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
+import * as UserUtils from '../UserUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
 
@@ -345,6 +346,39 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
 }
 
 /**
+ * Build personal details objects for a given list of logins and accountIDs
+ *
+ * @param {Array<string>} logins Array of user logins
+ * @param {Array<number>} accountIDs Array of user accountIDs
+ * @returns {Object} - object with optimisticData, successData and failureData (object of personal details objects)
+ */
+function buildPolicyPersonalDetails(logins, accountIDs) {
+    const policyPersonalDetails = {
+        optimisticData: {},
+        successData: {},
+        failureData: {},
+    };
+
+    _.map(logins, (login, index) => {
+        const accountID = accountIDs[index];
+
+        if (_.isEmpty(personalDetails[accountID])) {
+            policyPersonalDetails.optimisticData[accountID] = {
+                login,
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: login,
+            };
+
+            policyPersonalDetails.successData[accountID] = null;
+            policyPersonalDetails.failureData[accountID] = null;
+        }
+    });
+
+    return policyPersonalDetails;
+}
+
+/**
  * Adds members to the specified workspace/policyID
  *
  * @param {Object} invitedEmailsToAccountIDs
@@ -354,12 +388,19 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
+    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = _.values(invitedEmailsToAccountIDs);
+    const policyPersonalDetails = buildPolicyPersonalDetails(logins, accountIDs);
 
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
 
     const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: policyPersonalDetails.optimisticData,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
@@ -373,6 +414,11 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: policyPersonalDetails.successData,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
             // Convert to object with each key clearing pendingAction. We don’t
@@ -383,6 +429,11 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     ];
 
     const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: policyPersonalDetails.failureData,
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
@@ -399,7 +450,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         ...membersChats.onyxFailureData,
     ];
 
-    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
