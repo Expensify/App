@@ -1,9 +1,10 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import CurrentUserPersonalDetailsSkeletonView from '../../components/CurrentUserPersonalDetailsSkeletonView';
 import {withNetwork} from '../../components/OnyxProvider';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
@@ -21,7 +22,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import cardPropTypes from '../../components/cardPropTypes';
@@ -303,13 +304,6 @@ class InitialSettingsPage extends React.Component {
     }
 
     render() {
-        // On the very first sign in or after clearing storage these
-        // details will not be present on the first render so we'll just
-        // return nothing for now.
-        if (_.isEmpty(this.props.currentUserPersonalDetails)) {
-            return null;
-        }
-
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
@@ -320,49 +314,53 @@ class InitialSettingsPage extends React.Component {
                             style={[styles.settingsPageBackground]}
                         >
                             <View style={styles.w100}>
-                                <View style={styles.avatarSectionWrapper}>
-                                    <Tooltip text={this.props.translate('common.profile')}>
+                                {_.isEmpty(this.props.currentUserPersonalDetails) || _.isUndefined(this.props.currentUserPersonalDetails.displayName) ? (
+                                    <CurrentUserPersonalDetailsSkeletonView />
+                                ) : (
+                                    <View style={styles.avatarSectionWrapper}>
+                                        <Tooltip text={this.props.translate('common.profile')}>
+                                            <PressableWithoutFeedback
+                                                style={[styles.mb3]}
+                                                onPress={this.openProfileSettings}
+                                                accessibilityLabel={this.props.translate('common.profile')}
+                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                            >
+                                                <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                                                    <Avatar
+                                                        imageStyles={[styles.avatarLarge]}
+                                                        source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.accountID)}
+                                                        size={CONST.AVATAR_SIZE.LARGE}
+                                                    />
+                                                </OfflineWithFeedback>
+                                            </PressableWithoutFeedback>
+                                        </Tooltip>
                                         <PressableWithoutFeedback
-                                            style={[styles.mb3]}
+                                            style={[styles.mt1, styles.mw100]}
                                             onPress={this.openProfileSettings}
                                             accessibilityLabel={this.props.translate('common.profile')}
-                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                         >
-                                            <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                                <Avatar
-                                                    imageStyles={[styles.avatarLarge]}
-                                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.session.accountID)}
-                                                    size={CONST.AVATAR_SIZE.LARGE}
-                                                />
-                                            </OfflineWithFeedback>
+                                            <Tooltip text={this.props.translate('common.profile')}>
+                                                <Text
+                                                    style={[styles.textHeadline, styles.pre]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {this.props.currentUserPersonalDetails.displayName
+                                                        ? this.props.currentUserPersonalDetails.displayName
+                                                        : this.props.formatPhoneNumber(this.props.session.email)}
+                                                </Text>
+                                            </Tooltip>
                                         </PressableWithoutFeedback>
-                                    </Tooltip>
-                                    <PressableWithoutFeedback
-                                        style={[styles.mt1, styles.mw100]}
-                                        onPress={this.openProfileSettings}
-                                        accessibilityLabel={this.props.translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                                    >
-                                        <Tooltip text={this.props.translate('common.profile')}>
+                                        {Boolean(this.props.currentUserPersonalDetails.displayName) && (
                                             <Text
-                                                style={[styles.textHeadline, styles.pre]}
+                                                style={[styles.textLabelSupporting, styles.mt1]}
                                                 numberOfLines={1}
                                             >
-                                                {this.props.currentUserPersonalDetails.displayName
-                                                    ? this.props.currentUserPersonalDetails.displayName
-                                                    : this.props.formatPhoneNumber(this.props.session.email)}
+                                                {this.props.formatPhoneNumber(this.props.session.email)}
                                             </Text>
-                                        </Tooltip>
-                                    </PressableWithoutFeedback>
-                                    {Boolean(this.props.currentUserPersonalDetails.displayName) && (
-                                        <Text
-                                            style={[styles.textLabelSupporting, styles.mt1]}
-                                            numberOfLines={1}
-                                        >
-                                            {this.props.formatPhoneNumber(this.props.session.email)}
-                                        </Text>
-                                    )}
-                                </View>
+                                        )}
+                                    </View>
+                                )}
                                 {_.map(this.getDefaultMenuItems(), (item, index) => this.getMenuItem(item, index))}
 
                                 <ConfirmModal
