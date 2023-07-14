@@ -1,10 +1,12 @@
-import React, {Component} from 'react';
+import React, {createContext, useState, useEffect, forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import * as Environment from '../libs/Environment/Environment';
 import CONST from '../CONST';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
-const environmentPropTypes = {
+const EnvironmentContext = createContext(null);
+
+const withEnvironmentPropTypes = {
     /** The string value representing the current environment */
     environment: PropTypes.string.isRequired,
 
@@ -12,53 +14,42 @@ const environmentPropTypes = {
     environmentURL: PropTypes.string.isRequired,
 };
 
-export default function (WrappedComponent) {
-    class WithEnvironment extends Component {
-        constructor(props) {
-            super(props);
+function EnvironmentProvider({children}) {
+    const [environment, setEnvironment] = useState(CONST.ENVIRONMENT.PRODUCTION);
+    const [environmentURL, setEnvironmentURL] = useState(CONST.NEW_EXPENSIFY_URL);
 
-            this.state = {
-                environment: CONST.ENVIRONMENT.PRODUCTION,
-                environmentURL: CONST.NEW_EXPENSIFY_URL,
-            };
-        }
+    useEffect(() => {
+        Environment.getEnvironment().then(setEnvironment);
+        Environment.getEnvironmentURL().then(setEnvironmentURL);
+    }, []);
 
-        componentDidMount() {
-            Environment.getEnvironment().then((environment) => {
-                this.setState({environment});
-            });
-            Environment.getEnvironmentURL().then((environmentURL) => {
-                this.setState({environmentURL});
-            });
-        }
-
-        render() {
-            return (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    ref={this.props.forwardedRef}
-                    environment={this.state.environment}
-                    environmentURL={this.state.environmentURL}
-                />
-            );
-        }
-    }
-
-    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
-    WithEnvironment.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
-    };
-    WithEnvironment.defaultProps = {
-        forwardedRef: undefined,
-    };
-    return React.forwardRef((props, ref) => (
-        <WithEnvironment
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    ));
+    return <EnvironmentContext.Provider value={{environment, environmentURL}}>{children}</EnvironmentContext.Provider>;
 }
 
-export {environmentPropTypes};
+EnvironmentProvider.displayName = 'EnvironmentProvider';
+EnvironmentProvider.propTypes = {
+    /** Actual content wrapped by this component */
+    children: PropTypes.node.isRequired,
+};
+
+export default function withEnvironment(WrappedComponent) {
+    const WithEnvironment = forwardRef((props, ref) => (
+        <EnvironmentContext.Consumer>
+            {({environment, environmentURL}) => (
+                <WrappedComponent
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...props}
+                    ref={ref}
+                    environment={environment}
+                    environmentURL={environmentURL}
+                />
+            )}
+        </EnvironmentContext.Consumer>
+    ));
+
+    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
+
+    return WithEnvironment;
+}
+
+export {EnvironmentContext, withEnvironmentPropTypes, EnvironmentProvider};

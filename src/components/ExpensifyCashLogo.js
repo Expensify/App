@@ -5,7 +5,7 @@ import DevLogo from '../../assets/images/new-expensify-dev.svg';
 import StagingLogo from '../../assets/images/new-expensify-stg.svg';
 import AdhocLogo from '../../assets/images/new-expensify-adhoc.svg';
 import CONST from '../CONST';
-import withEnvironment, {environmentPropTypes} from './withEnvironment';
+import withEnvironment, {withEnvironmentPropTypes} from './withEnvironment';
 
 const propTypes = {
     /** Width of logo */
@@ -14,7 +14,7 @@ const propTypes = {
     /** Height of logo */
     height: PropTypes.number.isRequired,
 
-    ...environmentPropTypes,
+    ...withEnvironmentPropTypes,
 };
 
 const logoComponents = {
