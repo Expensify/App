@@ -164,7 +164,7 @@ function ReportActionsList(props) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
     const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
-    const showMoneyRequestDetails = ReportUtils.isMoneyRequestReport(props.report) || (isSingleTransactionView && !isDeletedParentAction);
+    const showMoneyRequestDetails = isSingleTransactionView && !isDeletedParentAction;
 
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
