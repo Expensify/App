@@ -57,6 +57,9 @@ const propTypes = {
 
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
+
+        /** Is the iouReport waiting for the submitter to add a credit bank account? */
+        isWaitingOnBankAccount: PropTypes.bool,
     }),
 
     /** Session info for the currently logged in user. */
@@ -101,8 +104,10 @@ function ReportPreview(props) {
             }
         }
     }
+
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    let previewMessage = props.translate(ReportUtils.isSettled(props.iouReportID) || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
 
     return (
         <View style={styles.chatItemMessage}>
@@ -121,7 +126,7 @@ function ReportPreview(props) {
                     <View style={styles.flexRow}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>
-                                {props.translate(ReportUtils.isSettled(props.iouReportID) || props.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
+                                {previewMessage}
                             </Text>
                         </View>
                     </View>
@@ -138,7 +143,7 @@ function ReportPreview(props) {
                             )}
                         </View>
                     </View>
-                    {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && !props.iouReport.isWaitingOnBankAccount && (
+                    {props.iouReport && isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && !props.iouReport.isWaitingOnBankAccount && (
                         <SettlementButton
                             currency={props.iouReport.currency}
                             policyID={props.iouReport.policyID}
