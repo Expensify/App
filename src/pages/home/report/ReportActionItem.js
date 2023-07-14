@@ -375,6 +375,7 @@ function ReportActionItem(props) {
                             mostRecentReply={`${props.action.childLastVisibleActionCreated}`}
                             isHovered={hovered}
                             icons={ReportUtils.getIconsForParticipants(oldestFourAccountIDs, props.personalDetailsList)}
+                            onSecondaryInteraction={showPopover}
                         />
                     </View>
                 )}

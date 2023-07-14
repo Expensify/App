@@ -163,6 +163,8 @@ function LoginForm(props) {
                 <TextInput
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
+                    accessibilityLabel={translate('loginForm.phoneOrEmail')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
                     autoCompleteType="username"
                     textContentType="username"

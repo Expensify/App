@@ -244,7 +244,7 @@ function BaseTextInput(props) {
 
     return (
         <>
-            <View>
+            <View style={styles.pointerEventsNone}>
                 <PressableWithoutFeedback
                     onPress={onPress}
                     focusable={false}

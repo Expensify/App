@@ -22,14 +22,6 @@ function canUseChronos(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseIOU(betas) {
-    return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas(betas);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
 function canUsePayWithExpensify(betas) {
     return _.contains(betas, CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas(betas);
 }
@@ -104,7 +96,6 @@ function canUseScanReceipts(betas) {
 
 export default {
     canUseChronos,
-    canUseIOU,
     canUsePayWithExpensify,
     canUseDefaultRooms,
     canUseIOUSend,

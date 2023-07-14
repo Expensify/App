@@ -153,6 +153,8 @@ function AddressPage(props) {
                     <TextInput
                         inputID="addressLine2"
                         label={props.translate('common.addressLine', {lineNumber: 2})}
+                        accessibilityLabel={props.translate('common.addressLine')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                     />
@@ -161,6 +163,8 @@ function AddressPage(props) {
                     <TextInput
                         inputID="city"
                         label={props.translate('common.city')}
+                        accessibilityLabel={props.translate('common.city')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={address.city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                     />
@@ -175,6 +179,8 @@ function AddressPage(props) {
                         <TextInput
                             inputID="state"
                             label={props.translate('common.stateOrProvince')}
+                            accessibilityLabel={props.translate('common.stateOrProvince')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={address.state || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
@@ -184,6 +190,8 @@ function AddressPage(props) {
                     <TextInput
                         inputID="zipPostCode"
                         label={props.translate('common.zipPostCode')}
+                        accessibilityLabel={props.translate('common.zipPostCode')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCapitalize="characters"
                         defaultValue={address.zip || ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}

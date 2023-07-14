@@ -13,6 +13,7 @@ import ValidateCodeForm from './ValidateCodeForm';
 import Performance from '../../libs/Performance';
 import * as App from '../../libs/actions/App';
 import UnlinkLoginForm from './UnlinkLoginForm';
+import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import * as Localize from '../../libs/Localize';
 import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
@@ -33,6 +34,9 @@ const propTypes = {
 
         /** Does this account require 2FA? */
         requiresTwoFactorAuth: PropTypes.bool,
+
+        /** Is this account having trouble receiving emails */
+        hasEmailDeliveryFailure: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */
@@ -53,16 +57,19 @@ const defaultProps = {
  * @param {Boolean} hasValidateCode
  * @param {Boolean} isPrimaryLogin
  * @param {Boolean} isAccountValidated
+ * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated}) {
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
     const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated;
     const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
     const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm;
     return {
         shouldShowLoginForm,
+        shouldShowEmailDeliveryFailurePage,
         shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
         shouldShowWelcomeHeader,
@@ -80,12 +87,13 @@ function SignInPage({credentials, account}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
 
-    const {shouldShowLoginForm, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions({
+    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions({
         hasLogin: Boolean(credentials.login),
         hasValidateCode: Boolean(credentials.validateCode),
         hasAccount: !_.isEmpty(account),
         isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
         isAccountValidated: Boolean(account.validated),
+        hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
     });
 
     let welcomeHeader;
@@ -115,8 +123,13 @@ function SignInPage({credentials, account}) {
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
-    } else if (shouldShowUnlinkLoginForm) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
+
+        // Don't show any welcome text if we're showing the user the email delivery failed view
+        if (shouldShowEmailDeliveryFailurePage) {
+            welcomeText = '';
+        }
     } else {
         Log.warn('SignInPage in unexpected state!');
     }
@@ -137,6 +150,7 @@ function SignInPage({credentials, account}) {
                 />
                 {shouldShowValidateCodeForm && <ValidateCodeForm isVisible={shouldShowValidateCodeForm} />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>
     );

@@ -67,9 +67,10 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
  *                           and the top edge of the wrapped component.
  * @param {Element} [tooltip] - The reference to the tooltip's root element
  * @param {Number} tooltipTargetWidth - The width of the tooltip's target
+ * @param {Number} tooltipTargetHeight - The height of the tooltip's target
  * @returns {Boolean}
  */
-function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth) {
+function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, tooltipTargetHeight) {
     if (typeof document.elementFromPoint !== 'function') {
         return false;
     }
@@ -88,8 +89,8 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth) {
     const rectAtTargetCenterX = elementAtTargetCenterX.getBoundingClientRect();
 
     // Ensure it's not overlapping with another element by checking if the yOffset is greater than the top of the element
-    // and less than the bottom of the element
-    const isOverlappingAtTargetCenterX = yOffset > rectAtTargetCenterX.top && yOffset < rectAtTargetCenterX.bottom;
+    // and less than the bottom of the element. Also ensure the tooltip target is not completely inside the elementAtTargetCenterX by vertical direction
+    const isOverlappingAtTargetCenterX = yOffset > rectAtTargetCenterX.top && yOffset < rectAtTargetCenterX.bottom && yOffset + tooltipTargetHeight > rectAtTargetCenterX.bottom;
 
     return isOverlappingAtTargetCenterX;
 }
@@ -156,7 +157,7 @@ export default function getTooltipStyles(
         // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
         // Or the wrapped component is overlapping at top-center with another element
         // we'll display it beneath its wrapped component rather than above it as usual.
-        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth);
+        shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, tooltipTargetHeight);
 
         // When the tooltip size is ready, we can start animating the scale.
         scale = currentSize;
