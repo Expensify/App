@@ -90,7 +90,7 @@ function isReportPreviewAction(reportAction) {
  * @returns {Boolean}
  */
 function hasCommentThread(reportAction) {
-    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
 }
 
 /**
@@ -289,22 +289,28 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
 /**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @return {String}
+ * @return {Object}
  */
-function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
+function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
     const message = lodashGet(lastVisibleAction, ['message', 0], {});
 
     if (isReportMessageAttachment(message)) {
-        return CONST.ATTACHMENT_MESSAGE_TEXT;
+        return {
+            lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+        };
     }
 
     if (isCreatedAction(lastVisibleAction)) {
-        return '';
+        return {
+            lastMessageText: '',
+        };
     }
 
     const messageText = lodashGet(message, 'text', '');
-    return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return {
+        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
+    };
 }
 
 /**
@@ -367,7 +373,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
-    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
+    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
     return !isDeleted || isPending || isDeletedParentAction;
 }
 
@@ -536,7 +542,7 @@ function isWhisperAction(action) {
 export {
     getSortedReportActions,
     getLastVisibleAction,
-    getLastVisibleMessageText,
+    getLastVisibleMessage,
     getMostRecentIOURequestActionID,
     extractLinksFromMessageHtml,
     isDeletedAction,
