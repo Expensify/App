@@ -279,7 +279,8 @@ function ReportActionItem(props) {
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
-            const shouldShowAddCreditBankAccountButton = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
+            const shouldShowAddCreditBankAccountButton =
+                ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
 
             children = (
                 <ReportActionItemBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}>

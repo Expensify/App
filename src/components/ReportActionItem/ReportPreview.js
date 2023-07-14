@@ -88,7 +88,7 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
-    const managerID = props.iouReport.managerID || 0;
+    const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     let reportAmount = ReportUtils.getMoneyRequestTotal(props.iouReport);
     if (reportAmount) {
@@ -125,9 +125,7 @@ function ReportPreview(props) {
                 <View style={[styles.iouPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
                     <View style={styles.flexRow}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>
-                                {previewMessage}
-                            </Text>
+                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{previewMessage}</Text>
                         </View>
                     </View>
                     <View style={styles.flexRow}>
