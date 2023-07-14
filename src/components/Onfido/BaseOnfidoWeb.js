@@ -3,7 +3,6 @@ import './index.css';
 import lodashGet from 'lodash/get';
 import React, {useEffect, forwardRef} from 'react';
 import * as OnfidoSDK from 'onfido-sdk-ui';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
@@ -11,9 +10,9 @@ import themeColors from '../../styles/themes/default';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
 import Log from '../../libs/Log';
+import useLocalize from '../../libs/hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
     ...onfidoPropTypes,
 };
 
@@ -120,18 +119,22 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
     });
 }
 
+function logOnFidoEvent(event) {
+    Log.hmmm('Receiving Onfido analytic event', event.detail);
+}
+
 const Onfido = forwardRef((props, ref) => {
+    const {preferredLocale, translate} = useLocalize();
+
     useEffect(() => {
         initializeOnfido({
             sdkToken: props.sdkToken,
             onSuccess: props.onSuccess,
             onError: props.onError,
             onUserExit: props.onUserExit,
-            preferredLocale: props.preferredLocale,
-            translate: props.translate,
+            preferredLocale: preferredLocale,
+            translate: translate,
         });
-
-        const logOnFidoEvent = (event) => Log.hmmm('Receiving Onfido analytic event', event.detail);
 
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
         return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
@@ -147,5 +150,6 @@ const Onfido = forwardRef((props, ref) => {
     );
 });
 
+Onfido.displayName = 'Onfido';
 Onfido.propTypes = propTypes;
-export default withLocalize(Onfido);
+export default Onfido;
