@@ -96,10 +96,10 @@ function LoginForm(props) {
         [props.account, props.closeAccount, input, setFormError, setLogin],
     );
 
+    /**
+     * Enables experimental "memory only keys" mode in Onyx
+     */
     const setEnableMemoryOnlyKeys = () => {
-        if (!window) {
-            return;
-        }
         window.enableMemoryOnlyKeys();
     };
 
