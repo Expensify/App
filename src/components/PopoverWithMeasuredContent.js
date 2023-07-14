@@ -65,7 +65,7 @@ function PopoverWithMeasuredContent(props) {
     const [popoverWidth, setPopoverWidth] = useState(props.popoverDimensions.width);
     const [popoverHeight, setPopoverHeight] = useState(props.popoverDimensions.height);
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
-    const [isVisible, SetIsVisible] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
 
     /**
      * When Popover becomes visible, we need to recalculate the Dimensions.
