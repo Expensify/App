@@ -584,6 +584,13 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([newAssigneeAccountID]);
             chatReport.isOptimisticReport = true;
+
+            // When assigning a task to a new user, by default we share the task in their DM
+            // However, the DM doesn't exist yet - and will be created optimistically once the task is created
+            // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
+            // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
+            chatReport.isHidden = true;
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
         }
         setAssigneeChatReport(chatReport);
 
