@@ -91,14 +91,13 @@ function ReportPreview(props) {
     if (reportAmount) {
         reportAmount = CurrencyUtils.convertToDisplayString(reportAmount, props.iouReport.currency);
     } else {
-        // If iouReport is not available, get amount from the action message (Ex: Domain20821's Workspace owes $33.00")
+        // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
         reportAmount = '';
         const actionMessage = _.size(props.action.message) ? props.action.message[0].text || '' : '';
         const splits = actionMessage.split(' ');
-        if (_.size(splits) > 0) {
-            const lastWord = splits[_.size(splits) - 1];
-            if (_.contains(lastWord, '.')) {
-                reportAmount = lastWord;
+        for (let i = 0; i < splits.length; i++) {
+            if (/\d/.test(splits[i])) {
+                reportAmount = splits[i];
             }
         }
     }
