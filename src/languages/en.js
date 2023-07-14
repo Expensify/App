@@ -147,6 +147,7 @@ export default {
         km: 'kilometer',
         copied: 'Copied!',
         someone: 'Someone',
+        edit: 'Edit',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -580,6 +581,8 @@ export default {
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+        updatePaypalAccount: 'Save PayPal account',
+        growlMessageOnUpdate: 'Your PayPal username was successfully saved',
         formatError: 'Invalid PayPal.me username',
         checkListOf: 'Check the list of ',
         supportedCurrencies: 'supported currencies',
@@ -1280,6 +1283,7 @@ export default {
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
         publicDescription: 'Anyone can find this room',
+        public_announceDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: ({reservedName}) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
@@ -1446,6 +1450,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        hiddenMessage: '[Hidden message]',
     },
     threads: {
         replies: 'Replies',
