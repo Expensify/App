@@ -14,7 +14,11 @@ const PrivatePersonalDetailsContext = createContext(null);
 
 const withPrivatePersonalDetailsPropTypes = {
     /** User's private personal details */
-    privatePersonalDetails: PropTypes.objectOf(privatePersonalDetailsPropTypes),
+    privatePersonalDetails: privatePersonalDetailsPropTypes,
+};
+
+const withPrivatePersonalDetailsDefaultProps = {
+    privatePersonalDetails: privatePersonalDetailsDefaultProps,
 };
 
 const privatePersonalDetailsProviderPropTypes = {
@@ -24,17 +28,24 @@ const privatePersonalDetailsProviderPropTypes = {
     /** Actual content wrapped by this component */
     children: PropTypes.node.isRequired,
 
-    /** User's private personal details */
-    privatePersonalDetails: PropTypes.objectOf(privatePersonalDetailsPropTypes),
+    ...withPrivatePersonalDetailsPropTypes,
 };
 
 const privatePersonalDetailsProviderDefaultProps = {
-    privatePersonalDetails: privatePersonalDetailsDefaultProps,
+    ...withPrivatePersonalDetailsDefaultProps,
 };
 
 class PrivatePersonalDetailsProvider extends React.Component {
+    componentDidMount() {
+        if (this.props.network.isOffline) {
+            return;
+        }
+
+        PersonalDetails.openPersonalDetailsPage();
+    }
+
     componentDidUpdate(prevProps) {
-        if (prevProps.network.isOffline || !_.isEqual(prevProps.privatePersonalDetails, this.props.privatePersonalDetails)) {
+        if (this.props.network.isOffline || _.isEqual(_.omit(prevProps.privatePersonalDetails, 'isLoading'), _.omit(this.props.privatePersonalDetails, 'isLoading'))) {
             return;
         }
 
@@ -42,7 +53,9 @@ class PrivatePersonalDetailsProvider extends React.Component {
     }
 
     render() {
-        return <PrivatePersonalDetailsContext.Provider value={this.props.privatePersonalDetails}>{this.props.children}</PrivatePersonalDetailsContext.Provider>;
+        return (
+            <PrivatePersonalDetailsContext.Provider value={this.props}>{this.props.children}</PrivatePersonalDetailsContext.Provider>
+        );
     }
 }
 
@@ -56,7 +69,7 @@ const Provider = compose(
         },
     }),
     withNetwork(),
-);
+)(PrivatePersonalDetailsProvider);
 
 Provider.displayName = 'withOnyx(PrivatePersonalDetailsProvider)';
 
@@ -83,4 +96,4 @@ export default function withPrivatePersonalDetails(WrappedComponent) {
     return WithPrivatePersonalDetails;
 }
 
-export {withPrivatePersonalDetailsPropTypes, Provider as PrivatePersonalDetailsProvider, PrivatePersonalDetailsContext};
+export {withPrivatePersonalDetailsPropTypes, withPrivatePersonalDetailsDefaultProps, Provider as PrivatePersonalDetailsProvider, PrivatePersonalDetailsContext};
