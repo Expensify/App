@@ -343,6 +343,7 @@ export default {
         amount: 'Amount',
         cash: 'Cash',
         split: 'Split',
+        request: 'Request',
         participants: 'Participants',
         splitBill: 'Split bill',
         requestMoney: 'Request money',

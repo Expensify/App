@@ -1,26 +1,81 @@
-import {Text, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import React, {useRef, useState} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import {PressableWithFeedback} from '../../../components/Pressable';
 import Colors from '../../../styles/colors';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import styles from '../../../styles/styles';
 import Shutter from '../../../../assets/images/shutter.svg';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import * as IOU from '../../../libs/actions/IOU';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import themeColors from '../../../styles/themes/default';
+import reportPropTypes from '../../reportPropTypes';
+import personalDetailsPropType from '../../personalDetailsPropType';
+import CONST from '../../../CONST';
+import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+
+const propTypes = {
+    /** Route params */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            iouType: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
+    }),
+
+    /** The report on which the request is initiated on */
+    report: reportPropTypes,
+
+    /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
+    iou: PropTypes.shape({
+        id: PropTypes.string,
+        amount: PropTypes.number,
+        currency: PropTypes.string,
+        participants: PropTypes.arrayOf(
+            PropTypes.shape({
+                accountID: PropTypes.number,
+                login: PropTypes.string,
+                isPolicyExpenseChat: PropTypes.bool,
+                isOwnPolicyExpenseChat: PropTypes.bool,
+                selected: PropTypes.bool,
+            }),
+        ),
+    }),
+
+    /**
+     * Current user personal details
+     */
+    currentUserPersonalDetails: personalDetailsPropType,
+};
+
+const defaultProps = {
+    route: {
+        params: {
+            iouType: '',
+            reportID: '',
+        },
+    },
+    report: {},
+    iou: {
+        id: '',
+        amount: 0,
+        currency: CONST.CURRENCY.USD,
+        participants: [],
+    },
+    ...withCurrentUserPersonalDetailsDefaultProps,
+};
 
 function ReceiptSelector(props) {
     const devices = useCameraDevices();
     const device = devices.back;
     const camera = useRef(null);
-    let flash = useState(false);
+    const [flash, setFlash] = useState(false);
 
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
@@ -57,14 +112,12 @@ function ReceiptSelector(props) {
     };
 
     const takePhoto = () => {
-        console.log(flash);
         camera.current
             .takePhoto({
                 qualityPrioritization: 'speed',
                 flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                console.log(photo.path);
                 IOU.setMoneyRequestReceipt(photo.path);
                 navigateToNextPage();
             })
@@ -75,8 +128,62 @@ function ReceiptSelector(props) {
 
     if (device == null) {
         return (
-            <View>
-                <Text style={[styles.textHero, styles.textWhite]}>Loading Camera..</Text>
+            <View style={[styles.flex1]}>
+                <View
+                    style={{
+                        flex: 1,
+                        overflow: 'hidden',
+                        padding: 10,
+                        borderRadius: 16,
+                        borderStyle: 'solid',
+                        borderWidth: 8,
+                        borderColor: Colors.greenAppBackground,
+                        backgroundColor: Colors.greenHighlightBackground,
+                        alignItems: 'center',
+                    }}
+                >
+                    <ActivityIndicator
+                        size="large"
+                        style={{flex: 1}}
+                        color={themeColors.textSupporting}
+                    />
+                </View>
+                <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter]}>
+                    <PressableWithFeedback
+                        accessibilityRole="button"
+                        style={[styles.alignItemsStart]}
+                        onPress={() => console.log('Gallery')}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={Expensicons.Gallery}
+                            fill={Colors.colorMuted}
+                        />
+                    </PressableWithFeedback>
+                    <PressableWithFeedback
+                        accessibilityRole="button"
+                        style={[styles.alignItemsCenter]}
+                        onPress={() => takePhoto()}
+                    >
+                        <Shutter
+                            width={90}
+                            height={90}
+                        />
+                    </PressableWithFeedback>
+                    <PressableWithFeedback
+                        accessibilityRole="button"
+                        style={[styles.alignItemsEnd]}
+                        onPress={() => setFlash(!flash)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={Expensicons.Flash}
+                            fill={flash ? Colors.yellow : Colors.colorMuted}
+                        />
+                    </PressableWithFeedback>
+                </View>
             </View>
         );
     }
@@ -85,7 +192,16 @@ function ReceiptSelector(props) {
         <View style={styles.flex1}>
             <Camera
                 ref={camera}
-                style={{flex: 1, overflow: 'hidden', padding: 10, borderRadius: 16, borderStyle: 'solid', borderWidth: 8, borderColor: Colors.greenAppBackground}}
+                style={{
+                    flex: 1,
+                    overflow: 'hidden',
+                    padding: 10,
+                    borderRadius: 16,
+                    borderStyle: 'solid',
+                    borderWidth: 8,
+                    backgroundColor: Colors.greenHighlightBackground,
+                    borderColor: Colors.greenAppBackground,
+                }}
                 device={device}
                 isActive
                 photo
@@ -100,6 +216,7 @@ function ReceiptSelector(props) {
                         height={32}
                         width={32}
                         src={Expensicons.Gallery}
+                        fill={Colors.colorMuted}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
@@ -115,12 +232,13 @@ function ReceiptSelector(props) {
                 <PressableWithFeedback
                     accessibilityRole="button"
                     style={[styles.alignItemsEnd]}
-                    onPress={() => (flash = !flash)}
+                    onPress={() => setFlash(!flash)}
                 >
                     <Icon
                         height={32}
                         width={32}
                         src={Expensicons.Flash}
+                        fill={flash ? Colors.yellow : Colors.colorMuted}
                     />
                 </PressableWithFeedback>
             </View>
@@ -128,11 +246,8 @@ function ReceiptSelector(props) {
     );
 }
 
-// ReceiptSelector.defaultProps = defaultProps;
-// ReceiptSelector.propTypes = propTypes;
+ReceiptSelector.defaultProps = defaultProps;
+ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default withOnyx({
-    // credentials: {key: ONYXKEYS.CREDENTIALS},
-    // session: {key: ONYXKEYS.SESSION},
-})(ReceiptSelector);
+export default ReceiptSelector;

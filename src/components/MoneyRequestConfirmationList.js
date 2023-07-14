@@ -120,16 +120,18 @@ function MoneyRequestConfirmationList(props) {
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
-        const text = translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-            amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode),
-        });
+        const text = props.receiptPath
+            ? translate('iou.request')
+            : translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
+                  amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode),
+              });
         return [
             {
                 text: text[0].toUpperCase() + text.slice(1),
                 value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
-    }, [props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, translate]);
+    }, [props.hasMultipleParticipants, props.iouAmount, props.receiptPath, props.iouCurrencyCode, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(props.participants, (participant) => participant.selected), [props.participants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
@@ -291,10 +293,10 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            {props.receipt ? (
+            {props.receiptPath ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: `file://${props.receipt.path}`}}
+                    source={{uri: `file://${props.receiptPath}`}}
                 />
             ) : (
                 <MenuItemWithTopDescription

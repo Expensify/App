@@ -342,6 +342,7 @@ export default {
         amount: 'Importe',
         cash: 'Efectivo',
         split: 'Dividir',
+        Request: 'Solicitar',
         participants: 'Participantes',
         splitBill: 'Dividir factura',
         requestMoney: 'Pedir dinero',
