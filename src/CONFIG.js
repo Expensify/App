@@ -11,7 +11,7 @@ const lodashGet = (config, key, defaultValue) => get(config, key, defaultValue).
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const expensifyChatURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_CHAT_URL', 'https://chat.expensify.com/'));
+const expensifyChatURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_CHAT_URL', 'https://new.expensify.com/'));
 const expensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
 const stagingExpensifyURL = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGING_EXPENSIFY_URL', 'https://staging.expensify.com/'));
 const stagingSecureExpensifyUrl = Url.addTrailingForwardSlash(lodashGet(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
