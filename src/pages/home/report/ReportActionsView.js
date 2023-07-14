@@ -62,6 +62,7 @@ function ReportActionsView(props) {
     const context = useContext(ReportScreenContext);
 
     useCopySelectionHelper();
+
     const reportScrollManager = useReportScrollManager();
 
     const didLayout = useRef(false);
