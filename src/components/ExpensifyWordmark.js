@@ -34,7 +34,7 @@ const logoComponents = {
 function ExpensifyWordmark(props) {
     const {environment} = useEnvironment();
     // PascalCase is required for React components, so capitalize the const here
-    
+
     const LogoComponent = logoComponents[environment] || AdHocLogo;
     return (
         <>
