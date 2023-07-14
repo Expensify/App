@@ -1,6 +1,5 @@
 import React from 'react';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
@@ -20,7 +19,7 @@ import themeColors from '../../../styles/themes/default';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import * as PolicyUtils from '../../../libs/PolicyUtils';
-import {policyPropTypes} from '../../workspace/withPolicy';
+import {policyPropTypes, policyDefaultProps} from '../../workspace/withPolicy';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -31,7 +30,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    policy: {},
+    ...policyDefaultProps,
 };
 
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};

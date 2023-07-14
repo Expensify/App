@@ -18,7 +18,7 @@ import CONST from '../CONST';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
-import {policyPropTypes} from './workspace/withPolicy';
+import {policyPropTypes, policyDefaultProps} from './workspace/withPolicy';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -37,7 +37,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    policy: {},
+    ...policyDefaultProps,
 };
 
 function ReportWelcomeMessagePage(props) {
