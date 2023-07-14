@@ -97,7 +97,6 @@ class AddPersonalBankAccountPage extends React.Component {
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
-        const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
 
         return (
             <ScreenWrapper
