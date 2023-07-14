@@ -171,10 +171,29 @@ function resendValidateCode(login = credentials.login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 errors: null,
+                loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
             },
         },
     ];
-    API.write('RequestNewValidateCode', {email: login}, {optimisticData});
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                loadingForm: null,
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                loadingForm: null,
+            },
+        },
+    ];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
 }
 
 /**
