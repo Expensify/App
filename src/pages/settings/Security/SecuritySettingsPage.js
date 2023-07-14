@@ -36,14 +36,7 @@ function SecuritySettingsPage(props) {
         {
             translationKey: 'twoFactorAuth.headerTitle',
             icon: Expensicons.Shield,
-            action: () => {
-                if (props.account.requiresTwoFactorAuth) {
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_IS_ENABLED);
-                } else {
-                    Session.toggleTwoFactorAuth(true);
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_CODES);
-                }
-            },
+            action: () => Navigation.navigate(ROUTES.SETTINGS_2FA_CODES)
         },
         {
             translationKey: 'passwordPage.changePassword',
