@@ -32,8 +32,6 @@ const webpack = {
 const metro = {
     presets: [require('metro-react-native-babel-preset')],
     plugins: [
-        'react-native-reanimated/plugin',
-
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
         // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
@@ -41,6 +39,8 @@ const metro = {
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
+        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
+        'react-native-reanimated/plugin',
     ],
 };
 

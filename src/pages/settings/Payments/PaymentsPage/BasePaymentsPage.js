@@ -288,6 +288,11 @@ function BasePaymentsPage(props) {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     };
 
+    const navigateToAddPaypalRoute = () => {
+        Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+        setShouldShowDefaultDeleteMenu(false);
+    };
+
     const listHeaderComponent = () => (
         <>
             {Permissions.canUseWallet(props.betas) && (
@@ -477,6 +482,13 @@ function BasePaymentsPage(props) {
                                     });
                                 }}
                                 text={translate('paymentsPage.setDefaultConfirmation')}
+                            />
+                        )}
+                        {isPayPalMeSelected && (
+                            <Button
+                                onPress={navigateToAddPaypalRoute()}
+                                style={[styles.mb4]}
+                                text={translate('common.edit')}
                             />
                         )}
                         <Button
