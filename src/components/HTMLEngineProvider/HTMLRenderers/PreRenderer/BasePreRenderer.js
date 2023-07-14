@@ -9,6 +9,7 @@ import {ShowContextMenuContext, showContextMenuForReport} from '../../../ShowCon
 import styles from '../../../../styles/styles';
 import * as ReportUtils from '../../../../libs/ReportUtils';
 import PressableWithoutFeedback from '../../../Pressable/PressableWithoutFeedback';
+import CONST from '../../../../CONST';
 
 const propTypes = {
     /** Press in handler for the code block */
@@ -42,7 +43,7 @@ const BasePreRenderer = forwardRef((props, ref) => {
                         onPressIn={props.onPressIn}
                         onPressOut={props.onPressOut}
                         onLongPress={(event) => showContextMenuForReport(event, anchor, report.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedRoom(report))}
-                        accessibilityRole="text"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         accessibilityLabel={props.translate('accessibilityHints.prestyledText')}
                     >
                         <View>

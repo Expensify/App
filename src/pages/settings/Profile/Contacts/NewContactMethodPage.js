@@ -94,7 +94,7 @@ function NewContactMethodPage(props) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
             }
 
-            if (!_.isEmpty(values.phoneOrEmail) && !(parsePhoneNumber(phoneLogin).possible || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
@@ -142,6 +142,8 @@ function NewContactMethodPage(props) {
                 <View style={[styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
@@ -153,6 +155,8 @@ function NewContactMethodPage(props) {
                     <View style={[styles.mb6]}>
                         <TextInput
                             label={props.translate('common.password')}
+                            accessibilityLabel={props.translate('common.password')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="password"
                             returnKeyType="done"
                         />
