@@ -206,7 +206,7 @@ function OptionRowLHN(props) {
                                             numberOfLines={1}
                                             accessibilityLabel={props.translate('accessibilityHints.lastChatMessagePreview')}
                                         >
-                                            {optionItem.alternateText}
+                                            {optionItem.isLastMessageDeletedParentAction ? props.translate('parentReportAction.deletedMessage') : optionItem.alternateText}
                                         </Text>
                                     ) : null}
                                 </View>

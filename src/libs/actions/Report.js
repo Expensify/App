@@ -262,6 +262,7 @@ function addActions(reportID, text = '', file) {
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
+        isLastMessageDeletedParentAction: null,
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server
@@ -899,14 +900,22 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
-    if (lastMessageText || lastMessageTranslationKey) {
-        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions).created;
+    if (reportAction.reportActionID && reportAction.childVisibleActionCount > 0) {
         optimisticReport = {
-            lastMessageTranslationKey,
-            lastMessageText,
-            lastVisibleActionCreated,
+            lastMessageTranslationKey: '',
+            lastMessageText: '',
+            isLastMessageDeletedParentAction: true,
         };
+    } else {
+        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+        if (lastMessageText || lastMessageTranslationKey) {
+            const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions).created;
+            optimisticReport = {
+                lastMessageTranslationKey,
+                lastMessageText,
+                lastVisibleActionCreated,
+            };
+        }
     }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
