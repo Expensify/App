@@ -56,6 +56,8 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             colorBackgroundSelector: themeColors.appBG,
             colorBackgroundDocTypeButton: themeColors.success,
             colorBackgroundDocTypeButtonHover: themeColors.successHover,
+            colorBackgroundButtonIconHover: themeColors.transparent,
+            colorBackgroundButtonIconActive: themeColors.transparent,
         },
         steps: [
             {

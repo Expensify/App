@@ -95,7 +95,7 @@ class ThreeDotsMenu extends Component {
                             }}
                             ref={(el) => (this.button = el)}
                             style={[styles.touchableButtonImage, ...this.props.iconStyles]}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={this.props.translate(this.props.iconTooltip)}
                         >
                             <Icon

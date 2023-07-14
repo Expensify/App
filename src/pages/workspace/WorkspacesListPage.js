@@ -156,7 +156,7 @@ class WorkspacesListPage extends Component {
             <OfflineWithFeedback
                 key={`${keyTitle}_${index}`}
                 pendingAction={item.pendingAction}
-                errorRowStyles={styles.offlineFeedback.menuItemErrorPadding}
+                errorRowStyles={styles.ph5}
                 onClose={item.dismissError}
                 errors={item.errors}
             >
