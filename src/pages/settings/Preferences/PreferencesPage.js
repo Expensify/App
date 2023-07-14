@@ -32,8 +32,6 @@ const propTypes = {
 
     /** The preferred language of the App */
     preferredLocale: PropTypes.string.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
