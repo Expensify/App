@@ -136,7 +136,7 @@ function TaskView(props) {
                 />
             )}
 
-            {props.shouldShowHorizontalRule && <View style={styles.taskHorizontalRule} />}
+            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
 }
