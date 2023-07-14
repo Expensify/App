@@ -16,9 +16,9 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import Switch from '../../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import withEnvironment, {environmentPropTypes} from '../../../components/withEnvironment';
 import TestToolMenu from '../../../components/TestToolMenu';
 import MenuItemWithTopDescription from '../../../components/MenuItemWithTopDescription';
+import useEnvironment from '../../../hooks/useEnvironment';
 
 const propTypes = {
     /** The chat priority mode */
@@ -34,7 +34,6 @@ const propTypes = {
     preferredLocale: PropTypes.string.isRequired,
 
     ...withLocalizePropTypes,
-    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -43,11 +42,12 @@ const defaultProps = {
 };
 
 function PreferencesPage(props) {
+    const {environment} = useEnvironment();
     const priorityModes = props.translate('priorityModePage.priorityModes');
     const languages = props.translate('languagePage.languages');
 
     // Enable additional test features in the staging or dev environments
-    const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.ADHOC, CONST.ENVIRONMENT.DEV], props.environment);
+    const shouldShowTestToolMenu = _.contains([CONST.ENVIRONMENT.STAGING, CONST.ENVIRONMENT.ADHOC, CONST.ENVIRONMENT.DEV], environment);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -103,7 +103,6 @@ PreferencesPage.defaultProps = defaultProps;
 PreferencesPage.displayName = 'PreferencesPage';
 
 export default compose(
-    withEnvironment,
     withLocalize,
     withOnyx({
         priorityMode: {
