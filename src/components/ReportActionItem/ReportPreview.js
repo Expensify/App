@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import Text from '../Text';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
@@ -141,7 +140,7 @@ function ReportPreview(props) {
                             )}
                         </View>
                     </View>
-                    {props.iouReport && isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && !props.iouReport.isWaitingOnBankAccount && (
+                    {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && !props.iouReport.isWaitingOnBankAccount && (
                         <SettlementButton
                             currency={props.iouReport.currency}
                             policyID={props.iouReport.policyID}

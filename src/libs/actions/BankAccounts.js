@@ -33,6 +33,10 @@ function openPlaidView() {
     clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
+/**
+ * Open the personal bank account setup flow, with an optional exitReportID to redirect to once the flow is finished.
+ * @param {String} exitReportID
+ */
 function openPersonalBankAccountSetupView(exitReportID) {
     clearPlaid().then(() => {
         if (exitReportID) {

@@ -230,9 +230,15 @@ function canEditReportAction(reportAction) {
  */
 function isSettled(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    return report && !report.hasOutstandingIOU && !report.isWaitingOnBankAccount;
+    return report.reportID && !report.hasOutstandingIOU && !report.isWaitingOnBankAccount;
 }
 
+/**
+ * Whether the current user is the submitter of the report
+ *
+ * @param {String} reportID
+ * @returns {Boolean}
+ */
 function isCurrentUserSubmitter(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
     return report.ownerEmail === currentUserEmail;
@@ -2336,7 +2342,13 @@ function getReportIDFromLink(url) {
     return reportID;
 }
 
-function hasIouWaitingOnCurrentUserBankAccount(chatReport) {
+/**
+ * Check if the chat report is linked to an iou that is waiting for the current user to add a credit bank account.
+ *
+ * @param {Object} chatReport
+ * @returns {Boolean}
+ */
+function hasIOUWaitingOnCurrentUserBankAccount(chatReport) {
     if (chatReport.iouReportID) {
         const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`];
         if (iouReport && iouReport.isWaitingOnBankAccount && iouReport.ownerAccountID === currentUserAccountID) {
@@ -2355,7 +2367,7 @@ function hasIouWaitingOnCurrentUserBankAccount(chatReport) {
  */
 function canRequestMoney(report) {
     // Prevent requesting money if pending iou waiting for their bank account already exists.
-    if (hasIouWaitingOnCurrentUserBankAccount(report)) {
+    if (hasIOUWaitingOnCurrentUserBankAccount(report)) {
         return false;
     }
     return !isPolicyExpenseChat(report) || report.isOwnPolicyExpenseChat;
@@ -2625,7 +2637,7 @@ export {
     getCommentLength,
     getParsedComment,
     getMoneyRequestOptions,
-    hasIouWaitingOnCurrentUserBankAccount,
+    hasIOUWaitingOnCurrentUserBankAccount,
     canRequestMoney,
     getWhisperDisplayNames,
     getWorkspaceAvatar,
