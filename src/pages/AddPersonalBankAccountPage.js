@@ -32,6 +32,9 @@ const propTypes = {
         /** Whether we should show the view that the bank account was successfully added */
         shouldShowSuccess: PropTypes.bool,
 
+        /** Any reportID we should redirect to at the end of the flow */
+        exitReportID: PropTypes.string,
+
         /** Whether the form is loading */
         isLoading: PropTypes.bool,
 
@@ -47,6 +50,7 @@ const defaultProps = {
         shouldShowSuccess: false,
         isLoading: false,
         plaidAccountID: '',
+        exitReportID: '',
     },
 };
 
@@ -56,6 +60,7 @@ class AddPersonalBankAccountPage extends React.Component {
 
         this.validate = this.validate.bind(this);
         this.submit = this.submit.bind(this);
+        this.exitFlow = this.exitFlow.bind(this);
 
         this.state = {
             selectedPlaidAccountID: '',
@@ -82,9 +87,9 @@ class AddPersonalBankAccountPage extends React.Component {
     }
 
     exitFlow() {
-        const reportID = Navigation.getTopmostReportId();
-        if (reportID) {
-            Navigation.dismissModal(reportID);
+        const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
+        if (exitReportID) {
+            Navigation.dismissModal(exitReportID);
         } else {
             Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
         }
@@ -92,6 +97,7 @@ class AddPersonalBankAccountPage extends React.Component {
 
     render() {
         const shouldShowSuccess = lodashGet(this.props, 'personalBankAccount.shouldShowSuccess', false);
+        const exitReportID = lodashGet(this.props, 'personalBankAccount.exitReportID');
 
         return (
             <ScreenWrapper

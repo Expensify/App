@@ -33,8 +33,13 @@ function openPlaidView() {
     clearPlaid().then(() => ReimbursementAccount.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID));
 }
 
-function openPersonalBankAccountSetupView() {
-    clearPlaid().then(() => Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT));
+function openPersonalBankAccountSetupView(exitReportID) {
+    clearPlaid().then(() => {
+        if (exitReportID) {
+            Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {exitReportID});
+        }
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+    });
 }
 
 function clearPersonalBankAccount() {

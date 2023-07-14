@@ -279,7 +279,7 @@ function ReportActionItem(props) {
             );
         } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
             const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
-            const shouldShowAddCreditBankAccountButton = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount();
+            const shouldShowAddCreditBankAccountButton = ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
 
             children = (
                 <ReportActionItemBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}>
@@ -288,7 +288,7 @@ function ReportActionItem(props) {
                             success
                             style={[styles.w100, styles.requestPreviewBox]}
                             text={props.translate('bankAccount.addBankAccount')}
-                            onPress={BankAccounts.openPersonalBankAccountSetupView}
+                            onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
                             pressOnEnter
                         />
                     ) : null}
