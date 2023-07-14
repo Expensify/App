@@ -325,7 +325,37 @@ function updateSelectedTimezone(selectedTimezone) {
  * Fetches additional personal data like legal name, date of birth, address
  */
 function openPersonalDetailsPage() {
-    API.read('OpenPersonalDetailsPage');
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read('OpenPersonalDetailsPage', {}, {optimisticData, successData, failureData});
 }
 
 /**

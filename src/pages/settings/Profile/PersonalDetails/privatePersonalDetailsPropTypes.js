@@ -13,6 +13,9 @@ export default PropTypes.shape({
         zip: PropTypes.string,
         country: PropTypes.string,
     }),
+
+    /** Is fetching data */
+    isLoading: PropTypes.bool,
 });
 
 const privatePersonalDetailsDefaultProps = {
@@ -27,6 +30,7 @@ const privatePersonalDetailsDefaultProps = {
         zip: '',
         country: '',
     },
+    isLoading: false,
 };
 
 export {privatePersonalDetailsDefaultProps};
