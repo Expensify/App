@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {FlatList, Keyboard} from 'react-native';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
@@ -27,17 +27,19 @@ function KeyboardDismissingFlatList(props) {
         };
     }, []);
 
+    const onScroll = useCallback(() => {
+        // Only dismiss the keyboard whenever the user scrolls the screen
+        if (!isScreenTouched) {
+            return;
+        }
+        Keyboard.dismiss();
+    }, [isScreenTouched]);
+
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
-            onScroll={() => {
-                // Only dismiss the keyboard whenever the user scrolls the screen
-                if (!isScreenTouched) {
-                    return;
-                }
-                Keyboard.dismiss();
-            }}
+            onScroll={onScroll}
         />
     );
 }
