@@ -91,6 +91,7 @@ function ReportActionItemSingle(props) {
         displayName = actorHint;
         avatarSource = UserUtils.getAvatar(delegateDetails.avatar, props.action.delegateAccountID);
     }
+    const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName, id: actorAccountID};
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -125,7 +126,7 @@ function ReportActionItemSingle(props) {
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
                     {props.shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
-                            mainAvatar={{source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName}}
+                            mainAvatar={icon}
                             secondaryAvatar={isWorkspaceActor ? {} : ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
                             mainTooltip={actorHint}
                             secondaryTooltip={ReportUtils.getPolicyName(props.report)}
@@ -135,11 +136,14 @@ function ReportActionItemSingle(props) {
                         <UserDetailsTooltip
                             accountID={actorAccountID}
                             delegateAccountID={props.action.delegateAccountID}
+                            icon={icon}
                         >
                             <View>
                                 <Avatar
                                     containerStyles={[styles.actionAvatar]}
-                                    source={avatarSource}
+                                    source={icon.source}
+                                    type={icon.type}
+                                    name={icon.name}
                                 />
                             </View>
                         </UserDetailsTooltip>

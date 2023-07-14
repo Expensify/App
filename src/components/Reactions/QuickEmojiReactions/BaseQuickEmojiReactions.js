@@ -34,12 +34,15 @@ const baseQuickEmojiReactionsPropTypes = {
      * ReportAction for EmojiPicker.
      */
     reportAction: PropTypes.object,
+
+    preferredLocale: PropTypes.string,
 };
 
 const baseQuickEmojiReactionsDefaultProps = {
     onWillShowPicker: () => {},
     onPressOpenPicker: () => {},
     reportAction: {},
+    preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
 const propTypes = {
@@ -57,7 +60,7 @@ function BaseQuickEmojiReactions(props) {
         <View style={styles.quickReactionsContainer}>
             {_.map(CONST.QUICK_REACTIONS, (emoji) => (
                 <Tooltip
-                    text={`:${emoji.name}:`}
+                    text={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, props.preferredLocale)}:`}
                     key={emoji.name}
                 >
                     <View>
@@ -86,6 +89,9 @@ BaseQuickEmojiReactions.defaultProps = defaultProps;
 export default withOnyx({
     preferredSkinTone: {
         key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+    },
+    preferredLocale: {
+        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     },
 })(BaseQuickEmojiReactions);
 
