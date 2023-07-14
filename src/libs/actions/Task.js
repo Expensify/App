@@ -10,6 +10,7 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
 
@@ -212,7 +213,17 @@ function completeTask(taskReportID, taskTitle) {
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            value: {
+                [completedTaskReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -225,7 +236,11 @@ function completeTask(taskReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[completedTaskReportAction.reportActionID]: {pendingAction: null}},
+            value: {
+                [completedTaskReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                },
+            },
         },
     ];
 
@@ -268,7 +283,17 @@ function reopenTask(taskReportID, taskTitle) {
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            value: {
+                [reopenedTaskReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -281,7 +306,11 @@ function reopenTask(taskReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[reopenedTaskReportAction.reportActionID]: {pendingAction: null}},
+            value: {
+                [reopenedTaskReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                },
+            },
         },
     ];
 
@@ -604,6 +633,18 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     ];
 
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
+
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -622,7 +663,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     ];
 
-    API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, failureData});
+    API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, successData, failureData});
 }
 
 /**

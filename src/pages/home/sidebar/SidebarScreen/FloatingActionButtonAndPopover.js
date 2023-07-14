@@ -91,11 +91,7 @@ function FloatingActionButtonAndPopover(props) {
      */
     const didScreenBecomeInactive = useCallback(() => {
         // When any other page is opened over LHN
-        if (!props.isFocused && prevIsFocused) {
-            return true;
-        }
-
-        return false;
+        return !props.isFocused && prevIsFocused;
     }, [props.isFocused, prevIsFocused]);
 
     /**
@@ -106,9 +102,7 @@ function FloatingActionButtonAndPopover(props) {
             if (!props.isFocused && props.isSmallScreenWidth) {
                 return;
             }
-
             setIsCreateMenuActive(true);
-
             props.onShowCreateMenu();
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -174,6 +168,7 @@ function FloatingActionButtonAndPopover(props) {
             hideCreateMenu();
         },
     }));
+
     // Workspaces are policies with type === 'free'
     const workspaces = _.filter(props.allPolicies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE);
 
@@ -214,24 +209,16 @@ function FloatingActionButtonAndPopover(props) {
                               },
                           ]
                         : []),
-                    ...(Permissions.canUseIOU(props.betas)
-                        ? [
-                              {
-                                  icon: Expensicons.MoneyCircle,
-                                  text: props.translate('iou.requestMoney'),
-                                  onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
-                              },
-                          ]
-                        : []),
-                    ...(Permissions.canUseIOU(props.betas)
-                        ? [
-                              {
-                                  icon: Expensicons.Receipt,
-                                  text: props.translate('iou.splitBill'),
-                                  onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
-                              },
-                          ]
-                        : []),
+                    {
+                        icon: Expensicons.MoneyCircle,
+                        text: props.translate('iou.requestMoney'),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
+                    },
+                    {
+                        icon: Expensicons.Receipt,
+                        text: props.translate('iou.splitBill'),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
+                    },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
                               {

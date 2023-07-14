@@ -192,6 +192,8 @@ class EmojiPickerMenu extends Component {
                 <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                     <TextInput
                         label={this.props.translate('common.search')}
+                        accessibilityLabel={this.props.translate('common.search')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         onChangeText={this.filterEmojis}
                     />
                 </View>
@@ -221,6 +223,7 @@ class EmojiPickerMenu extends Component {
                     removeClippedSubviews={false}
                     contentContainerStyle={styles.flexGrow1}
                     ListEmptyComponent={<Text style={[styles.disabledText]}>{this.props.translate('common.noResultsFound')}</Text>}
+                    alwaysBounceVertical={this.state.filteredEmojis.length !== 0}
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
