@@ -1,12 +1,12 @@
 import _ from 'underscore';
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import {windowDimensionsPropTypes} from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
@@ -14,8 +14,7 @@ import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopover
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
-    // 2) windowDimensionsPropTypes (which are replaced by useWindowDimensions)
-    ..._.omit(popoverPropTypes, ['anchorPosition', ..._.keys(windowDimensionsPropTypes)]),
+    ..._.omit(popoverPropTypes, ['anchorPosition']),
 
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
@@ -37,6 +36,8 @@ const propTypes = {
         height: PropTypes.number,
         width: PropTypes.number,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -62,9 +63,9 @@ const defaultProps = {
 
 function PopoverWithMeasuredContent(props) {
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const [popoverWidth, setPopoverWidth] = useState(props.popoverDimensions.width);
-    const [popoverHeight, setPopoverHeight] = useState(props.popoverDimensions.height);
-    const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
+    const popoverWidth = useRef(props.popoverDimensions.width);
+    const popoverHeight = useRef(props.popoverDimensions.height);
+    const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth.current > 0 && popoverHeight.current > 0);
     const [isVisible, setIsVisible] = useState(false);
 
     /**
@@ -74,13 +75,17 @@ function PopoverWithMeasuredContent(props) {
     useEffect(() => {
         // When Popover is shown recalculate
         if (!isVisible && props.isVisible) {
-            SetIsContentMeasured(lodashGet(props, 'popoverDimensions.width', 0) > 0 && lodashGet(props, 'popoverDimensions.height', 0) > 0);
-            SetIsVisible(true);
+            // We use additional function to guarantee that async state change would be completed
+            setIsVisible(() => {
+                setIsContentMeasured(lodashGet(props, 'popoverDimensions.width', 0) > 0 && lodashGet(props, 'popoverDimensions.height', 0) > 0);
+                return true;
+            });
         }
         if (!props.isVisible) {
-            SetIsVisible(false);
+            setIsVisible(false);
         }
-    }, [props, isVisible]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.popoverDimensions.width, props.popoverDimensions.height, props.isVisible, isVisible]);
 
     /**
      * Measure the size of the popover's content.
@@ -88,25 +93,20 @@ function PopoverWithMeasuredContent(props) {
      * @param {Object} nativeEvent
      */
     const measurePopover = ({nativeEvent}) => {
-        setPopoverWidth(nativeEvent.layout.width);
-        setPopoverHeight(nativeEvent.layout.height);
-        SetIsContentMeasured(true);
+        popoverWidth.current = nativeEvent.layout.width;
+        popoverHeight.current = nativeEvent.layout.height;
+        setIsContentMeasured(true);
     };
 
-    /**
-     * Calculate the adjusted position of the popover.
-     *
-     * @returns {Object}
-     */
-    const calculateAdjustedAnchorPosition = () => {
+    const adjustedAnchorPosition = useMemo(() => {
         let horizontalConstraint;
         switch (props.anchorAlignment.horizontal) {
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
-                horizontalConstraint = {left: props.anchorPosition.horizontal - popoverWidth};
+                horizontalConstraint = {left: props.anchorPosition.horizontal - popoverWidth.current};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 horizontalConstraint = {
-                    left: Math.floor(props.anchorPosition.horizontal - popoverWidth / 2),
+                    left: Math.floor(props.anchorPosition.horizontal - popoverWidth.current / 2),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
@@ -117,11 +117,11 @@ function PopoverWithMeasuredContent(props) {
         let verticalConstraint;
         switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
-                verticalConstraint = {top: props.anchorPosition.vertical - popoverHeight};
+                verticalConstraint = {top: props.anchorPosition.vertical - popoverHeight.current};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.CENTER:
                 verticalConstraint = {
-                    top: Math.floor(props.anchorPosition.vertical - popoverHeight / 2),
+                    top: Math.floor(props.anchorPosition.vertical - popoverHeight.current / 2),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP:
@@ -133,11 +133,10 @@ function PopoverWithMeasuredContent(props) {
             ...horizontalConstraint,
             ...verticalConstraint,
         };
-    };
+    }, [props.anchorPosition, props.anchorAlignment]);
 
-    const adjustedAnchorPosition = calculateAdjustedAnchorPosition();
-    const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
-    const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
+    const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth.current, windowWidth);
+    const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight.current, windowHeight);
     const shiftedAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
         top: adjustedAnchorPosition.top + verticalShift,
@@ -170,4 +169,9 @@ PopoverWithMeasuredContent.propTypes = propTypes;
 PopoverWithMeasuredContent.defaultProps = defaultProps;
 PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
 
-export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => prevProps.isVisible && !_.isEqual(prevProps, nextProps));
+export default React.memo(
+    withWindowDimensions(PopoverWithMeasuredContent),
+    (prevProps, nextProps) =>
+        (prevProps.isVisible && (nextProps.windowWidth !== prevProps.windowWidth || nextProps.windowHeight !== prevProps.windowHeight)) ||
+        !_.isEqual(_.omit(prevProps, ['windowWidth', 'windowHeight']), _.omit(nextProps, ['windowWidth', 'windowHeight'])),
+);
