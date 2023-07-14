@@ -1,5 +1,5 @@
-import {useContext} from "react";
-import {PrivatePersonalDetailsContext} from "../components/withPrivatePersonalDetails";
+import {useContext} from 'react';
+import {PrivatePersonalDetailsContext} from '../components/withPrivatePersonalDetails';
 
 /**
  * Hook for fetching private personal details

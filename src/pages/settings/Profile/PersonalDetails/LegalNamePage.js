@@ -15,12 +15,12 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
-import FullscreenLoadingIndicator from "../../../../components/FullscreenLoadingIndicator";
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 import withPrivatePersonalDetails, {
     // eslint-disable-next-line import/named
     withPrivatePersonalDetailsDefaultProps,
-    withPrivatePersonalDetailsPropTypes
-} from "../../../../components/withPrivatePersonalDetails";
+    withPrivatePersonalDetailsPropTypes,
+} from '../../../../components/withPrivatePersonalDetails';
 
 const propTypes = {
     /* Onyx Props */
@@ -106,7 +106,4 @@ function LegalNamePage(props) {
 LegalNamePage.propTypes = propTypes;
 LegalNamePage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withPrivatePersonalDetails,
-)(LegalNamePage);
+export default compose(withLocalize, withPrivatePersonalDetails)(LegalNamePage);

@@ -10,11 +10,8 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import {withNetwork} from '../../../../components/OnyxProvider';
-import withPrivatePersonalDetails, {
-    withPrivatePersonalDetailsDefaultProps,
-    withPrivatePersonalDetailsPropTypes
-} from "../../../../components/withPrivatePersonalDetails";
-import FullscreenLoadingIndicator from "../../../../components/FullscreenLoadingIndicator";
+import withPrivatePersonalDetails, {withPrivatePersonalDetailsDefaultProps, withPrivatePersonalDetailsPropTypes} from '../../../../components/withPrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -97,7 +94,4 @@ PersonalDetailsInitialPage.propTypes = propTypes;
 PersonalDetailsInitialPage.defaultProps = defaultProps;
 PersonalDetailsInitialPage.displayName = 'PersonalDetailsInitialPage';
 
-export default compose(
-    withLocalize,
-    withPrivatePersonalDetails,
-)(PersonalDetailsInitialPage);
+export default compose(withLocalize, withPrivatePersonalDetails)(PersonalDetailsInitialPage);

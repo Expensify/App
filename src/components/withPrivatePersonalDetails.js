@@ -53,9 +53,7 @@ class PrivatePersonalDetailsProvider extends React.Component {
     }
 
     render() {
-        return (
-            <PrivatePersonalDetailsContext.Provider value={this.props}>{this.props.children}</PrivatePersonalDetailsContext.Provider>
-        );
+        return <PrivatePersonalDetailsContext.Provider value={this.props}>{this.props.children}</PrivatePersonalDetailsContext.Provider>;
     }
 }
 

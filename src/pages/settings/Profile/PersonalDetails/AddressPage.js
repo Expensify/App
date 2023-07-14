@@ -19,11 +19,8 @@ import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
-import withPrivatePersonalDetails, {
-    withPrivatePersonalDetailsDefaultProps,
-    withPrivatePersonalDetailsPropTypes
-} from "../../../../components/withPrivatePersonalDetails";
-import FullscreenLoadingIndicator from "../../../../components/FullscreenLoadingIndicator";
+import withPrivatePersonalDetails, {withPrivatePersonalDetailsDefaultProps, withPrivatePersonalDetailsPropTypes} from '../../../../components/withPrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -200,7 +197,4 @@ function AddressPage(props) {
 AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withPrivatePersonalDetails,
-)(AddressPage);
+export default compose(withLocalize, withPrivatePersonalDetails)(AddressPage);

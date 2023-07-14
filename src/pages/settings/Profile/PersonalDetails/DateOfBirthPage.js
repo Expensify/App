@@ -13,11 +13,8 @@ import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import styles from '../../../../styles/styles';
-import withPrivatePersonalDetails, {
-    withPrivatePersonalDetailsDefaultProps,
-    withPrivatePersonalDetailsPropTypes
-} from "../../../../components/withPrivatePersonalDetails";
-import FullscreenLoadingIndicator from "../../../../components/FullscreenLoadingIndicator";
+import withPrivatePersonalDetails, {withPrivatePersonalDetailsDefaultProps, withPrivatePersonalDetailsPropTypes} from '../../../../components/withPrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -85,7 +82,4 @@ DateOfBirthPage.propTypes = propTypes;
 DateOfBirthPage.defaultProps = defaultProps;
 DateOfBirthPage.displayName = 'DateOfBirthPage';
 
-export default compose(
-    withLocalize,
-    withPrivatePersonalDetails,
-)(DateOfBirthPage);
+export default compose(withLocalize, withPrivatePersonalDetails)(DateOfBirthPage);
