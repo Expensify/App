@@ -201,24 +201,16 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   },
                               ]
                             : []),
-                        ...(Permissions.canUseIOU(this.props.betas)
-                            ? [
-                                  {
-                                      icon: Expensicons.MoneyCircle,
-                                      text: this.props.translate('iou.requestMoney'),
-                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
-                                  },
-                              ]
-                            : []),
-                        ...(Permissions.canUseIOU(this.props.betas)
-                            ? [
-                                  {
-                                      icon: Expensicons.Receipt,
-                                      text: this.props.translate('iou.splitBill'),
-                                      onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
-                                  },
-                              ]
-                            : []),
+                        {
+                            icon: Expensicons.MoneyCircle,
+                            text: this.props.translate('iou.requestMoney'),
+                            onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
+                        },
+                        {
+                            icon: Expensicons.Receipt,
+                            text: this.props.translate('iou.splitBill'),
+                            onSelected: () => this.interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
+                        },
                         ...(Permissions.canUseTasks(this.props.betas)
                             ? [
                                   {
