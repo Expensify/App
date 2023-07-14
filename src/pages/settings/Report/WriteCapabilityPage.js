@@ -20,16 +20,14 @@ import themeColors from '../../../styles/themes/default';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import * as PolicyUtils from '../../../libs/PolicyUtils';
-import policyPropType from '../../policyPropType';
+import {policyPropTypes} from '../../workspace/withPolicy';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...policyPropTypes,
 
     /** The report for which we are setting write capability */
     report: reportPropTypes.isRequired,
-
-    /** The policy of which the room os a part of */
-    policy: PropTypes.objectOf(policyPropType),
 };
 
 const defaultProps = {
@@ -51,11 +49,11 @@ function WriteCapabilityPage(props) {
         boldStyle: value === (props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL),
     }));
 
-    const canAccess = !ReportUtils.isAdminRoom(props.report) && PolicyUtils.isPolicyAdmin(props.policy);
+    const isAbleToEdit = !ReportUtils.isAdminRoom(props.report) && PolicyUtils.isPolicyAdmin(props.policy);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView shouldShow={!canAccess}>
+            <FullPageNotFoundView shouldShow={!isAbleToEdit}>
                 <HeaderWithBackButton
                     title={props.translate('writeCapabilityPage.label')}
                     shouldShowBackButton

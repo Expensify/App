@@ -18,10 +18,11 @@ import CONST from '../CONST';
 import FullPageNotFoundView from '../components/BlockingViews/FullPageNotFoundView';
 import Form from '../components/Form';
 import * as PolicyUtils from '../libs/PolicyUtils';
-import policyPropType from './policyPropType';
+import {policyPropTypes} from './workspace/withPolicy';
 
 const propTypes = {
     ...withLocalizePropTypes,
+    ...policyPropTypes,
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
@@ -33,9 +34,6 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }).isRequired,
-
-    /** The policy of which the room os a part of */
-    policy: PropTypes.objectOf(policyPropType),
 };
 
 const defaultProps = {
