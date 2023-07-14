@@ -452,9 +452,11 @@ type Foo = {
 
 ## Exception to Rules
 
-Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. Internal engineers will assess the case and suggest alternative or grants an exception. When an exception is granted, link the relevant Slack conversation in your pull request. Suppress ESLint or TypeScript warnings/errors with comments if necessary.
+Most of the rules are enforced in ESLint or checked by TypeScript. If you think your particular situation warrants an exception, post the context in the `#expensify-open-source` Slack channel with your message prefixed with `TS EXCEPTION:`. The internal engineer assigned to the PR should be the one that approves each exception, however all discussion regarding granting exceptions should happen in the public channel instead of the GitHub PR page so that the TS migration team can access them easily.
 
-This rule will apply until the migration is done. After the migration, exceptions are assessed and granted by PR reviewers.
+When an exception is granted, link the relevant Slack conversation in your PR. Suppress ESLint or TypeScript warnings/errors with comments if necessary.
+
+This rule will apply until the migration is done. After the migration, discussion on granting exception can happen inside the PR page and doesn't need take place in the Slack channel.
 
 ## Communication Items
 

@@ -107,9 +107,9 @@
       return <Animated.View style={style} />;
   }
 
-  function MyComponent() {
+  function App() {
       const anim = useRef(new Animated.Value(0)).current;
-      return <Component style={{opacity: anim.interpolate({...})}} />;
+      return <MyComponent style={{opacity: anim.interpolate({...})}} />;
   }
   ```
 
@@ -221,7 +221,7 @@
 
 - [1.9](#higher-order-components) **Higher Order Components**
 
-  Typing HOCs is hard. Refer to [this articles](https://medium.com/@hayata.suenaga/ts-higher-order-components-30c38dd19ae8) for detailed guideline on typing HOCs for different usages of HOCs.
+  Typing HOCs is hard. Refer to [this article](https://medium.com/@hayata.suenaga/ts-higher-order-components-30c38dd19ae8) for detailed guideline on typing HOCs for different usages of HOCs.
 
 <a name="function-overloading"></a><a name="1.10"></a>
 
