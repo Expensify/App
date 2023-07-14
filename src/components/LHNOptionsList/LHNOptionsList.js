@@ -31,8 +31,6 @@ const defaultProps = {
 };
 
 function LHNOptionsList(props) {
-    const data = useMemo(() => props.data, [props.data]);
-
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -60,7 +58,7 @@ function LHNOptionsList(props) {
      *
      * @return {Component}
      */
-    const renderItem = ({item, index}) => (
+    const renderItem = ({item}) => (
         <OptionRowLHNData
             reportID={item}
             viewMode={props.optionMode}
@@ -76,7 +74,7 @@ function LHNOptionsList(props) {
                 keyboardShouldPersistTaps="always"
                 contentContainerStyle={props.contentContainerStyles}
                 showsVerticalScrollIndicator={false}
-                data={data}
+                data={props.data}
                 keyExtractor={(item) => item}
                 stickySectionHeadersEnabled={false}
                 renderItem={renderItem}
