@@ -3523,7 +3523,7 @@ const styles = {
     },
 
     addressPickerDescription: {
-        fontSize: variables.fontSizeSmall,
+        fontSize: variables.fontSizeNormal,
     },
 };
 

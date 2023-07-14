@@ -73,10 +73,6 @@ export default {
     getReportAttachmentRoute: (reportID, source) => `r/${reportID}/attachment?source=${encodeURI(source)}`,
     SELECT_YEAR: 'select-year',
     getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
-    SELECT_COUNTRY: 'select-country',
-    getCountrySelectionRoute: (key, backTo) => `select-country?key=${key}&backTo=${backTo}`,
-    SELECT_STATE: 'select-states',
-    getUsaStateSelectionRoute: (key, backTo) => `select-states?key=${key}&backTo=${encodeURIComponent(backTo)}`,
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',

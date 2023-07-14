@@ -1,11 +1,10 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import React, {useRef, useState, useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import Form from '../../../../components/Form';
@@ -15,7 +14,6 @@ import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import useNavigationStorage from '../../../../hooks/useNavigationStorage';
 import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
@@ -60,31 +58,14 @@ function updateAddress(values) {
 }
 
 function AddressPage({privatePersonalDetails}) {
-    const countryISO = useRef(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US).current;
     const {translate} = useLocalize();
-    const [collect] = useNavigationStorage('country');
-    const [currentCountry, setCurrentCountry] = useState(collect() || countryISO);
+    const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
     const isUSAForm = currentCountry === CONST.COUNTRY.US;
-
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
     const address = lodashGet(privatePersonalDetails, 'address') || {};
     const [street1, street2] = (address.street || '').split('\n');
-
-    const onAddressChange = () => {
-        const savedCountry = collect();
-        setCurrentCountry(savedCountry);
-    };
-
-    useFocusEffect(
-        useCallback(() => {
-            const savedCountry = collect();
-            if (savedCountry && savedCountry !== currentCountry) {
-                setCurrentCountry(savedCountry);
-            }
-        }, [collect, currentCountry]),
-    );
 
     /**
      * @param {Function} translate - translate function
@@ -152,7 +133,6 @@ function AddressPage({privatePersonalDetails}) {
                         label={translate('common.addressLine', {lineNumber: 1})}
                         defaultValue={street1 || ''}
                         isLimitedToUSA={false}
-                        onAddressChange={onAddressChange}
                         renamedInputKeys={{
                             street: 'addressLine1',
                             street2: 'addressLine2',
@@ -179,6 +159,7 @@ function AddressPage({privatePersonalDetails}) {
                         inputID="country"
                         countryISO={address.country}
                         defaultValue={PersonalDetails.getCountryISO(address.country)}
+                        onCountryUpdated={setCurrentCountry}
                     />
                 </View>
                 {isUSAForm ? (

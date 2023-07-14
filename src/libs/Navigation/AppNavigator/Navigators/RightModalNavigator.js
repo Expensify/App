@@ -90,14 +90,6 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.FlagCommentStackNavigator}
             />
             <Stack.Screen
-                name="Select_Country"
-                component={ModalStackNavigators.CountrySelectorStackNavigator}
-            />
-            <Stack.Screen
-                name="Select_State"
-                component={ModalStackNavigators.UsaStateSelectorStackNavigator}
-            />
-            <Stack.Screen
                 name="EditRequest"
                 component={ModalStackNavigators.EditRequestStackNavigator}
             />

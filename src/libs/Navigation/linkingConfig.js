@@ -337,16 +337,6 @@ export default {
                             FlagComment_Root: ROUTES.FLAG_COMMENT,
                         },
                     },
-                    Select_Country: {
-                        screens: {
-                            CountrySelector_Root: ROUTES.SELECT_COUNTRY,
-                        },
-                    },
-                    Select_State: {
-                        screens: {
-                            StateSelector_Root: ROUTES.SELECT_STATE,
-                        },
-                    },
                     EditRequest: {
                         screens: {
                             EditRequest_Root: ROUTES.EDIT_REQUEST,

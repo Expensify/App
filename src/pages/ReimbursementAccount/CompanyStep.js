@@ -25,7 +25,6 @@ import AddressForm from './AddressForm';
 import Form from '../../components/Form';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
-import * as NavigationStorage from '../../hooks/useNavigationStorage';
 
 const propTypes = {
     ...StepPropTypes,
@@ -55,7 +54,6 @@ class CompanyStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.onCountryStateUpdate = this.onCountryStateUpdate.bind(this);
         this.validate = this.validate.bind(this);
 
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
@@ -63,10 +61,6 @@ class CompanyStep extends React.Component {
 
     componentWillUnmount() {
         BankAccounts.resetReimbursementAccount();
-    }
-
-    onCountryStateUpdate(selectedCountryState) {
-        NavigationStorage.saveIntoStorage('addressState', selectedCountryState);
     }
 
     /**
@@ -205,7 +199,6 @@ class CompanyStep extends React.Component {
                             state: 'addressState',
                             zipCode: 'addressZipCode',
                         }}
-                        onStateChange={this.onCountryStateUpdate}
                         shouldSaveDraft
                         streetTranslationKey="common.companyAddress"
                     />

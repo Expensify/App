@@ -707,26 +707,6 @@ const FlagCommentStackNavigator = createModalStackNavigator([
     },
 ]);
 
-const CountrySelectorStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const CountrySelectorPage = require('../../../pages/CountrySelectorPage').default;
-            return CountrySelectorPage;
-        },
-        name: 'CountrySelector_Root',
-    },
-]);
-
-const UsaStateSelectorStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const stateSelectorPage = require('../../../pages/StateSelectorPage').default;
-            return stateSelectorPage;
-        },
-        name: 'StateSelector_Root',
-    },
-]);
-
 const EditRequestStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -757,7 +737,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
-    CountrySelectorStackNavigator,
-    UsaStateSelectorStackNavigator,
     EditRequestStackNavigator,
 };

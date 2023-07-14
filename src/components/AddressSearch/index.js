@@ -66,8 +66,6 @@ const propTypes = {
     /** Maximum number of characters allowed in search input */
     maxInputLength: PropTypes.number,
 
-    onAddressChange: PropTypes.func,
-
     ...withLocalizePropTypes,
 };
 
@@ -88,7 +86,6 @@ const defaultProps = {
         zipCode: 'addressZipCode',
     },
     maxInputLength: undefined,
-    onAddressChange: () => {},
 };
 
 // Do not convert to class component! It's been tried before and presents more challenges than it's worth.
@@ -200,14 +197,8 @@ function AddressSearch(props) {
                 const inputKey = lodashGet(props.renamedInputKeys, key, key);
                 props.onInputChange(value, inputKey);
             });
-            if (props.onAddressChange) {
-                props.onAddressChange();
-            }
         } else {
             props.onInputChange(values);
-            if (props.onAddressChange) {
-                props.onAddressChange();
-            }
         }
     };
 
