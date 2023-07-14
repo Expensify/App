@@ -93,7 +93,7 @@ function HeaderWithBackButton({
                         textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
                     />
                 )}
-                <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
                     {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>
                             <PressableWithoutFeedback
@@ -120,7 +120,6 @@ function HeaderWithBackButton({
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
-
                     {shouldShowGetAssistanceButton && (
                         <Tooltip text={translate('getAssistancePage.questionMarkButtonTooltip')}>
                             <PressableWithoutFeedback
@@ -136,9 +135,7 @@ function HeaderWithBackButton({
                             </PressableWithoutFeedback>
                         </Tooltip>
                     )}
-
                     {shouldShowPinButton && <PinButton report={report} />}
-
                     {shouldShowThreeDotsButton && (
                         <ThreeDotsMenu
                             menuItems={threeDotsMenuItems}
@@ -147,7 +144,6 @@ function HeaderWithBackButton({
                             anchorAlignment={threeDotsAnchorAlignment}
                         />
                     )}
-
                     {shouldShowCloseButton && (
                         <Tooltip text={translate('common.close')}>
                             <PressableWithoutFeedback
