@@ -29,9 +29,6 @@ const propTypes = {
         /** Whether or not the user is subscribed to news updates */
         isSubscribedToNewsletter: PropTypes.bool,
     }),
-
-    /** The preferred language of the App */
-    preferredLocale: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
