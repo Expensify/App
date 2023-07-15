@@ -87,14 +87,16 @@ function SignInPage({credentials, account}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
 
-    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions({
-        hasLogin: Boolean(credentials.login),
-        hasValidateCode: Boolean(credentials.validateCode),
-        hasAccount: !_.isEmpty(account),
-        isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
-        isAccountValidated: Boolean(account.validated),
-        hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
-    });
+    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
+        {
+            hasLogin: Boolean(credentials.login),
+            hasValidateCode: Boolean(credentials.validateCode),
+            hasAccount: !_.isEmpty(account),
+            isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
+            isAccountValidated: Boolean(account.validated),
+            hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
+        },
+    );
 
     let welcomeHeader;
     let welcomeText;
