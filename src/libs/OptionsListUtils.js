@@ -16,6 +16,7 @@ import * as LoginUtils from './LoginUtils';
 import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as ReportActionUtils from './ReportActionsUtils';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
 /**
  * OptionsListUtils is used to build a list options passed to the OptionsList component. Several different UI views can
@@ -149,11 +150,18 @@ function addSMSDomainIfPhoneNumber(login) {
  *
  * @param {Array<Number>} accountIDs
  * @param {Object} personalDetails
+ * @param {Object} defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns {Object}
  */
-function getAvatarsForAccountIDs(accountIDs, personalDetails) {
+function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}) {
+    const reversedDefaultValues = {};
+    _.map(Object.entries(defaultValues), (item) => {
+        reversedDefaultValues[item[1]] = item[0];
+    });
+
     return _.map(accountIDs, (accountID) => {
-        const userPersonalDetail = lodashGet(personalDetails, accountID, {login: '', accountID, avatar: ''});
+        const login = lodashGet(reversedDefaultValues, accountID, '');
+        const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
@@ -250,9 +258,6 @@ function getParticipantNames(personalDetailList) {
     // `_.contains(Array, value)` for an Array with n members.
     const participantNames = new Set();
     _.each(personalDetailList, (participant) => {
-        if (participant.accountID) {
-            participantNames.add(participant.accountID.toString());
-        }
         if (participant.login) {
             participantNames.add(participant.login.toLowerCase());
         }
@@ -380,8 +385,8 @@ function getLastMessageTextForReport(report) {
     const lastReportAction = lastReportActions[report.reportID];
     let lastMessageTextFromReport = '';
 
-    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
+        lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
@@ -492,7 +497,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || report.lastActorEmail,
+                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
                 policyName: ReportUtils.getPolicyName(report),
             });
         }
@@ -539,12 +544,18 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isChatRoom = false) {
-    const searchWords = _.compact(uniqFast([searchValue, ..._.map(searchValue.replace(/,/g, ' ').split(' '), (word) => word.trim())]));
+    const searchWords = new Set(searchValue.replace(/,/g, ' ').split(' '));
     const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-    return _.some(searchWords, (word) => {
+    let matching = true;
+    searchWords.forEach((word) => {
+        // if one of the word is not matching, we don't need to check further
+        if (!matching) {
+            return;
+        }
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        return matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
+        matching = matchRegex.test(valueToSearch) || (!isChatRoom && participantNames.has(word));
     });
+    return matching;
 }
 
 /**
@@ -768,7 +779,7 @@ function getOptions(
 
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
+    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase());
 
     if (
         searchValue &&
@@ -801,7 +812,7 @@ function getOptions(
         userToInvite.icons = [
             {
                 source: UserUtils.getAvatar('', optimisticAccountID),
-                login: searchValue,
+                name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ];

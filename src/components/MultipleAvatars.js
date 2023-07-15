@@ -112,6 +112,10 @@ function MultipleAvatars(props) {
             <UserDetailsTooltip
                 accountID={props.icons[0].id}
                 icon={props.icons[0]}
+                fallbackUserDetails={{
+                    displayName: props.icons[0].name,
+                    avatar: props.icons[0].avatar,
+                }}
             >
                 <View style={avatarContainerStyles}>
                     <Avatar
@@ -136,8 +140,8 @@ function MultipleAvatars(props) {
         // Height of one avatar + border space
         const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
         if (props.icons.length > 4) {
-            // Width of overlapping avatars + border space
-            width = oneAvatarSize.width * 3 + oneAvatarBorderWidth * 8;
+            const length = avatarRows.length > 1 ? Math.max(avatarRows[0].length, avatarRows[1].length) : avatarRows[0].length;
+            width = oneAvatarSize.width + overlapSize * 2 * (length - 1) + oneAvatarBorderWidth * (length * 2);
         } else {
             // one avatar width + overlaping avatar sizes + border space
             width = oneAvatarSize.width + overlapSize * 2 * (props.icons.length - 1) + oneAvatarBorderWidth * (props.icons.length * 2);
@@ -158,6 +162,10 @@ function MultipleAvatars(props) {
                                 key={`stackedAvatars-${index}`}
                                 accountID={icon.id}
                                 icon={icon}
+                                fallbackUserDetails={{
+                                    displayName: icon.name,
+                                    avatar: icon.avatar,
+                                }}
                             >
                                 <View
                                     style={[
@@ -213,7 +221,10 @@ function MultipleAvatars(props) {
                                             StyleUtils.getWidthStyle(oneAvatarSize.width),
                                         ]}
                                     >
-                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
+                                        <Text
+                                            selectable={false}
+                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
+                                        >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
                                 </View>
                             </Tooltip>
@@ -226,6 +237,10 @@ function MultipleAvatars(props) {
                         <UserDetailsTooltip
                             accountID={props.icons[0].id}
                             icon={props.icons[0]}
+                            fallbackUserDetails={{
+                                displayName: props.icons[0].name,
+                                avatar: props.icons[0].avatar,
+                            }}
                         >
                             {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                             <View>
@@ -244,6 +259,10 @@ function MultipleAvatars(props) {
                                 <UserDetailsTooltip
                                     accountID={props.icons[1].id}
                                     icon={props.icons[1]}
+                                    fallbackUserDetails={{
+                                        displayName: props.icons[1].name,
+                                        avatar: props.icons[1].avatar,
+                                    }}
                                 >
                                     <View>
                                         <Avatar
