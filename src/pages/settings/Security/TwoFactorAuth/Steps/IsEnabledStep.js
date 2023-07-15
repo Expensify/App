@@ -46,7 +46,7 @@ function IsEnabledStep(props) {
                     title={props.translate('twoFactorAuth.disableTwoFactorAuth')}
                     onConfirm={() => {
                         setIsConfirmModalVisible(false);
-                        props.setStep(4);
+                        props.setStep();
                         Session.toggleTwoFactorAuth(false);
                     }}
                     onCancel={() => setIsConfirmModalVisible(false)}

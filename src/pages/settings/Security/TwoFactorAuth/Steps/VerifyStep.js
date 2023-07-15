@@ -20,6 +20,7 @@ import TwoFactorAuthForm from '../TwoFactorAuthForm';
 import QRCode from '../../../../../components/QRCode';
 import expensifyLogo from '../../../../../../assets/images/expensify-logo-round-transparent.png';
 import CONST from '../../../../../CONST';
+import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 import StepWrapper from "../StepWrapper/StepWrapper";
 
 const propTypes = {
@@ -60,9 +61,10 @@ function VerifyStep({translate, setStep, account}) {
 
     useEffect(() => {
         Session.clearAccountMessages();
+        return () => {
+            TwoFactorAuthActions.clearTwoFactorAuthData();
+        };
     }, []);
-
-    console.log(account);
 
     useEffect(() => {
         if (!account.requiresTwoFactorAuth) {
@@ -157,7 +159,7 @@ function VerifyStep({translate, setStep, account}) {
                         //     return;
                         // }
                         // formRef.current.validateAndSubmitForm();
-                        setStep(2);
+                        setStep();
                     }}
                 />
             </FixedFooter>

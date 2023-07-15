@@ -620,42 +620,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'GetAssistance',
     },
-    // TODO: remove unnecessary pages
-    // {
-    //     getComponent: () => {
-    //         const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
-    //         return SettingsTwoFactorAuthIsEnabled;
-    //     },
-    //     name: 'Settings_TwoFactorAuthIsEnabled',
-    // },
-    // {
-    //     getComponent: () => {
-    //         const SettingsTwoFactorAuthDisable = require('../../../pages/settings/Security/TwoFactorAuth/DisablePage').default;
-    //         return SettingsTwoFactorAuthDisable;
-    //     },
-    //     name: 'Settings_TwoFactorAuthDisable',
-    // },
     {
         getComponent: () => {
             const SettingsTwoFactorAuthCodes = require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default;
             return SettingsTwoFactorAuthCodes;
         },
-        name: 'Settings_TwoFactorAuthCodes',
+        name: 'Settings_TwoFactorAuth',
     },
-    // {
-    //     getComponent: () => {
-    //         const SettingsTwoFactorAuthVerify = require('../../../pages/settings/Security/TwoFactorAuth/VerifyPage').default;
-    //         return SettingsTwoFactorAuthVerify;
-    //     },
-    //     name: 'Settings_TwoFactorAuthVerify',
-    // },
-    // {
-    //     getComponent: () => {
-    //         const SettingsTwoFactorAuthSuccess = require('../../../pages/settings/Security/TwoFactorAuth/SuccessPage').default;
-    //         return SettingsTwoFactorAuthSuccess;
-    //     },
-    //     name: 'Settings_TwoFactorAuthSuccess',
-    // },
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([

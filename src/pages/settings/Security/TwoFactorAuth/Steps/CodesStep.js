@@ -4,11 +4,9 @@ import {ActivityIndicator, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import Navigation from '../../../../../libs/Navigation/Navigation';
 import * as Expensicons from '../../../../../components/Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import compose from '../../../../../libs/compose';
-import ROUTES from '../../../../../ROUTES';
 import * as Illustrations from '../../../../../components/Icon/Illustrations';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../../components/withWindowDimensions';
 import styles from '../../../../../styles/styles';
@@ -21,11 +19,11 @@ import ONYXKEYS from '../../../../../ONYXKEYS';
 import Clipboard from '../../../../../libs/Clipboard';
 import themeColors from '../../../../../styles/themes/default';
 import localFileDownload from '../../../../../libs/localFileDownload';
-import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 import * as Session from "../../../../../libs/actions/Session";
 import StepWrapper from "../StepWrapper/StepWrapper";
 
 const propTypes = {
+    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     account: PropTypes.shape({
         /** User recovery codes for setting up 2-FA */
@@ -49,9 +47,6 @@ function CodesStep({translate, setStep, account, ...props}) {
     // eslint-disable-next-line arrow-body-style
     useEffect(() => {
         Session.toggleTwoFactorAuth(true);
-        // return () => {
-        //     TwoFactorAuthActions.clearTwoFactorAuthData();
-        // };
     }, []);
 
     return (
@@ -123,7 +118,7 @@ function CodesStep({translate, setStep, account, ...props}) {
                 <Button
                     success
                     text={translate('common.next')}
-                    onPress={() => setStep(1)}
+                    onPress={setStep}
                     isDisabled={isNextButtonDisabled}
                 />
             </FixedFooter>
