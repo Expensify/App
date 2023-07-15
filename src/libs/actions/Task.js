@@ -142,7 +142,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     ];
 
     if (assigneeChatReport) {
-        // If we're optimistically creating a new chat report for the assignee then we need to create the report and reportAction
+        // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
         if (assigneeChatReport.isOptimisticReport) {
             // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
             const optimisticPersonalDetailsListAction = {
@@ -155,7 +155,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             optimisticChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(assigneeChatReportID);
             optimisticData.push(
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
                     value: {
                         ...assigneeChatReport,
@@ -166,7 +166,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                     }
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
                     value: {[optimisticChatCreatedReportAction.reportActionID]: optimisticChatCreatedReportAction},
 
@@ -179,6 +179,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                     }
                 }
             );
+            console.log('What is in optimisticData', optimisticData);
 
             successData.push(
                 {
@@ -207,10 +208,8 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             );
         }
 
-        // If you're choosing to share the task in the same DM as the assignee then 
-        // we don't need to create another reportAction indicating that you've been assigned
-        // Additionally, tasks can be unassigned in which case we don't need to create a reportAction either
-        if (assigneeChatReportID && assigneeChatReportID !== parentReportID) {
+        // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
+        if (assigneeChatReportID !== parentReportID) {
             optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
                 taskReportID,
                 title,
@@ -220,6 +219,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 parentReportID,
             );
 
+            // We update the lastMessage text of the assignee chat report optimistically as well
             const lastAssigneeCommentText = ReportUtils.formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
             const optimisticAssigneeReport = {
                 lastVisibleActionCreated: currentTime,
@@ -228,7 +228,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 lastReadTime: currentTime,
             };
 
-            // Indicates in the DM between you and the assignee that a task has been assigned to them
             optimisticData.push(
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -247,6 +246,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
             });
         }
+    }
 
     API.write(
         'CreateTask',
