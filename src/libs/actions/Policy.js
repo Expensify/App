@@ -359,7 +359,7 @@ function buildPolicyPersonalDetails(logins, accountIDs) {
         failureData: {},
     };
 
-    _.map(logins, (login, index) => {
+    _.each(logins, (login, index) => {
         const accountID = accountIDs[index];
 
         if (_.isEmpty(personalDetails[accountID])) {
