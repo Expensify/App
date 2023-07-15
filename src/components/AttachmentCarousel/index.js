@@ -55,6 +55,7 @@ class AttachmentCarousel extends React.Component {
             // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
             // more than 90% visible. When that happens we update the page index in the state.
             itemVisiblePercentThreshold: 95,
+            // waitForInteraction: true
         };
 
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
@@ -81,7 +82,12 @@ class AttachmentCarousel extends React.Component {
         const nextState = this.createInitialState();
         if (!_.isEmpty(nextState)) {
             const {attachments, page} = nextState;
-            this.setState({attachments, page});
+            this.setState({attachments, page}, () => {
+                if (!this.scrollRef || !this.scrollRef.current) {
+                    return;
+                }
+                this.scrollRef.current.scrollToIndex({index: this.state.page, animated: this.canUseTouchScreen});
+            });
         }
     }
 
@@ -199,12 +205,12 @@ class AttachmentCarousel extends React.Component {
         // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
         if (this.canUseTouchScreen) {
             attachments.reverse();
+            return;
         }
 
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (page === -1) {
             Navigation.dismissModal();
-            return;
         }
 
         // Update the parent modal's state with the source and name from the mapped attachments
@@ -257,6 +263,7 @@ class AttachmentCarousel extends React.Component {
         }
 
         const page = entry.index;
+
         this.props.onNavigate(entry.item);
         this.setState({page, isZoomed: false, activeSource: entry.item.source});
     }
