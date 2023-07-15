@@ -140,7 +140,7 @@ function ReportPreview(props) {
                             )}
                         </View>
                     </View>
-                    {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && !props.iouReport.isWaitingOnBankAccount && (
+                    {props.iouReport.reportID && isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && !props.iouReport.isWaitingOnBankAccount && (
                         <SettlementButton
                             currency={props.iouReport.currency}
                             policyID={props.iouReport.policyID}

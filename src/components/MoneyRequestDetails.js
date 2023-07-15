@@ -88,7 +88,7 @@ function MoneyRequestDetails(props) {
         : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
     const isPayer =
         Policy.isAdminOfFreePolicy([props.policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer && !moneyRequestReport.isWaitingOnBankAccount;
+    const shouldShowSettlementButton = moneyRequestReport.reportID && !isSettled && !props.isSingleTransactionView && isPayer && !moneyRequestReport.isWaitingOnBankAccount;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
     let description = `${props.translate('iou.amount')} • ${props.translate('iou.cash')}`;
