@@ -18,6 +18,11 @@ const withPrivatePersonalDetailsPropTypes = {
 
     /** User's private personal details */
     privatePersonalDetails: privatePersonalDetailsPropTypes,
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        authToken: PropTypes.string,
+    }),
 };
 
 const withPrivatePersonalDetailsDefaultProps = {
@@ -33,6 +38,9 @@ const privatePersonalDetailsProviderPropTypes = {
 
 const privatePersonalDetailsProviderDefaultProps = {
     ...withPrivatePersonalDetailsDefaultProps,
+    session: {
+        authToken: null,
+    },
 };
 
 class PrivatePersonalDetailsProvider extends React.Component {
@@ -64,6 +72,9 @@ const Provider = compose(
     withOnyx({
         privatePersonalDetails: {
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
     withNetwork(),
