@@ -10,11 +10,7 @@ import themeColors from '../../styles/themes/default';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
 import Log from '../../libs/Log';
-import useLocalize from '../../libs/hooks/useLocalize';
-
-const propTypes = {
-    ...onfidoPropTypes,
-};
+import useLocalize from '../../hooks/useLocalize';
 
 function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate}) {
     OnfidoSDK.init({
@@ -132,8 +128,8 @@ const Onfido = forwardRef((props, ref) => {
             onSuccess: props.onSuccess,
             onError: props.onError,
             onUserExit: props.onUserExit,
-            preferredLocale: preferredLocale,
-            translate: translate,
+            preferredLocale,
+            translate,
         });
 
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
@@ -151,5 +147,5 @@ const Onfido = forwardRef((props, ref) => {
 });
 
 Onfido.displayName = 'Onfido';
-Onfido.propTypes = propTypes;
+Onfido.propTypes = onfidoPropTypes;
 export default Onfido;
