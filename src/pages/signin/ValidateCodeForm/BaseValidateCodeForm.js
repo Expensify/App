@@ -89,6 +89,7 @@ function BaseValidateCodeForm(props) {
     const timerRef = useRef();
 
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
+    const isLoadingValidateCodeForm = props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
@@ -178,24 +179,34 @@ function BaseValidateCodeForm(props) {
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
+        User.resendValidateCode(props.credentials.login);
+        // Give feedback to the user to let them know the email was sent so that they don't spam the button.
+        setTimeRemaining(30);
+    };
+
+    /**
+     * Clear local sign in states
+     */
+    const clearLocalSignInData = () => {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
-        User.resendValidateCode(props.credentials.login, true);
-
-        // Give feedback to the user to let them know the email was sent so they don't spam the button.
-        setTimeRemaining(30);
     };
 
     /**
      * Clears local and Onyx sign in states
      */
     const clearSignInData = () => {
-        setTwoFactorAuthCode('');
-        setFormError({});
-        setValidateCode('');
+        clearLocalSignInData();
         Session.clearSignInData();
     };
+
+    useEffect(() => {
+        if (!isLoadingValidateCodeForm) {
+            return;
+        }
+        clearLocalSignInData();
+    }, [isLoadingValidateCodeForm]);
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
@@ -303,9 +314,7 @@ function BaseValidateCodeForm(props) {
                     success
                     style={[styles.mv3]}
                     text={props.translate('common.signIn')}
-                    isLoading={
-                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
-                    }
+                    isLoading={props.account.isLoading && isLoadingValidateCodeForm}
                     onPress={validateAndSubmitForm}
                 />
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />

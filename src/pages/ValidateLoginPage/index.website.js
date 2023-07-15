@@ -1,14 +1,14 @@
-import React, {Component} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {propTypes as validateLinkPropTypes, defaultProps as validateLinkDefaultProps} from './validateLinkPropTypes';
-import compose from '../../libs/compose';
+import * as User from '../../libs/actions/User';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import useLocalize from '../../hooks/useLocalize';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -39,8 +39,6 @@ const propTypes = {
         /** Whether a sign on form is loading (being submitted) */
         isLoading: PropTypes.bool,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -52,85 +50,70 @@ const defaultProps = {
     account: {},
 };
 
-class ValidateLoginPage extends Component {
-    componentDidMount() {
-        const login = lodashGet(this.props, 'credentials.login', null);
-        const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
-        const cachedAutoAuthState = lodashGet(this.props, 'session.autoAuthState', null);
-        if (!login && isSignedIn && (cachedAutoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || cachedAutoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
+function ValidateLoginPage(props) {
+    const {preferredLocale} = useLocalize();
+    const login = lodashGet(props, 'credentials.login', null);
+    const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
+    const accountID = lodashGet(props.route.params, 'accountID', '');
+    const validateCode = lodashGet(props.route.params, 'validateCode', '');
+    const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
+    const is2FARequired = lodashGet(props, 'account.requiresTwoFactorAuth', false);
+    const cachedAccountID = lodashGet(props, 'credentials.accountID', null);
+
+    useEffect(() => {
+        // A fresh session will not have credentials.login
+        if (login) {
+            User.validateLogin(accountID, validateCode);
+            return;
+        }
+
+        if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
             Navigation.navigate(ROUTES.REPORT);
             return;
         }
-        Session.initAutoAuthState(cachedAutoAuthState);
+        Session.initAutoAuthState(autoAuthState);
 
         if (isSignedIn || !login) {
             return;
         }
 
         // The user has initiated the sign in process on the same browser, in another tab.
-        Session.signInWithValidateCode(this.getAccountID(), this.getValidateCode(), this.props.preferredLocale);
-    }
+        Session.signInWithValidateCode(accountID, validateCode, preferredLocale);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    componentDidUpdate() {
-        if (lodashGet(this.props, 'credentials.login', null) || !lodashGet(this.props, 'credentials.accountID', null) || !lodashGet(this.props, 'account.requiresTwoFactorAuth', false)) {
+    useEffect(() => {
+        if (login || !cachedAccountID || !is2FARequired) {
             return;
         }
 
         // The user clicked the option to sign in the current tab
         Navigation.navigate(ROUTES.REPORT);
-    }
+    }, [login, cachedAccountID, is2FARequired]);
 
-    /**
-     * @returns {String}
-     */
-    getAutoAuthState() {
-        return lodashGet(this.props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
-    }
-
-    /**
-     * @returns {String}
-     */
-    getAccountID() {
-        return lodashGet(this.props.route.params, 'accountID', '');
-    }
-
-    /**
-     * @returns {String}
-     */
-    getValidateCode() {
-        return lodashGet(this.props.route.params, 'validateCode', '');
-    }
-
-    render() {
-        const is2FARequired = lodashGet(this.props, 'account.requiresTwoFactorAuth', false);
-        const isSignedIn = Boolean(lodashGet(this.props, 'session.authToken', null));
-        const currentAuthState = this.getAutoAuthState();
-        return (
-            <>
-                {currentAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
-                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired />}
-                {currentAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
-                {currentAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
-                    <ValidateCodeModal
-                        accountID={this.getAccountID()}
-                        code={this.getValidateCode()}
-                    />
-                )}
-                {currentAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
-            </>
-        );
-    }
+    return (
+        <>
+            {autoAuthState === CONST.AUTO_AUTH_STATE.FAILED && <ExpiredValidateCodeModal />}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && is2FARequired && !isSignedIn && <JustSignedInModal is2FARequired />}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && <JustSignedInModal is2FARequired={false} />}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED && (
+                <ValidateCodeModal
+                    accountID={accountID}
+                    code={validateCode}
+                />
+            )}
+            {autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN && <FullScreenLoadingIndicator />}
+        </>
+    );
 }
 
-ValidateLoginPage.propTypes = propTypes;
 ValidateLoginPage.defaultProps = defaultProps;
+ValidateLoginPage.displayName = 'ValidateLoginPage';
+ValidateLoginPage.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-        session: {key: ONYXKEYS.SESSION},
-    }),
-)(ValidateLoginPage);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+    session: {key: ONYXKEYS.SESSION},
+})(ValidateLoginPage);
