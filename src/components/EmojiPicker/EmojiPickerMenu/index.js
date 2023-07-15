@@ -431,6 +431,7 @@ class EmojiPickerMenu extends Component {
      * Return a unique key for each emoji item
      *
      * @param {Object} item
+     * @param {Number} index
      * @returns {String}
      */
     keyExtractor(item, index) {
