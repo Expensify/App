@@ -4,8 +4,15 @@ import styles from '../../styles/styles';
 import * as styleConst from './styleConst';
 import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
+import DomUtils from '../../libs/DomUtils';
+import Visibility from '../../libs/Visibility';
 
 class TextInput extends React.Component {
+    constructor(props) {
+        super(props);
+        this.unsubscribeVisibilityListener = null;
+    }
+
     componentDidMount() {
         if (this.props.disableKeyboard) {
             this.textInput.setAttribute('inputmode', 'none');
@@ -14,6 +21,21 @@ class TextInput extends React.Component {
         if (this.props.name) {
             this.textInput.setAttribute('name', this.props.name);
         }
+
+        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            if (!Visibility.isVisible() || !this.textInput || DomUtils.getActiveElement() !== this.textInput) {
+                return;
+            }
+            this.textInput.blur();
+            this.textInput.focus();
+        });
+    }
+
+    componentWillUnmount() {
+        if (!this.unsubscribeVisibilityListener) {
+            return;
+        }
+        this.unsubscribeVisibilityListener();
     }
 
     render() {
