@@ -1,5 +1,5 @@
 import React from 'react';
-import {ActivityIndicator, View, InteractionManager, LayoutAnimation} from 'react-native';
+import {ActivityIndicator, View, InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
