@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useCallback} from 'react';
 import {Animated, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
@@ -30,29 +30,29 @@ function FloatingMessageCounter(props) {
     const {translate} = useLocalize();
     const translateY = useMemo(() => new Animated.Value(MARKER_INACTIVE_TRANSLATE_Y), []);
 
+    const show = useCallback(() => {
+        Animated.spring(translateY, {
+            toValue: MARKER_ACTIVE_TRANSLATE_Y,
+            duration: 80,
+            useNativeDriver: true,
+        }).start();
+    }, [translateY]);
+
+    const hide = useCallback(() => {
+        Animated.spring(translateY, {
+            toValue: MARKER_INACTIVE_TRANSLATE_Y,
+            duration: 80,
+            useNativeDriver: true,
+        }).start();
+    }, [translateY]);
+
     useEffect(() => {
-        const show = () => {
-            Animated.spring(translateY, {
-                toValue: MARKER_ACTIVE_TRANSLATE_Y,
-                duration: 80,
-                useNativeDriver: true,
-            }).start();
-        };
-
-        const hide = () => {
-            Animated.spring(translateY, {
-                toValue: MARKER_INACTIVE_TRANSLATE_Y,
-                duration: 80,
-                useNativeDriver: true,
-            }).start();
-        };
-
         if (props.isActive) {
             show();
         } else {
             hide();
         }
-    }, [props.isActive, translateY]);
+    }, [props.isActive, show, hide]);
 
     return (
         <FloatingMessageCounterContainer
