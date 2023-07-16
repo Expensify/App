@@ -106,7 +106,7 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
     _.each(logins, (login, index) => {
         const accountID = accountIDs[index];
         const currentDetail = _.find(personalDetails, (detail) => Number(detail.accountID) === Number(accountID));
-        
+
         if (_.isUndefined(currentDetail)) {
             optimisticData[accountID] = {
                 login,
