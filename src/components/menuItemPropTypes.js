@@ -123,6 +123,9 @@ const propTypes = {
     /** An icon to display under the main item */
     furtherDetailsIcon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 
+    /** The action accept for anonymous user or not */
+    isAnonymousAction: PropTypes.bool,
+
     /**  Whether we should use small avatar subscript sizing the for menu item */
     isSmallAvatarSubscriptMenu: PropTypes.bool,
 
