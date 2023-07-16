@@ -758,6 +758,13 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    uploadReceiptBorder: {
+        borderRadius: variables.componentBorderRadiusLarge,
+        borderWidth: 2,
+        borderColor: themeColors.borderFocus,
+        borderStyle: 'dashed',
+    },
+
     headerAnonymousFooter: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
@@ -1053,6 +1060,22 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,
+    },
+
+    textReceiptUpload: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.textLight,
+    },
+
+    subTextReceiptUpload: {
+        lineHeight: variables.lineHeightLarge,
+        textAlign: 'center',
+        color: themeColors.textLight,
+    },
+
+    buttonReceiptUpload: {
+        padding: 36,
     },
 
     furtherDetailsText: {

@@ -1,4 +1,4 @@
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, Alert, Linking, View} from 'react-native';
 import React, {useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import _ from 'underscore';
@@ -19,6 +19,9 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
 import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import {launchImageLibrary} from 'react-native-image-picker';
+import AttachmentView from '../../../components/AttachmentView';
+import AttachmentPicker from '../../../components/AttachmentPicker';
 
 const propTypes = {
     /** Route params */
@@ -71,6 +74,31 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+/**
+ * See https://github.com/react-native-image-picker/react-native-image-picker/#options
+ * for ImagePicker configuration options
+ */
+const imagePickerOptions = {
+    includeBase64: false,
+    saveToPhotos: false,
+    selectionLimit: 1,
+    includeExtra: false,
+};
+
+/**
+ * Return imagePickerOptions based on the type
+ * @param {String} type
+ * @returns {Object}
+ */
+function getImagePickerOptions(type) {
+    // mediaType property is one of the ImagePicker configuration to restrict types'
+    const mediaType = type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? 'photo' : 'mixed';
+    return {
+        mediaType,
+        ...imagePickerOptions,
+    };
+}
+
 function ReceiptSelector(props) {
     const devices = useCameraDevices();
     const device = devices.back;
@@ -109,6 +137,102 @@ function ReceiptSelector(props) {
             return;
         }
         Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
+    };
+
+    /**
+     * Handles the image/document picker result and
+     * sends the selected attachment to the caller (parent component)
+     *
+     * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
+     * @returns {Promise}
+     */
+    const pickAttachment = (attachments = []) => {
+        if (attachments.length === 0) {
+            return;
+        }
+
+        const fileData = _.first(attachments);
+
+        if (fileData.width === -1 || fileData.height === -1) {
+            this.showImageCorruptionAlert();
+            return;
+        }
+
+        return getDataForUpload(fileData)
+            .then((result) => {
+                this.completeAttachmentSelection(result);
+            })
+            .catch((error) => {
+                this.showGeneralAlert(error.message);
+                throw error;
+            });
+    };
+
+    /**
+     * Inform the users when they need to grant camera access and guide them to settings
+     */
+    const showPermissionsAlert = () => {
+        Alert.alert(
+            this.props.translate('attachmentPicker.cameraPermissionRequired'),
+            this.props.translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+            [
+                {
+                    text: this.props.translate('common.cancel'),
+                    style: 'cancel',
+                },
+                {
+                    text: this.props.translate('common.settings'),
+                    onPress: () => Linking.openSettings(),
+                },
+            ],
+            {cancelable: false},
+        );
+    };
+
+    /**
+     * Common image picker handling
+     *
+     * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
+     * @returns {Promise<ImagePickerResponse>}
+     */
+    const showImagePicker = (imagePickerFunc) => {
+        return new Promise((resolve, reject) => {
+            imagePickerFunc(getImagePickerOptions(CONST.ATTACHMENT_PICKER_TYPE.IMAGE), (response) => {
+                if (response.didCancel) {
+                    // When the user cancelled resolve with no attachment
+                    return resolve();
+                }
+                if (response.errorCode) {
+                    switch (response.errorCode) {
+                        case 'permission':
+                            showPermissionsAlert();
+                            return resolve();
+                        default:
+                            showGeneralAlert();
+                            break;
+                    }
+
+                    return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
+                }
+
+                return resolve(response.assets);
+            });
+        });
+    };
+
+    /**
+     * A generic handling when we don't know the exact reason for an error
+     *
+     */
+    const showGeneralAlert = () => {
+        Alert.alert(this.props.translate('attachmentPicker.attachmentError'), this.props.translate('attachmentPicker.errorWhileSelectingAttachment'));
+    };
+
+    /**
+     * An attachment error dialog when user selected malformed images
+     */
+    const showImageCorruptionAlert = () => {
+        Alert.alert(this.props.translate('attachmentPicker.attachmentError'), this.props.translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
     };
 
     const takePhoto = () => {
@@ -152,7 +276,9 @@ function ReceiptSelector(props) {
                     <PressableWithFeedback
                         accessibilityRole="button"
                         style={[styles.alignItemsStart]}
-                        onPress={() => console.log('Gallery')}
+                        onPress={() => {
+                            showImagePicker(launchImageLibrary);
+                        }}
                     >
                         <Icon
                             height={32}
@@ -210,7 +336,11 @@ function ReceiptSelector(props) {
                 <PressableWithFeedback
                     accessibilityRole="button"
                     style={[styles.alignItemsStart]}
-                    onPress={() => console.log('Gallery')}
+                    onPress={() => {
+                        showImagePicker(launchImageLibrary).catch((error) => {
+                            console.log(error);
+                        });
+                    }}
                 >
                     <Icon
                         height={32}
