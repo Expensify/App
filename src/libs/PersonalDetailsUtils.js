@@ -91,4 +91,59 @@ function getLoginsByAccountIDs(accountIDs) {
     );
 }
 
-export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs};
+/**
+ * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored
+ *
+ * @param {Array<string>} logins Array of user logins
+ * @param {Array<number>} accountIDs Array of user accountIDs
+ * @returns {Object} - Object with optimisticData, successData and failureData (object of personal details objects)
+ */
+function getNewPersonalDetailsOnyxData(logins, accountIDs) {
+    const optimisticData = {};
+    const successData = {};
+    const failureData = {};
+
+    _.each(logins, (login, index) => {
+        const accountID = accountIDs[index];
+        const currentDetail = _.find(personalDetails, (detail) => Number(detail.accountID) === Number(accountID));
+        
+        if (_.isUndefined(currentDetail)) {
+            optimisticData[accountID] = {
+                login,
+                accountID,
+                avatar: UserUtils.getDefaultAvatarURL(accountID),
+                displayName: login,
+            };
+
+            // Cleanup the optimistic user to ensure it does not permanently persist
+            successData[accountID] = null;
+            failureData[accountID] = null;
+        }
+    });
+
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: optimisticData,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: successData,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: failureData,
+            },
+        ],
+    };
+}
+
+export {getDisplayNameOrDefault, getPersonalDetailsByIDs, getAccountIDsByLogins, getLoginsByAccountIDs, getNewPersonalDetailsOnyxData};

@@ -12,7 +12,7 @@ import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
-import * as UserUtils from '../UserUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
 
@@ -346,39 +346,6 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
 }
 
 /**
- * Build personal details objects for a given list of logins and accountIDs
- *
- * @param {Array<string>} logins Array of user logins
- * @param {Array<number>} accountIDs Array of user accountIDs
- * @returns {Object} - object with optimisticData, successData and failureData (object of personal details objects)
- */
-function buildPolicyPersonalDetails(logins, accountIDs) {
-    const policyPersonalDetails = {
-        optimisticData: {},
-        successData: {},
-        failureData: {},
-    };
-
-    _.each(logins, (login, index) => {
-        const accountID = accountIDs[index];
-
-        if (_.isEmpty(personalDetails[accountID])) {
-            policyPersonalDetails.optimisticData[accountID] = {
-                login,
-                accountID,
-                avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: login,
-            };
-
-            policyPersonalDetails.successData[accountID] = null;
-            policyPersonalDetails.failureData[accountID] = null;
-        }
-    });
-
-    return policyPersonalDetails;
-}
-
-/**
  * Adds members to the specified workspace/policyID
  *
  * @param {Object} invitedEmailsToAccountIDs
@@ -390,7 +357,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
     const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = _.values(invitedEmailsToAccountIDs);
-    const policyPersonalDetails = buildPolicyPersonalDetails(logins, accountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
@@ -398,25 +365,16 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: policyPersonalDetails.optimisticData,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
             // Convert to object with each key containing {pendingAction: ‘add’}
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
+        ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
     ];
 
     const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: policyPersonalDetails.successData,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
@@ -425,15 +383,11 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: null, errors: null})),
         },
+        ...newPersonalDetailsOnyxData.successData,
         ...membersChats.onyxSuccessData,
     ];
 
     const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: policyPersonalDetails.failureData,
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
@@ -447,6 +401,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
                 }),
             ),
         },
+        ...newPersonalDetailsOnyxData.failureData,
         ...membersChats.onyxFailureData,
     ];
 
