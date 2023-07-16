@@ -369,7 +369,9 @@ class ReportActionCompose extends React.Component {
     setTextInputRef(el) {
         ReportActionComposeFocusManager.composerRef.current = el;
         this.textInput = el;
-        this.props.animatedRef(el);
+        if (_.isFunction(this.props.animatedRef)) {
+            this.props.animatedRef(el);
+        }
     }
 
     /**
