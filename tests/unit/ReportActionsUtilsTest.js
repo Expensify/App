@@ -150,8 +150,20 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-08 22:27:01.825',
                     reportActionID: '1661970171066218',
-                    actionName: 'REIMBURSED',
-                    message: [{html: 'Hello world'}],
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                    message: [{html: 'Check your bank account!'}],
+                },
+                {
+                    created: '2022-11-08 22:27:01.825',
+                    reportActionID: '1661970171066219',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED,
+                    message: [{html: 'Waiting for the bank account'}],
+                },
+                {
+                    created: '2022-11-08 22:27:01.825',
+                    reportActionID: '1661970171066220',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+                    message: [{html: 'I have changed the task'}],
                 },
             ];
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);
