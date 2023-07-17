@@ -6,7 +6,7 @@ Due to some technical constraints, Apple and Google sign-in may require addition
 
 ### Web
 
-The Sign in with Apple process will break after the user signs in if the pop-up process is not started from a page at an HTTPS domain registered with Apple. We can make a new configuration with your custom HTTPS domain, but then the Apple configuration won't match that of Expensify's backend.
+The Sign in with Apple process will break after the user signs in if the pop-up process is not started from a page at an HTTPS domain registered with Apple. To fix this, you could make a new configuration with your own HTTPS domain, but then the Apple configuration won't match that of Expensify's backend.
 
 So to be able to test this, we have two parts:
 1. Create a valid Sign in with Apple token using valid configuration for the Expensify app, by creating and intercepting one on Android
