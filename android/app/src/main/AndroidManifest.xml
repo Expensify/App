@@ -78,6 +78,14 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".CustomFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter android:priority="100">
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <meta-data
             android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
             android:value="com.expensify.chat.customairshipextender.CustomAirshipExtender" />
