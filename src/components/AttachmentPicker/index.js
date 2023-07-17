@@ -37,6 +37,7 @@ function AttachmentPicker(props) {
                     const file = e.target.files[0];
 
                     if (file) {
+                        file.uri = URL.createObjectURL(file);
                         onPicked.current(file);
                     }
 

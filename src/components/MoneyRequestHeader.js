@@ -62,7 +62,6 @@ function MoneyRequestHeader(props) {
     const report = props.report;
     if (props.isSingleTransactionView) {
         report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
-        report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
     }
     return (
         <View style={[styles.highlightBG, styles.pl0]}>
