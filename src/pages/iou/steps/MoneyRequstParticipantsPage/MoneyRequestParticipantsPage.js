@@ -75,6 +75,7 @@ function MoneyRequestParticipantsPage(props) {
         }
 
         if ((props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
+            console.log(`Going back ${props}`);
             navigateBack(true);
         }
 

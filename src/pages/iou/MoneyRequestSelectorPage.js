@@ -2,7 +2,7 @@ import {withOnyx} from 'react-native-onyx';
 import {Text, View} from 'react-native';
 import React, {useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
-import {compose} from 'underscore';
+import _, {compose} from 'underscore';
 import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -21,6 +21,8 @@ import ReceiptSelector from './ReceiptSelector';
 import {PortalHost} from '@gorhom/portal';
 import DragAndDrop from '../../components/DragAndDrop';
 import Colors from '../../styles/colors';
+import * as IOU from '../../libs/actions/IOU';
+import * as ReportUtils from '../../libs/ReportUtils';
 
 function MoneyRequestSelectorPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
@@ -45,6 +47,37 @@ function MoneyRequestSelectorPage(props) {
     const selectedTab = lodashGet(props.tabSelected, 'selected', 'manual');
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
+    const navigateToNextPage = () => {
+        const moneyRequestID = `${iouType.current}${reportID.current}`;
+        const shouldReset = props.iou.id !== moneyRequestID;
+        // If the money request ID in Onyx does not match the ID from params, we want to start a new request
+        // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
+        if (shouldReset) {
+            IOU.setMoneyRequestId(moneyRequestID);
+            IOU.setMoneyRequestDescription('');
+            IOU.setMoneyRequestParticipants([]);
+            IOU.setMoneyRequestReceipt({});
+        }
+
+        // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
+        if (props.report.reportID) {
+            // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
+            if (_.isEmpty(props.iou.participants) || shouldReset) {
+                const currentUserAccountID = props.currentUserPersonalDetails.accountID;
+                const participants = ReportUtils.isPolicyExpenseChat(props.report)
+                    ? [{reportID: props.report.reportID, isPolicyExpenseChat: true, selected: true}]
+                    : _.chain(props.report.participantAccountIDs)
+                          .filter((accountID) => currentUserAccountID !== accountID)
+                          .map((accountID) => ({accountID, selected: true}))
+                          .value();
+                IOU.setMoneyRequestParticipants(participants);
+            }
+            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+            return;
+        }
+        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
+    };
+
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -54,14 +87,18 @@ function MoneyRequestSelectorPage(props) {
                         activeDropZoneId={CONST.RECEIPT.ACTIVE_DROP_NATIVE_ID}
                         onDragEnter={() => {
                             setIsDraggingOver(true);
-                            console.log('Receipt selector drag enter');
                         }}
                         onDragLeave={() => {
                             setIsDraggingOver(false);
-                            console.log('Receipt selector drag leave');
                         }}
                         onDrop={(e) => {
-                            // TODO
+                            e.preventDefault();
+                            setIsDraggingOver(false);
+                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                            const filePath = URL.createObjectURL(file);
+
+                            IOU.setMoneyRequestReceipt(filePath);
+                            navigateToNextPage();
                         }}
                     >
                         <View

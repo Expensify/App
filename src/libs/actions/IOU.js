@@ -1393,7 +1393,7 @@ function setMoneyRequestParticipants(participants) {
 }
 
 /**
- * @param {Object} receiptPath
+ * @param {String} receiptPath
  */
 function setMoneyRequestReceipt(receiptPath) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath});

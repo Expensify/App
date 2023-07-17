@@ -242,7 +242,7 @@ function ReceiptSelector(props) {
                 flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                IOU.setMoneyRequestReceipt(photo.path);
+                IOU.setMoneyRequestReceipt(`file://${photo.path}`);
                 navigateToNextPage();
             })
             .catch((error) => {

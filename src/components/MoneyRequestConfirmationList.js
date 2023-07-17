@@ -104,6 +104,8 @@ function MoneyRequestConfirmationList(props) {
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {translate, onSendMoney, onConfirm, onSelectParticipant} = props;
 
+    console.log(`MoneyRequestConfirmationList`);
+
     /**
      * Returns the participants with amount
      * @param {Array} participants
@@ -296,7 +298,7 @@ function MoneyRequestConfirmationList(props) {
             {props.receiptPath ? (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: `file://${props.receiptPath}`}}
+                    source={{uri: props.receiptPath}}
                 />
             ) : (
                 <MenuItemWithTopDescription
