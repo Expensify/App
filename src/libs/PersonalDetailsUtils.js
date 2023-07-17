@@ -6,9 +6,13 @@ import * as Localize from './Localize';
 import * as UserUtils from './UserUtils';
 
 let personalDetails = [];
+let allPersonalDetails = {};
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = _.values(val)),
+    callback: (val) => {
+        personalDetails = _.values(val);
+        allPersonalDetails = val;
+    },
 });
 
 /**
@@ -105,9 +109,8 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
 
     _.each(logins, (login, index) => {
         const accountID = accountIDs[index];
-        const currentDetail = _.find(personalDetails, (detail) => Number(detail.accountID) === Number(accountID));
 
-        if (_.isUndefined(currentDetail)) {
+        if (_.isEmpty(allPersonalDetails[accountID])) {
             optimisticData[accountID] = {
                 login,
                 accountID,
