@@ -2540,6 +2540,11 @@ const CONST = {
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
     },
+    TABS: {
+        MANUAL: 'manual',
+        SCAN: 'scan',
+        DISTANCE: 'distance',
+    },
 };
 
 export default CONST;

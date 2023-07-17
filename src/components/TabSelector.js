@@ -9,11 +9,9 @@ import withLocalize from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import TabSelectorItem from './TabSelectorItem';
 import Tab from '../libs/actions/Tab';
-import * as Permissions from '../libs/Permissions';
+import Permissions from '../libs/Permissions';
+import CONST from '../CONST';
 
-const TAB_MANUAL = 'manual';
-const TAB_SCAN = 'scan';
-const TAB_DISTANCE = 'distance';
 
 const propTypes = {
     /** Which tab has been selected */
@@ -24,37 +22,37 @@ const propTypes = {
 };
 
 const defaultProps = {
-    tabSelected: TAB_MANUAL,
+    tabSelected: CONST.TABS.MANUAL,
     betas: [],
 };
 
 function TabSelector(props) {
-    const selectedTab = lodashGet(props.tabSelected, 'selected', TAB_MANUAL);
+    const selectedTab = lodashGet(props.tabSelected, 'selected', CONST.TABS.MANUAL);
     return (
         <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
             <TabSelectorItem
                 title="Manual"
-                selected={selectedTab === TAB_MANUAL}
+                selected={selectedTab === CONST.TABS.MANUAL}
                 icon={Expensicons.Pencil}
                 onPress={() => {
-                    Tab.onTabPress(TAB_MANUAL);
+                    Tab.onTabPress(CONST.TABS.MANUAL);
                 }}
             />
             <TabSelectorItem
                 title="Scan"
-                selected={selectedTab === TAB_SCAN}
+                selected={selectedTab === CONST.TABS.SCAN}
                 icon={Expensicons.Receipt}
                 onPress={() => {
-                    Tab.onTabPress(TAB_SCAN);
+                    Tab.onTabPress(CONST.TABS.SCAN);
                 }}
             />
             {Permissions.canUseDistanceRequests(props.betas) && (
                 <TabSelectorItem
                     title="Distance"
-                    selected={selectedTab === TAB_DISTANCE}
+                    selected={selectedTab === CONST.TABS.DISTANCE}
                     icon={Expensicons.Car}
                     onPress={() => {
-                        Tab.onTabPress(TAB_DISTANCE);
+                        Tab.onTabPress(CONST.TABS.DISTANCE);
                     }}
                 />
             )}
