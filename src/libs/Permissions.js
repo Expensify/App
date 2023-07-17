@@ -110,6 +110,10 @@ function canUseScanReceipts(betas) {
     return _.contains(betas, CONST.BETAS.SCAN_RECEIPTS) || canUseAllBetas(betas);
 }
 
+function canUseDistanceRequests(betas) {
+    return _.contains(betas, CONST.BETAS.DISTANCE_REQUESTS) || canUseAllBetas(betas);
+}
+
 export default {
     canUseChronos,
     canUseIOU,
@@ -123,4 +127,5 @@ export default {
     canUsePasswordlessLogins,
     canUseTasks,
     canUseScanReceipts,
+    canUseDistanceRequests,
 };

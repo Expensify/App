@@ -270,6 +270,7 @@ const CONST = {
         TASKS: 'tasks',
         THREADS: 'threads',
         SCAN_RECEIPTS: 'scanReceipts',
+        DISTANCE_REQUESTS: 'distanceRequests',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
