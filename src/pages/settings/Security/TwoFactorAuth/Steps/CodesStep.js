@@ -21,6 +21,7 @@ import themeColors from '../../../../../styles/themes/default';
 import localFileDownload from '../../../../../libs/localFileDownload';
 import * as Session from "../../../../../libs/actions/Session";
 import StepWrapper from "../StepWrapper/StepWrapper";
+import CONST from "../../../../../CONST";
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -32,6 +33,9 @@ const propTypes = {
         /** If recovery codes are loading */
         isLoading: PropTypes.bool,
     }),
+
+    /** Method to set the next step */
+    setStep: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -40,14 +44,16 @@ const defaultProps = {
     },
 };
 
-function CodesStep({translate, setStep, account, ...props}) {
+function CodesStep({translate, setStep, account, ...dimensionsProps}) {
     const [isNextButtonDisabled, setIsNextButtonDisabled] = useState(true);
 
-    // Here, this eslint rule will make the unmount effect unreadable, possibly confusing with mount
-    // eslint-disable-next-line arrow-body-style
     useEffect(() => {
+        if (account.recoveryCodes) {
+            return;
+        }
         Session.toggleTwoFactorAuth(true);
     }, []);
+
 
     return (
         <StepWrapper
@@ -55,7 +61,9 @@ function CodesStep({translate, setStep, account, ...props}) {
             stepCounter={{
                 step: 1,
                 text: translate('twoFactorAuth.stepCodes'),
-            }}>
+                total: 3,
+            }}
+        >
             <ScrollView>
                 <Section
                     title={translate('twoFactorAuth.keepCodesSafe')}
@@ -66,7 +74,7 @@ function CodesStep({translate, setStep, account, ...props}) {
                     <View style={styles.mv3}>
                         <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
                     </View>
-                    <View style={styles.twoFactorAuthCodesBox(props)}>
+                    <View style={styles.twoFactorAuthCodesBox(dimensionsProps)}>
                         {account.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
                                 <ActivityIndicator color={themeColors.spinner}/>
@@ -118,7 +126,7 @@ function CodesStep({translate, setStep, account, ...props}) {
                 <Button
                     success
                     text={translate('common.next')}
-                    onPress={setStep}
+                    onPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY)}
                     isDisabled={isNextButtonDisabled}
                 />
             </FixedFooter>

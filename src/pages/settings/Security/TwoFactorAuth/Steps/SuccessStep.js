@@ -1,12 +1,9 @@
 import React from 'react';
-import Navigation from '../../../../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
-import ROUTES from '../../../../../ROUTES';
 import FireworksAnimation from '../../../../../../assets/animations/Fireworks.json';
 import ConfirmationPage from '../../../../../components/ConfirmationPage';
+import * as TwoFactorAuthActions from "../../../../../libs/actions/TwoFactorAuthActions";
 import StepWrapper from "../StepWrapper/StepWrapper";
-
-const defaultProps = {};
 
 function SuccessStep({translate}) {
     return (
@@ -23,13 +20,13 @@ function SuccessStep({translate}) {
                 description={translate('twoFactorAuth.congrats')}
                 shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
-                onButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
+                onButtonPress={TwoFactorAuthActions.quitAndNavigateBackToSettings}
             />
         </StepWrapper>
     );
 }
 
 SuccessStep.propTypes = withLocalizePropTypes;
-SuccessStep.defaultProps = defaultProps;
+SuccessStep.defaultProps = {};
 
 export default withLocalize(SuccessStep);

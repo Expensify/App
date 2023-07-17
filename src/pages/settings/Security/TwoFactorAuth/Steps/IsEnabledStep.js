@@ -1,8 +1,7 @@
 import React, {useState} from 'react';
 import {Text, View, ScrollView} from 'react-native';
-import Navigation from '../../../../../libs/Navigation/Navigation';
+import PropTypes from "prop-types";
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
-import ROUTES from '../../../../../ROUTES';
 import Section from '../../../../../components/Section';
 import * as Illustrations from '../../../../../components/Icon/Illustrations';
 import * as Expensicons from '../../../../../components/Icon/Expensicons';
@@ -11,23 +10,29 @@ import styles from '../../../../../styles/styles';
 import ConfirmModal from '../../../../../components/ConfirmModal';
 import * as Session from "../../../../../libs/actions/Session";
 import StepWrapper from "../StepWrapper/StepWrapper";
+import CONST from "../../../../../CONST";
 
-const defaultProps = {};
+const propTypes = {
+    ...withLocalizePropTypes,
 
-function IsEnabledStep(props) {
+    /** Method to set the next step */
+    setStep: PropTypes.func.isRequired,
+}
+
+function IsEnabledStep({translate, setStep}) {
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     return (
         <StepWrapper
-            title={props.translate('twoFactorAuth.headerTitle')}
+            title={translate('twoFactorAuth.headerTitle')}
         >
             <ScrollView>
                 <Section
-                    title={props.translate('twoFactorAuth.twoFactorAuthEnabled')}
+                    title={translate('twoFactorAuth.twoFactorAuthEnabled')}
                     icon={Illustrations.ShieldYellow}
                     menuItems={[
                         {
-                            title: props.translate('twoFactorAuth.disableTwoFactorAuth'),
+                            title: translate('twoFactorAuth.disableTwoFactorAuth'),
                             onPress: () => {
                                 setIsConfirmModalVisible(true);
                             },
@@ -39,22 +44,22 @@ function IsEnabledStep(props) {
                     containerStyles={[styles.twoFactorAuthSection]}
                 >
                     <View style={styles.mv3}>
-                        <Text style={styles.textLabel}>{props.translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
+                        <Text style={styles.textLabel}>{translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
                     </View>
                 </Section>
                 <ConfirmModal
-                    title={props.translate('twoFactorAuth.disableTwoFactorAuth')}
+                    title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onConfirm={() => {
                         setIsConfirmModalVisible(false);
-                        props.setStep();
+                        setStep(CONST.TWO_FACTOR_AUTH_STEPS.DISABLE);
                         Session.toggleTwoFactorAuth(false);
                     }}
                     onCancel={() => setIsConfirmModalVisible(false)}
                     onModalHide={() => setIsConfirmModalVisible(false)}
                     isVisible={isConfirmModalVisible}
-                    prompt={props.translate('twoFactorAuth.disableTwoFactorAuthConfirmation')}
-                    confirmText={props.translate('twoFactorAuth.disable')}
-                    cancelText={props.translate('common.cancel')}
+                    prompt={translate('twoFactorAuth.disableTwoFactorAuthConfirmation')}
+                    confirmText={translate('twoFactorAuth.disable')}
+                    cancelText={translate('common.cancel')}
                     shouldShowCancelButton
                     danger
                 />
@@ -63,7 +68,7 @@ function IsEnabledStep(props) {
     );
 }
 
-IsEnabledStep.propTypes = withLocalizePropTypes;
-IsEnabledStep.defaultProps = defaultProps;
+IsEnabledStep.propTypes = propTypes;
+IsEnabledStep.defaultProps = {};
 
 export default withLocalize(IsEnabledStep);

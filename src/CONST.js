@@ -2533,6 +2533,13 @@ const CONST = {
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
     },
+    TWO_FACTOR_AUTH_STEPS: {
+        CODES: 'CODES',
+        VERIFY: 'VERIFY',
+        SUCCESS: 'SUCCESS',
+        IS_ENABLED: 'IS_ENABLED',
+        DISABLE: 'DISABLE',
+    }
 };
 
 export default CONST;

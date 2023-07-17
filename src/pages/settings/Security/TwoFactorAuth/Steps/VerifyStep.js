@@ -2,11 +2,9 @@ import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
-import Navigation from '../../../../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import compose from '../../../../../libs/compose';
 import * as Session from '../../../../../libs/actions/Session';
-import ROUTES from '../../../../../ROUTES';
 import styles from '../../../../../styles/styles';
 import Button from '../../../../../components/Button';
 import Text from '../../../../../components/Text';
@@ -41,6 +39,9 @@ const propTypes = {
         /** Server-side errors in the submitted authentication code */
         errors: PropTypes.objectOf(PropTypes.string),
     }),
+
+    /** Method to set the next step */
+    setStep: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -54,23 +55,20 @@ const defaultProps = {
 };
 
 
-const LINK = "https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1"
+const TROUBLESHOOTING_LINK = "https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1"
 
 function VerifyStep({translate, setStep, account}) {
     const formRef = React.useRef(null);
 
     useEffect(() => {
         Session.clearAccountMessages();
-        return () => {
-            TwoFactorAuthActions.clearTwoFactorAuthData();
-        };
     }, []);
 
     useEffect(() => {
         if (!account.requiresTwoFactorAuth) {
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_SUCCESS);
+        setStep(CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS);
     }, [account.requiresTwoFactorAuth]);
 
     /**
@@ -104,8 +102,9 @@ function VerifyStep({translate, setStep, account}) {
             stepCounter={{
                 step: 2,
                 text: translate('twoFactorAuth.stepVerify'),
+                total: 3,
             }}
-            onBackButtonPress={() => setStep(0)}
+            onBackButtonPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES)}
         >
             <ScrollView
                 style={styles.mb5}
@@ -114,7 +113,7 @@ function VerifyStep({translate, setStep, account}) {
                 <View style={[styles.ph5, styles.mt3]}>
                     <Text>
                         {translate('twoFactorAuth.scanCode')}
-                        <TextLink href={LINK}>
+                        <TextLink href={TROUBLESHOOTING_LINK}>
                             {' '}
                             {translate('twoFactorAuth.authenticatorApp')}
                         </TextLink>
@@ -155,11 +154,10 @@ function VerifyStep({translate, setStep, account}) {
                     text={translate('common.next')}
                     isLoading={account.isLoading}
                     onPress={() => {
-                        // if (!formRef.current) {
-                        //     return;
-                        // }
-                        // formRef.current.validateAndSubmitForm();
-                        setStep();
+                        if (!formRef.current) {
+                            return;
+                        }
+                        formRef.current.validateAndSubmitForm();
                     }}
                 />
             </FixedFooter>
