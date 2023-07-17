@@ -118,7 +118,10 @@ function getNewPersonalDetailsOnyxData(logins, accountIDs) {
                 displayName: login,
             };
 
-            // Cleanup the optimistic user to ensure it does not permanently persist
+            /**
+             * Cleanup the optimistic user to ensure it does not permanently persist.
+             * This is done to prevent duplicate entries (upon success) since the BE will return other personal details with the correct account IDs.
+             */
             successData[accountID] = null;
             failureData[accountID] = null;
         }
