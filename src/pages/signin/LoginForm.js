@@ -25,6 +25,8 @@ import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
+import * as PolicyUtils from '../../libs/PolicyUtils';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -63,6 +65,13 @@ const defaultProps = {
     account: {},
     closeAccount: {},
     blurOnSubmit: false,
+};
+
+/**
+ * Enables experimental "memory only keys" mode in Onyx
+ */
+const setEnableMemoryOnlyKeys = () => {
+    window.enableMemoryOnlyKeys();
 };
 
 function LoginForm(props) {
@@ -125,6 +134,12 @@ function LoginForm(props) {
             return;
         }
 
+        // If the user has entered a guide email, then we are going to enable an experimental Onyx mode to help with performance
+        if (PolicyUtils.isExpensifyGuideTeam(loginTrim)) {
+            Log.info('Detected guide email in login field, setting memory only keys.');
+            setEnableMemoryOnlyKeys();
+        }
+
         setFormError(null);
 
         // Check if this login has an account associated with it or not
@@ -163,6 +178,8 @@ function LoginForm(props) {
                 <TextInput
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
+                    accessibilityLabel={translate('loginForm.phoneOrEmail')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
                     autoCompleteType="username"
                     textContentType="username"
