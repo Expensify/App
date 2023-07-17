@@ -10,6 +10,9 @@ import {propTypes, defaultProps} from './hoverablePropTypes';
 class Hoverable extends Component {
     constructor(props) {
         super(props);
+
+        this.handleVisibilityChange = this.handleVisibilityChange.bind(this);
+
         this.state = {
             isHovered: false,
         };
@@ -30,6 +33,8 @@ class Hoverable extends Component {
 
         // Remember Touchend fires before `mouse` events so we have to use alternative.
         document.addEventListener('touchmove', this.enableHover);
+
+        document.addEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
     componentDidUpdate(prevProps) {
@@ -45,6 +50,7 @@ class Hoverable extends Component {
     componentWillUnmount() {
         document.removeEventListener('touchstart', this.disableHover);
         document.removeEventListener('touchmove', this.enableHover);
+        document.removeEventListener('visibilitychange', this.handleVisibilityChange);
     }
 
     /**
@@ -65,6 +71,14 @@ class Hoverable extends Component {
         if (!isHovered) {
             this.hoverDisabled = false;
         }
+    }
+
+    handleVisibilityChange() {
+        if (document.visibilityState !== 'hidden') {
+            return;
+        }
+
+        this.setIsHovered(false);
     }
 
     render() {
