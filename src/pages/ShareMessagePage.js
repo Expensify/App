@@ -27,7 +27,7 @@ function ShareMessagePage(props) {
         }
     }, [props.route.params.share]);
 
-    // TODO: fix this
+    // TODO: fix these
     const close = Platform.select({ios: () => ShareMenuReactView.dismissExtension(), default: () => Navigation.dismissModal()});
     const goBack = Platform.select({ios: () => console.log('TODO: fix goBack'), default: () => Navigation.goBack()});
 
@@ -74,7 +74,11 @@ function ShareMessagePage(props) {
                         const uri = attachment.data;
                         const name = source.split('/').pop();
                         const type = attachment.mimeType;
-                        Report.addAttachment(reportID, {name, source, type, uri}, message);
+                        if (type === 'text/plain') {
+                            Report.addComment(reportID, source);
+                        } else {
+                            Report.addAttachment(reportID, {name, source, type, uri}, message);
+                        }
                         close();
                     }}
                 />
