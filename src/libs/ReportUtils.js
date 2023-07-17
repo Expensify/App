@@ -2518,18 +2518,7 @@ function getOriginalReportID(reportID, reportAction) {
 }
 
 /**
-
- * Returns policy
- *
- * @param {String} policyID
- * @returns {Object}
- */
-function getPolicy(policyID) {
-    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
-    return policy;
-}
-
-/* Return the pendingAction and the errors when we have creating a chat or a workspace room offline
+ * Return the pendingAction and the errors when we have creating a chat or a workspace room offline
  * @param {Object} report
  * @returns {Object} pending action , errors
  */
@@ -2539,6 +2528,17 @@ function getReportOfflinePendingActionAndErrors(report) {
     const addWorkspaceRoomOrChatPendingAction = lodashGet(report, 'pendingFields.addWorkspaceRoom') || lodashGet(report, 'pendingFields.createChat');
     const addWorkspaceRoomOrChatErrors = lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
     return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
+}
+
+/**
+ * Returns policy
+ *
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getPolicy(policyID) {
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
+    return policy;
 }
 
 export {
@@ -2645,6 +2645,6 @@ export {
     shouldHideComposer,
     getOriginalReportID,
     canAccessReport,
-    getPolicy,
     getReportOfflinePendingActionAndErrors,
+    getPolicy,
 };
