@@ -676,7 +676,7 @@ function getOptions(
         }
 
         // In case user needs to add credit bank account, don't allow them to request more money from the workspace.
-        if (includeOwnedWorkspaceChats && hasIOUWaitingOnCurrentUserBankAccount(report)) {
+        if (includeOwnedWorkspaceChats && ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(report)) {
             return;
         }
 
