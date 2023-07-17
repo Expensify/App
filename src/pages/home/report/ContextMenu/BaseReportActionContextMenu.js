@@ -66,13 +66,14 @@ class BaseReportActionContextMenu extends React.Component {
             );
 
         /**
-         * Checks if user is anonymous. If true, hides the context menu and
+         * Checks if user is anonymous. If true and the action doesn't accept for anonymous user, hides the context menu and
          * shows the sign in modal. Else, executes the callback.
          *
          * @param {Function} callback
+         * @param {Boolean} isAnonymousAction
          */
-        const interceptAnonymousUser = (callback) => {
-            if (Session.isAnonymousUser()) {
+        const interceptAnonymousUser = (callback, isAnonymousAction = false) => {
+            if (Session.isAnonymousUser() && !isAnonymousAction) {
                 hideContextMenu(false);
 
                 InteractionManager.runAfterInteractions(() => {
@@ -118,9 +119,10 @@ class BaseReportActionContextMenu extends React.Component {
                                 successText={contextAction.successTextTranslateKey ? this.props.translate(contextAction.successTextTranslateKey) : undefined}
                                 isMini={this.props.isMini}
                                 key={contextAction.textTranslateKey}
-                                onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload))}
+                                onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction)}
                                 description={contextAction.getDescription(this.props.selection, this.props.isSmallScreenWidth)}
                                 autoReset={contextAction.autoReset}
+                                isAnonymousAction={contextAction.isAnonymousAction}
                             />
                         );
                     })}
