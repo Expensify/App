@@ -72,8 +72,8 @@ function BankAccountPlaidStep(props) {
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
 
         const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
-        BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData);
-    }, [reimbursementAccount, reimbursementAccountDraft, plaidData]);
+        BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData, props.policyID);
+    }, [reimbursementAccount, reimbursementAccountDraft, plaidData, props.policyID]);
 
     const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
     const selectedPlaidAccountID = lodashGet(reimbursementAccountDraft, 'plaidAccountID', '');

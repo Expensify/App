@@ -152,7 +152,7 @@ class CompanyStep extends React.Component {
             companyPhone: parsePhoneNumber(values.companyPhone, {regionCode: CONST.COUNTRY.US}).number.significant,
         };
 
-        BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
+        BankAccounts.updateCompanyInformationForBankAccount(bankAccount, this.props.policyID);
     }
 
     render() {

@@ -91,8 +91,9 @@ function getVBBADataForOnyx() {
  *
  * @param {Number} bankAccountID
  * @param {Object} selectedPlaidBankAccount
+ * @param {String} policyID
  */
-function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
+function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount, policyID) {
     const commandName = 'ConnectBankAccountWithPlaid';
 
     const parameters = {
@@ -102,6 +103,7 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
         bank: selectedPlaidBankAccount.bankName,
         plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
         plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
+        policyID,
     };
 
     API.write(commandName, parameters, getVBBADataForOnyx());
@@ -327,9 +329,10 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
  * @param {String} [bankAccount.incorporationState]
  * @param {String} [bankAccount.incorporationDate]
  * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
+ * @param {String} policyID
  */
-function updateCompanyInformationForBankAccount(bankAccount) {
-    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
+function updateCompanyInformationForBankAccount(bankAccount, policyID) {
+    API.write('UpdateCompanyInformationForBankAccount', {bankAccount, policyID}, getVBBADataForOnyx());
 }
 
 /**
@@ -355,9 +358,10 @@ function updateBeneficialOwnersForBankAccount(params) {
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
  * @param {String} [plaidMask]
+ * @param {String} policyID
  *
  */
-function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
+function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask, policyID) {
     API.write(
         'ConnectBankAccountManually',
         {
@@ -365,6 +369,7 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
             accountNumber,
             routingNumber,
             plaidMask,
+            policyID,
         },
         getVBBADataForOnyx(),
     );
