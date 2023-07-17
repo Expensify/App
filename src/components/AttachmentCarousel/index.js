@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -44,34 +44,88 @@ const defaultProps = {
     onNavigate: () => {},
 };
 
-class AttachmentCarousel extends React.Component {
-    constructor(props) {
-        super(props);
+const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
+const viewabilityConfig = {
+    // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
+    // more than 90% visible. When that happens we update the page index in the state.
+    itemVisiblePercentThreshold: 95,
+};
 
-        this.scrollRef = React.createRef();
-        this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
-        this.viewabilityConfig = {
-            // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
-            // more than 90% visible. When that happens we update the page index in the state.
-            itemVisiblePercentThreshold: 95,
-        };
+/**
+ * Constructs the initial component state from report actions
+ * @param {Object} props
+ * @returns {{page: Number, attachments: Array}}
+ */
+function createInitialState(props) {
+    const actions = [ReportActionsUtils.getParentReportAction(props.report), ...ReportActionsUtils.getSortedReportActions(_.values(props.reportActions))];
+    const attachments = [];
 
-        this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
-        this.autoHideArrow = this.autoHideArrow.bind(this);
-        this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
-        this.getItemLayout = this.getItemLayout.bind(this);
-        this.renderItem = this.renderItem.bind(this);
-        this.renderCell = this.renderCell.bind(this);
-        this.updatePage = this.updatePage.bind(this);
-        this.updateZoomState = this.updateZoomState.bind(this);
-        this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
+    const htmlParser = new HtmlParser({
+        onopentag: (name, attribs) => {
+            if (name !== 'img' || !attribs.src) {
+                return;
+            }
 
-        this.state = this.createInitialState();
+            const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+
+            // By iterating actions in chronological order and prepending each attachment
+            // we ensure correct order of attachments even across actions with multiple attachments.
+            attachments.unshift({
+                source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
+                isAuthTokenRequired: Boolean(expensifySource),
+                file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
+            });
+        },
+    });
+
+    _.forEach(actions, (action, key) => {
+        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
+            return;
+        }
+        htmlParser.write(_.get(action, ['message', 0, 'html']));
+    });
+    htmlParser.end();
+
+    // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
+    // promotes the natural feeling of swiping left/right to go to the next/previous image
+    // We don't want to invert the list for desktop/web because this interferes with mouse
+    // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
+    if (canUseTouchScreen) {
+        attachments.reverse();
     }
 
-    componentDidMount() {
-        this.autoHideArrow();
+    const page = _.findIndex(attachments, (a) => a.source === props.source);
+    if (page === -1) {
+        throw new Error('Attachment not found');
     }
+
+    // Update the parent modal's state with the source and name from the mapped attachments
+    props.onNavigate(attachments[page]);
+
+    return {
+        page,
+        attachments,
+    };
+}
+
+function AttachmentCarousel(props) {
+    const [page, setPage] = useState(0);
+    const [attachments, setAttachments] = useState([]);
+    const [shouldShowArrow, setShouldShowArrow] = useState(canUseTouchScreen);
+    const [containerWidth, setContainerWidth] = useState(0);
+    const [isZoomed, setIsZoomed] = useState(false);
+    const [activeSource, setActiveSource] = useState(null);
+
+    const scrollRef = useRef(null);
+
+    let autoHideArrowTimeout;
+
+    useEffect(() => {
+        const initialState = createInitialState(props);
+        setPage(initialState.page);
+        setAttachments(initialState.attachments);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
      * Calculate items layout information to optimize scrolling performance
@@ -79,190 +133,133 @@ class AttachmentCarousel extends React.Component {
      * @param {Number} index
      * @returns {{offset: Number, length: Number, index: Number}}
      */
-    getItemLayout(data, index) {
+    function getItemLayout(data, index) {
         return {
-            length: this.state.containerWidth,
-            offset: this.state.containerWidth * index,
+            length: containerWidth,
+            offset: containerWidth * index,
             index,
         };
+    }
+
+    /**
+     * Cancels the automatic hiding of the arrows.
+     */
+    function cancelAutoHideArrow() {
+        clearTimeout(autoHideArrowTimeout);
+    }
+
+    /**
+     * Toggles the visibility of the arrows
+     * @param {Boolean} areArrowsVisible
+     */
+    function toggleArrowsVisibility(areArrowsVisible) {
+        // Don't toggle arrows in a zoomed state
+        if (isZoomed) {
+            return;
+        }
+
+        setShouldShowArrow((prevState) => (_.isBoolean(areArrowsVisible) ? areArrowsVisible : !prevState));
     }
 
     /**
      * On a touch screen device, automatically hide the arrows
      * if there is no interaction for 3 seconds.
      */
-    autoHideArrow() {
-        if (!this.canUseTouchScreen) {
+    function autoHideArrow() {
+        if (!canUseTouchScreen) {
             return;
         }
-        this.cancelAutoHideArrow();
-        this.autoHideArrowTimeout = setTimeout(() => {
-            this.toggleArrowsVisibility(false);
+        cancelAutoHideArrow();
+        autoHideArrowTimeout = setTimeout(() => {
+            toggleArrowsVisibility(false);
         }, CONST.ARROW_HIDE_DELAY);
     }
 
-    /**
-     * Cancels the automatic hiding of the arrows.
-     */
-    cancelAutoHideArrow() {
-        clearTimeout(this.autoHideArrowTimeout);
-    }
+    useEffect(() => {
+        autoHideArrow();
+    }, []);
 
-    /**
-     * Toggles the visibility of the arrows
-     * @param {Boolean} shouldShowArrow
-     */
-    toggleArrowsVisibility(shouldShowArrow) {
-        // Don't toggle arrows in a zoomed state
-        if (this.state.isZoomed) {
-            return;
+    useEffect(() => {
+        if (shouldShowArrow) {
+            autoHideArrow();
+        } else {
+            cancelAutoHideArrow();
         }
-        this.setState(
-            (current) => {
-                const newShouldShowArrow = _.isBoolean(shouldShowArrow) ? shouldShowArrow : !current.shouldShowArrow;
-                return {shouldShowArrow: newShouldShowArrow};
-            },
-            () => {
-                if (this.state.shouldShowArrow) {
-                    this.autoHideArrow();
-                } else {
-                    this.cancelAutoHideArrow();
-                }
-            },
-        );
-    }
+    }, [shouldShowArrow]);
 
     /**
      * Updates zoomed state to enable/disable panning the PDF
      * @param {Number} scale current PDF scale
      */
-    updateZoomState(scale) {
-        const isZoomed = scale > 1;
-        if (isZoomed === this.state.isZoomed) {
+    function updateZoomState(scale) {
+        const newIsZoomed = scale > 1;
+        if (newIsZoomed === isZoomed) {
             return;
         }
-        if (isZoomed) {
-            this.toggleArrowsVisibility(false);
+        if (newIsZoomed) {
+            toggleArrowsVisibility(false);
         }
-        this.setState({isZoomed});
-    }
-
-    /**
-     * Constructs the initial component state from report actions
-     * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number, isZoomed: Boolean}}
-     */
-    createInitialState() {
-        const actions = [ReportActionsUtils.getParentReportAction(this.props.report), ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
-        const attachments = [];
-
-        const htmlParser = new HtmlParser({
-            onopentag: (name, attribs) => {
-                if (name !== 'img' || !attribs.src) {
-                    return;
-                }
-
-                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-
-                // By iterating actions in chronological order and prepending each attachment
-                // we ensure correct order of attachments even across actions with multiple attachments.
-                attachments.unshift({
-                    source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
-                    isAuthTokenRequired: Boolean(expensifySource),
-                    file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
-                });
-            },
-        });
-
-        _.forEach(actions, (action, key) => {
-            if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
-                return;
-            }
-            htmlParser.write(_.get(action, ['message', 0, 'html']));
-        });
-        htmlParser.end();
-
-        // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
-        // promotes the natural feeling of swiping left/right to go to the next/previous image
-        // We don't want to invert the list for desktop/web because this interferes with mouse
-        // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
-        if (this.canUseTouchScreen) {
-            attachments.reverse();
-        }
-
-        const page = _.findIndex(attachments, (a) => a.source === this.props.source);
-        if (page === -1) {
-            throw new Error('Attachment not found');
-        }
-
-        // Update the parent modal's state with the source and name from the mapped attachments
-        this.props.onNavigate(attachments[page]);
-
-        return {
-            page,
-            attachments,
-            shouldShowArrow: this.canUseTouchScreen,
-            containerWidth: 0,
-            isZoomed: false,
-            activeSource: null,
-        };
+        setIsZoomed(newIsZoomed);
     }
 
     /**
      * Increments or decrements the index to get another selected item
      * @param {Number} deltaSlide
      */
-    cycleThroughAttachments(deltaSlide) {
+    function cycleThroughAttachments(deltaSlide) {
         let delta = deltaSlide;
-        if (this.canUseTouchScreen) {
+        if (canUseTouchScreen) {
             delta = deltaSlide * -1;
         }
 
-        const nextIndex = this.state.page - delta;
-        const nextItem = this.state.attachments[nextIndex];
+        const nextIndex = page - delta;
+        const nextItem = attachments[nextIndex];
 
-        if (!nextItem || !this.scrollRef.current) {
+        if (!nextItem || !scrollRef.current) {
             return;
         }
 
         // The sliding transition is a bit too much on web, because of the wider and bigger images,
         // so we only enable it for mobile
-        this.scrollRef.current.scrollToIndex({index: nextIndex, animated: this.canUseTouchScreen});
+        scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
     }
 
     /**
      * Updates the page state when the user navigates between attachments
      * @param {Array<{item: {source, file}, index: Number}>} viewableItems
      */
-    updatePage({viewableItems}) {
+    const updatePage = useRef(({viewableItems}) => {
         Keyboard.dismiss();
         // Since we can have only one item in view at a time, we can use the first item in the array
         // to get the index of the current page
         const entry = _.first(viewableItems);
         if (!entry) {
-            this.setState({activeSource: null});
+            setActiveSource(null);
             return;
         }
 
-        const page = entry.index;
-        this.props.onNavigate(entry.item);
-        this.setState({page, isZoomed: false, activeSource: entry.item.source});
-    }
+        const pageToSet = entry.index;
+        props.onNavigate(entry.item);
+        setPage(pageToSet);
+        setIsZoomed(false);
+        setActiveSource(entry.item.source);
+    }).current;
 
     /**
      * Defines how a container for a single attachment should be rendered
-     * @param {Object} props
+     * @param {Object} cellRendererProps
      * @returns {JSX.Element}
      */
-    renderCell(props) {
+    function renderCell(cellRendererProps) {
         // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
         // considering horizontal margin and border width in centered modal
-        const modalStyles = styles.centeredModalStyles(this.props.isSmallScreenWidth, true);
-        const style = [props.style, styles.h100, {width: PixelRatio.roundToNearestPixel(this.props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
+        const modalStyles = styles.centeredModalStyles(props.isSmallScreenWidth, true);
+        const style = [cellRendererProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 
         return (
             <View
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
+                {...cellRendererProps}
                 style={style}
             />
         );
@@ -273,114 +270,121 @@ class AttachmentCarousel extends React.Component {
      * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String } }} item
      * @returns {JSX.Element}
      */
-    renderItem({item}) {
+    function renderItem({item}) {
         return (
             <AttachmentView
-                isFocused={this.state.activeSource === item.source}
+                isFocused={activeSource === item.source}
                 source={item.source}
                 file={item.file}
                 isAuthTokenRequired={item.isAuthTokenRequired}
-                onScaleChanged={this.canUseTouchScreen ? this.updateZoomState : undefined}
-                onPress={this.canUseTouchScreen ? this.toggleArrowsVisibility : undefined}
+                onScaleChanged={canUseTouchScreen ? updateZoomState : undefined}
+                onPress={canUseTouchScreen ? toggleArrowsVisibility : undefined}
             />
         );
     }
 
-    render() {
-        let isForwardDisabled = this.state.page === 0;
-        let isBackDisabled = this.state.page === _.size(this.state.attachments) - 1;
+    let isForwardDisabled = page === 0;
+    let isBackDisabled = page === _.size(attachments) - 1;
 
-        if (this.canUseTouchScreen) {
-            isForwardDisabled = isBackDisabled;
-            isBackDisabled = this.state.page === 0;
-        }
-
-        return (
-            <View
-                style={[styles.attachmentModalArrowsContainer, styles.flex1]}
-                onLayout={({nativeEvent}) => this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width)})}
-                onMouseEnter={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(true)}
-                onMouseLeave={() => !this.canUseTouchScreen && this.toggleArrowsVisibility(false)}
-            >
-                {this.state.shouldShowArrow && (
-                    <>
-                        {!isBackDisabled && (
-                            <Tooltip text={this.props.translate('common.previous')}>
-                                <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.l2 : styles.l8]}>
-                                    <Button
-                                        small
-                                        innerStyles={[styles.arrowIcon]}
-                                        icon={Expensicons.BackArrow}
-                                        iconFill={themeColors.text}
-                                        iconStyles={[styles.mr0]}
-                                        onPress={() => {
-                                            this.cycleThroughAttachments(-1);
-                                            this.autoHideArrow();
-                                        }}
-                                        onPressIn={this.cancelAutoHideArrow}
-                                        onPressOut={this.autoHideArrow}
-                                    />
-                                </View>
-                            </Tooltip>
-                        )}
-                        {!isForwardDisabled && (
-                            <Tooltip text={this.props.translate('common.next')}>
-                                <View style={[styles.attachmentArrow, this.props.isSmallScreenWidth ? styles.r2 : styles.r8]}>
-                                    <Button
-                                        small
-                                        innerStyles={[styles.arrowIcon]}
-                                        icon={Expensicons.ArrowRight}
-                                        iconFill={themeColors.text}
-                                        iconStyles={[styles.mr0]}
-                                        onPress={() => {
-                                            this.cycleThroughAttachments(1);
-                                            this.autoHideArrow();
-                                        }}
-                                        onPressIn={this.cancelAutoHideArrow}
-                                        onPressOut={this.autoHideArrow}
-                                    />
-                                </View>
-                            </Tooltip>
-                        )}
-                    </>
-                )}
-
-                {this.state.containerWidth > 0 && (
-                    <FlatList
-                        keyboardShouldPersistTaps="handled"
-                        listKey="AttachmentCarousel"
-                        horizontal
-                        decelerationRate="fast"
-                        showsHorizontalScrollIndicator={false}
-                        bounces={false}
-                        // Scroll only one image at a time no matter how fast the user swipes
-                        disableIntervalMomentum
-                        pagingEnabled
-                        snapToAlignment="start"
-                        snapToInterval={this.state.containerWidth}
-                        // Enable scrolling by swiping on mobile (touch) devices only
-                        // disable scroll for desktop/browsers because they add their scrollbars
-                        // Enable scrolling FlatList only when PDF is not in a zoomed state
-                        scrollEnabled={this.canUseTouchScreen && !this.state.isZoomed}
-                        ref={this.scrollRef}
-                        initialScrollIndex={this.state.page}
-                        initialNumToRender={3}
-                        windowSize={5}
-                        maxToRenderPerBatch={3}
-                        data={this.state.attachments}
-                        CellRendererComponent={this.renderCell}
-                        renderItem={this.renderItem}
-                        getItemLayout={this.getItemLayout}
-                        keyExtractor={(item) => item.source}
-                        viewabilityConfig={this.viewabilityConfig}
-                        onViewableItemsChanged={this.updatePage}
-                    />
-                )}
-
-                <CarouselActions onCycleThroughAttachments={this.cycleThroughAttachments} />
-            </View>
-        );
+    if (canUseTouchScreen) {
+        isForwardDisabled = isBackDisabled;
+        isBackDisabled = page === 0;
     }
+
+    return (
+        <View
+            style={[styles.attachmentModalArrowsContainer, styles.flex1]}
+            onLayout={({nativeEvent}) => setContainerWidth(PixelRatio.roundToNearestPixel(nativeEvent.layout.width))}
+            onMouseEnter={() => !canUseTouchScreen && toggleArrowsVisibility(true)}
+            onMouseLeave={() => !canUseTouchScreen && toggleArrowsVisibility(false)}
+        >
+            {shouldShowArrow && (
+                <>
+                    {!isBackDisabled && (
+                        <Tooltip text={props.translate('common.previous')}>
+                            <View style={[styles.attachmentArrow, props.isSmallScreenWidth ? styles.l2 : styles.l8]}>
+                                <Button
+                                    small
+                                    innerStyles={[styles.arrowIcon]}
+                                    icon={Expensicons.BackArrow}
+                                    iconFill={themeColors.text}
+                                    iconStyles={[styles.mr0]}
+                                    onPress={() => {
+                                        cycleThroughAttachments(-1);
+                                        autoHideArrow();
+                                    }}
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    onPressIn={cancelAutoHideArrow}
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    onPressOut={autoHideArrow}
+                                />
+                            </View>
+                        </Tooltip>
+                    )}
+                    {!isForwardDisabled && (
+                        <Tooltip text={props.translate('common.next')}>
+                            <View style={[styles.attachmentArrow, props.isSmallScreenWidth ? styles.r2 : styles.r8]}>
+                                <Button
+                                    small
+                                    innerStyles={[styles.arrowIcon]}
+                                    icon={Expensicons.ArrowRight}
+                                    iconFill={themeColors.text}
+                                    iconStyles={[styles.mr0]}
+                                    onPress={() => {
+                                        cycleThroughAttachments(1);
+                                        autoHideArrow();
+                                    }}
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    onPressIn={cancelAutoHideArrow}
+                                    // eslint-disable-next-line react/jsx-no-bind
+                                    onPressOut={autoHideArrow}
+                                />
+                            </View>
+                        </Tooltip>
+                    )}
+                </>
+            )}
+
+            {containerWidth > 0 && (
+                <FlatList
+                    keyboardShouldPersistTaps="handled"
+                    listKey="AttachmentCarousel"
+                    horizontal
+                    decelerationRate="fast"
+                    showsHorizontalScrollIndicator={false}
+                    bounces={false}
+                    // Scroll only one image at a time no matter how fast the user swipes
+                    disableIntervalMomentum
+                    pagingEnabled
+                    snapToAlignment="start"
+                    snapToInterval={containerWidth}
+                    // Enable scrolling by swiping on mobile (touch) devices only
+                    // disable scroll for desktop/browsers because they add their scrollbars
+                    // Enable scrolling FlatList only when PDF is not in a zoomed state
+                    scrollEnabled={canUseTouchScreen && !isZoomed}
+                    ref={scrollRef}
+                    initialScrollIndex={page}
+                    initialNumToRender={3}
+                    windowSize={5}
+                    maxToRenderPerBatch={3}
+                    data={attachments}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    CellRendererComponent={renderCell}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    renderItem={renderItem}
+                    // eslint-disable-next-line react/jsx-no-bind
+                    getItemLayout={getItemLayout}
+                    keyExtractor={(item) => item.source}
+                    viewabilityConfig={viewabilityConfig}
+                    onViewableItemsChanged={updatePage}
+                />
+            )}
+            <CarouselActions
+                // eslint-disable-next-line react/jsx-no-bind
+                onCycleThroughAttachments={cycleThroughAttachments}
+            />
+        </View>
+    );
 }
 
 AttachmentCarousel.propTypes = propTypes;
