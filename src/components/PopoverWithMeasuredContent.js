@@ -169,4 +169,9 @@ PopoverWithMeasuredContent.propTypes = propTypes;
 PopoverWithMeasuredContent.defaultProps = defaultProps;
 PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
 
-export default React.memo(withWindowDimensions(PopoverWithMeasuredContent));
+export default React.memo(
+    withWindowDimensions(PopoverWithMeasuredContent),
+    (prevProps, nextProps) =>
+        (prevProps.isVisible && (nextProps.windowWidth === prevProps.windowWidth || nextProps.windowHeight === prevProps.windowHeight)) ||
+        _.isEqual(_.omit(prevProps, ['windowWidth', 'windowHeight']), _.omit(nextProps, ['windowWidth', 'windowHeight'])),
+);
