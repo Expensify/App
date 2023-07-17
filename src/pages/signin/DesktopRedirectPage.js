@@ -1,52 +1,124 @@
 import React, {useEffect} from 'react';
-// import PropTypes from 'prop-types';
-// import {SafeAreaView} from 'react-native-safe-area-context';
-// import styles from '../../styles/styles';
-// import compose from '../../libs/compose';
-// import SignInPageLayout from './SignInPageLayout';
+import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
+import TextLink from '../../components/TextLink';
+import Text from '../../components/Text';
+import Icon from '../../components/Icon';
+import * as Illustrations from '../../components/Icon/Illustrations';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import colors from '../../styles/colors';
+import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-// import Text from '../../components/Text';
-// import TextLink from '../../components/TextLink';
-// import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
-// import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
-// import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
-// import ROUTES from '../../ROUTES';
-// import Navigation from '../../libs/Navigation/Navigation';
-// import CONST from '../../CONST';
-// import * as Illustrations from '../../components/Icon/Illustrations';
-// import Icon from '../../components/Icon';
-// import * as Expensicons from '../../components/Icon/Expensicons';
-// import variables from '../../styles/variables';
-// import colors from '../../styles/colors';
-import DeeplinkRedirectLoadingIndicator from '../../components/DeeplinkWrapper/DeeplinkRedirectLoadingIndicator';
+import compose from '../../libs/compose';
+import * as Browser from '../../libs/Browser';
 import * as Session from '../../libs/actions/Session';
+import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
+import CONFIG from '../../CONFIG';
 
 const propTypes = {
-    /** Which sign in provider we are using. */
-    // signInProvider: PropTypes.oneOf([CONST.SIGN_IN_METHOD.APPLE, CONST.SIGN_IN_METHOD.GOOGLE]).isRequired,
+    user: PropTypes.shape({
+        /** Currently logged-in user email */
+        email: PropTypes.string,
+    }),
 
     ...withLocalizePropTypes,
-
-    // ...windowDimensionsPropTypes,
 };
 
-/* Dedicated screen that the desktop app links to on the web app, as Apple/Google
- * sign-in cannot work fully within Electron, so we escape to web and redirect
- * to desktop once we have an Expensify auth token.
+const defaultProps = {
+    user: {
+        email: '',
+    },
+};
+
+function openRouteInDesktopApp(expensifyDeeplinkUrl) {
+    const browser = Browser.getBrowser();
+
+    // This check is necessary for Safari, otherwise, if the user
+    // does NOT have the Expensify desktop app installed, it's gonna
+    // show an error in the page saying that the address is invalid
+    // It is also necessary for Firefox, otherwise the window.location.href redirect
+    // will abort the fetch request from NetInfo, which will cause the app to go offline temporarily.
+    if (browser === CONST.BROWSER.SAFARI || browser === CONST.BROWSER.FIREFOX) {
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+        iframe.contentWindow.location.href = expensifyDeeplinkUrl;
+
+        // Since we're creating an iframe for Safari to handle
+        // deeplink we need to give this iframe some time for
+        // it to do what it needs to do. After that we can just
+        // remove the iframe.
+        setTimeout(() => {
+            if (!iframe.parentNode) {
+                return;
+            }
+
+            iframe.parentNode.removeChild(iframe);
+        }, 100);
+    } else {
+        window.location.href = expensifyDeeplinkUrl;
+    }
+}
+
+/**
+ * Landing page for when a user enters third party login flow on desktop.
+ * Allows user to open the link in browser if they accidentally canceled the auto-prompt.
+ * Also allows them to continue to the web app if they want to use it there.
+ * @param {Object} props
+ * @returns {React.Component}
  */
 function DesktopRedirectPage(props) {
-    // const goBack = () => {
-    //     Navigation.navigate(ROUTES.HOME);
-    // };
-
     useEffect(() => {
         Session.setSignInAttemptPlatform(null);
     }, []);
 
-    return <DeeplinkRedirectLoadingIndicator linkText="deeplinkWrapper.continueInBrowser" />;
+    const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
+    const params = new URLSearchParams();
+    params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
+    const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
+
+    return (
+        <View style={styles.deeplinkWrapperContainer}>
+            <View style={styles.deeplinkWrapperMessage}>
+                <View style={styles.mb2}>
+                    <Icon
+                        width={200}
+                        height={164}
+                        src={Illustrations.RocketBlue}
+                    />
+                </View>
+                <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
+                <View style={[styles.mt2, styles.fontSizeNormal, styles.textAlignCenter]}>
+                    <Text>{props.translate('deeplinkWrapper.redirectedToDesktopApp')}</Text>
+                    <Text style={[styles.textAlignCenter]}>
+                        {props.translate('deeplinkWrapper.youCanAlso')}{' '}
+                        <TextLink onPress={() => openRouteInDesktopApp(expensifyDeeplinkUrl)}>{props.translate('deeplinkWrapper.openLinkInBrowser')}</TextLink>.
+                    </Text>
+                </View>
+            </View>
+            <View style={styles.deeplinkWrapperFooter}>
+                <Icon
+                    width={154}
+                    height={34}
+                    fill={colors.green}
+                    src={Expensicons.ExpensifyWordmark}
+                />
+            </View>
+        </View>
+    );
 }
 
 DesktopRedirectPage.propTypes = propTypes;
+DesktopRedirectPage.defaultProps = defaultProps;
 DesktopRedirectPage.displayName = 'DesktopRedirectPage';
 
-export default withLocalize(DesktopRedirectPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(DesktopRedirectPage);
