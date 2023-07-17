@@ -4,7 +4,6 @@ import IconButton from '../IconButton';
 import CONFIG from '../../../CONFIG';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
-import * as Expensicons from '../../Icon/Expensicons';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
 

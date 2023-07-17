@@ -209,7 +209,6 @@ function resendValidateCode(login = credentials.login) {
  */
 
 function setSignInAttemptPlatform(platform = loginPlatform) {
-    console.log('setSignInAttemptPlatform', platform);
     Onyx.set(ONYXKEYS.LOGIN_PLATFORM, {platform});
 }
 

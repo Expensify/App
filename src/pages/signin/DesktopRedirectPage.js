@@ -77,7 +77,6 @@ function DesktopRedirectPage(props) {
     }, []);
 
     const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-    // params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
     const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}}`;
     return (
         <View style={styles.deeplinkWrapperContainer}>

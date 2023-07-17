@@ -13,8 +13,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import Button from '../../components/Button';
-import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /** Which sign in provider we are using. */
@@ -41,16 +39,6 @@ function ThirdPartySignInPage(props) {
                 shouldShowWelcomeHeader
             >
                 {props.signInProvider === CONST.SIGN_IN_METHOD.APPLE ? <AppleSignIn isDesktopFlow /> : <GoogleSignIn isDesktopFlow />}
-                <Button
-                    style={[styles.mt5]}
-                    text="Set Platform to Desktop"
-                    onPress={() => Session.setSignInAttemptPlatform(CONST.SIGN_IN_PLATFORM.DESKTOP)}
-                />
-                <Button
-                    style={[styles.mt5]}
-                    text="Clear Platform"
-                    onPress={() => Session.setSignInAttemptPlatform(null)}
-                />
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
                 <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.goBackMessage', {provider: props.signInProvider})}</Text>
                 <TextLink

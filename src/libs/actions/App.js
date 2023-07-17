@@ -284,12 +284,10 @@ function setUpPoliciesAndNavigate(session) {
 }
 
 function redirectThirdPartyDesktopSignIn(platform) {
-    console.log('redirectThirdPartyDesktopSignIn', platform, currentUrl);
     const currentUrl = getCurrentUrl();
     if (!platform || !currentUrl) {
         return;
     }
-    console.log('redirectThirdPartyDesktopSignIn', platform, currentUrl);
 
     if (platform === CONST.SIGN_IN_PLATFORM.DESKTOP) {
         Navigation.isNavigationReady().then(() => {
