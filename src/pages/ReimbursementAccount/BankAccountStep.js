@@ -158,7 +158,7 @@ function BankAccountStep(props) {
                             <View style={[styles.ml1]}>
                                 <Icon
                                     src={Expensicons.Lock}
-                                    fill={colors.blue}
+                                    fill={colors.blue400}
                                 />
                             </View>
                         </PressableWithoutFeedback>

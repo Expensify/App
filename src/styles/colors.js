@@ -2,9 +2,8 @@
  * DO NOT import colors.js into files. Use ../themes/default.js instead.
  */
 export default {
-    dark: '#0b1b34',
     black: '#000000',
-    blue: '#0185ff',
+    white: '#E7ECE9',
     blueHover: '#B0D9FF',
     green: '#03D47C',
     greenHover: '#00C271',
@@ -13,21 +12,18 @@ export default {
     redHover: '#DE4822',
     redPressed: '#F57959',
     redDisabled: '#F8AA97',
-    yellow: '#FED607',
     transparent: 'transparent',
 
     // Dark Mode Theme Colors
-    greenAppBackground: '#061B09',
-    greenHighlightBackground: '#07271F',
-    greenBorders: '#1A3D32',
-    greenIcons: '#8B9C8F',
-    greenSupportingText: '#AFBBB0',
-    greenPrimaryText: '#E7ECE9',
-    white: '#E7ECE9',
-    greenDefaultButton: '#184E3D',
-    greenDefaultButtonHover: '#2C6755',
-    greenDefaultButtonPressed: '#467164',
-    midnight: '#002140',
+    darkAppBackground: '#061B09',
+    darkHighlightBackground: '#07271F',
+    darkBorders: '#1A3D32',
+    darkIcons: '#8B9C8F',
+    darkSupportingText: '#AFBBB0',
+    darkPrimaryText: '#E7ECE9',
+    darkDefaultButton: '#184E3D',
+    darkDefaultButtonHover: '#2C6755',
+    darkDefaultButtonPressed: '#467164',
 
     // Light Mode Theme Colors
     lightAppBackground: '#FCFBF9',
