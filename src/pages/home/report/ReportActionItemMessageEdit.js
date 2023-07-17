@@ -34,6 +34,7 @@ import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     /** All the data of the action */
@@ -119,7 +120,7 @@ function ReportActionItemMessageEdit(props) {
 
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused
-            if (!isFocusedRef.current) {
+            if (!isFocusedRef.current && !EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
                 return;
             }
 
