@@ -38,7 +38,7 @@ class PDFView extends Component {
         // Use window height changes to toggle the keyboard. To maintain keyboard state
         // on all platforms we also use focus/blur events. So we need to make sure here
         // that we avoid redundant keyboard toggling.
-        if (!this.state.isKeyboardOpen && this.props.windowHeight < prevProps.windowHeight) {
+        if (!this.state.isKeyboardOpen && this.props.windowHeight < prevProps.windowHeight - 100) {
             this.toggleKeyboardOnSmallScreens(true);
         } else if (this.state.isKeyboardOpen && this.props.windowHeight > prevProps.windowHeight) {
             this.toggleKeyboardOnSmallScreens(false);
