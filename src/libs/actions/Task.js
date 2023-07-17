@@ -202,6 +202,13 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
                     value: {[optimisticChatCreatedReportAction.reportActionID]: {pendingAction: null}},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [assigneeAccountID]: null,
+                    }
                 }
             );
         }
