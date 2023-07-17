@@ -84,7 +84,6 @@ function PressableWithDelayToggle(props) {
     // for elements that are supposed to be inline, we need to use a Text element instead
     // of a Pressable
     const PressableView = props.inline ? Text : PressableWithoutFeedback;
-    const tooltipText = props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText;
     const tooltipText = !isActive ? props.tooltipTextChecked : props.tooltipText;
     const labelText = (
         <Text
