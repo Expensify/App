@@ -1485,7 +1485,10 @@ const styles = {
     chatItem: {
         display: 'flex',
         flexDirection: 'row',
-        paddingHorizontal: 20,
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingLeft: 20,
+        paddingRight: 20,
     },
 
     chatSeparator: {
@@ -1644,7 +1647,7 @@ const styles = {
 
     // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
     textInputComposeSpacing: {
-        paddingVertical: 5,
+        paddingVertical: 0,
         ...flex.flexRow,
         flex: 1,
     },
@@ -2729,6 +2732,7 @@ const styles = {
         borderLeftColor: themeColors.border,
         borderLeftWidth: 4,
         paddingLeft: 12,
+        marginVertical: 0,
     },
 
     noSelect: {
