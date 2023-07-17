@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
@@ -9,9 +9,6 @@ import CountrySelectorModal from './CountrySelectorModal';
 import FormHelpMessage from '../FormHelpMessage';
 
 const propTypes = {
-    /** The ISO code of the country */
-    countryISO: PropTypes.string,
-
     /** Form Error description */
     errorText: PropTypes.string,
 
@@ -21,22 +18,17 @@ const propTypes = {
 
     /** Callback to call when the input changes */
     onInputChange: PropTypes.func,
-
-    /** Callback to call when the Country is updated */
-    onCountryUpdated: PropTypes.func,
 };
 
 const defaultProps = {
-    countryISO: '',
     errorText: '',
     onInputChange: () => {},
-    onCountryUpdated: () => {},
 };
 
-const CountryPicker = React.forwardRef(({value, countryISO, errorText, onCountryUpdated, onInputChange}, ref) => {
+function CountryPicker({value, errorText, onInputChange}, ref) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const countryValue = value || countryISO || '';
+    const countryValue = value || '';
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
@@ -50,13 +42,6 @@ const CountryPicker = React.forwardRef(({value, countryISO, errorText, onCountry
         onInputChange(state.value);
         hidePickerModal();
     };
-
-    useEffect(() => {
-        if (!onCountryUpdated || countryValue.length === 0) {
-            return;
-        }
-        onCountryUpdated(countryValue);
-    }, [countryValue, onCountryUpdated]);
 
     const title = PersonalDetails.getCountryName(countryValue);
     const descStyle = title.length === 0 ? styles.addressPickerDescription : null;
@@ -83,10 +68,10 @@ const CountryPicker = React.forwardRef(({value, countryISO, errorText, onCountry
             />
         </View>
     );
-});
+}
 
 CountryPicker.propTypes = propTypes;
 CountryPicker.defaultProps = defaultProps;
 CountryPicker.displayName = 'CountryPicker';
 
-export default CountryPicker;
+export default React.forwardRef(CountryPicker);

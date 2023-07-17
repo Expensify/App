@@ -316,7 +316,7 @@ function Form(props) {
                         }
 
                         if (child.props.onValueChange) {
-                            child.props.onValueChange(value);
+                            child.props.onValueChange(value, inputKey);
                         }
                     },
                 });

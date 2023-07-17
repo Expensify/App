@@ -1955,4 +1955,7 @@ export default {
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
     },
+    countrySelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
+    },
 };

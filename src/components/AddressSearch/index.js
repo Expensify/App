@@ -168,15 +168,9 @@ function AddressSearch(props) {
             state: state || stateAutoCompleteFallback,
         };
 
-        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
-        if (isValidCountryCode) {
-            values.country = country;
-        }
-
         // If the address is not in the US, use the full length state name since we're displaying the address's
         // state / province in a TextInput instead of in a picker.
-        const isUS = country === CONST.COUNTRY.US;
-        if (!isUS) {
+        if (country !== CONST.COUNTRY.US) {
             values.state = longStateName;
         }
 
@@ -190,6 +184,11 @@ function AddressSearch(props) {
         // (e.g. Apt #) to Address Line 1
         if (subpremise && typeof props.renamedInputKeys.street2 === 'undefined') {
             values.street += `, ${subpremise}`;
+        }
+
+        const isValidCountryCode = lodashGet(CONST.ALL_COUNTRIES, country);
+        if (isValidCountryCode) {
+            values.country = country;
         }
 
         if (props.inputID) {

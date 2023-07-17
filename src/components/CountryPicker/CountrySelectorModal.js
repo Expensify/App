@@ -66,13 +66,12 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
         >
             <HeaderWithBackButton
                 title={translate('common.country')}
-                shouldShowBackButton
                 onBackButtonPress={onClose}
             />
             <SelectionListRadio
                 headerMessage={headerMessage}
                 textInputLabel={translate('common.country')}
-                textInputPlaceholder={translate('pronounsPage.placeholderText')}
+                textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
                 textInputValue={searchValue}
                 sections={[{data: filteredData, indexOffset: 0}]}
                 onSelectRow={onCountrySelected}

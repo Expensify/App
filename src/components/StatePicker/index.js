@@ -28,7 +28,7 @@ const defaultProps = {
     onInputChange: () => {},
 };
 
-const StatePicker = React.forwardRef(({value, defaultValue, errorText, onInputChange}, ref) => {
+function StatePicker({value, defaultValue, errorText, onInputChange}, ref) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const formValue = value || defaultValue || '';
@@ -80,10 +80,10 @@ const StatePicker = React.forwardRef(({value, defaultValue, errorText, onInputCh
             />
         </View>
     );
-});
+}
 
 StatePicker.propTypes = propTypes;
 StatePicker.defaultProps = defaultProps;
 StatePicker.displayName = 'StatePicker';
 
-export default StatePicker;
+export default React.forwardRef(StatePicker);

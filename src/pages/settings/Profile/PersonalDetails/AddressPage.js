@@ -112,6 +112,13 @@ function AddressPage({privatePersonalDetails}) {
         return errors;
     }, []);
 
+    const handleAddressChange = (value, key) => {
+        if (key !== 'country') {
+            return;
+        }
+        setCurrentCountry(value);
+    };
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
@@ -133,6 +140,7 @@ function AddressPage({privatePersonalDetails}) {
                         label={translate('common.addressLine', {lineNumber: 1})}
                         defaultValue={street1 || ''}
                         isLimitedToUSA={false}
+                        onValueChange={handleAddressChange}
                         renamedInputKeys={{
                             street: 'addressLine1',
                             street2: 'addressLine2',
@@ -157,9 +165,8 @@ function AddressPage({privatePersonalDetails}) {
                 <View style={styles.mhn5}>
                     <CountryPicker
                         inputID="country"
-                        countryISO={address.country}
                         defaultValue={PersonalDetails.getCountryISO(address.country)}
-                        onCountryUpdated={setCurrentCountry}
+                        onValueChange={handleAddressChange}
                     />
                 </View>
                 {isUSAForm ? (
