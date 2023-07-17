@@ -68,7 +68,7 @@ function WorkspaceReimburseView(props) {
     const [currentRatePerUnit, setCurrentRatePerUnit] = useState('');
     const viewAllReceiptsUrl = `expenses?policyIDList=${props.policy.id}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`;
     const distanceCustomUnit = _.find(lodashGet(props.policy, 'customUnits', {}), (unit) => unit.name === 'Distance');
-    const distanceCustomRate = _.find(lodashGet(props.distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
+    const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
     const {translate, toLocaleDigit} = props;
 
     const getNumericValue = useCallback(
@@ -99,10 +99,7 @@ function WorkspaceReimburseView(props) {
         [getRateDisplayValue],
     );
 
-    const getUnitLabel = useCallback(
-        (value) => translate(`common.${value}`),
-        [translate],
-    );
+    const getUnitLabel = useCallback((value) => translate(`common.${value}`), [translate]);
 
     const getCurrentRatePerUnitLabel = useCallback(() => {
         const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', '{}'), (rate) => rate && rate.name === 'Default Rate');
@@ -129,7 +126,7 @@ function WorkspaceReimburseView(props) {
 
     useEffect(() => {
         setCurrentRatePerUnit(getCurrentRatePerUnitLabel());
-    }, [props.policy.customUnits, getCurrentRatePerUnitLabel])
+    }, [props.policy.customUnits, getCurrentRatePerUnitLabel]);
 
     return (
         <>
