@@ -23,7 +23,6 @@ import withWindowDimensions from '../../../components/withWindowDimensions';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
@@ -62,7 +61,6 @@ const propTypes = {
     priorityMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
 
     ...withLocalizePropTypes,
-    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -231,5 +229,5 @@ class SidebarLinks extends React.PureComponent {
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
-export default compose(withLocalize, withCurrentUserPersonalDetails, withWindowDimensions, withNavigation)(SidebarLinks);
+export default compose(withLocalize, withCurrentUserPersonalDetails, withWindowDimensions)(SidebarLinks);
 export {basePropTypes};
