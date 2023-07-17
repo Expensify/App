@@ -70,7 +70,6 @@ export default [
                         onEmojiSelected={toggleEmojiAndCloseMenu}
                         onPressOpenPicker={openContextMenu}
                         onEmojiPickerClosed={closeContextMenu}
-                        reportID={reportID}
                         reportActionID={reportAction.reportActionID}
                         reportAction={reportAction}
                     />
@@ -82,7 +81,6 @@ export default [
                     key="BaseQuickEmojiReactions"
                     closeContextMenu={closeContextMenu}
                     onEmojiSelected={toggleEmojiAndCloseMenu}
-                    reportID={reportID}
                     reportActionID={reportAction.reportActionID}
                     reportAction={reportAction}
                 />
