@@ -788,7 +788,6 @@ describe('actions/IOU', () => {
                 reportID: NumberUtils.rand64(),
                 type: CONST.REPORT.TYPE.CHAT,
                 hasOutstandingIOU: false,
-                participants: [CARLOS_EMAIL],
                 participantAccountIDs: [CARLOS_ACCOUNT_ID],
             };
             const carlosCreatedAction = {
