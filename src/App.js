@@ -21,6 +21,7 @@ import {KeyboardStateProvider} from './components/withKeyboardState';
 import ThemeProvider from './styles/themes/ThemeProvider';
 import ThemeStylesProvider from './styles/ThemeStylesProvider';
 import {CurrentReportIDContextProvider} from './components/withCurrentReportID';
+import {EnvironmentProvider} from './components/withEnvironment';
 import * as Session from './libs/actions/Session';
 
 // For easier debugging and development, when we are in web we expose Onyx to the window, so you can more easily set data into Onyx
@@ -54,6 +55,7 @@ function App() {
                     PopoverContextProvider,
                     CurrentReportIDContextProvider,
                     PickerStateProvider,
+                    EnvironmentProvider,
                     ThemeProvider,
                     ThemeStylesProvider,
                 ]}
