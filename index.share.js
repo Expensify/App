@@ -20,7 +20,7 @@ import NetworkConnection from './src/libs/NetworkConnection';
 import * as Pusher from './src/libs/Pusher/pusher';
 import PusherConnectionManager from './src/libs/PusherConnectionManager';
 import ONYXKEYS from './src/ONYXKEYS';
-import NewSharePage from './src/pages/NewSharePage';
+import NewGroupPage from './src/pages/NewGroupPage';
 import ShareMessagePage from './src/pages/ShareMessagePage';
 // import additionalAppSetup from './src/setup';
 import CONST from './src/CONST';
@@ -97,7 +97,8 @@ const ShareExtension = withOnyx({
                     <Stack.Navigator screenOptions={RHPScreenOptions}>
                         <Stack.Screen
                             name={ROUTES.SHARE}
-                            component={NewSharePage}
+                            component={NewGroupPage}
+                            initialParams={{share: true}}
                         />
                         <Stack.Screen
                             name={ROUTES.SHARE_MESSAGE}

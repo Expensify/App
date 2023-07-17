@@ -44,6 +44,7 @@ function ShareMessagePage(props) {
             />
             <Text style={[styles.textLabelSupporting, {paddingLeft: 24}]}>{props.translate('common.to')}</Text>
             <OptionRowLHN
+                isFocused
                 onSelectRow={goBack}
                 reportID={reportID}
             />

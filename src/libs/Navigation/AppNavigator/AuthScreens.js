@@ -299,22 +299,6 @@ class AuthScreens extends React.Component {
                     component={RightModalNavigator}
                     listeners={modalScreenListeners}
                 />
-                <RootStack.Screen
-                    name="Share"
-                    options={defaultScreenOptions}
-                    getComponent={() => {
-                        const NewSharePage = require('../../../pages/NewSharePage').default;
-                        return NewSharePage;
-                    }}
-                />
-                <RootStack.Screen
-                    name="ShareMessage"
-                    options={defaultScreenOptions}
-                    getComponent={() => {
-                        const ShareMessagePage = require('../../../pages/ShareMessagePage').default;
-                        return ShareMessagePage;
-                    }}
-                />
             </RootStack.Navigator>
         );
     }

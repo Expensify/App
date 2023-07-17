@@ -1,6 +1,6 @@
-import _ from 'underscore';
+import {CardStyleInterpolators, createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
+import _ from 'underscore';
 import styles from '../../../styles/styles';
 
 const defaultSubRouteOptions = {
@@ -237,6 +237,13 @@ const NewGroupModalStackNavigator = createModalStackNavigator([
             return NewGroupPage;
         },
         name: 'NewGroup_Root',
+    },
+    {
+        getComponent: () => {
+            const ShareMessagePage = require('../../../pages/ShareMessagePage').default;
+            return ShareMessagePage;
+        },
+        name: 'NewGroup_Share',
     },
 ]);
 
@@ -718,24 +725,24 @@ const EditRequestStackNavigator = createModalStackNavigator([
 ]);
 
 export {
-    MoneyRequestModalStackNavigator,
-    SplitDetailsModalStackNavigator,
+    AddPersonalBankAccountModalStackNavigator,
     DetailsModalStackNavigator,
+    EditRequestStackNavigator,
+    EnablePaymentsStackNavigator,
+    FlagCommentStackNavigator,
+    MoneyRequestModalStackNavigator,
+    NewChatModalStackNavigator,
+    NewGroupModalStackNavigator,
+    NewTaskModalStackNavigator,
     ProfileModalStackNavigator,
+    ReimbursementAccountModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    TaskModalStackNavigator,
+    ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
     ReportWelcomeMessageModalStackNavigator,
-    ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
-    NewGroupModalStackNavigator,
-    NewChatModalStackNavigator,
-    NewTaskModalStackNavigator,
     SettingsModalStackNavigator,
-    EnablePaymentsStackNavigator,
-    AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
+    SplitDetailsModalStackNavigator,
+    TaskModalStackNavigator,
     WalletStatementStackNavigator,
-    FlagCommentStackNavigator,
-    EditRequestStackNavigator,
 };

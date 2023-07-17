@@ -25,9 +25,6 @@ const propTypes = {
     /** Whether screen is used to create group chat */
     isGroupChat: PropTypes.bool,
 
-    /** Whether screen is used to share a file or text */
-    isShare: PropTypes.bool,
-
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
@@ -44,7 +41,6 @@ const propTypes = {
 
 const defaultProps = {
     isGroupChat: false,
-    isShare: false,
     betas: [],
     personalDetails: {},
     reports: {},
@@ -67,6 +63,7 @@ function NewChatPage(props) {
         maxParticipantsReached,
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
+    const share = props.route.params && props.route.params.share;
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -166,8 +163,8 @@ function NewChatPage(props) {
         if (logins.length < 1) {
             return;
         }
-        if (props.isShare) {
-            Report.navigateToAndOpenShare(logins, props.route.params?.share);
+        if (share) {
+            Report.navigateToAndOpenShare(logins, share);
             return;
         }
         Report.navigateToAndOpenReport(logins);
@@ -198,14 +195,10 @@ function NewChatPage(props) {
                 <>
                     <HeaderWithBackButton
                         title={
-                            props.isShare
-                                ? props.translate('newChatPage.shareToExpensify')
-                                : props.isGroupChat
-                                ? props.translate('sidebarScreen.newGroup')
-                                : props.translate('sidebarScreen.newChat')
+                            share ? props.translate('newChatPage.shareToExpensify') : props.isGroupChat ? props.translate('sidebarScreen.newGroup') : props.translate('sidebarScreen.newChat')
                         }
-                        shouldShowBackButton={!props.isShare}
-                        shouldShowCloseButton={props.isShare}
+                        shouldShowBackButton={!share}
+                        shouldShowCloseButton={share}
                         onCloseButtonPress={Platform.select({ios: () => ShareMenuReactView.dismissExtension(), default: undefined})}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>

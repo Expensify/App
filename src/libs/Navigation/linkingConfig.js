@@ -13,8 +13,6 @@ export default {
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
             Concierge: ROUTES.CONCIERGE,
-            Share: ROUTES.SHARE,
-            ShareMessage: ROUTES.SHARE_MESSAGE,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
             // Sidebar
@@ -257,6 +255,7 @@ export default {
                     NewGroup: {
                         screens: {
                             NewGroup_Root: ROUTES.NEW_GROUP,
+                            NewGroup_Share: ROUTES.SHARE_MESSAGE,
                         },
                     },
                     NewChat: {
