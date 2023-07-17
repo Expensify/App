@@ -159,6 +159,9 @@ const CONST = {
             CONTAINER_MINHEIGHT: 500,
             VIEW_HEIGHT: 275,
         },
+        MONEY_REPORT: {
+            MIN_HEIGHT: 280,
+        },
     },
 
     RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,

@@ -67,7 +67,7 @@ function TaskView(props) {
             >
                 {({hovered, pressed}) => (
                     <>
-                        <Text style={styles.taskTitleDescription}>Title</Text>
+                        <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
                         <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
                             <Checkbox
                                 onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
@@ -136,7 +136,7 @@ function TaskView(props) {
                 />
             )}
 
-            {props.shouldShowHorizontalRule && <View style={styles.taskHorizontalRule} />}
+            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
 }
