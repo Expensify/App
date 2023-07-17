@@ -1,48 +1,51 @@
-import lodashGet from 'lodash/get';
 import {useEffect, useState} from 'react';
-import {Platform, Pressable, Text, View} from 'react-native';
+import {Platform, Text, View} from 'react-native';
 import {ShareMenuReactView} from 'react-native-share-menu';
 
 import AttachmentView from '../components/AttachmentView';
 import Button from '../components/Button';
-import MenuItem from '../components/MenuItem';
+import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import ScreenWrapper from '../components/ScreenWrapper';
 import TextInput from '../components/TextInput';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
-import * as UserUtils from '../libs/UserUtils';
 // import additionalAppSetup from './src/setup';
+import OptionRowLHN from '../components/LHNOptionsList/OptionRowLHN';
+import Navigation from '../libs/Navigation/Navigation';
 import * as Report from '../libs/actions/Report';
 import styles from '../styles/styles';
 
 function ShareMessagePage(props) {
-    const toDetails = props.route.params.option;
+    const reportID = props.route.params.reportID;
     const [attachment, setAttachment] = useState(props.route.params.share);
     const [message, setMessage] = useState('');
 
-    console.log({reportID: toDetails.reportID});
-
     useEffect(() => {
-        if (Platform.OS !== 'ios') return;
-        ShareMenuReactView.data().then((share) => {
-            share && setAttachment(share.data[0]);
-        });
-    }, []);
+        if (Platform.OS === 'ios') {
+            ShareMenuReactView.data().then((share) => setAttachment(share && share.data[0]));
+        } else {
+            setAttachment(props.route.params.share);
+        }
+    }, [props.route.params.share]);
+
+    // TODO: fix this
+    const close = Platform.select({ios: () => ShareMenuReactView.dismissExtension(), default: () => Navigation.dismissModal()});
+    const goBack = Platform.select({ios: () => console.log('TODO: fix goBack'), default: () => Navigation.goBack()});
 
     return (
-        <View style={{backgroundColor: '#07271F', flex: 1}}>
-            <Pressable
-                onPress={props.navigation.goBack}
-                style={{padding: 24}}
-            >
-                <Text style={{color: '#E7ECE9', fontWeight: 'bold'}}>{props.translate('common.goBack')}</Text>
-            </Pressable>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                shouldShowBackButton={false}
+                shouldShowCloseButton
+                title={props.translate('newChatPage.shareToExpensify')}
+                onCloseButtonPress={close}
+            />
             <Text style={[styles.textLabelSupporting, {paddingLeft: 24}]}>{props.translate('common.to')}</Text>
-            <MenuItem
-                title={toDetails.text}
-                description={toDetails.alternateText}
-                icon={UserUtils.getAvatar(lodashGet(toDetails, 'avatar', ''), lodashGet(toDetails, 'login', ''))}
-                iconHeight={40}
-                iconWidth={40}
-                shouldShowRightIcon
+            <OptionRowLHN
+                onSelectRow={goBack}
+                reportID={reportID}
             />
             <View style={{padding: 24}}>
                 <TextInput
@@ -67,20 +70,16 @@ function ShareMessagePage(props) {
                     pressOnEnter
                     text={props.translate('common.share')}
                     onPress={() => {
-                        const name = attachment.data.split('/').pop();
                         const source = attachment.data;
-                        console.log('attachment', {reportID: toDetails.reportID, name, source, type: attachment.mimeType, uri: source, message});
-                        Report.addAttachment(toDetails.reportID, {name, source, type: attachment.mimeType, uri: source}, message);
-                        if (Platform.OS === 'ios') {
-                            ShareMenuReactView.dismissExtension();
-                        } else {
-                            props.navigation.goBack();
-                            props.navigation.goBack();
-                        }
+                        const uri = attachment.data;
+                        const name = source.split('/').pop();
+                        const type = attachment.mimeType;
+                        Report.addAttachment(reportID, {name, source, type, uri}, message);
+                        close();
                     }}
                 />
             </View>
-        </View>
+        </ScreenWrapper>
     );
 }
 

@@ -303,8 +303,8 @@ class AuthScreens extends React.Component {
                     name="Share"
                     options={defaultScreenOptions}
                     getComponent={() => {
-                        const ShareExtensionPage = require('../../../pages/ShareExtensionPage').default;
-                        return ShareExtensionPage;
+                        const NewSharePage = require('../../../pages/NewSharePage').default;
+                        return NewSharePage;
                     }}
                 />
                 <RootStack.Screen

@@ -5,6 +5,7 @@ import {AppRegistry} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+
 import ComposeProviders from './src/components/ComposeProviders';
 import CustomStatusBar from './src/components/CustomStatusBar';
 import OnyxProvider from './src/components/OnyxProvider';
@@ -19,11 +20,12 @@ import NetworkConnection from './src/libs/NetworkConnection';
 import * as Pusher from './src/libs/Pusher/pusher';
 import PusherConnectionManager from './src/libs/PusherConnectionManager';
 import ONYXKEYS from './src/ONYXKEYS';
-import ShareExtensionPage from './src/pages/ShareExtensionPage';
+import NewSharePage from './src/pages/NewSharePage';
 import ShareMessagePage from './src/pages/ShareMessagePage';
 // import additionalAppSetup from './src/setup';
 import CONST from './src/CONST';
 import * as Metrics from './src/libs/Metrics';
+import RHPScreenOptions from './src/libs/Navigation/AppNavigator/RHPScreenOptions';
 import ROUTES from './src/ROUTES';
 
 // TODO: can/should we use additionalAppSetup here?
@@ -92,10 +94,10 @@ const ShareExtension = withOnyx({
                 {/* this appears to require firebase */}
                 {/* <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary"> */}
                 <NavigationContainer ref={navigationRef}>
-                    <Stack.Navigator screenOptions={{headerShown: false}}>
+                    <Stack.Navigator screenOptions={RHPScreenOptions}>
                         <Stack.Screen
                             name={ROUTES.SHARE}
-                            component={ShareExtensionPage}
+                            component={NewSharePage}
                         />
                         <Stack.Screen
                             name={ROUTES.SHARE_MESSAGE}
