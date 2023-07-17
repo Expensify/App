@@ -248,7 +248,7 @@ function addActions(reportID, text = '', file) {
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(reportID);
     let prevVisibleMessageText;
     if (lastVisibleMessage.lastMessageTranslationKey) {
-        prevVisibleMessageText = Localize.translateLocal(prevVisibleMessageText);
+        prevVisibleMessageText = Localize.translateLocal(lastVisibleMessage.lastMessageTranslationKey);
     } else {
         prevVisibleMessageText = lastVisibleMessage.lastMessageText;
     }
