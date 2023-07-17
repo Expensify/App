@@ -25,4 +25,21 @@ function canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown) {
     return (isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen()) || isKeyboardShown;
 }
 
-export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys};
+/**
+ * Returns the length of the common suffix between two input strings.
+ * The common suffix is the number of characters shared by both strings
+ * at the end (suffix) until a mismatch is encountered.
+ *
+ * @param {string} str1
+ * @param {string} str2
+ * @returns {number} The length of the common suffix between the strings.
+ */
+function getCommonSuffixLength(str1, str2) {
+    let i = 0;
+    while (str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {
+        i++;
+    }
+    return i;
+}
+
+export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, getCommonSuffixLength};

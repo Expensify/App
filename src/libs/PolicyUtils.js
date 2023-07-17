@@ -93,6 +93,15 @@ function isExpensifyTeam(email) {
 }
 
 /**
+ * @param {string} email
+ * @returns {boolean}
+ */
+function isExpensifyGuideTeam(email) {
+    const emailDomain = Str.extractEmailDomain(email);
+    return emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
+}
+
+/**
  * Checks if the current user is an admin of the policy.
  *
  * @param {Object} policy
@@ -132,6 +141,7 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
+    isExpensifyGuideTeam,
     isPolicyAdmin,
     getClientPolicyMemberEmailsToAccountIDs,
 };

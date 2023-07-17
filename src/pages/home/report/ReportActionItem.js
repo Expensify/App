@@ -55,6 +55,7 @@ import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import TaskView from '../../../components/ReportActionItem/TaskView';
+import MoneyReportView from '../../../components/ReportActionItem/MoneyReportView';
 import * as Session from '../../../libs/actions/Session';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
@@ -418,6 +419,14 @@ function ReportActionItem(props) {
         if (ReportUtils.isTaskReport(props.report)) {
             return (
                 <TaskView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                />
+            );
+        }
+        if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
+            return (
+                <MoneyReportView
                     report={props.report}
                     shouldShowHorizontalRule={!props.isOnlyReportAction}
                 />

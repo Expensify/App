@@ -284,7 +284,7 @@ SidebarLinks.defaultProps = defaultProps;
 const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
-        participants: report.participants,
+        participantAccountIDs: report.participantAccountIDs,
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         errorFields: {
