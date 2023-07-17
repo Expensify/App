@@ -1113,7 +1113,7 @@ class ReportActionCompose extends React.Component {
                                     </AttachmentPicker>
                                     <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder]}>
                                         <DragAndDrop
-                                            dropZoneId={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
+                                            dropZoneId={this.props.dragAndDropId}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + this.props.reportID}
                                             onDragEnter={() => {
                                                 this.setState({isDraggingOver: true});

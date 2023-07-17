@@ -92,6 +92,7 @@ function ReportFooter(props) {
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
+                            dragAndDropId={props.dragAndDropId}
                         />
                     </SwipeableView>
                 </View>
