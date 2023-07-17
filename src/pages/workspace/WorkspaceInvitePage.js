@@ -196,8 +196,8 @@ function WorkspaceInvitePage(props) {
                 const sections = didScreenTransitionEnd ? getSections() : [];
                 return (
                     <FullPageNotFoundView
-                        shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
-                        subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
+                        shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                        subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                     >
                         <HeaderWithBackButton
