@@ -89,7 +89,7 @@ function BaseValidateCodeForm(props) {
     const timerRef = useRef();
 
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
-    const isLoadingResendCodeForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATION_FORM;
+    const isLoadingResendValidationForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATION_FORM;
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
@@ -202,11 +202,11 @@ function BaseValidateCodeForm(props) {
     };
 
     useEffect(() => {
-        if (!isLoadingResendCodeForm) {
+        if (!isLoadingResendValidationForm) {
             return;
         }
         clearLocalSignInData();
-    }, [isLoadingResendCodeForm]);
+    }, [isLoadingResendValidationForm]);
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
