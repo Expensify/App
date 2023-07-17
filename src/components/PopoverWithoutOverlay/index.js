@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import {PopoverContext} from '../PopoverProvider';
 import * as Modal from '../../libs/actions/Modal';
 import {propTypes, defaultProps} from '../Popover/popoverPropTypes';
@@ -9,7 +8,6 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import getModalStyles from '../../styles/getModalStyles';
 import withWindowDimensions from '../withWindowDimensions';
-import CONST from '../../CONST';
 
 function Popover(props) {
     const ref = React.useRef(null);
@@ -50,10 +48,9 @@ function Popover(props) {
     }
 
     return (
-        <PressableWithoutFeedback
+        <View
             style={[modalStyle, {zIndex: 1}]}
             ref={ref}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
         >
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
@@ -93,7 +90,7 @@ function Popover(props) {
                     );
                 }}
             </SafeAreaInsetsContext.Consumer>
-        </PressableWithoutFeedback>
+        </View>
     );
 }
 
