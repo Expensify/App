@@ -68,6 +68,7 @@ class BasePaymentsPage extends React.Component {
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
         this.listHeaderComponent = this.listHeaderComponent.bind(this);
+        this.navigateToAddPaypalRoute = this.navigateToAddPaypalRoute.bind(this);
 
         this.debounceSetShouldShowLoadingSpinner = _.debounce(this.setShouldShowLoadingSpinner.bind(this), CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
         this.addPaymentMethodAnchorRef = React.createRef();
@@ -330,6 +331,13 @@ class BasePaymentsPage extends React.Component {
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
     }
 
+    navigateToAddPaypalRoute() {
+        Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+        this.setState({
+            shouldShowDefaultDeleteMenu: false,
+        });
+    }
+
     listHeaderComponent() {
         return (
             <>
@@ -387,7 +395,6 @@ class BasePaymentsPage extends React.Component {
             Permissions.canUseWallet(this.props.betas) &&
             !isPayPalMeSelected &&
             !(this.state.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.BANK_ACCOUNT && this.state.selectedPaymentMethod.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS);
-
         // Determines whether or not the modal popup is mounted from the bottom of the screen instead of the side mount on Web or Desktop screens
         const isPopoverBottomMount = this.state.anchorPositionTop === 0 || this.props.isSmallScreenWidth;
         return (
@@ -468,6 +475,13 @@ class BasePaymentsPage extends React.Component {
                                         });
                                     }}
                                     text={this.props.translate('paymentsPage.setDefaultConfirmation')}
+                                />
+                            )}
+                            {isPayPalMeSelected && (
+                                <Button
+                                    onPress={this.navigateToAddPaypalRoute}
+                                    style={[styles.mb4]}
+                                    text={this.props.translate('common.edit')}
                                 />
                             )}
                             <Button

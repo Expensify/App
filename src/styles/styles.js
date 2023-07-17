@@ -25,10 +25,6 @@ import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 
-function getTransparentColor(color, transparency = '') {
-    return `${color}${transparency}`;
-}
-
 const picker = {
     backgroundColor: themeColors.transparent,
     color: themeColors.text,
@@ -835,6 +831,7 @@ const styles = {
         alignItems: 'center',
         paddingHorizontal: 15,
         paddingRight: 5,
+        ...userSelect.userSelectNone,
     },
 
     calendarDayRoot: {
@@ -842,6 +839,7 @@ const styles = {
         height: 45,
         justifyContent: 'center',
         alignItems: 'center',
+        ...userSelect.userSelectNone,
     },
 
     calendarDayContainer: {
@@ -1075,6 +1073,10 @@ const styles = {
         lineHeight: '140%',
     },
 
+    lhNormal: {
+        lineHeight: variables.lineHeightNormal,
+    },
+
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
@@ -1181,6 +1183,11 @@ const styles = {
     sidebar: {
         backgroundColor: themeColors.sidebar,
         height: '100%',
+    },
+
+    sidebarAnimatedWrapperContainer: {
+        height: '100%',
+        position: 'absolute',
     },
 
     sidebarFooter: {
@@ -2349,6 +2356,12 @@ const styles = {
         paddingBottom: 20,
     },
 
+    avatarSectionWrapperSkeleton: {
+        width: '100%',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
@@ -3381,7 +3394,7 @@ const styles = {
     linkPreviewWrapper: {
         marginTop: 16,
         borderLeftWidth: 4,
-        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        borderLeftColor: themeColors.border,
         paddingLeft: 12,
     },
 
@@ -3438,7 +3451,7 @@ const styles = {
         ...spacing.mr3,
     },
 
-    taskHorizontalRule: {
+    reportHorizontalRule: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.mh5,

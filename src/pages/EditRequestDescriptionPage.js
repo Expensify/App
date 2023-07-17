@@ -9,6 +9,7 @@ import Form from '../components/Form';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
+import CONST from '../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -45,6 +46,8 @@ function EditRequestDescriptionPage(props) {
                         name="modifiedComment"
                         defaultValue={props.defaultDescription}
                         label={props.translate('moneyRequestConfirmationList.whatsItFor')}
+                        accessibilityLabel={props.translate('moneyRequestConfirmationList.whatsItFor')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={descriptionInputRef}
                     />
                 </View>
