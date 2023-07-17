@@ -28,8 +28,11 @@ import withNavigationFocus from '../../components/withNavigationFocus';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const personalDetailsPropTypes = PropTypes.shape({
+    /** The accountID of the person */
+    accountID: PropTypes.number.isRequired,
+
     /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
+    login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
     the person doesn't have their own avatar uploaded yet, except for anon users) */
@@ -41,7 +44,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
+    allPersonalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -63,7 +66,7 @@ const propTypes = {
 
 const defaultProps = {
     ...policyDefaultProps,
-    personalDetails: {},
+    allPersonalDetails: {},
     betas: [],
     invitedEmailsToAccountIDsDraft: {},
 };
@@ -196,7 +199,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 icons={OptionsListUtils.getAvatarsForAccountIDs(
                                     _.values(this.props.invitedEmailsToAccountIDsDraft),
-                                    this.props.personalDetails,
+                                    this.props.allPersonalDetails,
                                     this.props.invitedEmailsToAccountIDsDraft,
                                 )}
                                 shouldStackHorizontally
@@ -238,7 +241,7 @@ export default compose(
     withLocalize,
     withPolicyAndFullscreenLoading,
     withOnyx({
-        personalDetails: {
+        allPersonalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
