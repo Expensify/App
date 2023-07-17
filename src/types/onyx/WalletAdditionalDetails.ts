@@ -1,7 +1,7 @@
 import * as OnyxCommon from './OnyxCommon';
 
 type WalletAdditionalDetails = OnyxCommon.BaseState & {
-    /** Questions returned by Ideology */
+    /** Questions returned by Idology */
     questions?: {
         prompt: string;
         type: string;
