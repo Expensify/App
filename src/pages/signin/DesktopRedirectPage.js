@@ -16,6 +16,8 @@ import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
+import Navigation from '../../libs/Navigation/Navigation';
+import ROUTES from '../../ROUTES';
 
 const propTypes = {
     session: PropTypes.shape({
@@ -93,7 +95,7 @@ function DesktopRedirectPage(props) {
                     <Text style={[styles.textAlignCenter]}>
                         {props.translate('thirdPartySignIn.doNotSeePrompt')}{' '}
                         <TextLink onPress={() => openRouteInDesktopApp(expensifyDeeplinkUrl)}>{props.translate('thirdPartySignIn.tryAgain')}</TextLink>
-                        {props.translate('thirdPartySignIn.or')} <TextLink onPress={() => Session.redirectToSignIn()}>{props.translate('thirdPartySignIn.continueInWeb')}</TextLink>.
+                        {props.translate('thirdPartySignIn.or')} <TextLink onPress={() => Navigation.navigate(ROUTES.HOME)}>{props.translate('thirdPartySignIn.continueInWeb')}</TextLink>.
                     </Text>
                 </View>
             </View>
