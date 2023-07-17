@@ -63,6 +63,10 @@ const defaultProps = {
 function SidebarLinksData({allReportActions, betas, chatReports, currentReportID, insets, isPersonalDetailsLoading, isSmallScreenWidth, onLayout, onLinkClick, policies, priorityMode}) {
     const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
+        // Object.values(chatReports).forEach((report) => {
+        //     console.log('[HD]', report.reportName, report.reportID, report.lastVisibleActionCreated);
+        // });
+
         const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
@@ -111,6 +115,7 @@ const chatReportSelector = (report) =>
         lastMessageText: report.lastMessageText,
         lastVisibleActionCreated: report.lastVisibleActionCreated,
         iouReportID: report.iouReportID,
+        iouReportAmount: report.iouReportAmount,
         hasOutstandingIOU: report.hasOutstandingIOU,
         statusNum: report.statusNum,
         stateNum: report.stateNum,
@@ -120,6 +125,7 @@ const chatReportSelector = (report) =>
         reportName: report.reportName,
         visibility: report.visibility,
         lastReadTime: report.lastReadTime,
+        displayName: report.displayName,
     };
 
 /**
