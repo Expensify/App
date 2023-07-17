@@ -1,48 +1,22 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {Parser as HtmlParser} from 'htmlparser2';
 import * as Expensicons from '../Icon/Expensicons';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import CarouselActions from './CarouselActions';
 import Button from '../Button';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import AttachmentView from '../AttachmentView';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
 import Tooltip from '../Tooltip';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import withLocalize from '../withLocalize';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
-import reportPropTypes from '../../pages/reportPropTypes';
-
-const propTypes = {
-    /** source is used to determine the starting index in the array of attachments */
-    source: PropTypes.string,
-
-    /** Callback to update the parent modal's state with a source and name from the attachments array */
-    onNavigate: PropTypes.func,
-
-    /** Object of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    source: '',
-    reportActions: {},
-    onNavigate: () => {},
-};
+import createInitialState from './createInitialState';
+import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
@@ -50,63 +24,6 @@ const viewabilityConfig = {
     // more than 90% visible. When that happens we update the page index in the state.
     itemVisiblePercentThreshold: 95,
 };
-
-/**
- * Constructs the initial component state from report actions
- * @param {Object} props
- * @returns {{page: Number, attachments: Array}}
- */
-function createInitialState(props) {
-    const actions = [ReportActionsUtils.getParentReportAction(props.report), ...ReportActionsUtils.getSortedReportActions(_.values(props.reportActions))];
-    const attachments = [];
-
-    const htmlParser = new HtmlParser({
-        onopentag: (name, attribs) => {
-            if (name !== 'img' || !attribs.src) {
-                return;
-            }
-
-            const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-
-            // By iterating actions in chronological order and prepending each attachment
-            // we ensure correct order of attachments even across actions with multiple attachments.
-            attachments.unshift({
-                source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
-                isAuthTokenRequired: Boolean(expensifySource),
-                file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
-            });
-        },
-    });
-
-    _.forEach(actions, (action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
-            return;
-        }
-        htmlParser.write(_.get(action, ['message', 0, 'html']));
-    });
-    htmlParser.end();
-
-    // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
-    // promotes the natural feeling of swiping left/right to go to the next/previous image
-    // We don't want to invert the list for desktop/web because this interferes with mouse
-    // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
-    if (canUseTouchScreen) {
-        attachments.reverse();
-    }
-
-    const page = _.findIndex(attachments, (a) => a.source === props.source);
-    if (page === -1) {
-        throw new Error('Attachment not found');
-    }
-
-    // Update the parent modal's state with the source and name from the mapped attachments
-    props.onNavigate(attachments[page]);
-
-    return {
-        page,
-        attachments,
-    };
-}
 
 function AttachmentCarousel(props) {
     const [page, setPage] = useState(0);
@@ -118,6 +35,14 @@ function AttachmentCarousel(props) {
 
     const scrollRef = useRef(null);
     const autoHideArrowTimeout = useRef(null);
+
+    let isForwardDisabled = page === 0;
+    let isBackDisabled = page === _.size(attachments) - 1;
+
+    if (canUseTouchScreen) {
+        isForwardDisabled = isBackDisabled;
+        isBackDisabled = page === 0;
+    }
 
     useEffect(() => {
         const initialState = createInitialState(props);
@@ -295,14 +220,6 @@ function AttachmentCarousel(props) {
         ),
         [activeSource, toggleArrowsVisibility, updateZoomState],
     );
-
-    let isForwardDisabled = page === 0;
-    let isBackDisabled = page === _.size(attachments) - 1;
-
-    if (canUseTouchScreen) {
-        isForwardDisabled = isBackDisabled;
-        isBackDisabled = page === 0;
-    }
 
     return (
         <View
