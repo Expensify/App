@@ -48,34 +48,35 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData(props) {
+function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullReport, personalDetails, preferredLocale, comment, ...propsToForward}) {
+    const reportID = propsToForward.reportID;
     // We only want to pass a boolean to the memoized component,
     // instead of a changing number (so we prevent unnecessary re-renders).
-    const isFocused = !props.shouldDisableFocusOptions && props.currentReportID === props.reportID;
+    const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
 
     const optionItemRef = useRef();
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(props.fullReport, props.personalDetails, props.preferredLocale);
+        const item = SidebarUtils.getOptionData(fullReport, personalDetails, preferredLocale);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
         optionItemRef.current = item;
         return item;
-    }, [props.fullReport, props.preferredLocale, props.personalDetails]);
+    }, [fullReport, preferredLocale, personalDetails]);
 
     useEffect(() => {
-        if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || isFocused) {
+        if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
             return;
         }
-        Report.setReportWithDraft(props.reportID, true);
+        Report.setReportWithDraft(reportID, true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {..._.omit(props, 'currentReportID', 'comment', 'personalDetails', 'preferredLocale', 'fullReport')}
+            {...propsToForward}
             isFocused={isFocused}
             optionItem={optionItem}
         />
