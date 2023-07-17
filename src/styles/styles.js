@@ -550,9 +550,8 @@ const styles = {
 
     buttonDivider: {
         width: 1,
-        alignSelf: 'stretch',
-        backgroundColor: themeColors.appBG,
-        marginVertical: 1,
+        backgroundColor: themeColors.text,
+        height: 28,
     },
 
     noBorderRadius: {

@@ -10,6 +10,7 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Text to display for the menu header */
@@ -84,8 +85,10 @@ function ButtonWithDropdownMenu(props) {
                         shouldRemoveRightBorderRadius
                         style={[styles.flex1, styles.pr0]}
                         pressOnEnter
+                        medium
+                        innerStyles={[{height: 40}]}
                     />
-                    <View style={styles.buttonDivider} />
+
                     <Button
                         ref={caretButton}
                         success
@@ -93,11 +96,16 @@ function ButtonWithDropdownMenu(props) {
                         style={[styles.pl0]}
                         onPress={() => setIsMenuVisible(true)}
                         shouldRemoveLeftBorderRadius
+                        medium
+                        innerStyles={[{height: 40}]}
                     >
-                        <Icon
-                            src={Expensicons.DownArrow}
-                            fill={themeColors.textLight}
-                        />
+                        <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
+                            <View style={styles.buttonDivider} />
+                            <Icon
+                                src={Expensicons.DownArrow}
+                                fill={themeColors.textLight}
+                            />
+                        </View>
                     </Button>
                 </View>
             ) : (
