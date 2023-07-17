@@ -355,36 +355,42 @@ function BasePaymentsPage(props) {
     }, [props.network.isOffline, debounceSetShouldShowLoadingSpinner, updateShouldShowLoadingSpinner]);
 
     useEffect(() => {
-        if (props.shouldListenForResize) {
-            setMenuPosition();
-        }
-
-        if (shouldShowDefaultDeleteMenu || showPassword.shouldShowPasswordPrompt) {
-            // We should reset selected payment method state values and close corresponding modals if the selected payment method is deleted
-            let shouldResetPaymentMethodData = false;
-
-            if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(props.bankAccountList[paymentMethod.methodID])) {
-                shouldResetPaymentMethodData = true;
-            } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(props.cardList[paymentMethod.methodID])) {
-                shouldResetPaymentMethodData = true;
-            } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && _.isEmpty(props.payPalMeData)) {
-                shouldResetPaymentMethodData = true;
-            }
-            if (shouldResetPaymentMethodData) {
-                // Close corresponding selected payment method modals which are open
-                if (shouldShowDefaultDeleteMenu) {
-                    hideDefaultDeleteMenu();
-                } else if (showPassword.shouldShowPasswordPrompt) {
-                    hidePasswordPrompt();
-                }
-            }
-        }
-
-        // previously online OR currently offline, skip fetch
         if (props.network.isOffline) {
             return;
         }
         PaymentMethods.openPaymentsPage();
+    }, [props.network.isOffline]);
+
+    useEffect(() => {
+        if (!props.shouldListenForResize) {
+            return;
+        }
+        setMenuPosition();
+    }, [props.shouldListenForResize, setMenuPosition]);
+
+    useEffect(() => {
+        if (!shouldShowDefaultDeleteMenu && !showPassword.shouldShowPasswordPrompt) {
+            return;
+        }
+
+        // We should reset selected payment method state values and close corresponding modals if the selected payment method is deleted
+        let shouldResetPaymentMethodData = false;
+
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(props.bankAccountList[paymentMethod.methodID])) {
+            shouldResetPaymentMethodData = true;
+        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(props.cardList[paymentMethod.methodID])) {
+            shouldResetPaymentMethodData = true;
+        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && _.isEmpty(props.payPalMeData)) {
+            shouldResetPaymentMethodData = true;
+        }
+        if (shouldResetPaymentMethodData) {
+            // Close corresponding selected payment method modals which are open
+            if (shouldShowDefaultDeleteMenu) {
+                hideDefaultDeleteMenu();
+            } else if (showPassword.shouldShowPasswordPrompt) {
+                hidePasswordPrompt();
+            }
+        }
     }, [
         hideDefaultDeleteMenu,
         hidePasswordPrompt,
@@ -392,10 +398,7 @@ function BasePaymentsPage(props) {
         paymentMethod.selectedPaymentMethodType,
         props.bankAccountList,
         props.cardList,
-        props.network.isOffline,
         props.payPalMeData,
-        props.shouldListenForResize,
-        setMenuPosition,
         shouldShowDefaultDeleteMenu,
         showPassword.shouldShowPasswordPrompt,
     ]);
