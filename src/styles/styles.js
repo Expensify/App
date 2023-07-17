@@ -25,10 +25,6 @@ import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 
-function getTransparentColor(color, transparency = '') {
-    return `${color}${transparency}`;
-}
-
 const picker = {
     backgroundColor: themeColors.transparent,
     color: themeColors.text,
@@ -1075,6 +1071,10 @@ const styles = {
 
     lh140Percent: {
         lineHeight: '140%',
+    },
+
+    lhNormal: {
+        lineHeight: variables.lineHeightNormal,
     },
 
     formHelp: {
@@ -2356,6 +2356,12 @@ const styles = {
         paddingBottom: 20,
     },
 
+    avatarSectionWrapperSkeleton: {
+        width: '100%',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
@@ -3388,7 +3394,7 @@ const styles = {
     linkPreviewWrapper: {
         marginTop: 16,
         borderLeftWidth: 4,
-        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        borderLeftColor: themeColors.border,
         paddingLeft: 12,
     },
 
@@ -3445,7 +3451,7 @@ const styles = {
         ...spacing.mr3,
     },
 
-    taskHorizontalRule: {
+    reportHorizontalRule: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.mh5,
@@ -3514,6 +3520,21 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
+        height,
+        width: '100%',
+        position: 'absolute',
+        top: -height,
+        left: 0,
+        right: 0,
+    }),
 };
 
 export default styles;

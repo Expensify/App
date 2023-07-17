@@ -9,6 +9,10 @@
                        "comment": "Reports"
                     },
                     {
+                        "/": "/a/*",
+                        "comment": "Profile Page"
+                    },
+                    {
                         "/": "/settings/*",
                         "comment": "Profile and app settings"
                     },
