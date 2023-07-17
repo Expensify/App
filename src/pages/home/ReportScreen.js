@@ -35,6 +35,7 @@ import withNavigationFocus from '../../components/withNavigationFocus';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
+import MoneyReportHeader from '../../components/MoneyReportHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
 import ReportScreenContext from './ReportScreenContext';
@@ -275,6 +276,39 @@ class ReportScreen extends React.Component {
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
 
+        let headerView = (
+            <HeaderView
+                reportID={reportID}
+                onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                personalDetails={this.props.personalDetails}
+                report={this.props.report}
+            />
+        );
+
+        if (isSingleTransactionView) {
+            headerView = (
+                <MoneyRequestHeader
+                    report={this.props.report}
+                    policies={this.props.policies}
+                    personalDetails={this.props.personalDetails}
+                    isSingleTransactionView={isSingleTransactionView}
+                    parentReportAction={parentReportAction}
+                />
+            );
+        }
+
+        if (ReportUtils.isMoneyRequestReport(this.props.report)) {
+            headerView = (
+                <MoneyReportHeader
+                    report={this.props.report}
+                    policies={this.props.policies}
+                    personalDetails={this.props.personalDetails}
+                    isSingleTransactionView={isSingleTransactionView}
+                    parentReportAction={parentReportAction}
+                />
+            );
+        }
+
         return (
             <ReportScreenContext.Provider
                 value={{
@@ -298,23 +332,7 @@ class ReportScreen extends React.Component {
                             errors={addWorkspaceRoomOrChatErrors}
                             shouldShowErrorMessages={false}
                         >
-                            {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
-                                <MoneyRequestHeader
-                                    report={this.props.report}
-                                    policies={this.props.policies}
-                                    personalDetails={this.props.personalDetails}
-                                    isSingleTransactionView={isSingleTransactionView}
-                                    parentReportAction={parentReportAction}
-                                />
-                            ) : (
-                                <HeaderView
-                                    reportID={reportID}
-                                    onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                                    personalDetails={this.props.personalDetails}
-                                    report={this.props.report}
-                                />
-                            )}
-
+                            {headerView}
                             {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(this.props.report) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
