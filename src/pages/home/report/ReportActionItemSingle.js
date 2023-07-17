@@ -41,6 +41,9 @@ const propTypes = {
     /** Report for this action */
     report: reportPropTypes,
 
+    /** IOU Report for this action, if any */
+    iouReport: reportPropTypes,
+
     /** Show header for action */
     showHeader: PropTypes.bool,
 
@@ -60,6 +63,7 @@ const defaultProps = {
     shouldShowSubscriptAvatar: false,
     hasBeenFlagged: false,
     report: undefined,
+    iouReport: undefined,
 };
 
 const showUserDetails = (accountID) => {
@@ -91,8 +95,16 @@ function ReportActionItemSingle(props) {
         displayName = actorHint;
         avatarSource = UserUtils.getAvatar(delegateDetails.avatar, props.action.delegateAccountID);
     }
+
+    // If this is a report preview, display names and avatars of both people involved
+    let secondaryAvatar = {};
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
-        displayName = 'mimimi';
+        const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
+        const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
+        displayName = displayName + ' & ' + secondaryDisplayName;
+        secondaryAvatar = {source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID), type: CONST.ICON_TYPE_AVATAR, name: secondaryDisplayName, id: props.iouReport.ownerAccountID};
+    } else if (!isWorkspaceActor) {
+        secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]
     }
     const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName, id: actorAccountID};
 
@@ -130,7 +142,7 @@ function ReportActionItemSingle(props) {
                     {props.shouldShowSubscriptAvatar ? (
                         <SubscriptAvatar
                             mainAvatar={icon}
-                            secondaryAvatar={isWorkspaceActor ? {} : ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]}
+                            secondaryAvatar={secondaryAvatar}
                             mainTooltip={actorHint}
                             secondaryTooltip={ReportUtils.getPolicyName(props.report)}
                             noMargin

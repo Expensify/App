@@ -405,6 +405,7 @@ function ReportActionItem(props) {
                     wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
+                    iouReport = {props.iouReport}
                     hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
                 >
                     {content}
@@ -550,6 +551,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        iouReport: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`,
         },
     }),
 )(
