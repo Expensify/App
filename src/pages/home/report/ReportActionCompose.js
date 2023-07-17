@@ -377,7 +377,7 @@ function ReportActionCompose({translate, ...props}) {
             setIsCommentEmpty(!!newComment.match(/^(\s)*$/));
             setValue(newComment);
             if (commentValue !== newComment) {
-                const remainder = value.slice(selection.end).length;
+                const remainder = ComposerUtils.getCommonSuffixLength(comment, newComment);
                 setSelection({
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
@@ -404,7 +404,7 @@ function ReportActionCompose({translate, ...props}) {
                 debouncedBroadcastUserIsTyping(props.reportID);
             }
         },
-        [debouncedUpdateFrequentlyUsedEmojis, props.preferredLocale, props.preferredSkinTone, props.reportID, selection.end, value],
+        [debouncedUpdateFrequentlyUsedEmojis, props.preferredLocale, props.preferredSkinTone, props.reportID],
     );
 
     /**
