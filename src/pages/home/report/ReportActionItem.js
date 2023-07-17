@@ -98,6 +98,9 @@ const propTypes = {
 
     /** Is this the only report action on the report? */
     isOnlyReportAction: PropTypes.bool,
+
+    /** IOU report for this action, if any */
+    iouReport: reportPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -107,6 +110,7 @@ const defaultProps = {
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
     isOnlyReportAction: false,
+    iouReport: undefined,
 };
 
 function ReportActionItem(props) {

@@ -103,7 +103,7 @@ function ReportActionItemSingle(props) {
     if (displayAllActors) {
         const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
-        displayName = displayName + ' & ' + secondaryDisplayName;
+        displayName = `${displayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID), type: CONST.ICON_TYPE_AVATAR, name: secondaryDisplayName, id: props.iouReport.ownerAccountID};
     } else if (!isWorkspaceActor) {
         secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
@@ -135,8 +135,8 @@ function ReportActionItemSingle(props) {
             return (
                 <MultipleAvatars
                 icons={[icon, secondaryAvatar]}
-                isInReportAction = {true}
-                shouldShowTooltip={true}
+                isInReportAction
+                shouldShowTooltip
                 />
             );
         } else if (props.shouldShowSubscriptAvatar) {
@@ -149,24 +149,23 @@ function ReportActionItemSingle(props) {
                     noMargin
                 />
             );
-        } else {
-            return (
-                <UserDetailsTooltip
-                    accountID={actorAccountID}
-                    delegateAccountID={props.action.delegateAccountID}
-                    icon={icon}
-                >
-                    <View>
-                        <Avatar
-                            containerStyles={[styles.actionAvatar]}
-                            source={icon.source}
-                            type={icon.type}
-                            name={icon.name}
-                        />
-                    </View>
-                </UserDetailsTooltip>
-            );
         }
+        return (
+            <UserDetailsTooltip
+                accountID={actorAccountID}
+                delegateAccountID={props.action.delegateAccountID}
+                icon={icon}
+            >
+                <View>
+                    <Avatar
+                        containerStyles={[styles.actionAvatar]}
+                        source={icon.source}
+                        type={icon.type}
+                        name={icon.name}
+                    />
+                </View>
+            </UserDetailsTooltip>
+        );
     }
 
     return (
