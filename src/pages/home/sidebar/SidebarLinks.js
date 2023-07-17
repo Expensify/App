@@ -185,8 +185,10 @@ class SidebarLinks extends React.Component {
      * @param {String} option.reportID
      */
     showReportPage(option) {
-        if (this.props.isCreateMenuOpen) {
+        if (this.props.isCreateMenuOpen || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
             // Prevent opening Report page when click LHN row quickly after clicking FAB icon
+            // or when continuously click different LHNs, only apply to small screen since
+            // getTopmostReportId always returns on other devices
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
@@ -282,7 +284,7 @@ SidebarLinks.defaultProps = defaultProps;
 const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
-        participants: report.participants,
+        participantAccountIDs: report.participantAccountIDs,
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         errorFields: {

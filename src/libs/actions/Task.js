@@ -10,7 +10,9 @@ import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import DateUtils from '../DateUtils';
 import * as UserUtils from '../UserUtils';
+import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
+import * as Expensicons from '../../components/Icon/Expensicons';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -43,7 +45,7 @@ function clearOutTaskInfo() {
 
 function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0) {
     // Create the task report
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
     // Grab the assigneeChatReportID if there is an assignee and if it's not the same as the parentReportID
     // then we create an optimistic add comment report action on the assignee's chat to notify them of the task
@@ -62,7 +64,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     }
 
     // Create the CreatedReportAction on the task
-    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
+    const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
     const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Created a task: ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
@@ -73,7 +75,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     const optimisticReport = {
         lastVisibleActionCreated: currentTime,
         lastMessageText: lastCommentText,
-        lastActorEmail: currentUserEmail,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
     };
@@ -144,7 +145,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         const optimisticAssigneeReport = {
             lastVisibleActionCreated: currentTime,
             lastMessageText: lastAssigneeCommentText,
-            lastActorEmail: currentUserEmail,
             lastActorAccountID: currentUserAccountID,
             lastReadTime: currentTime,
         };
@@ -213,7 +213,17 @@ function completeTask(taskReportID, taskTitle) {
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            value: {
+                [completedTaskReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -226,7 +236,11 @@ function completeTask(taskReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[completedTaskReportAction.reportActionID]: {pendingAction: null}},
+            value: {
+                [completedTaskReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                },
+            },
         },
     ];
 
@@ -258,7 +272,6 @@ function reopenTask(taskReportID, taskTitle) {
                 statusNum: CONST.REPORT.STATUS.OPEN,
                 lastVisibleActionCreated: reopenedTaskReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: currentUserEmail,
                 lastActorAccountID: reopenedTaskReportAction.actorAccountID,
                 lastReadTime: reopenedTaskReportAction.created,
             },
@@ -270,7 +283,17 @@ function reopenTask(taskReportID, taskTitle) {
         },
     ];
 
-    const successData = [];
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            value: {
+                [reopenedTaskReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+    ];
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -283,7 +306,11 @@ function reopenTask(taskReportID, taskTitle) {
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
-            value: {[reopenedTaskReportAction.reportActionID]: {pendingAction: null}},
+            value: {
+                [reopenedTaskReportAction.reportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                },
+            },
         },
     ];
 
@@ -299,7 +326,6 @@ function reopenTask(taskReportID, taskTitle) {
 
 /**
  * @param {object} report
- * @param {string} ownerEmail
  * @param {Number} ownerAccountID
  * @param {Object} editedTask
  * @param {String} editedTask.title
@@ -307,9 +333,9 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {String} editedTask.assignee
  * @param {Number} editedTask.assigneeAccountID
  */
-function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, description, assignee, assigneeAccountID = 0}) {
+function editTaskAndNavigate(report, ownerAccountID, {title, description, assignee = '', assigneeAccountID = 0}) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(ownerEmail);
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
 
     // Sometimes title or description is undefined, so we need to check for that, and we provide it to multiple functions
     const reportName = (title || report.reportName).trim();
@@ -347,6 +373,7 @@ function editTaskAndNavigate(report, ownerEmail, ownerAccountID, {title, descrip
                 reportName,
                 description: reportDescription,
                 managerID: assigneeAccountID || report.managerID,
+                managerEmail: assignee || report.managerEmail,
             },
         },
     ];
@@ -457,23 +484,6 @@ function setShareDestinationValue(shareDestination) {
 }
 
 /**
- * Auto-assign participant when creating a task in a DM
- * @param {String} reportID
- */
-
-function setAssigneeValueWithParentReportID(reportID) {
-    const report = ReportUtils.getReport(reportID);
-    const isDefault = !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    const participants = lodashGet(report, 'participants', []);
-    const hasMultipleParticipants = participants.length > 1;
-    if (!isDefault || hasMultipleParticipants || report.parentReportID) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.TASK, {assignee: participants[0]});
-}
-
-/**
  * Sets the assignee value for the task and checks for an existing chat with the assignee
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
@@ -560,7 +570,7 @@ function getAssignee(details) {
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
     return {
-        icons: ReportUtils.getIcons(report, personalDetails),
+        icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
         subtitle: ReportUtils.getChatRoomSubtitle(report),
     };
@@ -593,7 +603,6 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             value: {
                 lastVisibleActionCreated: optimisticCancelReportAction.created,
                 lastMessageText: message,
-                lastActorEmail: currentUserEmail,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
             },
         },
@@ -602,6 +611,18 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
             value: {
                 [optimisticReportActionID]: optimisticCancelReportAction,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    pendingAction: null,
+                },
             },
         },
     ];
@@ -624,11 +645,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         },
     ];
 
-    API.write('CancelTask', {taskReportID, optimisticReportActionID}, {optimisticData, failureData});
-}
-
-function isTaskCanceled(taskReport) {
-    return taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && taskReport.statusNum === CONST.REPORT.STATUS.CLOSED;
+    API.write('CancelTask', {cancelledTaskReportActionID: optimisticReportActionID, taskReportID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -687,7 +704,6 @@ export {
     setTaskReport,
     setDetailsValue,
     setAssigneeValue,
-    setAssigneeValueWithParentReportID,
     setShareDestinationValue,
     clearOutTaskInfo,
     reopenTask,
@@ -696,7 +712,6 @@ export {
     getAssignee,
     getShareDestination,
     cancelTask,
-    isTaskCanceled,
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,
