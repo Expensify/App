@@ -150,11 +150,18 @@ function addSMSDomainIfPhoneNumber(login) {
  *
  * @param {Array<Number>} accountIDs
  * @param {Object} personalDetails
+ * @param {Object} defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns {Object}
  */
-function getAvatarsForAccountIDs(accountIDs, personalDetails) {
+function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}) {
+    const reversedDefaultValues = {};
+    _.map(Object.entries(defaultValues), (item) => {
+        reversedDefaultValues[item[1]] = item[0];
+    });
+
     return _.map(accountIDs, (accountID) => {
-        const userPersonalDetail = lodashGet(personalDetails, accountID, {login: '', accountID, avatar: ''});
+        const login = lodashGet(reversedDefaultValues, accountID, '');
+        const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
@@ -378,8 +385,8 @@ function getLastMessageTextForReport(report) {
     const lastReportAction = lastReportActions[report.reportID];
     let lastMessageTextFromReport = '';
 
-    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal('common.attachment')}]`;
+    if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
+        lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
     } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
@@ -772,7 +779,7 @@ function getOptions(
 
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
+    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase());
 
     if (
         searchValue &&
@@ -805,7 +812,7 @@ function getOptions(
         userToInvite.icons = [
             {
                 source: UserUtils.getAvatar('', optimisticAccountID),
-                login: searchValue,
+                name: searchValue,
                 type: CONST.ICON_TYPE_AVATAR,
             },
         ];

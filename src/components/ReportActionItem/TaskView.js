@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -47,6 +48,7 @@ function TaskView(props) {
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
+    const avatarURL = lodashGet(PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID), [0, 'avatar'], '');
 
     return (
         <View>
@@ -65,7 +67,7 @@ function TaskView(props) {
             >
                 {({hovered, pressed}) => (
                     <>
-                        <Text style={styles.taskTitleDescription}>Title</Text>
+                        <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
                         <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
                             <Checkbox
                                 onPress={() => (isCompleted ? Task.reopenTask(props.report.reportID, taskTitle) : Task.completeTask(props.report.reportID, taskTitle))}
@@ -112,10 +114,7 @@ function TaskView(props) {
                 <MenuItem
                     label={props.translate('task.assignee')}
                     title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                    icon={UserUtils.getAvatar(
-                        PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID)[0].avatar,
-                        props.report.managerID,
-                    )}
+                    icon={UserUtils.getAvatar(avatarURL, props.report.managerID)}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     avatarSize={CONST.AVATAR_SIZE.SMALLER}
                     titleStyle={styles.assigneeTextStyle}
@@ -137,7 +136,7 @@ function TaskView(props) {
                 />
             )}
 
-            {props.shouldShowHorizontalRule && <View style={styles.taskHorizontalRule} />}
+            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
 }

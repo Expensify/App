@@ -147,9 +147,11 @@ function MagicCodeInput(props) {
     useEffect(() => {
         validateAndSubmit();
 
-        // We have not added the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
+        // We have not added:
+        // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
+        // + the props.onFulfill as the dependency because props.onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.value, props.shouldSubmitOnComplete, props.onFulfill]);
+    }, [props.value, props.shouldSubmitOnComplete]);
 
     useEffect(() => {
         if (!props.autoFocus) {
