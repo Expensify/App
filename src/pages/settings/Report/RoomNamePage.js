@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -47,6 +47,8 @@ function RoomNamePage(props) {
     const reports = props.reports;
     const translate = props.translate;
 
+    const roomNameInputRef = useRef(null);
+
     const validate = useCallback(
         (values) => {
             const errors = {};
@@ -76,7 +78,10 @@ function RoomNamePage(props) {
     );
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            onEntryTransitionEnd={() => roomNameInputRef.current && roomNameInputRef.current.focus()}
+            includeSafeAreaPaddingBottom={false}
+        >
             <FullPageNotFoundView shouldShow={Policy.shouldDisableRename(policy, report)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}

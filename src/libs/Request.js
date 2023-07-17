@@ -15,7 +15,14 @@ let middlewares = [];
  */
 function makeXHR(request) {
     const finalParameters = enhanceParameters(request.command, request.data);
-    return NetworkStore.hasReadRequiredDataFromStorage().then(() => HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure));
+    return NetworkStore.hasReadRequiredDataFromStorage().then(() => {
+        // If we're using the Supportal token and this is not a Supportal request
+        // let's just return a promise that will resolve itself.
+        if (NetworkStore.getSupportAuthToken() && !NetworkStore.isSupportRequest(request.command)) {
+            return new Promise((resolve) => resolve());
+        }
+        return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
+    });
 }
 
 /**
