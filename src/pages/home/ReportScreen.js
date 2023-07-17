@@ -35,6 +35,7 @@ import withNavigationFocus from '../../components/withNavigationFocus';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
+import MoneyReportHeader from '../../components/MoneyReportHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
 import ReportScreenContext from './ReportScreenContext';
@@ -92,7 +93,7 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
-    reportActions: {},
+    reportActions: [],
     report: {
         hasOutstandingIOU: false,
         isLoadingReportActions: false,
@@ -113,7 +114,7 @@ const defaultProps = {
  * @returns {String}
  */
 function getReportID(route) {
-    return route.params.reportID.toString();
+    return String(lodashGet(route, 'params.reportID', null));
 }
 
 // Keep a reference to the list view height so we can use it when a new ReportScreen component mounts
@@ -132,6 +133,7 @@ class ReportScreen extends React.Component {
         this.state = {
             skeletonViewContainerHeight: reportActionsListViewHeight,
             isBannerVisible: true,
+            isReportRemoved: false,
         };
         this.firstRenderRef = React.createRef();
         this.firstRenderRef.current = reportActionsListViewHeight === 0;
@@ -160,13 +162,33 @@ class ReportScreen extends React.Component {
         if (ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
             EmojiPickerAction.hideEmojiPicker(true);
         }
+        const onyxReportID = this.props.report.reportID;
+        const prevOnyxReportID = prevProps.report.reportID;
+        const routeReportID = getReportID(this.props.route);
+
+        // navigate to concierge when the room removed from another device (e.g. user leaving a room)
+        // the report will not really null when removed, it will have defaultProps properties and values
+        if (
+            prevOnyxReportID &&
+            prevOnyxReportID === routeReportID &&
+            !onyxReportID &&
+            // non-optimistic case
+            (_.isEqual(this.props.report, defaultProps.report) ||
+                // optimistic case
+                (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
+        ) {
+            Navigation.goBack();
+            Report.navigateToConciergeChat();
+            // isReportRemoved will prevent <FullPageNotFoundView> showing when navigating
+            this.setState({isReportRemoved: true});
+            return;
+        }
+
         // If you already have a report open and are deeplinking to a new report on native,
         // the ReportScreen never actually unmounts and the reportID in the route also doesn't change.
         // Therefore, we need to compare if the existing reportID is the same as the one in the route
         // before deciding that we shouldn't call OpenReport.
-        const onyxReportID = this.props.report.reportID;
-        const routeReportID = getReportID(this.props.route);
-        if (onyxReportID === prevProps.report.reportID && (!onyxReportID || onyxReportID === routeReportID)) {
+        if (onyxReportID === prevOnyxReportID && (!onyxReportID || onyxReportID === routeReportID)) {
             return;
         }
 
@@ -254,6 +276,39 @@ class ReportScreen extends React.Component {
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
 
+        let headerView = (
+            <HeaderView
+                reportID={reportID}
+                onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                personalDetails={this.props.personalDetails}
+                report={this.props.report}
+            />
+        );
+
+        if (isSingleTransactionView) {
+            headerView = (
+                <MoneyRequestHeader
+                    report={this.props.report}
+                    policies={this.props.policies}
+                    personalDetails={this.props.personalDetails}
+                    isSingleTransactionView={isSingleTransactionView}
+                    parentReportAction={parentReportAction}
+                />
+            );
+        }
+
+        if (ReportUtils.isMoneyRequestReport(this.props.report)) {
+            headerView = (
+                <MoneyReportHeader
+                    report={this.props.report}
+                    policies={this.props.policies}
+                    personalDetails={this.props.personalDetails}
+                    isSingleTransactionView={isSingleTransactionView}
+                    parentReportAction={parentReportAction}
+                />
+            );
+        }
+
         return (
             <ReportScreenContext.Provider
                 value={{
@@ -266,7 +321,7 @@ class ReportScreen extends React.Component {
                     shouldEnableKeyboardAvoidingView={this.props.isFocused}
                 >
                     <FullPageNotFoundView
-                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading) || shouldHideReport}
+                        shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading && !this.state.isReportRemoved) || shouldHideReport}
                         subtitleKey="notFound.noAccess"
                         shouldShowCloseButton={false}
                         shouldShowBackButton={this.props.isSmallScreenWidth}
@@ -277,23 +332,7 @@ class ReportScreen extends React.Component {
                             errors={addWorkspaceRoomOrChatErrors}
                             shouldShowErrorMessages={false}
                         >
-                            {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
-                                <MoneyRequestHeader
-                                    report={this.props.report}
-                                    policies={this.props.policies}
-                                    personalDetails={this.props.personalDetails}
-                                    isSingleTransactionView={isSingleTransactionView}
-                                    parentReportAction={parentReportAction}
-                                />
-                            ) : (
-                                <HeaderView
-                                    reportID={reportID}
-                                    onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                                    personalDetails={this.props.personalDetails}
-                                    report={this.props.report}
-                                />
-                            )}
-
+                            {headerView}
                             {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(this.props.report) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
