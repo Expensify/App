@@ -153,10 +153,7 @@ function NewTaskPage(props) {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
                     }}
                 />
-                <View
-                    style={[styles.containerWithSpaceBetween]}
-                    ref={shouldClearOutTaskInfoOnUnmount}
-                >
+                <View style={[styles.containerWithSpaceBetween]}>
                     <View style={styles.mb5}>
                         <MenuItemWithTopDescription
                             description={props.translate('task.title')}
