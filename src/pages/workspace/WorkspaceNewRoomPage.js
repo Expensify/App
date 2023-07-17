@@ -130,14 +130,14 @@ function WorkspaceNewRoomPage(props) {
     );
 
     useEffect(() => {
-        if (Permissions.canUsePolicyRooms(props.betas)) {
+        if (Permissions.canUsePolicyRooms(props.betas) && workspaceOptions.length) {
             return;
         }
         Log.info('Not showing create Policy Room page since user is not on policy rooms beta');
         Navigation.dismissModal();
-    }, [props.betas]);
+    }, [props.betas, workspaceOptions]);
 
-    if (!Permissions.canUsePolicyRooms(props.betas)) {
+    if (!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length) {
         return null;
     }
 
