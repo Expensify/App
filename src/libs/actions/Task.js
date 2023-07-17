@@ -150,14 +150,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     if (assigneeChatReport) {
         // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
         if (assigneeChatReport.isOptimisticReport) {
-            const optimisticPersonalDetailsListAction = {
-                accountID: assigneeAccountID,
-                avatar: lodashGet(allPersonalDetails, [assigneeAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(assigneeAccountID)),
-                displayName: lodashGet(allPersonalDetails, [assigneeAccountID, 'displayName'], assignee),
-                login: assignee,
-            };
-
-            console.log('optimistic personal details list action', optimisticPersonalDetailsListAction);
             optimisticChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(assigneeChatReportID);
             optimisticData.push(
                 {
@@ -169,13 +161,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         },
                         isHidden: false,
-                    }
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [assigneeAccountID]: optimisticPersonalDetailsListAction,
                     }
                 },
                 {
@@ -614,16 +599,18 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             chatReport.isHidden = true;
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);            
 
-            /** 
+             
             // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
             const optimisticPersonalDetailsListAction = {
                 accountID: newAssigneeAccountID,
-                avatar: lodashGet(allPersonalDetails, [newAssigneeAccountID, 'avatar'], UserUtils.getDefaultAvatar(newAssigneeAccountID)),
-                displayName: assignee,
+                avatar: lodashGet(allPersonalDetails, [newAssigneeAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(newAssigneeAccountID)),
+                displayName: lodashGet(allPersonalDetails, [newAssigneeAccountID, 'displayName'], assignee),
                 login: assignee,
             };
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[newAssigneeAccountID]: optimisticPersonalDetailsListAction});
-            */
+
+            console.log('optimisticPersonalDetailsListAction', optimisticPersonalDetailsListAction);
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[newAssigneeAccountID]: optimisticPersonalDetailsListAction});
+            
         }
 
         setAssigneeChatReport(chatReport);
