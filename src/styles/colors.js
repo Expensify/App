@@ -3,15 +3,13 @@
  */
 export default {
     black: '#000000',
-    white: '#E7ECE9',
-    blueHover: '#B0D9FF',
+    white: '#FFFFFF',
     green: '#03D47C',
     greenHover: '#00C271',
     greenPressed: '#35DD96',
     red: '#F25730',
     redHover: '#DE4822',
     redPressed: '#F57959',
-    redDisabled: '#F8AA97',
     transparent: 'transparent',
 
     // Dark Mode Theme Colors

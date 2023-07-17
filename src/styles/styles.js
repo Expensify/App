@@ -3281,7 +3281,7 @@ const styles = {
     },
 
     fontColorReactionLabel: {
-        color: '#586A64',
+        color: themeColors.tooltipSupportingText,
     },
 
     reactionEmojiTitle: {
@@ -3290,7 +3290,7 @@ const styles = {
     },
 
     textReactionSenders: {
-        color: themeColors.dark,
+        color: themeColors.tooltipPrimaryText,
         ...wordBreak.breakWord,
     },
 

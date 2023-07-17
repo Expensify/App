@@ -30,9 +30,7 @@ const darkTheme = {
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
-    midtone: colors.green700,
     signInPage: colors.green800,
-    dark: colors.blue800,
 
     // Additional keys
     overlay: colors.darkHighlightBackground,
@@ -47,7 +45,7 @@ const darkTheme = {
     heading: colors.darkPrimaryText,
     textLight: colors.darkPrimaryText,
     textDark: colors.darkAppBackground,
-    textReversed: colors.darkAppBackground,
+    textReversed: colors.lightPrimaryText,
     textBackground: colors.darkHighlightBackground,
     textMutedReversed: colors.darkIcons,
     textError: colors.red,
