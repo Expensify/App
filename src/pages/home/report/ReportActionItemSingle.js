@@ -152,7 +152,7 @@ function ReportActionItemSingle(props) {
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
-                    <View style={[styles.chatItemMessageHeader, styles.mb2]}>
+                    <View style={[styles.chatItemMessageHeader]}>
                         <PressableWithoutFeedback
                             style={[styles.flexShrink1, styles.mr1]}
                             onPressIn={ControlSelection.block}
