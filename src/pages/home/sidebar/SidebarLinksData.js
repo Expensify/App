@@ -115,7 +115,7 @@ const chatReportSelector = (report) =>
         lastMessageText: report.lastMessageText,
         lastVisibleActionCreated: report.lastVisibleActionCreated,
         iouReportID: report.iouReportID,
-        iouReportAmount: report.iouReportAmount,
+        total: report.total,
         hasOutstandingIOU: report.hasOutstandingIOU,
         statusNum: report.statusNum,
         stateNum: report.stateNum,
@@ -125,7 +125,6 @@ const chatReportSelector = (report) =>
         reportName: report.reportName,
         visibility: report.visibility,
         lastReadTime: report.lastReadTime,
-        displayName: report.displayName,
     };
 
 /**
