@@ -1,5 +1,5 @@
 import {View, Text} from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -11,22 +11,12 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
 import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import Styles from '../../../styles/styles';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
 import {PressableWithFeedback} from '../../../components/Pressable';
 import Button from '../../../components/Button';
 import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import DragAndDrop from '../../../components/DragAndDrop';
-import ReportDropUI from '../../home/report/ReportDropUI';
-import Colors from '../../../styles/colors';
 import ReceiptDropUI from '../ReceiptDropUI';
-import Tooltip from '../../../components/Tooltip';
-import Icon from '../../../components/Icon';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import variables from '../../../styles/variables';
-import themeColors from '../../../styles/themes/default';
-import PopoverMenu from '../../../components/PopoverMenu';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 
 const propTypes = {
@@ -57,10 +47,11 @@ const propTypes = {
         ),
     }),
 
-    /**
-     * Current user personal details
-     */
+    /** Current user personal details */
     currentUserPersonalDetails: personalDetailsPropType,
+
+    /** Used by drag and drop to determine if we have a file dragged over the view */
+    isDraggingOver: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -78,6 +69,7 @@ const defaultProps = {
         participants: [],
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
+    isDraggingOver: false,
 };
 
 function ReceiptSelector(props) {
@@ -121,12 +113,12 @@ function ReceiptSelector(props) {
                 width={164}
                 height={164}
             />
-            <Text style={[Styles.textReceiptUpload]}>Upload receipt</Text>
-            <Text style={[Styles.subTextReceiptUpload]}>
+            <Text style={[styles.textReceiptUpload]}>Upload receipt</Text>
+            <Text style={[styles.subTextReceiptUpload]}>
                 Drag a receipt onto this page, forward a receipt to{' '}
                 <CopyTextToClipboard
                     text="receipts@expensify.com"
-                    textStyles={[styles.textBlue]}
+                    textstyles={[styles.textBlue]}
                 />{' '}
                 or choose a file to upload below.
             </Text>
@@ -137,7 +129,7 @@ function ReceiptSelector(props) {
                             medium
                             success
                             text="Choose File"
-                            style={[Styles.buttonReceiptUpload]}
+                            style={[styles.buttonReceiptUpload]}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
@@ -156,7 +148,7 @@ function ReceiptSelector(props) {
 
     // TODO: Add strings correctly with translate
     return (
-        <View style={[Styles.flex1, Styles.uploadReceiptBorder, Styles.justifyContentCenter, Styles.alignItemsCenter, Styles.p10, Styles.m5, Styles.gap1]}>
+        <View style={[styles.flex1, styles.uploadReceiptBorder, styles.justifyContentCenter, styles.alignItemsCenter, styles.p10, styles.m5, styles.gap1]}>
             {!props.isDraggingOver ? defaultView() : null}
             {props.isDraggingOver && <ReceiptDropUI />}
         </View>
