@@ -29,7 +29,7 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
 };
 
-function LHNOptionsList(props) {
+function LHNOptionsList({contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions}) {
     /**
      * This function is used to compute the layout of any given item in our list. Since we know that each item will have the exact same height, this is a performance optimization
      * so that the heights can be determined before the options are rendered. Otherwise, the heights are determined when each option is rendering and it causes a lot of overhead on large
@@ -41,7 +41,7 @@ function LHNOptionsList(props) {
      * @returns {Object}
      */
     const getItemLayout = (itemData, index) => {
-        const optionHeight = props.optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
+        const optionHeight = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
         return {
             length: optionHeight,
             offset: index * optionHeight,
@@ -60,9 +60,9 @@ function LHNOptionsList(props) {
     const renderItem = ({item}) => (
         <OptionRowLHNData
             reportID={item}
-            viewMode={props.optionMode}
-            shouldDisableFocusOptions={props.shouldDisableFocusOptions}
-            onSelectRow={props.onSelectRow}
+            viewMode={optionMode}
+            shouldDisableFocusOptions={shouldDisableFocusOptions}
+            onSelectRow={onSelectRow}
         />
     );
 
@@ -71,9 +71,9 @@ function LHNOptionsList(props) {
             <FlatList
                 indicatorStyle="white"
                 keyboardShouldPersistTaps="always"
-                contentContainerStyle={props.contentContainerStyles}
+                contentContainerStyle={contentContainerStyles}
                 showsVerticalScrollIndicator={false}
-                data={props.data}
+                data={data}
                 keyExtractor={(item) => item}
                 stickySectionHeadersEnabled={false}
                 renderItem={renderItem}

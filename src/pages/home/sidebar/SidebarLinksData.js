@@ -60,27 +60,27 @@ const defaultProps = {
     policies: [],
 };
 
-function SidebarLinksData(props) {
+function SidebarLinksData({allReportActions, betas, chatReports, currentReportID, insets, isPersonalDetailsLoading, isSmallScreenWidth, onLayout, onLinkClick, policies, priorityMode}) {
     const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
-        const reportIDs = SidebarUtils.getOrderedReportIDs(props.currentReportID, props.chatReports, props.betas, props.policies, props.priorityMode, props.allReportActions);
+        const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
         }
         reportIDsRef.current = reportIDs;
         return reportIDs;
-    }, [props.allReportActions, props.betas, props.chatReports, props.currentReportID, props.policies, props.priorityMode]);
+    }, [allReportActions, betas, chatReports, currentReportID, policies, priorityMode]);
 
-    const isLoading = _.isEmpty(props.chatReports) || props.isPersonalDetailsLoading;
+    const isLoading = _.isEmpty(chatReports) || isPersonalDetailsLoading;
 
     return (
         <SidebarLinks
             // Forwarded props:
-            onLinkClick={props.onLinkClick}
-            insets={props.insets}
-            isSmallScreenWidth={props.isSmallScreenWidth}
-            onLayout={props.onLayout}
-            priorityMode={props.priorityMode}
+            onLinkClick={onLinkClick}
+            insets={insets}
+            isSmallScreenWidth={isSmallScreenWidth}
+            onLayout={onLayout}
+            priorityMode={priorityMode}
             // Data props:
             isLoading={isLoading}
             optionListItems={optionListItems}
