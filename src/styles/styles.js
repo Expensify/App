@@ -3191,6 +3191,30 @@ const styles = {
         zIndex: 1000,
     },
 
+    receiptTransparentOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.receiptDropUIBG,
+        zIndex: 2,
+    },
+
+    receiptDropZoneTopInvisibleOverlay: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: themeColors.dropTransparentOverlay,
+        zIndex: 1000,
+    },
+
     cardSection: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,

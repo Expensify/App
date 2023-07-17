@@ -13,16 +13,22 @@ const propTypes = {
 
     /** Required for drag and drop to properly detect dropzone */
     dropZoneId: PropTypes.string.isRequired,
+
+    /** Style for the holder view of the dropzone */
+    dropZoneViewHolderStyle: PropTypes.array,
+
+    /** Style for the view of the dropzone */
+    dropZoneViewStyle: PropTypes.object,
 };
 
 function DropZone(props) {
     return (
         <Portal hostName={props.dropZoneViewHolderName}>
-            <View style={[styles.fullScreenTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}>{props.children}</View>
+            <View style={props.dropZoneViewHolderStyle}>{props.children}</View>
             {/* Necessary for blocking events on content which can publish unwanted dragleave even if we are inside dropzone  */}
             <View
                 nativeID={props.dropZoneId}
-                style={styles.dropZoneTopInvisibleOverlay}
+                style={props.dropZoneViewStyle}
             />
         </Portal>
     );

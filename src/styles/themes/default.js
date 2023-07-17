@@ -64,6 +64,7 @@ const darkTheme = {
     uploadPreviewActivityIndicator: colors.greenHighlightBackground,
     dropUIBG: 'rgba(6,27,9,0.92)',
     dropTransparentOverlay: 'rgba(255,255,255,0)',
+    receiptDropUIBG: 'rgba(3, 212, 124, 0.84)',
     checkBox: colors.green,
     pickerOptionsTextColor: colors.white,
     imageCropBackgroundColor: colors.greenIcons,

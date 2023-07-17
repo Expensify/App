@@ -17,6 +17,8 @@ function ReportDropUI(props) {
         <DropZone
             dropZoneViewHolderName={CONST.REPORT.DROP_HOST_NAME}
             dropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
+            dropZoneViewHolderStyle={[styles.fullScreenTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}
+            dropZoneViewStyle={styles.dropZoneViewStyle}
         >
             <View style={styles.mb3}>
                 <Icon

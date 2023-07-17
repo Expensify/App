@@ -19,6 +19,8 @@ import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
 import Styles from '../../styles/styles';
 import ReceiptSelector from './ReceiptSelector';
 import {PortalHost} from '@gorhom/portal';
+import DragAndDrop from '../../components/DragAndDrop';
+import Colors from '../../styles/colors';
 
 function MoneyRequestSelectorPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
@@ -41,35 +43,55 @@ function MoneyRequestSelectorPage(props) {
     };
 
     const selectedTab = lodashGet(props.tabSelected, 'selected', 'manual');
-    console.log(selectedTab);
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={titleForStep}
-                            onBackButtonPress={navigateBack}
-                        />
-                        <TabSelector />
-                        {selectedTab === 'manual' ? (
-                            <MoneyRequestAmountPage
-                                route={props.route}
-                                report={props.report}
-                                iou={props.iou}
-                                currentUserPersonalDetails={props.currentUserPersonalDetails}
+                    <DragAndDrop
+                        dropZoneId={CONST.RECEIPT.DROP_NATIVE_ID}
+                        activeDropZoneId={CONST.RECEIPT.ACTIVE_DROP_NATIVE_ID}
+                        onDragEnter={() => {
+                            setIsDraggingOver(true);
+                            console.log('Receipt selector drag enter');
+                        }}
+                        onDragLeave={() => {
+                            setIsDraggingOver(false);
+                            console.log('Receipt selector drag leave');
+                        }}
+                        onDrop={(e) => {
+                            // TODO
+                        }}
+                    >
+                        <View
+                            nativeID={CONST.RECEIPT.DROP_NATIVE_ID}
+                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
+                        >
+                            <HeaderWithBackButton
+                                title={titleForStep}
+                                onBackButtonPress={navigateBack}
                             />
-                        ) : (
-                            <ReceiptSelector
-                                route={props.route}
-                                report={props.report}
-                                iou={props.iou}
-                                currentUserPersonalDetails={props.currentUserPersonalDetails}
-                            />
-                        )}
-                        <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
-                    </View>
+                            <TabSelector />
+                            {selectedTab === 'manual' ? (
+                                <MoneyRequestAmountPage
+                                    route={props.route}
+                                    report={props.report}
+                                    iou={props.iou}
+                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                                />
+                            ) : (
+                                <ReceiptSelector
+                                    route={props.route}
+                                    report={props.report}
+                                    iou={props.iou}
+                                    isDraggingOver={isDraggingOver}
+                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                                />
+                            )}
+                            <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
+                        </View>
+                    </DragAndDrop>
                 )}
             </ScreenWrapper>
         </FullPageNotFoundView>
