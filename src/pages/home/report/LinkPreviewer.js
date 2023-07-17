@@ -9,7 +9,7 @@ import TextLink from '../../../components/TextLink';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
-import colors from '../../../styles/colors';
+import themeColors from '../../../styles/themes/default';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
 const MAX_IMAGE_SIZE = 350;
@@ -107,7 +107,7 @@ function LinkPreviewer(props) {
                         {!_.isEmpty(title) && (
                             <TextLink
                                 fontSize={variables.fontSizeNormal}
-                                style={[styles.pv2, StyleUtils.getTextColorStyle(colors.blueLinkPreview)]}
+                                style={[styles.pv2, StyleUtils.getTextColorStyle(themeColors.link)]}
                                 href={url}
                             >
                                 {title}

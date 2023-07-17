@@ -1052,7 +1052,7 @@ function getAutoCompleteSuggestionContainerStyle(itemsHeight, shouldIncludeRepor
  * @param {Boolean} isColored
  * @returns {String | null}
  */
-const getColoredBackgroundStyle = (isColored) => ({backgroundColor: isColored ? colors.blueLink : null});
+const getColoredBackgroundStyle = (isColored) => ({backgroundColor: isColored ? themeColors.link : null});
 
 function getEmojiReactionBubbleStyle(isHovered, hasUserReacted, isContextMenu = false) {
     let backgroundColor = themeColors.border;
