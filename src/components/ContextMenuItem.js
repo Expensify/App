@@ -35,6 +35,9 @@ const propTypes = {
     /** A description text to show under the title */
     description: PropTypes.string,
 
+    /** The action accept for anonymous user or not */
+    isAnonymousAction: PropTypes.bool,
+
     ...withDelayToggleButtonStatePropTypes,
 };
 
@@ -44,9 +47,10 @@ const defaultProps = {
     successText: '',
     autoReset: true,
     description: '',
+    isAnonymousAction: false,
 };
 
-function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, successText, autoReset, toggleDelayButtonState, icon, text, isMini, description}) {
+function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, successText, autoReset, toggleDelayButtonState, icon, text, isMini, description, isAnonymousAction}) {
     const {windowWidth} = useWindowDimensions();
 
     const triggerPressAndUpdateSuccess = useCallback(() => {
@@ -87,6 +91,7 @@ function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, succ
             description={description}
             descriptionTextStyle={styles.breakAll}
             style={getContextMenuItemStyles(windowWidth)}
+            isAnonymousAction={isAnonymousAction}
         />
     );
 }
