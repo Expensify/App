@@ -4,6 +4,7 @@ import {deepEqual} from 'fast-equals';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import {View} from 'react-native';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import SidebarLinks, {basePropTypes} from './SidebarLinks';
 import withCurrentReportID from '../../../components/withCurrentReportID';
@@ -11,6 +12,9 @@ import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportPropTypes from '../../reportPropTypes';
 import CONST from '../../../CONST';
+import useLocalize from '../../../hooks/useLocalize';
+import styles from '../../../styles/styles';
+import withNavigationFocus from '../../../components/withNavigationFocus';
 
 const propTypes = {
     ...basePropTypes,
@@ -60,7 +64,22 @@ const defaultProps = {
     policies: [],
 };
 
-function SidebarLinksData({allReportActions, betas, chatReports, currentReportID, insets, isPersonalDetailsLoading, isSmallScreenWidth, onLayout, onLinkClick, policies, priorityMode}) {
+function SidebarLinksData({
+    isFocused,
+    allReportActions,
+    betas,
+    chatReports,
+    currentReportID,
+    insets,
+    isPersonalDetailsLoading,
+    isSmallScreenWidth,
+    onLayout,
+    onLinkClick,
+    policies,
+    priorityMode,
+}) {
+    const localize = useLocalize();
+
     const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
         // Object.values(chatReports).forEach((report) => {
@@ -78,17 +97,23 @@ function SidebarLinksData({allReportActions, betas, chatReports, currentReportID
     const isLoading = _.isEmpty(chatReports) || isPersonalDetailsLoading;
 
     return (
-        <SidebarLinks
-            // Forwarded props:
-            onLinkClick={onLinkClick}
-            insets={insets}
-            isSmallScreenWidth={isSmallScreenWidth}
-            onLayout={onLayout}
-            priorityMode={priorityMode}
-            // Data props:
-            isLoading={isLoading}
-            optionListItems={optionListItems}
-        />
+        <View
+            accessibilityElementsHidden={!isFocused}
+            accessibilityLabel={localize.translate('sidebarScreen.listOfChats')}
+            style={[styles.flex1, styles.h100]}
+        >
+            <SidebarLinks
+                // Forwarded props:
+                onLinkClick={onLinkClick}
+                insets={insets}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onLayout={onLayout}
+                priorityMode={priorityMode}
+                // Data props:
+                isLoading={isLoading}
+                optionListItems={optionListItems}
+            />
+        </View>
     );
 }
 
@@ -162,6 +187,7 @@ const policySelector = (policy) =>
 
 export default compose(
     withCurrentReportID,
+    withNavigationFocus,
     withOnyx({
         chatReports: {
             key: ONYXKEYS.COLLECTION.REPORT,

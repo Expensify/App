@@ -23,7 +23,6 @@ import withWindowDimensions from '../../../components/withWindowDimensions';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import withNavigationFocus from '../../../components/withNavigationFocus';
 import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
@@ -163,11 +162,7 @@ class SidebarLinks extends React.PureComponent {
 
     render() {
         return (
-            <View
-                accessibilityElementsHidden={!this.props.isFocused}
-                accessibilityLabel={this.props.translate('sidebarScreen.listOfChats')}
-                style={[styles.flex1, styles.h100]}
-            >
+            <View style={[styles.flex1, styles.h100]}>
                 <View
                     style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                     nativeID="drag-area"
@@ -236,5 +231,5 @@ class SidebarLinks extends React.PureComponent {
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
 
-export default compose(withLocalize, withCurrentUserPersonalDetails, withNavigationFocus, withWindowDimensions, withNavigation)(SidebarLinks);
+export default compose(withLocalize, withCurrentUserPersonalDetails, withWindowDimensions, withNavigation)(SidebarLinks);
 export {basePropTypes};
