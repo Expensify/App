@@ -44,19 +44,30 @@ const privatePersonalDetailsProviderDefaultProps = {
 };
 
 class PrivatePersonalDetailsProvider extends React.Component {
+    isAuthenticated(session) {
+        return Boolean(_.get(session, 'authToken', null));
+    }
+
     componentDidMount() {
-        if (this.props.network.isOffline) {
+        if (this.props.network.isOffline || !this.isAuthenticated(this.props.session)) {
             return;
         }
 
         PersonalDetails.openPersonalDetailsPage();
     }
 
-    componentDidUpdate(prevProps) {
-        if (this.props.network.isOffline || _.isEqual(_.omit(prevProps.privatePersonalDetails, 'isLoading'), _.omit(this.props.privatePersonalDetails, 'isLoading'))) {
-            return;
-        }
+    shouldComponentUpdate(nextProps) {
+        return (
+            !nextProps.network.isOffline &&
+            this.isAuthenticated(nextProps.session) &&
+            (
+                !this.isAuthenticated(this.props.session) ||
+                !_.isEqual(_.omit(nextProps.privatePersonalDetails, 'isLoading'), _.omit(this.props.privatePersonalDetails, 'isLoading'))
+            )
+        )
+    }
 
+    componentDidUpdate() {
         PersonalDetails.openPersonalDetailsPage();
     }
 
