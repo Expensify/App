@@ -54,16 +54,17 @@ const defaultProps = {
 };
 
 function ReportSettingsPage(props) {
+    const {report, policies} = props;
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
-    const linkedWorkspace = useMemo(() => _.find(props.policies, (policy) => policy && policy.id === props.report.policyID), [props.policies, props.report.policyID]);
+    const linkedWorkspace = useMemo(() => _.find(policies, (policy) => policy && policy.id === report.policyID), [policies, report.policyID]);
     const shouldDisableRename = useMemo(() => {
-        if (ReportUtils.isDefaultRoom(props.report) || ReportUtils.isArchivedRoom(props.report) || ReportUtils.isChatThread(props.report)) {
+        if (ReportUtils.isDefaultRoom(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isChatThread(report)) {
             return true;
         }
 
         // The remaining checks only apply to public rooms
-        if (!ReportUtils.isPublicRoom(props.report)) {
+        if (!ReportUtils.isPublicRoom(report)) {
             return false;
         }
 
@@ -76,39 +77,39 @@ function ReportSettingsPage(props) {
         // If there is a linked workspace, that means the user is a member of the workspace the report is in.
         // Still, we only want policy owners and admins to be able to modify the name.
         return !Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
-    }, [props.report, linkedWorkspace]);
+    }, [report, linkedWorkspace]);
 
     // We only want policy owners and admins to be able to modify the welcome message.
     const shouldDisableWelcomeMessage =
-        ReportUtils.isArchivedRoom(props.report) || !ReportUtils.isChatRoom(props.report) || _.isEmpty(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
+        ReportUtils.isArchivedRoom(report) || !ReportUtils.isChatRoom(report) || _.isEmpty(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
 
-    const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(props.report) && !ReportUtils.isChatThread(props.report);
-    const notificationPreference = translate(`notificationPreferencesPage.notificationPreferences.${props.report.notificationPreference}`);
-    const writeCapability = ReportUtils.isAdminRoom(props.report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : props.report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
+    const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
+    const notificationPreference = translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`);
+    const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
 
     const writeCapabilityText = translate(`writeCapabilityPage.writeCapability.${writeCapability}`);
-    const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN && !ReportUtils.isAdminRoom(props.report);
+    const shouldAllowWriteCapabilityEditing = lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN && !ReportUtils.isAdminRoom(report);
 
     return (
         <ScreenWrapper>
-            <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
+            <FullPageNotFoundView shouldShow={_.isEmpty(report)}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(props.report.reportID))}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(report.reportID))}
                 />
                 <ScrollView style={[styles.flex1]}>
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         title={notificationPreference}
                         description={translate('notificationPreferencesPage.label')}
-                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(props.report.reportID))}
+                        onPress={() => Navigation.navigate(ROUTES.getReportSettingsNotificationPreferencesRoute(report.reportID))}
                     />
                     {shouldShowRoomName && (
                         <OfflineWithFeedback
-                            pendingAction={lodashGet(props.report, 'pendingFields.reportName', null)}
-                            errors={lodashGet(props.report, 'errorFields.reportName', null)}
+                            pendingAction={lodashGet(report, 'pendingFields.reportName', null)}
+                            errors={lodashGet(report, 'errorFields.reportName', null)}
                             errorRowStyles={[styles.ph5]}
-                            onClose={() => Report.clearPolicyRoomNameErrors(props.report.reportID)}
+                            onClose={() => Report.clearPolicyRoomNameErrors(report.reportID)}
                         >
                             {shouldDisableRename ? (
                                 <View style={[styles.ph5, styles.pv3]}>
@@ -122,15 +123,15 @@ function ReportSettingsPage(props) {
                                         numberOfLines={1}
                                         style={[styles.optionAlternateText, styles.pre]}
                                     >
-                                        {props.report.reportName}
+                                        {report.reportName}
                                     </Text>
                                 </View>
                             ) : (
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon
-                                    title={props.report.reportName}
+                                    title={report.reportName}
                                     description={translate('newRoomPage.roomName')}
-                                    onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(props.report.reportID))}
+                                    onPress={() => Navigation.navigate(ROUTES.getReportSettingsRoomNameRoute(report.reportID))}
                                 />
                             )}
                         </OfflineWithFeedback>
@@ -140,7 +141,7 @@ function ReportSettingsPage(props) {
                             shouldShowRightIcon
                             title={writeCapabilityText}
                             description={translate('writeCapabilityPage.label')}
-                            onPress={() => Navigation.navigate(ROUTES.getReportSettingsWriteCapabilityRoute(props.report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.getReportSettingsWriteCapabilityRoute(report.reportID))}
                         />
                     ) : (
                         <View style={[styles.ph5, styles.pv3]}>
@@ -175,7 +176,7 @@ function ReportSettingsPage(props) {
                                 </Text>
                             </View>
                         )}
-                        {Boolean(props.report.visibility) && (
+                        {Boolean(report.visibility) && (
                             <View style={[styles.pv3]}>
                                 <Text
                                     style={[styles.textLabelSupporting, styles.lh16, styles.mb1]}
@@ -187,9 +188,9 @@ function ReportSettingsPage(props) {
                                     numberOfLines={1}
                                     style={[styles.reportSettingsVisibilityText]}
                                 >
-                                    {translate(`newRoomPage.visibilityOptions.${props.report.visibility}`)}
+                                    {translate(`newRoomPage.visibilityOptions.${report.visibility}`)}
                                 </Text>
-                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate(`newRoomPage.${props.report.visibility}Description`)}</Text>
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>{translate(`newRoomPage.${report.visibility}Description`)}</Text>
                             </View>
                         )}
                     </View>
@@ -197,7 +198,7 @@ function ReportSettingsPage(props) {
                         <MenuItem
                             title={translate('welcomeMessagePage.welcomeMessage')}
                             icon={Expensicons.ChatBubble}
-                            onPress={() => Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(props.report.reportID))}
+                            onPress={() => Navigation.navigate(ROUTES.getReportWelcomeMessageRoute(report.reportID))}
                             shouldShowRightIcon
                         />
                     )}
