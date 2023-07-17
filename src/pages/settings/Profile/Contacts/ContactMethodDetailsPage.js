@@ -25,6 +25,7 @@ import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';
+import FullscreenLoadingIndicator from "../../../../components/FullscreenLoadingIndicator";
 
 const propTypes = {
     /* Onyx Props */
@@ -86,6 +87,7 @@ const defaultProps = {
             contactMethod: '',
         },
     },
+    isLoadingReportData: true,
 };
 
 class ContactMethodDetailsPage extends Component {
@@ -197,8 +199,12 @@ class ContactMethodDetailsPage extends Component {
         // Replacing spaces with "hard spaces" to prevent breaking the number
         const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
 
+        if (this.props.isLoadingReportData && _.isEmpty(this.props.loginList)) {
+            return <FullscreenLoadingIndicator />
+        }
+
         const loginData = this.props.loginList[contactMethod];
-        if (!this.props.isLoadingReportData && (!contactMethod || !loginData)) {
+        if (!contactMethod || !loginData) {
             return <NotFoundPage />;
         }
 
