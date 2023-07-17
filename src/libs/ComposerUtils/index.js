@@ -26,12 +26,15 @@ function canSkipTriggerHotkeys(isSmallScreenWidth, isKeyboardShown) {
 }
 
 /**
- * Find length of common ending of two strings
- * @param {String} str1
- * @param {String} str2
- * @returns {Number}
+ * Returns the length of the common suffix between two input strings.
+ * The common suffix is the number of characters shared by both strings
+ * at the end (suffix) until a mismatch is encountered.
+ *
+ * @param {string} str1
+ * @param {string} str2
+ * @returns {number} The length of the common suffix between the strings.
  */
-function getCommonEndingLength(str1, str2) {
+function getCommonSuffixLength(str1, str2) {
     let i = 0;
     while (str1[str1.length - 1 - i] === str2[str2.length - 1 - i]) {
         i++;
@@ -39,4 +42,4 @@ function getCommonEndingLength(str1, str2) {
     return i;
 }
 
-export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, getCommonEndingLength};
+export {getNumberOfLines, updateNumberOfLines, insertText, canSkipTriggerHotkeys, getCommonSuffixLength};

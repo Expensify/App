@@ -803,7 +803,7 @@ class ReportActionCompose extends React.Component {
                 value: newComment,
             };
             if (comment !== newComment) {
-                const remainder = ComposerUtils.getCommonEndingLength(comment, newComment);
+                const remainder = ComposerUtils.getCommonSuffixLength(comment, newComment);
                 newState.selection = {
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
