@@ -248,7 +248,7 @@ function addActions(reportID, text = '', file) {
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(reportID);
     let prevVisibleMessageText;
     if (lastVisibleMessage.lastMessageTranslationKey) {
-        prevVisibleMessageText = Localize.translateLocal(prevVisibleMessageText);
+        prevVisibleMessageText = Localize.translateLocal(lastVisibleMessage.lastMessageTranslationKey);
     } else {
         prevVisibleMessageText = lastVisibleMessage.lastMessageText;
     }
@@ -459,7 +459,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             isOptimisticReport: true,
         };
 
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        let reportOwnerEmail = CONST.REPORT.OWNER_EMAIL_FAKE;
+        if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
+            reportOwnerEmail = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
+        }
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(reportOwnerEmail);
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -584,7 +588,6 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             lodashGet(parentReportAction, ['message', 0, 'text']),
             lodashGet(parentReport, 'chatType', ''),
             lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
-            CONST.POLICY.OWNER_EMAIL_FAKE,
             CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',
@@ -1259,19 +1262,18 @@ function navigateToConciergeChat() {
  * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
- * @param {Array} policyMembers
+ * @param {Array<Number>} policyMembersAccountIDs
  * @param {String} writeCapability
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembers, writeCapability) {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
-    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembers : [];
+    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         policyID,
-        CONST.REPORT.OWNER_EMAIL_FAKE,
         CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
@@ -1281,7 +1283,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembers, writeC
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
-    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail);
+    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.

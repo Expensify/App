@@ -199,7 +199,8 @@ class HeaderWithBackButton extends Component {
                             subtitle={this.props.stepCounter && this.props.shouldShowStepCounter ? this.props.translate('stepCounter', this.props.stepCounter) : this.props.subtitle}
                         />
                     )}
-                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                    <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
+                        {this.props.children}
                         {this.props.shouldShowDownloadButton && (
                             <Tooltip text={this.props.translate('common.download')}>
                                 <PressableWithoutFeedback
@@ -220,7 +221,6 @@ class HeaderWithBackButton extends Component {
                                 </PressableWithoutFeedback>
                             </Tooltip>
                         )}
-
                         {this.props.shouldShowGetAssistanceButton && (
                             <Tooltip text={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}>
                                 <PressableWithoutFeedback

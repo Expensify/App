@@ -41,6 +41,7 @@ const CONTEXT_MENU_TYPES = {
 // A list of all the context actions in this menu.
 export default [
     {
+        isAnonymousAction: false,
         shouldKeepOpen: true,
         shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION && _.has(reportAction, 'message') && !ReportActionUtils.isMessageDeleted(reportAction),
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu}) => {
@@ -85,6 +86,7 @@ export default [
         },
     },
     {
+        isAnonymousAction: true,
         textTranslateKey: 'common.download',
         icon: Expensicons.Download,
         successTextTranslateKey: 'common.download',
@@ -110,6 +112,7 @@ export default [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
         icon: Expensicons.ChatBubble,
         successTextTranslateKey: '',
@@ -133,6 +136,7 @@ export default [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -145,6 +149,7 @@ export default [
         getDescription: (selection) => selection,
     },
     {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -157,6 +162,7 @@ export default [
         getDescription: (selection) => selection.replace('mailto:', ''),
     },
     {
+        isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyToClipboard',
         icon: Expensicons.Copy,
         successTextTranslateKey: 'reportActionContextMenu.copied',
@@ -206,6 +212,7 @@ export default [
     },
 
     {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.copyLink',
         icon: Expensicons.LinkCopy,
         successIcon: Expensicons.Checkmark,
@@ -229,6 +236,7 @@ export default [
     },
 
     {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
@@ -244,6 +252,7 @@ export default [
     },
 
     {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsRead',
         icon: Expensicons.Mail,
         successIcon: Expensicons.Checkmark,
@@ -258,6 +267,7 @@ export default [
     },
 
     {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Expensicons.Pencil,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
@@ -277,6 +287,7 @@ export default [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.deleteAction',
         icon: Expensicons.Trashcan,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>
@@ -299,6 +310,7 @@ export default [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: false,
         textTranslateKey: 'common.pin',
         icon: Expensicons.Pin,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
@@ -312,6 +324,7 @@ export default [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: false,
         textTranslateKey: 'common.unPin',
         icon: Expensicons.Pin,
         shouldShow: (type, reportAction, isArchivedRoom, betas, anchor, isChronosReport, reportID, isPinnedChat) =>
@@ -325,6 +338,7 @@ export default [
         getDescription: () => {},
     },
     {
+        isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
         icon: Expensicons.Flag,
         shouldShow: (type, reportAction, isArchivedRoom, betas, menuTarget, isChronosReport, reportID) =>

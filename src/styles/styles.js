@@ -1069,6 +1069,10 @@ const styles = {
         lineHeight: '140%',
     },
 
+    lhNormal: {
+        lineHeight: variables.lineHeightNormal,
+    },
+
     formHelp: {
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
@@ -3443,7 +3447,7 @@ const styles = {
         ...spacing.mr3,
     },
 
-    taskHorizontalRule: {
+    reportHorizontalRule: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.mh5,
