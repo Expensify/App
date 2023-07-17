@@ -23,7 +23,7 @@ function CellRendererComponent(props) {
                  * list items. Consequently, lower list items can overflow the upper list items.
                  * See: https://github.com/Expensify/App/issues/20451
                  */
-                { zIndex: -props.index }
+                {zIndex: -props.index},
             ]}
         />
     );

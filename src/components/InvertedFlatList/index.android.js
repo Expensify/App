@@ -49,7 +49,6 @@ class InvertedFlatList extends React.Component {
                 ListFooterComponentStyle={[styles.invert, this.props.ListFooterComponentStyle]}
                 verticalScrollbarPosition="left" // We are mirroring the X and Y axis, so we need to swap the scrollbar position
                 CellRendererComponent={CellRendererComponent}
-
                 /**
                  * To achieve absolute positioning and handle overflows for list items, the property must be disabled
                  * for Android native builds.
