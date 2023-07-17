@@ -2,26 +2,26 @@ import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 
 type PaypalAccountData = {
-    username?: string;
+    username: string;
 };
 
 type Paypal = {
     /** This is always 'PayPal.me' */
-    title?: string;
+    title: string;
 
     /** The paypalMe address */
-    description?: string;
+    description: string;
 
     /** This is always 'payPalMe' */
-    methodID?: typeof CONST.PAYMENT_METHODS.PAYPAL;
+    methodID: typeof CONST.PAYMENT_METHODS.PAYPAL;
 
     /** This is always 'payPalMe' */
-    accountType?: typeof CONST.PAYMENT_METHODS.PAYPAL;
+    accountType: typeof CONST.PAYMENT_METHODS.PAYPAL;
 
-    key?: string;
-    isDefault?: boolean;
+    key: string;
+    isDefault: boolean;
     pendingAction?: OnyxCommon.PendingAction;
-    accountData?: PaypalAccountData;
+    accountData: PaypalAccountData;
 };
 
 export default Paypal;
