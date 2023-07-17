@@ -392,7 +392,7 @@ function BasePaymentsPage(props) {
         paymentMethod.selectedPaymentMethodType,
         props.bankAccountList,
         props.cardList,
-        props.network,
+        props.network.isOffline,
         props.payPalMeData,
         props.shouldListenForResize,
         setMenuPosition,
