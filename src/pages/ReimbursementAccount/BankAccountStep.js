@@ -48,9 +48,6 @@ const propTypes = {
 
     /* The workspace name */
     policyName: PropTypes.string,
-
-    /* The workspace policyID */
-    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -59,7 +56,6 @@ const defaultProps = {
     user: {},
     isPlaidDisabled: false,
     policyName: '',
-    policyID: '',
 };
 
 function BankAccountStep(props) {
@@ -78,7 +74,6 @@ function BankAccountStep(props) {
                 reimbursementAccountDraft={props.reimbursementAccountDraft}
                 onBackButtonPress={props.onBackButtonPress}
                 getDefaultStateForField={props.getDefaultStateForField}
-                policyID={props.policyID}
             />
         );
     }
@@ -90,7 +85,6 @@ function BankAccountStep(props) {
                 reimbursementAccountDraft={props.reimbursementAccountDraft}
                 onBackButtonPress={props.onBackButtonPress}
                 getDefaultStateForField={props.getDefaultStateForField}
-                policyID={props.policyID}
             />
         );
     }

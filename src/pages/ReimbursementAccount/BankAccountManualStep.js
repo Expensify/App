@@ -63,10 +63,9 @@ function BankAccountManualStep(props) {
                 values.accountNumber,
                 values.routingNumber,
                 lodashGet(reimbursementAccountDraft, ['plaidMask']),
-                props.policyID,
             );
         },
-        [reimbursementAccount, reimbursementAccountDraft, props.policyID],
+        [reimbursementAccount, reimbursementAccountDraft],
     );
 
     const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, ['achData.bankAccountID']));

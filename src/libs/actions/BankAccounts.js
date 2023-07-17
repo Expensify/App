@@ -91,9 +91,8 @@ function getVBBADataForOnyx() {
  *
  * @param {Number} bankAccountID
  * @param {Object} selectedPlaidBankAccount
- * @param {String} policyID
  */
-function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount, policyID) {
+function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount) {
     const commandName = 'ConnectBankAccountWithPlaid';
 
     const parameters = {
@@ -103,7 +102,6 @@ function connectBankAccountWithPlaid(bankAccountID, selectedPlaidBankAccount, po
         bank: selectedPlaidBankAccount.bankName,
         plaidAccountID: selectedPlaidBankAccount.plaidAccountID,
         plaidAccessToken: selectedPlaidBankAccount.plaidAccessToken,
-        policyID,
     };
 
     API.write(commandName, parameters, getVBBADataForOnyx());
@@ -358,10 +356,9 @@ function updateBeneficialOwnersForBankAccount(params) {
  * @param {String} [accountNumber]
  * @param {String} [routingNumber]
  * @param {String} [plaidMask]
- * @param {String} policyID
  *
  */
-function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask, policyID) {
+function connectBankAccountManually(bankAccountID, accountNumber, routingNumber, plaidMask) {
     API.write(
         'ConnectBankAccountManually',
         {
@@ -369,7 +366,6 @@ function connectBankAccountManually(bankAccountID, accountNumber, routingNumber,
             accountNumber,
             routingNumber,
             plaidMask,
-            policyID,
         },
         getVBBADataForOnyx(),
     );

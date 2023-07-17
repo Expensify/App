@@ -30,16 +30,12 @@ const propTypes = {
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
-
-    /* The workspace policyID */
-    policyID: PropTypes.string,
 };
 
 const defaultProps = {
     plaidData: PlaidDataProps.plaidDataDefaultProps,
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
-    policyID: '',
 };
 
 function BankAccountPlaidStep(props) {
@@ -72,8 +68,8 @@ function BankAccountPlaidStep(props) {
         ReimbursementAccount.updateReimbursementAccountDraft(bankAccountData);
 
         const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
-        BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData, props.policyID);
-    }, [reimbursementAccount, reimbursementAccountDraft, plaidData, props.policyID]);
+        BankAccounts.connectBankAccountWithPlaid(bankAccountID, bankAccountData);
+    }, [reimbursementAccount, reimbursementAccountDraft, plaidData]);
 
     const bankAccountID = lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0;
     const selectedPlaidAccountID = lodashGet(reimbursementAccountDraft, 'plaidAccountID', '');
