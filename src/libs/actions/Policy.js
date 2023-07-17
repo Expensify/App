@@ -172,37 +172,6 @@ function isPolicyOwner(policy) {
 }
 
 /**
- * Is the user the member of the given policy?
- *
- * @param {Object} policy
- * @returns {Boolean}
- */
-function isPolicyMember(policy) {
-    return !isPolicyOwner(policy) && policy.role !== CONST.POLICY.ROLE.ADMIN;
-}
-
-/**
- * @param {Object|null} linkedWorkspace - the workspace the report is on, null if the user isn't a member of the workspace
- * @param {Object|null} report
- * @returns {Boolean}
- */
-function shouldDisableRename(linkedWorkspace, report) {
-    if (ReportUtils.isDefaultRoom(report) || ReportUtils.isArchivedRoom(report)) {
-        return true;
-    }
-
-    // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
-    // which means this has to be a public room we want to disable renaming for
-    if (!linkedWorkspace) {
-        return true;
-    }
-
-    // If there is a linked workspace, that means the user is a member of the workspace the report is in.
-    // Still, we only want policy owners and admins to be able to modify the name.
-    return isPolicyMember(linkedWorkspace);
-}
-
-/**
  * Check if the user has any active free policies (aka workspaces)
  *
  * @param {Array} policies
@@ -1172,6 +1141,4 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
-    isPolicyMember,
-    shouldDisableRename,
 };

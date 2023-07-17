@@ -18,7 +18,7 @@ import reportPropTypes from '../../reportPropTypes';
 import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
 import RoomNameInput from '../../../components/RoomNameInput';
-import * as Policy from '../../../libs/actions/Policy';
+import * as ReportUtils from '../../../libs/ReportUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
@@ -30,7 +30,7 @@ const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
-    /** */
+    /** Policy of the report for which the name is being edited */
     policy: PropTypes.shape({
         role: PropTypes.string,
         owner: PropTypes.string,
@@ -97,8 +97,8 @@ function RoomNamePage(props) {
                 >
                     <View style={styles.mb4}>
                         <RoomNameInput
+                            ref={(ref) => (roomNameInputRef.current = ref)}
                             inputID="roomName"
-                            autoFocus
                             defaultValue={report.reportName}
                         />
                     </View>
