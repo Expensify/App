@@ -346,6 +346,7 @@ function ReportActionItemMessageEdit(props) {
                             onModalHide={() => InteractionManager.runAfterInteractions(() => textInputRef.current.focus())}
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
+                            reportAction={props.action}
                         />
                     </View>
 
