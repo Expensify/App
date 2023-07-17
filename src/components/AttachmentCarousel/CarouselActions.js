@@ -46,7 +46,7 @@ function Carousel(props) {
             unsubscribeRightKey();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [props.onCycleThroughAttachments]);
 
     return null;
 }
