@@ -9,17 +9,23 @@ import withLocalize from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import TabSelectorItem from './TabSelectorItem';
 import Tab from '../libs/actions/Tab';
+import * as Permissions from '../libs/Permissions';
 
 const TAB_MANUAL = 'manual';
 const TAB_SCAN = 'scan';
+const TAB_DISTANCE = 'distance';
 
 const propTypes = {
     /** Which tab has been selected */
     tabSelected: PropTypes.string,
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     tabSelected: TAB_MANUAL,
+    betas: [],
 };
 
 function TabSelector(props) {
@@ -42,6 +48,16 @@ function TabSelector(props) {
                     Tab.onTabPress(TAB_SCAN);
                 }}
             />
+            {Permissions.canUseDistanceRequests(props.betas) && (
+                <TabSelectorItem
+                    title="Distance"
+                    selected={selectedTab === TAB_DISTANCE}
+                    icon={Expensicons.Car}
+                    onPress={() => {
+                        Tab.onTabPress(TAB_DISTANCE);
+                    }}
+                />
+            )}
         </View>
     );
 }
@@ -55,6 +71,9 @@ export default compose(
     withOnyx({
         tabSelected: {
             key: ONYXKEYS.TAB_SELECTOR,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(TabSelector);
