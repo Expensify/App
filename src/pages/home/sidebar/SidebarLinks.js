@@ -302,6 +302,7 @@ const chatReportSelector = (report) =>
         chatType: report.chatType,
         policyID: report.policyID,
         reportName: report.reportName,
+        managerEmail: report.managerEmail,
     };
 
 /**
