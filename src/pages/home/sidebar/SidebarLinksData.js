@@ -122,9 +122,16 @@ const chatReportSelector = (report) =>
         chatType: report.chatType,
         type: report.type,
         policyID: report.policyID,
-        reportName: report.reportName,
         visibility: report.visibility,
         lastReadTime: report.lastReadTime,
+        // needed for name sorting:
+        reportName: report.reportName,
+        policyName: report.policyName,
+        oldPolicyName: report.oldPolicyName,
+        // other properites considered for sorting:
+        ownerAccountID: report.ownerAccountID,
+        currency: report.currency,
+        managerID: report.managerID,
     };
 
 /**
