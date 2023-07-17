@@ -89,7 +89,7 @@ class SearchPage extends Component {
 
         if (this.state.recentReports.length > 0) {
             sections.push({
-                data: this.state.recentReports,
+                data: OptionsListUtils.getDisplayOptions(this.state.recentReports),
                 shouldShow: true,
                 indexOffset,
             });

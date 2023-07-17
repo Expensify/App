@@ -330,12 +330,12 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 
         if (isThread) {
             const title = ReportUtils.getReportName(report);
-            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
+            const chatRoomSubtitle = Localize.translateIfNeeded(ReportUtils.getChatRoomSubtitle(report));
 
             Array.prototype.push.apply(searchTerms, title.split(/[,\s]/));
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else if (isChatRoomOrPolicyExpenseChat) {
-            const chatRoomSubtitle = ReportUtils.getChatRoomSubtitle(report);
+            const chatRoomSubtitle = Localize.translateIfNeeded(ReportUtils.getChatRoomSubtitle(report));
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
@@ -379,31 +379,34 @@ function getAllReportErrors(report, reportActions) {
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  * @param {Object} report
- * @returns {String}
+ * @returns {Object|String}
  */
 function getLastMessageTextForReport(report) {
     const lastReportAction = lastReportActions[report.reportID];
-    let lastMessageTextFromReport = '';
 
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
-        lastMessageTextFromReport = `[${Localize.translateLocal(report.lastMessageTranslationKey || 'common.attachment')}]`;
-    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
-    } else {
-        lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-
-        // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
-        const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
-        if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
-            const latestVisibleAction =
-                _.find(
-                    allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !ReportActionUtils.isWhisperAction(action),
-                ) || {};
-            lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
-        }
+        return {
+            key: report.lastMessageTranslationKey || 'common.attachment',
+            transformer: (translatedPhrase) => `[${translatedPhrase}]`,
+        };
     }
+    if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
+        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
+        return ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
+    }
+    let lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
+
+    // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
+    const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
+    if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
+        const latestVisibleAction =
+            _.find(
+                allSortedReportActions[report.reportID],
+                (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !ReportActionUtils.isWhisperAction(action),
+            ) || {};
+        lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
+    }
+
     return lastMessageTextFromReport;
 }
 
@@ -489,25 +492,40 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
 
         const lastMessageTextFromReport = getLastMessageTextForReport(report);
         const lastActorDetails = personalDetailMap[report.lastActorAccountID] || null;
-        let lastMessageText = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
-        lastMessageText += report ? lastMessageTextFromReport : '';
+        const displayName = hasMultipleParticipants && lastActorDetails && lastActorDetails.accountID !== currentUserAccountID ? `${lastActorDetails.displayName}: ` : '';
 
+        let alternateText = _.isString(lastMessageTextFromReport)
+            ? `${displayName}${lastMessageTextFromReport}`
+            : {
+                  ...lastMessageTextFromReport,
+                  transformer: (text) => `${displayName}${lastMessageTextFromReport.transformer ? lastMessageTextFromReport.transformer(text) : text}`,
+              };
         if (result.isArchivedRoom) {
             const archiveReason =
                 (lastReportActions[report.reportID] && lastReportActions[report.reportID].originalMessage && lastReportActions[report.reportID].originalMessage.reason) ||
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-            lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
-                displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
-                policyName: ReportUtils.getPolicyName(report),
-            });
+            alternateText = {
+                key: `reportArchiveReasons.${archiveReason}`,
+                params: {
+                    displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
+                    policyName: ReportUtils.getPolicyName(report),
+                },
+            };
         }
 
+        const hasLastMessageTextFromReport = _.isObject(alternateText) || Boolean(alternateText);
+        const hasLastMessageText = Boolean(displayName) || hasLastMessageTextFromReport;
+
         if (result.isChatRoom || result.isPolicyExpenseChat) {
-            result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
+            result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && hasLastMessageText ? alternateText : subtitle;
         } else if (result.isMoneyRequestReport) {
-            result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+            result.alternateText = hasLastMessageTextFromReport
+                ? alternateText
+                : {
+                      key: 'report.noActivityYet',
+                  };
         } else {
-            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
+            result.alternateText = showChatPreviewLine && hasLastMessageText ? alternateText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
         reportName = ReportUtils.getReportName(report);
     } else {
@@ -1037,6 +1055,17 @@ function shouldOptionShowTooltip(option) {
     return (!option.isChatRoom || option.isThread) && !option.isArchivedRoom;
 }
 
+/**
+ * @param {Object} options
+ * @returns {Boolean}
+ */
+function getDisplayOptions(options) {
+    return _.map(options, (option) => ({
+        ...option,
+        alternateText: Localize.translateIfNeeded(option.alternateText),
+    }));
+}
+
 export {
     addSMSDomainIfPhoneNumber,
     getAvatarsForAccountIDs,
@@ -1057,4 +1086,5 @@ export {
     isSearchStringMatch,
     shouldOptionShowTooltip,
     getLastMessageTextForReport,
+    getDisplayOptions,
 };

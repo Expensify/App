@@ -20,6 +20,7 @@ import * as StyleUtils from '../styles/StyleUtils';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import * as Localize from '../libs/Localize';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -54,7 +55,7 @@ const defaultProps = {
 
 function AvatarWithDisplayName(props) {
     const title = props.isAnonymous ? props.report.displayName : ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID, true);
-    const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
+    const subtitle = Localize.translateIfNeeded(ReportUtils.getChatRoomSubtitle(props.report));
     const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);

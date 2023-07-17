@@ -291,14 +291,14 @@ function getOptionData(reportID) {
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
-    const subtitle = ReportUtils.getChatRoomSubtitle(report);
+    const subtitle = Localize.translateIfNeeded(ReportUtils.getChatRoomSubtitle(report));
 
     const login = Str.removeSMSDomain(lodashGet(personalDetail, 'login', ''));
     const formattedLogin = Str.isSMSLogin(login) ? LocalePhoneNumber.formatPhoneNumber(login) : login;
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants);
-    const lastMessageTextFromReport = OptionsListUtils.getLastMessageTextForReport(report);
+    const lastMessageTextFromReport = Localize.translateIfNeeded(OptionsListUtils.getLastMessageTextForReport(report));
 
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
@@ -323,7 +323,7 @@ function getOptionData(reportID) {
             CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
-            policyName: ReportUtils.getPolicyName(report),
+            policyName: Localize.translateIfNeeded(ReportUtils.getPolicyName(report)),
         });
     }
 

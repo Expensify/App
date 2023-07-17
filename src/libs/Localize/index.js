@@ -92,6 +92,30 @@ function translateLocal(phrase, variables) {
 }
 
 /**
+ *
+ * @param {Object|String} translation
+ * @returns {String}
+ */
+function translateIfNeeded(translation) {
+    if (_.isString(translation)) {
+        return translation;
+    }
+    const {key, params, transformer} = translation;
+    const variables = {};
+    if (params) {
+        _.keys(params).forEach((k) => {
+            // The value can be an object that need to translate
+            variables[k] = translateIfNeeded(params[k]);
+        });
+    }
+    const translatedPhrase = translateLocal(key, variables);
+    if (transformer) {
+        return transformer(translatedPhrase);
+    }
+    return translatedPhrase;
+}
+
+/**
  * Return translated string for given error.
  *
  * @param {String|Array} message
@@ -141,4 +165,4 @@ function getDevicePreferredLocale() {
     return lodashGet(RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES]), 'languageTag', CONST.LOCALES.DEFAULT);
 }
 
-export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale};
+export {translate, translateLocal, translateIfPhraseKey, arrayToString, getDevicePreferredLocale, translateIfNeeded};

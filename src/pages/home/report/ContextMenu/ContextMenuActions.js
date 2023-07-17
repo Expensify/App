@@ -20,6 +20,7 @@ import QuickEmojiReactions from '../../../../components/Reactions/QuickEmojiReac
 import MiniQuickEmojiReactions from '../../../../components/Reactions/MiniQuickEmojiReactions';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import * as Localize from '../../../../libs/Localize';
 
 /**
  * Gets the HTML version of the message in an action.
@@ -187,7 +188,7 @@ export default [
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
                     const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(reportAction));
-                    const displayMessage = ReportUtils.getReportPreviewMessage(iouReport, reportAction);
+                    const displayMessage = Localize.translateIfNeeded(ReportUtils.getReportPreviewMessage(iouReport, reportAction));
                     Clipboard.setString(displayMessage);
                 } else if (content) {
                     const parser = new ExpensiMark();
