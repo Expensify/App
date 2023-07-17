@@ -332,7 +332,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
  * @param {String} policyID
  */
 function updateCompanyInformationForBankAccount(bankAccount, policyID) {
-    API.write('UpdateCompanyInformationForBankAccount', {bankAccount, policyID}, getVBBADataForOnyx());
+    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx());
 }
 
 /**
