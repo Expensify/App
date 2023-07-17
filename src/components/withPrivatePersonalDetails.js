@@ -58,10 +58,7 @@ class PrivatePersonalDetailsProvider extends React.Component {
 
     componentDidUpdate(prevProps) {
         // Only open personal detail page if the network is online, and the state is transitioning from unauthenticated to authenticated
-        if (this.props.network.isOffline ||
-            !isAuthenticated(this.props.session) ||
-            isAuthenticated(prevProps.session)
-        ) {
+        if (this.props.network.isOffline || !isAuthenticated(this.props.session) || isAuthenticated(prevProps.session)) {
             return;
         }
         PersonalDetails.openPersonalDetailsPage();

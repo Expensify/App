@@ -60,7 +60,7 @@ class NewDatePicker extends React.Component {
         if (prevProps.value === this.props.value) {
             return;
         }
-        this.setDate(this.props.value)
+        this.setDate(this.props.value);
     }
 
     /**

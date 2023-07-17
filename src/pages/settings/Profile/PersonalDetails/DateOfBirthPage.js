@@ -49,10 +49,10 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
     }, []);
 
     const [dob, setDob] = useState(privatePersonalDetails.dob || '');
-    
+
     useEffect(() => {
-        setDob(privatePersonalDetails.dob)
-    }, [privatePersonalDetails.dob])
+        setDob(privatePersonalDetails.dob);
+    }, [privatePersonalDetails.dob]);
 
     if (privatePersonalDetails.isLoading) {
         return <FullscreenLoadingIndicator />;

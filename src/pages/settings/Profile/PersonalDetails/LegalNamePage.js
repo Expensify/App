@@ -41,9 +41,9 @@ function LegalNamePage({translate, privatePersonalDetails}) {
     const [legalLastName, setLegalLastName] = useState(lodashGet(privatePersonalDetails, 'legalLastName', ''));
 
     useEffect(() => {
-        setLegalFirstName(lodashGet(privatePersonalDetails, 'legalFirstName', ''))
-        setLegalLastName(lodashGet(privatePersonalDetails, 'legalLastName', ''))
-    }, [privatePersonalDetails, privatePersonalDetails.legalFirstName, privatePersonalDetails.legalLastName])
+        setLegalFirstName(lodashGet(privatePersonalDetails, 'legalFirstName', ''));
+        setLegalLastName(lodashGet(privatePersonalDetails, 'legalLastName', ''));
+    }, [privatePersonalDetails, privatePersonalDetails.legalFirstName, privatePersonalDetails.legalLastName]);
 
     const validate = useCallback((values) => {
         const errors = {};

@@ -55,7 +55,7 @@ function AddressPage({translate, privatePersonalDetails}) {
     const [addressCountry, setAddressCountry] = useState('');
 
     useEffect(() => {
-        const { address } = privatePersonalDetails;
+        const {address} = privatePersonalDetails;
         if (!address) {
             return;
         }
@@ -66,7 +66,7 @@ function AddressPage({translate, privatePersonalDetails}) {
         setAddressState(address.state);
         setAddressZip(address.zip);
         setAddressCountry(address.country);
-    }, [privatePersonalDetails, privatePersonalDetails.address])
+    }, [privatePersonalDetails, privatePersonalDetails.address]);
 
     /**
      * @param {Function} translate - translate function
