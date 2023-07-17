@@ -2527,9 +2527,9 @@ function getOriginalReportID(reportID, reportAction) {
 function getPolicy(policyID) {
     const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
     return policy;
+}
 
-
- * Return the pendingAction and the errors when we have creating a chat or a workspace room offline
+/* Return the pendingAction and the errors when we have creating a chat or a workspace room offline
  * @param {Object} report
  * @returns {Object} pending action , errors
  */
