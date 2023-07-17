@@ -23,6 +23,7 @@ import reportPropTypes from '../../reportPropTypes';
 import * as UserUtils from '../../../libs/UserUtils';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
+import MultipleAvatars from "../../../components/MultipleAvatars";
 
 const propTypes = {
     /** All the data of the action */
@@ -98,13 +99,14 @@ function ReportActionItemSingle(props) {
 
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar = {};
-    if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW) {
+    const displayAllActors = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport;
+    if (displayAllActors) {
         const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
         displayName = displayName + ' & ' + secondaryDisplayName;
         secondaryAvatar = {source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID), type: CONST.ICON_TYPE_AVATAR, name: secondaryDisplayName, id: props.iouReport.ownerAccountID};
     } else if (!isWorkspaceActor) {
-        secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1]
+        secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
     }
     const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName, id: actorAccountID};
 
@@ -128,6 +130,45 @@ function ReportActionItemSingle(props) {
         }
     }, [isWorkspaceActor, props.report.reportID, actorAccountID, props.action.delegateAccountID]);
 
+    const getAvatar = () => {
+        if (displayAllActors) {
+            return (
+                <MultipleAvatars
+                icons={[icon, secondaryAvatar]}
+                isInReportAction = {true}
+                shouldShowTooltip={true}
+                />
+            );
+        } else if (props.shouldShowSubscriptAvatar) {
+            return (
+                <SubscriptAvatar
+                    mainAvatar={icon}
+                    secondaryAvatar={secondaryAvatar}
+                    mainTooltip={actorHint}
+                    secondaryTooltip={ReportUtils.getPolicyName(props.report)}
+                    noMargin
+                />
+            );
+        } else {
+            return (
+                <UserDetailsTooltip
+                    accountID={actorAccountID}
+                    delegateAccountID={props.action.delegateAccountID}
+                    icon={icon}
+                >
+                    <View>
+                        <Avatar
+                            containerStyles={[styles.actionAvatar]}
+                            source={icon.source}
+                            type={icon.type}
+                            name={icon.name}
+                        />
+                    </View>
+                </UserDetailsTooltip>
+            );
+        }
+    }
+
     return (
         <View style={props.wrapperStyles}>
             <PressableWithoutFeedback
@@ -139,30 +180,7 @@ function ReportActionItemSingle(props) {
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
-                    {props.shouldShowSubscriptAvatar ? (
-                        <SubscriptAvatar
-                            mainAvatar={icon}
-                            secondaryAvatar={secondaryAvatar}
-                            mainTooltip={actorHint}
-                            secondaryTooltip={ReportUtils.getPolicyName(props.report)}
-                            noMargin
-                        />
-                    ) : (
-                        <UserDetailsTooltip
-                            accountID={actorAccountID}
-                            delegateAccountID={props.action.delegateAccountID}
-                            icon={icon}
-                        >
-                            <View>
-                                <Avatar
-                                    containerStyles={[styles.actionAvatar]}
-                                    source={icon.source}
-                                    type={icon.type}
-                                    name={icon.name}
-                                />
-                            </View>
-                        </UserDetailsTooltip>
-                    )}
+                    {getAvatar()}
                 </OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
