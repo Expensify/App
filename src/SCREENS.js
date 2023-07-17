@@ -9,4 +9,7 @@ export default {
     REPORT_ATTACHMENTS: 'ReportAttachments',
     NOT_FOUND: 'not-found',
     TRANSITION_FROM_OLD_DOT: 'TransitionFromOldDot',
+    SETTINGS: {
+        PREFERENCES: 'Settings_Preferences',
+    },
 };
