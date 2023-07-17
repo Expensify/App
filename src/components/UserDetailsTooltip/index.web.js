@@ -63,6 +63,7 @@ function UserDetailsTooltip(props) {
 
     return (
         <Tooltip
+            shiftHorizontal={props.shiftHorizontal}
             renderTooltipContent={renderTooltipContent}
             renderTooltipContentKey={[userDisplayName, userLogin]}
         >

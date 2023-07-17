@@ -27,6 +27,8 @@ import CONST from '../../CONST';
 import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
 import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
+import * as PolicyUtils from '../../libs/PolicyUtils';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -65,6 +67,13 @@ const defaultProps = {
     account: {},
     closeAccount: {},
     blurOnSubmit: false,
+};
+
+/**
+ * Enables experimental "memory only keys" mode in Onyx
+ */
+const setEnableMemoryOnlyKeys = () => {
+    window.enableMemoryOnlyKeys();
 };
 
 function LoginForm(props) {
@@ -129,6 +138,12 @@ function LoginForm(props) {
                 setFormError('loginForm.error.invalidFormatEmailLogin');
             }
             return;
+        }
+
+        // If the user has entered a guide email, then we are going to enable an experimental Onyx mode to help with performance
+        if (PolicyUtils.isExpensifyGuideTeam(loginTrim)) {
+            Log.info('Detected guide email in login field, setting memory only keys.');
+            setEnableMemoryOnlyKeys();
         }
 
         setFormError(null);
