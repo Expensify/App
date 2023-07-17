@@ -6,7 +6,7 @@ import lodashGet from 'lodash/get';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import withWindowDimensions from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
@@ -36,6 +36,8 @@ const propTypes = {
         height: PropTypes.number,
         width: PropTypes.number,
     }),
+
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
