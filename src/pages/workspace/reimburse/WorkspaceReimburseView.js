@@ -93,11 +93,7 @@ function WorkspaceReimburseView(props) {
         [getNumericValue, toLocaleDigit],
     );
 
-    const getRateLabel = useCallback(
-        (customUnitRate) => getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) /
-            CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET),
-        [getRateDisplayValue],
-    );
+    const getRateLabel = useCallback((customUnitRate) => getRateDisplayValue(lodashGet(customUnitRate, 'rate', 0) / CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET), [getRateDisplayValue]);
 
     const getUnitLabel = useCallback((value) => translate(`common.${value}`), [translate]);
 
