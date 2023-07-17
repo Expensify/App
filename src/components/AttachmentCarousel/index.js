@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -117,8 +117,7 @@ function AttachmentCarousel(props) {
     const [activeSource, setActiveSource] = useState(null);
 
     const scrollRef = useRef(null);
-
-    let autoHideArrowTimeout;
+    const autoHideArrowTimeout = useRef(null);
 
     useEffect(() => {
         const initialState = createInitialState(props);
@@ -133,51 +132,55 @@ function AttachmentCarousel(props) {
      * @param {Number} index
      * @returns {{offset: Number, length: Number, index: Number}}
      */
-    function getItemLayout(data, index) {
-        return {
+    const getItemLayout = useCallback(
+        (data, index) => ({
             length: containerWidth,
             offset: containerWidth * index,
             index,
-        };
-    }
+        }),
+        [containerWidth],
+    );
 
     /**
      * Cancels the automatic hiding of the arrows.
      */
-    function cancelAutoHideArrow() {
-        clearTimeout(autoHideArrowTimeout);
-    }
+    const cancelAutoHideArrow = useCallback(() => {
+        clearTimeout(autoHideArrowTimeout.current);
+    }, []);
 
     /**
      * Toggles the visibility of the arrows
      * @param {Boolean} areArrowsVisible
      */
-    function toggleArrowsVisibility(areArrowsVisible) {
-        // Don't toggle arrows in a zoomed state
-        if (isZoomed) {
-            return;
-        }
+    const toggleArrowsVisibility = useCallback(
+        (areArrowsVisible) => {
+            // Don't toggle arrows in a zoomed state
+            if (isZoomed) {
+                return;
+            }
 
-        setShouldShowArrow((prevState) => (_.isBoolean(areArrowsVisible) ? areArrowsVisible : !prevState));
-    }
+            setShouldShowArrow((prevState) => (_.isBoolean(areArrowsVisible) ? areArrowsVisible : !prevState));
+        },
+        [isZoomed],
+    );
 
     /**
      * On a touch screen device, automatically hide the arrows
      * if there is no interaction for 3 seconds.
      */
-    function autoHideArrow() {
+    const autoHideArrow = useCallback(() => {
         if (!canUseTouchScreen) {
             return;
         }
         cancelAutoHideArrow();
-        autoHideArrowTimeout = setTimeout(() => {
+        autoHideArrowTimeout.current = setTimeout(() => {
             toggleArrowsVisibility(false);
         }, CONST.ARROW_HIDE_DELAY);
-    }
+    }, [cancelAutoHideArrow, toggleArrowsVisibility]);
 
     useEffect(() => {
         autoHideArrow();
-    }, []);
+    }, [autoHideArrow]);
 
     useEffect(() => {
         if (shouldShowArrow) {
@@ -185,44 +188,50 @@ function AttachmentCarousel(props) {
         } else {
             cancelAutoHideArrow();
         }
-    }, [shouldShowArrow]);
+    }, [shouldShowArrow, autoHideArrow, cancelAutoHideArrow]);
 
     /**
      * Updates zoomed state to enable/disable panning the PDF
      * @param {Number} scale current PDF scale
      */
-    function updateZoomState(scale) {
-        const newIsZoomed = scale > 1;
-        if (newIsZoomed === isZoomed) {
-            return;
-        }
-        if (newIsZoomed) {
-            toggleArrowsVisibility(false);
-        }
-        setIsZoomed(newIsZoomed);
-    }
+    const updateZoomState = useCallback(
+        (scale) => {
+            const newIsZoomed = scale > 1;
+            if (newIsZoomed === isZoomed) {
+                return;
+            }
+            if (newIsZoomed) {
+                toggleArrowsVisibility(false);
+            }
+            setIsZoomed(newIsZoomed);
+        },
+        [isZoomed, toggleArrowsVisibility],
+    );
 
     /**
      * Increments or decrements the index to get another selected item
      * @param {Number} deltaSlide
      */
-    function cycleThroughAttachments(deltaSlide) {
-        let delta = deltaSlide;
-        if (canUseTouchScreen) {
-            delta = deltaSlide * -1;
-        }
+    const cycleThroughAttachments = useCallback(
+        (deltaSlide) => {
+            let delta = deltaSlide;
+            if (canUseTouchScreen) {
+                delta = deltaSlide * -1;
+            }
 
-        const nextIndex = page - delta;
-        const nextItem = attachments[nextIndex];
+            const nextIndex = page - delta;
+            const nextItem = attachments[nextIndex];
 
-        if (!nextItem || !scrollRef.current) {
-            return;
-        }
+            if (!nextItem || !scrollRef.current) {
+                return;
+            }
 
-        // The sliding transition is a bit too much on web, because of the wider and bigger images,
-        // so we only enable it for mobile
-        scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
-    }
+            // The sliding transition is a bit too much on web, because of the wider and bigger images,
+            // so we only enable it for mobile
+            scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
+        },
+        [attachments, page],
+    );
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -250,28 +259,31 @@ function AttachmentCarousel(props) {
      * @param {Object} cellRendererProps
      * @returns {JSX.Element}
      */
-    function renderCell(cellRendererProps) {
-        // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
-        // considering horizontal margin and border width in centered modal
-        const modalStyles = styles.centeredModalStyles(props.isSmallScreenWidth, true);
-        const style = [cellRendererProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
+    const renderCell = useCallback(
+        (cellRendererProps) => {
+            // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
+            // considering horizontal margin and border width in centered modal
+            const modalStyles = styles.centeredModalStyles(props.isSmallScreenWidth, true);
+            const style = [cellRendererProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 
-        return (
-            <View
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...cellRendererProps}
-                style={style}
-            />
-        );
-    }
+            return (
+                <View
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...cellRendererProps}
+                    style={style}
+                />
+            );
+        },
+        [props.isSmallScreenWidth, props.windowWidth],
+    );
 
     /**
      * Defines how a single attachment should be rendered
      * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String } }} item
      * @returns {JSX.Element}
      */
-    function renderItem({item}) {
-        return (
+    const renderItem = useCallback(
+        ({item}) => (
             <AttachmentView
                 isFocused={activeSource === item.source}
                 source={item.source}
@@ -280,8 +292,9 @@ function AttachmentCarousel(props) {
                 onScaleChanged={canUseTouchScreen ? updateZoomState : undefined}
                 onPress={canUseTouchScreen ? toggleArrowsVisibility : undefined}
             />
-        );
-    }
+        ),
+        [activeSource, toggleArrowsVisibility, updateZoomState],
+    );
 
     let isForwardDisabled = page === 0;
     let isBackDisabled = page === _.size(attachments) - 1;
@@ -313,9 +326,7 @@ function AttachmentCarousel(props) {
                                         cycleThroughAttachments(-1);
                                         autoHideArrow();
                                     }}
-                                    // eslint-disable-next-line react/jsx-no-bind
                                     onPressIn={cancelAutoHideArrow}
-                                    // eslint-disable-next-line react/jsx-no-bind
                                     onPressOut={autoHideArrow}
                                 />
                             </View>
@@ -334,9 +345,7 @@ function AttachmentCarousel(props) {
                                         cycleThroughAttachments(1);
                                         autoHideArrow();
                                     }}
-                                    // eslint-disable-next-line react/jsx-no-bind
                                     onPressIn={cancelAutoHideArrow}
-                                    // eslint-disable-next-line react/jsx-no-bind
                                     onPressOut={autoHideArrow}
                                 />
                             </View>
@@ -368,21 +377,15 @@ function AttachmentCarousel(props) {
                     windowSize={5}
                     maxToRenderPerBatch={3}
                     data={attachments}
-                    // eslint-disable-next-line react/jsx-no-bind
                     CellRendererComponent={renderCell}
-                    // eslint-disable-next-line react/jsx-no-bind
                     renderItem={renderItem}
-                    // eslint-disable-next-line react/jsx-no-bind
                     getItemLayout={getItemLayout}
                     keyExtractor={(item) => item.source}
                     viewabilityConfig={viewabilityConfig}
                     onViewableItemsChanged={updatePage}
                 />
             )}
-            <CarouselActions
-                // eslint-disable-next-line react/jsx-no-bind
-                onCycleThroughAttachments={cycleThroughAttachments}
-            />
+            <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
         </View>
     );
 }
