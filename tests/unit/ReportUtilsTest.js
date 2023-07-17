@@ -403,19 +403,14 @@ describe('ReportUtils', () => {
         describe('return empty iou options if', () => {
             it('participants contains excluded iou emails', () => {
                 const allEmpty = _.every(CONST.EXPENSIFY_ACCOUNT_IDS, (accountID) => {
-                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, accountID], [CONST.BETAS.IOU]);
+                    const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, accountID], []);
                     return moneyRequestOptions.length === 0;
                 });
                 expect(allEmpty).toBe(true);
             });
 
             it('no participants except self', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID], [CONST.BETAS.IOU]);
-                expect(moneyRequestOptions.length).toBe(0);
-            });
-
-            it('no iou permission', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], []);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID], []);
                 expect(moneyRequestOptions.length).toBe(0);
             });
         });
@@ -429,7 +424,7 @@ describe('ReportUtils', () => {
                             ...LHNTestUtils.getFakeReport(),
                             chatType,
                         };
-                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participants[0]], [CONST.BETAS.IOU]);
+                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participants[0]], []);
                         return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
                     },
                 );
@@ -437,13 +432,13 @@ describe('ReportUtils', () => {
             });
 
             it('has multiple participants exclude self', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], [CONST.BETAS.IOU]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], []);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             });
 
             it(' does not have iou send permission', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], [CONST.BETAS.IOU]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], []);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             });
@@ -456,14 +451,14 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participants], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participants], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             });
         });
 
         it('return both iou send and request money in DM', () => {
-            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserAccountID, participants[0]], [CONST.BETAS.IOU, CONST.BETAS.IOU_SEND]);
+            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserAccountID, participants[0]], [CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);
