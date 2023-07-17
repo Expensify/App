@@ -78,6 +78,30 @@ function MoneyRequestSelectorPage(props) {
         Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
     };
 
+    const renderTabContent = () => {
+        switch (selectedTab) {
+            case CONST.TABS.MANUAL:
+                return <MoneyRequestAmountPage
+                    route={props.route}
+                    report={props.report}
+                    iou={props.iou}
+                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                />;
+            case CONST.TABS.SCAN:
+                return <ReceiptSelector
+                    route={props.route}
+                    report={props.report}
+                    iou={props.iou}
+                    isDraggingOver={isDraggingOver}
+                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                />;
+            case CONST.TABS.DISTANCE:
+                return <></>;
+            default:
+                return null;
+        }
+    };
+
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -110,22 +134,7 @@ function MoneyRequestSelectorPage(props) {
                                 onBackButtonPress={navigateBack}
                             />
                             <TabSelector />
-                            {selectedTab === 'manual' ? (
-                                <MoneyRequestAmountPage
-                                    route={props.route}
-                                    report={props.report}
-                                    iou={props.iou}
-                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
-                                />
-                            ) : (
-                                <ReceiptSelector
-                                    route={props.route}
-                                    report={props.report}
-                                    iou={props.iou}
-                                    isDraggingOver={isDraggingOver}
-                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
-                                />
-                            )}
+                            {renderTabContent()}
                             <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
                         </View>
                     </DragAndDrop>
