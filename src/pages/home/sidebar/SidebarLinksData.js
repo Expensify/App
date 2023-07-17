@@ -82,10 +82,6 @@ function SidebarLinksData({
 
     const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
-        // Object.values(chatReports).forEach((report) => {
-        //     console.log('[HD]', report.reportName, report.reportID, report.lastVisibleActionCreated);
-        // });
-
         const reportIDs = SidebarUtils.getOrderedReportIDs(currentReportID, chatReports, betas, policies, priorityMode, allReportActions);
         if (deepEqual(reportIDsRef.current, reportIDs)) {
             return reportIDsRef.current;
