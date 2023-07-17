@@ -1,16 +1,16 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useRef, useEffect, useCallback} from 'react';
 import {FlatList, Keyboard} from 'react-native';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 function KeyboardDismissingFlatList(props) {
-    const [isScreenTouched, setIsScreenTouched] = useState(false);
+    const isScreenTouched = useRef(false);
 
     const touchStart = () => {
-        setIsScreenTouched(true);
+        isScreenTouched.current = true;
     };
 
     const touchEnd = () => {
-        setIsScreenTouched(false);
+        isScreenTouched.current = false;
     };
 
     useEffect(() => {
@@ -29,11 +29,11 @@ function KeyboardDismissingFlatList(props) {
 
     const onScroll = useCallback(() => {
         // Only dismiss the keyboard whenever the user scrolls the screen
-        if (!isScreenTouched) {
+        if (!isScreenTouched.current) {
             return;
         }
         Keyboard.dismiss();
-    }, [isScreenTouched]);
+    }, []);
 
     return (
         <FlatList
