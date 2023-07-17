@@ -333,6 +333,7 @@ function WorkspaceMembersPage(props) {
         >
             <FullPageNotFoundView
                 shouldShow={_.isEmpty(props.policy)}
+                subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
             >
                 <HeaderWithBackButton
