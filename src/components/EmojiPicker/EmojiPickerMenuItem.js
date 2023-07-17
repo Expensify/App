@@ -1,8 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/StyleUtils';
-import getButtonState from '../../libs/getButtonState';
 import Text from '../Text';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import CONST from '../../CONST';
