@@ -30,12 +30,16 @@ const propTypes = {
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     plaidLinkOAuthToken: PropTypes.string,
+
+    /* The workspace policyID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
     plaidData: PlaidDataProps.plaidDataDefaultProps,
     receivedRedirectURI: null,
     plaidLinkOAuthToken: '',
+    policyID: '',
 };
 
 function BankAccountPlaidStep(props) {
