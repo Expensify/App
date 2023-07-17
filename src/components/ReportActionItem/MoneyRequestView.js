@@ -82,7 +82,7 @@ function MoneyRequestView(props) {
                 // shouldShowRightIcon={!isSettled}
                 // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
             />
-            {props.shouldShowHorizontalRule && <View style={styles.taskHorizontalRule} />}
+            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
 }
