@@ -245,7 +245,8 @@ function canDeleteReportAction(reportAction, reportID) {
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
         reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
         ReportActionsUtils.isCreatedTaskReportAction(reportAction) ||
-        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID))
+        (ReportActionsUtils.isMoneyRequestAction(reportAction) && isSettled(reportAction.originalMessage.IOUReportID)) ||
+        reportAction.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE
     ) {
         return false;
     }
@@ -804,13 +805,13 @@ function getWorkspaceIcon(report) {
  * @param {Number} [defaultAccountID]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, isPayer = false) {
+function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '', defaultAccountID = -1) {
     if (_.isEmpty(report)) {
         const fallbackIcon = {
             source: defaultIcon || Expensicons.FallbackAvatar,
             type: CONST.ICON_TYPE_AVATAR,
-            name: '',
-            id: -1,
+            name: defaultName,
+            id: defaultAccountID,
         };
         return [fallbackIcon];
     }
@@ -1125,6 +1126,12 @@ function getReportName(report) {
         if (isAttachment && parentReportActionMessage) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
+        if (
+            lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
+            lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
+        ) {
+            return Localize.translateLocal('parentReportAction.hiddenMessage');
+        }
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     if (isChatRoom(report) || isTaskReport(report)) {
@@ -1340,6 +1347,49 @@ function buildOptimisticAddCommentReportAction(text, file) {
 }
 
 /**
+ * update optimistic parent reportAction when a comment is added or remove in the child report
+ * @param {String} parentReportAction - Parent report action of the child report
+ * @param {String} lastVisibleActionCreated - Last visible action created of the child report
+ * @param {String} type - The type of action in the child report
+ * @returns {Object}
+ */
+
+function updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type) {
+    let childVisibleActionCount = parentReportAction.childVisibleActionCount || 0;
+    let childCommenterCount = parentReportAction.childCommenterCount || 0;
+    let childOldestFourAccountIDs = parentReportAction.childOldestFourAccountIDs;
+
+    if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        childVisibleActionCount += 1;
+        const oldestFourAccountIDs = childOldestFourAccountIDs ? childOldestFourAccountIDs.split(',') : [];
+        if (oldestFourAccountIDs.length < 4) {
+            const index = _.findIndex(oldestFourAccountIDs, (accountID) => accountID === currentUserAccountID.toString());
+            if (index === -1) {
+                childCommenterCount += 1;
+                oldestFourAccountIDs.push(currentUserAccountID);
+            }
+        }
+        childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
+    } else if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (childVisibleActionCount > 0) {
+            childVisibleActionCount -= 1;
+        }
+
+        if (childVisibleActionCount === 0) {
+            childCommenterCount = 0;
+            childOldestFourAccountIDs = '';
+        }
+    }
+
+    return {
+        childVisibleActionCount,
+        childCommenterCount,
+        childLastVisibleActionCreated: lastVisibleActionCreated,
+        childOldestFourAccountIDs,
+    };
+}
+
+/**
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param {String} taskReportID - Report ID of the task
  * @param {String} taskTitle - Title of the task
@@ -1463,10 +1513,8 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
             paymentMethodMessage = ' elsewhere';
             break;
-        case CONST.IOU.PAYMENT_TYPE.PAYPAL_ME:
-            paymentMethodMessage = ' using PayPal.me';
-            break;
         default:
+            paymentMethodMessage = ` using ${paymentType}`;
             break;
     }
 
@@ -2327,7 +2375,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
     const hasMultipleParticipants = participants.length > 1;
 
-    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat) || !Permissions.canUseIOU(betas)) {
+    if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) {
         return [];
     }
 
@@ -2549,6 +2597,7 @@ export {
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
+    updateOptimisticParentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsByLoginList,
