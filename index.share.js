@@ -96,7 +96,7 @@ const ShareExtension = withOnyx({
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator screenOptions={RHPScreenOptions}>
                         <Stack.Screen
-                            name={ROUTES.SHARE}
+                            name={ROUTES.NEW_GROUP}
                             component={NewGroupPage}
                             initialParams={{share: true}}
                         />
