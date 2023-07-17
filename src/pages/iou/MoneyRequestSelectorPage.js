@@ -18,6 +18,7 @@ import styles from '../../styles/styles';
 import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
 import Styles from '../../styles/styles';
 import ReceiptSelector from './ReceiptSelector';
+import {PortalHost} from '@gorhom/portal';
 
 function MoneyRequestSelectorPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
@@ -67,6 +68,7 @@ function MoneyRequestSelectorPage(props) {
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
                             />
                         )}
+                        <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
                     </View>
                 )}
             </ScreenWrapper>

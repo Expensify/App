@@ -1,5 +1,5 @@
 import {View, Text} from 'react-native';
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -17,6 +17,10 @@ import {PressableWithFeedback} from '../../../components/Pressable';
 import Button from '../../../components/Button';
 import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
+import DragAndDrop from '../../../components/DragAndDrop';
+import ReportDropUI from '../../home/report/ReportDropUI';
+import Colors from '../../../styles/colors';
+import ReceiptDropUI from '../ReceiptDropUI';
 
 const propTypes = {
     /** Route params */
@@ -73,6 +77,8 @@ function ReceiptSelector(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
+    const [isDraggingOver, setIsDraggingOver] = useState(false);
+
     const navigateToNextPage = () => {
         const moneyRequestID = `${iouType.current}${reportID.current}`;
         const shouldReset = props.iou.id !== moneyRequestID;
@@ -104,32 +110,58 @@ function ReceiptSelector(props) {
         Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
     };
 
-    //TODO: Add strings correctly with translate
+    // TODO: Add strings correctly with translate
     return (
-        <View style={[Styles.flex1, Styles.uploadReceiptBorder, Styles.justifyContentCenter, Styles.alignItemsCenter, Styles.p10, Styles.m5, Styles.gap1]}>
-            <ReceiptUpload
-                width={164}
-                height={164}
-            />
-            <Text style={[Styles.textReceiptUpload]}>Upload receipt</Text>
-            <Text style={[Styles.subTextReceiptUpload]}>
-                Drag a receipt onto this page, forward a receipt to{' '}
-                <CopyTextToClipboard
-                    text="receipts@expensify.com"
-                    textStyles={[styles.textBlue]}
-                />{' '}
-                or choose a file to upload below.
-            </Text>
-            <PressableWithFeedback accessibilityRole="button">
-                <Button
-                    medium
-                    success
-                    text="Choose File"
-                    style={[Styles.buttonReceiptUpload]}
-                    onPress={() => console.log(`Clicked`)}
+        <DragAndDrop
+            dropZoneId={CONST.RECEIPT.DROP_NATIVE_ID}
+            activeDropZoneId={CONST.RECEIPT.ACTIVE_DROP_NATIVE_ID}
+            onDragEnter={() => {
+                setIsDraggingOver(true);
+                console.log('Receipt selector drag enter');
+            }}
+            onDragLeave={() => {
+                setIsDraggingOver(false);
+                console.log('Receipt selector drag leave');
+            }}
+            onDrop={(e) => {
+                // TODO
+            }}
+        >
+            <View
+                nativeID={CONST.RECEIPT.DROP_NATIVE_ID}
+                style={[Styles.flex1, Styles.uploadReceiptBorder, Styles.justifyContentCenter, Styles.alignItemsCenter, Styles.p10, Styles.m5, Styles.gap1]}
+            >
+                <ReceiptUpload
+                    width={164}
+                    height={164}
                 />
-            </PressableWithFeedback>
-        </View>
+                <Text style={[Styles.textReceiptUpload]}>{isDraggingOver ? 'Let it go' : 'Upload receipt'}</Text>
+                {isDraggingOver ? (
+                    <Text style={[Styles.subTextReceiptUpload]}>Drop your file here</Text>
+                ) : (
+                    <Text style={[Styles.subTextReceiptUpload]}>
+                        Drag a receipt onto this page, forward a receipt to{' '}
+                        <CopyTextToClipboard
+                            text="receipts@expensify.com"
+                            textStyles={[styles.textBlue]}
+                        />{' '}
+                        or choose a file to upload below.
+                    </Text>
+                )}
+                {!isDraggingOver && (
+                    <PressableWithFeedback accessibilityRole="button">
+                        <Button
+                            medium
+                            success
+                            text="Choose File"
+                            style={[Styles.buttonReceiptUpload]}
+                            onPress={() => console.log(`Clicked`)}
+                        />
+                    </PressableWithFeedback>
+                )}
+                {isDraggingOver && <ReceiptDropUI />}
+            </View>
+        </DragAndDrop>
     );
 }
 

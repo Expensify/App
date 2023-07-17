@@ -476,6 +476,11 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+    RECEIPT: {
+        DROP_HOST_NAME: 'ReceiptDropZone',
+        DROP_NATIVE_ID: 'receipt-dropzone',
+        ACTIVE_DROP_NATIVE_ID: 'receipt-dropzone',
+    },
     REPORT: {
         DROP_HOST_NAME: 'ReportDropZone',
         DROP_NATIVE_ID: 'report-dropzone',
