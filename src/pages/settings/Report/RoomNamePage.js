@@ -82,7 +82,7 @@ function RoomNamePage(props) {
             onEntryTransitionEnd={() => roomNameInputRef.current && roomNameInputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
         >
-            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(policy, report)}>
+            <FullPageNotFoundView shouldShow={ReportUtils.shouldDisableRename(report, policy)}>
                 <HeaderWithBackButton
                     title={translate('newRoomPage.roomName')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID))}
