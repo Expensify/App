@@ -250,6 +250,11 @@ export default {
         signInAgreementMessage: 'By logging in, you agree to the',
         termsOfService: 'Terms of Service',
         privacy: 'Privacy',
+        loggedInAs: ({email}) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
+        doNotSeePrompt: "Can't see the prompt?",
+        tryAgain: 'Try again',
+        or: ', or',
+        continueInWeb: 'continue to the web app',
     },
     reportActionCompose: {
         addAction: 'Actions',

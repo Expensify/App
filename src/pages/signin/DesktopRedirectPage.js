@@ -18,7 +18,7 @@ import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 
 const propTypes = {
-    user: PropTypes.shape({
+    session: PropTypes.shape({
         /** Currently logged-in user email */
         email: PropTypes.string,
     }),
@@ -27,7 +27,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    user: {
+    session: {
         email: '',
     },
 };
@@ -75,10 +75,8 @@ function DesktopRedirectPage(props) {
     }, []);
 
     const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
-    const params = new URLSearchParams();
-    params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
-    const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}/transition?${params.toString()}`;
-
+    // params.set('exitTo', `${window.location.pathname}${window.location.search}${window.location.hash}`);
+    const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}}`;
     return (
         <View style={styles.deeplinkWrapperContainer}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -91,10 +89,11 @@ function DesktopRedirectPage(props) {
                 </View>
                 <Text style={[styles.textHeadline, styles.textXXLarge]}>{props.translate('deeplinkWrapper.launching')}</Text>
                 <View style={[styles.mt2, styles.fontSizeNormal, styles.textAlignCenter]}>
-                    <Text>{props.translate('deeplinkWrapper.redirectedToDesktopApp')}</Text>
+                    <Text>{props.translate('thirdPartySignIn.loggedInAs', {email: props.session.email})}</Text>
                     <Text style={[styles.textAlignCenter]}>
-                        {props.translate('deeplinkWrapper.youCanAlso')}{' '}
-                        <TextLink onPress={() => openRouteInDesktopApp(expensifyDeeplinkUrl)}>{props.translate('deeplinkWrapper.openLinkInBrowser')}</TextLink>.
+                        {props.translate('thirdPartySignIn.doNotSeePrompt')}{' '}
+                        <TextLink onPress={() => openRouteInDesktopApp(expensifyDeeplinkUrl)}>{props.translate('thirdPartySignIn.tryAgain')}</TextLink>
+                        {props.translate('thirdPartySignIn.or')} <TextLink onPress={() => Session.redirectToSignIn()}>{props.translate('thirdPartySignIn.continueInWeb')}</TextLink>.
                     </Text>
                 </View>
             </View>
@@ -117,8 +116,8 @@ DesktopRedirectPage.displayName = 'DesktopRedirectPage';
 export default compose(
     withLocalize,
     withOnyx({
-        user: {
-            key: ONYXKEYS.USER,
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(DesktopRedirectPage);
