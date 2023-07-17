@@ -44,18 +44,20 @@ function clamp(num, min, max) {
 function isInRange(num, min, max) {
     return num >= min && num <= max;
 }
-
+/**
+ * Checks if the user has navigated within the docs using internal links and uses browser history to navigate back.
+ * If a page is directly accessed (e.g., via deep link, bookmark, or opened in a new tab),the user will be navigated
+ * back to the relevant hub page of that article.
+ */
 function navigateBack() {
     const currentHost = window.location.host;
     const referrer = document.referrer;
 
-    // Check if the referrer is the same as the current host
     if (referrer.includes(currentHost) && window.history.length > 1) {
-        window.history.back(); // Use browser history to go back
-        return; // Exit the function
+        window.history.back();
+        return;
     }
 
-    // If the referrer is not the same as the current host, use the following logic
     const hubs = JSON.parse(document.getElementById('hubs-data').value);
     const hubToNavigate = hubs.find((hub) => window.location.pathname.includes(hub)); // eslint-disable-line rulesdir/prefer-underscore-method
     if (hubToNavigate) {
