@@ -20,7 +20,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import PagerView from 'react-native-pager-view';
 import _ from 'underscore';
-import FastImage from 'react-native-fast-image';
 import Image from '../Image';
 import styles from '../../styles/styles';
 
@@ -50,7 +49,7 @@ function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight})
 }
 
 // eslint-disable-next-line react/prop-types
-function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, isActive, onSwipe, onSwipeSuccess, renderImage, renderFallback, onTap}) {
+function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, imageScale = 1, isActive, onSwipe, onSwipeSuccess, renderImage, renderFallback, onTap}) {
     const {pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
 
     const [showFallback, setShowFallback] = useState(typeof imageHeight === 'undefined' || typeof imageWidth === 'undefined');
@@ -77,7 +76,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         })();
     }, [canvas.width, canvas.height, canvasHeight, canvasWidth]);
 
-    const canvasFitScale = useSharedValue(0);
+    const canvasFitScale = useSharedValue(imageScale);
     const zoomScale = useSharedValue(1);
 
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
@@ -556,8 +555,6 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         }
     }, [isActive, mounted, reset]);
 
-    const showImage = imageDimensions.width !== 0 && imageDimensions.height === 0;
-
     return (
         <View
             collapsable={false}
@@ -589,7 +586,6 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                                         {renderImage({
                                             onResolveImageDimensions: onLoad,
                                             ...imageDimensions,
-                                            resizeMode: showImage ? undefined : 'contain',
                                             style: showFallback ? {...styles.opacity0, ...styles.pAbsolute} : {},
                                         })}
                                     </Animated.View>
@@ -627,9 +623,9 @@ const pagePropTypes = {
 function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth, canvasHeight, onTap}) {
     const dimensions = cachedDimensions.get(item.url);
 
-    if (!isActive) {
-        const scale = dimensions == null ? 1 : getCanvasFitScale({imageWidth: dimensions.width, height: dimensions.height, canvasWidth, canvasHeight});
+    const imageScale = dimensions == null ? 1 : getCanvasFitScale({imageWidth: dimensions.width, imageHeight: dimensions.height, canvasWidth, canvasHeight});
 
+    if (!isActive) {
         return (
             <ImageWrapper>
                 <Image
@@ -640,7 +636,7 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
                             height: evt.nativeEvent.height,
                         });
                     }}
-                    style={dimensions == null ? undefined : {...dimensions, scale}}
+                    style={dimensions == null ? undefined : {...dimensions, transform: [{scale: imageScale}]}}
                 />
             </ImageWrapper>
         );
@@ -655,6 +651,7 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
             onTap={onTap}
             imageHeight={dimensions?.height}
             imageWidth={dimensions?.width}
+            iamgeScale={imageScale}
             canvasHeight={canvasHeight}
             canvasWidth={canvasWidth}
             renderFallback={() => <ActivityIndicator />}
