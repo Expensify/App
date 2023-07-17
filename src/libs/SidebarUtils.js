@@ -295,6 +295,7 @@ function getOptionData(reportID) {
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
     result.shouldShowGreenDotIndicator = report.shouldShowGreenDotIndicator;
 
+    result.notificationPreference = report.notificationPreference || null;
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
