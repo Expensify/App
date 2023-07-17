@@ -43,7 +43,7 @@ function clearOutTaskInfo() {
  * A task report is created, along with a CreatedReportAction for that new task report
  * A reportAction indicating that a task was created is added to the parent report (share destination)
  * If you assign the task to someone, a reportAction is created in the chat between you and the assignee to inform them of the task
- * 
+ *
  * So you have the following optimistic items potentially being created:
  * 1. The task report
  * 1a. The CreatedReportAction for the task report
@@ -51,7 +51,7 @@ function clearOutTaskInfo() {
  * 3. The chat report between you and the assignee
  * 3a. The CreatedReportAction for the assignee chat report
  * 3b. The TaskReportAction on the assignee chat report
- *   
+ *
  * @param {String} parentReportID
  * @param {String} title
  * @param {String} description
@@ -63,7 +63,7 @@ function clearOutTaskInfo() {
 function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0, assigneeChatReport = {}) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticTaskReport.reportID);
-    
+
     const assigneeChatReportID = assigneeChatReport.reportID;
     const taskReportID = optimisticTaskReport.reportID;
     let optimisticAssigneeAddComment;
@@ -161,14 +161,13 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         },
                         isHidden: false,
-                    }
+                    },
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
                     value: {[optimisticChatCreatedReportAction.reportActionID]: optimisticChatCreatedReportAction},
-
-                }
+                },
             );
 
             successData.push(
@@ -181,15 +180,15 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                         },
                         isOptimisticReport: false,
                     },
-                }, 
+                },
                 // Once we successfully create the chat, we'll get the accountID back from the server, this removes the optimistic personal details
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
                         [assigneeAccountID]: null,
-                    }
-                }
+                    },
+                },
             );
 
             failureData.push(
@@ -208,8 +207,8 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                     value: {
                         [assigneeAccountID]: null,
-                    }
-                }
+                    },
+                },
             );
         }
 
@@ -243,7 +242,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
                     value: optimisticAssigneeReport,
-                }
+                },
             );
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -267,7 +266,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             assigneeChatReportID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
             assigneeChatCreatedReportActionID: optimisticChatCreatedReportAction ? optimisticChatCreatedReportAction.reportActionID : 0,
-
         },
         {optimisticData, successData, failureData},
     );
@@ -586,7 +584,6 @@ function setAssigneeValueWithParentReportID(reportID) {
 
 function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurrentUser = false) {
     let newAssigneeAccountID = Number(assigneeAccountID);
-    console.log('setAssigneeValue', assignee, assigneeAccountID, shareDestination, isCurrentUser);
 
     // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
     if (!newAssigneeAccountID) {
@@ -604,9 +601,8 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
             // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
             chatReport.isHidden = true;
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);            
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
 
-             
             // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
             const optimisticPersonalDetailsListAction = {
                 accountID: newAssigneeAccountID,
@@ -614,10 +610,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
                 displayName: lodashGet(allPersonalDetails, [newAssigneeAccountID, 'displayName'], assignee),
                 login: assignee,
             };
-
-            console.log('optimisticPersonalDetailsListAction', optimisticPersonalDetailsListAction);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[newAssigneeAccountID]: optimisticPersonalDetailsListAction});
-            
         }
 
         setAssigneeChatReport(chatReport);
