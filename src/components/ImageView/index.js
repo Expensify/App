@@ -261,6 +261,7 @@ class ImageView extends PureComponent {
                         resizeMode={this.state.zoomScale > 1 ? Image.resizeMode.center : Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
+                        onError={this.props.onError}
                     />
                     {this.state.isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
                 </View>
@@ -299,6 +300,7 @@ class ImageView extends PureComponent {
                         resizeMode={Image.resizeMode.contain}
                         onLoadStart={this.imageLoadingStart}
                         onLoad={this.imageLoad}
+                        onError={this.props.onError}
                     />
                 </PressableWithoutFeedback>
 
