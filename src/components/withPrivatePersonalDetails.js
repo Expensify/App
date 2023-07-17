@@ -43,31 +43,27 @@ const privatePersonalDetailsProviderDefaultProps = {
     },
 };
 
-class PrivatePersonalDetailsProvider extends React.Component {
-    isAuthenticated(session) {
-        return Boolean(_.get(session, 'authToken', null));
-    }
+function isAuthenticated(session) {
+    return Boolean(_.get(session, 'authToken', null));
+}
 
+class PrivatePersonalDetailsProvider extends React.Component {
     componentDidMount() {
-        if (this.props.network.isOffline || !this.isAuthenticated(this.props.session)) {
+        if (this.props.network.isOffline || !isAuthenticated(this.props.session)) {
             return;
         }
 
         PersonalDetails.openPersonalDetailsPage();
     }
 
-    shouldComponentUpdate(nextProps) {
-        return (
-            !nextProps.network.isOffline &&
-            this.isAuthenticated(nextProps.session) &&
-            (
-                !this.isAuthenticated(this.props.session) ||
-                !_.isEqual(_.omit(nextProps.privatePersonalDetails, 'isLoading'), _.omit(this.props.privatePersonalDetails, 'isLoading'))
-            )
-        )
-    }
-
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
+        // Only open personal detail page if the network is online, and the state is transitioning from unauthenticated to authenticated
+        if (this.props.network.isOffline ||
+            !isAuthenticated(this.props.session) ||
+            isAuthenticated(prevProps.session)
+        ) {
+            return;
+        }
         PersonalDetails.openPersonalDetailsPage();
     }
 

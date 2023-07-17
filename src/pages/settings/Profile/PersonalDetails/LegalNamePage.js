@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -36,9 +36,14 @@ const updateLegalName = (values) => {
     PersonalDetails.updateLegalName(values.legalFirstName.trim(), values.legalLastName.trim());
 };
 
-function LegalNamePage(props) {
-    const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
-    const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
+function LegalNamePage({translate, privatePersonalDetails}) {
+    const [legalFirstName, setLegalFirstName] = useState(lodashGet(privatePersonalDetails, 'legalFirstName', ''));
+    const [legalLastName, setLegalLastName] = useState(lodashGet(privatePersonalDetails, 'legalLastName', ''));
+
+    useEffect(() => {
+        setLegalFirstName(lodashGet(privatePersonalDetails, 'legalFirstName', ''))
+        setLegalLastName(lodashGet(privatePersonalDetails, 'legalLastName', ''))
+    }, [privatePersonalDetails, privatePersonalDetails.legalFirstName, privatePersonalDetails.legalLastName])
 
     const validate = useCallback((values) => {
         const errors = {};
@@ -58,14 +63,14 @@ function LegalNamePage(props) {
         return errors;
     }, []);
 
-    if (props.privatePersonalDetails.isLoading) {
+    if (privatePersonalDetails.isLoading) {
         return <FullscreenLoadingIndicator />;
     }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={props.translate('privatePersonalDetails.legalName')}
+                title={translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
             <Form
@@ -73,17 +78,18 @@ function LegalNamePage(props) {
                 formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                 validate={validate}
                 onSubmit={updateLegalName}
-                submitButtonText={props.translate('common.save')}
+                submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={[styles.mb4]}>
                     <TextInput
                         inputID="legalFirstName"
                         name="lfname"
-                        label={props.translate('privatePersonalDetails.legalFirstName')}
-                        accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
+                        label={translate('privatePersonalDetails.legalFirstName')}
+                        accessibilityLabel={translate('privatePersonalDetails.legalFirstName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={legalFirstName}
+                        value={legalFirstName}
+                        onValueChange={setLegalFirstName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                     />
                 </View>
@@ -91,10 +97,11 @@ function LegalNamePage(props) {
                     <TextInput
                         inputID="legalLastName"
                         name="llname"
-                        label={props.translate('privatePersonalDetails.legalLastName')}
-                        accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
+                        label={translate('privatePersonalDetails.legalLastName')}
+                        accessibilityLabel={translate('privatePersonalDetails.legalLastName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={legalLastName}
+                        value={legalLastName}
+                        onValueChange={setLegalLastName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                     />
                 </View>

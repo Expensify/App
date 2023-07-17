@@ -1,5 +1,5 @@
 import moment from 'moment';
-import React, {useCallback} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
@@ -48,6 +48,12 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
         return errors;
     }, []);
 
+    const [dob, setDob] = useState(privatePersonalDetails.dob || '');
+    
+    useEffect(() => {
+        setDob(privatePersonalDetails.dob)
+    }, [privatePersonalDetails.dob])
+
     if (privatePersonalDetails.isLoading) {
         return <FullscreenLoadingIndicator />;
     }
@@ -69,7 +75,8 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                 <NewDatePicker
                     inputID="dob"
                     label={translate('common.date')}
-                    defaultValue={privatePersonalDetails.dob || ''}
+                    value={dob}
+                    onValueChange={setDob}
                     minDate={moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years').toDate()}
                     maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'years').toDate()}
                 />
