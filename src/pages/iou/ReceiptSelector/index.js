@@ -21,6 +21,13 @@ import DragAndDrop from '../../../components/DragAndDrop';
 import ReportDropUI from '../../home/report/ReportDropUI';
 import Colors from '../../../styles/colors';
 import ReceiptDropUI from '../ReceiptDropUI';
+import Tooltip from '../../../components/Tooltip';
+import Icon from '../../../components/Icon';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import variables from '../../../styles/variables';
+import themeColors from '../../../styles/themes/default';
+import PopoverMenu from '../../../components/PopoverMenu';
+import AttachmentPicker from '../../../components/AttachmentPicker';
 
 const propTypes = {
     /** Route params */
@@ -123,15 +130,27 @@ function ReceiptSelector(props) {
                 />{' '}
                 or choose a file to upload below.
             </Text>
-            <PressableWithFeedback accessibilityRole="button">
-                <Button
-                    medium
-                    success
-                    text="Choose File"
-                    style={[Styles.buttonReceiptUpload]}
-                    onPress={() => console.log(`Clicked`)}
-                />
-            </PressableWithFeedback>
+            <AttachmentPicker>
+                {({openPicker}) => (
+                    <PressableWithFeedback accessibilityRole="button">
+                        <Button
+                            medium
+                            success
+                            text="Choose File"
+                            style={[Styles.buttonReceiptUpload]}
+                            onPress={() => {
+                                openPicker({
+                                    onPicked: (file) => {
+                                        const filePath = URL.createObjectURL(file);
+                                        IOU.setMoneyRequestReceipt(filePath);
+                                        navigateToNextPage();
+                                    },
+                                });
+                            }}
+                        />
+                    </PressableWithFeedback>
+                )}
+            </AttachmentPicker>
         </>
     );
 
