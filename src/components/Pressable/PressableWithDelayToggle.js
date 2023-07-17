@@ -90,7 +90,7 @@ function PressableWithDelayToggle(props) {
             suppressHighlighting
             style={props.textStyles}
         >
-            {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
+            {!isActive && props.textChecked ? props.textChecked : props.text}
             &nbsp;
         </Text>
     );
