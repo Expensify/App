@@ -25,7 +25,7 @@ import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';
-import FullscreenLoadingIndicator from "../../../../components/FullscreenLoadingIndicator";
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -200,7 +200,7 @@ class ContactMethodDetailsPage extends Component {
         const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
 
         if (this.props.isLoadingReportData && _.isEmpty(this.props.loginList)) {
-            return <FullscreenLoadingIndicator />
+            return <FullscreenLoadingIndicator />;
         }
 
         const loginData = this.props.loginList[contactMethod];
@@ -312,7 +312,7 @@ export default compose(
             key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
         },
         isLoadingReportData: {
-            key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`
-        }
+            key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+        },
     }),
 )(ContactMethodDetailsPage);
