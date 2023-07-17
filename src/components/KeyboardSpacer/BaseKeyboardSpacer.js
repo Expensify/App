@@ -40,7 +40,7 @@ function BaseKeyboardSpacer(props) {
         return () => {
             keyboardListeners.forEach((listener) => listener.remove());
         }
-    }, [props.keyboardShowMethod, props.keyboardHideMethod, updateKeyboardSpace, resetKeyboardSpace]);
+    }, []);
 
     return <View style={StyleUtils.getHeight(keyboardSpace)} />;
 }
