@@ -24,6 +24,12 @@ Onyx.connect({
     },
 });
 
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (allPersonalDetails = val),
+});
+
 /**
  * Clears out the task info from the store
  */
@@ -144,14 +150,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     if (assigneeChatReport) {
         // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
         if (assigneeChatReport.isOptimisticReport) {
-            // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
-            const optimisticPersonalDetailsListAction = {
-                accountID: assigneeAccountID,
-                avatar: UserUtils.getDefaultAvatarURL(assigneeAccountID),
-                displayName: assignee,
-                login: assignee,
-            };
-
             optimisticChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(assigneeChatReportID);
             optimisticData.push(
                 {
@@ -170,13 +168,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
                     value: {[optimisticChatCreatedReportAction.reportActionID]: optimisticChatCreatedReportAction},
 
-                },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [assigneeAccountID]: optimisticPersonalDetailsListAction,
-                    }
                 }
             );
 
@@ -593,6 +584,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
     if (!newAssigneeAccountID) {
         newAssigneeAccountID = UserUtils.generateAccountID();
     }
+
     if (!isCurrentUser) {
         let chatReport = ReportUtils.getChatByParticipants([newAssigneeAccountID]);
         if (!chatReport) {
@@ -604,8 +596,18 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             // We don't want to show the new DM yet, because if you select an assignee and then change the assignee, the previous DM will still be shown
             // So here, we create it optimistically to share it with the assignee, but we have to hide it until the task is created
             chatReport.isHidden = true;
-            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);            
+
+            // If this is an optimistic report, we likely don't have their personal details yet so we set it here optimistically as well
+            const optimisticPersonalDetailsListAction = {
+                accountID: newAssigneeAccountID,
+                avatar: UserUtils.getDefaultAvatar(newAssigneeAccountID),
+                displayName: assignee,
+                login: assignee,
+            };
+            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[newAssigneeAccountID]: optimisticPersonalDetailsListAction});
         }
+
         setAssigneeChatReport(chatReport);
 
         // If there is no share destination set, automatically set it to the assignee chat report
