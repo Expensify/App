@@ -53,7 +53,7 @@ function PopoverMenu(props) {
 
     const selectItem = (index) => {
         const selectedItem = props.menuItems[index];
-        props.onItemSelected(selectedItem);
+        props.onItemSelected(selectedItem, index);
         setSelectedItemIndex(index);
     };
 

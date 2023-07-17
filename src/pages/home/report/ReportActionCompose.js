@@ -981,6 +981,16 @@ class ReportActionCompose extends React.Component {
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
         const maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
 
+        const menuItems = [
+            ...this.getMoneyRequestOptions(reportParticipants),
+            ...this.getTaskOption(reportParticipants),
+            {
+                icon: Expensicons.Paperclip,
+                text: this.props.translate('reportActionCompose.addAttachment'),
+                onSelected: () => {},
+            },
+        ];
+
         return (
             <View
                 style={[
@@ -1086,29 +1096,27 @@ class ReportActionCompose extends React.Component {
                                                     animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                     isVisible={this.state.isMenuVisible}
                                                     onClose={() => this.setMenuVisibility(false)}
-                                                    onItemSelected={() => this.setMenuVisibility(false)}
+                                                    onItemSelected={(item, index) => {
+                                                        this.setMenuVisibility(false);
+
+                                                        // In order for the file picker to open dynamically, the click
+                                                        // function must be called from within a event handler that was initiated
+                                                        // by the user.
+                                                        if (index === menuItems.length - 1) {
+                                                            // Set a flag to block suggestion calculation until we're finished using the file picker,
+                                                            // which will stop any flickering as the file picker opens on non-native devices.
+                                                            if (this.willBlurTextInputOnTapOutside) {
+                                                                this.shouldBlockEmojiCalc = true;
+                                                                this.shouldBlockMentionCalc = true;
+                                                            }
+                                                            openPicker({
+                                                                onPicked: displayFileInModal,
+                                                            });
+                                                        }
+                                                    }}
                                                     anchorPosition={styles.createMenuPositionReportActionCompose(this.props.windowHeight)}
                                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-                                                    menuItems={[
-                                                        ...this.getMoneyRequestOptions(reportParticipants),
-                                                        ...this.getTaskOption(reportParticipants),
-                                                        {
-                                                            icon: Expensicons.Paperclip,
-                                                            text: this.props.translate('reportActionCompose.addAttachment'),
-                                                            onSelected: () => {
-                                                                // Set a flag to block suggestion calculation until we're finished using the file picker,
-                                                                // which will stop any flickering as the file picker opens on non-native devices.
-                                                                if (this.willBlurTextInputOnTapOutside) {
-                                                                    this.shouldBlockEmojiCalc = true;
-                                                                    this.shouldBlockMentionCalc = true;
-                                                                }
-
-                                                                openPicker({
-                                                                    onPicked: displayFileInModal,
-                                                                });
-                                                            },
-                                                        },
-                                                    ]}
+                                                    menuItems={menuItems}
                                                     withoutOverlay
                                                     anchorRef={this.actionButtonRef}
                                                 />
