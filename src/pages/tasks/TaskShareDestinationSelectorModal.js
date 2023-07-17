@@ -130,7 +130,7 @@ function TaskShareDestinationSelectorModal(props) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
             Task.setShareDestinationValue(option.reportID);
-            Navigation.goBack();
+            Navigation.goBack(ROUTES.NEW_TASK);
         }
     };
 
