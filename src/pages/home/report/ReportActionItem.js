@@ -100,7 +100,7 @@ const propTypes = {
     isOnlyReportAction: PropTypes.bool,
 
     /** IOU report for this action, if any */
-    iouReport: reportPropTypes.isRequired,
+    iouReport: reportPropTypes,
 };
 
 const defaultProps = {

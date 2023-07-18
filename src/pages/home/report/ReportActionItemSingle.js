@@ -139,7 +139,8 @@ function ReportActionItemSingle(props) {
                 shouldShowTooltip
                 />
             );
-        } else if (props.shouldShowSubscriptAvatar) {
+        }
+        if (props.shouldShowSubscriptAvatar) {
             return (
                 <SubscriptAvatar
                     mainAvatar={icon}
