@@ -92,10 +92,7 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
                 <Pager
                     items={processedItems}
                     initialIndex={page}
-                    onPageSelected={({nativeEvent: {position: newPage}}) => {
-                        console.log('page updated');
-                        updatePage(newPage);
-                    }}
+                    onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                     onTap={() => setShouldShowArrows(!shouldShowArrows)}
                     onPinchGestureChange={(isPinchGestureRunning) => setShouldShowArrows(!isPinchGestureRunning)}
                     onSwipeDown={onClose}
