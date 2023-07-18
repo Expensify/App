@@ -23,7 +23,7 @@ import reportPropTypes from '../../reportPropTypes';
 import * as UserUtils from '../../../libs/UserUtils';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
-import MultipleAvatars from "../../../components/MultipleAvatars";
+import MultipleAvatars from '../../../components/MultipleAvatars';
 
 const propTypes = {
     /** All the data of the action */
@@ -104,7 +104,12 @@ function ReportActionItemSingle(props) {
         const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
         displayName = `${displayName} & ${secondaryDisplayName}`;
-        secondaryAvatar = {source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID), type: CONST.ICON_TYPE_AVATAR, name: secondaryDisplayName, id: props.iouReport.ownerAccountID};
+        secondaryAvatar = {
+            source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID),
+            type: CONST.ICON_TYPE_AVATAR,
+            name: secondaryDisplayName,
+            id: props.iouReport.ownerAccountID,
+        };
     } else if (!isWorkspaceActor) {
         secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
     }
@@ -134,9 +139,9 @@ function ReportActionItemSingle(props) {
         if (displayAllActors) {
             return (
                 <MultipleAvatars
-                icons={[icon, secondaryAvatar]}
-                isInReportAction
-                shouldShowTooltip
+                    icons={[icon, secondaryAvatar]}
+                    isInReportAction
+                    shouldShowTooltip
                 />
             );
         }
@@ -167,7 +172,7 @@ function ReportActionItemSingle(props) {
                 </View>
             </UserDetailsTooltip>
         );
-    }
+    };
 
     return (
         <View style={props.wrapperStyles}>
@@ -179,9 +184,7 @@ function ReportActionItemSingle(props) {
                 accessibilityLabel={actorHint}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
-                <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>
-                    {getAvatar()}
-                </OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={lodashGet(pendingFields, 'avatar', null)}>{getAvatar()}</OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {props.showHeader ? (
