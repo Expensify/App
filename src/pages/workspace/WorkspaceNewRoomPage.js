@@ -18,6 +18,7 @@ import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import Form from '../../components/Form';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import policyMemberPropType from '../policyMemberPropType';
@@ -65,7 +66,15 @@ const defaultProps = {
 function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
+    const [policyID, setPolicyID] = useState(null);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
+    const isPolicyAdmin = useMemo(() => {
+        if (!policyID) {
+            return false;
+        }
+
+        return ReportUtils.isPolicyAdmin(policyID, props.policies);
+    }, [policyID, props.policies]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
@@ -172,20 +181,23 @@ function WorkspaceNewRoomPage(props) {
                         shouldDelayFocus={shouldDelayFocus}
                     />
                 </View>
-                <View style={styles.mb2}>
-                    <Picker
-                        inputID="writeCapability"
-                        label={translate('writeCapabilityPage.label')}
-                        items={writeCapabilityOptions}
-                        defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
-                    />
-                </View>
+                {isPolicyAdmin && (
+                    <View style={styles.mb2}>
+                        <Picker
+                            inputID="writeCapability"
+                            label={translate('writeCapabilityPage.label')}
+                            items={writeCapabilityOptions}
+                            defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
+                        />
+                    </View>
+                )}
                 <View style={styles.mb2}>
                     <Picker
                         inputID="policyID"
                         label={translate('workspace.common.workspace')}
                         placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
                         items={workspaceOptions}
+                        onValueChange={setPolicyID}
                     />
                 </View>
                 <View style={styles.mb2}>

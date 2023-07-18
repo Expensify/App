@@ -571,6 +571,18 @@ function isPolicyExpenseChatAdmin(report, policies) {
 }
 
 /**
+ * Checks if the current user is the admin of the policy.
+ * @param {String} policyID
+ * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
+ * @returns {Boolean}
+ */
+function isPolicyAdmin(policyID, policies) {
+    const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'role']);
+
+    return policyRole === CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Returns true if report is a DM/Group DM chat.
  *
  * @param {Object} report
@@ -2567,6 +2579,7 @@ export {
     getPolicyType,
     isArchivedRoom,
     isPolicyExpenseChatAdmin,
+    isPolicyAdmin,
     isPublicRoom,
     isPublicAnnounceRoom,
     isConciergeChatReport,
