@@ -73,7 +73,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     private static final String ONYX_DATA_KEY = "onyxData";
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
-    public final HashMap<Long, NotificationData> cache = new HashMap<>();
 
     public CustomNotificationProvider(@NonNull Context context, @NonNull AirshipConfigOptions configOptions) {
         super(context, configOptions);
@@ -170,7 +169,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         // Retrieve and check for cached notifications 
-        NotificationData notificationData = findOrCreateNotificationData(reportID);
+        NotificationData notificationData = NotificationCache.getNotificationData(reportID);
         boolean hasExistingNotification = notificationData.messages.size() >= 1;
 
         try {
@@ -257,25 +256,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     }
 
     /**
-     * Check if we are showing a notification related to a reportID.
-     * If not, create a new NotificationCache so we can build a conversation notification
-     * as the messages come.
-     *
-     * @param reportID Report ID.
-     * @return Notification Cache.
-     */
-    private NotificationData findOrCreateNotificationData(long reportID) {
-        NotificationData notificationData = cache.get(reportID);
-
-        if (notificationData == null) {
-            notificationData = new NotificationData();
-            cache.put(reportID, notificationData);
-        }
-
-        return notificationData;
-    }
-
-    /**
      * Remove the notification data from the cache when the user dismisses the notification.
      *
      * @param message Push notification's message
@@ -289,7 +269,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                 return;
             }
 
-            cache.remove(reportID);
+            NotificationCache.setNotificationData(reportID, null);
         } catch (Exception e) {
             Log.e(TAG, "Failed to delete conversation cache. SendID=" + message.getSendId(), e);
         }
