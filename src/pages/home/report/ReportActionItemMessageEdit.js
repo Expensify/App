@@ -120,7 +120,7 @@ function ReportActionItemMessageEdit(props) {
 
         return () => {
             // Skip if this is not the focused message so the other edit composer stays focused.
-            // In small screen devices, when EmojiPicker is show, the current edit message will be lost focus, we need to check this case as well.
+            // In small screen devices, when EmojiPicker is shown, the current edit message will lose focus, we need to check this case as well.
             if (!isFocusedRef.current && !EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
                 return;
             }
