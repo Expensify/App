@@ -54,7 +54,7 @@ function TwoFactorAuthPage({account,}) {
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
                 return <VerifyStep setStep={handleSetStep}/>;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return <SuccessStep/>;
+                return <SuccessStep setStep={handleSetStep}/>;
             case CONST.TWO_FACTOR_AUTH_STEPS.IS_ENABLED:
                 return <IsEnabledStep setStep={handleSetStep}/>;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
