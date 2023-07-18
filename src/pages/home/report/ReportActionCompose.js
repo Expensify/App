@@ -195,6 +195,7 @@ class ReportActionCompose extends React.Component {
         this.debouncedUpdateFrequentlyUsedEmojis = _.debounce(this.debouncedUpdateFrequentlyUsedEmojis.bind(this), 1000, false);
         this.comment = props.comment;
         this.insertedEmojis = [];
+        this.platform = [CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].includes(getPlatform())
 
         this.attachmentModalRef = React.createRef();
 
@@ -990,6 +991,7 @@ class ReportActionCompose extends React.Component {
         const submit = this.submitForm;
         const aref = this.props.animatedRef;
         const setCommentEmpty = () => this.setState({isCommentEmpty: true});
+        const platform = this.platform;
         const Tap = Gesture.Tap()
             .enabled(!(this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength))
             .onEnd(() => {
@@ -1000,7 +1002,7 @@ class ReportActionCompose extends React.Component {
                 // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
                 runOnJS(setCommentEmpty)();
                 const updates = {text: ''};
-                if ([CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].includes(getPlatform())) {
+                if (platform) {
                     // eslint-disable-next-line no-undef
                     _updatePropsPaper(viewTag, viewName, updates); // clears native text input on the UI thread
                 }
