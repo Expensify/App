@@ -989,7 +989,7 @@ class ReportActionCompose extends React.Component {
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
         const maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
         const submit = this.submitForm;
-        const aref = this.props.animatedRef;
+        const animatedRef = this.props.animatedRef;
         const setCommentEmpty = () => this.setState({isCommentEmpty: true});
         const platform = this.platform;
         const Tap = Gesture.Tap()
