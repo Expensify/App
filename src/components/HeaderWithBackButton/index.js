@@ -94,6 +94,7 @@ function HeaderWithBackButton({
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
+                    {children}
                     {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>
                             <PressableWithoutFeedback
