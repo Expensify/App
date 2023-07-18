@@ -8,7 +8,6 @@ import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import MenuItem from '../../../components/MenuItem';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -16,6 +15,7 @@ import userPropTypes from '../userPropTypes';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 import useLocalize from '../../../hooks/useLocalize';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import FeatureList from '../../../components/FeatureList';
 
 const propTypes = {
     /** Current user details, which will hold whether or not they have Lounge Access */
@@ -73,17 +73,7 @@ function LoungeAccessPage(props) {
                             </Text>
                             <Text style={styles.baseFontStyle}>{translate('loungeAccessPage.description')}</Text>
                         </View>
-                        {_.map(menuItems, (item) => (
-                            <MenuItem
-                                key={item.translationKey}
-                                title={translate(item.translationKey)}
-                                icon={item.icon}
-                                iconWidth={60}
-                                iconHeight={60}
-                                iconStyles={[styles.mr3, styles.ml3]}
-                                interactive={false}
-                            />
-                        ))}
+                        <FeatureList menuItems={menuItems} />
                     </ScrollView>
                 </FullPageNotFoundView>
             )}
