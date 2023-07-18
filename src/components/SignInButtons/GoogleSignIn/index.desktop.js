@@ -5,8 +5,6 @@ import IconButton from '../IconButton';
 import CONFIG from '../../../CONFIG';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
-import * as Expensicons from '../../Icon/Expensicons';
-import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
 
 const propTypes = {...withLocalizePropTypes};
@@ -18,19 +16,14 @@ const googleSignInWebRouteForDesktopFlow = `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL
  * @returns {React.Component}
  */
 
-function GoogleSignIn(props) {
+function GoogleSignIn() {
     return (
-        <View
-            style={styles.appleButtonContainer}
-            accessibilityRole="button"
-            accessibilityLabel={props.translate('common.signInWithGoogle')}
-        >
+        <View style={styles.appleButtonContainer}>
             <IconButton
                 onPress={() => {
-                    Session.setSignInAttemptPlatform(CONST.SIGN_IN_PLATFORM.DESKTOP);
                     window.open(googleSignInWebRouteForDesktopFlow);
                 }}
-                icon={Expensicons.GoogleLogo}
+                provider={CONST.SIGN_IN_METHOD.GOOGLE}
             />
         </View>
     );

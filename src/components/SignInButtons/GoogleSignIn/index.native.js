@@ -4,7 +4,6 @@ import Log from '../../../libs/Log';
 import IconButton from '../IconButton';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
-import * as Expensicons from '../../Icon/Expensicons';
 
 /**
  * Google Sign In method for iOS and android that returns identityToken.
@@ -48,7 +47,7 @@ function GoogleSignIn() {
     return (
         <IconButton
             onPress={googleSignInRequest}
-            icon={Expensicons.GoogleLogo}
+            provider={CONST.SIGN_IN_METHOD.GOOGLE}
         />
     );
 }

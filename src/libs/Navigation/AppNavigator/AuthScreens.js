@@ -145,7 +145,7 @@ class AuthScreens extends React.Component {
             App.reconnectApp();
         }
 
-        App.redirectThirdPartyDesktopSignIn(this.props.loginPlatform.platform);
+        App.redirectThirdPartyDesktopSignIn();
         App.setUpPoliciesAndNavigate(this.props.session);
 
         if (this.props.lastOpenedPublicRoomID) {

@@ -283,13 +283,15 @@ function setUpPoliciesAndNavigate(session) {
     }
 }
 
-function redirectThirdPartyDesktopSignIn(platform) {
+function redirectThirdPartyDesktopSignIn() {
     const currentUrl = getCurrentUrl();
-    if (!platform || !currentUrl) {
+    const url = new URL(currentUrl);
+
+    if (!currentUrl) {
         return;
     }
 
-    if (platform === CONST.SIGN_IN_PLATFORM.DESKTOP) {
+    if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
         Navigation.isNavigationReady().then(() => {
             Navigation.goBack();
             Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);

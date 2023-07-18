@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -12,7 +12,6 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import * as Browser from '../../libs/Browser';
-import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
@@ -72,10 +71,6 @@ function openRouteInDesktopApp(expensifyDeeplinkUrl) {
  * @returns {React.Component}
  */
 function DesktopRedirectPage(props) {
-    useEffect(() => {
-        Session.setSignInAttemptPlatform(null);
-    }, []);
-
     const expensifyUrl = new URL(CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL);
     const expensifyDeeplinkUrl = `${CONST.DEEPLINK_BASE_URL}${expensifyUrl.host}}`;
     return (
