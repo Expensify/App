@@ -38,8 +38,7 @@ function TabSelectorItem(props) {
             <PressableWithFeedback
                 accessibilityRole="button"
                 style={{
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
+                    paddingBottom: 16,
                     marginHorizontal: 8,
                     alignItems: 'center',
                 }}

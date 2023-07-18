@@ -25,7 +25,7 @@ const defaultProps = {
 function TabSelector(props) {
     const selectedTab = lodashGet(props.tabSelected, 'selected', TAB_MANUAL);
     return (
-        <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+        <View style={{flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 20}}>
             <TabSelectorItem
                 title="Manual"
                 selected={selectedTab === TAB_MANUAL}

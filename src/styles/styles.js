@@ -758,11 +758,19 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
-    uploadReceiptBorder: {
+    uploadReceiptView: {
         borderRadius: variables.componentBorderRadiusLarge,
         borderWidth: 2,
         borderColor: themeColors.borderFocus,
         borderStyle: 'dotted',
+        marginBottom: 20,
+        marginLeft: 20,
+        marginRight: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 40,
+        gap: 4,
+        flex: 1,
     },
 
     headerAnonymousFooter: {

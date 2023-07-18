@@ -150,7 +150,7 @@ function ReceiptSelector(props) {
 
     // TODO: Add strings correctly with translate
     return (
-        <View style={[styles.flex1, styles.uploadReceiptBorder, styles.justifyContentCenter, styles.alignItemsCenter, styles.p10, styles.m5, styles.gap1]}>
+        <View style={[styles.uploadReceiptView]}>
             {!props.isDraggingOver ? defaultView() : null}
             {props.isDraggingOver && <ReceiptDropUI />}
         </View>
