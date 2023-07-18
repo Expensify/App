@@ -1,12 +1,11 @@
 import {View} from 'react-native';
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import Popover from '../Popover';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import withWindowDimensions from '../withWindowDimensions';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import useLocalize from '../../hooks/useLocalize';
 import TextInput from '../TextInput';
 import KeyboardSpacer from '../KeyboardSpacer';
 import {propTypes as passwordPopoverPropTypes, defaultProps as passwordPopoverDefaultProps} from './passwordPopoverPropTypes';
@@ -19,7 +18,6 @@ const propTypes = {
     shouldDelayFocus: PropTypes.bool,
 
     ...passwordPopoverPropTypes,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -27,9 +25,18 @@ const defaultProps = {
     ...passwordPopoverDefaultProps,
 };
 
-function BasePasswordPopover({isVisible, onClose, anchorPosition, windowHeight, viewportOffsetTop, isSmallScreenWidth, translate, shouldDelayFocus, onSubmit, submitButtonText}) {
+function BasePasswordPopover({isVisible, onClose, anchorPosition, viewportOffsetTop, shouldDelayFocus, onSubmit, submitButtonText}) {
+    const {windowHeight, isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
     const [password, setPassword] = useState('');
     const passwordInput = useRef(null);
+
+    useEffect(() => {
+        if (isVisible) {
+            return;
+        }
+        setPassword('');
+    }, [isVisible]);
 
     /**
      * Focus the password input
@@ -81,4 +88,4 @@ function BasePasswordPopover({isVisible, onClose, anchorPosition, windowHeight, 
 BasePasswordPopover.propTypes = propTypes;
 BasePasswordPopover.defaultProps = defaultProps;
 BasePasswordPopover.displayName = 'BasePasswordPopover';
-export default compose(withViewportOffsetTop, withWindowDimensions, withLocalize)(BasePasswordPopover);
+export default withViewportOffsetTop(BasePasswordPopover);
