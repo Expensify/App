@@ -58,6 +58,7 @@ function ImageWrapper({children}) {
 ImageWrapper.propTypes = imageWrapperPropTypes;
 
 const imageTransformerPropTypes = {
+    imageWidth: PropTypes.number,
     imageHeight: PropTypes.number,
     imageScale: PropTypes.number,
     scaledImageWidth: PropTypes.number,
@@ -67,36 +68,23 @@ const imageTransformerPropTypes = {
 };
 
 const imageTransformerDefaultProps = {
+    imageWidth: 0,
     imageHeight: 0,
     imageScale: 1,
     scaledImageWidth: 0,
     scaledImageHeight: 0,
 };
 
-function ImageTransformer({imageHeight, imageScale, scaledImageWidth, scaledImageHeight, isActive, children}) {
+function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth, scaledImageHeight, isActive, children}) {
     const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
 
-    const canvas = {
-        width: useSharedValue(canvasWidth),
-        height: useSharedValue(canvasHeight),
-    };
-
-    const canvasFitScale = useSharedValue(imageScale);
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
     // Substracting 1, because both scales have the initial image as the base reference
-    const totalScale = useDerivedValue(() => zoomScale.value + canvasFitScale.value - 1);
+    const totalScale = useDerivedValue(() => zoomScale.value + imageScale - 1, [imageScale]);
 
-    // Update shared values on UI thread when canvas dimensions change
-    useEffect(() => {
-        runOnUI(() => {
-            'worklet';
-
-            canvasFitScale.value = imageScale;
-            canvas.width.value = canvasWidth;
-            canvas.height.value = canvasHeight;
-        })();
-    }, [canvas.height, canvas.width, canvasFitScale, canvasHeight, canvasWidth, imageScale]);
+    const zoomScaledImageWidth = useDerivedValue(() => imageWidth * totalScale.value, [imageWidth]);
+    const zoomScaledImageHeight = useDerivedValue(() => imageHeight * totalScale.value, [imageHeight]);
 
     // used for pan gesture
     const translateY = useSharedValue(0);
@@ -123,18 +111,18 @@ function ImageTransformer({imageHeight, imageScale, scaledImageWidth, scaledImag
     const scaleOffset = useSharedValue(1);
 
     // disable pan vertically when image is smaller than screen
-    const canPanVertically = useDerivedValue(() => canvas.height.value < imageHeight * totalScale.value, []);
+    const canPanVertically = useDerivedValue(() => canvasHeight < zoomScaledImageHeight.value, [canvasHeight]);
 
     // calculates bounds of the scaled image
     // can we pan left/right/up/down
     // can be used to limit gesture or implementing tension effect
     const getBounds = useWorkletCallback(() => {
-        const rightBoundary = Math.abs(canvas.width.value - scaledImageWidth) / 2;
+        const rightBoundary = Math.abs(canvasWidth - zoomScaledImageWidth.value) / 2;
 
         let topBoundary = 0;
 
-        if (canvas.height.value < scaledImageHeight) {
-            topBoundary = Math.abs(scaledImageHeight - canvas.height.value) / 2;
+        if (canvasHeight < zoomScaledImageHeight.value) {
+            topBoundary = Math.abs(zoomScaledImageHeight.value - canvasHeight) / 2;
         }
 
         const maxVector = {x: rightBoundary, y: topBoundary};
@@ -157,7 +145,7 @@ function ImageTransformer({imageHeight, imageScale, scaledImageWidth, scaledImag
             canPanLeft: target.x < maxVector.x,
             canPanRight: target.x > minVector.x,
         };
-    });
+    }, [canvasWidth, canvasHeight]);
 
     const afterGesture = useWorkletCallback(() => {
         const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
@@ -245,8 +233,8 @@ function ImageTransformer({imageHeight, imageScale, scaledImageWidth, scaledImag
             };
 
             const CENTER = {
-                x: canvas.width.value / 2,
-                y: canvas.height.value / 2,
+                x: canvasWidth / 2,
+                y: canvasHeight / 2,
             };
 
             const imageCenter = {
@@ -271,7 +259,7 @@ function ImageTransformer({imageHeight, imageScale, scaledImageWidth, scaledImag
                 y: currentOrigin.y * koef.y,
             };
 
-            if (targetImageSize.y < canvas.height.value) {
+            if (targetImageSize.y < canvasHeight) {
                 target.y = 0;
             }
 
@@ -280,7 +268,7 @@ function ImageTransformer({imageHeight, imageScale, scaledImageWidth, scaledImag
             zoomScale.value = withSpring(DOUBLE_TAP_SCALE, SPRING_CONFIG);
             scaleOffset.value = DOUBLE_TAP_SCALE;
         },
-        [scaledImageWidth, scaledImageHeight],
+        [scaledImageWidth, scaledImageHeight, canvasWidth, canvasHeight],
     );
 
     const reset = useWorkletCallback((animated) => {
@@ -437,10 +425,13 @@ function ImageTransformer({imageHeight, imageScale, scaledImageWidth, scaledImag
         })
         .withRef(panGestureRef);
 
-    const getAdjustedFocal = useWorkletCallback((focalX, focalY) => ({
-        x: focalX - (canvas.width.value / 2 + offsetX.value),
-        y: focalY - (canvas.height.value / 2 + offsetY.value),
-    }));
+    const getAdjustedFocal = useWorkletCallback(
+        (focalX, focalY) => ({
+            x: focalX - (canvasWidth / 2 + offsetX.value),
+            y: focalY - (canvasHeight / 2 + offsetY.value),
+        }),
+        [canvasWidth, canvasHeight],
+    );
 
     // used to store event scale value when we limit scale
     const gestureScale = useSharedValue(1);
@@ -465,9 +456,7 @@ function ImageTransformer({imageHeight, imageScale, scaledImageWidth, scaledImag
             origin.y.value = adjustFocal.y;
         })
         .onChange((evt) => {
-            const newZoomScale = clamp(scaleOffset.value * evt.scale, MIN_SCALE, MAX_SCALE);
-
-            zoomScale.value = newZoomScale;
+            zoomScale.value = clamp(scaleOffset.value * evt.scale, MIN_SCALE, MAX_SCALE);
 
             if (zoomScale.value > MIN_SCALE && zoomScale.value < MAX_SCALE) {
                 gestureScale.value = evt.scale;
@@ -635,6 +624,7 @@ function Page({isActive, item}) {
                 <View style={[StyleSheet.absoluteFill, {opacity: isImageLoading ? 0 : 1}]}>
                     <ImageTransformer
                         isActive
+                        imageWidth={dimensions?.imageWidth}
                         imageHeight={dimensions?.imageHeight}
                         scaledImageWidth={dimensions?.scaledImageWidth}
                         scaledImageHeight={dimensions?.scaledImageHeight}
