@@ -12,6 +12,7 @@ import NAVIGATORS from '../../../../NAVIGATORS';
 import SCREENS from '../../../../SCREENS';
 import Permissions from '../../../../libs/Permissions';
 import * as Policy from '../../../../libs/actions/Policy';
+import * as PolicyUtils from '../../../../libs/PolicyUtils';
 import PopoverMenu from '../../../../components/PopoverMenu';
 import CONST from '../../../../CONST';
 import FloatingActionButton from '../../../../components/FloatingActionButton';
@@ -35,6 +36,7 @@ const policySelector = (policy) =>
     policy && {
         type: policy.type,
         role: policy.role,
+        pendingAction: policy.pendingAction,
     };
 
 const propTypes = {
@@ -172,7 +174,7 @@ function FloatingActionButtonAndPopover(props) {
     }));
 
     // Workspaces are policies with type === 'free'
-    const workspaces = _.filter(props.allPolicies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE);
+    const workspaces = PolicyUtils.getActivePolicies(props.policy);
 
     return (
         <View>
