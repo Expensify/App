@@ -30,15 +30,19 @@ const propTypes = {
 
     /** Extra styles to pass to the lottie animation. */
     illustrationStyle: stylePropTypes,
+
+    /** Extra styles to pass to the wrapper view around the lottie animation. */
+    illustrationWrapperStyle: stylePropTypes,
 };
 
 const defaultProps = {
     backgroundColor: themeColors.appBG,
     footer: null,
     illustrationStyle: {},
+    illustrationWrapperStyle: {},
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, illustrationStyle, ...propsToPassToHeader}) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, illustrationStyle, illustrationWrapperStyle, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
     return (
         <ScreenWrapper
@@ -60,7 +64,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                             showsVerticalScrollIndicator={false}
                         >
                             <View style={styles.overscrollSpacer(backgroundColor, windowHeight)} />
-                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
+                            <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor), illustrationWrapperStyle]}>
                                 <Lottie
                                     source={illustration}
                                     style={[styles.w100, illustrationStyle]}

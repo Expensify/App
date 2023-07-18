@@ -23,7 +23,7 @@ function FeatureList({menuItems, headline, description}) {
     const {translate} = useLocalize();
     return (
         <>
-            <View style={[styles.w100, styles.p5]}>
+            <View style={[styles.w100, styles.ph5, styles.pb5]}>
                 <Text
                     style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                     numberOfLines={2}

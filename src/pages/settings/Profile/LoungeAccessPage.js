@@ -62,6 +62,7 @@ function LoungeAccessPage({user}) {
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             illustration={LottieAnimations.ExpensifyLounge}
             illustrationStyle={illustrationStyle}
+            illustrationWrapperStyle={illustrationStyle}
         >
             <FeatureList
                 headline="loungeAccessPage.headline"
