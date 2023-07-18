@@ -18,8 +18,8 @@ import TwoFactorAuthForm from '../TwoFactorAuthForm';
 import QRCode from '../../../../../components/QRCode';
 import expensifyLogo from '../../../../../../assets/images/expensify-logo-round-transparent.png';
 import CONST from '../../../../../CONST';
-import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 import StepWrapper from "../StepWrapper/StepWrapper";
+import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -39,9 +39,6 @@ const propTypes = {
         /** Server-side errors in the submitted authentication code */
         errors: PropTypes.objectOf(PropTypes.string),
     }),
-
-    /** Method to set the next step */
-    setStep: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -57,8 +54,10 @@ const defaultProps = {
 
 const TROUBLESHOOTING_LINK = "https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1"
 
-function VerifyStep({translate, setStep, account}) {
+function VerifyStep({translate, account}) {
     const formRef = React.useRef(null);
+
+    const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
         Session.clearAccountMessages();

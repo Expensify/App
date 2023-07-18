@@ -22,6 +22,7 @@ import localFileDownload from '../../../../../libs/localFileDownload';
 import * as Session from "../../../../../libs/actions/Session";
 import StepWrapper from "../StepWrapper/StepWrapper";
 import CONST from "../../../../../CONST";
+import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -33,9 +34,6 @@ const propTypes = {
         /** If recovery codes are loading */
         isLoading: PropTypes.bool,
     }),
-
-    /** Method to set the next step */
-    setStep: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -44,8 +42,10 @@ const defaultProps = {
     },
 };
 
-function CodesStep({translate, setStep, account, ...dimensionsProps}) {
+function CodesStep({translate, account, ...dimensionsProps}) {
     const [isNextButtonDisabled, setIsNextButtonDisabled] = useState(true);
+
+    const {setStep} = useTwoFactorAuthContext();
 
     useEffect(() => {
         if (account.recoveryCodes) {

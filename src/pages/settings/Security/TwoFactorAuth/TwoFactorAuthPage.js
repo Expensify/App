@@ -9,6 +9,7 @@ import SuccessStep from "./Steps/SuccessStep";
 import ONYXKEYS from "../../../../ONYXKEYS";
 import CONST from "../../../../CONST";
 import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
+import TwoFactorAuthContext from "./TwoFactorAuthContext";
 
 const propTypes = {
     account: PropTypes.shape({
@@ -50,24 +51,24 @@ function TwoFactorAuthPage({account,}) {
     const renderStep = () => {
         switch (currentStep) {
             case CONST.TWO_FACTOR_AUTH_STEPS.CODES:
-                return <CodesStep setStep={handleSetStep}/>;
+                return <CodesStep/>;
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
-                return <VerifyStep setStep={handleSetStep}/>;
+                return <VerifyStep/>;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return <SuccessStep setStep={handleSetStep}/>;
+                return <SuccessStep/>;
             case CONST.TWO_FACTOR_AUTH_STEPS.IS_ENABLED:
-                return <IsEnabledStep setStep={handleSetStep}/>;
+                return <IsEnabledStep/>;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
                 return <DisableStep/>;
             default:
-                return <CodesStep setStep={handleSetStep}/>;
+                return <CodesStep/>;
         }
     }
 
     return (
-        <>
+        <TwoFactorAuthContext.Provider value={{setStep: handleSetStep}}>
             {renderStep()}
-        </>
+        </TwoFactorAuthContext.Provider>
     );
 };
 

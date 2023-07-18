@@ -1,20 +1,15 @@
 import React from 'react';
-import PropTypes from "prop-types";
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import FireworksAnimation from '../../../../../../assets/animations/Fireworks.json';
 import ConfirmationPage from '../../../../../components/ConfirmationPage';
 import * as TwoFactorAuthActions from "../../../../../libs/actions/TwoFactorAuthActions";
 import CONST from "../../../../../CONST";
 import StepWrapper from "../StepWrapper/StepWrapper";
+import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
 
-const propTypes = {
-    ...withLocalizePropTypes,
+function SuccessStep({translate}) {
+    const {setStep} = useTwoFactorAuthContext();
 
-    /** Method to set the next step */
-    setStep: PropTypes.func.isRequired,
-}
-
-function SuccessStep({translate, setStep}) {
     return (
         <StepWrapper
             title={translate('twoFactorAuth.headerTitle')}
@@ -38,7 +33,6 @@ function SuccessStep({translate, setStep}) {
     );
 }
 
-SuccessStep.propTypes = propTypes;
-SuccessStep.defaultProps = {};
+SuccessStep.propTypes = withLocalizePropTypes;
 
 export default withLocalize(SuccessStep);

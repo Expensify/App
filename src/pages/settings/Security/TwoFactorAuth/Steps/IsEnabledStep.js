@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {Text, View, ScrollView} from 'react-native';
-import PropTypes from "prop-types";
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import Section from '../../../../../components/Section';
 import * as Illustrations from '../../../../../components/Icon/Illustrations';
@@ -11,16 +10,12 @@ import ConfirmModal from '../../../../../components/ConfirmModal';
 import * as Session from "../../../../../libs/actions/Session";
 import StepWrapper from "../StepWrapper/StepWrapper";
 import CONST from "../../../../../CONST";
+import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
 
-const propTypes = {
-    ...withLocalizePropTypes,
-
-    /** Method to set the next step */
-    setStep: PropTypes.func.isRequired,
-}
-
-function IsEnabledStep({translate, setStep}) {
+function IsEnabledStep({translate}) {
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
+
+    const {setStep} = useTwoFactorAuthContext();
 
     return (
         <StepWrapper
@@ -68,7 +63,6 @@ function IsEnabledStep({translate, setStep}) {
     );
 }
 
-IsEnabledStep.propTypes = propTypes;
-IsEnabledStep.defaultProps = {};
+IsEnabledStep.propTypes = withLocalizePropTypes;
 
 export default withLocalize(IsEnabledStep);
