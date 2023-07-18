@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
@@ -9,6 +10,7 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
+import FixedFooter from './FixedFooter';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -21,9 +23,16 @@ const propTypes = {
 
     /** The illustration to display in the header. Can be either an SVG component or a JSON object representing a Lottie animation. */
     illustration: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
+
+    /** A fixed footer to display at the bottom of the page. */
+    footer: PropTypes.node,
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, ...propsToPassToHeader}) {
+const defaultProps = {
+    footer: null,
+};
+
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
     return (
         <ScreenWrapper
@@ -55,6 +64,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
                             </View>
                             <View style={[styles.pt5]}>{children}</View>
                         </ScrollView>
+                        {!_.isNull(footer) && <FixedFooter>{footer}</FixedFooter>}
                     </View>
                 </>
             )}
@@ -63,6 +73,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, .
 }
 
 IllustratedHeaderPageLayout.propTypes = propTypes;
+IllustratedHeaderPageLayout.defaultProps = defaultProps;
 IllustratedHeaderPageLayout.displayName = 'IllustratedHeaderPageLayout';
 
 export default IllustratedHeaderPageLayout;
