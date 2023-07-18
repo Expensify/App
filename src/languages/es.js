@@ -1967,9 +1967,14 @@ export default {
         introSchoolPrincipal: 'Introducción a la directora de tu escuela',
         schoolPrincipalVerfiyExpense:
             'Expensify.org divide el costo de la escuela esencial insumos para que estudiantes de escasos recursos los hogares pueden tener una mejor experiencia de aprendizaje. Se le pedirá a su director que verifique su gastos.',
+        principalFirstName: 'Nombre principal',
+        principalLastName: 'Apellido principal',
+        principalWorkEmail: 'Correo electrónico de trabajo del director',
         error: {
             enterName: 'Ingresa un nombre',
             enterPhoneEmail: 'Ingrese un correo electrónico o número de teléfono válido',
+            enterEmail: 'Introduce un correo electrónico',
+            enterValidEmail: 'Introduzca un correo electrónico válido',
         },
     },
 };

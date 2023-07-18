@@ -1,7 +1,5 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
@@ -11,7 +9,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import * as LoginUtils from '../../libs/LoginUtils';
 import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
@@ -39,35 +36,24 @@ const updateDisplayName = () => {
     // PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 };
 
-const getPhoneLogin = (phoneOrEmail) => {
-    if (_.isEmpty(phoneOrEmail)) {
-        return '';
-    }
-
-    return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
-};
-
 function IntroSchoolPrincipalPage(props) {
-    const currentUserDetails = props.currentUserPersonalDetails || {};
-
     /**
      * @param {Object} values
-     * @param {String} values.firstName
-     * @param {String} values.phoneOrEmail
+     * @param {String} values.principalFirstName
+     * @param {String} values.principalEmail
      * @returns {Object} - An object containing the errors for each inputID
      */
     const validate = (values) => {
         const errors = {};
-        const phoneLogin = getPhoneLogin(values.phoneOrEmail);
 
-        if (_.isEmpty(values.firstName)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('teachersUnitePage.error.enterName'));
+        if (_.isEmpty(values.principalFirstName)) {
+            ErrorUtils.addErrorMessage(errors, 'principalFirstName', props.translate('teachersUnitePage.error.enterName'));
         }
-        if (_.isEmpty(values.phoneOrEmail)) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('teachersUnitePage.error.enterPhoneEmail'));
+        if (_.isEmpty(values.principalEmail)) {
+            ErrorUtils.addErrorMessage(errors, 'principalEmail', props.translate('teachersUnitePage.error.enterEmail'));
         }
-        if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
+        if (!_.isEmpty(values.principalEmail) && !Str.isValidEmail(values.principalEmail)) {
+            ErrorUtils.addErrorMessage(errors, 'principalEmail', props.translate('teachersUnitePage.error.enterValidEmail'));
         }
 
         return errors;
@@ -90,35 +76,33 @@ function IntroSchoolPrincipalPage(props) {
                 <Text style={[styles.mb6]}>{props.translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
                 <View>
                     <TextInput
-                        inputID="firstName"
+                        inputID="principalFirstName"
                         name="fname"
-                        label={props.translate('common.firstName')}
-                        accessibilityLabel={props.translate('common.firstName')}
+                        label={props.translate('teachersUnitePage.principalFirstName')}
+                        accessibilityLabel={props.translate('teachersUnitePage.principalFirstName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={lodashGet(currentUserDetails, 'firstName', '')}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
                 <View style={styles.mv4}>
                     <TextInput
-                        inputID="lastName"
+                        inputID="principalLastName"
                         name="lname"
-                        label={props.translate('common.lastName')}
-                        accessibilityLabel={props.translate('common.lastName')}
+                        label={props.translate('teachersUnitePage.principalLastName')}
+                        accessibilityLabel={props.translate('teachersUnitePage.principalLastName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={lodashGet(currentUserDetails, 'lastName', '')}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
                     />
                 </View>
                 <View>
                     <TextInput
-                        label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        label={props.translate('teachersUnitePage.principalWorkEmail')}
+                        accessibilityLabel={props.translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
-                        inputID="phoneOrEmail"
+                        inputID="principalEmail"
                         autoCapitalize="none"
                     />
                 </View>

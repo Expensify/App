@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -27,7 +26,7 @@ const defaultProps = {
     user: {},
 };
 
-function SaveTheWorldPage(props) {
+function SaveTheWorldPage() {
     const {translate} = useLocalize();
 
     return (

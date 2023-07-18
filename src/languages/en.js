@@ -1496,9 +1496,14 @@ export default {
         introSchoolPrincipal: 'Intro to your school principal',
         schoolPrincipalVerfiyExpense:
             'Expensify.org splits the cost of essential school supplies so that students from low-income households can have a better learning experience. Your principal will be asked to verify your expenses.',
+        principalFirstName: 'Principal first name',
+        principalLastName: 'Principal last name',
+        principalWorkEmail: 'Principal work email',
         error: {
             enterName: 'Enter a name',
             enterPhoneEmail: 'Enter a valid email or phone number',
+            enterEmail: 'Enter an email',
+            enterValidEmail: 'Enter a valid email',
         },
     },
 };
