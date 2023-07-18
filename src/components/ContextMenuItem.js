@@ -29,9 +29,6 @@ const propTypes = {
     /** Callback to fire when the item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** Automatically reset the success status */
-    autoReset: PropTypes.bool,
-
     /** A description text to show under the title */
     description: PropTypes.string,
 
@@ -45,12 +42,11 @@ const defaultProps = {
     isMini: false,
     successIcon: null,
     successText: '',
-    autoReset: true,
     description: '',
     isAnonymousAction: false,
 };
 
-function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, successText, autoReset, toggleDelayButtonState, icon, text, isMini, description, isAnonymousAction}) {
+function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, successText, toggleDelayButtonState, icon, text, isMini, description, isAnonymousAction}) {
     const {windowWidth} = useWindowDimensions();
 
     const triggerPressAndUpdateSuccess = useCallback(() => {
@@ -59,10 +55,12 @@ function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, succ
         }
         onPress();
 
+        // We only set the success state when we have icon or text to represent the success state
+        // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (successIcon || successText) {
-            toggleDelayButtonState(autoReset);
+            toggleDelayButtonState();
         }
-    }, [isDelayButtonStateComplete, onPress, successIcon, successText, autoReset, toggleDelayButtonState]);
+    }, [isDelayButtonStateComplete, onPress, successIcon, successText, toggleDelayButtonState]);
 
     const itemIcon = isDelayButtonStateComplete && successIcon ? successIcon : icon;
     const itemText = isDelayButtonStateComplete && successText ? successText : text;
