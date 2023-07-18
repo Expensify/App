@@ -89,7 +89,7 @@ function getDeprecatedPolicyMemberListFromOnyx() {
  *     - whisperedTo -> whisperedToAccountIDs
  *     - childOldestFourEmails -> childOldestFourAccountIDs
  *     - originalMessage.participants -> originalMessage.participantAccountIDs
- * 
+ *
  * For reports, delete existing keys with emails
  * - ownerEmail
  * - managerEmail

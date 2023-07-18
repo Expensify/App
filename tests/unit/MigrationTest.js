@@ -645,7 +645,7 @@ describe('Migrations', () => {
                     reportID: 1,
                     ownerEmail: 'fake@test.com',
                     ownerAccountID: 5,
-                }
+                },
             })
                 .then(PersonalDetailsByAccountID)
                 .then(() => {
@@ -670,7 +670,7 @@ describe('Migrations', () => {
                     reportID: 1,
                     managerEmail: 'fake@test.com',
                     managerID: 5,
-                }
+                },
             })
                 .then(PersonalDetailsByAccountID)
                 .then(() => {
@@ -695,7 +695,7 @@ describe('Migrations', () => {
                     reportID: 1,
                     lastActorEmail: 'fake@test.com',
                     lastActorAccountID: 5,
-                }
+                },
             })
                 .then(PersonalDetailsByAccountID)
                 .then(() => {
@@ -720,7 +720,7 @@ describe('Migrations', () => {
                     reportID: 1,
                     participants: ['fake@test.com'],
                     participantAccountIDs: 5,
-                }
+                },
             })
                 .then(PersonalDetailsByAccountID)
                 .then(() => {
