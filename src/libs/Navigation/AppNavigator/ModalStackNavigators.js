@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
+import SCREENS from '../../../SCREENS';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -406,7 +407,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsPreferencesPage = require('../../../pages/settings/Preferences/PreferencesPage').default;
             return SettingsPreferencesPage;
         },
-        name: 'Settings_Preferences',
+        name: SCREENS.SETTINGS.PREFERENCES,
     },
     {
         getComponent: () => {
@@ -422,6 +423,14 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Settings_Preferences_Language',
     },
+    // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
+    // {
+    //     getComponent: () => {
+    //         const SettingsPreferencesThemePage = require('../../../pages/settings/Preferences/ThemePage').default;
+    //         return SettingsPreferencesThemePage;
+    //     },
+    //     name: 'Settings_Preferences_Theme',
+    // },
     {
         getComponent: () => {
             const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
