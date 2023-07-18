@@ -855,10 +855,11 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
-    }),
+    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => {
+        const minHeight = variables.componentSizeLarge;
+        const height = Math.min(Math.max(minHeight, textInputHeight), maxHeight);
+        return {height, minHeight};
+    },
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
         maxWidth,
