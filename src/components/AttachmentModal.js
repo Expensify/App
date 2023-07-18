@@ -98,6 +98,7 @@ function AttachmentModal(props) {
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [confirmButtonFadeAnimation] = useState(new Animated.Value(1));
+    const [shouldShowDownloadButton, setShouldShowDownloadButton] = React.useState(true);
     const [file, setFile] = useState(
         props.originalFileName
             ? {
@@ -136,6 +137,17 @@ function AttachmentModal(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.translate],
     );
+
+    /**
+     * Toggles the visibility of the download button
+     * @param {Boolean} shouldShowButton
+     */
+    const toggleDownloadButtonVisibility = useCallback((shouldShowButton) => {
+        if (shouldShowDownloadButton === shouldShowButton) {
+            return;
+        }
+        setShouldShowDownloadButton(shouldShowButton);
+    }, [shouldShowDownloadButton]);
     /**
      * Download the currently viewed attachment.
      */
@@ -310,7 +322,7 @@ function AttachmentModal(props) {
                 <HeaderWithBackButton
                     title={props.headerTitle || props.translate('common.attachment')}
                     shouldShowBorderBottom
-                    shouldShowDownloadButton={props.allowDownload}
+                    shouldShowDownloadButton={props.allowDownload && shouldShowDownloadButton}
                     onDownloadButtonPress={() => downloadAttachment(source)}
                     shouldShowCloseButton={!props.isSmallScreenWidth}
                     shouldShowBackButton={props.isSmallScreenWidth}
@@ -324,6 +336,7 @@ function AttachmentModal(props) {
                             onNavigate={onNavigate}
                             source={props.source}
                             onToggleKeyboard={updateConfirmButtonVisibility}
+                            toggleDownloadButtonVisibility={toggleDownloadButtonVisibility}
                         />
                     ) : (
                         Boolean(sourceForAttachmentView) &&
