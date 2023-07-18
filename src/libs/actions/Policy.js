@@ -60,10 +60,10 @@ Onyx.connect({
     },
 });
 
-let personalDetails;
+let allPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = val),
+    callback: (val) => (allPersonalDetails = val),
 });
 
 let loginList;
@@ -109,8 +109,13 @@ function deleteWorkspace(policyID, reports, policyName) {
         })),
 
         // Add closed actions to all chat reports linked to this policy
-        ..._.map(reports, ({reportID, ownerEmail}) => {
-            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(ownerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+        ..._.map(reports, ({reportID, ownerAccountID}) => {
+            // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
+            let reportOwnerEmail = CONST.POLICY.OWNER_EMAIL_FAKE;
+            if (ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
+                reportOwnerEmail = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
+            }
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(reportOwnerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
             const optimisticReportActions = {};
             optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
             return {
@@ -233,7 +238,7 @@ function removeMembers(accountIDs, policyID) {
     API.write(
         'DeleteMembersFromWorkspace',
         {
-            emailList: _.map(accountIDs, (accountID) => personalDetails[accountID].login).join(','),
+            emailList: _.map(accountIDs, (accountID) => allPersonalDetails[accountID].login).join(','),
             policyID,
         },
         {optimisticData, successData, failureData},
@@ -282,15 +287,8 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
             });
             return;
         }
-        const optimisticReport = ReportUtils.buildOptimisticChatReport(
-            [sessionAccountID, cleanAccountID],
-            undefined,
-            CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            policyID,
-            login,
-            cleanAccountID,
-        );
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
+        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, cleanAccountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, cleanAccountID);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
             reportID: optimisticReport.reportID,
@@ -821,15 +819,15 @@ function generatePolicyID() {
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
- * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @returns {Promise}
  */
-function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
     const policyID = generatePolicyID();
-    const workspaceName = policyName || generateDefaultWorkspaceName(ownerEmail);
+    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {
         announceChatReportID,
@@ -853,7 +851,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             announceChatReportID,
             adminsChatReportID,
             expenseChatReportID,
-            ownerEmail,
+            ownerEmail: policyOwnerEmail,
             makeMeAdmin,
             policyName: workspaceName,
             type: CONST.POLICY.TYPE.FREE,
@@ -872,7 +870,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
-                        outputCurrency: 'USD',
+                        outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
@@ -1038,7 +1036,8 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
 
     return Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
-            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
+            // We must call goBack() to remove the /transition route from history
+            Navigation.goBack();
         }
 
         // Get the reportID associated with the newly created #admins room and route the user to that chat
