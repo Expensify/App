@@ -17,7 +17,8 @@ import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../userPropTypes';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import * as LottieAnimations from '../../../components/LottieAnimations';
+import {ExpensifyLounge} from '../../../components/LottieAnimations';
+import Lottie from 'lottie-react-native';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -63,13 +64,13 @@ function LoungeAccessPage(props) {
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     />
                     <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
-                        <View style={illustrationStyle}>
-                        <Lottie
-                            source={LottieAnimations.ExpensifyLounge}
-                            autoPlay
-                            loop
-                            style={styles.confirmationAnimation}
-                        />
+                        <View style={[styles.screenCenteredContainer, styles.alignItemsCenter]}>
+                            <Lottie
+                                source={ExpensifyLounge}
+                                autoPlay
+                                loop
+                                style={styles.confirmationAnimation}
+                            />
                         </View>
                         <View style={styles.pageWrapperNotCentered}>
                             <Text
