@@ -811,6 +811,10 @@ const styles = {
         paddingBottom: 5,
     },
 
+    offlineIndicatorRow: {
+        height: 25,
+    },
+
     // Actions
     actionAvatar: {
         borderRadius: 20,
