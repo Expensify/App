@@ -2,51 +2,52 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>HostAppBundleIdentifier</key>
-  <string>com.chat.expensify.chat</string>
-  <key>HostAppURLScheme</key>
-  <string>expensify-share</string>
+	<key>ReactNativeQuickSQLite_AppGroup</key>
+	<string>group.com.chat.expensify.chat</string>
+	<key>HostAppBundleIdentifier</key>
+	<string>com.chat.expensify.chat</string>
+	<key>HostAppURLScheme</key>
+	<string>expensify-share</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>NSExtensionActivationRule</key>
-			  <dict>
-            <!-- For a full list of available options, visit https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/AppExtensionKeys.html#//apple_ref/doc/uid/TP40014212-SW10 -->
-            <key>NSExtensionActivationSupportsImageWithMaxCount</key>
-            <integer>1</integer>
-            <key>NSExtensionActivationSupportsText</key>
-            <true/>
-            <key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
-            <integer>1</integer>
-        </dict>
+			<dict>
+				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsText</key>
+				<true/>
+				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
+				<integer>1</integer>
+			</dict>
 		</dict>
 		<key>ReactShareViewBackgroundColor</key>
-    <dict>
-        <key>Red</key>
-        <integer>7</integer>
-        <key>Green</key>
-        <integer>39</integer>
-        <key>Blue</key>
-        <integer>31</integer>
-        <key>Alpha</key>
-        <integer>1</integer>
-        <key>Transparent</key>
-        <false/>
-    </dict>
-    <key>NSAppTransportSecurity</key>
-    <dict>
-        <key>NSAllowsArbitraryLoads</key>
-        <true/>
-        <key>NSExceptionDomains</key>
-        <dict>
-            <key>localhost</key>
-            <dict>
-                <key>NSExceptionAllowsInsecureHTTPLoads</key>
-                <true/>
-            </dict>
-        </dict>
-    </dict>
+		<dict>
+			<key>Red</key>
+			<integer>7</integer>
+			<key>Green</key>
+			<integer>39</integer>
+			<key>Blue</key>
+			<integer>31</integer>
+			<key>Alpha</key>
+			<integer>1</integer>
+			<key>Transparent</key>
+			<false/>
+		</dict>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+			<key>NSExceptionDomains</key>
+			<dict>
+				<key>localhost</key>
+				<dict>
+					<key>NSExceptionAllowsInsecureHTTPLoads</key>
+					<true/>
+				</dict>
+			</dict>
+		</dict>
 		<key>NSExtensionMainStoryboard</key>
 		<string>MainInterface</string>
 		<key>NSExtensionPointIdentifier</key>

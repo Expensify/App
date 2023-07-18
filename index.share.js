@@ -10,6 +10,7 @@ import ComposeProviders from './src/components/ComposeProviders';
 import CustomStatusBar from './src/components/CustomStatusBar';
 import OnyxProvider from './src/components/OnyxProvider';
 import SafeArea from './src/components/SafeArea';
+import {EnvironmentProvider} from './src/components/withEnvironment';
 import {KeyboardStateProvider} from './src/components/withKeyboardState';
 import {LocaleContextProvider} from './src/components/withLocalize';
 import {WindowDimensionsProvider} from './src/components/withWindowDimensions';
@@ -23,10 +24,14 @@ import ONYXKEYS from './src/ONYXKEYS';
 import NewGroupPage from './src/pages/NewGroupPage';
 import ShareMessagePage from './src/pages/ShareMessagePage';
 // import additionalAppSetup from './src/setup';
+import HTMLEngineProvider from './src/components/HTMLEngineProvider';
+import {CurrentReportIDContextProvider} from './src/components/withCurrentReportID';
 import CONST from './src/CONST';
 import * as Metrics from './src/libs/Metrics';
 import RHPScreenOptions from './src/libs/Navigation/AppNavigator/RHPScreenOptions';
 import ROUTES from './src/ROUTES';
+import ThemeProvider from './src/styles/themes/ThemeProvider';
+import ThemeStylesProvider from './src/styles/ThemeStylesProvider';
 
 // TODO: can/should we use additionalAppSetup here?
 Onyx.init({
@@ -59,6 +64,12 @@ const ShareExtension = withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
     },
+    lastOpenedPublicRoomID: {
+        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+    },
+    isUsingMemoryOnlyKeys: {
+        key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
+    },
 })((props) => {
     useEffect(() => {
         NetworkConnection.listenForReconnect();
@@ -85,9 +96,14 @@ const ShareExtension = withOnyx({
                     // PortalProvider,
                     SafeArea,
                     LocaleContextProvider,
+                    HTMLEngineProvider,
                     WindowDimensionsProvider,
                     KeyboardStateProvider,
+                    CurrentReportIDContextProvider,
                     // PickerStateProvider,
+                    EnvironmentProvider,
+                    ThemeProvider,
+                    ThemeStylesProvider,
                 ]}
             >
                 <CustomStatusBar />
