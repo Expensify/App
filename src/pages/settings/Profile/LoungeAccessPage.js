@@ -8,20 +8,16 @@ import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import MenuItem from '../../../components/MenuItem';
-import compose from '../../../libs/compose';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../userPropTypes';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import useLocalize from '../../../hooks/useLocalize';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
-
     /** Current user details, which will hold whether or not they have Lounge Access */
     user: userPropTypes,
 };
@@ -46,10 +42,13 @@ const menuItems = [
 ];
 
 function LoungeAccessPage(props) {
-    const illustrationStyle = props.isSmallScreenWidth
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
+
+    const illustrationStyle = isSmallScreenWidth
         ? {
-              width: props.windowWidth,
-              height: CONST.SETTINGS_LOUNGE_ACCESS.HEADER_IMAGE_ASPECT_RATIO * props.windowWidth,
+              width: windowWidth,
+              height: CONST.SETTINGS_LOUNGE_ACCESS.HEADER_IMAGE_ASPECT_RATIO * windowWidth,
           }
         : {};
 
@@ -58,7 +57,7 @@ function LoungeAccessPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!props.user.hasLoungeAccess}>
                     <HeaderWithBackButton
-                        title={props.translate('loungeAccessPage.loungeAccess')}
+                        title={translate('loungeAccessPage.loungeAccess')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                     />
                     <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
@@ -70,14 +69,14 @@ function LoungeAccessPage(props) {
                                 style={[styles.textHeadline, styles.preWrap, styles.mb2]}
                                 numberOfLines={2}
                             >
-                                {props.translate('loungeAccessPage.headline')}
+                                {translate('loungeAccessPage.headline')}
                             </Text>
-                            <Text style={styles.baseFontStyle}>{props.translate('loungeAccessPage.description')}</Text>
+                            <Text style={styles.baseFontStyle}>{translate('loungeAccessPage.description')}</Text>
                         </View>
                         {_.map(menuItems, (item) => (
                             <MenuItem
                                 key={item.translationKey}
-                                title={props.translate(item.translationKey)}
+                                title={translate(item.translationKey)}
                                 icon={item.icon}
                                 iconWidth={60}
                                 iconHeight={60}
@@ -96,12 +95,8 @@ LoungeAccessPage.propTypes = propTypes;
 LoungeAccessPage.defaultProps = defaultProps;
 LoungeAccessPage.displayName = 'LoungeAccessPage';
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        user: {
-            key: ONYXKEYS.USER,
-        },
-    }),
-)(LoungeAccessPage);
+export default withOnyx({
+    user: {
+        key: ONYXKEYS.USER,
+    },
+})(LoungeAccessPage);
