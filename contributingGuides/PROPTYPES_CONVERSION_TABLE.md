@@ -36,12 +36,12 @@ type Props = {
 | PropTypes                                                            | TypeScript                                    | Instructions                                                                                                                                                                                                                                  |
 | -------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `PropTypes.any`                                                      | `T`, `Record<string, unknown>` or `any`       | Figure out what would be the correct data type and use it.<br><br>If you know that it's a object but isn't possible to determine the internal structure, use `Record<string, unknown>`.                                                       |
-| `PropTypes.array` or `PropTypes.arrayOf(T)`                          | `T[]` or `Array<T>`                           | Convert to `T[]` or `Array<T>`, where `T` is the data type of the array.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure of your prop and use it.                                                     |
+| `PropTypes.array` or `PropTypes.arrayOf(T)`                          | `T[]` or `Array<T>`                           | Convert to `T[]`, where `T` is the data type of the array.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure of your prop and use it.                                                                   |
 | `PropTypes.bool`                                                     | `boolean`                                     | Convert to `boolean`.                                                                                                                                                                                                                         |
 | `PropTypes.func`                                                     | `(arg1: Type1, arg2, Type2...) => ReturnType` | Convert to the function signature.                                                                                                                                                                                                            |
 | `PropTypes.number`                                                   | `number`                                      | Convert to `number`.                                                                                                                                                                                                                          |
 | `PropTypes.object`, `PropTypes.shape(T)` or `PropTypes.exact(T)`     | `T`                                           | If `T` isn't a primitive type, create a separate `type` for the `T` object structure of your prop and use it.<br><br>If you want an object but isn't possible to determine the internal structure, use `Record<string, unknown>`.             |
-| `PropTypes.objectOf(T)`                                              | `Record<string, T>`                           | Convert to a `Record<string, T>` where `T` is the data type of your dictionary.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure and use it.                                                           |
+| `PropTypes.objectOf(T)`                                              | `Record<string, T>`                           | Convert to a `Record<string, T>` where `T` is the data type of values stored in the object.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure and use it.                                               |
 | `PropTypes.string`                                                   | `string`                                      | Convert to `string`.                                                                                                                                                                                                                          |
 | `PropTypes.node`                                                     | `React.ReactNode`                             | Convert to `React.ReactNode`. `ReactNode` includes `ReactElement` as well as other types such as `strings`, `numbers`, `arrays` of the same, `null`, and `undefined` In other words, anything that can be rendered in React is a `ReactNode`. |
 | `PropTypes.element`                                                  | `React.ReactElement`                          | Convert to `React.ReactElement`.                                                                                                                                                                                                              |
@@ -85,6 +85,16 @@ const propTypes = {
   icon: PropTypes.elementType,
   date: PropTypes.instanceOf(Date),
   size: PropTypes.oneOf(["small", "medium", "large"]),
+
+  optionalString: PropTypes.string,
+  /**
+   * Note that all props listed above are technically optional because they lack the `isRequired` attribute.
+   * However, in most cases, props are actually required but the `isRequired` attribute is left out by mistake.
+   *
+   * For each prop that appears to be optional, determine whether the component implementation assumes that
+   * the prop has a value (making it non-optional) or not. Only those props that are truly optional should be
+   * labeled with a `?` in their type definition.
+   */
 };
 
 // After
@@ -127,5 +137,6 @@ type Props = {
   icon: React.ElementType;
   date: Date;
   size: Size;
+  optionalString?: string;
 };
 ```
