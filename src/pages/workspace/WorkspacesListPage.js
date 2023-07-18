@@ -61,9 +61,6 @@ const propTypes = {
         /** The user's current wallet balance */
         currentBalance: PropTypes.number,
     }),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -73,7 +70,6 @@ const defaultProps = {
     userWallet: {
         currentBalance: 0,
     },
-    betas: [],
 };
 
 /**
