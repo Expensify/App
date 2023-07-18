@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {withOnyx} from "react-native-onyx";
-import PropTypes from "prop-types";
 import CodesStep from "./Steps/CodesStep";
 import DisableStep from "./Steps/DisableStep";
 import IsEnabledStep from "./Steps/IsEnabledStep";
@@ -10,25 +9,9 @@ import ONYXKEYS from "../../../../ONYXKEYS";
 import CONST from "../../../../CONST";
 import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
 import TwoFactorAuthContext from "./TwoFactorAuthContext";
+import {defaultAccount, TwoFactorAuthPropTypes} from "./TwoFactorAuthPropTypes";
 
-const propTypes = {
-    account: PropTypes.shape({
-        /** Whether or not the user has two factor authentication enabled */
-        requiresTwoFactorAuth: PropTypes.bool,
-
-        /** The current step in the two factor authentication process */
-        twoFactorAuthStep: PropTypes.string,
-    }),
-}
-
-const defaultProps = {
-    account: {
-        requiresTwoFactorAuth: false,
-        twoFactorAuthStep: '',
-    }
-}
-
-function TwoFactorAuthPage({account}) {
+function TwoFactorAuthPage({account = defaultAccount}) {
     const [currentStep, setCurrentStep] = useState(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
 
     useEffect(() => {
@@ -74,10 +57,9 @@ function TwoFactorAuthPage({account}) {
     );
 };
 
-TwoFactorAuthPage.propTypes = propTypes;
-TwoFactorAuthPage.defaultProps = defaultProps;
+TwoFactorAuthPage.propTypes = TwoFactorAuthPropTypes;
 
-
+// eslint-disable-next-line rulesdir/onyx-props-must-have-default
 export default withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
 })(TwoFactorAuthPage);

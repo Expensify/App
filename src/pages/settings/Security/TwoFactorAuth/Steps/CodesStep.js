@@ -3,12 +3,8 @@ import {withOnyx} from 'react-native-onyx';
 import {ActivityIndicator, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
 import * as Expensicons from '../../../../../components/Icon/Expensicons';
-import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
-import compose from '../../../../../libs/compose';
 import * as Illustrations from '../../../../../components/Icon/Illustrations';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../../components/withWindowDimensions';
 import styles from '../../../../../styles/styles';
 import FixedFooter from '../../../../../components/FixedFooter';
 import Button from '../../../../../components/Button';
@@ -20,29 +16,18 @@ import Clipboard from '../../../../../libs/Clipboard';
 import themeColors from '../../../../../styles/themes/default';
 import localFileDownload from '../../../../../libs/localFileDownload';
 import * as Session from "../../../../../libs/actions/Session";
-import StepWrapper from "../StepWrapper/StepWrapper";
 import CONST from "../../../../../CONST";
 import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
+import useLocalize from "../../../../../hooks/useLocalize";
+import useWindowDimensions from "../../../../../hooks/useWindowDimensions";
+import StepWrapper from "../StepWrapper/StepWrapper";
+import {defaultAccount, TwoFactorAuthPropTypes} from "../TwoFactorAuthPropTypes";
 
-const propTypes = {
-    ...windowDimensionsPropTypes,
-    ...withLocalizePropTypes,
-    account: PropTypes.shape({
-        /** User recovery codes for setting up 2-FA */
-        recoveryCodes: PropTypes.string,
 
-        /** If recovery codes are loading */
-        isLoading: PropTypes.bool,
-    }),
-};
+function CodesStep({account = defaultAccount}) {
+    const {translate} = useLocalize();
+    const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
 
-const defaultProps = {
-    account: {
-        recoveryCodes: '',
-    },
-};
-
-function CodesStep({translate, account, ...dimensionsProps}) {
     const [isNextButtonDisabled, setIsNextButtonDisabled] = useState(true);
 
     const {setStep} = useTwoFactorAuthContext();
@@ -52,7 +37,7 @@ function CodesStep({translate, account, ...dimensionsProps}) {
             return;
         }
         Session.toggleTwoFactorAuth(true);
-    }, []);
+    }, [account.recoveryCodes]);
 
 
     return (
@@ -74,7 +59,7 @@ function CodesStep({translate, account, ...dimensionsProps}) {
                     <View style={styles.mv3}>
                         <Text>{translate('twoFactorAuth.codesLoseAccess')}</Text>
                     </View>
-                    <View style={styles.twoFactorAuthCodesBox(dimensionsProps)}>
+                    <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                         {account.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
                                 <ActivityIndicator color={themeColors.spinner}/>
@@ -134,13 +119,9 @@ function CodesStep({translate, account, ...dimensionsProps}) {
     );
 }
 
-CodesStep.propTypes = propTypes;
-CodesStep.defaultProps = defaultProps;
+CodesStep.propTypes = TwoFactorAuthPropTypes;
 
-export default compose(
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(CodesStep);
+// eslint-disable-next-line rulesdir/onyx-props-must-have-default
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(CodesStep);

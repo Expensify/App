@@ -1,5 +1,4 @@
 import React from 'react';
-import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import * as Illustrations from '../../../../../components/Icon/Illustrations';
 import styles from '../../../../../styles/styles';
 import BlockingView from '../../../../../components/BlockingViews/BlockingView';
@@ -7,9 +6,12 @@ import FixedFooter from '../../../../../components/FixedFooter';
 import Button from '../../../../../components/Button';
 import variables from '../../../../../styles/variables';
 import StepWrapper from "../StepWrapper/StepWrapper";
+import useLocalize from "../../../../../hooks/useLocalize";
 import * as TwoFactorAuthActions from "../../../../../libs/actions/TwoFactorAuthActions";
 
-function DisableStep({translate}) {
+function DisableStep() {
+    const {translate} = useLocalize();
+
     return (
         <StepWrapper
             title={translate('twoFactorAuth.disableTwoFactorAuth')}
@@ -32,6 +34,4 @@ function DisableStep({translate}) {
     );
 }
 
-DisableStep.propTypes = withLocalizePropTypes;
-
-export default withLocalize(DisableStep);
+export default DisableStep;

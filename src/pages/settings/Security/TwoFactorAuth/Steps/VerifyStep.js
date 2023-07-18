@@ -1,9 +1,6 @@
 import React, {useEffect} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
-import PropTypes from 'prop-types';
-import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
-import compose from '../../../../../libs/compose';
 import * as Session from '../../../../../libs/actions/Session';
 import styles from '../../../../../styles/styles';
 import Button from '../../../../../components/Button';
@@ -20,41 +17,14 @@ import expensifyLogo from '../../../../../../assets/images/expensify-logo-round-
 import CONST from '../../../../../CONST';
 import StepWrapper from "../StepWrapper/StepWrapper";
 import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
-
-const propTypes = {
-    ...withLocalizePropTypes,
-    account: PropTypes.shape({
-        /** Whether this account has 2FA enabled or not */
-        requiresTwoFactorAuth: PropTypes.bool,
-
-        /** Secret key to enable 2FA within the authenticator app */
-        twoFactorAuthSecretKey: PropTypes.string,
-
-        /** User primary login to attach to the authenticator QRCode */
-        primaryLogin: PropTypes.string,
-
-        /** User is submitting the authentication code */
-        isLoading: PropTypes.bool,
-
-        /** Server-side errors in the submitted authentication code */
-        errors: PropTypes.objectOf(PropTypes.string),
-    }),
-};
-
-const defaultProps = {
-    account: {
-        requiresTwoFactorAuth: false,
-        twoFactorAuthSecretKey: '',
-        primaryLogin: '',
-        isLoading: false,
-        errors: {},
-    },
-};
-
+import useLocalize from "../../../../../hooks/useLocalize";
+import {defaultAccount, TwoFactorAuthPropTypes} from "../TwoFactorAuthPropTypes";
 
 const TROUBLESHOOTING_LINK = "https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1"
 
-function VerifyStep({translate, account}) {
+function VerifyStep({account = defaultAccount}) {
+    const {translate} = useLocalize();
+
     const formRef = React.useRef(null);
 
     const {setStep} = useTwoFactorAuthContext();
@@ -68,7 +38,7 @@ function VerifyStep({translate, account}) {
             return;
         }
         setStep(CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS);
-    }, [account.requiresTwoFactorAuth]);
+    }, [account.requiresTwoFactorAuth, setStep]);
 
     /**
      * Splits the two-factor auth secret key in 4 chunks
@@ -164,12 +134,9 @@ function VerifyStep({translate, account}) {
     );
 }
 
-VerifyStep.propTypes = propTypes;
-VerifyStep.defaultProps = defaultProps;
+VerifyStep.propTypes = TwoFactorAuthPropTypes;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-    }),
-)(VerifyStep);
+// eslint-disable-next-line rulesdir/onyx-props-must-have-default
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+})(VerifyStep);
