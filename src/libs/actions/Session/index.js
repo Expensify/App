@@ -106,10 +106,11 @@ function signOutAndRedirectToSignIn() {
 
 /**
  * @param {Function} callback The callback to execute if the action is allowed
+ * @param {Boolean} isAnonymousAction The action is allowed for anonymous or not
  * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
-function checkIfActionIsAllowed(callback) {
-    if (isAnonymousUser()) {
+function checkIfActionIsAllowed(callback, isAnonymousAction = false) {
+    if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }
     return callback;
@@ -171,10 +172,29 @@ function resendValidateCode(login = credentials.login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 errors: null,
+                loadingForm: CONST.FORMS.VALIDATE_CODE_FORM,
             },
         },
     ];
-    API.write('RequestNewValidateCode', {email: login}, {optimisticData});
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                loadingForm: null,
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                loadingForm: null,
+            },
+        },
+    ];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -539,6 +559,26 @@ function invalidateAuthToken() {
 }
 
 /**
+ * Sets the SupportToken
+ * @param {String} supportToken
+ * @param {String} email
+ * @param {Number} accountID
+ */
+function setSupportAuthToken(supportToken, email, accountID) {
+    if (supportToken) {
+        Onyx.merge(ONYXKEYS.SESSION, {
+            authToken: '1',
+            supportAuthToken: supportToken,
+            email,
+            accountID,
+        });
+    } else {
+        Onyx.set(ONYXKEYS.SESSION, {});
+    }
+    NetworkStore.setSupportAuthToken(supportToken);
+}
+
+/**
  * Clear the credentials and partial sign in session so the user can taken back to first Login step
  */
 function clearSignInData() {
@@ -855,6 +895,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
 export {
     beginSignIn,
+    setSupportAuthToken,
     checkIfActionIsAllowed,
     updatePasswordAndSignin,
     signIn,
