@@ -11,6 +11,7 @@ import themeColors from '../styles/themes/default';
 import * as StyleUtils from '../styles/StyleUtils';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import FixedFooter from './FixedFooter';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     ...headerWithBackButtonPropTypes,
@@ -26,13 +27,17 @@ const propTypes = {
 
     /** A fixed footer to display at the bottom of the page. */
     footer: PropTypes.node,
+
+    /** Extra styles to pass to the lottie animation. */
+    illustrationStyle: stylePropTypes,
 };
 
 const defaultProps = {
     footer: null,
+    illustrationStyle: {},
 };
 
-function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, ...propsToPassToHeader}) {
+function IllustratedHeaderPageLayout({backgroundColor, children, illustration, footer, illustrationStyle, ...propsToPassToHeader}) {
     const {windowHeight} = useWindowDimensions();
     return (
         <ScreenWrapper
@@ -57,7 +62,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor)]}>
                                 <Lottie
                                     source={illustration}
-                                    style={styles.w100}
+                                    style={[styles.w100, illustrationStyle]}
                                     autoPlay
                                     loop
                                 />
