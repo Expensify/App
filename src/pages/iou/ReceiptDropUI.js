@@ -1,14 +1,11 @@
 import React from 'react';
 import {Text, View} from 'react-native';
+import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import DropZone from '../../components/DragAndDrop/DropZone';
 import styles from '../../styles/styles';
 import ReceiptUpload from '../../../assets/images/receipt-upload.svg';
-import Button from '../../components/Button';
-import * as IOU from '../../libs/actions/IOU';
-import {PressableWithFeedback} from '../../components/Pressable';
-import PropTypes from 'prop-types';
 
 const propTypes = {
     ...withLocalizePropTypes,

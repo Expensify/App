@@ -4,7 +4,8 @@ import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {PressableWithFeedback} from '../../../components/Pressable';
+import {launchImageLibrary} from 'react-native-image-picker';
+import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Colors from '../../../styles/colors';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -19,9 +20,7 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
 import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import {launchImageLibrary} from 'react-native-image-picker';
-import AttachmentView from '../../../components/AttachmentView';
-import AttachmentPicker from '../../../components/AttachmentPicker';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     /** Route params */
@@ -55,6 +54,8 @@ const propTypes = {
      * Current user personal details
      */
     currentUserPersonalDetails: personalDetailsPropType,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -140,53 +141,32 @@ function ReceiptSelector(props) {
     };
 
     /**
-     * Handles the image/document picker result and
-     * sends the selected attachment to the caller (parent component)
-     *
-     * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
-     * @returns {Promise}
-     */
-    const pickAttachment = (attachments = []) => {
-        if (attachments.length === 0) {
-            return;
-        }
-
-        const fileData = _.first(attachments);
-
-        if (fileData.width === -1 || fileData.height === -1) {
-            this.showImageCorruptionAlert();
-            return;
-        }
-
-        return getDataForUpload(fileData)
-            .then((result) => {
-                this.completeAttachmentSelection(result);
-            })
-            .catch((error) => {
-                this.showGeneralAlert(error.message);
-                throw error;
-            });
-    };
-
-    /**
      * Inform the users when they need to grant camera access and guide them to settings
      */
     const showPermissionsAlert = () => {
         Alert.alert(
-            this.props.translate('attachmentPicker.cameraPermissionRequired'),
-            this.props.translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+            props.translate('attachmentPicker.cameraPermissionRequired'),
+            props.translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
             [
                 {
-                    text: this.props.translate('common.cancel'),
+                    text: props.translate('common.cancel'),
                     style: 'cancel',
                 },
                 {
-                    text: this.props.translate('common.settings'),
+                    text: props.translate('common.settings'),
                     onPress: () => Linking.openSettings(),
                 },
             ],
             {cancelable: false},
         );
+    };
+
+    /**
+     * A generic handling when we don't know the exact reason for an error
+     *
+     */
+    const showGeneralAlert = () => {
+        Alert.alert(props.translate('attachmentPicker.attachmentError'), props.translate('attachmentPicker.errorWhileSelectingAttachment'));
     };
 
     /**
@@ -218,21 +198,6 @@ function ReceiptSelector(props) {
                 return resolve(response.assets);
             });
         });
-    };
-
-    /**
-     * A generic handling when we don't know the exact reason for an error
-     *
-     */
-    const showGeneralAlert = () => {
-        Alert.alert(this.props.translate('attachmentPicker.attachmentError'), this.props.translate('attachmentPicker.errorWhileSelectingAttachment'));
-    };
-
-    /**
-     * An attachment error dialog when user selected malformed images
-     */
-    const showImageCorruptionAlert = () => {
-        Alert.alert(this.props.translate('attachmentPicker.attachmentError'), this.props.translate('attachmentPicker.errorWhileSelectingCorruptedImage'));
     };
 
     const takePhoto = () => {
@@ -277,7 +242,10 @@ function ReceiptSelector(props) {
                         accessibilityRole="button"
                         style={[styles.alignItemsStart]}
                         onPress={() => {
-                            showImagePicker(launchImageLibrary);
+                            showImagePicker(launchImageLibrary).then((receiptImage) => {
+                                IOU.setMoneyRequestReceipt(receiptImage[0].uri);
+                                navigateToNextPage();
+                            });
                         }}
                     >
                         <Icon
@@ -336,8 +304,10 @@ function ReceiptSelector(props) {
                     accessibilityRole="button"
                     style={[styles.alignItemsStart]}
                     onPress={() => {
-                        showImagePicker(launchImageLibrary).catch((error) => {
-                            console.log(error);
+                        showImagePicker(launchImageLibrary).then((receiptImage) => {
+                            console.log(receiptImage[0].uri);
+                            IOU.setMoneyRequestReceipt(receiptImage[0].uri);
+                            navigateToNextPage();
                         });
                     }}
                 >
@@ -379,4 +349,4 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default ReceiptSelector;
+export default withLocalize(ReceiptSelector);

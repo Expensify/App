@@ -12,7 +12,7 @@ import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
 import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
-import {PressableWithFeedback} from '../../../components/Pressable';
+import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Button from '../../../components/Button';
 import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
