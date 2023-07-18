@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useMemo} from 'react';
 import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -99,46 +99,13 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-class WorkspacesListPage extends Component {
-    constructor(props) {
-        super(props);
-
-        this.getWalletBalance = this.getWalletBalance.bind(this);
-        this.getWorkspaces = this.getWorkspaces.bind(this);
-        this.getMenuItem = this.getMenuItem.bind(this);
-    }
-
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas, network, translate}) {
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
      */
-    getWalletBalance(isPaymentItem) {
-        return isPaymentItem && Permissions.canUseWallet(this.props.betas) ? CurrencyUtils.convertToDisplayString(this.props.userWallet.currentBalance) : undefined;
-    }
-
-    /**
-     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
-     * @returns {Array} the menu item list
-     */
-    getWorkspaces() {
-        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(this.props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-        return _.chain(this.props.policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, this.props.network.isOffline))
-            .map((policy) => ({
-                title: policy.name,
-                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
-                iconFill: themeColors.textLight,
-                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
-                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, this.props.allPolicyMembers),
-                pendingAction: policy.pendingAction,
-                errors: policy.errors,
-                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
-                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            }))
-            .sortBy((policy) => policy.title.toLowerCase())
-            .value();
+    function getWalletBalance(isPaymentItem) {
+        return isPaymentItem && Permissions.canUseWallet(betas) ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
     }
 
     /**
@@ -148,8 +115,8 @@ class WorkspacesListPage extends Component {
      * @param {Number} index
      * @returns {JSX}
      */
-    getMenuItem(item, index) {
-        const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
+    function getMenuItem(item, index) {
+        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
         const isPaymentItem = item.translationKey === 'common.payments';
 
         return (
@@ -168,7 +135,7 @@ class WorkspacesListPage extends Component {
                     iconStyles={item.iconStyles}
                     iconFill={item.iconFill}
                     shouldShowRightIcon
-                    badgeText={this.getWalletBalance(isPaymentItem)}
+                    badgeText={getWalletBalance(isPaymentItem)}
                     fallbackIcon={item.fallbackIcon}
                     brickRoadIndicator={item.brickRoadIndicator}
                     disabled={item.disabled}
@@ -177,34 +144,56 @@ class WorkspacesListPage extends Component {
         );
     }
 
-    render() {
-        const workspaces = this.getWorkspaces();
-        return (
-            <ScreenWrapper>
-                <HeaderWithBackButton
-                    title={this.props.translate('common.workspaces')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+    /**
+     * Add free policies (workspaces) to the list of menu items and returns the list of menu items
+     * @returns {Array} the menu item list
+     */
+    const workspaces = useMemo(() => {
+        const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+        return _.chain(policies)
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, network.isOffline))
+            .map((policy) => ({
+                title: policy.name,
+                icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
+                iconType: policy.avatar ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
+                action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
+                iconFill: themeColors.textLight,
+                fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                brickRoadIndicator: reimbursementAccountBrickRoadIndicator || PolicyUtils.getPolicyBrickRoadIndicatorStatus(policy, allPolicyMembers),
+                pendingAction: policy.pendingAction,
+                errors: policy.errors,
+                dismissError: () => dismissWorkspaceError(policy.id, policy.pendingAction),
+                disabled: policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            }))
+            .sortBy((policy) => policy.title.toLowerCase())
+            .value();
+    }, [reimbursementAccount.errors, policies, network.isOffline, allPolicyMembers]);
+
+    return (
+        <ScreenWrapper>
+            <HeaderWithBackButton
+                title={translate('common.workspaces')}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            />
+            {_.isEmpty(workspaces) ? (
+                <BlockingView
+                    icon={Expensicons.Building}
+                    title={translate('workspace.emptyWorkspace.title')}
+                    subtitle={translate('workspace.emptyWorkspace.subtitle')}
                 />
-                {_.isEmpty(workspaces) ? (
-                    <BlockingView
-                        icon={Expensicons.Building}
-                        title={this.props.translate('workspace.emptyWorkspace.title')}
-                        subtitle={this.props.translate('workspace.emptyWorkspace.subtitle')}
-                    />
-                ) : (
-                    <ScrollView style={styles.flex1}>{_.map(workspaces, (item, index) => this.getMenuItem(item, index))}</ScrollView>
-                )}
-                <FixedFooter style={[styles.flexGrow0]}>
-                    <Button
-                        accessibilityLabel={this.props.translate('workspace.new.newWorkspace')}
-                        success
-                        text={this.props.translate('workspace.new.newWorkspace')}
-                        onPress={() => Policy.createWorkspace()}
-                    />
-                </FixedFooter>
-            </ScreenWrapper>
-        );
-    }
+            ) : (
+                <ScrollView style={styles.flex1}>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</ScrollView>
+            )}
+            <FixedFooter style={[styles.flexGrow0]}>
+                <Button
+                    accessibilityLabel={translate('workspace.new.newWorkspace')}
+                    success
+                    text={translate('workspace.new.newWorkspace')}
+                    onPress={() => Policy.createWorkspace()}
+                />
+            </FixedFooter>
+        </ScreenWrapper>
+    );
 }
 
 WorkspacesListPage.propTypes = propTypes;

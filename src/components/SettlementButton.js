@@ -54,6 +54,9 @@ const propTypes = {
     /** Additional styles to add to the component */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** Total money amount in form <currency><amount> */
+    formattedAmount: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -67,6 +70,7 @@ const defaultProps = {
     style: [],
     iouReport: {},
     policyID: '',
+    formattedAmount: '',
 };
 
 class SettlementButton extends React.Component {
@@ -79,22 +83,22 @@ class SettlementButton extends React.Component {
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
         const paymentMethods = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
-                text: this.props.translate('iou.settleExpensify'),
+                text: this.props.translate('iou.settleExpensify', {formattedAmount: this.props.formattedAmount || ''}),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             },
             [CONST.IOU.PAYMENT_TYPE.VBBA]: {
-                text: this.props.translate('iou.settleExpensify'),
+                text: this.props.translate('iou.settleExpensify', {formattedAmount: this.props.formattedAmount || ''}),
                 icon: Expensicons.Wallet,
                 value: CONST.IOU.PAYMENT_TYPE.VBBA,
             },
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
-                text: this.props.translate('iou.settlePaypalMe'),
+                text: this.props.translate('iou.settlePaypalMe', {formattedAmount: this.props.formattedAmount || ''}),
                 icon: Expensicons.PayPal,
                 value: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
-                text: isExpenseReport ? this.props.translate('iou.payExpenseElsewhere') : this.props.translate('iou.settleElsewhere'),
+                text: this.props.translate('iou.payElsewhere'),
                 icon: Expensicons.Cash,
                 value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             },
@@ -127,7 +131,7 @@ class SettlementButton extends React.Component {
             return [
                 {
                     ...paymentMethods[paymentMethod],
-                    text: paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ? this.props.translate('iou.payExpenseElsewhere') : this.props.translate('iou.pay'),
+                    text: paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ? this.props.translate('iou.payElsewhere') : this.props.translate('iou.pay'),
                 },
             ];
         }
