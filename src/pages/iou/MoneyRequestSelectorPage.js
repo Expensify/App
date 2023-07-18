@@ -23,6 +23,7 @@ import DragAndDrop from '../../components/DragAndDrop';
 import Colors from '../../styles/colors';
 import * as IOU from '../../libs/actions/IOU';
 import * as ReportUtils from '../../libs/ReportUtils';
+import DistanceRequest from '../../components/DistanceRequest';
 
 function MoneyRequestSelectorPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
@@ -96,7 +97,11 @@ function MoneyRequestSelectorPage(props) {
                     currentUserPersonalDetails={props.currentUserPersonalDetails}
                 />;
             case CONST.TABS.DISTANCE:
-                return <></>;
+                return <DistanceRequest
+                    route={props.route}
+                    report={props.report}
+                    iou={props.iou}
+                />;
             default:
                 return null;
         }
