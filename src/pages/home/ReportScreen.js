@@ -172,7 +172,6 @@ class ReportScreen extends React.Component {
             prevOnyxReportID &&
             prevOnyxReportID === routeReportID &&
             !onyxReportID &&
-            prevProps.report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM &&
             // non-optimistic case
             (_.isEqual(this.props.report, defaultProps.report) ||
                 // optimistic case
