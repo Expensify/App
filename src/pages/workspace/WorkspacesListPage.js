@@ -22,12 +22,12 @@ import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import BlockingView from '../../components/BlockingViews/BlockingView';
-import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import useLocalize from '../../hooks/useLocalize';
+import useNetwork from '../../hooks/useNetwork';
 
 const propTypes = {
     /* Onyx Props */
@@ -97,8 +97,9 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas, network}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas}) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
@@ -151,7 +152,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     const workspaces = useMemo(() => {
         const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, network.isOffline))
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
             .map((policy) => ({
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
@@ -167,7 +168,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, network.isOffline, allPolicyMembers]);
+    }, [reimbursementAccount.errors, policies, isOffline, allPolicyMembers]);
 
     return (
         <ScreenWrapper>
@@ -201,7 +202,6 @@ WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
     withPolicyAndFullscreenLoading,
-    withNetwork(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
