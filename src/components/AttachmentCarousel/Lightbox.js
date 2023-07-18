@@ -58,19 +58,23 @@ function ImageWrapper({children}) {
 ImageWrapper.propTypes = imageWrapperPropTypes;
 
 const imageTransformerPropTypes = {
-    imageWidth: PropTypes.number.isRequired,
-    imageHeight: PropTypes.number.isRequired,
-    imageScale: PropTypes.number.isRequired,
-    scaledImageWidth: PropTypes.number.isRequired,
-    scaledImageHeight: PropTypes.number.isRequired,
+    imageHeight: PropTypes.number,
+    imageScale: PropTypes.number,
+    scaledImageWidth: PropTypes.number,
+    scaledImageHeight: PropTypes.number,
     isActive: PropTypes.bool.isRequired,
     children: PropTypes.node.isRequired,
 };
 
-function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScale = 1, scaledImageWidth = 0, scaledImageHeight = 0, isActive, children}) {
-    const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
+const imageTransformerDefaultProps = {
+    imageHeight: 0,
+    imageScale: 1,
+    scaledImageWidth: 0,
+    scaledImageHeight: 0,
+};
 
-    const [imageDimensions, setImageDimensions] = useState({width: imageWidth, height: imageHeight});
+function ImageTransformer({imageHeight, imageScale, scaledImageWidth, scaledImageHeight, isActive, children}) {
+    const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
 
     const canvas = {
         width: useSharedValue(canvasWidth),
@@ -93,12 +97,6 @@ function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScale = 1, scal
             canvas.height.value = canvasHeight;
         })();
     }, [canvas.height, canvas.width, canvasFitScale, canvasHeight, canvasWidth, imageScale]);
-
-    useEffect(() => {
-        if (imageWidth === 0 || imageHeight === 0) return;
-
-        setImageDimensions({width: imageWidth, height: imageHeight});
-    }, [imageDimensions.height, imageDimensions.width, imageHeight, imageWidth]);
 
     // used for pan gesture
     const translateY = useSharedValue(0);
@@ -125,7 +123,7 @@ function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScale = 1, scal
     const scaleOffset = useSharedValue(1);
 
     // disable pan vertically when image is smaller than screen
-    const canPanVertically = useDerivedValue(() => canvas.height.value < imageDimensions.height * totalScale.value, [imageDimensions.height]);
+    const canPanVertically = useDerivedValue(() => canvas.height.value < imageHeight * totalScale.value, []);
 
     // calculates bounds of the scaled image
     // can we pan left/right/up/down
@@ -159,7 +157,7 @@ function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScale = 1, scal
             canPanLeft: target.x < maxVector.x,
             canPanRight: target.x > minVector.x,
         };
-    }, [imageDimensions]);
+    });
 
     const afterGesture = useWorkletCallback(() => {
         const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
@@ -237,8 +235,8 @@ function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScale = 1, scal
             stopAnimation();
 
             const usableImage = {
-                x: imageDimensions.width * canvasFitScale.value,
-                y: imageDimensions.height * canvasFitScale.value,
+                x: scaledImageWidth,
+                y: scaledImageHeight,
             };
 
             const targetImageSize = {
@@ -282,7 +280,7 @@ function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScale = 1, scal
             zoomScale.value = withSpring(DOUBLE_TAP_SCALE, SPRING_CONFIG);
             scaleOffset.value = DOUBLE_TAP_SCALE;
         },
-        [imageDimensions],
+        [scaledImageWidth, scaledImageHeight],
     );
 
     const reset = useWorkletCallback((animated) => {
@@ -414,7 +412,7 @@ function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScale = 1, scal
                     };
 
                     offsetY.value = withSpring(
-                        maybeInvert(imageDimensions.height * 2),
+                        maybeInvert(imageHeight * 2),
                         {
                             stiffness: 50,
                             damping: 30,
@@ -599,6 +597,7 @@ function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScale = 1, scal
     );
 }
 ImageTransformer.propTypes = imageTransformerPropTypes;
+ImageTransformer.defaultProps = imageTransformerDefaultProps;
 
 function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
     const scaleFactorX = canvasWidth / imageWidth;
@@ -636,7 +635,6 @@ function Page({isActive, item}) {
                 <View style={[StyleSheet.absoluteFill, {opacity: isImageLoading ? 0 : 1}]}>
                     <ImageTransformer
                         isActive
-                        imageWidth={dimensions?.imageWidth}
                         imageHeight={dimensions?.imageHeight}
                         scaledImageWidth={dimensions?.scaledImageWidth}
                         scaledImageHeight={dimensions?.scaledImageHeight}
