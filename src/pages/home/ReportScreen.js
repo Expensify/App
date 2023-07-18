@@ -177,8 +177,8 @@ class ReportScreen extends React.Component {
                 // optimistic case
                 (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
         ) {
-            // we scope it to only reports that can be leaved
-            // nested if is on purpose to improve performance
+            // We scope it to only reports that can be left.
+            // The nested "if" is intentional and aimed at improving performance.
             const policy = prevProps.policies[`${ONYXKEYS.COLLECTION.POLICY}${prevProps.report.policyID}`];
             const isThread = ReportUtils.isChatThread(prevProps.report);
             const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(prevProps.report);
