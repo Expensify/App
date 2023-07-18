@@ -11,7 +11,7 @@ function StepWrapper({
     onBackButtonPress = TwoFactorAuthActions.quitAndNavigateBackToSettings,
     children = null
 }) {
-    const shouldShowStepCounter = !!stepCounter;
+    const shouldShowStepCounter = Boolean(stepCounter);
 
     return (
         <ScreenWrapper shouldShowOfflineIndicator={false}>
