@@ -1,4 +1,4 @@
-import {ActivityIndicator, Alert, Linking, View} from 'react-native';
+import {ActivityIndicator, Alert, Linking, View, Text} from 'react-native';
 import React, {useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import _ from 'underscore';
@@ -11,6 +11,7 @@ import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import styles from '../../../styles/styles';
 import Shutter from '../../../../assets/images/shutter.svg';
+import Hand from '../../../../assets/images/hand.svg';
 import * as IOU from '../../../libs/actions/IOU';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -21,6 +22,8 @@ import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
 import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
+import Button from '../../../components/Button';
 
 const propTypes = {
     /** Route params */
@@ -105,6 +108,8 @@ function ReceiptSelector(props) {
     const device = devices.back;
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
+
+    const [permissions, setPermissions] = useState('authorized');
 
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
@@ -214,6 +219,99 @@ function ReceiptSelector(props) {
                 console.log(error);
             });
     };
+
+    Camera.getCameraPermissionStatus().then((permissions) => {
+        console.log(`Permissions: ${JSON.stringify(permissions)}`);
+        setPermissions(permissions);
+    });
+
+    if (permissions !== 'authorized') {
+        return (
+            <View style={[styles.flex1]}>
+                <View
+                    style={{
+                        flex: 1,
+                        overflow: 'hidden',
+                        padding: 10,
+                        borderRadius: 28,
+                        borderStyle: 'solid',
+                        borderWidth: 8,
+                        borderColor: Colors.greenAppBackground,
+                        backgroundColor: Colors.greenHighlightBackground,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingVertical: 108,
+                        paddingHorizontal: 61,
+                    }}
+                >
+                    <Hand
+                        width={150}
+                        height={240}
+                        style={{paddingBottom: 20}}
+                    />
+                    <Text style={[styles.textReceiptUpload]}>Take a photo</Text>
+                    <Text style={[styles.subTextReceiptUpload]}>Camera access is required to take pictures of receipts.</Text>
+                    <PressableWithFeedback accessibilityRole="button">
+                        <Button
+                            medium
+                            success
+                            text="Give permission"
+                            style={[styles.buttonReceiptUpload, {paddingTop: 20}]}
+                            onPress={() => {
+                                if (permissions === 'not-determined') {
+                                    Camera.requestCameraPermission().then((permissions) => {
+                                        setPermissions(permissions);
+                                    });
+                                } else {
+                                    Linking.openSettings();
+                                }
+                            }}
+                        />
+                    </PressableWithFeedback>
+                </View>
+                <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter]}>
+                    <PressableWithFeedback
+                        accessibilityRole="button"
+                        style={[styles.alignItemsStart]}
+                        onPress={() => {
+                            showImagePicker(launchImageLibrary).then((receiptImage) => {
+                                IOU.setMoneyRequestReceipt(receiptImage[0].uri);
+                                navigateToNextPage();
+                            });
+                        }}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={Expensicons.Gallery}
+                            fill={Colors.colorMuted}
+                        />
+                    </PressableWithFeedback>
+                    <PressableWithFeedback
+                        accessibilityRole="button"
+                        style={[styles.alignItemsCenter]}
+                    >
+                        <Shutter
+                            width={90}
+                            height={90}
+                        />
+                    </PressableWithFeedback>
+                    <PressableWithFeedback
+                        accessibilityRole="button"
+                        style={[styles.alignItemsEnd]}
+                        onPress={() => setFlash(!flash)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={Expensicons.Bolt}
+                            fill={flash ? Colors.white : Colors.colorMuted}
+                        />
+                    </PressableWithFeedback>
+                </View>
+            </View>
+        );
+    }
 
     if (device == null) {
         return (
