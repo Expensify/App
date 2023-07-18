@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -187,7 +186,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     subtitle={translate('workspace.emptyWorkspace.subtitle')}
                 />
             ) : (
-                <ScrollView style={styles.flex1}>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</ScrollView>
+                <>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</>
             )}
         </IllustratedHeaderPageLayout>
     );
