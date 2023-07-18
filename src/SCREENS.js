@@ -9,4 +9,7 @@ export default {
     REPORT_ATTACHMENTS: 'ReportAttachments',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
+    SETTINGS: {
+        PREFERENCES: 'Settings_Preferences',
+    },
 };

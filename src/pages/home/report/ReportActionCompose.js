@@ -385,7 +385,7 @@ class ReportActionCompose extends React.Component {
     /**
      * Returns the list of IOU Options
      *
-     * @param {Array} reportParticipants
+     * @param {Array<Number>} reportParticipants
      * @returns {Array<object>}
      */
     getMoneyRequestOptions(reportParticipants) {
@@ -797,13 +797,13 @@ class ReportActionCompose extends React.Component {
             this.debouncedUpdateFrequentlyUsedEmojis();
         }
 
-        this.setState((prevState) => {
+        this.setState(() => {
             const newState = {
                 isCommentEmpty: !!newComment.match(/^(\s)*$/),
                 value: newComment,
             };
             if (comment !== newComment) {
-                const remainder = prevState.value.slice(prevState.selection.end).length;
+                const remainder = ComposerUtils.getCommonSuffixLength(comment, newComment);
                 newState.selection = {
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,

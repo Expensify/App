@@ -30,9 +30,6 @@ const propTypes = {
     /** Callback to fire when the item is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** Automatically reset the success status */
-    autoReset: PropTypes.bool,
-
     /** A description text to show under the title */
     description: PropTypes.string,
 
@@ -46,7 +43,6 @@ const defaultProps = {
     isMini: false,
     successIcon: null,
     successText: '',
-    autoReset: true,
     description: '',
     isAnonymousAction: false,
 };
@@ -70,7 +66,7 @@ class ContextMenuItem extends Component {
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (this.props.successIcon || this.props.successText) {
-            this.props.toggleDelayButtonState(this.props.autoReset);
+            this.props.toggleDelayButtonState();
         }
     }
 
