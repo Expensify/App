@@ -640,14 +640,14 @@ function Page({isActive, item}) {
                                 const imageScale = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
 
                                 // Don't update the dimensions if they are already set
-                                if (dimensions?.imageWidth === imageWidth && dimensions?.imageHeight === imageHeight && dimensions?.imageScale === imageScale) return;
-
-                                cachedDimensions.set(item.url, {
-                                    ...dimensions,
-                                    imageWidth,
-                                    imageHeight,
-                                    imageScale,
-                                });
+                                if (dimensions?.imageWidth !== imageWidth || dimensions?.imageHeight !== imageHeight || dimensions?.imageScale !== imageScale) {
+                                    cachedDimensions.set(item.url, {
+                                        ...dimensions,
+                                        imageWidth,
+                                        imageHeight,
+                                        imageScale,
+                                    });
+                                }
 
                                 if (imageWidth === 0 || imageHeight === 0) return;
                                 setIsImageLoading(false);
