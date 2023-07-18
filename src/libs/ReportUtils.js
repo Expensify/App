@@ -275,9 +275,7 @@ function isAdminRoom(report) {
  * @returns {Boolean}
  */
 function isAdminsOnlyPostingRoom(report) {
-    const writeCapability = lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL);
-
-    return writeCapability === CONST.REPORT.WRITE_CAPABILITIES.ADMINS;
+    return lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL) === CONST.REPORT.WRITE_CAPABILITIES.ADMINS;
 }
 
 /**
