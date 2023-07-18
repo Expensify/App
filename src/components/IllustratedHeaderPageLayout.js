@@ -19,11 +19,11 @@ const propTypes = {
     /** Children to display in the lower half of the page (below the header section w/ an animation) */
     children: PropTypes.node.isRequired,
 
-    /** The background color to apply in the upper half of the screen. */
-    backgroundColor: PropTypes.string.isRequired,
-
     /** The illustration to display in the header. Can be either an SVG component or a JSON object representing a Lottie animation. */
     illustration: PropTypes.oneOfType([PropTypes.func, PropTypes.object]).isRequired,
+
+    /** The background color to apply in the upper half of the screen. */
+    backgroundColor: PropTypes.string,
 
     /** A fixed footer to display at the bottom of the page. */
     footer: PropTypes.node,
@@ -33,6 +33,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    backgroundColor: themeColors.appBG,
     footer: null,
     illustrationStyle: {},
 };
