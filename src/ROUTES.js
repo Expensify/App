@@ -114,6 +114,7 @@ export default {
     getFlagCommentRoute: (reportID, reportActionID) => `flag/${reportID}/${reportActionID}`,
     SEARCH: 'search',
     SAVE_THE_WORLD: 'saveTheWorld',
+    I_Know_A_TEACHER: 'saveTheWorld/i-know-a-teacher',
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',

@@ -148,6 +148,7 @@ export default {
         someone: 'Alguien',
         total: 'Total',
         edit: 'Editar',
+        letsDoThis: '¡Hagámoslo!',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -1961,5 +1962,10 @@ export default {
         joinExpensifyOrg: '¡Únase a Expensify.org para eliminar la injusticia en todo el mundo y ayude a los maestros a dividir sus gastos para las aulas necesitadas!',
         iKnowATeacher: 'yo conozco a un maestro',
         iAmATeacher: 'Soy profesora',
+        getInTouch: '¡Excelente! Por favor, comparta su información para que podamos ponernos en contacto con ellos.',
+        error: {
+            enterName: 'Ingresa un nombre',
+            enterPhoneEmail: 'Ingrese un correo electrónico o número de teléfono válido',
+        },
     },
 };

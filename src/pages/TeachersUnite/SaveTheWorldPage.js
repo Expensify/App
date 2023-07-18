@@ -45,7 +45,7 @@ function SaveTheWorldPage(props) {
             <MenuItem
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iKnowATeacher')}
-                // onPress={() => Navigation.navigate(ROUTES)}
+                onPress={() => Navigation.navigate(ROUTES.I_Know_A_TEACHER)}
             />
 
             <MenuItem

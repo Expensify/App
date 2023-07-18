@@ -304,6 +304,13 @@ const NewTeachersUniteNavigator = createModalStackNavigator([
         },
         name: 'SaveTheWorld_Root',
     },
+    {
+        getComponent: () => {
+            const KnowATeacherPage = require('../../../pages/TeachersUnite/KnowATeacherPage').default;
+            return KnowATeacherPage;
+        },
+        name: 'I_Know_A_Teacher',
+    },
 ]);
 
 const SettingsModalStackNavigator = createModalStackNavigator([
