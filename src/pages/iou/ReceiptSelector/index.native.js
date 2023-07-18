@@ -290,7 +290,6 @@ function ReceiptSelector(props) {
                     <PressableWithFeedback
                         accessibilityRole="button"
                         style={[styles.alignItemsCenter]}
-                        onPress={() => takePhoto()}
                     >
                         <Shutter
                             width={90}
@@ -305,8 +304,8 @@ function ReceiptSelector(props) {
                         <Icon
                             height={32}
                             width={32}
-                            src={Expensicons.Flash}
-                            fill={flash ? Colors.yellow : Colors.colorMuted}
+                            src={Expensicons.Bolt}
+                            fill={flash ? Colors.white : Colors.colorMuted}
                         />
                     </PressableWithFeedback>
                 </View>
@@ -367,8 +366,8 @@ function ReceiptSelector(props) {
                     <Icon
                         height={32}
                         width={32}
-                        src={Expensicons.Flash}
-                        fill={flash ? Colors.yellow : Colors.colorMuted}
+                        src={Expensicons.Bolt}
+                        fill={flash ? Colors.white : Colors.colorMuted}
                     />
                 </PressableWithFeedback>
             </View>

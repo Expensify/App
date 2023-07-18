@@ -1,21 +1,18 @@
-<svg width="99" height="98" viewBox="0 0 99 98" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Shutter ">
-<g id="Shutter">
-<circle id="Ellipse" cx="49.5" cy="47" r="36" fill="#03D47C"/>
-<g id="Ellipse_2" filter="url(#filter0_d_1677_29028)">
-<circle cx="49.5" cy="47" r="43" stroke="#8B9C8F" stroke-width="4"/>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 27.3.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 90 90" style="enable-background:new 0 0 90 90;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#03D47C;}
+	.st1{fill:#8B9C8F;}
+</style>
+<g>
+	<circle class="st0" cx="45" cy="45" r="36"/>
 </g>
+<g>
+	<g>
+		<path class="st1" d="M45,90C20.2,90,0,69.8,0,45C0,20.2,20.2,0,45,0c24.8,0,45,20.2,45,45C90,69.8,69.8,90,45,90z M45,4
+			C22.4,4,4,22.4,4,45s18.4,41,41,41s41-18.4,41-41S67.6,4,45,4z"/>
+	</g>
 </g>
-</g>
-<defs>
-<filter id="filter0_d_1677_29028" x="0.5" y="0" width="98" height="98" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-<feFlood flood-opacity="0" result="BackgroundImageFix"/>
-<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
-<feOffset dy="2"/>
-<feGaussianBlur stdDeviation="2"/>
-<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.08 0"/>
-<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1677_29028"/>
-<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1677_29028" result="shape"/>
-</filter>
-</defs>
 </svg>
