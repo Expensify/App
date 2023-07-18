@@ -11,5 +11,6 @@ export default {
     TRANSITION_FROM_OLD_DOT: 'TransitionFromOldDot',
     SETTINGS: {
         PREFERENCES: 'Settings_Preferences',
+        WORKSPACES: 'Settings_Workspaces',
     },
 };
