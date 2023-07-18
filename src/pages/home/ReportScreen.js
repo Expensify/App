@@ -144,7 +144,7 @@ class ReportScreen extends React.Component {
 
     componentDidMount() {
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
-            const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(this.props.route)
+            const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(this.props.route);
 
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
             // we don't need to call openReport
@@ -270,7 +270,7 @@ class ReportScreen extends React.Component {
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
 
-        const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(this.props.route)
+        const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(this.props.route);
 
         let headerView = (
             <HeaderView
