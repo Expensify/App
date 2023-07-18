@@ -89,6 +89,9 @@ const propTypes = {
 
     /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
     personalDetails: PropTypes.objectOf(participantPropTypes),
+
+    /** Children to wrap in Header */
+    children: PropTypes.node,
 };
 
 export default propTypes;
