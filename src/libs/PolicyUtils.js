@@ -6,7 +6,7 @@ import ONYXKEYS from '../ONYXKEYS';
 
 /**
  * Filter out the active policies, which will exclude the pending delete policies
- * @param {Object} policies 
+ * @param {Object} policies
  * @returns {Array}
  */
 function getActivePolicies(policies) {

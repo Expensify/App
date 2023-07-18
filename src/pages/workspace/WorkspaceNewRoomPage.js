@@ -108,14 +108,7 @@ function WorkspaceNewRoomPage(props) {
     );
 
     // Workspaces are policies with type === 'free' and is not pending delete
-    const workspaceOptions = useMemo(
-        () =>
-            _.map(
-                PolicyUtils.getActivePolicies(props.policies),
-                (policy) => ({label: policy.name, key: policy.id, value: policy.id}),
-            ),
-        [props.policies],
-    );
+    const workspaceOptions = useMemo(() => _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({label: policy.name, key: policy.id, value: policy.id})), [props.policies]);
 
     const visibilityOptions = useMemo(
         () =>
