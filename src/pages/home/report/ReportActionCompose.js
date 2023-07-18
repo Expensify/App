@@ -506,11 +506,6 @@ class ReportActionCompose extends React.Component {
         return suggestions;
     }
 
-    getNavigationKey() {
-        const navigation = this.props.navigation.getState();
-        return lodashGet(navigation.routes, [navigation.index, 'key']);
-    }
-
     /**
      * Clean data related to EmojiSuggestions and MentionSuggestions
      */
