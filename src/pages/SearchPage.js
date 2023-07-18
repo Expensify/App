@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -45,69 +45,68 @@ const defaultProps = {
     reports: {},
 };
 
-class SearchPage extends Component {
-    constructor(props) {
-        super(props);
+function SearchPage(props) {
+    const {recentReports: initialRecentReports, personalDetails: initialPersonalDetails, userToInvite: initialUserToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
 
+    const [searchValue, setSearchValue] = useState('')
+    const [recentReports, setRecentReports] = useState(initialRecentReports)
+    const [personalDetails, setPersonalDetails] = useState(initialPersonalDetails)
+    const [userToInvite, setUserToInvite] = useState(initialUserToInvite)
+
+    const updateOptions = useCallback(() => {
+        const {recentReports: localRecentReports, personalDetails: localPersonalDetails, userToInvite: localUserToInvite} = OptionsListUtils.getSearchOptions(
+            props.reports,
+            props.personalDetails,
+            searchValue.trim(),
+            props.betas,
+        );
+
+        setUserToInvite(localUserToInvite)
+        setRecentReports(localRecentReports)
+        setPersonalDetails(localPersonalDetails)
+    }, [props.reports, props.personalDetails, searchValue, props.betas])
+
+    const debouncedUpdateOptions =_.debounce(updateOptions, 75);
+
+    useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
         Performance.markStart(CONST.TIMING.SEARCH_RENDER);
+    },[])
 
-        this.searchRendered = this.searchRendered.bind(this);
-        this.selectReport = this.selectReport.bind(this);
-        this.onChangeText = this.onChangeText.bind(this);
-        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
-
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
-
-        this.state = {
-            searchValue: '',
-            recentReports,
-            personalDetails,
-            userToInvite,
-        };
-    }
-
-    componentDidUpdate(prevProps) {
-        if (_.isEqual(prevProps.reports, this.props.reports) && _.isEqual(prevProps.personalDetails, this.props.personalDetails)) {
-            return;
-        }
-        this.updateOptions();
-    }
-
-    onChangeText(searchValue = '') {
-        this.setState({searchValue}, this.debouncedUpdateOptions);
-    }
+    useEffect(() => {
+        updateOptions();
+    },[props.reports, props.personalDetails])
 
     /**
      * Returns the sections needed for the OptionsSelector
      *
      * @returns {Array}
      */
-    getSections() {
+    const getSections = () => {
         const sections = [];
         let indexOffset = 0;
 
-        if (this.state.recentReports.length > 0) {
+        if (recentReports.length > 0) {
             sections.push({
-                data: this.state.recentReports,
+                data: recentReports,
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += this.state.recentReports.length;
+            indexOffset += recentReports.length;
         }
 
-        if (this.state.personalDetails.length > 0) {
+        if (personalDetails.length > 0) {
             sections.push({
-                data: this.state.personalDetails,
+                data: personalDetails,
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += this.state.recentReports.length;
+            indexOffset += recentReports.length;
         }
 
-        if (this.state.userToInvite) {
+        if (userToInvite) {
             sections.push({
-                data: [this.state.userToInvite],
+                data: [userToInvite],
                 shouldShow: true,
                 indexOffset,
             });
@@ -116,23 +115,17 @@ class SearchPage extends Component {
         return sections;
     }
 
-    searchRendered() {
+    const searchRendered = () => {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
         Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
     }
 
-    updateOptions() {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getSearchOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.state.searchValue.trim(),
-            this.props.betas,
-        );
-        this.setState({
-            userToInvite,
-            recentReports,
-            personalDetails,
-        });
+    useEffect(() => {
+        debouncedUpdateOptions()
+    }, [searchValue])
+
+    const onChangeText = (value = '') => {
+        setSearchValue(value)
     }
 
     /**
@@ -140,64 +133,53 @@ class SearchPage extends Component {
      *
      * @param {Object} option
      */
-    selectReport(option) {
+    const selectReport = (option) => {
         if (!option) {
             return;
         }
-
         if (option.reportID) {
-            this.setState(
-                {
-                    searchValue: '',
-                },
-                () => {
-                    Navigation.dismissModal(option.reportID);
-                },
-            );
+            setSearchValue('')
+            Navigation.dismissModal(option.reportID);
         } else {
             Report.navigateToAndOpenReport([option.login]);
         }
     }
 
-    render() {
-        const sections = this.getSections();
-        const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            this.state.recentReports.length + this.state.personalDetails.length !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchValue,
-        );
-
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <HeaderWithBackButton title={this.props.translate('common.search')} />
-                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                showTitleTooltip
-                                shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
-                                textInputLabel={this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                                onLayout={this.searchRendered}
-                                safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            />
-                        </View>
-                    </>
-                )}
-            </ScreenWrapper>
-        );
-    }
+    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
+    const headerMessage = OptionsListUtils.getHeaderMessage(
+        recentReports.length + personalDetails.length !== 0,
+        Boolean(userToInvite),
+        searchValue,
+    );
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
+                <>
+                    <HeaderWithBackButton title={props.translate('common.search')} />
+                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <OptionsSelector
+                            sections={getSections()}
+                            value={searchValue}
+                            onSelectRow={selectReport}
+                            onChangeText={onChangeText}
+                            headerMessage={headerMessage}
+                            hideSectionHeaders
+                            showTitleTooltip
+                            shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
+                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            onLayout={searchRendered}
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                        />
+                    </View>
+                </>
+            )}
+        </ScreenWrapper>
+    )
 }
 
 SearchPage.propTypes = propTypes;
 SearchPage.defaultProps = defaultProps;
-
+SearchPage.displayName = 'SearchPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
