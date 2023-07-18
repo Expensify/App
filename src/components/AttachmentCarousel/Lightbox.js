@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {createContext, useContext, useEffect, useRef, useState, useImperativeHandle} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState, useImperativeHandle, useMemo} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Gesture, GestureDetector, GestureHandlerRootView, createNativeWrapper} from 'react-native-gesture-handler';
@@ -601,7 +601,7 @@ const pagePropTypes = {
     }).isRequired,
 };
 
-function Page({isActive, item}) {
+function Page({isActive: isActiveProp, item}) {
     const {canvasWidth, canvasHeight} = useContext(Context);
 
     const dimensions = cachedDimensions.get(item.url);
@@ -610,15 +610,31 @@ function Page({isActive, item}) {
 
     const [isImageLoading, setIsImageLoading] = useState(!areImageDimensionsSet);
 
+    const [isActive, setIsActive] = useState(isActiveProp);
+    // We delay setting a page to active state by a (few) millisecond(s),
+    // to prevent the image transformer from flashing while still rendering
+    // Instead, we show the fallback image while the image transformer is loading the image
     useEffect(() => {
-        if (!isActive) return;
+        if (isActiveProp) setTimeout(() => setIsActive(true), 1);
+        else setIsActive(false);
+    }, [isActiveProp]);
+
+    useMemo(() => {
+        if (!isActiveProp) return;
         setIsImageLoading(true);
-    }, [isActive]);
+    }, [isActiveProp]);
+
+    const [showFallback, setShowFallback] = useState(isImageLoading);
+    // We delay hiding the fallback image while image transformer is still rendering
+    useEffect(() => {
+        if (isImageLoading) setShowFallback(true);
+        else setTimeout(() => setShowFallback(false), 100);
+    }, [isImageLoading]);
 
     return (
         <>
             {isActive && (
-                <View style={[StyleSheet.absoluteFill, {opacity: isImageLoading ? 0 : 1}]}>
+                <View style={StyleSheet.absoluteFill}>
                     <ImageTransformer
                         isActive
                         imageWidth={dimensions?.imageWidth}
@@ -655,7 +671,7 @@ function Page({isActive, item}) {
             )}
 
             {/* Keep rendering the image without gestures as fallback while ImageTransformer is loading the image */}
-            {(!isActive || isImageLoading) && (
+            {(!isActive || showFallback) && (
                 <ImageWrapper>
                     <Image
                         source={{uri: item.url}}
