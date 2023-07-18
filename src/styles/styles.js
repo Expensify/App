@@ -857,7 +857,12 @@ const styles = {
 
     autoGrowHeightInputContainer: (textInputHeight, maxHeight) => {
         const minHeight = variables.componentSizeLarge;
-        const height = Math.min(Math.max(minHeight, textInputHeight), maxHeight);
+        let height = textInputHeight;
+        if (height >= maxHeight) {
+            height = maxHeight;
+        } else if (height <= minHeight) {
+            height = minHeight;
+        }
         return {height, minHeight};
     },
 
