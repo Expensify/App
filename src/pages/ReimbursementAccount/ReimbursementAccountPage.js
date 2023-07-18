@@ -32,6 +32,7 @@ import * as ReimbursementAccountProps from './reimbursementAccountPropTypes';
 import reimbursementAccountDraftPropTypes from './ReimbursementAccountDraftPropTypes';
 import withPolicy from '../workspace/withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import * as Policy from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -330,12 +331,13 @@ class ReimbursementAccountPage extends React.Component {
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         const policyName = lodashGet(this.props.policy, 'name');
 
-        if (_.isEmpty(this.props.policy)) {
+        if (_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)) {
             return (
                 <ScreenWrapper>
                     <FullPageNotFoundView
                         shouldShow
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                        subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                         shouldShowLink
                     />
                 </ScreenWrapper>
