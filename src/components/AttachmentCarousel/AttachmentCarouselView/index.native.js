@@ -20,6 +20,7 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
     const reversePage = useCallback((page) => Math.max(0, Math.min(attachments.length - page - 1, attachments.length)), [attachments.length]);
 
     const [page, setPage] = useState(reversePage(initialPage));
+    const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows] = useState(true);
 
     /**
@@ -37,19 +38,6 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
             onNavigate(item);
         },
         [onNavigate, reversedAttachments],
-    );
-
-    /**
-     * Increments or decrements the index to get another selected item
-     * @param {Number} deltaSlide
-     */
-    const cycleThroughAttachments = useCallback(
-        (deltaSlide) => {
-            const nextPageIndex = page + deltaSlide;
-            updatePage(nextPageIndex);
-            pagerRef.current.setPage(nextPageIndex);
-        },
-        [page, updatePage],
     );
 
     const autoHideArrowTimeout = useRef(null);
@@ -70,20 +58,29 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
         }, CONST.ARROW_HIDE_DELAY);
     }, [cancelAutoHideArrow]);
 
+    /**
+     * Increments or decrements the index to get another selected item
+     * @param {Number} deltaSlide
+     */
+    const cycleThroughAttachments = useCallback(
+        (deltaSlide) => {
+            const nextPageIndex = page + deltaSlide;
+            updatePage(nextPageIndex);
+            pagerRef.current.setPage(nextPageIndex);
+
+            autoHideArrow();
+        },
+        [autoHideArrow, page, updatePage],
+    );
+
     return (
         <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
             <CarouselButtons
-                shouldShowArrows={shouldShowArrows}
+                shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
                 page={reversePage(page)}
                 attachments={attachments}
-                onBack={() => {
-                    cycleThroughAttachments(-1);
-                    autoHideArrow();
-                }}
-                onForward={() => {
-                    cycleThroughAttachments(1);
-                    autoHideArrow();
-                }}
+                onBack={() => cycleThroughAttachments(-1)}
+                onForward={() => cycleThroughAttachments(1)}
                 autoHideArrow={autoHideArrow}
                 cancelAutoHideArrow={cancelAutoHideArrow}
             />
@@ -94,7 +91,7 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
                     initialIndex={page}
                     onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                     onTap={() => setShouldShowArrows(!shouldShowArrows)}
-                    onPinchGestureChange={(isPinchGestureRunning) => setShouldShowArrows(!isPinchGestureRunning)}
+                    onPinchGestureChange={(newIsPinchtGestureRunning) => setIsPinchGestureRunning(newIsPinchtGestureRunning)}
                     onSwipeDown={onClose}
                     containerWidth={containerDimensions.width}
                     containerHeight={containerDimensions.height}
