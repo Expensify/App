@@ -166,22 +166,32 @@ class ReportScreen extends React.Component {
         const prevOnyxReportID = prevProps.report.reportID;
         const routeReportID = getReportID(this.props.route);
 
-        // navigate to concierge when the room removed from another device (e.g. user leaving a room)
+        // navigate to concierge when the user leaving a report
         // the report will not really null when removed, it will have defaultProps properties and values
         if (
             prevOnyxReportID &&
             prevOnyxReportID === routeReportID &&
             !onyxReportID &&
+            prevProps.report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM &&
             // non-optimistic case
             (_.isEqual(this.props.report, defaultProps.report) ||
                 // optimistic case
                 (prevProps.report.statusNum === CONST.REPORT.STATUS.OPEN && this.props.report.statusNum === CONST.REPORT.STATUS.CLOSED))
         ) {
-            Navigation.goBack();
-            Report.navigateToConciergeChat();
-            // isReportRemoved will prevent <FullPageNotFoundView> showing when navigating
-            this.setState({isReportRemoved: true});
-            return;
+            // we scope it to only reports that can be leaved
+            // nested if is on purpose to improve performance
+            const policy = prevProps.policies[`${ONYXKEYS.COLLECTION.POLICY}${prevProps.report.policyID}`];
+            const isThread = ReportUtils.isChatThread(prevProps.report);
+            const isUserCreatedPolicyRoom = ReportUtils.isUserCreatedPolicyRoom(prevProps.report);
+            const canLeaveRoom = ReportUtils.canLeaveRoom(prevProps.report, !_.isEmpty(policy));
+
+            if (isUserCreatedPolicyRoom || canLeaveRoom || isThread) {
+                Navigation.goBack();
+                Report.navigateToConciergeChat();
+                // isReportRemoved will prevent <FullPageNotFoundView> showing when navigating
+                this.setState({isReportRemoved: true});
+                return;
+            }
         }
 
         // If you already have a report open and are deeplinking to a new report on native,
