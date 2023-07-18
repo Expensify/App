@@ -2147,13 +2147,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    // TODO: Add description
-    if (report.writeCapability === CONST.REPORT.WRITE_CAPABILITIES.ADMINS) {
-        const linkedWorkspace = _.find(policies, (policy) => policy && policy.id === report.policyID);
-
-        return lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
-    }
-
     // Hide only chat threads that haven't been commented on (other threads are actionable)
     if (isChatThread(report) && !report.lastMessageText) {
         return false;
