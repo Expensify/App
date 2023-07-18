@@ -37,7 +37,6 @@ function HeaderWithBackButton({
     shouldShowDownloadButton = false,
     shouldShowGetAssistanceButton = false,
     shouldShowPinButton = false,
-    shouldShowStepCounter = false,
     shouldShowThreeDotsButton = false,
     stepCounter = null,
     subtitle = '',
@@ -89,7 +88,7 @@ function HeaderWithBackButton({
                 {!shouldShowAvatarWithDisplay && (
                     <Header
                         title={title}
-                        subtitle={stepCounter && shouldShowStepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                        subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                         textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
                     />
                 )}
