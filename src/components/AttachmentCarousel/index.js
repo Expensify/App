@@ -6,7 +6,6 @@ import _ from 'underscore';
 import {Parser as HtmlParser} from 'htmlparser2';
 import styles from '../../styles/styles';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -46,8 +45,6 @@ const defaultProps = {
 class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
-
-        this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
         this.updatePage = this.updatePage.bind(this);
         this.setArrowsVisibility = this.setArrowsVisibility.bind(this);
@@ -113,7 +110,7 @@ class AttachmentCarousel extends React.Component {
         return {
             page,
             attachments,
-            shouldShowArrow: this.canUseTouchScreen,
+            shouldShowArrow: false,
             containerWidth: 0,
             containerHeight: 0,
             activeSource: null,

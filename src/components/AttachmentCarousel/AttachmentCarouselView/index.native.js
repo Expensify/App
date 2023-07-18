@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
@@ -70,6 +70,8 @@ function AttachmentCarouselView(props) {
             props.setArrowsVisibility(false);
         }, CONST.ARROW_HIDE_DELAY);
     }, [cancelAutoHideArrow, props]);
+
+    useEffect(() => props.setArrowsVisibility(true), [props]);
 
     return (
         <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
