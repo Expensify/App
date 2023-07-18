@@ -325,6 +325,9 @@ function reopenTask(taskReportID, taskTitle) {
 }
 
 /**
+ * Edits a task's title or description.
+ * Should not be used to edit a task's assignee! Use editTaskAssitneeAndNavigate for that!
+ *
  * @param {object} report
  * @param {Number} ownerAccountID
  * @param {Object} editedTask
