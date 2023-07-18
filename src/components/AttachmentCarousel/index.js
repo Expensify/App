@@ -104,10 +104,6 @@ function AttachmentCarousel(props) {
     }, [cancelAutoHideArrow, toggleArrowsVisibility]);
 
     useEffect(() => {
-        autoHideArrow();
-    }, [autoHideArrow]);
-
-    useEffect(() => {
         if (shouldShowArrow) {
             autoHideArrow();
         } else {
