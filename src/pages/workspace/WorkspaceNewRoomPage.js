@@ -181,6 +181,15 @@ function WorkspaceNewRoomPage(props) {
                         shouldDelayFocus={shouldDelayFocus}
                     />
                 </View>
+                <View style={styles.mb2}>
+                    <Picker
+                        inputID="policyID"
+                        label={translate('workspace.common.workspace')}
+                        placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
+                        items={workspaceOptions}
+                        onValueChange={setPolicyID}
+                    />
+                </View>
                 {isPolicyAdmin && (
                     <View style={styles.mb2}>
                         <Picker
@@ -191,15 +200,6 @@ function WorkspaceNewRoomPage(props) {
                         />
                     </View>
                 )}
-                <View style={styles.mb2}>
-                    <Picker
-                        inputID="policyID"
-                        label={translate('workspace.common.workspace')}
-                        placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
-                        items={workspaceOptions}
-                        onValueChange={setPolicyID}
-                    />
-                </View>
                 <View style={styles.mb2}>
                     <Picker
                         inputID="visibility"
