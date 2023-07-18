@@ -1,5 +1,6 @@
-import React, {Text} from 'react-native';
+import React from 'react';
 import PropTypes from 'prop-types';
+import Text from './Text';
 import CONST from '../CONST';
 import reportPropTypes from '../pages/reportPropTypes';
 
@@ -48,7 +49,9 @@ const defaultProps = {
 };
 
 function DistanceRequest(props) {
-    return <Text>Distance Request</Text>
+    return (
+        <Text>Distance Request</Text>
+    );
 }
 
 DistanceRequest.displayName = 'DistanceRequest';
