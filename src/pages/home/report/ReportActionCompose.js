@@ -1223,8 +1223,8 @@ class ReportActionCompose extends React.Component {
                             // Keep focus on the composer when Send message is clicked.
                             onMouseDown={(e) => e.preventDefault()}
                         >
-                            <Tooltip text={this.props.translate('common.send')}>
-                                <GestureDetector gesture={Tap}>
+                            <GestureDetector gesture={Tap}>
+                                <Tooltip text={this.props.translate('common.send')}>
                                     <PressableWithFeedback
                                         style={({pressed, isDisabled}) => [
                                             styles.chatItemSubmitButton,
@@ -1240,8 +1240,8 @@ class ReportActionCompose extends React.Component {
                                             />
                                         )}
                                     </PressableWithFeedback>
-                                </GestureDetector>
-                            </Tooltip>
+                                </Tooltip>
+                            </GestureDetector>
                         </View>
                     </View>
                     <View
