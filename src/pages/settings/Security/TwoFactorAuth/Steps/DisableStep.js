@@ -33,6 +33,5 @@ function DisableStep({translate}) {
 }
 
 DisableStep.propTypes = withLocalizePropTypes;
-DisableStep.defaultProps = {};
 
 export default withLocalize(DisableStep);
