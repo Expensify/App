@@ -204,34 +204,6 @@ function MoneyRequestDetails(props) {
                     </>
                 )}
             </View>
-            {props.isSingleTransactionView && (
-                <>
-                    <MenuItemWithTopDescription
-                        title={formattedTransactionAmount}
-                        shouldShowTitleIcon={isSettled}
-                        titleIcon={Expensicons.Checkmark}
-                        description={description}
-                        titleStyle={styles.newKansasLarge}
-                        disabled={isSettled}
-                        // Note: These options are temporarily disabled while we figure out the required API changes
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                    />
-                    <MenuItemWithTopDescription
-                        description={props.translate('common.description')}
-                        title={transactionDescription}
-                        disabled={isSettled}
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
-                    />
-                    <MenuItemWithTopDescription
-                        description={props.translate('common.date')}
-                        title={formattedTransactionDate}
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-                    />
-                </>
-            )}
         </OfflineWithFeedback>
     );
 }
