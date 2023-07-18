@@ -53,16 +53,20 @@ function ImageWrapper({children}) {
     );
 }
 
-// eslint-disable-next-line react/prop-types
-function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeight = 0, imageScale = 1, isActive, onSwipe, onSwipeSuccess, onTap, children}) {
-    const {pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
+const imageTransformerPropTypes = {
+    imageWidth: PropTypes.number.isRequired,
+    imageHeight: PropTypes.number.isRequired,
+    imageScale: PropTypes.number.isRequired,
+    scaledImageWidth: PropTypes.number.isRequired,
+    scaledImageHeight: PropTypes.number.isRequired,
+    isActive: PropTypes.bool.isRequired,
+    children: PropTypes.node.isRequired,
+};
+
+function ImageTransformer({imageWidth = 0, imageHeight = 0, imageScale = 1, scaledImageWidth = 0, scaledImageHeight = 0, isActive, children}) {
+    const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
 
     const [imageDimensions, setImageDimensions] = useState({width: imageWidth, height: imageHeight});
-
-    const targetDimensions = {
-        width: useSharedValue(0),
-        height: useSharedValue(0),
-    };
 
     const canvas = {
         width: useSharedValue(canvasWidth),
@@ -90,10 +94,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeigh
         if (imageWidth === 0 || imageHeight === 0) return;
 
         setImageDimensions({width: imageWidth, height: imageHeight});
-
-        targetDimensions.width.value = imageWidth;
-        targetDimensions.height.value = imageHeight;
-    }, [imageDimensions.height, imageDimensions.width, imageHeight, imageWidth, targetDimensions.height, targetDimensions.width]);
+    }, [imageDimensions.height, imageDimensions.width, imageHeight, imageWidth]);
 
     // used for pan gesture
     const translateY = useSharedValue(0);
@@ -120,17 +121,12 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeigh
     const scaleOffset = useSharedValue(1);
 
     // disable pan vertically when image is smaller than screen
-    const canPanVertically = useDerivedValue(() => canvas.height.value < targetDimensions.height.value * totalScale.value);
+    const canPanVertically = useDerivedValue(() => canvas.height.value < imageDimensions.height * totalScale.value, [imageDimensions.height]);
 
     // calculates bounds of the scaled image
     // can we pan left/right/up/down
     // can be used to limit gesture or implementing tension effect
     const getBounds = useWorkletCallback(() => {
-        const finalScale = zoomScale.value + canvasFitScale.value - 1;
-
-        const scaledImageWidth = targetDimensions.width.value * finalScale;
-        const scaledImageHeight = targetDimensions.height.value * finalScale;
-
         const rightBoundary = Math.abs(canvas.width.value - scaledImageWidth) / 2;
 
         let topBoundary = 0;
@@ -230,57 +226,60 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeigh
         cancelAnimation(offsetY);
     });
 
-    const zoomToCoordinates = useWorkletCallback((x, y) => {
-        'worklet';
+    const zoomToCoordinates = useWorkletCallback(
+        (x, y) => {
+            'worklet';
 
-        stopAnimation();
+            stopAnimation();
 
-        const usableImage = {
-            x: targetDimensions.width.value * canvasFitScale.value,
-            y: targetDimensions.height.value * canvasFitScale.value,
-        };
+            const usableImage = {
+                x: imageDimensions.width * canvasFitScale.value,
+                y: imageDimensions.height * canvasFitScale.value,
+            };
 
-        const targetImageSize = {
-            x: usableImage.x * DOUBLE_TAP_SCALE,
-            y: usableImage.y * DOUBLE_TAP_SCALE,
-        };
+            const targetImageSize = {
+                x: usableImage.x * DOUBLE_TAP_SCALE,
+                y: usableImage.y * DOUBLE_TAP_SCALE,
+            };
 
-        const CENTER = {
-            x: canvas.width.value / 2,
-            y: canvas.height.value / 2,
-        };
+            const CENTER = {
+                x: canvas.width.value / 2,
+                y: canvas.height.value / 2,
+            };
 
-        const imageCenter = {
-            x: usableImage.x / 2,
-            y: usableImage.y / 2,
-        };
+            const imageCenter = {
+                x: usableImage.x / 2,
+                y: usableImage.y / 2,
+            };
 
-        const focal = {x, y};
+            const focal = {x, y};
 
-        const currentOrigin = {
-            x: (targetImageSize.x / 2 - CENTER.x) * -1,
-            y: (targetImageSize.y / 2 - CENTER.y) * -1,
-        };
+            const currentOrigin = {
+                x: (targetImageSize.x / 2 - CENTER.x) * -1,
+                y: (targetImageSize.y / 2 - CENTER.y) * -1,
+            };
 
-        const koef = {
-            x: (1 / imageCenter.x) * focal.x - 1,
-            y: (1 / imageCenter.y) * focal.y - 1,
-        };
+            const koef = {
+                x: (1 / imageCenter.x) * focal.x - 1,
+                y: (1 / imageCenter.y) * focal.y - 1,
+            };
 
-        const target = {
-            x: currentOrigin.x * koef.x,
-            y: currentOrigin.y * koef.y,
-        };
+            const target = {
+                x: currentOrigin.x * koef.x,
+                y: currentOrigin.y * koef.y,
+            };
 
-        if (targetImageSize.y < canvas.height.value) {
-            target.y = 0;
-        }
+            if (targetImageSize.y < canvas.height.value) {
+                target.y = 0;
+            }
 
-        offsetX.value = withSpring(target.x, SPRING_CONFIG);
-        offsetY.value = withSpring(target.y, SPRING_CONFIG);
-        zoomScale.value = withSpring(DOUBLE_TAP_SCALE, SPRING_CONFIG);
-        scaleOffset.value = DOUBLE_TAP_SCALE;
-    });
+            offsetX.value = withSpring(target.x, SPRING_CONFIG);
+            offsetY.value = withSpring(target.y, SPRING_CONFIG);
+            zoomScale.value = withSpring(DOUBLE_TAP_SCALE, SPRING_CONFIG);
+            scaleOffset.value = DOUBLE_TAP_SCALE;
+        },
+        [imageDimensions],
+    );
 
     const reset = useWorkletCallback((animated) => {
         scaleOffset.value = 1;
@@ -411,7 +410,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeigh
                     };
 
                     offsetY.value = withSpring(
-                        maybeInvert(targetDimensions.height.value * 2),
+                        maybeInvert(imageDimensions.height * 2),
                         {
                             stiffness: 50,
                             damping: 30,
@@ -464,7 +463,9 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeigh
             origin.y.value = adjustFocal.y;
         })
         .onChange((evt) => {
-            zoomScale.value = clamp(scaleOffset.value * evt.scale, MIN_SCALE, MAX_SCALE);
+            const newZoomScale = clamp(scaleOffset.value * evt.scale, MIN_SCALE, MAX_SCALE);
+
+            zoomScale.value = newZoomScale;
 
             if (zoomScale.value > MIN_SCALE && zoomScale.value < MAX_SCALE) {
                 gestureScale.value = evt.scale;
@@ -593,6 +594,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeigh
         </View>
     );
 }
+ImageTransformer.propTypes = imageTransformerPropTypes;
 
 function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
     const scaleFactorX = canvasWidth / imageWidth;
@@ -610,7 +612,9 @@ const pagePropTypes = {
 };
 
 // eslint-disable-next-line react/prop-types
-function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth, canvasHeight, onTap}) {
+function Page({isActive, item}) {
+    const {canvasWidth, canvasHeight} = useContext(Context);
+
     const dimensions = cachedDimensions.get(item.url);
 
     const areImageDimensionsSet = dimensions?.imageWidth !== 0 && dimensions?.imageHeight !== 0;
@@ -627,16 +631,12 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
             {isActive && (
                 <View style={[StyleSheet.absoluteFill, {opacity: isImageLoading ? 0 : 1}]}>
                     <ImageTransformer
-                        onSwipe={onSwipe}
-                        onSwipeSuccess={onSwipeSuccess}
-                        onSwipeDown={onSwipeDown}
                         isActive
-                        onTap={onTap}
                         imageWidth={dimensions?.imageWidth}
                         imageHeight={dimensions?.imageHeight}
+                        scaledImageWidth={dimensions?.scaledImageWidth}
+                        scaledImageHeight={dimensions?.scaledImageHeight}
                         imageScale={dimensions?.imageScale}
-                        canvasHeight={canvasHeight}
-                        canvasWidth={canvasWidth}
                     >
                         <Image
                             source={{uri: item.url}}
@@ -815,10 +815,16 @@ function Pager({
         <GestureHandlerRootView style={styles.flex1}>
             <Context.Provider
                 value={{
+                    canvasWidth: containerWidth,
+                    canvasHeight: containerHeight,
                     isScrolling,
                     pagerRef,
                     shouldPagerScroll,
                     onPinchGestureChange,
+                    onTap,
+                    onSwipe,
+                    onSwipeSuccess,
+                    onSwipeDown,
                 }}
             >
                 <AnimatedPagerView
@@ -836,14 +842,8 @@ function Pager({
                             style={styles.flex1}
                         >
                             <Page
-                                onTap={onTap}
-                                onSwipe={onSwipe}
-                                onSwipeSuccess={onSwipeSuccess}
-                                onSwipeDown={onSwipeDown}
                                 isActive={index === activePage}
                                 item={item}
-                                canvasHeight={containerHeight}
-                                canvasWidth={containerWidth}
                             />
                         </View>
                     ))}
