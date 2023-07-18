@@ -104,8 +104,6 @@ function MoneyRequestConfirmationList(props) {
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {translate, onSendMoney, onConfirm, onSelectParticipant} = props;
 
-    console.log(`MoneyRequestConfirmationList`);
-
     /**
      * Returns the participants with amount
      * @param {Array} participants

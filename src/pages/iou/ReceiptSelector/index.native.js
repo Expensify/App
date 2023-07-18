@@ -305,7 +305,6 @@ function ReceiptSelector(props) {
                     style={[styles.alignItemsStart]}
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
-                            console.log(receiptImage[0].uri);
                             IOU.setMoneyRequestReceipt(receiptImage[0].uri);
                             navigateToNextPage();
                         });

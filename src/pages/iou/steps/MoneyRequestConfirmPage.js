@@ -91,7 +91,6 @@ function MoneyRequestConfirmPage(props) {
         }
 
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
-            console.log(`Going back ${JSON.stringify(props)}`);
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
