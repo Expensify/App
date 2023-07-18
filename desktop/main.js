@@ -376,6 +376,7 @@ const mainWindow = () => {
                     {
                         id: 'windowMenu',
                         role: 'windowMenu',
+                        submenu: [{id: 'minimize', role: 'minimize'}, {id: 'zoom', role: 'zoom'}, {type: 'separator'}, {id: 'front', role: 'front'}],
                     },
                     {
                         id: 'helpMenu',
