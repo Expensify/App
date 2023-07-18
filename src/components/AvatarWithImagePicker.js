@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -16,7 +16,7 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
-import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
+// import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
@@ -51,7 +51,7 @@ const propTypes = {
     }).isRequired,
 
     /** Flag to see if image is being uploaded */
-    isUploading: PropTypes.bool,
+    // isUploading: PropTypes.bool,
 
     /** Size of Indicator */
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
@@ -88,7 +88,7 @@ const defaultProps = {
     style: [],
     DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
-    isUploading: false,
+    // isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
     fallbackIcon: Expensicons.FallbackAvatar,
     type: CONST.ICON_TYPE_AVATAR,
@@ -99,66 +99,39 @@ const defaultProps = {
     errors: null,
 };
 
-class AvatarWithImagePicker extends React.Component {
-    constructor(props) {
-        super(props);
-        this.animation = new SpinningIndicatorAnimation();
-        this.hideErrorModal = this.hideErrorModal.bind(this);
-        this.showErrorModal = this.showErrorModal.bind(this);
-        this.isValidSize = this.isValidSize.bind(this);
-        this.showAvatarCropModal = this.showAvatarCropModal.bind(this);
-        this.hideAvatarCropModal = this.hideAvatarCropModal.bind(this);
-        this.state = {
-            isMenuVisible: false,
-            isErrorModalVisible: false,
-            errorModalPrompt: '',
-            errorModalTitle: '',
-            isAvatarCropModalOpen: false,
-            imageName: '',
-            imageUri: '',
-            imageType: '',
-        };
-    }
+function AvatarWithImagePicker(props) {
+    const [isMenuVisible, setIsMenuVisible] = useState(false);
+    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const [errorModalPrompt, setErrorModalPrompt] = useState('');
+    const [errorModalTitle, setErrorModalTitle] = useState('');
+    const [isAvatarCropModalOpen, setIsAvatarCropModalOpen] = useState(false);
+    const [imageName, setImageName] = useState('');
+    const [imageUri, setImageUri] = useState('');
+    const [imageType, setImageType] = useState('');
 
-    componentDidMount() {
-        if (!this.props.isUploading) {
-            return;
-        }
-
-        this.animation.start();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (!prevProps.isUploading && this.props.isUploading) {
-            this.animation.start();
-        } else if (prevProps.isUploading && !this.props.isUploading) {
-            this.animation.stop();
-        }
-    }
-
-    componentWillUnmount() {
-        this.animation.stop();
-    }
+    const DefaultAvatar = props.DefaultAvatar;
+    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
 
     /**
      * @param {String} title
      * @param {String} prompt
      */
-    showErrorModal(title, prompt) {
-        this.setState({isErrorModalVisible: true, errorModalTitle: title, errorModalPrompt: prompt});
+    function showErrorModal(title, prompt) {
+        setIsErrorModalVisible(true);
+        setErrorModalTitle(title);
+        setErrorModalPrompt(prompt);
     }
 
-    hideErrorModal() {
-        this.setState({isErrorModalVisible: false});
-    }
-
+    const hideErrorModal = useCallback(() => {
+        setIsErrorModalVisible(false);
+    }, []);
     /**
      * Check if the attachment extension is allowed.
      *
      * @param {Object} image
      * @returns {Boolean}
      */
-    isValidExtension(image) {
+    function isValidExtension(image) {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
         return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
     }
@@ -169,7 +142,7 @@ class AvatarWithImagePicker extends React.Component {
      * @param {Object} image
      * @returns {Boolean}
      */
-    isValidSize(image) {
+    function isValidSize(image) {
         return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
     }
 
@@ -179,7 +152,7 @@ class AvatarWithImagePicker extends React.Component {
      * @param {Object} image
      * @returns {Promise}
      */
-    isValidResolution(image) {
+    function isValidResolution(image) {
         return getImageResolution(image).then(
             (resolution) =>
                 resolution.height >= CONST.AVATAR_MIN_HEIGHT_PX &&
@@ -194,27 +167,27 @@ class AvatarWithImagePicker extends React.Component {
      *
      * @param {Object} image
      */
-    showAvatarCropModal(image) {
-        if (!this.isValidExtension(image)) {
-            this.showErrorModal(
-                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                this.props.translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}),
+    function showAvatarCropModal(image) {
+        if (!isValidExtension(image)) {
+            showErrorModal(
+                props.translate('avatarWithImagePicker.imageUploadFailed'),
+                props.translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}),
             );
             return;
         }
-        if (!this.isValidSize(image)) {
-            this.showErrorModal(
-                this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
+        if (!isValidSize(image)) {
+            showErrorModal(
+                props.translate('avatarWithImagePicker.imageUploadFailed'),
+                props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}),
             );
             return;
         }
 
-        this.isValidResolution(image).then((isValidResolution) => {
-            if (!isValidResolution) {
-                this.showErrorModal(
-                    this.props.translate('avatarWithImagePicker.imageUploadFailed'),
-                    this.props.translate('avatarWithImagePicker.resolutionConstraints', {
+        isValidResolution(image).then((isValid) => {
+            if (!isValid) {
+                showErrorModal(
+                    props.translate('avatarWithImagePicker.imageUploadFailed'),
+                    props.translate('avatarWithImagePicker.resolutionConstraints', {
                         minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
                         minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
                         maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
@@ -224,18 +197,16 @@ class AvatarWithImagePicker extends React.Component {
                 return;
             }
 
-            this.setState({
-                isAvatarCropModalOpen: true,
-                imageUri: image.uri,
-                imageName: image.name,
-                imageType: image.type,
-            });
+            setIsAvatarCropModalOpen(true);
+            setImageUri(image.uri);
+            setImageName(image.name);
+            setImageType(image.type);
         });
     }
 
-    hideAvatarCropModal() {
-        this.setState({isAvatarCropModalOpen: false});
-    }
+    const hideAvatarCropModal = useCallback(() => {
+        setIsAvatarCropModalOpen(false);
+    }, []);
 
     /**
      * Create menu items list for avatar menu
@@ -243,115 +214,110 @@ class AvatarWithImagePicker extends React.Component {
      * @param {Function} openPicker
      * @returns {Array}
      */
-    createMenuItems(openPicker) {
+    function createMenuItems(openPicker) {
         const menuItems = [
             {
                 icon: Expensicons.Upload,
-                text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
+                text: props.translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     openPicker({
-                        onPicked: this.showAvatarCropModal,
+                        onPicked: showAvatarCropModal,
                     });
                 },
             },
         ];
 
         // If current avatar isn't a default avatar, allow Remove Photo option
-        if (!this.props.isUsingDefaultAvatar) {
+        if (!props.isUsingDefaultAvatar) {
             menuItems.push({
                 icon: Expensicons.Trashcan,
-                text: this.props.translate('avatarWithImagePicker.removePhoto'),
+                text: props.translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
-                    this.props.onImageRemoved();
+                    props.onImageRemoved();
                 },
             });
         }
         return menuItems;
     }
 
-    render() {
-        const DefaultAvatar = this.props.DefaultAvatar;
-        const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
-
-        return (
-            <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-                <PressableWithoutFeedback
-                    onPress={() => this.setState({isMenuVisible: true})}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-                    accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
-                >
-                    <View style={[styles.pRelative, styles.avatarLarge]}>
-                        <OfflineWithFeedback
-                            pendingAction={this.props.pendingAction}
-                            errors={this.props.errors}
-                            errorRowStyles={this.props.errorRowStyles}
-                            onClose={this.props.onErrorClose}
-                        >
-                            <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
-                                <View>
-                                    {this.props.source ? (
-                                        <Avatar
-                                            containerStyles={styles.avatarLarge}
-                                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                            source={this.props.source}
-                                            fallbackIcon={this.props.fallbackIcon}
-                                            size={this.props.size}
-                                            type={this.props.type}
-                                        />
-                                    ) : (
-                                        <DefaultAvatar />
-                                    )}
-                                </View>
-                            </Tooltip>
-                        </OfflineWithFeedback>
-
-                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                            {({openPicker}) => (
-                                <>
-                                    <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
-                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                            <Icon
-                                                src={Expensicons.Camera}
-                                                width={variables.iconSizeSmall}
-                                                height={variables.iconSizeSmall}
-                                                fill={themeColors.textLight}
-                                            />
-                                        </View>
-                                    </Tooltip>
-                                    <PopoverMenu
-                                        isVisible={this.state.isMenuVisible}
-                                        onClose={() => this.setState({isMenuVisible: false})}
-                                        onItemSelected={() => this.setState({isMenuVisible: false})}
-                                        menuItems={this.createMenuItems(openPicker)}
-                                        anchorPosition={this.props.anchorPosition}
-                                        anchorAlignment={this.props.anchorAlignment}
+    return (
+        <View style={[styles.alignItemsCenter, ...additionalStyles]}>
+            <PressableWithoutFeedback
+                onPress={() => setIsMenuVisible(true)}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityLabel={props.translate('avatarWithImagePicker.editImage')}
+            >
+                <View style={[styles.pRelative, styles.avatarLarge]}>
+                    <OfflineWithFeedback
+                        pendingAction={props.pendingAction}
+                        errors={props.errors}
+                        errorRowStyles={props.errorRowStyles}
+                        onClose={props.onErrorClose}
+                    >
+                        <Tooltip text={props.translate('avatarWithImagePicker.editImage')}>
+                            <View>
+                                {props.source ? (
+                                    <Avatar
+                                        containerStyles={styles.avatarLarge}
+                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                        source={props.source}
+                                        fallbackIcon={props.fallbackIcon}
+                                        size={props.size}
+                                        type={props.type}
                                     />
-                                </>
-                            )}
-                        </AttachmentPicker>
-                    </View>
-                </PressableWithoutFeedback>
-                <ConfirmModal
-                    title={this.state.errorModalTitle}
-                    onConfirm={this.hideErrorModal}
-                    onCancel={this.hideErrorModal}
-                    isVisible={this.state.isErrorModalVisible}
-                    prompt={this.state.errorModalPrompt}
-                    confirmText={this.props.translate('common.close')}
-                    shouldShowCancelButton={false}
-                />
-                <AvatarCropModal
-                    onClose={this.hideAvatarCropModal}
-                    isVisible={this.state.isAvatarCropModalOpen}
-                    onSave={this.props.onImageSelected}
-                    imageUri={this.state.imageUri}
-                    imageName={this.state.imageName}
-                    imageType={this.state.imageType}
-                    maskImage={this.props.editorMaskImage}
-                />
-            </View>
-        );
-    }
+                                ) : (
+                                    <DefaultAvatar />
+                                )}
+                            </View>
+                        </Tooltip>
+                    </OfflineWithFeedback>
+
+                    <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                        {({openPicker}) => (
+                            <>
+                                <Tooltip text={props.translate('avatarWithImagePicker.editImage')}>
+                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                        <Icon
+                                            src={Expensicons.Camera}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                            fill={themeColors.textLight}
+                                        />
+                                    </View>
+                                </Tooltip>
+                                <PopoverMenu
+                                    isVisible={isMenuVisible}
+                                    onClose={() => setIsMenuVisible(false)}
+                                    onItemSelected={() => setIsMenuVisible(false)}
+                                    menuItems={createMenuItems(openPicker)}
+                                    anchorPosition={props.anchorPosition}
+                                    anchorAlignment={props.anchorAlignment}
+                                />
+                            </>
+                        )}
+                    </AttachmentPicker>
+                </View>
+            </PressableWithoutFeedback>
+            <ConfirmModal
+                title={errorModalTitle}
+                onConfirm={hideErrorModal}
+                onCancel={hideErrorModal}
+                isVisible={isErrorModalVisible}
+                prompt={errorModalPrompt}
+                confirmText={props.translate('common.close')}
+                shouldShowCancelButton={false}
+            />
+            <AvatarCropModal
+                onClose={hideAvatarCropModal}
+                isVisible={isAvatarCropModalOpen}
+                onSave={props.onImageSelected}
+                imageUri={imageUri}
+                imageName={imageName}
+                imageType={imageType}
+                maskImage={props.editorMaskImage}
+            />
+        </View>
+    );
 }
 
 AvatarWithImagePicker.propTypes = propTypes;
