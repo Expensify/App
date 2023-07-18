@@ -116,6 +116,9 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
+    /** Unique id for nativeId in DragAndDrop */
+    dragAndDropId: PropTypes.string.isRequired,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
