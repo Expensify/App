@@ -26,8 +26,6 @@ const propTypes = {
     formData: PropTypes.shape({
         setupComplete: PropTypes.bool,
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -170,19 +168,6 @@ function DebitCardPage(props) {
                 <View style={styles.mt4}>
                     <StatePicker inputID="addressState" />
                 </View>
-                {!Permissions.canUsePasswordlessLogins(props.betas) && (
-                    <View style={[styles.mt4]}>
-                        <TextInput
-                            inputID="password"
-                            label={translate('addDebitCardPage.expensifyPassword')}
-                            accessibilityLabel={translate('addDebitCardPage.expensifyPassword')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            textContentType="password"
-                            autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
-                            secureTextEntry
-                        />
-                    </View>
-                )}
                 <CheckboxWithLabel
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID="acceptTerms"
