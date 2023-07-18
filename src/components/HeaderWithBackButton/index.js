@@ -50,6 +50,7 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    children = null,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -92,6 +93,7 @@ function HeaderWithBackButton({
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
+                    {children}
                     {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>
                             <PressableWithoutFeedback
