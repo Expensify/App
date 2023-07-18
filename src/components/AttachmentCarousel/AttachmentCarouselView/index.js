@@ -111,8 +111,8 @@ function AttachmentCarouselView(props) {
 
     return (
         <View
-            onMouseEnter={() => props.toggleArrowsVisibility(true)}
-            onMouseLeave={() => props.toggleArrowsVisibility(false)}
+            onMouseEnter={() => props.setArrowsVisibility(true)}
+            onMouseLeave={() => props.setArrowsVisibility(false)}
             style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}
         >
             <CarouselButtons

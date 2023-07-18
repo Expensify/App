@@ -49,38 +49,11 @@ class AttachmentCarousel extends React.Component {
 
         this.canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 
-        this.autoHideArrow = this.autoHideArrow.bind(this);
-        this.cancelAutoHideArrow = this.cancelAutoHideArrow.bind(this);
         this.updatePage = this.updatePage.bind(this);
-        this.toggleArrowsVisibility = this.toggleArrowsVisibility.bind(this);
+        this.setArrowsVisibility = this.setArrowsVisibility.bind(this);
         this.createInitialState = this.createInitialState.bind(this);
 
         this.state = this.createInitialState();
-    }
-
-    componentDidMount() {
-        this.autoHideArrow();
-    }
-
-    /**
-     * On a touch screen device, automatically hide the arrows
-     * if there is no interaction for 3 seconds.
-     */
-    autoHideArrow() {
-        if (!this.canUseTouchScreen) {
-            return;
-        }
-        this.cancelAutoHideArrow();
-        this.autoHideArrowTimeout = setTimeout(() => {
-            this.toggleArrowsVisibility(false);
-        }, CONST.ARROW_HIDE_DELAY);
-    }
-
-    /**
-     * Cancels the automatic hiding of the arrows.
-     */
-    cancelAutoHideArrow() {
-        clearTimeout(this.autoHideArrowTimeout);
     }
 
     /**
@@ -88,24 +61,11 @@ class AttachmentCarousel extends React.Component {
      * @param {Boolean} shouldShowArrow
      * @param {Boolean} isGestureInUse
      */
-    toggleArrowsVisibility(shouldShowArrow, isGestureInUse = false) {
-        // Don't toggle arrows in a zoomed state
-        if (isGestureInUse) {
-            return;
-        }
-        this.setState(
-            (current) => {
-                const newShouldShowArrow = _.isBoolean(shouldShowArrow) ? shouldShowArrow : !current.shouldShowArrow;
-                return {shouldShowArrow: newShouldShowArrow};
-            },
-            () => {
-                if (this.state.shouldShowArrow) {
-                    this.autoHideArrow();
-                } else {
-                    this.cancelAutoHideArrow();
-                }
-            },
-        );
+    setArrowsVisibility(shouldShowArrow) {
+        this.setState((current) => {
+            const newShouldShowArrow = _.isBoolean(shouldShowArrow) ? shouldShowArrow : !current.shouldShowArrow;
+            return {shouldShowArrow: newShouldShowArrow};
+        });
     }
 
     /**
@@ -192,9 +152,7 @@ class AttachmentCarousel extends React.Component {
                 <AttachmentCarouselView
                     carouselState={this.state}
                     updatePage={this.updatePage}
-                    toggleArrowsVisibility={this.toggleArrowsVisibility}
-                    autoHideArrow={this.autoHideArrow}
-                    cancelAutoHideArrow={this.cancelAutoHideArrow}
+                    setArrowsVisibility={this.setArrowsVisibility}
                     onClose={this.props.onClose}
                 />
             </View>

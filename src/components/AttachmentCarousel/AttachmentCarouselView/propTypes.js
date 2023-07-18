@@ -28,7 +28,7 @@ const propTypes = {
     /**
      * A callback for toggling the visibility of the arrows
      */
-    toggleArrowsVisibility: PropTypes.func.isRequired,
+    setArrowsVisibility: PropTypes.func.isRequired,
 
     /**
      * Trigger "auto-hiding" of the arrow buttons in the carousel

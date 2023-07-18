@@ -6,6 +6,7 @@ import Pager from '../Lightbox';
 import styles from '../../../styles/styles';
 import CarouselButtons from '../CarouselButtons';
 import attachmentCarouselViewPropTypes from './propTypes';
+import CONST from '../../../CONST';
 
 function AttachmentCarouselView(props) {
     const pagerRef = useRef(null);
@@ -13,6 +14,8 @@ function AttachmentCarouselView(props) {
     // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
     // promotes the natural feeling of swiping left/right to go to the next/previous image
     const reversedAttachments = useMemo(() => props.carouselState.attachments.reverse(), [props.carouselState.attachments]);
+
+    const processedItems = useMemo(() => _.map(reversedAttachments, (item) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})), [reversedAttachments]);
 
     const reversePage = useCallback(
         (page) => Math.max(0, Math.min(props.carouselState.attachments.length - page - 1, props.carouselState.attachments.length)),
@@ -50,7 +53,23 @@ function AttachmentCarouselView(props) {
         [reversedPage, updatePage],
     );
 
-    const processedItems = useMemo(() => _.map(reversedAttachments, (item) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})), [reversedAttachments]);
+    const autoHideArrowTimeout = useRef(null);
+
+    /**
+     * Cancels the automatic hiding of the arrows.
+     */
+    const cancelAutoHideArrow = useCallback(() => clearTimeout(autoHideArrowTimeout.current), []);
+
+    /**
+     * On a touch screen device, automatically hide the arrows
+     * if there is no interaction for 3 seconds.
+     */
+    const autoHideArrow = useCallback(() => {
+        cancelAutoHideArrow();
+        autoHideArrowTimeout.current = setTimeout(() => {
+            props.setArrowsVisibility(false);
+        }, CONST.ARROW_HIDE_DELAY);
+    }, [cancelAutoHideArrow, props]);
 
     return (
         <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
@@ -58,11 +77,11 @@ function AttachmentCarouselView(props) {
                 carouselState={props.carouselState}
                 onBack={() => {
                     cycleThroughAttachments(-1);
-                    props.autoHideArrow();
+                    autoHideArrow();
                 }}
                 onForward={() => {
                     cycleThroughAttachments(1);
-                    props.autoHideArrow();
+                    autoHideArrow();
                 }}
                 autoHideArrow={props.autoHideArrow}
                 cancelAutoHideArrow={props.cancelAutoHideArrow}
@@ -76,8 +95,8 @@ function AttachmentCarouselView(props) {
                         console.log('page updated');
                         updatePage(newPage);
                     }}
-                    onTap={() => props.toggleArrowsVisibility(!props.carouselState.shouldShowArrow)}
-                    onPinchGestureChange={(isPinchGestureRunning) => props.toggleArrowsVisibility(!isPinchGestureRunning)}
+                    onTap={() => props.setArrowsVisibility(!props.carouselState.shouldShowArrow)}
+                    onPinchGestureChange={(isPinchGestureRunning) => props.setArrowsVisibility(!isPinchGestureRunning)}
                     onSwipeDown={props.onClose}
                     containerWidth={props.carouselState.containerWidth}
                     containerHeight={props.carouselState.containerHeight}
