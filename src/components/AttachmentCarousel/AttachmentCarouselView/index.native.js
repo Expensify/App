@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import Pager from '../Lightbox';
 import styles from '../../../styles/styles';
@@ -51,6 +52,8 @@ function AttachmentCarouselView(props) {
         [props, reversedPage, updatePage],
     );
 
+    const processedItems = useMemo(() => _.map(reversedAttachments, (item) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})), [reversedAttachments]);
+
     return (
         <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
             <CarouselButtons
@@ -69,13 +72,15 @@ function AttachmentCarouselView(props) {
 
             {props.carouselState.containerWidth > 0 && props.carouselState.containerHeight > 0 && (
                 <Pager
-                    items={reversedAttachments}
+                    items={processedItems}
                     initialIndex={reversedPage}
-                    onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
+                    onPageSelected={({nativeEvent: {position: newPage}}) => {
+                        console.log('page updated');
+                        updatePage(newPage);
+                    }}
                     onTap={() => props.toggleArrowsVisibility(!props.carouselState.shouldShowArrow)}
                     onPinchGestureChange={(isPinchGestureRunning) => props.toggleArrowsVisibility(!isPinchGestureRunning)}
                     onSwipeDown={props.onClose}
-                    itemExtractor={({item}) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})}
                     containerWidth={props.carouselState.containerWidth}
                     containerHeight={props.carouselState.containerHeight}
                     ref={pagerRef}

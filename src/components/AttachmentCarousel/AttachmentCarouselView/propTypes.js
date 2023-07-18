@@ -6,7 +6,14 @@ const propTypes = {
      */
     carouselState: PropTypes.shape({
         page: PropTypes.number.isRequired,
-        attachments: PropTypes.arrayOf(PropTypes.element).isRequired,
+        attachments: PropTypes.arrayOf(
+            PropTypes.shape({
+                // eslint-disable-next-line react/forbid-prop-types
+                file: PropTypes.object.isRequired,
+                isAuthTokenRequired: PropTypes.bool.isRequired,
+                source: PropTypes.string.isRequired,
+            }),
+        ).isRequired,
         shouldShowArrow: PropTypes.bool.isRequired,
         containerWidth: PropTypes.number.isRequired,
         containerHeight: PropTypes.number.isRequired,

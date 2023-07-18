@@ -726,6 +726,7 @@ const noopWorklet = () => {
 const pagerPropTypes = {
     items: PropTypes.arrayOf(
         PropTypes.shape({
+            key: PropTypes.string,
             url: PropTypes.string,
         }),
     ).isRequired,
@@ -736,7 +737,6 @@ const pagerPropTypes = {
     onSwipeSuccess: PropTypes.func,
     onSwipeDown: PropTypes.func,
     onPinchGestureChange: PropTypes.func,
-    itemExtractor: PropTypes.func.isRequired,
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
     containerWidth: PropTypes.number.isRequired,
     containerHeight: PropTypes.number.isRequired,
@@ -762,7 +762,6 @@ function Pager({
     onSwipeSuccess = () => {},
     onSwipeDown = () => {},
     onPinchGestureChange = () => {},
-    itemExtractor,
     forwardedRef,
     containerWidth,
     containerHeight,
@@ -812,8 +811,6 @@ function Pager({
         scrollEnabled: shouldPagerScroll.value,
     }));
 
-    const processedItems = _.map(items, (item, index) => itemExtractor({item, index}));
-
     return (
         <GestureHandlerRootView style={styles.flex1}>
             <Context.Provider
@@ -833,7 +830,7 @@ function Pager({
                     style={styles.flex1}
                     initialPage={initialIndex}
                 >
-                    {_.map(processedItems, (item, index) => (
+                    {_.map(items, (item, index) => (
                         <View
                             key={item.key}
                             style={styles.flex1}
