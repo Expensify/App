@@ -172,7 +172,7 @@ function resendValidateCode(login = credentials.login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 errors: null,
-                loadingForm: CONST.FORMS.RESEND_VALIDATION_FORM,
+                loadingForm: CONST.FORMS.RESEND_VALIDATE_CODE_FORM,
             },
         },
     ];

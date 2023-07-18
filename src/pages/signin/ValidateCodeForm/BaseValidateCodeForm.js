@@ -89,7 +89,7 @@ function BaseValidateCodeForm(props) {
     const timerRef = useRef();
 
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
-    const isLoadingResendValidationForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATION_FORM;
+    const isLoadingResendValidationForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
