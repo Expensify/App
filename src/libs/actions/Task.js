@@ -325,7 +325,7 @@ function reopenTask(taskReportID, taskTitle) {
 }
 
 /**
- * @param {object} report
+ * @param {Object} report
  * @param {Object} editedTask
  * @param {String} editedTask.title
  * @param {String} editedTask.description
@@ -376,6 +376,111 @@ function editTaskAndNavigate(report, {title, description}) {
             title: reportName,
             description: reportDescription,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+
+    Navigation.dismissModal(report.reportID);
+}
+
+/**
+ * Update a task's assignee
+ *
+ * @param {Object} report
+ * @param {Number} ownerAccountID
+ * @param {Object} editedTask
+ * @param {String} editedTask.assignee
+ * @param {Number} editedTask.assigneeAccountID
+ */
+function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', assigneeAccountID = 0}) {
+    // Create the EditedReportAction on the task
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
+
+    // If we make a change to the assignee, we want to add a comment to the assignee's chat
+    let optimisticAssigneeAddComment;
+    let assigneeChatReportID;
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID) {
+        assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID]).reportID;
+
+        if (assigneeChatReportID !== report.parentReportID.toString()) {
+            optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
+                report.reportID,
+                report.reportName,
+                assignee,
+                assigneeAccountID,
+                `Assigned a task to you: ${report.reportName}`,
+            );
+        }
+    }
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: editTaskReportAction},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                managerID: assigneeAccountID || report.managerID,
+                managerEmail: assignee || report.managerEmail,
+            },
+        },
+    ];
+    const successData = [];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {assignee: report.managerEmail, assigneeAccountID: report.managerID},
+        },
+    ];
+
+    if (optimisticAssigneeAddComment) {
+        const currentTime = DateUtils.getDBTime();
+        const lastAssigneeCommentText = ReportUtils.formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
+
+        const optimisticAssigneeReport = {
+            lastVisibleActionCreated: currentTime,
+            lastMessageText: lastAssigneeCommentText,
+            lastActorAccountID: ownerAccountID,
+            lastReadTime: currentTime,
+        };
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: optimisticAssigneeAddComment.reportAction},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: optimisticAssigneeReport,
+            },
+        );
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+    }
+
+    API.write(
+        'EditTaskAssignee',
+        {
+            taskReportID: report.reportID,
+            assignee: assignee || report.managerEmail,
+            assigneeAccountID: assigneeAccountID || report.managerID,
+            editedTaskReportActionID: editTaskReportAction.reportActionID,
+            assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );
