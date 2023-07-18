@@ -19,7 +19,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-function AttachmentCarouselView(props) {
+function AttachmentCarouselView({carouselState, updatePage, setArrowsVisibility, ...props}) {
     const scrollRef = useRef(null);
 
     /**
@@ -30,11 +30,11 @@ function AttachmentCarouselView(props) {
      */
     const getItemLayout = useCallback(
         (_data, index) => ({
-            length: props.carouselState.containerWidth,
-            offset: props.carouselState.containerWidth * index,
+            length: carouselState.containerWidth,
+            offset: carouselState.containerWidth * index,
             index,
         }),
-        [props.carouselState.containerWidth],
+        [carouselState.containerWidth],
     );
 
     /**
@@ -43,8 +43,8 @@ function AttachmentCarouselView(props) {
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide) => {
-            const nextIndex = props.carouselState.page - deltaSlide;
-            const nextItem = props.carouselState.attachments[nextIndex];
+            const nextIndex = carouselState.page - deltaSlide;
+            const nextItem = carouselState.attachments[nextIndex];
 
             if (!nextItem || !scrollRef.current) {
                 return;
@@ -54,7 +54,7 @@ function AttachmentCarouselView(props) {
             // so we only enable it for mobile
             scrollRef.current.scrollToIndex({index: nextIndex, animated: false});
         },
-        [props.carouselState.attachments, props.carouselState.page],
+        [carouselState.attachments, carouselState.page],
     );
 
     /**
@@ -88,13 +88,13 @@ function AttachmentCarouselView(props) {
     const renderItem = useCallback(
         ({item}) => (
             <AttachmentView
-                isFocused={props.carouselState.activeSource === item.source}
+                isFocused={carouselState.activeSource === item.source}
                 source={item.source}
                 file={item.file}
                 isAuthTokenRequired={item.isAuthTokenRequired}
             />
         ),
-        [props.carouselState.activeSource],
+        [carouselState.activeSource],
     );
 
     const handleViewableItemsChange = useCallback(
@@ -102,34 +102,26 @@ function AttachmentCarouselView(props) {
             // Since we can have only one item in view at a time, we can use the first item in the array
             // to get the index of the current page
             const entry = _.first([...viewableItems]);
-            props.updatePage({item: entry.item, index: entry.index});
+            updatePage({item: entry.item, index: entry.index});
         },
-        [props],
+        [updatePage],
     );
 
     const viewabilityConfigCallbackPairs = useRef([{viewabilityConfig: VIEWABILITY_CONFIG, onViewableItemsChanged: handleViewableItemsChange}]);
 
     return (
         <View
-            onMouseEnter={() => props.setArrowsVisibility(true)}
-            onMouseLeave={() => props.setArrowsVisibility(false)}
+            onMouseEnter={() => setArrowsVisibility(true)}
+            onMouseLeave={() => setArrowsVisibility(false)}
             style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}
         >
             <CarouselButtons
-                carouselState={props.carouselState}
-                onBack={() => {
-                    cycleThroughAttachments(-1);
-                    props.autoHideArrow();
-                }}
-                onForward={() => {
-                    cycleThroughAttachments(1);
-                    props.autoHideArrow();
-                }}
-                autoHideArrow={props.autoHideArrow}
-                cancelAutoHideArrow={props.cancelAutoHideArrow}
+                carouselState={carouselState}
+                onBack={() => cycleThroughAttachments(-1)}
+                onForward={() => cycleThroughAttachments(1)}
             />
 
-            {props.carouselState.containerWidth > 0 && props.carouselState.containerHeight > 0 && (
+            {carouselState.containerWidth > 0 && carouselState.containerHeight > 0 && (
                 <FlatList
                     listKey="AttachmentCarousel"
                     horizontal
@@ -139,14 +131,14 @@ function AttachmentCarouselView(props) {
                     disableIntervalMomentum // Scroll only one image at a time no matter how fast the user swipes
                     pagingEnabled
                     snapToAlignment="start"
-                    snapToInterval={props.carouselState.containerWidth}
+                    snapToInterval={carouselState.containerWidth}
                     scrollEnabled={false}
                     ref={scrollRef}
-                    initialScrollIndex={props.carouselState.page}
+                    initialScrollIndex={carouselState.page}
                     initialNumToRender={3}
                     windowSize={5}
                     maxToRenderPerBatch={3}
-                    data={props.carouselState.attachments}
+                    data={carouselState.attachments}
                     CellRendererComponent={renderCell}
                     renderItem={renderItem}
                     getItemLayout={getItemLayout}

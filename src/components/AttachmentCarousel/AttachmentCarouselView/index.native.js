@@ -8,36 +8,33 @@ import CarouselButtons from '../CarouselButtons';
 import attachmentCarouselViewPropTypes from './propTypes';
 import CONST from '../../../CONST';
 
-function AttachmentCarouselView(props) {
+function AttachmentCarouselView({carouselState, updatePage, setArrowsVisibility, onClose}) {
     const pagerRef = useRef(null);
 
     // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
     // promotes the natural feeling of swiping left/right to go to the next/previous image
-    const reversedAttachments = useMemo(() => props.carouselState.attachments.reverse(), [props.carouselState.attachments]);
+    const reversedAttachments = useMemo(() => carouselState.attachments.reverse(), [carouselState.attachments]);
 
     const processedItems = useMemo(() => _.map(reversedAttachments, (item) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})), [reversedAttachments]);
 
-    const reversePage = useCallback(
-        (page) => Math.max(0, Math.min(props.carouselState.attachments.length - page - 1, props.carouselState.attachments.length)),
-        [props.carouselState.attachments.length],
-    );
+    const reversePage = useCallback((page) => Math.max(0, Math.min(carouselState.attachments.length - page - 1, carouselState.attachments.length)), [carouselState.attachments.length]);
 
-    const reversedPage = useMemo(() => reversePage(props.carouselState.page), [props.carouselState.page, reversePage]);
+    const reversedPage = useMemo(() => reversePage(carouselState.page), [carouselState.page, reversePage]);
 
     /**
      * Update carousel page based on next page index
      * @param {Number} newPageIndex
      */
-    const updatePage = useCallback(
+    const updatePageInternal = useCallback(
         (newPageIndex) => {
             const nextItem = reversedAttachments[newPageIndex];
             if (!nextItem) {
                 return;
             }
 
-            props.updatePage({item: nextItem, index: reversePage(newPageIndex)});
+            updatePage({item: nextItem, index: reversePage(newPageIndex)});
         },
-        [props, reversePage, reversedAttachments],
+        [reversePage, reversedAttachments, updatePage],
     );
 
     /**
@@ -67,16 +64,17 @@ function AttachmentCarouselView(props) {
     const autoHideArrow = useCallback(() => {
         cancelAutoHideArrow();
         autoHideArrowTimeout.current = setTimeout(() => {
-            props.setArrowsVisibility(false);
+            setArrowsVisibility(false);
         }, CONST.ARROW_HIDE_DELAY);
-    }, [cancelAutoHideArrow, props]);
+    }, [cancelAutoHideArrow, setArrowsVisibility]);
 
-    useEffect(() => props.setArrowsVisibility(true), [props]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => setArrowsVisibility(true), []);
 
     return (
         <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
             <CarouselButtons
-                carouselState={props.carouselState}
+                carouselState={carouselState}
                 onBack={() => {
                     cycleThroughAttachments(-1);
                     autoHideArrow();
@@ -85,23 +83,23 @@ function AttachmentCarouselView(props) {
                     cycleThroughAttachments(1);
                     autoHideArrow();
                 }}
-                autoHideArrow={props.autoHideArrow}
-                cancelAutoHideArrow={props.cancelAutoHideArrow}
+                autoHideArrow={autoHideArrow}
+                cancelAutoHideArrow={cancelAutoHideArrow}
             />
 
-            {props.carouselState.containerWidth > 0 && props.carouselState.containerHeight > 0 && (
+            {carouselState.containerWidth > 0 && carouselState.containerHeight > 0 && (
                 <Pager
                     items={processedItems}
                     initialIndex={reversedPage}
                     onPageSelected={({nativeEvent: {position: newPage}}) => {
                         console.log('page updated');
-                        updatePage(newPage);
+                        updatePageInternal(newPage);
                     }}
-                    onTap={() => props.setArrowsVisibility(!props.carouselState.shouldShowArrow)}
-                    onPinchGestureChange={(isPinchGestureRunning) => props.setArrowsVisibility(!isPinchGestureRunning)}
-                    onSwipeDown={props.onClose}
-                    containerWidth={props.carouselState.containerWidth}
-                    containerHeight={props.carouselState.containerHeight}
+                    onTap={() => setArrowsVisibility()}
+                    onPinchGestureChange={(isPinchGestureRunning) => setArrowsVisibility(!isPinchGestureRunning)}
+                    onSwipeDown={onClose}
+                    containerWidth={carouselState.containerWidth}
+                    containerHeight={carouselState.containerHeight}
                     ref={pagerRef}
                 />
             )}

@@ -19,10 +19,15 @@ const propTypes = {
     /** Callback to go one page forward */
     onForward: PropTypes.func.isRequired,
 
-    autoHideArrow: PropTypes.func.isRequired,
-    cancelAutoHideArrow: PropTypes.func.isRequired,
+    autoHideArrow: PropTypes.func,
+    cancelAutoHideArrow: PropTypes.func,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    autoHideArrow: () => {},
+    cancelAutoHideArrow: () => {},
 };
 
 function CarouselButtons(props) {
@@ -68,5 +73,6 @@ function CarouselButtons(props) {
 }
 
 CarouselButtons.propTypes = propTypes;
+CarouselButtons.defaultProps = defaultProps;
 
 export default withLocalize(CarouselButtons);
