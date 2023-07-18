@@ -128,16 +128,18 @@ function ReportActionsList(props) {
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
             const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report);
             const shouldHideThreadDividerLine =
-                shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
+   sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
+        
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldHideThreadDividerLine={shouldDisplayParentAction && shouldHideThreadDividerLine}
                     reportID={report.reportID}
                     parentReportID={`${report.parentReportID}`}
                     shouldDisplayNewMarker={shouldDisplayNewMarker}
                 />
             ) : (
                 <ReportActionItem
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     report={report}
                     action={reportAction}
                     displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
