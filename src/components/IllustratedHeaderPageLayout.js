@@ -50,8 +50,8 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
                     <HeaderWithBackButton
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...propsToPassToHeader}
-                        titleColor={themeColors.iconColorfulBackground}
-                        iconFill={themeColors.iconColorfulBackground}
+                        titleColor={backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground}
+                        iconFill={backgroundColor === themeColors.appBG ? undefined : themeColors.iconColorfulBackground}
                     />
                     <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}>
                         <ScrollView
