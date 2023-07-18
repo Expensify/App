@@ -1,5 +1,5 @@
-import {View, Text} from 'react-native';
-import React, {useRef} from 'react';
+import {View, Text, PixelRatio} from 'react-native';
+import React, {useRef, useState} from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -76,6 +76,8 @@ function ReceiptSelector(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
+    const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
+
     const navigateToNextPage = () => {
         const moneyRequestID = `${iouType.current}${reportID.current}`;
         const shouldReset = props.iou.id !== moneyRequestID;
@@ -109,10 +111,16 @@ function ReceiptSelector(props) {
 
     const defaultView = () => (
         <>
-            <ReceiptUpload
-                width={164}
-                height={164}
-            />
+            <View
+                onLayout={({nativeEvent}) => {
+                    setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
+                }}
+            >
+                <ReceiptUpload
+                    width={CONST.RECEIPT.ICON_SIZE}
+                    height={CONST.RECEIPT.ICON_SIZE}
+                />
+            </View>
             <Text style={[styles.textReceiptUpload]}>Upload receipt</Text>
             <Text style={[styles.subTextReceiptUpload]}>
                 Drag a receipt onto this page, forward a receipt to{' '}
@@ -152,7 +160,7 @@ function ReceiptSelector(props) {
     return (
         <View style={[styles.uploadReceiptView]}>
             {!props.isDraggingOver ? defaultView() : null}
-            {props.isDraggingOver && <ReceiptDropUI />}
+            {props.isDraggingOver && <ReceiptDropUI receiptImageTopPosition={receiptImageTopPosition} />}
         </View>
     );
 }

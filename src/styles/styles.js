@@ -1074,6 +1074,7 @@ const styles = {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
         color: themeColors.textLight,
+        textAlign: 'center',
     },
 
     subTextReceiptUpload: {

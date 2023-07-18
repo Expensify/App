@@ -1,16 +1,26 @@
 import React from 'react';
-import {Text} from 'react-native';
+import {Text, View} from 'react-native';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import DropZone from '../../components/DragAndDrop/DropZone';
 import styles from '../../styles/styles';
 import ReceiptUpload from '../../../assets/images/receipt-upload.svg';
+import Button from '../../components/Button';
+import * as IOU from '../../libs/actions/IOU';
+import {PressableWithFeedback} from '../../components/Pressable';
+import PropTypes from 'prop-types';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    receiptImageTopPosition: PropTypes.number,
 };
 
-function ReceiptDropUI() {
+const defaultProps = {
+    receiptImageTopPosition: 0,
+};
+
+function ReceiptDropUI(props) {
     return (
         <DropZone
             dropZoneViewHolderName={CONST.RECEIPT.DROP_HOST_NAME}
@@ -18,17 +28,22 @@ function ReceiptDropUI() {
             dropZoneViewHolderStyle={[styles.receiptTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}
             dropZoneViewStyle={styles.receiptDropZoneTopInvisibleOverlay}
         >
-            <ReceiptUpload
-                width={164}
-                height={164}
-            />
-            <Text style={[styles.textReceiptUpload]}>Let it go</Text>
-            <Text style={[styles.subTextReceiptUpload]}>Drop your file here</Text>
+            <View style={{position: 'absolute', top: props.receiptImageTopPosition}}>
+                <ReceiptUpload
+                    width={CONST.RECEIPT.ICON_SIZE}
+                    height={CONST.RECEIPT.ICON_SIZE}
+                />
+            </View>
+            <View style={{position: 'absolute', top: props.receiptImageTopPosition + CONST.RECEIPT.ICON_SIZE}}>
+                <Text style={[styles.textReceiptUpload]}>Let it go</Text>
+                <Text style={[styles.subTextReceiptUpload]}>Drop your file here</Text>
+            </View>
         </DropZone>
     );
 }
 
 ReceiptDropUI.displayName = 'ReportDropUI';
 ReceiptDropUI.propTypes = propTypes;
+ReceiptDropUI.defaultProps = defaultProps;
 
 export default withLocalize(ReceiptDropUI);
