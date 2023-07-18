@@ -29,6 +29,22 @@ class ScreenWrapper extends React.Component {
             onPanResponderRelease: toggleTestToolsModal,
         });
 
+        this.keyboardDissmissPanResponder = PanResponder.create({
+            onMoveShouldSetPanResponderCapture: (e, gestureState) => {
+                const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+                if (isHorizontalSwipe && this.props.shouldDismissKeyboardBeforeClose) {
+                    return true;
+                }
+                return false;
+            },
+            onPanResponderGrant: () => {
+                if(!Keyboard.isVisible()) {
+                    return;
+                }
+                Keyboard.dismiss();
+            },
+        });
+
         this.state = {
             didScreenTransitionEnd: false,
         };
