@@ -64,7 +64,6 @@ function MoneyRequestHeader(props) {
     const report = props.report;
     if (props.isSingleTransactionView) {
         report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
-        report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
     }
 
     // These are only used for the single transaction view and not for expense and iou reports

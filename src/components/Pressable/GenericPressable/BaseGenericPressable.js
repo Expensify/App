@@ -34,6 +34,7 @@ const GenericPressable = forwardRef((props, ref) => {
         onPress,
         onLongPress,
         onKeyPress,
+        onKeyDown,
         disabled,
         style,
         shouldUseHapticsOnLongPress,
@@ -141,6 +142,7 @@ const GenericPressable = forwardRef((props, ref) => {
             onPress={!isDisabled ? onPressHandler : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
+            onKeyDown={!isDisabled ? onKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [

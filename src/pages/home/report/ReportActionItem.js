@@ -256,7 +256,7 @@ function ReportActionItem(props) {
             );
         } else if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
-            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELED ||
+            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
         ) {
             children = (
