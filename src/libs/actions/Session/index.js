@@ -517,70 +517,6 @@ function clearAccountMessages() {
     });
 }
 
-/**
- * Updates a password and authenticates them
- * @param {Number} accountID
- * @param {String} validateCode
- * @param {String} password
- */
-function updatePasswordAndSignin(accountID, validateCode, password) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: null,
-            },
-        },
-    ];
-
-    const successData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                errors: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.SESSION,
-            value: {
-                errors: null,
-            },
-        },
-    ];
-
-    const failureData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    API.write(
-        'UpdatePasswordAndSignin',
-        {
-            accountID,
-            validateCode,
-            password,
-        },
-        {optimisticData, successData, failureData},
-    );
-}
-
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
 // reconnect each time when we only need to reconnect once. This way, if an authToken is expired and we try to
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
@@ -808,7 +744,6 @@ export {
     beginSignIn,
     setSupportAuthToken,
     checkIfActionIsAllowed,
-    updatePasswordAndSignin,
     signIn,
     signInWithValidateCode,
     signInWithValidateCodeAndNavigate,
