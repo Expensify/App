@@ -1101,7 +1101,7 @@ function getReportPreviewMessage(report, reportAction = {}) {
     if (isSettled(report.reportID)) {
         // A settled message is in the format of either "paid $1.00 elsewhere" or "paid $1.00 using Paypal.me"
         const isSettledPaypalMe = Boolean(reportActionMessage.match(/ Paypal.me$/));
-        const translatePhraseKey = isSettledPaypalMe ? 'iou.settledPaypalMeWithAmount' : 'iou.settledElsewhereWithAmount';
+        const translatePhraseKey = isSettledPaypalMe ? 'iou.paidUsingPaypalWithAmount' : 'iou.paidElsewhereWithAmount';
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
     }
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
@@ -1510,7 +1510,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
             paymentMethodMessage = ' elsewhere';
             break;
         case CONST.IOU.PAYMENT_TYPE.VBBA:
-            paymentMethodMessage = ' Expensify';
+            paymentMethodMessage = ' using Expensify';
             break;
         default:
             paymentMethodMessage = ` using ${paymentType}`;
