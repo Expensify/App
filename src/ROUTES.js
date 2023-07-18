@@ -115,6 +115,7 @@ export default {
     SEARCH: 'search',
     SAVE_THE_WORLD: 'saveTheWorld',
     I_Know_A_TEACHER: 'saveTheWorld/i-know-a-teacher',
+    Intro_School_Principal: 'saveTheWorld/intro-school-principal',
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',

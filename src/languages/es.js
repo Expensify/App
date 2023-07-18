@@ -149,6 +149,7 @@ export default {
         total: 'Total',
         edit: 'Editar',
         letsDoThis: '¡Hagámoslo!',
+        letsStart: 'Empecemos',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',
@@ -1963,6 +1964,9 @@ export default {
         iKnowATeacher: 'yo conozco a un maestro',
         iAmATeacher: 'Soy profesora',
         getInTouch: '¡Excelente! Por favor, comparta su información para que podamos ponernos en contacto con ellos.',
+        introSchoolPrincipal: 'Introducción a la directora de tu escuela',
+        schoolPrincipalVerfiyExpense:
+            'Expensify.org divide el costo de la escuela esencial insumos para que estudiantes de escasos recursos los hogares pueden tener una mejor experiencia de aprendizaje. Se le pedirá a su director que verifique su gastos.',
         error: {
             enterName: 'Ingresa un nombre',
             enterPhoneEmail: 'Ingrese un correo electrónico o número de teléfono válido',

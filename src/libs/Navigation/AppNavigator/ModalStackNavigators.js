@@ -311,6 +311,13 @@ const NewTeachersUniteNavigator = createModalStackNavigator([
         },
         name: 'I_Know_A_Teacher',
     },
+    {
+        getComponent: () => {
+            const IntroSchoolPrincipalPage = require('../../../pages/TeachersUnite/IntroSchoolPrincipalPage').default;
+            return IntroSchoolPrincipalPage;
+        },
+        name: 'Intro_School_Principal',
+    },
 ]);
 
 const SettingsModalStackNavigator = createModalStackNavigator([

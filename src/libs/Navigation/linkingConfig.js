@@ -276,6 +276,7 @@ export default {
                         screens: {
                             SaveTheWorld_Root: ROUTES.SAVE_THE_WORLD,
                             I_Know_A_Teacher: ROUTES.I_Know_A_TEACHER,
+                            Intro_School_Principal: ROUTES.Intro_School_Principal,
                         },
                     },
                     Search: {

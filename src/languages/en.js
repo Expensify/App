@@ -150,6 +150,7 @@ export default {
         total: 'Total',
         edit: 'Edit',
         letsDoThis: `Let's do this!`,
+        letsStart: `Let's start`,
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -1492,6 +1493,9 @@ export default {
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
         getInTouch: 'Excellent! Please share their information so we can get in touch with them.',
+        introSchoolPrincipal: 'Intro to your school principal',
+        schoolPrincipalVerfiyExpense:
+            'Expensify.org splits the cost of essential school supplies so that students from low-income households can have a better learning experience. Your principal will be asked to verify your expenses.',
         error: {
             enterName: 'Enter a name',
             enterPhoneEmail: 'Enter a valid email or phone number',

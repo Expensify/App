@@ -1,15 +1,15 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import {parsePhoneNumber} from 'awesome-phonenumber';
-import Str from 'expensify-common/lib/str';
-import _ from 'underscore';
 import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import {parsePhoneNumber} from 'awesome-phonenumber';
+import Str from 'expensify-common/lib/str';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
+import _ from 'underscore';
 import CONST from '../../CONST';
 import * as LoginUtils from '../../libs/LoginUtils';
 import TextInput from '../../components/TextInput';
@@ -48,7 +48,7 @@ const getPhoneLogin = (phoneOrEmail) => {
     return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
 };
 
-function KnowATeacherPage(props) {
+function IntroSchoolPrincipalPage(props) {
     const currentUserDetails = props.currentUserPersonalDetails || {};
 
     /**
@@ -77,18 +77,18 @@ function KnowATeacherPage(props) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={props.translate('teachersUnitePage.iKnowATeacher')}
+                title={props.translate('teachersUnitePage.introSchoolPrincipal')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SAVE_THE_WORLD)}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.I_KNOW_A_TEACHER}
+                formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL}
                 validate={validate}
                 onSubmit={updateDisplayName}
-                submitButtonText={props.translate('common.letsDoThis')}
+                submitButtonText={props.translate('common.letsStart')}
                 enabledWhenOffline
             >
-                <Text style={[styles.mb6]}>{props.translate('teachersUnitePage.getInTouch')}</Text>
+                <Text style={[styles.mb6]}>{props.translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
                 <View>
                     <TextInput
                         inputID="firstName"
@@ -128,8 +128,8 @@ function KnowATeacherPage(props) {
     );
 }
 
-KnowATeacherPage.propTypes = propTypes;
-KnowATeacherPage.defaultProps = defaultProps;
-KnowATeacherPage.displayName = 'KnowATeacherPage';
+IntroSchoolPrincipalPage.propTypes = propTypes;
+IntroSchoolPrincipalPage.defaultProps = defaultProps;
+IntroSchoolPrincipalPage.displayName = 'IntroSchoolPrincipalPage';
 
-export default withLocalize(KnowATeacherPage);
+export default compose(withLocalize)(IntroSchoolPrincipalPage);

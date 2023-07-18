@@ -212,6 +212,7 @@ export default {
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         I_KNOW_A_TEACHER: 'iKnowTeacherForm',
+        INTRO_SCHOOL_PRINCIPAL: 'introSchoolPrincipal',
     },
 
     // Whether we should show the compose input or not
