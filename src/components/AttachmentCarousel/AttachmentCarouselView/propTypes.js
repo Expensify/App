@@ -23,7 +23,7 @@ const propTypes = {
     /**
      * The initial active ource of the carousel
      */
-    initialActiveSource: PropTypes.string.isRequired,
+    initialActiveSource: PropTypes.string,
 
     /**
      * The container dimensions

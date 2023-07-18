@@ -11,6 +11,9 @@ import themeColors from '../../styles/themes/default';
 import * as AttachmentCarouselViewPropTypes from './AttachmentCarouselView/propTypes';
 
 const propTypes = {
+    /** Where the arrows should be visible */
+    shouldShowArrows: PropTypes.bool.isRequired,
+
     /** The current page index */
     page: PropTypes.number.isRequired,
 
@@ -33,11 +36,11 @@ const defaultProps = {
     cancelAutoHideArrow: () => {},
 };
 
-function CarouselButtons({page, attachments, shouldShowArrow, onBack, onForward, cancelAutoHideArrow, autoHideArrow, ...props}) {
+function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow, ...props}) {
     const isForwardDisabled = page === 0;
     const isBackDisabled = page === _.size(attachments) - 1;
 
-    return shouldShowArrow ? (
+    return shouldShowArrows ? (
         <>
             {!isBackDisabled && (
                 <Tooltip text={props.translate('common.previous')}>

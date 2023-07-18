@@ -42,10 +42,11 @@ function AttachmentCarouselView({containerDimensions, attachments, initialPage, 
             }
 
             const pageIndex = index;
-            onNavigate(item);
-            // eslint-disable-next-line react/no-unused-state
+
             setPage(pageIndex);
             setActiveSource(item.source);
+
+            onNavigate(item);
         },
         [onNavigate],
     );

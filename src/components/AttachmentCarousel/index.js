@@ -117,6 +117,7 @@ class AttachmentCarousel extends React.Component {
                     initialActiveSource={this.state.initialActiveSource}
                     containerDimensions={{width: this.state.containerWidth, height: this.state.containerHeight}}
                     onClose={this.props.onClose}
+                    onNavigate={this.props.onNavigate}
                 />
             </View>
         );

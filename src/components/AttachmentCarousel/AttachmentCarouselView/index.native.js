@@ -19,8 +19,8 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
 
     const reversePage = useCallback((page) => Math.max(0, Math.min(attachments.length - page - 1, attachments.length)), [attachments.length]);
 
-    const [shouldShowArrows, setShouldShowArrows] = useState(true);
     const [page, setPage] = useState(reversePage(initialPage));
+    const [shouldShowArrows, setShouldShowArrows] = useState(true);
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -29,11 +29,11 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
      */
     const updatePage = useCallback(
         (newPageIndex) => {
-            setPage(newPageIndex);
             Keyboard.dismiss();
 
-            const item = reversedAttachments[newPageIndex];
+            setPage(newPageIndex);
 
+            const item = reversedAttachments[newPageIndex];
             onNavigate(item);
         },
         [onNavigate, reversedAttachments],
@@ -73,7 +73,8 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
     return (
         <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
             <CarouselButtons
-                page={page}
+                shouldShowArrows={shouldShowArrows}
+                page={reversePage(page)}
                 attachments={attachments}
                 onBack={() => {
                     cycleThroughAttachments(-1);
