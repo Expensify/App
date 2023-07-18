@@ -62,9 +62,6 @@ const propTypes = {
     /** Whether we should show a back button */
     shouldShowBackButton: PropTypes.bool,
 
-    /** Whether we should show the step counter */
-    shouldShowStepCounter: PropTypes.bool,
-
     /** The guides call taskID to associate with the get assistance button, if we show it */
     guidesCallTaskID: PropTypes.string,
 
