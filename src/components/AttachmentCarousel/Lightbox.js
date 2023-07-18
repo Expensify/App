@@ -649,7 +649,11 @@ function Page({isActive, item}) {
 
                                 const imageScale = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
 
+                                // Don't update the dimensions if they are already set
+                                if (dimensions?.imageWidth === imageWidth && dimensions?.imageHeight === imageHeight && dimensions?.imageScale === imageScale) return;
+
                                 cachedDimensions.set(item.url, {
+                                    ...dimensions,
                                     imageWidth,
                                     imageHeight,
                                     imageScale,
@@ -677,7 +681,11 @@ function Page({isActive, item}) {
                             const scaledImageWidth = imageWidth * scale;
                             const scaledImageHeight = imageHeight * scale;
 
+                            // Don't update the dimensions if they are already set
+                            if (dimensions?.scaledImageWidth === scaledImageWidth && dimensions?.scaledImageHeight === scaledImageHeight) return;
+
                             cachedDimensions.set(item.url, {
+                                ...dimensions,
                                 scaledImageWidth,
                                 scaledImageHeight,
                             });
