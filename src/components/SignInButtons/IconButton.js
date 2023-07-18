@@ -25,6 +25,10 @@ const providerData = {
         icon: Expensicons.AppleLogo,
         accessibilityLabel: 'common.signInWithApple',
     },
+    [CONST.SIGN_IN_METHOD.GOOGLE]: {
+        icon: Expensicons.GoogleLogo,
+        accessibilityLabel: 'common.signInWithGoogle',
+    },
 };
 
 function IconButton({onPress, translate, provider}) {
