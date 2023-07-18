@@ -4,7 +4,9 @@ import CONST from '../../CONST';
 
 type ACHData = {
     /** Step of the setup flow that we are on. Determines which view is presented. */
-    currentStep?: ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
+    currentStep: ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
+
+    subStep?: ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
     /** Bank account state */
     state?: string;
