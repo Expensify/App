@@ -2,12 +2,12 @@ import {useRef, useContext, useEffect} from 'react';
 import {NetworkContext} from '../components/OnyxProvider';
 
 /**
- * @param {Function} [onNetworkReconnect]
+ * @param {Function} [onReconnect]
  * @returns {Object}
  */
-export default function useNetwork(onNetworkReconnect = () => {}) {
-    const callback = useRef(onNetworkReconnect);
-    callback.current = onNetworkReconnect;
+export default function useNetwork(onReconnect = () => {}) {
+    const callback = useRef(onReconnect);
+    callback.current = onReconnect;
 
     const {isOffline} = useContext(NetworkContext);
     const prevOfflineStatusRef = useRef(isOffline);
