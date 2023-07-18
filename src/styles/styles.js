@@ -528,6 +528,11 @@ const styles = {
         opacity: 0.5,
     },
 
+    buttonNormalHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
+    },
+
     buttonSuccessHovered: {
         backgroundColor: themeColors.successHover,
         borderWidth: 0,

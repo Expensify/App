@@ -114,6 +114,8 @@ const propTypes = {
     /** Accessibility label for the component */
     accessibilityLabel: PropTypes.string,
 
+    shouldShowHoverStyle: PropTypes.bool,
+
     /** A ref to forward the button */
     // eslint-disable-next-line react/forbid-prop-types
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.object})]),
@@ -151,6 +153,7 @@ const defaultProps = {
     nativeID: '',
     accessibilityLabel: '',
     forwardedRef: undefined,
+    shouldShowHoverStyle: false,
 };
 
 class Button extends Component {
@@ -295,6 +298,7 @@ class Button extends Component {
                     ...this.props.innerStyles,
                 ]}
                 hoverStyle={[
+                    !this.props.isDisabled && this.props.shouldShowHoverStyle ? styles.buttonNormalHovered : undefined,
                     this.props.success && !this.props.isDisabled ? styles.buttonSuccessHovered : undefined,
                     this.props.danger && !this.props.isDisabled ? styles.buttonDangerHovered : undefined,
                 ]}
