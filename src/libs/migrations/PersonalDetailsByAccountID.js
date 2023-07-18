@@ -89,11 +89,12 @@ function getDeprecatedPolicyMemberListFromOnyx() {
  *     - whisperedTo -> whisperedToAccountIDs
  *     - childOldestFourEmails -> childOldestFourAccountIDs
  *     - originalMessage.participants -> originalMessage.participantAccountIDs
- * - report_
- *     - ownerEmail -> ownerAccountID
- *     - managerEmail -> managerID
- *     - lastActorEmail -> lastActorAccountID
- *     - participants -> participantAccountIDs
+ * 
+ * For reports, delete existing keys with emails
+ * - ownerEmail
+ * - managerEmail
+ * - lastActorEmail
+ * - participants
  *
  * @returns {Promise<void>}
  */
@@ -238,41 +239,43 @@ export default function () {
             // this is that we already stopped sending email based data in reports, and from everywhere else
             // in the app by this point (since this is the last data we migrated).
             _.each(oldReports, (report, onyxKey) => {
+                const newReport = report;
+
                 // Delete report key if it's empty
-                if (_.isEmpty(report)) {
+                if (_.isEmpty(newReport)) {
                     onyxData[onyxKey] = null;
                     return;
                 }
 
                 let reportWasModified = false;
-                if (lodashHas(report, ['ownerEmail'])) {
+                if (lodashHas(newReport, ['ownerEmail'])) {
                     reportWasModified = true;
-                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing ownerEmail from report ${report.reportID}`);
-                    delete report.ownerEmail;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing ownerEmail from report ${newReport.reportID}`);
+                    delete newReport.ownerEmail;
                 }
 
-                if (lodashHas(report, ['managerEmail'])) {
+                if (lodashHas(newReport, ['managerEmail'])) {
                     reportWasModified = true;
-                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing managerEmail from report ${report.reportID}`);
-                    delete report.managerEmail;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing managerEmail from report ${newReport.reportID}`);
+                    delete newReport.managerEmail;
                 }
 
-                if (lodashHas(report, ['lastActorEmail'])) {
+                if (lodashHas(newReport, ['lastActorEmail'])) {
                     reportWasModified = true;
-                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing lastActorEmail from report ${report.reportID}`);
-                    delete report.lastActorEmail;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing lastActorEmail from report ${newReport.reportID}`);
+                    delete newReport.lastActorEmail;
                 }
 
-                if (lodashHas(report, ['participants'])) {
+                if (lodashHas(newReport, ['participants'])) {
                     reportWasModified = true;
-                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing participants from report ${report.reportID}`);
-                    delete report.participants;
+                    Log.info(`[Migrate Onyx] PersonalDetailsByAccountID migration: removing participants from report ${newReport.reportID}`);
+                    delete newReport.participants;
                 }
 
                 if (reportWasModified) {
                     onyxData[onyxKey] = report;
                 }
-            })
+            });
 
             return Onyx.multiSet(onyxData);
         },
