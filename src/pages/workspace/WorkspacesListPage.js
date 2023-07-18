@@ -16,7 +16,6 @@ import MenuItem from '../../components/MenuItem';
 import * as Policy from '../../libs/actions/Policy';
 import policyMemberPropType from '../policyMemberPropType';
 import Button from '../../components/Button';
-import BlockingView from '../../components/BlockingViews/BlockingView';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
@@ -27,6 +26,8 @@ import usePermissions from '../../hooks/usePermissions';
 import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 import SCREENS from '../../SCREENS';
 import * as LottieAnimations from '../../components/LottieAnimations';
+import * as Illustrations from '../../components/Icon/Illustrations';
+import FeatureList from '../../components/FeatureList';
 
 const propTypes = {
     /** The list of this user's policies */
@@ -70,6 +71,21 @@ const defaultProps = {
         currentBalance: 0,
     },
 };
+
+const workspaceFeatures = [
+    {
+        icon: Illustrations.MoneyReceipts,
+        translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
+    },
+    {
+        icon: Illustrations.CreditCardsNew,
+        translationKey: 'workspace.emptyWorkspace.features.companyCards',
+    },
+    {
+        icon: Illustrations.MoneyWings,
+        translationKey: 'workspace.emptyWorkspace.features.reimbursements',
+    },
+];
 
 /**
  * Dismisses the errors on one item
@@ -180,10 +196,10 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             }
         >
             {_.isEmpty(workspaces) ? (
-                <BlockingView
-                    icon={Expensicons.Building}
-                    title={translate('workspace.emptyWorkspace.title')}
-                    subtitle={translate('workspace.emptyWorkspace.subtitle')}
+                <FeatureList
+                    menuItems={workspaceFeatures}
+                    headline="workspace.emptyWorkspace.title"
+                    description="workspace.emptyWorkspace.subtitle"
                 />
             ) : (
                 <>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</>

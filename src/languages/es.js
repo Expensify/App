@@ -1133,6 +1133,11 @@ export default {
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
             subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
+            features: {
+                trackAndCollect: 'Organiza recibos',
+                companyCards: 'Tarjetas de crédito corporativas',
+                reimbursements: 'Reembolsos fáciles',
+            },
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -1421,7 +1426,7 @@ export default {
         expenseManagement: 'Gestión de Gastos',
         spendManagement: 'Control de Gastos',
         expenseReports: 'Informes de Gastos',
-        companyCreditCard: 'Tarjeta de Crédito de Empresa',
+        companyCreditCard: 'Tarjeta de Crédito Corporativa',
         receiptScanningApp: 'Aplicación de Escaneado de Recibos',
         billPay: 'Pago de Facturas',
         invoicing: 'Facturación',
