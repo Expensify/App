@@ -623,8 +623,8 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsTwoFactorAuthCodes = require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default;
-            return SettingsTwoFactorAuthCodes;
+            const SettingsTwoFactorAuth = require('../../../pages/settings/Security/TwoFactorAuth/TwoFactorAuthPage').default;
+            return SettingsTwoFactorAuth;
         },
         name: 'Settings_TwoFactorAuth',
     },
