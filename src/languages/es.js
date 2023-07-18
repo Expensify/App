@@ -1970,6 +1970,8 @@ export default {
         principalFirstName: 'Nombre principal',
         principalLastName: 'Apellido principal',
         principalWorkEmail: 'Correo electrónico de trabajo del director',
+        updateYourEmail: 'Actualiza tu dirección de correo electrónico',
+        updateEmail: 'Actualización de la dirección de correo electrónico',
         error: {
             enterName: 'Ingresa un nombre',
             enterPhoneEmail: 'Ingrese un correo electrónico o número de teléfono válido',

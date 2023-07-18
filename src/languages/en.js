@@ -1499,6 +1499,8 @@ export default {
         principalFirstName: 'Principal first name',
         principalLastName: 'Principal last name',
         principalWorkEmail: 'Principal work email',
+        updateYourEmail: 'Update your email address',
+        updateEmail: 'Update email address',
         error: {
             enterName: 'Enter a name',
             enterPhoneEmail: 'Enter a valid email or phone number',
