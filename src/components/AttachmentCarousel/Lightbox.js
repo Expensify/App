@@ -54,7 +54,7 @@ function ImageWrapper({children}) {
 }
 
 // eslint-disable-next-line react/prop-types
-function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeight = 0, imageScale = 1, isActive, onSwipe, onSwipeSuccess, renderImage, onTap}) {
+function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeight = 0, imageScale = 1, isActive, onSwipe, onSwipeSuccess, onTap, children}) {
     const {pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
 
     const [imageDimensions, setImageDimensions] = useState({width: imageWidth, height: imageHeight});
@@ -582,9 +582,7 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeigh
                                         collapsable={false}
                                         style={[animatedStyles]}
                                     >
-                                        {renderImage({
-                                            ...imageDimensions,
-                                        })}
+                                        {children}
                                     </Animated.View>
                                 </GestureDetector>
                             </ImageWrapper>
@@ -620,28 +618,29 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
     const [isImageLoading, setIsImageLoading] = useState(!areImageDimensionsSet);
 
     useEffect(() => {
-        if (!isActive && !areImageDimensionsSet) return;
+        if (!isActive) return;
         setIsImageLoading(true);
-    }, [areImageDimensionsSet, isActive]);
+    }, [isActive]);
 
     return (
         <>
             {isActive && (
-                <ImageTransformer
-                    onSwipe={onSwipe}
-                    onSwipeSuccess={onSwipeSuccess}
-                    onSwipeDown={onSwipeDown}
-                    isActive
-                    onTap={onTap}
-                    imageWidth={dimensions?.imageWidth}
-                    imageHeight={dimensions?.imageHeight}
-                    imageScale={dimensions?.imageScale}
-                    canvasHeight={canvasHeight}
-                    canvasWidth={canvasWidth}
-                    renderImage={({width, height, style}) => (
+                <View style={[StyleSheet.absoluteFill, {opacity: isImageLoading ? 0 : 1}]}>
+                    <ImageTransformer
+                        onSwipe={onSwipe}
+                        onSwipeSuccess={onSwipeSuccess}
+                        onSwipeDown={onSwipeDown}
+                        isActive
+                        onTap={onTap}
+                        imageWidth={dimensions?.imageWidth}
+                        imageHeight={dimensions?.imageHeight}
+                        imageScale={dimensions?.imageScale}
+                        canvasHeight={canvasHeight}
+                        canvasWidth={canvasWidth}
+                    >
                         <Image
                             source={{uri: item.url}}
-                            style={[style, {width, height}]}
+                            style={dimensions == null ? {} : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
                             onLoad={(evt) => {
                                 const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
                                 const imageHeight = (evt.nativeEvent?.height || 0) / PixelRatio.get();
@@ -655,14 +654,14 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
                                 });
 
                                 if (imageWidth === 0 || imageHeight === 0) return;
-                                console.log('set iamge loading false');
                                 setIsImageLoading(false);
                             }}
                         />
-                    )}
-                />
+                    </ImageTransformer>
+                </View>
             )}
 
+            {/* Keep rendering the image without gestures as fallback while ImageTransformer is loading the image */}
             {(!isActive || isImageLoading) && (
                 <ImageWrapper>
                     <Image
@@ -686,6 +685,7 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
                 </ImageWrapper>
             )}
 
+            {/* Show activity indicator while ImageTransfomer is still loading the image. */}
             {isActive && isImageLoading && (
                 <ActivityIndicator
                     size="large"
