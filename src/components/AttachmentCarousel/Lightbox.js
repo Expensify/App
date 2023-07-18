@@ -41,20 +41,23 @@ function clamp(value, lowerBound, upperBound) {
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
-    const scaleFactorX = canvasWidth / imageWidth;
-    const scaleFactorY = canvasHeight / imageHeight;
-
-    return scaleFactorY > scaleFactorX ? scaleFactorX : scaleFactorY;
+// eslint-disable-next-line react/prop-types
+function ImageWrapper({children}) {
+    return (
+        <Animated.View
+            collapsable={false}
+            style={[StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter]}
+        >
+            {children}
+        </Animated.View>
+    );
 }
 
 // eslint-disable-next-line react/prop-types
-function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, imageScale = 1, isActive, onSwipe, onSwipeSuccess, renderImage, renderFallback, onTap}) {
+function ImageTransformer({canvasWidth, canvasHeight, imageWidth = 0, imageHeight = 0, imageScale = 1, isActive, onSwipe, onSwipeSuccess, renderImage, onTap}) {
     const {pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
 
-    const [showFallback, setShowFallback] = useState(typeof imageHeight === 'undefined' || typeof imageWidth === 'undefined');
-
-    const [imageDimensions, setImageDimensions] = useState(showFallback ? {width: 0, height: 0} : {width: imageWidth, height: imageHeight});
+    const [imageDimensions, setImageDimensions] = useState({width: imageWidth, height: imageHeight});
 
     const targetDimensions = {
         width: useSharedValue(0),
@@ -66,33 +69,31 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
         height: useSharedValue(canvasHeight),
     };
 
+    const canvasFitScale = useSharedValue(imageScale);
+    const zoomScale = useSharedValue(1);
+    // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
+    // Substracting 1, because both scales have the initial image as the base reference
+    const totalScale = useDerivedValue(() => zoomScale.value + canvasFitScale.value - 1);
+
     // Update shared values on UI thread when canvas dimensions change
     useEffect(() => {
         runOnUI(() => {
             'worklet';
 
+            canvasFitScale.value = imageScale;
             canvas.width.value = canvasWidth;
             canvas.height.value = canvasHeight;
         })();
-    }, [canvas.width, canvas.height, canvasHeight, canvasWidth]);
+    }, [canvas.height, canvas.width, canvasFitScale, canvasHeight, canvasWidth, imageScale]);
 
-    const canvasFitScale = useSharedValue(imageScale);
-    const zoomScale = useSharedValue(1);
+    useEffect(() => {
+        if (imageWidth === 0 || imageHeight === 0) return;
 
-    // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
-    // Substracting 1, because both scales have the initial image as the base reference
-    const totalScale = useDerivedValue(() => zoomScale.value + canvasFitScale.value - 1);
+        setImageDimensions({width: imageWidth, height: imageHeight});
 
-    const onLoad = (resolvedDimensions) => {
-        setImageDimensions(resolvedDimensions);
-
-        targetDimensions.width.value = resolvedDimensions.width;
-        targetDimensions.height.value = resolvedDimensions.height;
-
-        canvasFitScale.value = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth: resolvedDimensions.width, imageHeight: resolvedDimensions.height});
-
-        setShowFallback(false);
-    };
+        targetDimensions.width.value = imageWidth;
+        targetDimensions.height.value = imageHeight;
+    }, [imageDimensions.height, imageDimensions.width, imageHeight, imageWidth, targetDimensions.height, targetDimensions.width]);
 
     // used for pan gesture
     const translateY = useSharedValue(0);
@@ -581,12 +582,8 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
                                         collapsable={false}
                                         style={[animatedStyles]}
                                     >
-                                        {showFallback && renderFallback()}
-
                                         {renderImage({
-                                            onResolveImageDimensions: onLoad,
                                             ...imageDimensions,
-                                            style: showFallback ? {...styles.opacity0, ...styles.pAbsolute} : {},
                                         })}
                                     </Animated.View>
                                 </GestureDetector>
@@ -599,16 +596,11 @@ function ImageTransformer({canvasWidth, canvasHeight, imageWidth, imageHeight, i
     );
 }
 
-// eslint-disable-next-line react/prop-types
-function ImageWrapper({children}) {
-    return (
-        <Animated.View
-            collapsable={false}
-            style={[StyleSheet.absoluteFill, styles.justifyContentCenter, styles.alignItemsCenter]}
-        >
-            {children}
-        </Animated.View>
-    );
+function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
+    const scaleFactorX = canvasWidth / imageWidth;
+    const scaleFactorY = canvasHeight / imageHeight;
+
+    return scaleFactorY > scaleFactorX ? scaleFactorX : scaleFactorY;
 }
 
 const cachedDimensions = new Map();
@@ -623,56 +615,84 @@ const pagePropTypes = {
 function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth, canvasHeight, onTap}) {
     const dimensions = cachedDimensions.get(item.url);
 
-    const imageScale = dimensions == null ? 1 : getCanvasFitScale({imageWidth: dimensions.width, imageHeight: dimensions.height, canvasWidth, canvasHeight});
+    const areImageDimensionsSet = dimensions?.imageWidth !== 0 && dimensions?.imageHeight !== 0;
 
-    if (!isActive) {
-        return (
-            <ImageWrapper>
-                <Image
-                    source={{uri: item.url}}
-                    onLoad={(evt) => {
-                        cachedDimensions.set(item.url, {
-                            width: evt.nativeEvent.width,
-                            height: evt.nativeEvent.height,
-                        });
-                    }}
-                    style={dimensions == null ? undefined : {...dimensions, transform: [{scale: imageScale}]}}
-                />
-            </ImageWrapper>
-        );
-    }
+    const [isImageLoading, setIsImageLoading] = useState(!areImageDimensionsSet);
+
+    useEffect(() => {
+        if (!isActive && !areImageDimensionsSet) return;
+        setIsImageLoading(true);
+    }, [areImageDimensionsSet, isActive]);
 
     return (
-        <ImageTransformer
-            onSwipe={onSwipe}
-            onSwipeSuccess={onSwipeSuccess}
-            onSwipeDown={onSwipeDown}
-            isActive
-            onTap={onTap}
-            imageHeight={dimensions?.height}
-            imageWidth={dimensions?.width}
-            imageScale={dimensions?.scale}
-            canvasHeight={canvasHeight}
-            canvasWidth={canvasWidth}
-            renderFallback={() => <ActivityIndicator />}
-            renderImage={({onResolveImageDimensions, width, height, style}) => (
-                <Image
-                    source={{uri: item.url}}
-                    style={[style, {width, height}]}
-                    onLoad={(evt) => {
-                        cachedDimensions.set(item.url, {
-                            width: evt.nativeEvent?.width,
-                            height: evt.nativeEvent?.height,
-                        });
+        <>
+            {isActive && (
+                <ImageTransformer
+                    onSwipe={onSwipe}
+                    onSwipeSuccess={onSwipeSuccess}
+                    onSwipeDown={onSwipeDown}
+                    isActive
+                    onTap={onTap}
+                    imageWidth={dimensions?.imageWidth}
+                    imageHeight={dimensions?.imageHeight}
+                    imageScale={dimensions?.imageScale}
+                    canvasHeight={canvasHeight}
+                    canvasWidth={canvasWidth}
+                    renderImage={({width, height, style}) => (
+                        <Image
+                            source={{uri: item.url}}
+                            style={[style, {width, height}]}
+                            onLoad={(evt) => {
+                                const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
+                                const imageHeight = (evt.nativeEvent?.height || 0) / PixelRatio.get();
 
-                        onResolveImageDimensions({
-                            width: evt.nativeEvent?.width / PixelRatio.get(),
-                            height: evt.nativeEvent?.height / PixelRatio.get(),
-                        });
-                    }}
+                                const imageScale = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+
+                                cachedDimensions.set(item.url, {
+                                    imageWidth,
+                                    imageHeight,
+                                    imageScale,
+                                });
+
+                                if (imageWidth === 0 || imageHeight === 0) return;
+                                console.log('set iamge loading false');
+                                setIsImageLoading(false);
+                            }}
+                        />
+                    )}
                 />
             )}
-        />
+
+            {(!isActive || isImageLoading) && (
+                <ImageWrapper>
+                    <Image
+                        source={{uri: item.url}}
+                        onLoad={(evt) => {
+                            const imageWidth = evt.nativeEvent.width;
+                            const imageHeight = evt.nativeEvent.height;
+
+                            const scale = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+
+                            const scaledImageWidth = imageWidth * scale;
+                            const scaledImageHeight = imageHeight * scale;
+
+                            cachedDimensions.set(item.url, {
+                                scaledImageWidth,
+                                scaledImageHeight,
+                            });
+                        }}
+                        style={dimensions == null ? undefined : {width: dimensions.scaledImageWidth, height: dimensions.scaledImageHeight}}
+                    />
+                </ImageWrapper>
+            )}
+
+            {isActive && isImageLoading && (
+                <ActivityIndicator
+                    size="large"
+                    style={StyleSheet.absoluteFill}
+                />
+            )}
+        </>
     );
 }
 Page.propTypes = pagePropTypes;
