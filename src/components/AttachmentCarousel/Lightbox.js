@@ -41,7 +41,10 @@ function clamp(value, lowerBound, upperBound) {
     return Math.min(Math.max(lowerBound, value), upperBound);
 }
 
-// eslint-disable-next-line react/prop-types
+const imageWrapperPropTypes = {
+    children: PropTypes.node.isRequired,
+};
+
 function ImageWrapper({children}) {
     return (
         <Animated.View
@@ -52,6 +55,7 @@ function ImageWrapper({children}) {
         </Animated.View>
     );
 }
+ImageWrapper.propTypes = imageWrapperPropTypes;
 
 const imageTransformerPropTypes = {
     imageWidth: PropTypes.number.isRequired,
@@ -606,12 +610,12 @@ function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight})
 const cachedDimensions = new Map();
 
 const pagePropTypes = {
+    isActive: PropTypes.bool.isRequired,
     item: PropTypes.shape({
         url: PropTypes.string,
     }).isRequired,
 };
 
-// eslint-disable-next-line react/prop-types
 function Page({isActive, item}) {
     const {canvasWidth, canvasHeight} = useContext(Context);
 
