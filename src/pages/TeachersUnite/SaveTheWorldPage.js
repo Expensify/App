@@ -38,24 +38,21 @@ function SaveTheWorldPage(props) {
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
             illustration={LottieAnimations.PreferencesDJ}
         >
-            <View style={styles.mb6}>
-                <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.ml5, styles.mr8]}>
-                    <View style={styles.flex4}>
-                        <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
-                    </View>
-                </View>
-                <MenuItem
-                    shouldShowRightIcon
-                    title={translate('teachersUnitePage.iKnowATeacher')}
-                    // onPress={() => Navigation.navigate(ROUTES)}
-                />
-
-                <MenuItem
-                    shouldShowRightIcon
-                    title={translate('teachersUnitePage.iAmATeacher')}
-                    // onPress={() => Navigation.navigate(ROUTES)}
-                />
+            <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
+                <Text style={[styles.textHeadline, styles.mb3, styles.mt3]}>{translate('teachersUnitePage.teachersUnite')}</Text>
+                <Text>{translate('teachersUnitePage.joinExpensifyOrg')}</Text>
             </View>
+            <MenuItem
+                shouldShowRightIcon
+                title={translate('teachersUnitePage.iKnowATeacher')}
+                // onPress={() => Navigation.navigate(ROUTES)}
+            />
+
+            <MenuItem
+                shouldShowRightIcon
+                title={translate('teachersUnitePage.iAmATeacher')}
+                // onPress={() => Navigation.navigate(ROUTES)}
+            />
         </IllustratedHeaderPageLayout>
     );
 }

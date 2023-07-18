@@ -299,7 +299,7 @@ const NewTaskModalStackNavigator = createModalStackNavigator([
 const NewTeachersUniteNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const SaveTheWorldPage = require('../../../pages/TeachersUnite/SaveTheWorld').default;
+            const SaveTheWorldPage = require('../../../pages/TeachersUnite/SaveTheWorldPage').default;
             return SaveTheWorldPage;
         },
         name: 'SaveTheWorld_Root',

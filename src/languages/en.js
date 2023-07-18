@@ -1487,6 +1487,7 @@ export default {
     },
     teachersUnitePage: {
         teachersUnite: 'Teachers unite!',
+        joinExpensifyOrg: 'Join Expensify.org in eliminating injustice around the world and help teachers split their expenses for classrooms in need!',
         iKnowATeacher: 'I know a teacher',
         iAmATeacher: 'I am a teacher',
     },

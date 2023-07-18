@@ -1958,6 +1958,7 @@ export default {
     },
     teachersUnitePage: {
         teachersUnite: '¡Las maestras se unen!',
+        joinExpensifyOrg: '¡Únase a Expensify.org para eliminar la injusticia en todo el mundo y ayude a los maestros a dividir sus gastos para las aulas necesitadas!',
         iKnowATeacher: 'yo conozco a un maestro',
         iAmATeacher: 'Soy profesora',
     },
