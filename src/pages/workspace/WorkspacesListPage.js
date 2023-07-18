@@ -12,7 +12,6 @@ import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
 import * as PolicyUtils from '../../libs/PolicyUtils';
@@ -28,6 +27,7 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -66,8 +66,6 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -99,7 +97,9 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas, network, translate}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas, network}) {
+    const {translate} = useLocalize();
+
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
@@ -200,7 +200,6 @@ WorkspacesListPage.propTypes = propTypes;
 WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
     withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
