@@ -1,12 +1,12 @@
-import React, {useRef, useCallback} from 'react';
-import {View, FlatList, PixelRatio} from 'react-native';
+import React, {useRef, useCallback, useState} from 'react';
+import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
 import CarouselActions from '../CarouselActions';
 import AttachmentView from '../../AttachmentView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
 import CarouselButtons from '../CarouselButtons';
-import attachmentCarouselViewPropTypes from './propTypes';
+import {propTypes as attachmentCarouselViewPropTypes} from './propTypes';
 
 const VIEWABILITY_CONFIG = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
@@ -19,8 +19,36 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-function AttachmentCarouselView({carouselState, updatePage, setArrowsVisibility, ...props}) {
+function AttachmentCarouselView({containerDimensions, attachments, initialPage, initialActiveSource, onNavigate, ...props}) {
     const scrollRef = useRef(null);
+
+    const [shouldShowArrows, setShouldShowArrows] = useState(false);
+    const [page, setPage] = useState(initialPage);
+    const [activeSource, setActiveSource] = useState(initialActiveSource);
+
+    /**
+     * Updates the page state when the user navigates between attachments
+     * @param {Object} item
+     * @param {number} index
+     */
+    const updatePage = useCallback(
+        ({item, index}) => {
+            Keyboard.dismiss();
+
+            if (!item) {
+                // eslint-disable-next-line react/no-unused-state
+                setActiveSource(null);
+                return;
+            }
+
+            const pageIndex = index;
+            onNavigate(item);
+            // eslint-disable-next-line react/no-unused-state
+            setPage(pageIndex);
+            setActiveSource(item.source);
+        },
+        [onNavigate],
+    );
 
     /**
      * Calculate items layout information to optimize scrolling performance
@@ -30,11 +58,11 @@ function AttachmentCarouselView({carouselState, updatePage, setArrowsVisibility,
      */
     const getItemLayout = useCallback(
         (_data, index) => ({
-            length: carouselState.containerWidth,
-            offset: carouselState.containerWidth * index,
+            length: containerDimensions.width,
+            offset: containerDimensions.height * index,
             index,
         }),
-        [carouselState.containerWidth],
+        [containerDimensions.height, containerDimensions.width],
     );
 
     /**
@@ -43,8 +71,8 @@ function AttachmentCarouselView({carouselState, updatePage, setArrowsVisibility,
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide) => {
-            const nextIndex = carouselState.page - deltaSlide;
-            const nextItem = carouselState.attachments[nextIndex];
+            const nextIndex = page - deltaSlide;
+            const nextItem = attachments[nextIndex];
 
             if (!nextItem || !scrollRef.current) {
                 return;
@@ -54,7 +82,7 @@ function AttachmentCarouselView({carouselState, updatePage, setArrowsVisibility,
             // so we only enable it for mobile
             scrollRef.current.scrollToIndex({index: nextIndex, animated: false});
         },
-        [carouselState.attachments, carouselState.page],
+        [attachments, page],
     );
 
     /**
@@ -88,13 +116,13 @@ function AttachmentCarouselView({carouselState, updatePage, setArrowsVisibility,
     const renderItem = useCallback(
         ({item}) => (
             <AttachmentView
-                isFocused={carouselState.activeSource === item.source}
+                isFocused={activeSource === item.source}
                 source={item.source}
                 file={item.file}
                 isAuthTokenRequired={item.isAuthTokenRequired}
             />
         ),
-        [carouselState.activeSource],
+        [activeSource],
     );
 
     const handleViewableItemsChange = useCallback(
@@ -111,17 +139,19 @@ function AttachmentCarouselView({carouselState, updatePage, setArrowsVisibility,
 
     return (
         <View
-            onMouseEnter={() => setArrowsVisibility(true)}
-            onMouseLeave={() => setArrowsVisibility(false)}
+            onMouseEnter={() => setShouldShowArrows(true)}
+            onMouseLeave={() => setShouldShowArrows(false)}
             style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}
         >
             <CarouselButtons
-                carouselState={carouselState}
+                shouldShowArrows={shouldShowArrows}
+                page={page}
+                attachments={attachments}
                 onBack={() => cycleThroughAttachments(-1)}
                 onForward={() => cycleThroughAttachments(1)}
             />
 
-            {carouselState.containerWidth > 0 && carouselState.containerHeight > 0 && (
+            {containerDimensions.width > 0 && containerDimensions.height > 0 && (
                 <FlatList
                     listKey="AttachmentCarousel"
                     horizontal
@@ -131,14 +161,14 @@ function AttachmentCarouselView({carouselState, updatePage, setArrowsVisibility,
                     disableIntervalMomentum // Scroll only one image at a time no matter how fast the user swipes
                     pagingEnabled
                     snapToAlignment="start"
-                    snapToInterval={carouselState.containerWidth}
+                    snapToInterval={containerDimensions.width}
                     scrollEnabled={false}
                     ref={scrollRef}
-                    initialScrollIndex={carouselState.page}
+                    initialScrollIndex={page}
                     initialNumToRender={3}
                     windowSize={5}
                     maxToRenderPerBatch={3}
-                    data={carouselState.attachments}
+                    data={attachments}
                     CellRendererComponent={renderCell}
                     renderItem={renderItem}
                     getItemLayout={getItemLayout}

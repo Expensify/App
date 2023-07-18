@@ -8,11 +8,14 @@ import Tooltip from '../Tooltip';
 import Button from '../Button';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
+import * as AttachmentCarouselViewPropTypes from './AttachmentCarouselView/propTypes';
 
 const propTypes = {
-    /** Callback to go one page back */
-    // eslint-disable-next-line react/forbid-prop-types
-    carouselState: PropTypes.object.isRequired,
+    /** The current page index */
+    page: PropTypes.number.isRequired,
+
+    /** The attachments from the carousel */
+    attachments: AttachmentCarouselViewPropTypes.attachmentsPropType.isRequired,
 
     /** Callback to go one page back */
     onBack: PropTypes.func.isRequired,
@@ -30,11 +33,11 @@ const defaultProps = {
     cancelAutoHideArrow: () => {},
 };
 
-function CarouselButtons(props) {
-    const isForwardDisabled = props.carouselState.page === 0;
-    const isBackDisabled = props.carouselState.page === _.size(props.carouselState.attachments) - 1;
+function CarouselButtons({page, attachments, shouldShowArrow, onBack, onForward, cancelAutoHideArrow, autoHideArrow, ...props}) {
+    const isForwardDisabled = page === 0;
+    const isBackDisabled = page === _.size(attachments) - 1;
 
-    return props.carouselState.shouldShowArrow ? (
+    return shouldShowArrow ? (
         <>
             {!isBackDisabled && (
                 <Tooltip text={props.translate('common.previous')}>
@@ -45,9 +48,9 @@ function CarouselButtons(props) {
                             icon={Expensicons.BackArrow}
                             iconFill={themeColors.text}
                             iconStyles={[styles.mr0]}
-                            onPress={props.onBack}
-                            onPressIn={props.cancelAutoHideArrow}
-                            onPressOut={props.autoHideArrow}
+                            onPress={onBack}
+                            onPressIn={cancelAutoHideArrow}
+                            onPressOut={autoHideArrow}
                         />
                     </View>
                 </Tooltip>
@@ -61,9 +64,9 @@ function CarouselButtons(props) {
                             icon={Expensicons.ArrowRight}
                             iconFill={themeColors.text}
                             iconStyles={[styles.mr0]}
-                            onPress={props.onForward}
-                            onPressIn={props.cancelAutoHideArrow}
-                            onPressOut={props.autoHideArrow}
+                            onPress={onForward}
+                            onPressIn={cancelAutoHideArrow}
+                            onPressOut={autoHideArrow}
                         />
                     </View>
                 </Tooltip>

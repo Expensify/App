@@ -1,34 +1,37 @@
 import PropTypes from 'prop-types';
 
+const attachmentsPropType = PropTypes.arrayOf(
+    PropTypes.shape({
+        // eslint-disable-next-line react/forbid-prop-types
+        file: PropTypes.object.isRequired,
+        isAuthTokenRequired: PropTypes.bool.isRequired,
+        source: PropTypes.string.isRequired,
+    }),
+);
+
 const propTypes = {
     /**
-     * The current state of the carousel
+     * The initial page of the carousel
      */
-    carouselState: PropTypes.shape({
-        page: PropTypes.number.isRequired,
-        attachments: PropTypes.arrayOf(
-            PropTypes.shape({
-                // eslint-disable-next-line react/forbid-prop-types
-                file: PropTypes.object.isRequired,
-                isAuthTokenRequired: PropTypes.bool.isRequired,
-                source: PropTypes.string.isRequired,
-            }),
-        ).isRequired,
-        shouldShowArrow: PropTypes.bool.isRequired,
-        containerWidth: PropTypes.number.isRequired,
-        containerHeight: PropTypes.number.isRequired,
-        activeSource: PropTypes.string,
+    initialPage: PropTypes.number.isRequired,
+
+    /**
+     * The attachments of the carousel
+     */
+    attachments: attachmentsPropType.isRequired,
+
+    /**
+     * The initial active ource of the carousel
+     */
+    initialActiveSource: PropTypes.string.isRequired,
+
+    /**
+     * The container dimensions
+     */
+    containerDimensions: PropTypes.shape({
+        width: PropTypes.number.isRequired,
+        height: PropTypes.number.isRequired,
     }).isRequired,
-
-    /**
-     * A callback to update the page in the carousel component
-     */
-    updatePage: PropTypes.func.isRequired,
-
-    /**
-     * A callback for toggling the visibility of the arrows
-     */
-    setArrowsVisibility: PropTypes.func.isRequired,
 };
 
-export default propTypes;
+export {propTypes, attachmentsPropType};

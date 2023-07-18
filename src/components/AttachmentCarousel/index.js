@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, PixelRatio, Keyboard} from 'react-native';
+import {View, PixelRatio} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -46,23 +46,9 @@ class AttachmentCarousel extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updatePage = this.updatePage.bind(this);
-        this.setArrowsVisibility = this.setArrowsVisibility.bind(this);
         this.createInitialState = this.createInitialState.bind(this);
 
         this.state = this.createInitialState();
-    }
-
-    /**
-     * Toggles the visibility of the arrows
-     * @param {Boolean} shouldShowArrow
-     * @param {Boolean} isGestureInUse
-     */
-    setArrowsVisibility(shouldShowArrow) {
-        this.setState((current) => {
-            const newShouldShowArrow = _.isBoolean(shouldShowArrow) ? shouldShowArrow : !current.shouldShowArrow;
-            return {shouldShowArrow: newShouldShowArrow};
-        });
     }
 
     /**
@@ -99,42 +85,21 @@ class AttachmentCarousel extends React.Component {
         });
         htmlParser.end();
 
-        const page = _.findIndex(attachments, (a) => a.source === this.props.source);
-        if (page === -1) {
+        const initialPage = _.findIndex(attachments, (a) => a.source === this.props.source);
+        if (initialPage === -1) {
             throw new Error('Attachment not found');
         }
 
         // Update the parent modal's state with the source and name from the mapped attachments
-        this.props.onNavigate(attachments[page]);
+        this.props.onNavigate(attachments[initialPage]);
 
         return {
-            page,
+            initialPage,
             attachments,
-            shouldShowArrow: false,
             containerWidth: 0,
             containerHeight: 0,
-            activeSource: null,
+            initialActiveSource: null,
         };
-    }
-
-    /**
-     * Updates the page state when the user navigates between attachments
-     * @param {Object} item
-     * @param {number} index
-     */
-    updatePage({item, index}) {
-        Keyboard.dismiss();
-
-        if (!item) {
-            // eslint-disable-next-line react/no-unused-state
-            this.setState({activeSource: null});
-            return;
-        }
-
-        const page = index;
-        this.props.onNavigate(item);
-        // eslint-disable-next-line react/no-unused-state
-        this.setState({page, activeSource: item.source});
     }
 
     render() {
@@ -147,9 +112,10 @@ class AttachmentCarousel extends React.Component {
                 }
             >
                 <AttachmentCarouselView
-                    carouselState={this.state}
-                    updatePage={this.updatePage}
-                    setArrowsVisibility={this.setArrowsVisibility}
+                    attachments={this.state.attachments}
+                    initialPage={this.state.initialPage}
+                    initialActiveSource={this.state.initialActiveSource}
+                    containerDimensions={{width: this.state.containerWidth, height: this.state.containerHeight}}
                     onClose={this.props.onClose}
                 />
             </View>
