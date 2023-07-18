@@ -130,8 +130,8 @@ class BaseOptionsSelector extends Component {
         }
 
         const newOptions = this.flattenSections();
-        //If only the preferredLocale has changed we don't update the focused index
-        if(prevProps.preferredLocale != this.props.preferredLocale){
+        // If only the preferredLocale has changed we don't update the focused index
+        if (prevProps.preferredLocale !== this.props.preferredLocale){
             this.setState({
                 allOptions: newOptions,
             });
