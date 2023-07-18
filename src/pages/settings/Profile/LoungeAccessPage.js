@@ -69,7 +69,7 @@ function LoungeAccessPage(props) {
                                 source={ExpensifyLounge}
                                 autoPlay
                                 loop
-                                style={styles.confirmationAnimation}
+                                style={illustrationStyle}
                             />
                         </View>
                         <View style={styles.pageWrapperNotCentered}>
