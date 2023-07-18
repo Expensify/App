@@ -1,5 +1,4 @@
 import React, {useState, useEffect, useCallback, useImperativeHandle, forwardRef} from 'react';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
