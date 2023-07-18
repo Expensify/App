@@ -66,6 +66,10 @@ function RigthModalNavigator() {
                 component={ModalStackNavigators.NewTaskModalStackNavigator}
             />
             <Stack.Screen
+                name="TeachersUnite"
+                component={ModalStackNavigators.NewTeachersUniteNavigator}
+            />
+            <Stack.Screen
                 name="Task_Details"
                 component={ModalStackNavigators.TaskModalStackNavigator}
             />

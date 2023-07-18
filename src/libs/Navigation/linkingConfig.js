@@ -272,6 +272,11 @@ export default {
                             NewTask_Description: ROUTES.NEW_TASK_DESCRIPTION,
                         },
                     },
+                    TeachersUnite: {
+                        screens: {
+                            SaveTheWorld_Root: ROUTES.SAVE_THE_WORLD,
+                        },
+                    },
                     Search: {
                         screens: {
                             Search_Root: ROUTES.SEARCH,

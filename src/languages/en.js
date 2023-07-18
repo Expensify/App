@@ -340,6 +340,7 @@ export default {
         draftedMessage: 'Drafted message',
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
+        saveTheWorld: 'Save the world',
     },
     iou: {
         amount: 'Amount',
@@ -1483,5 +1484,10 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    teachersUnitePage: {
+        teachersUnite: 'Teachers unite!',
+        iKnowATeacher: 'I know a teacher',
+        iAmATeacher: 'I am a teacher',
     },
 };

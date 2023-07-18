@@ -339,6 +339,7 @@ export default {
         draftedMessage: 'Mensaje borrador',
         listOfChatMessages: 'Lista de mensajes del chat',
         listOfChats: 'lista de chats',
+        saveTheWorld: 'Salvar el mundo',
     },
     iou: {
         amount: 'Importe',
@@ -1954,5 +1955,10 @@ export default {
         levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
+    },
+    teachersUnitePage: {
+        teachersUnite: '¡Las maestras se unen!',
+        iKnowATeacher: 'yo conozco a un maestro',
+        iAmATeacher: 'Soy profesora',
     },
 };

@@ -296,6 +296,16 @@ const NewTaskModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const NewTeachersUniteNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const SaveTheWorldPage = require('../../../pages/TeachersUnite/SaveTheWorld').default;
+            return SaveTheWorldPage;
+        },
+        name: 'SaveTheWorld_Root',
+    },
+]);
+
 const SettingsModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -739,4 +749,5 @@ export {
     WalletStatementStackNavigator,
     FlagCommentStackNavigator,
     EditRequestStackNavigator,
+    NewTeachersUniteNavigator,
 };

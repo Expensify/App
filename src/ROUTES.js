@@ -113,6 +113,7 @@ export default {
     FLAG_COMMENT: `flag/:reportID/:reportActionID`,
     getFlagCommentRoute: (reportID, reportActionID) => `flag/${reportID}/${reportActionID}`,
     SEARCH: 'search',
+    SAVE_THE_WORLD: 'saveTheWorld',
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
