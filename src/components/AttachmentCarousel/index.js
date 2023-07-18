@@ -75,16 +75,16 @@ function AttachmentCarousel(props) {
 
     /**
      * Toggles the visibility of the arrows
-     * @param {Boolean} areArrowsVisible
+     * @param {Boolean} newShouldShowArrow
      */
     const toggleArrowsVisibility = useCallback(
-        (areArrowsVisible) => {
+        (newShouldShowArrow) => {
             // Don't toggle arrows in a zoomed state
             if (isZoomed) {
                 return;
             }
 
-            setShouldShowArrow((prevState) => (_.isBoolean(areArrowsVisible) ? areArrowsVisible : !prevState));
+            setShouldShowArrow((prevState) => (_.isBoolean(newShouldShowArrow) ? newShouldShowArrow : !prevState));
         },
         [isZoomed],
     );
