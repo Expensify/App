@@ -21,6 +21,7 @@ type ReimbursementAccountDraft = {
     incorporationDate?: string | Date;
     incorporationState?: string;
     hasNoConnectionToCannabis?: boolean;
+    bank?: string;
 
     /** Props needed for RequestorStep */
     firstName?: string;
