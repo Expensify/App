@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import {InteractionManager, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import {navigationRef} from '../../../index.share';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -18,7 +17,7 @@ import * as Environment from '../Environment/Environment';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Localize from '../Localize';
 import Log from '../Log';
-import Navigation from '../Navigation/Navigation';
+import Navigation, {shareNavigationRef} from '../Navigation/Navigation';
 import LocalNotification from '../Notification/LocalNotification';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
@@ -577,7 +576,7 @@ function navigateToAndOpenShare(userLogins, share) {
     // Navigation.dismissModal(reportID);
     // TODO: can we unify this?
     if (Platform.OS === 'ios') {
-        navigationRef.current.navigate(ROUTES.SHARE_MESSAGE, {option: userLogins, reportID});
+        shareNavigationRef.current.navigate(ROUTES.SHARE_MESSAGE, {option: userLogins, reportID});
     } else {
         Navigation.navigate(ROUTES.SHARE_MESSAGE);
         Navigation.setParams({option: userLogins, share, reportID});

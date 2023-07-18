@@ -1,17 +1,20 @@
+import {getActionFromState} from '@react-navigation/core';
+import {CommonActions, StackActions, createNavigationContainerRef, getPathFromState} from '@react-navigation/native';
 import _ from 'lodash';
 import lodashGet from 'lodash/get';
-import {CommonActions, getPathFromState, StackActions} from '@react-navigation/native';
-import {getActionFromState} from '@react-navigation/core';
-import Log from '../Log';
-import DomUtils from '../DomUtils';
-import linkTo from './linkTo';
+import NAVIGATORS from '../../NAVIGATORS';
 import ROUTES from '../../ROUTES';
+import SCREENS from '../../SCREENS';
+import DomUtils from '../DomUtils';
+import Log from '../Log';
+import getStateFromPath from './getStateFromPath';
+import originalGetTopmostReportId from './getTopmostReportId';
+import linkTo from './linkTo';
 import linkingConfig from './linkingConfig';
 import navigationRef from './navigationRef';
-import NAVIGATORS from '../../NAVIGATORS';
-import originalGetTopmostReportId from './getTopmostReportId';
-import getStateFromPath from './getStateFromPath';
-import SCREENS from '../../SCREENS';
+
+// eslint-disable-next-line
+export const shareNavigationRef = createNavigationContainerRef();
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {

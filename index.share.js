@@ -1,4 +1,4 @@
-import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {useEffect} from 'react';
 import {AppRegistry} from 'react-native';
@@ -17,6 +17,8 @@ import {WindowDimensionsProvider} from './src/components/withWindowDimensions';
 import CONFIG from './src/CONFIG';
 import * as App from './src/libs/actions/App';
 import * as User from './src/libs/actions/User';
+// eslint-disable-next-line rulesdir/prefer-import-module-contents
+import {shareNavigationRef} from './src/libs/Navigation/Navigation';
 import NetworkConnection from './src/libs/NetworkConnection';
 import * as Pusher from './src/libs/Pusher/pusher';
 import PusherConnectionManager from './src/libs/PusherConnectionManager';
@@ -54,9 +56,6 @@ Onyx.init({
         [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
     },
 });
-
-// eslint-disable-next-line
-export const navigationRef = createNavigationContainerRef();
 
 const Stack = createStackNavigator();
 
@@ -109,7 +108,7 @@ const ShareExtension = withOnyx({
                 <CustomStatusBar />
                 {/* this appears to require firebase */}
                 {/* <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary"> */}
-                <NavigationContainer ref={navigationRef}>
+                <NavigationContainer ref={shareNavigationRef}>
                     <Stack.Navigator screenOptions={RHPScreenOptions}>
                         <Stack.Screen
                             name={ROUTES.NEW_GROUP}
