@@ -28,6 +28,9 @@ import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
 import usePermissions from '../../hooks/usePermissions';
+import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
+import SCREENS from '../../SCREENS';
+import * as LottieAnimations from '../../components/LottieAnimations';
 
 const propTypes = {
     /** The list of this user's policies */
@@ -166,11 +169,20 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     }, [reimbursementAccount.errors, policies, isOffline, allPolicyMembers]);
 
     return (
-        <ScreenWrapper>
-            <HeaderWithBackButton
-                title={translate('common.workspaces')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            />
+        <IllustratedHeaderPageLayout
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
+            illustration={LottieAnimations.WorkspacePlanet}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            title={translate('common.workspaces')}
+            footer={
+                <Button
+                    accessibilityLabel={translate('workspace.new.newWorkspace')}
+                    success
+                    text={translate('workspace.new.newWorkspace')}
+                    onPress={Policy.createWorkspace}
+                />
+            }
+        >
             {_.isEmpty(workspaces) ? (
                 <BlockingView
                     icon={Expensicons.Building}
@@ -180,15 +192,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             ) : (
                 <ScrollView style={styles.flex1}>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</ScrollView>
             )}
-            <FixedFooter style={[styles.flexGrow0]}>
-                <Button
-                    accessibilityLabel={translate('workspace.new.newWorkspace')}
-                    success
-                    text={translate('workspace.new.newWorkspace')}
-                    onPress={() => Policy.createWorkspace()}
-                />
-            </FixedFooter>
-        </ScreenWrapper>
+        </IllustratedHeaderPageLayout>
     );
 }
 
