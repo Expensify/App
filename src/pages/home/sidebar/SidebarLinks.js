@@ -22,13 +22,12 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import * as App from '../../../libs/actions/App';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions from '../../../components/withWindowDimensions';
-import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
 import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import withNavigationFocus from '../../../components/withNavigationFocus';
-import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../../components/withCurrentReportId';
+import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDefaultProps} from '../../../components/withCurrentReportID';
 import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
@@ -55,7 +54,22 @@ const propTypes = {
 
     /** All report actions for all reports */
     // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
+    reportActions: PropTypes.objectOf(
+        PropTypes.arrayOf(
+            PropTypes.shape({
+                error: PropTypes.string,
+                message: PropTypes.arrayOf(
+                    PropTypes.shape({
+                        moderationDecisions: PropTypes.arrayOf(
+                            PropTypes.shape({
+                                decision: PropTypes.string,
+                            }),
+                        ),
+                    }),
+                ),
+            }),
+        ),
+    ),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -75,9 +89,6 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
-    /** Current reportID from the route in react navigation state object */
-    reportIDFromRoute: PropTypes.string,
-
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
 
@@ -90,8 +101,8 @@ const propTypes = {
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
 
+    ...withCurrentReportIDPropTypes,
     ...withLocalizePropTypes,
-    ...withCurrentReportIdPropTypes,
     ...withNavigationPropTypes,
 };
 
@@ -102,9 +113,9 @@ const defaultProps = {
     currentUserPersonalDetails: {
         avatar: '',
     },
-    reportIDFromRoute: '',
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     modal: {},
+    ...withCurrentReportIDDefaultProps,
 };
 
 class SidebarLinks extends React.Component {
@@ -174,8 +185,11 @@ class SidebarLinks extends React.Component {
      * @param {String} option.reportID
      */
     showReportPage(option) {
-        if (this.props.isCreateMenuOpen) {
-            // Prevent opening Report page when click LHN row quickly after clicking FAB icon
+        // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
+        // or when clicking the active LHN row
+        // or when continuously clicking different LHNs, only apply to small screen
+        // since getTopmostReportId always returns on other devices
+        if (this.props.isCreateMenuOpen || this.props.currentReportID === option.reportID || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
@@ -184,8 +198,7 @@ class SidebarLinks extends React.Component {
 
     render() {
         const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.reportIDFromRoute);
-
+        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.currentReportID);
         const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
 
         return (
@@ -206,13 +219,13 @@ class SidebarLinks extends React.Component {
                                 height={variables.lhnLogoHeight}
                             />
                         }
-                        accessibilityRole="text"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         shouldShowEnvironmentBadge
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <PressableWithoutFeedback
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             style={[styles.flexRow, styles.ph5]}
                             onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
@@ -221,7 +234,7 @@ class SidebarLinks extends React.Component {
                     </Tooltip>
                     <PressableWithoutFeedback
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
                     >
                         {Session.isAnonymousUser() ? (
@@ -249,7 +262,7 @@ class SidebarLinks extends React.Component {
                     <LHNOptionsList
                         contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
                         data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportId)}
+                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportID)}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
@@ -272,7 +285,7 @@ SidebarLinks.defaultProps = defaultProps;
 const chatReportSelector = (report) =>
     report && {
         reportID: report.reportID,
-        participants: report.participants,
+        participantAccountIDs: report.participantAccountIDs,
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
         errorFields: {
@@ -289,6 +302,7 @@ const chatReportSelector = (report) =>
         chatType: report.chatType,
         policyID: report.policyID,
         reportName: report.reportName,
+        managerEmail: report.managerEmail,
     };
 
 /**
@@ -319,17 +333,14 @@ const personalDetailsSelector = (personalDetails) =>
  */
 const reportActionsSelector = (reportActions) =>
     reportActions &&
-    _.map(reportActions, (reportAction) => {
-        const action = {
-            errors: reportAction.errors,
-        };
-
-        // Update the component if the moderation decision changes
-        if (lodashGet(reportAction, 'message[0].moderationDecisions[0].decision')) {
-            action.message = reportAction.message;
-        }
-        return action;
-    });
+    _.map(reportActions, (reportAction) => ({
+        errors: reportAction.errors,
+        message: [
+            {
+                moderationDecisions: [{decision: lodashGet(reportAction, 'message[0].moderationDecisions[0].decision')}],
+            },
+        ],
+    }));
 
 /**
  * @param {Object} [policy]
@@ -347,7 +358,7 @@ export default compose(
     withCurrentUserPersonalDetails,
     withNavigationFocus,
     withWindowDimensions,
-    withCurrentReportId,
+    withCurrentReportID,
     withNavigation,
     withOnyx({
         // Note: It is very important that the keys subscribed to here are the same

@@ -11,6 +11,19 @@ import Log from './Log';
 import * as CurrencyUtils from './CurrencyUtils';
 import isReportMessageAttachment from './isReportMessageAttachment';
 
+const allReports = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (report, key) => {
+        if (!key || !report) {
+            return;
+        }
+
+        const reportID = CollectionUtils.extractCollectionItemID(key);
+        allReports[reportID] = report;
+    },
+});
+
 const allReportActions = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -53,7 +66,7 @@ function isDeletedAction(reportAction) {
  * @returns {Boolean}
  */
 function isWhisperAction(reportAction) {
-    return (reportAction.whisperedTo || []).length > 0;
+    return (reportAction.whisperedToAccountIDs || []).length > 0;
 }
 
 /**
@@ -76,8 +89,16 @@ function isMoneyRequestAction(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isReportPreviewAction(reportAction) {
+    return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function hasCommentThread(reportAction) {
-    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
 }
 
 /**
@@ -198,7 +219,7 @@ function getMostRecentIOURequestActionID(reportActions) {
  * Returns array of links inside a given report action
  *
  * @param {Object} reportAction
- * @returns {Boolean}
+ * @returns {Array}
  */
 function extractLinksFromMessageHtml(reportAction) {
     const htmlContent = lodashGet(reportAction, ['message', 0, 'html']);
@@ -207,7 +228,7 @@ function extractLinksFromMessageHtml(reportAction) {
     const regex = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi;
 
     if (!htmlContent) {
-        return;
+        return [];
     }
 
     return _.map([...htmlContent.matchAll(regex)], (match) => match[1]);
@@ -248,7 +269,12 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
 
-    return currentAction.actorEmail === previousAction.actorEmail;
+    // Do not group if the delegate account ID is different
+    if (previousAction.delegateAccountID !== currentAction.delegateAccountID) {
+        return false;
+    }
+
+    return currentAction.actorAccountID === previousAction.actorAccountID;
 }
 
 /**
@@ -273,22 +299,28 @@ function getLastVisibleAction(reportID, actionsToMerge = {}) {
 /**
  * @param {String} reportID
  * @param {Object} [actionsToMerge]
- * @return {String}
+ * @return {Object}
  */
-function getLastVisibleMessageText(reportID, actionsToMerge = {}) {
+function getLastVisibleMessage(reportID, actionsToMerge = {}) {
     const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
     const message = lodashGet(lastVisibleAction, ['message', 0], {});
 
     if (isReportMessageAttachment(message)) {
-        return CONST.ATTACHMENT_MESSAGE_TEXT;
+        return {
+            lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+        };
     }
 
     if (isCreatedAction(lastVisibleAction)) {
-        return '';
+        return {
+            lastMessageText: '',
+        };
     }
 
     const messageText = lodashGet(message, 'text', '');
-    return String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim();
+    return {
+        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
+    };
 }
 
 /**
@@ -351,7 +383,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
-    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
+    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
     return !isDeleted || isPending || isDeletedParentAction;
 }
 
@@ -429,6 +461,55 @@ function getLinkedTransactionID(reportID, reportActionID) {
 }
 
 /**
+ *
+ * @param {String} reportID
+ * @param {String} reportActionID
+ * @returns {Object}
+ */
+function getReportAction(reportID, reportActionID) {
+    return lodashGet(allReportActions, [reportID, reportActionID], {});
+}
+
+/**
+ * @returns {string}
+ */
+function getMostRecentReportActionLastModified() {
+    // Start with the oldest date possible
+    let mostRecentReportActionLastModified = new Date(0).toISOString();
+
+    // Flatten all the actions
+    // Loop over them all to find the one that is the most recent
+    const flatReportActions = _.flatten(_.map(allReportActions, (actions) => _.values(actions)));
+    _.each(flatReportActions, (action) => {
+        // Pending actions should not be counted here as a user could create a comment or some other action while offline and the server might know about
+        // messages they have not seen yet.
+        if (!_.isEmpty(action.pendingAction)) {
+            return;
+        }
+
+        const lastModified = action.lastModified || action.created;
+        if (lastModified < mostRecentReportActionLastModified) {
+            return;
+        }
+
+        mostRecentReportActionLastModified = lastModified;
+    });
+
+    // We might not have actions so we also look at the report objects to see if any have a lastVisibleActionLastModified that is more recent. We don't need to get
+    // any reports that have been updated before either a recently updated report or reportAction as we should be up to date on these
+    _.each(allReports, (report) => {
+        const reportLastVisibleActionLastModified = report.lastVisibleActionLastModified || report.lastVisibleActionCreated;
+        if (!reportLastVisibleActionLastModified || reportLastVisibleActionLastModified < mostRecentReportActionLastModified) {
+            return;
+        }
+
+        mostRecentReportActionLastModified = reportLastVisibleActionLastModified;
+    });
+
+    return mostRecentReportActionLastModified;
+}
+
+/**
  * @param {*} chatReportID
  * @param {*} iouReportID
  * @returns {Object} The report preview action or `null` if one couldn't be found
@@ -438,6 +519,16 @@ function getReportPreviewAction(chatReportID, iouReportID) {
         allReportActions[chatReportID],
         (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lodashGet(reportAction, 'originalMessage.linkedReportID') === iouReportID,
     );
+}
+
+/**
+ * Get the iouReportID for a given report action.
+ *
+ * @param {Object} reportAction
+ * @returns {String}
+ */
+function getIOUReportIDFromReportActionPreview(reportAction) {
+    return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
 }
 
 function isCreatedTaskReportAction(reportAction) {
@@ -451,13 +542,13 @@ function isCreatedTaskReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isMessageDeleted(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
+    return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
 export {
     getSortedReportActions,
     getLastVisibleAction,
-    getLastVisibleMessageText,
+    getLastVisibleMessage,
     getMostRecentIOURequestActionID,
     extractLinksFromMessageHtml,
     isDeletedAction,
@@ -471,12 +562,17 @@ export {
     isMoneyRequestAction,
     hasCommentThread,
     getLinkedTransactionID,
+    getMostRecentReportActionLastModified,
     getReportPreviewAction,
     isCreatedTaskReportAction,
     getParentReportAction,
     isTransactionThread,
     getFormattedAmount,
     isSentMoneyReportAction,
+    isReportPreviewAction,
+    getIOUReportIDFromReportActionPreview,
     isMessageDeleted,
     isWhisperAction,
+    isPendingRemove,
+    getReportAction,
 };
