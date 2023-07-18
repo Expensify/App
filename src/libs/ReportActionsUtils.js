@@ -513,7 +513,7 @@ function getMostRecentReportActionLastModified() {
 function getReportPreviewAction(chatReportID, iouReportID) {
     return _.find(
         allReportActions[chatReportID],
-        (reportAction) => reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lodashGet(reportAction, 'originalMessage.linkedReportID') === iouReportID,
+        (reportAction) => reportAction && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && lodashGet(reportAction, 'originalMessage.linkedReportID') === iouReportID,
     );
 }
 
