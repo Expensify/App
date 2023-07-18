@@ -15,6 +15,7 @@ const darkTheme = {
     iconHovered: colors.white,
     iconSuccessFill: colors.green,
     iconReversed: colors.greenAppBackground,
+    iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.greenSupportingText,
     text: colors.white,
     link: colors.blueLink,
@@ -80,6 +81,7 @@ const darkTheme = {
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
+    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
 };
 
 const oldTheme = {
