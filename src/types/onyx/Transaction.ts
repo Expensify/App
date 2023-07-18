@@ -5,18 +5,18 @@ type Comment = {
 };
 
 type Transaction = {
-    transactionID?: string;
-    amount?: number;
-    currency?: string;
-    reportID?: string;
-    comment?: Comment;
-    merchant?: string;
-    created?: string;
-    pendingAction?: OnyxCommon.PendingAction;
-    errors?: Record<string, string>;
-    modifiedAmount?: number;
-    modifiedCreated?: string;
-    modifiedCurrency?: string;
+    transactionID: string;
+    amount: number;
+    currency: string;
+    reportID: string;
+    comment: Comment;
+    merchant: string;
+    created: string;
+    pendingAction: OnyxCommon.PendingAction;
+    errors: Record<string, string>;
+    modifiedAmount: number;
+    modifiedCreated: string;
+    modifiedCurrency: string;
 };
 
 export default Transaction;
