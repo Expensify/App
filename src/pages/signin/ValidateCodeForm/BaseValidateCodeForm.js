@@ -89,7 +89,7 @@ function BaseValidateCodeForm(props) {
     const timerRef = useRef();
 
     const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
-    const isLoadingValidateCodeForm = props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
+    const isLoadingResendValidationForm = props.account.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
 
     useEffect(() => {
         if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
@@ -202,11 +202,11 @@ function BaseValidateCodeForm(props) {
     };
 
     useEffect(() => {
-        if (!isLoadingValidateCodeForm) {
+        if (!isLoadingResendValidationForm) {
             return;
         }
         clearLocalSignInData();
-    }, [isLoadingValidateCodeForm]);
+    }, [isLoadingResendValidationForm]);
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
@@ -314,7 +314,9 @@ function BaseValidateCodeForm(props) {
                     success
                     style={[styles.mv3]}
                     text={props.translate('common.signIn')}
-                    isLoading={props.account.isLoading && isLoadingValidateCodeForm}
+                    isLoading={
+                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
+                    }
                     onPress={validateAndSubmitForm}
                 />
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />

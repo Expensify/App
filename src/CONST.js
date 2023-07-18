@@ -744,6 +744,7 @@ const CONST = {
         VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
         RESEND_VALIDATION_FORM: 'ResendValidationForm',
         UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
+        RESEND_VALIDATE_CODE_FORM: 'ResendValidateCodeForm',
     },
     APP_STATE: {
         ACTIVE: 'active',

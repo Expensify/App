@@ -78,6 +78,11 @@ function OptionRowLHN(props) {
         return null;
     }
 
+    const isMuted = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    if (isMuted && !props.isFocused && !optionItem.isPinned) {
+        return null;
+    }
+
     let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
@@ -146,6 +151,14 @@ function OptionRowLHN(props) {
                             }
 
                             props.onSelectRow(optionItem, popoverAnchor);
+                        }}
+                        onMouseDown={(e) => {
+                            if (!e) {
+                                return;
+                            }
+
+                            // Prevent losing Composer focus
+                            e.preventDefault();
                         }}
                         onSecondaryInteraction={(e) => showPopover(e)}
                         withoutFocusOnSecondaryInteraction

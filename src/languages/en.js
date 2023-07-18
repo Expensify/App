@@ -203,8 +203,8 @@ export default {
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
     moneyRequestConfirmationList: {
-        whoPaid: 'Who paid?',
-        whoWasThere: 'Who was there?',
+        paidBy: 'Paid by',
+        splitWith: 'Split with',
         whatsItFor: "What's it for?",
     },
     iOUCurrencySelection: {
