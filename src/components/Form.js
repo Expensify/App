@@ -15,6 +15,7 @@ import FormSubmit from './FormSubmit';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollViewWithContext from './ScrollViewWithContext';
 import stylePropTypes from '../styles/stylePropTypes';
+import {withNetwork} from './OnyxProvider';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -188,9 +189,14 @@ function Form(props) {
             return;
         }
 
+        // Do not submit form if network is offline and the form is not enabled when offline
+        if (props.network.isOffline && !props.enabledWhenOffline) {
+            return;
+        }
+
         // Call submit handler
         onSubmit(inputValues);
-    }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs]);
+    }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs, props.network.isOffline, props.enabledWhenOffline]);
 
     /**
      * Loops over Form's children and automatically supplies Form props to them
@@ -423,6 +429,7 @@ Form.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         formState: {
             key: (props) => props.formID,
