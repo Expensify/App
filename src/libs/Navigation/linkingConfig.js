@@ -42,7 +42,7 @@ export default {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
-                            Settings_Preferences: {
+                            [SCREENS.SETTINGS.PREFERENCES]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
                                 exact: true,
                             },
