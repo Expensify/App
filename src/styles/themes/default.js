@@ -15,6 +15,7 @@ const darkTheme = {
     iconHovered: colors.darkPrimaryText,
     iconSuccessFill: colors.green,
     iconReversed: colors.darkAppBackground,
+    iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.darkSupportingText,
     text: colors.darkPrimaryText,
     link: colors.blue300,
@@ -77,6 +78,7 @@ const darkTheme = {
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
+    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
 };
 
 export default darkTheme;
