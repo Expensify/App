@@ -46,10 +46,8 @@ function AttachmentCarouselView(props) {
             const nextPageIndex = reversedPage + deltaSlide;
             updatePage(nextPageIndex);
             pagerRef.current.setPage(nextPageIndex);
-
-            props.autoHideArrow();
         },
-        [props, reversedPage, updatePage],
+        [reversedPage, updatePage],
     );
 
     const processedItems = useMemo(() => _.map(reversedAttachments, (item) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})), [reversedAttachments]);
