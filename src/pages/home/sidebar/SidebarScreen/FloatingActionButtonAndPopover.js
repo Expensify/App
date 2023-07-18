@@ -173,8 +173,8 @@ function FloatingActionButtonAndPopover(props) {
         },
     }));
 
-    // Workspaces are policies with type === 'free'
-    const workspaces = PolicyUtils.getActivePolicies(props.policy);
+    // Workspaces are policies with type === 'free' and is not pending delete
+    const workspaces = PolicyUtils.getActivePolicies(props.allPolicies);
 
     return (
         <View>
