@@ -997,7 +997,7 @@ class ReportActionCompose extends React.Component {
             .onEnd(() => {
                 'worklet';
 
-                const viewTag = aref();
+                const viewTag = animatedRef();
                 const viewName = 'RCTMultilineTextInputView';
                 // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
                 runOnJS(setCommentEmpty)();
