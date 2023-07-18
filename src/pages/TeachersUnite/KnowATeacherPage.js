@@ -37,7 +37,7 @@ const defaultProps = {
  * @param {String} values.phoneOrEmail
  */
 const updateDisplayName = (values) => {
-    // PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim()); //ref
+    PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 };
 
 const getPhoneLogin = (phoneOrEmail) => {
@@ -132,4 +132,4 @@ KnowATeacherPage.propTypes = propTypes;
 KnowATeacherPage.defaultProps = defaultProps;
 KnowATeacherPage.displayName = 'DisplayNamePage';
 
-export default KnowATeacherPage;
+export default compose(withLocalize)(KnowATeacherPage);
