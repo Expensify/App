@@ -15,7 +15,6 @@ import * as LoginUtils from '../../libs/LoginUtils';
 import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import compose from '../../libs/compose';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -36,7 +35,7 @@ const defaultProps = {
  * @param {String} values.lastName
  * @param {String} values.phoneOrEmail
  */
-const updateDisplayName = (values) => {
+const updateDisplayName = () => {
     // PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 };
 

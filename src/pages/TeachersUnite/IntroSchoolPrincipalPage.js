@@ -1,21 +1,20 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
-import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
+import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
-import _ from 'underscore';
 import CONST from '../../CONST';
 import * as LoginUtils from '../../libs/LoginUtils';
 import TextInput from '../../components/TextInput';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import compose from '../../libs/compose';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -36,7 +35,7 @@ const defaultProps = {
  * @param {String} values.lastName
  * @param {String} values.phoneOrEmail
  */
-const updateDisplayName = (values) => {
+const updateDisplayName = () => {
     // PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 };
 
@@ -132,4 +131,4 @@ IntroSchoolPrincipalPage.propTypes = propTypes;
 IntroSchoolPrincipalPage.defaultProps = defaultProps;
 IntroSchoolPrincipalPage.displayName = 'IntroSchoolPrincipalPage';
 
-export default compose(withLocalize)(IntroSchoolPrincipalPage);
+export default withLocalize(IntroSchoolPrincipalPage);
