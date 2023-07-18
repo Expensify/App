@@ -491,21 +491,18 @@ function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth
             pinchGestureRunning.value = false;
         });
 
-    const isPinchGestureInUse = useSharedValue(false);
+    const [isPinchGestureInUse, setIsPinchGestureInUse] = useState(false);
     useAnimatedReaction(
         () => [zoomScale.value, pinchGestureRunning.value],
-        ([s, running]) => {
-            const newIsPinchGestureInUse = s !== 1 || running;
-            if (isPinchGestureInUse.value !== newIsPinchGestureInUse) {
-                isPinchGestureInUse.value = newIsPinchGestureInUse;
+        ([zoom, running]) => {
+            const newIsPinchGestureInUse = zoom !== 1 || running;
+            if (isPinchGestureInUse !== newIsPinchGestureInUse) {
+                runOnJS(setIsPinchGestureInUse)(newIsPinchGestureInUse);
             }
         },
     );
-
-    useAnimatedReaction(
-        () => isPinchGestureInUse.value,
-        (zoomed) => runOnJS(onPinchGestureChange)(zoomed),
-    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => onPinchGestureChange(isPinchGestureInUse), [isPinchGestureInUse]);
 
     const animatedStyles = useAnimatedStyle(() => {
         const x = scaleTranslateX.value + translateX.value + offsetX.value;
@@ -753,19 +750,7 @@ const pagerDefaultProps = {
     forwardedRef: null,
 };
 
-function Pager({
-    items,
-    initialIndex = 0,
-    onPageSelected,
-    onTap,
-    onSwipe = noopWorklet,
-    onSwipeSuccess = () => {},
-    onSwipeDown = () => {},
-    onPinchGestureChange = () => {},
-    forwardedRef,
-    containerWidth,
-    containerHeight,
-}) {
+function Pager({items, initialIndex, onPageSelected, onTap, onSwipe = noopWorklet, onSwipeSuccess, onSwipeDown, onPinchGestureChange, forwardedRef, containerWidth, containerHeight}) {
     const shouldPagerScroll = useSharedValue(true);
     const pagerRef = useRef(null);
 

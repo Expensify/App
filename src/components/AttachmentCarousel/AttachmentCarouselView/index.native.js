@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View, Keyboard} from 'react-native';
 import _ from 'underscore';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
@@ -23,6 +23,28 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows] = useState(true);
 
+    const autoHideArrowTimeout = useRef(null);
+
+    /**
+     * Cancels the automatic hiding of the arrows.
+     */
+    const cancelAutoHideArrow = useCallback(() => clearTimeout(autoHideArrowTimeout.current), []);
+
+    /**
+     * Automatically hide the arrows if there is no interaction for 3 seconds.
+     */
+    const autoHideArrow = useCallback(() => {
+        cancelAutoHideArrow();
+        autoHideArrowTimeout.current = setTimeout(() => {
+            setShouldShowArrows(false);
+        }, CONST.ARROW_HIDE_DELAY);
+    }, [cancelAutoHideArrow]);
+
+    const showArrows = useCallback(() => {
+        setShouldShowArrows(true);
+        autoHideArrow();
+    }, [autoHideArrow]);
+
     /**
      * Updates the page state when the user navigates between attachments
      * @param {Object} item
@@ -34,29 +56,13 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
 
             setPage(newPageIndex);
 
+            showArrows();
+
             const item = reversedAttachments[newPageIndex];
             onNavigate(item);
         },
-        [onNavigate, reversedAttachments],
+        [onNavigate, reversedAttachments, showArrows],
     );
-
-    const autoHideArrowTimeout = useRef(null);
-
-    /**
-     * Cancels the automatic hiding of the arrows.
-     */
-    const cancelAutoHideArrow = useCallback(() => clearTimeout(autoHideArrowTimeout.current), []);
-
-    /**
-     * On a touch screen device, automatically hide the arrows
-     * if there is no interaction for 3 seconds.
-     */
-    const autoHideArrow = useCallback(() => {
-        cancelAutoHideArrow();
-        autoHideArrowTimeout.current = setTimeout(() => {
-            setShouldShowArrows(false);
-        }, CONST.ARROW_HIDE_DELAY);
-    }, [cancelAutoHideArrow]);
 
     /**
      * Increments or decrements the index to get another selected item
@@ -72,6 +78,11 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
         },
         [autoHideArrow, page, updatePage],
     );
+
+    useEffect(() => {
+        autoHideArrow();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
@@ -90,8 +101,11 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
                     items={processedItems}
                     initialIndex={page}
                     onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                    onTap={() => setShouldShowArrows(!shouldShowArrows)}
-                    onPinchGestureChange={(newIsPinchtGestureRunning) => setIsPinchGestureRunning(newIsPinchtGestureRunning)}
+                    onTap={() => (shouldShowArrows ? setShouldShowArrows(false) : showArrows())}
+                    onPinchGestureChange={(newIsPinchGestureRunning) => {
+                        setIsPinchGestureRunning(newIsPinchGestureRunning);
+                        if (!newIsPinchGestureRunning && !shouldShowArrows) showArrows();
+                    }}
                     onSwipeDown={onClose}
                     containerWidth={containerDimensions.width}
                     containerHeight={containerDimensions.height}
