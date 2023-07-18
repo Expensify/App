@@ -27,7 +27,6 @@ function HeaderWithBackButton({
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
-    parentReport = null,
     policies = {},
     personalDetails = {},
     shouldShowAvatarWithDisplay = false,
@@ -81,7 +80,7 @@ function HeaderWithBackButton({
                 )}
                 {shouldShowAvatarWithDisplay && (
                     <AvatarWithDisplayName
-                        report={parentReport || report}
+                        report={report}
                         policies={policies}
                         personalDetails={personalDetails}
                     />
