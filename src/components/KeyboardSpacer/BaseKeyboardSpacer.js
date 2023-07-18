@@ -19,7 +19,7 @@ function BaseKeyboardSpacer(props) {
         const screenHeight = Dimensions.get('window').height;
         const space = screenHeight - event.endCoordinates.screenY + props.topSpacing;
         setKeyboardSpace(space);
-        props.onToggle(true, keyboardSpace);
+        props.onToggle(true, space);
     }, [keyboardSpace, props]);
 
     /**
@@ -40,6 +40,7 @@ function BaseKeyboardSpacer(props) {
         return () => {
             keyboardListeners.forEach((listener) => listener.remove());
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return <View style={StyleUtils.getHeight(keyboardSpace)} />;
