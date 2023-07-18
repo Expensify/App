@@ -223,6 +223,7 @@ class EmojiPickerMenu extends Component {
                     removeClippedSubviews={false}
                     contentContainerStyle={styles.flexGrow1}
                     ListEmptyComponent={<Text style={[styles.disabledText]}>{this.props.translate('common.noResultsFound')}</Text>}
+                    alwaysBounceVertical={this.state.filteredEmojis.length !== 0}
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}
