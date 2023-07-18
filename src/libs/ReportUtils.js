@@ -1099,9 +1099,13 @@ function getReportPreviewMessage(report, reportAction = {}) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isSettled(report.reportID)) {
-        // A settled message is in the format of either "paid $1.00 elsewhere" or "paid $1.00 using Paypal.me"
-        const isSettledPaypalMe = Boolean(reportActionMessage.match(/ Paypal.me$/));
-        const translatePhraseKey = isSettledPaypalMe ? 'iou.paidUsingPaypalWithAmount' : 'iou.paidElsewhereWithAmount';
+        // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... using Expensify"
+        let translatePhraseKey = 'iou.paidElsewhereWithAmount';
+        if (reportActionMessage.match(/ Paypal.me$/)) {
+            translatePhraseKey = 'iou.paidUsingPaypalWithAmount';
+        } else if (reportActionMessage.match(/ using Expensify$/)) {
+            translatePhraseKey = 'iou.paidUsingExpensifyWithAmount';
+        }
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
     }
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});

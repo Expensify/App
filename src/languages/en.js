@@ -367,6 +367,7 @@ export default {
         payerSettled: ({amount}) => `paid ${amount}`,
         paidElsewhereWithAmount: ({amount}) => `paid ${amount} elsewhere`,
         paidUsingPaypalWithAmount: ({amount}) => `paid ${amount} using Paypal.me`,
+        paidUsingExpensifyWithAmount: ({amount}) => `paid ${amount} using Expensify`,
         noReimbursableExpenses: 'This report has an invalid amount',
         pendingConversionMessage: "Total will update when you're back online",
         threadRequestReportName: ({formattedAmount, comment}) => `${formattedAmount} request${comment ? ` for ${comment}` : ''}`,
