@@ -3545,7 +3545,7 @@ const styles = {
         marginTop: 0,
         padding: 2,
     },
-  
+
     /**
      * @param {String} backgroundColor
      * @param {Number} height
