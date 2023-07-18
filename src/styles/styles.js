@@ -762,7 +762,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusLarge,
         borderWidth: 2,
         borderColor: themeColors.borderFocus,
-        borderStyle: 'dashed',
+        borderStyle: 'dotted',
     },
 
     headerAnonymousFooter: {
@@ -1069,6 +1069,7 @@ const styles = {
     },
 
     subTextReceiptUpload: {
+        fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightLarge,
         textAlign: 'center',
         color: themeColors.textLight,

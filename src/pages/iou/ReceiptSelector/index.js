@@ -116,10 +116,12 @@ function ReceiptSelector(props) {
             <Text style={[styles.textReceiptUpload]}>Upload receipt</Text>
             <Text style={[styles.subTextReceiptUpload]}>
                 Drag a receipt onto this page, forward a receipt to{' '}
-                <CopyTextToClipboard
-                    text="receipts@expensify.com"
-                    textstyles={[styles.textBlue]}
-                />{' '}
+                <View style={{flexDirection: 'row'}}>
+                    <CopyTextToClipboard
+                        text="receipts@expensify.com"
+                        textStyles={[styles.textBlue]}
+                    />
+                </View>{' '}
                 or choose a file to upload below.
             </Text>
             <AttachmentPicker>

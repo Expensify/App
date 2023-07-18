@@ -6,6 +6,7 @@ import Icon from './Icon';
 import Colors from '../styles/colors';
 import Styles from '../styles/styles';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import fontFamily from '../styles/fontFamily';
 
 const propTypes = {
     /** Function to call when onPress */
@@ -29,7 +30,9 @@ const defaultProps = {
 };
 
 function TabSelectorItem(props) {
-    const textStyle = props.selected ? [Styles.textStrong, Styles.mt2, Styles.textWhite] : [Styles.mt2, Styles.colorMuted];
+    const textStyle = props.selected
+        ? [Styles.textStrong, Styles.mt2, Styles.textWhite, {fontFamily: fontFamily.EXP_NEUE}]
+        : [Styles.mt2, Styles.colorMuted, {fontFamily: fontFamily.EXP_NEUE}];
     return (
         <View>
             <PressableWithFeedback
