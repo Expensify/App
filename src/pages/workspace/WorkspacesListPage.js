@@ -18,7 +18,6 @@ import * as PolicyUtils from '../../libs/PolicyUtils';
 import MenuItem from '../../components/MenuItem';
 import * as Policy from '../../libs/actions/Policy';
 import policyMemberPropType from '../policyMemberPropType';
-import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import BlockingView from '../../components/BlockingViews/BlockingView';
@@ -28,10 +27,9 @@ import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
+import usePermissions from '../../hooks/usePermissions';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The list of this user's policies */
     policies: PropTypes.objectOf(
         PropTypes.shape({
@@ -97,16 +95,17 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {canUseWallet} = usePermissions();
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
      */
     function getWalletBalance(isPaymentItem) {
-        return isPaymentItem && Permissions.canUseWallet(betas) ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
+        return isPaymentItem && canUseWallet ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
     }
 
     /**
@@ -214,9 +213,6 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(WorkspacesListPage);
