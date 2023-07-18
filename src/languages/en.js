@@ -150,6 +150,7 @@ export default {
         km: 'kilometer',
         copied: 'Copied!',
         someone: 'Someone',
+        total: 'Total',
         edit: 'Edit',
     },
     anonymousReportFooter: {
@@ -205,8 +206,8 @@ export default {
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
     moneyRequestConfirmationList: {
-        whoPaid: 'Who paid?',
-        whoWasThere: 'Who was there?',
+        paidBy: 'Paid by',
+        splitWith: 'Split with',
         whatsItFor: "What's it for?",
     },
     iOUCurrencySelection: {
@@ -365,9 +366,9 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
-        settleExpensify: 'Pay with Expensify',
+        settleExpensify: ({formattedAmount}) => `Pay ${formattedAmount} with Expensify`,
         payElsewhere: 'Pay elsewhere',
-        settlePaypalMe: 'Pay with PayPal.me',
+        settlePaypalMe: ({formattedAmount}) => `Pay ${formattedAmount} with PayPal.me`,
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
         amountEach: ({amount}) => `${amount} each`,

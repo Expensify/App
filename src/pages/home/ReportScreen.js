@@ -35,6 +35,7 @@ import withNavigationFocus from '../../components/withNavigationFocus';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
+import MoneyReportHeader from '../../components/MoneyReportHeader';
 import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
 import ReportScreenContext from './ReportScreenContext';
@@ -255,11 +256,8 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
-        // simply looking up the first truthy value for each case will get the relevant property if it's set.
         const reportID = getReportID(this.props.route);
-        const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
-        const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
+        const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(this.props.report);
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
@@ -274,6 +272,39 @@ class ReportScreen extends React.Component {
         const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
+
+        let headerView = (
+            <HeaderView
+                reportID={reportID}
+                onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                personalDetails={this.props.personalDetails}
+                report={this.props.report}
+            />
+        );
+
+        if (isSingleTransactionView) {
+            headerView = (
+                <MoneyRequestHeader
+                    report={this.props.report}
+                    policies={this.props.policies}
+                    personalDetails={this.props.personalDetails}
+                    isSingleTransactionView={isSingleTransactionView}
+                    parentReportAction={parentReportAction}
+                />
+            );
+        }
+
+        if (ReportUtils.isMoneyRequestReport(this.props.report)) {
+            headerView = (
+                <MoneyReportHeader
+                    report={this.props.report}
+                    policies={this.props.policies}
+                    personalDetails={this.props.personalDetails}
+                    isSingleTransactionView={isSingleTransactionView}
+                    parentReportAction={parentReportAction}
+                />
+            );
+        }
 
         return (
             <ReportScreenContext.Provider
@@ -298,23 +329,7 @@ class ReportScreen extends React.Component {
                             errors={addWorkspaceRoomOrChatErrors}
                             shouldShowErrorMessages={false}
                         >
-                            {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
-                                <MoneyRequestHeader
-                                    report={this.props.report}
-                                    policies={this.props.policies}
-                                    personalDetails={this.props.personalDetails}
-                                    isSingleTransactionView={isSingleTransactionView}
-                                    parentReportAction={parentReportAction}
-                                />
-                            ) : (
-                                <HeaderView
-                                    reportID={reportID}
-                                    onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                                    personalDetails={this.props.personalDetails}
-                                    report={this.props.report}
-                                />
-                            )}
-
+                            {headerView}
                             {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(this.props.report) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
