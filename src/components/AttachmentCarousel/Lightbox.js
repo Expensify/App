@@ -651,7 +651,7 @@ function Page({isActive, item, onSwipe, onSwipeSuccess, onSwipeDown, canvasWidth
             onTap={onTap}
             imageHeight={dimensions?.height}
             imageWidth={dimensions?.width}
-            iamgeScale={imageScale}
+            imageScale={dimensions?.scale}
             canvasHeight={canvasHeight}
             canvasWidth={canvasWidth}
             renderFallback={() => <ActivityIndicator />}
