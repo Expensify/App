@@ -17,6 +17,7 @@ import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../userPropTypes';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import * as LottieAnimations from '../../../components/LottieAnimations';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -63,7 +64,12 @@ function LoungeAccessPage(props) {
                     />
                     <ScrollView contentContainerStyle={safeAreaPaddingBottomStyle}>
                         <View style={illustrationStyle}>
-                            <Illustrations.Lounge />
+                        <Lottie
+                            source={LottieAnimations.ExpensifyLounge}
+                            autoPlay
+                            loop
+                            style={styles.confirmationAnimation}
+                        />
                         </View>
                         <View style={styles.pageWrapperNotCentered}>
                             <Text
