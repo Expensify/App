@@ -68,16 +68,11 @@ function LoungeAccessPage({user}) {
             illustration={LottieAnimations.ExpensifyLounge}
             illustrationStyle={illustrationStyle}
         >
-            <View style={styles.pageWrapperNotCentered}>
-                <Text
-                    style={[styles.textHeadline, styles.preWrap, styles.mb2]}
-                    numberOfLines={2}
-                >
-                    {translate('loungeAccessPage.headline')}
-                </Text>
-                <Text style={styles.baseFontStyle}>{translate('loungeAccessPage.description')}</Text>
-            </View>
-            <FeatureList menuItems={menuItems} />
+            <FeatureList
+                headline="loungeAccessPage.headline"
+                description="loungeAccessPage.description"
+                menuItems={menuItems}
+            />
         </IllustratedHeaderPageLayout>
     );
 }
