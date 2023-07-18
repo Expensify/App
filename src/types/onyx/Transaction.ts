@@ -14,6 +14,9 @@ type Transaction = {
     created?: string;
     pendingAction?: OnyxCommon.PendingAction;
     errors?: Record<string, string>;
+    modifiedAmount?: number;
+    modifiedCreated?: string;
+    modifiedCurrency?: string;
 };
 
 export default Transaction;
