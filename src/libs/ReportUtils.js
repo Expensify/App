@@ -2093,10 +2093,9 @@ function canAccessReport(report, policies, betas) {
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
- * @param {Boolean} isShareDestination
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, isShareDestination = false) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2148,9 +2147,8 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    // Exclude reports that are admin-only posting rooms, when the user tries to share something to the room,
-    // because, the user isn't an admin for a linked workspace.
-    if (isShareDestination && report.writeCapability === CONST.REPORT.WRITE_CAPABILITIES.ADMINS) {
+    // TODO: Add description
+    if (report.writeCapability === CONST.REPORT.WRITE_CAPABILITIES.ADMINS) {
         const linkedWorkspace = _.find(policies, (policy) => policy && policy.id === report.policyID);
 
         return lodashGet(linkedWorkspace, 'role', '') === CONST.POLICY.ROLE.ADMIN;
