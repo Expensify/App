@@ -57,7 +57,7 @@ import PressableWithFeedback from '../../../components/Pressable/PressableWithFe
 import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
 import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
 import withAnimatedRef from '../../../components/withAnimatedRef';
-import getPlatform from '../../../libs/getPlatform';
+import updatePropsPaperWorklet from '../../../libs/updatePropsPaperWorklet';
 
 const propTypes = {
     /** Beta features list */
@@ -195,7 +195,6 @@ class ReportActionCompose extends React.Component {
         this.debouncedUpdateFrequentlyUsedEmojis = _.debounce(this.debouncedUpdateFrequentlyUsedEmojis.bind(this), 1000, false);
         this.comment = props.comment;
         this.insertedEmojis = [];
-        this.platform = [CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].includes(getPlatform())
 
         this.attachmentModalRef = React.createRef();
 
@@ -991,7 +990,6 @@ class ReportActionCompose extends React.Component {
         const submit = this.submitForm;
         const animatedRef = this.props.animatedRef;
         const setCommentEmpty = () => this.setState({isCommentEmpty: true});
-        const platform = this.platform;
         const Tap = Gesture.Tap()
             .enabled(!(this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength))
             .onEnd(() => {
@@ -999,13 +997,10 @@ class ReportActionCompose extends React.Component {
 
                 const viewTag = animatedRef();
                 const viewName = 'RCTMultilineTextInputView';
+                const updates = {text: ''};
                 // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
                 runOnJS(setCommentEmpty)();
-                const updates = {text: ''};
-                if (platform) {
-                    // eslint-disable-next-line no-undef
-                    _updatePropsPaper(viewTag, viewName, updates); // clears native text input on the UI thread
-                }
+                updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
                 runOnJS(submit)();
             });
 
