@@ -1,12 +1,32 @@
-type Card = {
-    /** The name of the institution (bank of america, etc) */
-    cardName?: string;
+type AdditionalData = {
+    isBillingCard?: boolean;
+    isP2PDebitCard?: boolean;
+};
+
+type AccountData = {
+    additionalData?: AdditionalData;
+    addressName?: string;
+    addressState?: string;
+    addressStreet?: string;
+    addressZip?: number;
+    cardMonth?: number;
 
     /** The masked credit card number */
     cardNumber?: string;
 
-    /** The ID of the card in the cards DB */
-    cardID?: number;
+    cardYear?: number;
+    created?: string;
+    currency?: string;
+    fundID?: number;
+};
+
+type Card = {
+    accountData?: AccountData;
+    accountType?: string;
+    description?: string;
+    key?: string;
+    methodID?: number;
+    title?: string;
 };
 
 export default Card;
