@@ -51,7 +51,7 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
-    children,
+    children = null,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
