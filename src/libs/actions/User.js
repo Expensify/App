@@ -21,13 +21,6 @@ import * as PersonalDetails from './PersonalDetails';
 
 let currentUserAccountID = '';
 let currentEmail = '';
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserAccountID = lodashGet(val, 'accountID', -1);
-        currentEmail = lodashGet(val, 'email', '');
-    },
-});
 
 let myPersonalDetails = {};
 Onyx.connect({
@@ -840,6 +833,18 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
     Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
 }
+
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        const oldAccountID = currentUserAccountID;
+        currentUserAccountID = lodashGet(val, 'accountID', -1);
+        if (oldAccountID > 0 && currentUserAccountID > 0 && oldAccountID !== currentUserAccountID) {
+            subscribeToUserEvents();
+        }
+        currentEmail = lodashGet(val, 'email', '');
+    },
+});
 
 export {
     updatePassword,

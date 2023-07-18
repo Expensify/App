@@ -46,6 +46,14 @@ Onyx.connect({
     },
 });
 
+let lastOpenedPublicRoomID;
+Onyx.connect({
+    key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+    callback: (val) => {
+        lastOpenedPublicRoomID = val;
+    },
+});
+
 let timezone;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -64,6 +72,16 @@ Onyx.connect({
             PersonalDetails.updateAutomaticTimezone(timezone);
         }
     },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: () => {
+        if (Session.isAnonymousUser()) {
+            return;
+        }
+        Navigation.navigate(ROUTES.getReportRoute(lastOpenedPublicRoomID));
+    }
 });
 
 const RootStack = createResponsiveStackNavigator();

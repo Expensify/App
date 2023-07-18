@@ -216,7 +216,7 @@ function BaseValidateCodeForm(props) {
         setFormError({});
 
         if (props.isInModal) {
-            Session.signInAnonymousAccount(validateCode, props.preferredLocale);
+            Session.signIn('', validateCode, twoFactorAuthCode, props.preferredLocale);
             return;
         }
 
