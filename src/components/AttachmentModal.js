@@ -142,12 +142,15 @@ function AttachmentModal(props) {
      * Toggles the visibility of the download button
      * @param {Boolean} shouldShowButton
      */
-    const toggleDownloadButtonVisibility = useCallback((shouldShowButton) => {
-        if (shouldShowDownloadButton === shouldShowButton) {
-            return;
-        }
-        setShouldShowDownloadButton(shouldShowButton);
-    }, [shouldShowDownloadButton]);
+    const toggleDownloadButtonVisibility = useCallback(
+        (shouldShowButton) => {
+            if (shouldShowDownloadButton === shouldShowButton) {
+                return;
+            }
+            setShouldShowDownloadButton(shouldShowButton);
+        },
+        [shouldShowDownloadButton],
+    );
     /**
      * Download the currently viewed attachment.
      */

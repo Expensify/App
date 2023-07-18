@@ -21,8 +21,8 @@ import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
 import reportPropTypes from '../../pages/reportPropTypes';
-import BlockingView from "../BlockingViews/BlockingView"
-import * as Illustrations from "../Icon/Illustrations";
+import BlockingView from '../BlockingViews/BlockingView';
+import * as Illustrations from '../Icon/Illustrations';
 import variables from '../../styles/variables';
 
 const propTypes = {
@@ -198,7 +198,7 @@ class AttachmentCarousel extends React.Component {
 
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
 
-        if(page !== -1) {
+        if (page !== -1) {
             // Update the parent modal's state with the source and name from the mapped attachments
             this.props.onNavigate(attachments[page]);
         }
