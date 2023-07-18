@@ -29,17 +29,10 @@ export default function (WrappedComponent) {
             clearTimeout(this.resetButtonStateCompleteTimer);
         }
 
-        /**
-         * @param {Boolean} resetAfterDelay Impose delay before toggling state
-         */
-        toggleDelayButtonState(resetAfterDelay) {
+        toggleDelayButtonState() {
             this.setState({
                 isDelayButtonStateComplete: true,
             });
-
-            if (!resetAfterDelay) {
-                return;
-            }
 
             this.resetButtonStateCompleteTimer = setTimeout(() => {
                 this.setState({
