@@ -1,8 +1,12 @@
 import React, {useRef, useState, useCallback} from 'react';
 import {View, Linking} from 'react-native';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../../../CONST';
 import ROUTES from '../../../ROUTES';
+import compose from '../../../libs/compose';
+import ONYXKEYS from '../../../ONYXKEYS';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import TextLink from '../../../components/TextLink';
 import Text from '../../../components/Text';
@@ -20,13 +24,27 @@ import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import variables from '../../../styles/variables';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import paypalMeDataPropTypes from '../../../components/paypalMeDataPropTypes';
+
+const propTypes = {
+    /** Account details for PayPal.Me */
+    payPalMeData: paypalMeDataPropTypes,
+
+    ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    payPalMeData: {},
+};
 
 function AddPayPalMePage(props) {
-    const [payPalMeUsername, setPayPalMeUsername] = useState('');
+    const [payPalMeUsername, setPayPalMeUsername] = useState(lodashGet(props.payPalMeData, 'accountData.username', ''));
     const [payPalMeUsernameError, setPayPalMeUsernameError] = useState(false);
     const payPalMeInput = useRef(null);
 
-    const growlMessageOnSave = props.translate('addPayPalMePage.growlMessageOnSave');
+    const hasPaypalAccount = !_.isEmpty(props.payPalMeData);
+
+    const growlMessageOnSave = props.translate(hasPaypalAccount ? 'addPayPalMePage.growlMessageOnUpdate' : 'addPayPalMePage.growlMessageOnSave');
 
     /**
      * Sets the payPalMe username and error data for the current user
@@ -55,6 +73,8 @@ function AddPayPalMePage(props) {
                     <TextInput
                         ref={payPalMeInput}
                         label={props.translate('addPayPalMePage.payPalMe')}
+                        accessibilityLabel={props.translate('addPayPalMePage.payPalMe')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCompleteType="off"
                         autoCorrect={false}
                         value={payPalMeUsername}
@@ -71,7 +91,7 @@ function AddPayPalMePage(props) {
                         <Text style={[styles.textMicro, styles.flexRow]}>{props.translate('addPayPalMePage.checkListOf')}</Text>
                         <PressableWithoutFeedback
                             shouldUseAutoHitSlop={false}
-                            accessibilityRole="link"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                             accessibilityLabel={props.translate('addPayPalMePage.supportedCurrencies')}
                             onPress={() => Linking.openURL('https://developer.paypal.com/docs/reports/reference/paypal-supported-currencies')}
                         >
@@ -102,14 +122,22 @@ function AddPayPalMePage(props) {
                     pressOnEnter
                     style={[styles.mt3]}
                     isDisabled={_.isEmpty(payPalMeUsername.trim())}
-                    text={props.translate('addPayPalMePage.addPayPalAccount')}
+                    text={props.translate(hasPaypalAccount ? 'addPayPalMePage.updatePaypalAccount' : 'addPayPalMePage.addPayPalAccount')}
                 />
             </FixedFooter>
         </ScreenWrapper>
     );
 }
 
-AddPayPalMePage.propTypes = {...withLocalizePropTypes};
+AddPayPalMePage.propTypes = propTypes;
+AddPayPalMePage.defaultProps = defaultProps;
 AddPayPalMePage.displayName = 'AddPayPalMePage';
 
-export default withLocalize(AddPayPalMePage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        payPalMeData: {
+            key: ONYXKEYS.PAYPAL,
+        },
+    }),
+)(AddPayPalMePage);

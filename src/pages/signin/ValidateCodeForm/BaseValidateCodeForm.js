@@ -46,6 +46,12 @@ const propTypes = {
         login: PropTypes.string,
     }),
 
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Currently logged in user authToken */
+        authToken: PropTypes.string,
+    }),
+
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
 
@@ -62,6 +68,9 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
+    session: {
+        authToken: null,
+    },
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
@@ -78,6 +87,16 @@ function BaseValidateCodeForm(props) {
     const inputValidateCodeRef = useRef();
     const input2FARef = useRef();
     const timerRef = useRef();
+
+    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
+    const isLoadingValidateCodeForm = props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM);
+
+    useEffect(() => {
+        if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
+            return;
+        }
+        inputValidateCodeRef.current.blur();
+    }, [props.account.isLoading, props.session.autoAuthState, hasError]);
 
     useEffect(() => {
         if (!inputValidateCodeRef.current || prevIsVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
@@ -160,24 +179,34 @@ function BaseValidateCodeForm(props) {
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
+        User.resendValidateCode(props.credentials.login);
+        // Give feedback to the user to let them know the email was sent so that they don't spam the button.
+        setTimeRemaining(30);
+    };
+
+    /**
+     * Clear local sign in states
+     */
+    const clearLocalSignInData = () => {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
-        User.resendValidateCode(props.credentials.login, true);
-
-        // Give feedback to the user to let them know the email was sent so they don't spam the button.
-        setTimeRemaining(30);
     };
 
     /**
      * Clears local and Onyx sign in states
      */
     const clearSignInData = () => {
-        setTwoFactorAuthCode('');
-        setFormError({});
-        setValidateCode('');
+        clearLocalSignInData();
         Session.clearSignInData();
     };
+
+    useEffect(() => {
+        if (!isLoadingValidateCodeForm) {
+            return;
+        }
+        clearLocalSignInData();
+    }, [isLoadingValidateCodeForm]);
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
@@ -218,8 +247,6 @@ function BaseValidateCodeForm(props) {
             Session.signIn('', validateCode, twoFactorAuthCode, props.preferredLocale);
         }
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
-
-    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
 
     return (
         <>
@@ -270,10 +297,12 @@ function BaseValidateCodeForm(props) {
                                 disabled={props.network.isOffline}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>
+                                    {hasError ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : props.translate('validateCodeForm.magicCodeNotReceived')}
+                                </Text>
                             </PressableWithFeedback>
                         )}
                     </View>
@@ -285,9 +314,7 @@ function BaseValidateCodeForm(props) {
                     success
                     style={[styles.mv3]}
                     text={props.translate('common.signIn')}
-                    isLoading={
-                        props.account.isLoading && props.account.loadingForm === (props.account.requiresTwoFactorAuth ? CONST.FORMS.VALIDATE_TFA_CODE_FORM : CONST.FORMS.VALIDATE_CODE_FORM)
-                    }
+                    isLoading={props.account.isLoading && isLoadingValidateCodeForm}
                     onPress={validateAndSubmitForm}
                 />
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />
@@ -309,6 +336,7 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
+        session: {key: ONYXKEYS.SESSION},
     }),
     withToggleVisibilityView,
     withNetwork(),
