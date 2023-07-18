@@ -4,6 +4,7 @@
 export default {
     black: '#000000',
     white: '#FFFFFF',
+    ivory: '#fffaf0',
     green: '#03D47C',
     greenHover: '#00C271',
     greenPressed: '#35DD96',
