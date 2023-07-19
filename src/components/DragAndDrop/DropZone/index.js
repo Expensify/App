@@ -15,10 +15,15 @@ const propTypes = {
     dropZoneId: PropTypes.string.isRequired,
 
     /** Style for the holder view of the dropzone */
-    dropZoneViewHolderStyle: stylePropTypes.isRequired,
+    dropZoneViewHolderStyle: stylePropTypes,
 
     /** Style for the view of the dropzone */
-    dropZoneViewStyle: stylePropTypes.isRequired,
+    dropZoneViewStyle: stylePropTypes,
+};
+
+const defaultProps = {
+    dropZoneViewHolderStyle: [],
+    dropZoneViewStyle: {},
 };
 
 function DropZone(props) {
@@ -36,5 +41,6 @@ function DropZone(props) {
 
 DropZone.displayName = 'DropZone';
 DropZone.propTypes = propTypes;
+DropZone.defaultProps = defaultProps;
 
 export default DropZone;

@@ -237,4 +237,7 @@ export default {
 
     // Manual request tab selector
     TAB_SELECTOR: 'tabSelector',
+
+    // Receipt upload modal
+    RECEIPT_MODAL: 'receiptModal',
 };
