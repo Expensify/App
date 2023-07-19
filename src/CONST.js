@@ -1248,6 +1248,7 @@ const CONST = {
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
+    LOGIN_CHARACTER_LIMIT: 254,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
