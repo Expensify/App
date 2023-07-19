@@ -2139,14 +2139,14 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads
- * @param {Array} newParticipantList
+ * @param {Array<Number>} newParticipantList
  * @returns {Array|undefined}
  */
 function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participantAccountIDs || isChatThread(report)) {
+        if (!report || _.isEmpty(report.participantAccountIDs) || isChatThread(report)) {
             return false;
         }
 
@@ -2168,7 +2168,7 @@ function getChatByParticipantsByLoginList(participantsLoginList) {
     participantsLoginList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participants || isThread(report)) {
+        if (!report || _.isEmpty(report.participantAccountIDs) || isThread(report)) {
             return false;
         }
 
@@ -2340,7 +2340,7 @@ function canRequestMoney(report) {
 
 /**
  * @param {Object} report
- * @param {Array} reportParticipants
+ * @param {Array<Number>} reportParticipants
  * @param {Array} betas
  * @returns {Array}
  */

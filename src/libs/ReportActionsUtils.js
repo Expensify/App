@@ -531,7 +531,7 @@ function isCreatedTaskReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isMessageDeleted(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
+    return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
 function isWhisperAction(action) {

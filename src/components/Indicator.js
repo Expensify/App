@@ -90,11 +90,7 @@ function Indicator(props) {
     const indicatorColor = shouldShowErrorIndicator ? themeColors.danger : themeColors.success;
     const indicatorStyles = [styles.alignItemsCenter, styles.justifyContentCenter, styles.statusIndicator(indicatorColor)];
 
-    if (shouldShowErrorIndicator || shouldShowInfoIndicator) {
-        return <View style={StyleSheet.flatten(indicatorStyles)} />;
-    }
-
-    return null;
+    return (shouldShowErrorIndicator || shouldShowInfoIndicator) && <View style={StyleSheet.flatten(indicatorStyles)} />;
 }
 
 Indicator.defaultProps = defaultProps;

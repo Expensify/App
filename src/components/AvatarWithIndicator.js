@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 import Avatar from './Avatar';
 import styles from '../styles/styles';
 import Tooltip from './Tooltip';
-import Indicator from './Indicator';
 import * as UserUtils from '../libs/UserUtils';
+import Indicator from './Indicator';
 
 const propTypes = {
     /** URL for the avatar */
@@ -21,12 +21,12 @@ const defaultProps = {
 
 function AvatarWithIndicator(props) {
     return (
-        <View style={[styles.sidebarAvatar]}>
-            <Tooltip text={props.tooltipText}>
+        <Tooltip text={props.tooltipText}>
+            <View style={[styles.sidebarAvatar]}>
                 <Avatar source={UserUtils.getSmallSizeAvatar(props.source)} />
                 <Indicator />
-            </Tooltip>
-        </View>
+            </View>
+        </Tooltip>
     );
 }
 
