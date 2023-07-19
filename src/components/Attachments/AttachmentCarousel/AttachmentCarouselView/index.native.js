@@ -7,7 +7,7 @@ import styles from '../../../../styles/styles';
 import CarouselButtons from '../CarouselButtons';
 import AttachmentView from '../../AttachmentView';
 import propTypes from './propTypes';
-import CONST from '../../../..CONST';
+import CONST from '../../../../CONST';
 
 function AttachmentCarouselView({attachments, initialPage, initialActiveSource, containerDimensions, onClose, onNavigate}) {
     const pagerRef = useRef(null);

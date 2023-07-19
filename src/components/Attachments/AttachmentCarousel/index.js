@@ -5,15 +5,15 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import {Parser as HtmlParser} from 'htmlparser2';
 import styles from '../../../styles/styles';
-import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
-import withWindowDimensions from '../withWindowDimensions';
-import reportPropTypes from '../../pages/reportPropTypes';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+import reportActionPropTypes from '../../../pages/home/report/reportActionPropTypes';
+import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
+import compose from '../../../libs/compose';
+import withWindowDimensions from '../../withWindowDimensions';
+import reportPropTypes from '../../../pages/reportPropTypes';
 import AttachmentCarouselView from './AttachmentCarouselView';
 
 const propTypes = {
