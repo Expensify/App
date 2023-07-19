@@ -259,13 +259,54 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
 };
 
 /**
+ * Extracts emojis from a given text.
+ *
+ * @param {string} text - The text to extract emojis from.
+ * @returns {string[]} An array of emoji codes.
+ */
+function extractEmojis(text) {
+    const emojis = [];
+    if (!text || typeof text !== 'string') return emojis;
+
+    let parseEmojis = text.match(CONST.REGEX.CODE_EMOJIS);
+    if (!parseEmojis) return emojis;
+
+    parseEmojis = [...new Set(parseEmojis)];
+
+    for (let i = 0; i < parseEmojis.length; i++) {
+        const character = parseEmojis[i];
+        const emoji = Emojis.emojiCodeTable[character];
+        if (!emoji) continue;
+        emojis.push(emoji);
+    }
+
+    return emojis;
+}
+
+/**
+ * Find all emojis in a text and replace them with their code.
+ * @param {string} text
+ * @param {number} preferredSkinTone
+ * @param {string} lang
+ * @returns
+ */
+function replaceAndExtractEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
+    const {text: newDraft = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
+
+    return {
+        text: newDraft,
+        emojis: emojis.concat(extractEmojis(text)),
+    };
+}
+
+/**
  * Replace any emoji name in a text with the emoji icon.
  * If we're on mobile, we also add a space after the emoji granted there's no text after it.
  *
  * @param {String} text
  * @param {Number} preferredSkinTone
  * @param {String} lang
- * @returns {Object}
+ * @returns {{text: String, emojis: Array}}
  */
 function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
     const trie = emojisTrie[lang];
@@ -416,4 +457,5 @@ export {
     getPreferredSkinToneIndex,
     getPreferredEmojiCode,
     getUniqueEmojiCodes,
+    replaceAndExtractEmojis,
 };
