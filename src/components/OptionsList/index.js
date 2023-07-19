@@ -1,4 +1,4 @@
-import React, {forwardRef, useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef, useCallback} from 'react';
 import {Keyboard} from 'react-native';
 import _ from 'underscore';
 import BaseOptionsList from './BaseOptionsList';
@@ -19,7 +19,7 @@ function OptionsList(props) {
 
     useEffect(() => {
         if (!DeviceCapabilities.canUseTouchScreen()) {
-            return undefined;
+            return;
         }
 
         // We're setting `isScreenTouched` in this listener only for web platforms with touchscreen (mWeb) where
@@ -33,18 +33,20 @@ function OptionsList(props) {
         };
     }, []);
 
+    const onScroll = useCallback(() => {
+        // Only dismiss the keyboard whenever the user scrolls the screen
+        if (!isScreenTouched.current) {
+            return;
+        }
+        Keyboard.dismiss();
+    }, []);
+
     return (
         <BaseOptionsList
             // eslint-disable-next-line react/jsx-props-no-spreading
             {..._.omit(props, 'forwardedRef')}
             ref={props.forwardedRef}
-            onScroll={() => {
-                // Only dismiss the keyboard whenever the user scrolls the screen
-                if (!isScreenTouched.current) {
-                    return;
-                }
-                Keyboard.dismiss();
-            }}
+            onScroll={onScroll}
         />
     );
 }
