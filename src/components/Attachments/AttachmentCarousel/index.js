@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import {Parser as HtmlParser} from 'htmlparser2';
-import styles from '../../styles/styles';
+import styles from '../../../styles/styles';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
