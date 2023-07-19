@@ -11,7 +11,6 @@ import androidx.core.graphics.drawable.IconCompat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public class NotificationCache {
 
@@ -40,11 +39,27 @@ public class NotificationCache {
     }
 
     public static class NotificationData {
-        public Map<String, Person> people = new HashMap<>();
+        private final Bundle people = new Bundle();
+        private final Bundle icons = new Bundle();
         public ArrayList<Message> messages = new ArrayList<>();
 
-        public Map<String, Bitmap> bitmapIcons = new HashMap<>();
         public int prevNotificationID = -1;
+
+        public Person getPerson(String accountID) {
+            return convertToPerson(people.getParcelable(accountID));
+        }
+
+        public void putPerson(String accountID, Person person) {
+            people.putParcelable(accountID, convertToBundle(person));
+        }
+
+        public Bitmap getIcon(String accountID) {
+            return icons.getParcelable(accountID);
+        }
+
+        public void putIcon(String accountID, Bitmap bitmap) {
+            icons.putParcelable(accountID, bitmap);
+        }
 
         public static class Message implements Parcelable {
             public Person person;
