@@ -24,6 +24,7 @@ import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import Colors from './colors';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -758,11 +759,37 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
-    uploadReceiptBorder: {
+    uploadReceiptView: {
         borderRadius: variables.componentBorderRadiusLarge,
         borderWidth: 2,
         borderColor: themeColors.borderFocus,
-        borderStyle: 'dashed',
+        borderStyle: 'dotted',
+        marginBottom: 20,
+        marginLeft: 20,
+        marginRight: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 40,
+        gap: 4,
+        flex: 1,
+    },
+
+    cameraView: {
+        flex: 1,
+        overflow: 'hidden',
+        padding: 10,
+        borderRadius: 28,
+        borderStyle: 'solid',
+        borderWidth: 8,
+        backgroundColor: Colors.greenHighlightBackground,
+        borderColor: Colors.greenAppBackground,
+    },
+
+    permissionView: {
+        paddingVertical: 108,
+        paddingHorizontal: 61,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     headerAnonymousFooter: {
@@ -1066,9 +1093,11 @@ const styles = {
         ...headlineFont,
         fontSize: variables.fontSizeXLarge,
         color: themeColors.textLight,
+        textAlign: 'center',
     },
 
     subTextReceiptUpload: {
+        fontFamily: fontFamily.EXP_NEUE,
         lineHeight: variables.lineHeightLarge,
         textAlign: 'center',
         color: themeColors.textLight,
@@ -1094,6 +1123,10 @@ const styles = {
 
     lh140Percent: {
         lineHeight: '140%',
+    },
+
+    lhNormal: {
+        lineHeight: variables.lineHeightNormal,
     },
 
     formHelp: {
@@ -1176,8 +1209,8 @@ const styles = {
     },
 
     signInPageLeftContainer: {
-        paddingLeft: 40,
-        paddingRight: 40,
+        paddingLeft: 48,
+        paddingRight: 48,
     },
 
     signInPageLeftContainerWide: {
@@ -1185,11 +1218,11 @@ const styles = {
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: 300,
+        maxWidth: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     signInPageWelcomeTextContainer: {
-        width: 300,
+        width: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     changeExpensifyLoginLinkContainer: {
@@ -3494,7 +3527,7 @@ const styles = {
         ...spacing.mr3,
     },
 
-    taskHorizontalRule: {
+    reportHorizontalRule: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.mh5,
@@ -3563,6 +3596,52 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+
+    loginButtonRow: {
+        justifyContent: 'center',
+        width: '100%',
+        ...flex.flexRow,
+    },
+
+    loginButtonRowSmallScreen: {
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 10,
+        ...flex.flexRow,
+    },
+
+    appleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginRight: 20,
+    },
+
+    signInIconButton: {
+        margin: 10,
+        marginTop: 0,
+        padding: 2,
+    },
+
+    tabSelectorButton: {
+        paddingBottom: 16,
+        marginHorizontal: 8,
+        alignItems: 'center',
+    },
+
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
+        height,
+        width: '100%',
+        position: 'absolute',
+        top: -height,
+        left: 0,
+        right: 0,
+    }),
 
     moneyRequestImage: {
         height: 200,

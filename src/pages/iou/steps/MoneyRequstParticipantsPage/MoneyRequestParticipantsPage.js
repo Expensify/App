@@ -75,14 +75,13 @@ function MoneyRequestParticipantsPage(props) {
         }
 
         if ((props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
-            console.log(`Going back ${props}`);
             navigateBack(true);
         }
 
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.amount, props.iou.id]);
+    }, [props.iou.amount, props.iou.id, props.iou.receiptPath]);
 
     return (
         <ScreenWrapper

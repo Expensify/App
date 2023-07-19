@@ -4,8 +4,9 @@ import PropTypes from 'prop-types';
 import withLocalize from './withLocalize';
 import Icon from './Icon';
 import Colors from '../styles/colors';
-import Styles from '../styles/styles';
+import styles from '../styles/styles';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import fontFamily from '../styles/fontFamily';
 
 const propTypes = {
     /** Function to call when onPress */
@@ -29,17 +30,14 @@ const defaultProps = {
 };
 
 function TabSelectorItem(props) {
-    const textStyle = props.selected ? [Styles.textStrong, Styles.mt2, Styles.textWhite] : [Styles.mt2, Styles.colorMuted];
+    const textStyle = props.selected
+        ? [styles.textStrong, styles.mt2, styles.textWhite, {fontFamily: fontFamily.EXP_NEUE}]
+        : [styles.mt2, styles.colorMuted, {fontFamily: fontFamily.EXP_NEUE}];
     return (
         <View>
             <PressableWithFeedback
                 accessibilityRole="button"
-                style={{
-                    paddingHorizontal: 12,
-                    paddingVertical: 10,
-                    marginHorizontal: 8,
-                    alignItems: 'center',
-                }}
+                style={[styles.tabSelectorButton]}
                 onPress={props.onPress}
             >
                 <Icon

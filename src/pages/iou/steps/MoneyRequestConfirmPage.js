@@ -73,14 +73,11 @@ function MoneyRequestConfirmPage(props) {
         [props.iou.participants, props.personalDetails],
     );
 
-    console.log(`MoneyRequestConfirmPage ${JSON.stringify(props)}`);
-
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
         if (prevMoneyRequestId.current !== props.iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing.
             if (props.iou.id) {
-                console.log(`Going back ${JSON.stringify(props)}`);
                 Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
             }
             return;
@@ -94,14 +91,13 @@ function MoneyRequestConfirmPage(props) {
         }
 
         if (_.isEmpty(props.iou.participants) || (props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
-            console.log(`Going back ${JSON.stringify(props)}`);
             Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
         }
 
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.participants, props.iou.amount, props.iou.id]);
+    }, [props.iou.participants, props.iou.amount, props.iou.id, props.iou.receiptPath]);
 
     const navigateBack = () => {
         let fallback;
@@ -110,7 +106,6 @@ function MoneyRequestConfirmPage(props) {
         } else {
             fallback = ROUTES.getMoneyRequestParticipantsRoute(iouType.current);
         }
-        console.log(`Going back ${JSON.stringify(props)}`);
         Navigation.goBack(fallback);
     };
 
@@ -197,7 +192,7 @@ function MoneyRequestConfirmPage(props) {
                     />
                     <MoneyRequestConfirmationList
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                        participants={participants}
+                        selectedParticipants={participants}
                         iouAmount={props.iou.amount}
                         iouComment={props.iou.comment}
                         iouCurrencyCode={props.iou.currency}

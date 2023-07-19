@@ -12,15 +12,11 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import * as IOUUtils from '../../../libs/IOUUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
@@ -197,12 +193,6 @@ function MoneyRequestAmountPage(props) {
         if (!textInput.current.isFocused()) {
             textInput.current.focus();
         }
-    };
-
-    const title = {
-        [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
 
     /**

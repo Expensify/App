@@ -1,17 +1,15 @@
 import {View} from 'react-native';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
 import compose from '../libs/compose';
-import withLocalize from './withLocalize';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import TabSelectorItem from './TabSelectorItem';
 import Tab from '../libs/actions/Tab';
 import Permissions from '../libs/Permissions';
 import CONST from '../CONST';
-
 
 const propTypes = {
     /** Which tab has been selected */
@@ -19,6 +17,7 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -27,23 +26,23 @@ const defaultProps = {
 };
 
 function TabSelector(props) {
-    const selectedTab = lodashGet(props.tabSelected, 'selected', CONST.TABS.MANUAL);
+    const selectedTab = props.tabSelected ? props.tabSelected : CONST.TAB.TAB_MANUAL;
     return (
-        <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
+        <View style={{flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 20}}>
             <TabSelectorItem
-                title="Manual"
-                selected={selectedTab === CONST.TABS.MANUAL}
+                title={props.translate('tabSelector.manual')}
+                selected={selectedTab === CONST.TAB.TAB_MANUAL}
                 icon={Expensicons.Pencil}
                 onPress={() => {
-                    Tab.onTabPress(CONST.TABS.MANUAL);
+                    Tab.onTabPress(CONST.TAB.TAB_MANUAL);
                 }}
             />
             <TabSelectorItem
-                title="Scan"
-                selected={selectedTab === CONST.TABS.SCAN}
+                title={props.translate('tabSelector.scan')}
+                selected={selectedTab === CONST.TAB.TAB_SCAN}
                 icon={Expensicons.Receipt}
                 onPress={() => {
-                    Tab.onTabPress(CONST.TABS.SCAN);
+                    Tab.onTabPress(CONST.TAB.TAB_SCAN);
                 }}
             />
             {Permissions.canUseDistanceRequests(props.betas) && (
@@ -52,7 +51,7 @@ function TabSelector(props) {
                     selected={selectedTab === CONST.TABS.DISTANCE}
                     icon={Expensicons.Car}
                     onPress={() => {
-                        Tab.onTabPress(CONST.TABS.DISTANCE);
+                        Tab.onTabPress(CONST.TAB.TAB_DISTANCE);
                     }}
                 />
             )}

@@ -48,7 +48,7 @@ const propTypes = {
     iouType: PropTypes.string,
 
     /** Selected participants from MoneyRequestModal with login / accountID */
-    participants: PropTypes.arrayOf(optionPropTypes).isRequired,
+    selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
     /** Payee of the money request with login */
     payeePersonalDetails: optionPropTypes,
@@ -104,8 +104,6 @@ function MoneyRequestConfirmationList(props) {
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
     const {translate, onSendMoney, onConfirm, onSelectParticipant} = props;
 
-    console.log(`MoneyRequestConfirmationList`);
-
     /**
      * Returns the participants with amount
      * @param {Array} participants
@@ -135,14 +133,14 @@ function MoneyRequestConfirmationList(props) {
         ];
     }, [props.hasMultipleParticipants, props.iouAmount, props.receiptPath, props.iouCurrencyCode, translate]);
 
-    const selectedParticipants = useMemo(() => _.filter(props.participants, (participant) => participant.selected), [props.participants]);
+    const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
-    const shouldDisableWhoPaidSection = canModifyParticipants;
+    const shouldDisablePaidBySection = canModifyParticipants;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = _.filter(props.participants, (participant) => !participant.selected);
+        const unselectedParticipants = _.filter(props.selectedParticipants, (participant) => !participant.selected);
         if (props.hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
             const formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
@@ -155,14 +153,14 @@ function MoneyRequestConfirmationList(props) {
 
             sections.push(
                 {
-                    title: translate('moneyRequestConfirmationList.whoPaid'),
+                    title: translate('moneyRequestConfirmationList.paidBy'),
                     data: [formattedPayeeOption],
                     shouldShow: true,
                     indexOffset: 0,
-                    isDisabled: shouldDisableWhoPaidSection,
+                    isDisabled: shouldDisablePaidBySection,
                 },
                 {
-                    title: translate('moneyRequestConfirmationList.whoWasThere'),
+                    title: translate('moneyRequestConfirmationList.splitWith'),
                     data: formattedParticipantsList,
                     shouldShow: true,
                     indexOffset: 1,
@@ -171,14 +169,14 @@ function MoneyRequestConfirmationList(props) {
         } else {
             sections.push({
                 title: translate('common.to'),
-                data: props.participants,
+                data: props.selectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });
         }
         return sections;
     }, [
-        props.participants,
+        props.selectedParticipants,
         props.hasMultipleParticipants,
         props.iouAmount,
         props.iouCurrencyCode,
@@ -186,7 +184,7 @@ function MoneyRequestConfirmationList(props) {
         selectedParticipants,
         payeePersonalDetails,
         translate,
-        shouldDisableWhoPaidSection,
+        shouldDisablePaidBySection,
     ]);
 
     const selectedOptions = useMemo(() => {
@@ -255,7 +253,7 @@ function MoneyRequestConfirmationList(props) {
 
         const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
         const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = props.participants[0] || {};
+        const recipient = props.selectedParticipants[0] || {};
 
         return shouldShowSettlementButton ? (
             <SettlementButton
@@ -276,7 +274,7 @@ function MoneyRequestConfirmationList(props) {
                 options={splitOrRequestOptions}
             />
         );
-    }, [confirm, props.participants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+    }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
     return (
         <OptionsSelector

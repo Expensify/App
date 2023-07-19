@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import {Portal} from '@gorhom/portal';
 import PropTypes from 'prop-types';
+import stylePropTypes from '../../../styles/stylePropTypes';
 
 const propTypes = {
     /** Name for a drop zone view holder which gives us the flexibility to mount drop zone wherever we want. The holder view can be implemented as PortalHost */
@@ -14,10 +15,10 @@ const propTypes = {
     dropZoneId: PropTypes.string.isRequired,
 
     /** Style for the holder view of the dropzone */
-    dropZoneViewHolderStyle: PropTypes.array,
+    dropZoneViewHolderStyle: stylePropTypes.isRequired,
 
     /** Style for the view of the dropzone */
-    dropZoneViewStyle: PropTypes.object,
+    dropZoneViewStyle: stylePropTypes.isRequired,
 };
 
 function DropZone(props) {

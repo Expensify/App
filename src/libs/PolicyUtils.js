@@ -5,6 +5,15 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
 /**
+ * Filter out the active policies, which will exclude policies with pending deletion
+ * @param {Object} policies
+ * @returns {Array}
+ */
+function getActivePolicies(policies) {
+    return _.filter(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+}
+
+/**
  * Checks if we have any errors stored within the POLICY_MEMBERS. Determines whether we should show a red brick road error or not.
  * Data structure: {accountID: {role:'user', errors: []}, accountID2: {role:'admin', errors: [{1231312313: 'Unable to do X'}]}, ...}
  *
@@ -93,6 +102,15 @@ function isExpensifyTeam(email) {
 }
 
 /**
+ * @param {string} email
+ * @returns {boolean}
+ */
+function isExpensifyGuideTeam(email) {
+    const emailDomain = Str.extractEmailDomain(email);
+    return emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
+}
+
+/**
  * Checks if the current user is an admin of the policy.
  *
  * @param {Object} policy
@@ -125,6 +143,7 @@ function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails)
 }
 
 export {
+    getActivePolicies,
     hasPolicyMemberError,
     hasPolicyError,
     hasPolicyErrorFields,
@@ -132,6 +151,7 @@ export {
     getPolicyBrickRoadIndicatorStatus,
     shouldShowPolicy,
     isExpensifyTeam,
+    isExpensifyGuideTeam,
     isPolicyAdmin,
     getClientPolicyMemberEmailsToAccountIDs,
 };
