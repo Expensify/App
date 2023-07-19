@@ -121,21 +121,13 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {
-                [optimisticAddCommentReport.reportAction.reportActionID]: {
-                    pendingAction: null,
-                },
-            },
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
+            value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
-            value: {
-                [optimisticTaskCreatedAction.reportActionID]: {
-                    pendingAction: null,
-                },
-            },
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
         },
     ];
 
