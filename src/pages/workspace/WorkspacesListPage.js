@@ -20,6 +20,7 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
 import usePermissions from '../../hooks/usePermissions';
@@ -191,7 +192,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     accessibilityLabel={translate('workspace.new.newWorkspace')}
                     success
                     text={translate('workspace.new.newWorkspace')}
-                    onPress={Policy.createWorkspace}
+                    onPress={App.createWorkspaceAndNavigateToIt}
                 />
             }
         >
