@@ -40,6 +40,9 @@ const propTypes = {
         /** Whether or not the user is on a public domain email account or not */
         isFromPublicDomain: PropTypes.bool,
     }),
+
+    /* The workspace policyID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -47,6 +50,7 @@ const defaultProps = {
         email: null,
     },
     user: {},
+    policyID: '',
 };
 
 class CompanyStep extends React.Component {
@@ -148,7 +152,7 @@ class CompanyStep extends React.Component {
             companyPhone: parsePhoneNumber(values.companyPhone, {regionCode: CONST.COUNTRY.US}).number.significant,
         };
 
-        BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
+        BankAccounts.updateCompanyInformationForBankAccount(bankAccount, this.props.policyID);
     }
 
     render() {
