@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {ActivityIndicator, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import SignInPageLayout from './SignInPageLayout';
@@ -13,14 +15,25 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Which sign in provider we are using. */
     signInProvider: PropTypes.oneOf([CONST.SIGN_IN_METHOD.APPLE, CONST.SIGN_IN_METHOD.GOOGLE]).isRequired,
 
+    /** State for the account */
+    account: PropTypes.shape({
+        /** Whether or not the user is loading */
+        loading: PropTypes.bool,
+    }),
+
     ...withLocalizePropTypes,
 
     ...windowDimensionsPropTypes,
+};
+
+const defaultProps = {
+    account: {},
 };
 
 /* Dedicated screen that the desktop app links to on the web app, as Apple/Google
@@ -34,42 +47,61 @@ function ThirdPartySignInPage(props) {
 
     return (
         <SafeAreaView style={[styles.signInPage]}>
-            <SignInPageLayout
-                welcomeHeader={props.translate('welcomeText.getStarted')}
-                shouldShowWelcomeHeader
-            >
-                {props.signInProvider === CONST.SIGN_IN_METHOD.APPLE ? <AppleSignIn isDesktopFlow /> : <GoogleSignIn isDesktopFlow />}
-                <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
-                <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.goBackMessage', {provider: props.signInProvider})}</Text>
-                <TextLink
-                    style={[styles.link]}
-                    onPress={goBack}
+            {props.account.loading ? (
+                <View style={styles.thirdPartyLoadingContainer}>
+                    <ActivityIndicator
+                        size="large"
+                        welcomeHeader={props.translate('welcomeText.getStarted')}
+                        shouldShowWelcomeHeader
+                    />
+                </View>
+            ) : (
+                <SignInPageLayout
+                    welcomeHeader={props.translate('welcomeText.getStarted')}
+                    shouldShowWelcomeHeader
                 >
-                    {props.translate('common.goBack')}.
-                </TextLink>
-                <Text style={[styles.textExtraSmallSupporting, styles.mt5, styles.mb5]}>
-                    {props.translate('thirdPartySignIn.signInAgreementMessage')}
+                    {props.signInProvider === CONST.SIGN_IN_METHOD.APPLE ? <AppleSignIn isDesktopFlow /> : <GoogleSignIn isDesktopFlow />}
+                    <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
+                    <Text style={[styles.mt5]}>{props.translate('thirdPartySignIn.goBackMessage', {provider: props.signInProvider})}</Text>
                     <TextLink
-                        style={[styles.textExtraSmallSupporting, styles.link]}
-                        href=""
+                        style={[styles.link]}
+                        onPress={goBack}
                     >
-                        {` ${props.translate('common.termsOfService')}`}
+                        {props.translate('common.goBack')}.
                     </TextLink>
-                    {` ${props.translate('common.and')} `}
-                    <TextLink
-                        style={[styles.textExtraSmallSupporting, styles.link]}
-                        href=""
-                    >
-                        {props.translate('common.privacy')}
-                    </TextLink>
-                    .
-                </Text>
-            </SignInPageLayout>
+                    <Text style={[styles.textExtraSmallSupporting, styles.mt5, styles.mb5]}>
+                        {props.translate('thirdPartySignIn.signInAgreementMessage')}
+                        <TextLink
+                            style={[styles.textExtraSmallSupporting, styles.link]}
+                            href=""
+                        >
+                            {` ${props.translate('common.termsOfService')}`}
+                        </TextLink>
+                        {` ${props.translate('common.and')} `}
+                        <TextLink
+                            style={[styles.textExtraSmallSupporting, styles.link]}
+                            href=""
+                        >
+                            {props.translate('common.privacy')}
+                        </TextLink>
+                        .
+                    </Text>
+                </SignInPageLayout>
+            )}
         </SafeAreaView>
     );
 }
 
 ThirdPartySignInPage.propTypes = propTypes;
+ThirdPartySignInPage.defaultProps = defaultProps;
 ThirdPartySignInPage.displayName = 'ThirdPartySignInPage';
 
-export default compose(withLocalize, withWindowDimensions)(ThirdPartySignInPage);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+    withOnyx({
+        account: {
+            key: ONYXKEYS.ACCOUNT,
+        },
+    }),
+)(ThirdPartySignInPage);

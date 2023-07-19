@@ -3559,6 +3559,12 @@ const styles = {
         width: 219,
     },
 
+    thirdPartyLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 450,
+    },
+
     /**
      * @param {String} backgroundColor
      * @param {Number} height
