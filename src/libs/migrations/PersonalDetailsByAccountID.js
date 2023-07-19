@@ -273,7 +273,7 @@ export default function () {
                 }
 
                 if (reportWasModified) {
-                    onyxData[onyxKey] = report;
+                    onyxData[onyxKey] = newReport;
                 }
             });
 
