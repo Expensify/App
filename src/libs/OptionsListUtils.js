@@ -40,6 +40,12 @@ Onyx.connect({
     callback: (val) => (loginList = _.isEmpty(val) ? {} : val),
 });
 
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (allPersonalDetails = _.isEmpty(val) ? {} : val),
+});
+
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -339,7 +345,14 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
-            searchTerms = searchTerms.concat(report.participants);
+            const participantAccountIDs = report.participantAccountIDs || [];
+            for (let i = 0; i < participantAccountIDs.length; i++) {
+                const accountID = participantAccountIDs[i];
+
+                if (allPersonalDetails[accountID] && allPersonalDetails[accountID].login) {
+                    searchTerms = searchTerms.concat(allPersonalDetails[accountID].login);
+                }
+            }
         }
     }
 
@@ -524,6 +537,13 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                 : {
                       key: 'report.noActivityYet',
                   };
+        } else if (result.isTaskReport) {
+            result.alternateText =
+                showChatPreviewLine && lastMessageText
+                    ? lastMessageTextFromReport
+                    : {
+                          key: 'report.noActivityYet',
+                      };
         } else {
             result.alternateText = showChatPreviewLine && hasLastMessageText ? alternateText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
@@ -894,6 +914,7 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         includeOwnedWorkspaceChats: true,
         includeThreads: true,
         includeMoneyRequests: true,
+        includeTasks: true,
     });
 }
 

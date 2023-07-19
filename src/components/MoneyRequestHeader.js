@@ -62,7 +62,6 @@ function MoneyRequestHeader(props) {
     const report = props.report;
     if (props.isSingleTransactionView) {
         report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
-        report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
     }
     return (
         <View style={[styles.highlightBG, styles.pl0]}>
@@ -79,7 +78,6 @@ function MoneyRequestHeader(props) {
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
                 report={report}
-                parentReport={moneyRequestReport}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
