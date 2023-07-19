@@ -493,6 +493,7 @@ const CONST = {
         DROP_NATIVE_ID: 'receipt-dropzone',
         ACTIVE_DROP_NATIVE_ID: 'receipt-dropzone',
         ICON_SIZE: 164,
+        PERMISSION_AUTHORIZED: 'authorized',
     },
     REPORT: {
         DROP_HOST_NAME: 'ReportDropZone',

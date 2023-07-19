@@ -364,6 +364,8 @@ export default {
         givePermission: 'Permitir',
         takePhoto: 'Haz una foto',
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
+        cameraErrorTitle: 'Error en la cámara',
+        cameraErrorMessage: 'Se produjo un error al hacer una foto, Por favor, inténtalo de nuevo.',
     },
     iou: {
         amount: 'Importe',

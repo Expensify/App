@@ -3622,6 +3622,12 @@ const styles = {
         padding: 2,
     },
 
+    tabSelectorButton: {
+        paddingBottom: 16,
+        marginHorizontal: 8,
+        alignItems: 'center',
+    },
+
     /**
      * @param {String} backgroundColor
      * @param {Number} height

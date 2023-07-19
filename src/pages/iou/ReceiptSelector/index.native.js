@@ -140,6 +140,10 @@ function ReceiptSelector(props) {
         Alert.alert(props.translate('attachmentPicker.attachmentError'), props.translate('attachmentPicker.errorWhileSelectingAttachment'));
     };
 
+    const showCameraAlert = () => {
+        Alert.alert(props.translate('receipt.cameraErrorTitle'), props.translate('receipt.cameraErrorMessage'));
+    };
+
     /**
      * Common image picker handling
      *
@@ -180,8 +184,8 @@ function ReceiptSelector(props) {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`);
                 NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
             })
-            .catch((error) => {
-                console.log(error);
+            .catch(() => {
+                showCameraAlert();
             });
     };
 
@@ -238,9 +242,16 @@ function ReceiptSelector(props) {
         </View>
     );
 
+    const getCameraView = () => {
+        if (permissions !== CONST.RECEIPT.PERMISSION_AUTHORIZED) {
+            return permissionComponent();
+        }
+        return device == null ? loadingComponent() : cameraComponent();
+    };
+
     return (
         <View style={styles.flex1}>
-            {permissions !== 'authorized' ? permissionComponent() : device == null ? loadingComponent() : cameraComponent()}
+            {getCameraView()}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     accessibilityRole="button"

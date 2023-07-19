@@ -365,6 +365,8 @@ export default {
         givePermission: 'Give permission',
         takePhoto: 'Take a photo',
         cameraAccess: 'Camera access is required to take pictures of receipts.',
+        cameraErrorTitle: 'Camera Error',
+        cameraErrorMessage: 'An error occurred while taking a photo, please try again',
     },
     iou: {
         amount: 'Amount',
