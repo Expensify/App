@@ -1,13 +1,13 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import ImageView from '../../ImageView';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import compose from '../../../libs/compose';
-import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
-import CONST from '../../../CONST';
+import styles from '../../../../styles/styles';
+import ImageView from '../../../ImageView';
+import withLocalize, {withLocalizePropTypes} from '../../../withLocalize';
+import compose from '../../../../libs/compose';
+import PressableWithoutFeedback from '../../../Pressable/PressableWithoutFeedback';
+import CONST from '../../../../CONST';
 import AttachmentCarouselPage from '../../AttachmentCarouselPager/AttachmentCarouselPage';
-import * as AttachmentsPropTypes from '../../Attachments/propTypes';
+import * as AttachmentsPropTypes from '../../propTypes';
 
 const propTypes = {
     item: AttachmentsPropTypes.attachmentPropType,
