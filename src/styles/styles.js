@@ -3526,10 +3526,6 @@ const styles = {
         textAlign: 'center',
     },
 
-    addressPickerDescription: {
-        fontSize: variables.fontSizeNormal,
-    },
-
     /**
      * @param {String} backgroundColor
      * @param {Number} height

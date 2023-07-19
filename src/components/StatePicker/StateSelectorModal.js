@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
@@ -38,9 +39,7 @@ function filterOptions(searchValue, data) {
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected}) {
     const {translate} = useLocalize();
     const allStates = translate('allStates');
-    const selectedSearchState = !_.isEmpty(currentState) ? allStates[currentState].stateName : '';
-
-    const [searchValue, setSearchValue] = useState(selectedSearchState);
+    const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${currentState}.stateName`, ''));
 
     const countryStates = useMemo(
         () =>

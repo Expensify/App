@@ -11,37 +11,37 @@ const propTypes = {
     /** Error text to display */
     errorText: PropTypes.string,
 
-    /** Default value to display */
-    defaultValue: PropTypes.string,
-
     /** State to display */
     // eslint-disable-next-line react/require-default-props
     value: PropTypes.string,
 
     /** Callback to call when the input changes */
     onInputChange: PropTypes.func,
+
+    /** A ref to forward to MenuItemWithTopDescription */
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 };
 
 const defaultProps = {
+    forwardedRef: undefined,
     errorText: '',
-    defaultValue: '',
     onInputChange: () => {},
 };
 
-function StatePicker({value, defaultValue, errorText, onInputChange}, ref) {
+function StatePicker({value, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const formValue = value || defaultValue || '';
+    const stateValue = value || '';
 
     const title = useMemo(() => {
         const allStates = translate('allStates');
 
-        if (allStates[formValue]) {
-            return allStates[formValue].stateName;
+        if (allStates[stateValue]) {
+            return allStates[stateValue].stateName;
         }
 
         return '';
-    }, [translate, formValue]);
+    }, [translate, stateValue]);
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
@@ -51,17 +51,17 @@ function StatePicker({value, defaultValue, errorText, onInputChange}, ref) {
         setIsPickerVisible(false);
     };
 
-    const onStateSelected = (state) => {
+    const updateStateInput = (state) => {
         onInputChange(state.value);
         hidePickerModal();
     };
 
-    const descStyle = title.length === 0 ? styles.addressPickerDescription : null;
+    const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={ref}
+                ref={forwardedRef}
                 shouldShowRightIcon
                 title={title}
                 description={translate('common.state')}
@@ -72,11 +72,11 @@ function StatePicker({value, defaultValue, errorText, onInputChange}, ref) {
                 <FormHelpMessage message={errorText} />
             </View>
             <StateSelectorModal
-                key={formValue}
+                key={stateValue}
                 isVisible={isPickerVisible}
-                currentState={formValue}
+                currentState={stateValue}
                 onClose={hidePickerModal}
-                onStateSelected={onStateSelected}
+                onStateSelected={updateStateInput}
             />
         </View>
     );
@@ -86,4 +86,10 @@ StatePicker.propTypes = propTypes;
 StatePicker.defaultProps = defaultProps;
 StatePicker.displayName = 'StatePicker';
 
-export default React.forwardRef(StatePicker);
+export default React.forwardRef((props, ref) => (
+    <StatePicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));

@@ -18,14 +18,18 @@ const propTypes = {
 
     /** Callback to call when the input changes */
     onInputChange: PropTypes.func,
+
+    /** A ref to forward to MenuItemWithTopDescription */
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 };
 
 const defaultProps = {
+    forwardedRef: undefined,
     errorText: '',
     onInputChange: () => {},
 };
 
-function CountryPicker({value, errorText, onInputChange}, ref) {
+function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const countryValue = value || '';
@@ -38,18 +42,18 @@ function CountryPicker({value, errorText, onInputChange}, ref) {
         setIsPickerVisible(false);
     };
 
-    const onStateSelected = (state) => {
-        onInputChange(state.value);
+    const updateCountryInput = (country) => {
+        onInputChange(country.value);
         hidePickerModal();
     };
 
     const title = PersonalDetails.getCountryName(countryValue);
-    const descStyle = title.length === 0 ? styles.addressPickerDescription : null;
+    const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
         <View>
             <MenuItemWithTopDescription
-                ref={ref}
+                ref={forwardedRef}
                 shouldShowRightIcon
                 title={title}
                 descriptionTextStyle={descStyle}
@@ -64,7 +68,7 @@ function CountryPicker({value, errorText, onInputChange}, ref) {
                 isVisible={isPickerVisible}
                 currentCountry={countryValue}
                 onClose={hidePickerModal}
-                onCountrySelected={onStateSelected}
+                onCountrySelected={updateCountryInput}
             />
         </View>
     );
@@ -74,4 +78,10 @@ CountryPicker.propTypes = propTypes;
 CountryPicker.defaultProps = defaultProps;
 CountryPicker.displayName = 'CountryPicker';
 
-export default React.forwardRef(CountryPicker);
+export default React.forwardRef((props, ref) => (
+    <CountryPicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
