@@ -199,8 +199,8 @@ function Form(props) {
      * @returns {React.Component}
      */
     const childrenWrapperWithProps = useCallback(
-        (childNodes) =>
-            React.Children.map(childNodes, (child) => {
+        (childNodes) => {
+            const childrenElements = React.Children.map(childNodes, (child) => {
                 // Just render the child if it is not a valid React element, e.g. text within a <Text> component
                 if (!React.isValidElement(child)) {
                     return child;
@@ -320,7 +320,26 @@ function Form(props) {
                         }
                     },
                 });
-            }),
+            });
+
+            _.each(inputRefs.current, (inputRef, inputID) => {
+                if (inputRef) {
+                    return;
+                }
+
+                delete inputRefs.current[inputID];
+
+                setInputValues((prevState) => {
+                    const copyPrevState = _.clone(prevState);
+
+                    delete copyPrevState[inputID];
+
+                    return copyPrevState;
+                });
+            });
+
+            return childrenElements;
+        },
         [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput],
     );
 
