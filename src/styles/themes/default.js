@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import colors from '../colors';
 import SCREENS from '../../SCREENS';
+import lightTheme from './light';
 
 const darkTheme = {
     // Figma keys
@@ -81,4 +82,4 @@ darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
 };
 
-export default darkTheme;
+export default lightTheme;
