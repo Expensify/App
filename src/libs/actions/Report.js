@@ -324,7 +324,7 @@ function addActions(reportID, text = '', file) {
     // Update optimistic data for parent report action if the report is a child report
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     if (!_.isEmpty(optimisticParentReportData)) {
-         optimisticData.push(optimisticParentReportData);
+        optimisticData.push(optimisticParentReportData);
     }
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
@@ -952,7 +952,9 @@ function deleteReportComment(reportID, reportAction) {
 
     // Update optimistic data for parent report action if the report is a child report
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, optimisticReport.lastVisibleActionCreated, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    if (!_.isEmpty(optimisticParentReportData)) optimisticData.push(optimisticParentReportData);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     const parameters = {
         reportID: originalReportID,
