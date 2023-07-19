@@ -210,6 +210,7 @@ class AttachmentCarousel extends React.Component {
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (page === -1) {
             Navigation.dismissModal();
+            return
         }
 
         // Update the parent modal's state with the source and name from the mapped attachments
