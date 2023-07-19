@@ -106,7 +106,7 @@ public class NotificationCache {
 
     private static Bundle convertToBundle(Person p) {
         Bundle bundle = new Bundle();
-        bundle.putParcelable("icon", (Parcelable) p.getIcon());
+        bundle.putBundle("icon", p.getIcon().toBundle());
         bundle.putString("key", p.getKey());
         bundle.putString("name", p.getName().toString());
         return bundle;
@@ -114,7 +114,7 @@ public class NotificationCache {
 
     private static Person convertToPerson(Bundle b) {
         return new Person.Builder()
-                .setIcon((IconCompat) b.getParcelable("icon"))
+                .setIcon(IconCompat.createFromBundle(b.getBundle("icon")))
                 .setKey(b.getString("key"))
                 .setName(b.getString("name"))
                 .build();
