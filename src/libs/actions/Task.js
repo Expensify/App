@@ -187,8 +187,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         {optimisticData, successData, failureData},
     );
 
-    clearOutTaskInfo();
-
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
 
@@ -498,7 +496,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
 
     // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
     if (!newAssigneeAccountID) {
-        newAssigneeAccountID = UserUtils.generateAccountID();
+        newAssigneeAccountID = UserUtils.generateAccountID(assignee);
     }
     if (!isCurrentUser) {
         let newChat = {};
@@ -585,7 +583,7 @@ function getShareDestination(reportID, reports, personalDetails) {
  */
 function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
     const message = `canceled task: ${taskTitle}`;
-    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELED, message);
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
 
     const optimisticData = [
