@@ -5,13 +5,13 @@ import AttachmentCarouselPager from '../AttachmentCarouselPager';
 import styles from '../../../styles/styles';
 import CarouselButtons from './CarouselButtons';
 import AttachmentView from '../AttachmentView';
-import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import withWindowDimensions from '../../withWindowDimensions';
 import {attachmentCarouselPropTypes, attachmentCarouselDefaultProps} from './propTypes';
 import extractAttachments from './extractAttachments';
+import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}) {
     const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachments(report, reportActions, source), [report, reportActions, source]);
@@ -28,29 +28,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
     const [page, setPage] = useState(initialPage);
     const [activeSource, setActiveSource] = useState(initialActiveSource);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
-    const [shouldShowArrows, setShouldShowArrows] = useState(true);
-
-    const autoHideArrowTimeout = useRef(null);
-
-    /**
-     * Cancels the automatic hiding of the arrows.
-     */
-    const cancelAutoHideArrow = useCallback(() => clearTimeout(autoHideArrowTimeout.current), []);
-
-    /**
-     * Automatically hide the arrows if there is no interaction for 3 seconds.
-     */
-    const autoHideArrow = useCallback(() => {
-        cancelAutoHideArrow();
-        autoHideArrowTimeout.current = setTimeout(() => {
-            setShouldShowArrows(false);
-        }, CONST.ARROW_HIDE_DELAY);
-    }, [cancelAutoHideArrow]);
-
-    const showArrows = useCallback(() => {
-        setShouldShowArrows(true);
-        autoHideArrow();
-    }, [autoHideArrow]);
+    const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
     /**
      * Updates the page state when the user navigates between attachments
@@ -60,7 +38,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
     const updatePage = useCallback(
         (newPageIndex) => {
             Keyboard.dismiss();
-            showArrows();
+            setShouldShowArrows(true);
 
             const item = attachments[newPageIndex];
 
@@ -69,7 +47,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
 
             onNavigate(item);
         },
-        [onNavigate, attachments, showArrows],
+        [setShouldShowArrows, attachments, onNavigate],
     );
 
     /**
@@ -82,9 +60,9 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
             updatePage(nextPageIndex);
             pagerRef.current.setPage(nextPageIndex);
 
-            autoHideArrow();
+            autoHideArrows();
         },
-        [autoHideArrow, page, updatePage],
+        [autoHideArrows, page, updatePage],
     );
 
     /**
@@ -98,16 +76,11 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
                 item={item}
                 isFocused={activeSource === item.source}
                 isUsedInCarousel
-                onPress={() => (shouldShowArrows ? setShouldShowArrows(false) : showArrows())}
+                onPress={() => (shouldShowArrows ? setShouldShowArrows(false) : setShouldShowArrows(true))}
             />
         ),
-        [activeSource, shouldShowArrows, showArrows],
+        [activeSource, setShouldShowArrows, shouldShowArrows],
     );
-
-    useEffect(() => {
-        autoHideArrow();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     return (
         <View
@@ -124,8 +97,8 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
                 attachments={attachments}
                 onBack={() => cycleThroughAttachments(-1)}
                 onForward={() => cycleThroughAttachments(1)}
-                autoHideArrow={autoHideArrow}
-                cancelAutoHideArrow={cancelAutoHideArrow}
+                autoHideArrow={autoHideArrows}
+                cancelAutoHideArrow={cancelAutoHideArrows}
             />
 
             {containerDimensions.width > 0 && containerDimensions.height > 0 && (
@@ -136,7 +109,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
                     onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                     onPinchGestureChange={(newIsPinchGestureRunning) => {
                         setIsPinchGestureRunning(newIsPinchGestureRunning);
-                        if (!newIsPinchGestureRunning && !shouldShowArrows) showArrows();
+                        if (!newIsPinchGestureRunning && !shouldShowArrows) setShouldShowArrows(true);
                     }}
                     onSwipeDown={onClose}
                     containerWidth={containerDimensions.width}
