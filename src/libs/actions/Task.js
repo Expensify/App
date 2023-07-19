@@ -147,6 +147,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
         },
     ];
+
     if (optimisticAssigneeAddComment) {
         const lastAssigneeCommentText = ReportUtils.formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
 

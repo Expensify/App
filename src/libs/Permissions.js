@@ -67,8 +67,7 @@ function canUseCommentLinking(betas) {
  * @returns {Boolean}
  */
 function canUsePolicyRooms(betas) {
-    return true;
-    // return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || canUseAllBetas(betas);
+    return _.contains(betas, CONST.BETAS.POLICY_ROOMS) || canUseAllBetas(betas);
 }
 
 /**
