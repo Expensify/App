@@ -42,7 +42,7 @@ To create your event workspace in Expensify:
 *Protip*: Your account manager can complete this step with you. Chat with them in #admins on new.expensify.com to coordinate!
 
 To create a new chat room:
-1. Go to new.expensify.com
+1. Go to [new.expensify.com](https://new.expensify.com)
 2. Go to “+” > New room  
 3. Name to room e.g. “#social”
 4. Select the workspace created at step 1
@@ -60,7 +60,7 @@ For an easy-to-follow event, we recommend creating these chat rooms:
 ### Step 3: Add chat room QR codes to the applicable session slide deck
 
 Gather QR codes:
-1. Go to new.exensify.com 
+1. Go to [new.expensify.com](https://new.expensify.com) 
 2. Click into a room and click the room name or avatar in the top header
 3. Go into Share Code
 4. Download or screenshot the QR code image
@@ -111,4 +111,3 @@ Continue the connections by using Expensify Chat to keep your conference communi
 ## You’re all set!
 
 Once you have completed the above steps you are ready to host your conference on Expensify Chat! Let your account manager know any questions you have over in your new.expensify.com #admins room and start driving activity in your Expensify Chat rooms. By step 4 you have the foundations in place so a great next step is to start training your speakers on how to use Expensify Chat for their sessions. Coordinate with your account manager to make sure everything goes smoothly! 
-
