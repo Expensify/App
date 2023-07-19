@@ -14,35 +14,37 @@ import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
 import {
     propTypes as anchorForCommentsOnlyPropTypes,
-    defaultProps as anchorForCommentsOnlyDefaultProps
 } from './anchorForCommentsOnlyPropTypes';
 import CONST from '../../CONST';
 import useWindowDimensions from "../../hooks/useWindowDimensions";
 
 const propTypes = {
     /** Press in handler for the link */
+    // eslint-disable-next-line react/require-default-props
     onPressIn: PropTypes.func,
 
     /** Press out handler for the link */
+    // eslint-disable-next-line react/require-default-props
     onPressOut: PropTypes.func,
 
     // eslint-disable-next-line react/forbid-prop-types
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-
     ...anchorForCommentsOnlyPropTypes,
-};
-
-const defaultProps = {
-    onPressIn: undefined,
-    onPressOut: undefined,
-    containerStyles: [],
-    ...anchorForCommentsOnlyDefaultProps,
 };
 
 /*
  * This is a default anchor component for regular links.
  */
-function BaseAnchorForCommentsOnly(props) {
+function BaseAnchorForCommentsOnly({
+   onPressIn = undefined,
+   onPressOut = undefined,
+   href = '',
+   rel = '',
+   target = '',
+   children = null,
+   style = {},
+   onPress = undefined,
+   ...rest
+}) {
     useEffect(() => () => {
         ReportActionContextMenu.hideContextMenu();
     }, [])
@@ -50,42 +52,42 @@ function BaseAnchorForCommentsOnly(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     let linkRef;
-    const rest = _.omit(props, _.keys(propTypes));
+
     const linkProps = {};
-    if (_.isFunction(props.onPress)) {
-        linkProps.onPress = props.onPress;
+    if (_.isFunction(onPress)) {
+        linkProps.onPress = onPress;
     } else {
-        linkProps.href = props.href;
+        linkProps.href = href;
     }
     const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
-    const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
+    const isEmail = Str.isValidEmailMarkdown(href.replace(/mailto:/i, ''));
 
     return (
         <PressableWithSecondaryInteraction
             inline
-            style={[styles.cursorDefault, StyleUtils.getFontSizeStyle(props.style.fontSize)]}
+            style={[styles.cursorDefault, StyleUtils.getFontSizeStyle(style.fontSize)]}
             onSecondaryInteraction={(event) => {
                 ReportActionContextMenu.showContextMenu(
                     isEmail ? ContextMenuActions.CONTEXT_MENU_TYPES.EMAIL : ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                     event,
-                    props.href,
+                    href,
                     lodashGet(linkRef, 'current'),
                 );
             }}
             onPress={linkProps.onPress}
-            onPressIn={props.onPressIn}
-            onPressOut={props.onPressOut}
+            onPressIn={onPressIn}
+            onPressOut={onPressOut}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-            accessibilityLabel={props.href}
+            accessibilityLabel={href}
         >
-            <Tooltip text={props.href}>
+            <Tooltip text={href}>
                 <Text
                     ref={(el) => (linkRef = el)}
-                    style={StyleSheet.flatten([props.style, defaultTextStyle])}
+                    style={StyleSheet.flatten([style, defaultTextStyle])}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     hrefAttrs={{
-                        rel: props.rel,
-                        target: isEmail ? '_self' : props.target,
+                        rel,
+                        target: isEmail ? '_self' : target,
                     }}
                     href={linkProps.href}
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
@@ -93,7 +95,7 @@ function BaseAnchorForCommentsOnly(props) {
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...rest}
                 >
-                    {props.children}
+                    {children}
                 </Text>
             </Tooltip>
         </PressableWithSecondaryInteraction>
@@ -101,7 +103,6 @@ function BaseAnchorForCommentsOnly(props) {
 }
 
 BaseAnchorForCommentsOnly.propTypes = propTypes;
-BaseAnchorForCommentsOnly.defaultProps = defaultProps;
 BaseAnchorForCommentsOnly.displayName = 'BaseAnchorForCommentsOnly';
 
 export default BaseAnchorForCommentsOnly;
