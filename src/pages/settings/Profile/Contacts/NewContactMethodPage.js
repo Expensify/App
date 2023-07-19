@@ -140,6 +140,7 @@ function NewContactMethodPage(props) {
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         returnKeyType="done"
+                        maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
             </Form>
