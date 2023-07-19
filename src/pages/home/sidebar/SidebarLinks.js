@@ -76,8 +76,6 @@ class SidebarLinks extends React.PureComponent {
         this.showSettingsPage = this.showSettingsPage.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
 
-        this.styles = [styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}];
-
         if (this.props.isSmallScreenWidth) {
             App.confirmReadyToOpenApp();
         }
@@ -215,7 +213,7 @@ class SidebarLinks extends React.PureComponent {
                     <OptionsListSkeletonView shouldAnimate />
                 ) : (
                     <LHNOptionsList
-                        contentContainerStyles={styles}
+                        contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
                         data={this.props.optionListItems}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
