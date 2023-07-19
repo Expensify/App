@@ -491,7 +491,7 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
-                TASKCANCELED: 'TASKCANCELED',
+                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -2460,6 +2460,13 @@ const CONST = {
     TEST_TOOL: {
         // Number of concurrent taps to open then the Test modal menu
         NUMBER_OF_TAPS: 4,
+    },
+
+    MENU_HELP_URLS: {
+        LEARN_MORE: 'https://www.expensify.com',
+        DOCUMENTATION: 'https://github.com/Expensify/App/blob/main/README.md',
+        COMMUNITY_DISCUSSIONS: 'https://expensify.slack.com/archives/C01GTK53T8Q',
+        SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
     },
 
     PAYPAL_SUPPORTED_CURRENCIES: [
