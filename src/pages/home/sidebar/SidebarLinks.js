@@ -45,8 +45,6 @@ const basePropTypes = {
 
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
-
-    onLayout: PropTypes.func,
 };
 
 const propTypes = {
@@ -77,6 +75,8 @@ class SidebarLinks extends React.PureComponent {
         this.showSearchPage = this.showSearchPage.bind(this);
         this.showSettingsPage = this.showSettingsPage.bind(this);
         this.showReportPage = this.showReportPage.bind(this);
+
+        this.styles = [styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}];
 
         if (this.props.isSmallScreenWidth) {
             App.confirmReadyToOpenApp();
@@ -215,7 +215,7 @@ class SidebarLinks extends React.PureComponent {
                     <OptionsListSkeletonView shouldAnimate />
                 ) : (
                     <LHNOptionsList
-                        contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
+                        contentContainerStyles={styles}
                         data={this.props.optionListItems}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}

@@ -64,20 +64,7 @@ const defaultProps = {
     policies: [],
 };
 
-function SidebarLinksData({
-    isFocused,
-    allReportActions,
-    betas,
-    chatReports,
-    currentReportID,
-    insets,
-    isPersonalDetailsLoading,
-    isSmallScreenWidth,
-    onLayout,
-    onLinkClick,
-    policies,
-    priorityMode,
-}) {
+function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isPersonalDetailsLoading, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
     const localize = useLocalize();
 
     const reportIDsRef = useRef([]);
@@ -103,7 +90,6 @@ function SidebarLinksData({
                 onLinkClick={onLinkClick}
                 insets={insets}
                 isSmallScreenWidth={isSmallScreenWidth}
-                onLayout={onLayout}
                 priorityMode={priorityMode}
                 // Data props:
                 isLoading={isLoading}
