@@ -13,7 +13,7 @@ const propTypes = {
     isVisible: PropTypes.bool.isRequired,
 
     /** Country value selected  */
-    currentCountry: PropTypes.string.isRequired,
+    currentCountry: PropTypes.string,
 
     /** Function to call when the user selects a Country */
     onCountrySelected: PropTypes.func,
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    currentCountry: '',
     onClose: () => {},
     onCountrySelected: () => {},
 };

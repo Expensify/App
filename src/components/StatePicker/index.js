@@ -28,10 +28,9 @@ const defaultProps = {
     onInputChange: () => {},
 };
 
-function StatePicker({value, errorText, onInputChange, forwardedRef}) {
+function StatePicker({value: stateValue, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const stateValue = value || '';
 
     const title = useMemo(() => {
         const allStates = translate('allStates');

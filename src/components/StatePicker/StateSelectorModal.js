@@ -13,7 +13,7 @@ const propTypes = {
     isVisible: PropTypes.bool.isRequired,
 
     /** State value selected  */
-    currentState: PropTypes.string.isRequired,
+    currentState: PropTypes.string,
 
     /** Function to call when the user selects a State */
     onStateSelected: PropTypes.func,
@@ -23,6 +23,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    currentState: '',
     onClose: () => {},
     onStateSelected: () => {},
 };

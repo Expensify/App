@@ -29,10 +29,9 @@ const defaultProps = {
     onInputChange: () => {},
 };
 
-function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
+function CountryPicker({value: countryValue, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const countryValue = value || '';
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
