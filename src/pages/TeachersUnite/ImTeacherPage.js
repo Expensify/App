@@ -31,9 +31,9 @@ function ImTeacherPage(props) {
             <BlockingView
                 icon={Illustrations.PinkBill}
                 title={props.translate('teachersUnitePage.updateYourEmail')}
-                subtitle={`Before you move forward, please make sure to set your school email as your default contact method. You can do so in Settings > Profile > `}
+                subtitle={props.translate('teachersUnitePage.schoolMailAsDefault')}
                 shouldShowLink
-                link={'Contact Methods.'}
+                link={props.translate('teachersUnitePage.contactMethods')}
                 onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                 iconWidth={variables.modalTopIconWidth}
                 iconHeight={variables.modalTopIconHeight}

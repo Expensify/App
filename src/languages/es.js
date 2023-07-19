@@ -1972,6 +1972,9 @@ export default {
         principalWorkEmail: 'Correo electrónico de trabajo del director',
         updateYourEmail: 'Actualiza tu dirección de correo electrónico',
         updateEmail: 'Actualización de la dirección de correo electrónico',
+        contactMethods: 'Métodos de contacto.',
+        schoolMailAsDefault:
+            'Antes de continuar, asegúrese de configurar el correo electrónico de su escuela como su método de contacto predeterminado. Puedes hacerlo en Ajustes > Perfil >',
         error: {
             enterName: 'Ingresa un nombre',
             enterPhoneEmail: 'Ingrese un correo electrónico o número de teléfono válido',
