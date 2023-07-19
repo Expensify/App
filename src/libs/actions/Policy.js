@@ -360,15 +360,16 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     // Optimistic personal details for the new accounts invited
     const optimisticPersonalDetails = _.chain(invitedEmailsToAccountIDs)
         .map(
-            (accountID, memberLogin) => !_.has(allPersonalDetails, accountID) && [
-                accountID,
-                {
+            (accountID, memberLogin) =>
+                !_.has(allPersonalDetails, accountID) && [
                     accountID,
-                    avatar: UserUtils.getDefaultAvatarURL(accountID),
-                    displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
-                    login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
-                },
-            ],
+                    {
+                        accountID,
+                        avatar: UserUtils.getDefaultAvatarURL(accountID),
+                        displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
+                        login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
+                    },
+                ],
         )
         .compact()
         .object()
@@ -774,7 +775,7 @@ function clearAddMemberError(policyID, accountID) {
     });
 
     // Remove draft accountID
-    if (accountID.toString().length === 16) {
+    if (accountID.toString().length >= 15) {
         Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
             [accountID]: null,
         });
