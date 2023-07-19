@@ -16,7 +16,6 @@ import OfflineWithFeedback from './OfflineWithFeedback';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
-// import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
 import stylePropTypes from '../styles/stylePropTypes';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
@@ -49,9 +48,6 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }).isRequired,
-
-    /** Flag to see if image is being uploaded */
-    // isUploading: PropTypes.bool,
 
     /** Size of Indicator */
     size: PropTypes.oneOf([CONST.AVATAR_SIZE.LARGE, CONST.AVATAR_SIZE.DEFAULT]),
@@ -88,7 +84,6 @@ const defaultProps = {
     style: [],
     DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
-    // isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
     fallbackIcon: Expensicons.FallbackAvatar,
     type: CONST.ICON_TYPE_AVATAR,

@@ -99,7 +99,6 @@ function WorkspaceSettingsPage(props) {
                     enabledWhenOffline
                 >
                     <AvatarWithImagePicker
-                        isUploading={props.policy.isAvatarUploading}
                         source={lodashGet(props.policy, 'avatar')}
                         size={CONST.AVATAR_SIZE.LARGE}
                         DefaultAvatar={() => (
