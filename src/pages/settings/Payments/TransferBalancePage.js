@@ -50,7 +50,7 @@ const propTypes = {
     ),
 
     /** List of card objects */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** Wallet balance transfer props */
     walletTransfer: walletTransferPropTypes,
@@ -60,7 +60,7 @@ const propTypes = {
 
 const defaultProps = {
     bankAccountList: {},
-    cardList: {},
+    fundList: {},
     userWallet: {},
     walletTransfer: {},
 };
@@ -91,7 +91,7 @@ function TransferBalancePage(props) {
      * @returns {Object|undefined}
      */
     function getSelectedPaymentMethodAccount() {
-        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, props.cardList);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, props.fundList);
 
         const defaultAccount = _.find(paymentMethods, (method) => method.isDefault);
         const selectedAccount = _.find(
@@ -108,7 +108,7 @@ function TransferBalancePage(props) {
         PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, props.cardList);
+        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, props.fundList);
 
         const filteredMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
@@ -165,7 +165,7 @@ function TransferBalancePage(props) {
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = !_.isEmpty(props.walletTransfer.errors) ? _.chain(props.walletTransfer.errors).values().first().value() : '';
 
-    const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(props.cardList, props.bankAccountList) && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+    const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(props.fundList, props.bankAccountList) && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
     return (
         <ScreenWrapper>
@@ -260,8 +260,8 @@ export default compose(
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
     }),
 )(TransferBalancePage);

@@ -80,7 +80,7 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
@@ -117,7 +117,7 @@ const defaultProps = {
     betas: [],
     walletTerms: {},
     bankAccountList: {},
-    cardList: {},
+    fundList: {},
     loginList: {},
     allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -225,7 +225,7 @@ class InitialSettingsPage extends React.Component {
                     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
                 },
                 brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) ||
+                    PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.fundList) ||
                     !_.isEmpty(this.props.userWallet.errors) ||
                     !_.isEmpty(this.props.walletTerms.errors)
                         ? 'error'
@@ -410,8 +410,8 @@ export default compose(
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

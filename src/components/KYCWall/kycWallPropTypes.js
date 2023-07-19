@@ -31,7 +31,7 @@ const propTypes = {
     chatReportID: PropTypes.string,
 
     /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** List of bank accounts */
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
@@ -53,7 +53,7 @@ const defaultProps = {
     isDisabled: false,
     chatReportID: '',
     bankAccountList: {},
-    cardList: {},
+    fundList: {},
     chatReport: null,
     reimbursementAccount: {},
     addDebitCardRoute: '',

@@ -95,7 +95,7 @@ class BasePaymentsPage extends React.Component {
 
             if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(this.props.bankAccountList[this.state.methodID])) {
                 shouldResetPaymentMethodData = true;
-            } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(this.props.cardList[this.state.methodID])) {
+            } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(this.props.fundList[this.state.methodID])) {
                 shouldResetPaymentMethodData = true;
             } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && this.props.payPalMeData !== prevProps.payPalMeData && _.isEmpty(this.props.payPalMeData)) {
                 shouldResetPaymentMethodData = true;
@@ -303,7 +303,7 @@ class BasePaymentsPage extends React.Component {
 
     makeDefaultPaymentMethod(password = '') {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.fundList);
 
         const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
         const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === this.state.methodID);
@@ -549,8 +549,8 @@ export default compose(
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

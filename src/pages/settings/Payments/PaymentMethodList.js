@@ -35,7 +35,7 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
@@ -73,7 +73,7 @@ const propTypes = {
 const defaultProps = {
     payPalMeData: {},
     bankAccountList: {},
-    cardList: {},
+    fundList: {},
     userWallet: {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
@@ -92,7 +92,7 @@ const defaultProps = {
  * @param {Object} item
  */
 function dismissError(item) {
-    const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
+    const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST;
     const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
 
     if (!paymentID) {
@@ -134,13 +134,13 @@ function isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, p
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 function PaymentMethodList(props) {
-    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, filterType, network, onPress, payPalMeData, shouldShowSelectedState, selectedMethodID, translate} =
+    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, fundList, filterType, network, onPress, payPalMeData, shouldShowSelectedState, selectedMethodID, translate} =
         props;
 
     const filteredPaymentMethods = useMemo(() => {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        const filteredCardList = _.filter(cardList, (card) => card.accountData.additionalData.isP2PDebitCard);
-        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList, payPalMeData);
+        const filteredfundList = _.filter(fundList, (card) => card.accountData.additionalData.isP2PDebitCard);
+        let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredfundList, payPalMeData);
 
         if (!_.isEmpty(filterType)) {
             combinedPaymentMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterType);
@@ -164,7 +164,7 @@ function PaymentMethodList(props) {
         }));
 
         return combinedPaymentMethods;
-    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, filterType, network, onPress, payPalMeData]);
+    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, fundList, filterType, network, onPress, payPalMeData]);
 
     /**
      * Render placeholder when there are no payments methods
@@ -250,8 +250,8 @@ export default compose(
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
-        cardList: {
-            key: ONYXKEYS.CARD_LIST,
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,

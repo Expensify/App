@@ -32,7 +32,7 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** Information about the user accepting the terms for payments */
     walletTerms: walletTermsPropTypes,
@@ -54,7 +54,7 @@ const defaultProps = {
     shouldListenForResize: false,
     userWallet: {},
     bankAccountList: {},
-    cardList: {},
+    fundList: {},
     walletTerms: {},
     payPalMeData: {},
 };

@@ -148,8 +148,11 @@ export default {
     // The user's bank accounts
     BANK_ACCOUNT_LIST: 'bankAccountList',
 
-    // The user's credit cards
+    // The user's expensify cards
     CARD_LIST: 'cardList',
+
+    // The user's credit cards
+    FUND_LIST: 'fundList',
 
     // Stores information about the user's saved statements
     WALLET_STATEMENT: 'walletStatement',

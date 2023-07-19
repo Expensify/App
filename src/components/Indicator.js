@@ -30,7 +30,7 @@ const propTypes = {
     bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** List of cards */
-    cardList: PropTypes.objectOf(cardPropTypes),
+    fundList: PropTypes.objectOf(cardPropTypes),
 
     /** The user's wallet (coming from Onyx) */
     userWallet: userWalletPropTypes,
@@ -56,7 +56,7 @@ const defaultProps = {
     allPolicyMembers: {},
     policies: {},
     bankAccountList: {},
-    cardList: {},
+    fundList: {},
     userWallet: {},
     walletTerms: {},
     loginList: {},
@@ -73,7 +73,7 @@ function Indicator(props) {
     // we only care if a single error / info condition exists anywhere.
     const errorCheckingMethods = [
         () => !_.isEmpty(props.userWallet.errors),
-        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.cardList),
+        () => PaymentMethods.hasPaymentMethodError(props.bankAccountList, props.fundList),
         () => _.some(cleanPolicies, PolicyUtils.hasPolicyError),
         () => _.some(cleanPolicies, PolicyUtils.hasCustomUnitsError),
         () => _.some(cleanAllPolicyMembers, PolicyUtils.hasPolicyMemberError),
@@ -110,8 +110,8 @@ export default withOnyx({
     reimbursementAccount: {
         key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
+    fundList: {
+        key: ONYXKEYS.FUND_LIST,
     },
     userWallet: {
         key: ONYXKEYS.USER_WALLET,

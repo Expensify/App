@@ -160,8 +160,8 @@ export default withOnyx({
     userWallet: {
         key: ONYXKEYS.USER_WALLET,
     },
-    cardList: {
-        key: ONYXKEYS.CARD_LIST,
+    fundList: {
+        key: ONYXKEYS.FUND_LIST,
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,

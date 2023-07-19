@@ -93,7 +93,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     if (previousPaymentMethod) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
+            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
             value: {
                 [previousPaymentMethod.methodID]: {
                     isDefault: !isOptimisticData,
@@ -105,7 +105,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     if (currentPaymentMethod) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
+            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.FUND_LIST,
             value: {
                 [currentPaymentMethod.methodID]: {
                     isDefault: isOptimisticData,
@@ -281,11 +281,11 @@ function dismissSuccessfulTransferBalancePage() {
 /**
  * Looks through each payment method to see if there is an existing error
  * @param {Object} bankList
- * @param {Object} cardList
+ * @param {Object} fundList
  * @returns {Boolean}
  */
-function hasPaymentMethodError(bankList, cardList) {
-    const combinedPaymentMethods = {...bankList, ...cardList};
+function hasPaymentMethodError(bankList, fundList) {
+    const combinedPaymentMethods = {...bankList, ...fundList};
     return _.some(combinedPaymentMethods, (item) => !_.isEmpty(item.errors));
 }
 
@@ -338,7 +338,7 @@ function deletePaymentCard(fundID) {
             optimisticData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.CARD_LIST}`,
+                    key: `${ONYXKEYS.FUND_LIST}`,
                     value: {[fundID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
                 },
             ],
