@@ -217,7 +217,7 @@ function FloatingActionButtonAndPopover(props) {
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
                     },
                     {
-                        icon: Expensicons.Hashtag,
+                        icon: Expensicons.Heart,
                         text: props.translate('sidebarScreen.saveTheWorld'),
                         onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.SAVE_THE_WORLD)),
                     },
