@@ -35,12 +35,17 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
-    /** Whether the short-lived auth token is valid */
-    isTokenValid: PropTypes.bool,
+    /** The details about the account that the user is signing in with */
+    account: PropTypes.shape({
+        /** Whether a sign is loading */
+        isLoading: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
-    isTokenValid: true,
+    account: {
+        isLoading: false,
+    },
 };
 
 function LogInWithShortLivedAuthTokenPage(props) {
@@ -63,7 +68,7 @@ function LogInWithShortLivedAuthTokenPage(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.route]);
 
-    if (props.isTokenValid) {
+    if (props.account.isLoading) {
         return <FullScreenLoadingIndicator />;
     }
 
@@ -103,6 +108,6 @@ LogInWithShortLivedAuthTokenPage.displayName = 'LogInWithShortLivedAuthTokenPage
 export default compose(
     withLocalize,
     withOnyx({
-        isTokenValid: {key: ONYXKEYS.IS_TOKEN_VALID},
+        account: {key: ONYXKEYS.ACCOUNT},
     }),
 )(LogInWithShortLivedAuthTokenPage);

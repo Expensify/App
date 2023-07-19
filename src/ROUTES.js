@@ -131,7 +131,7 @@ export default {
     getReportWelcomeMessageRoute: (reportID) => `r/${reportID}/welcomeMessage`,
     REPORT_SETTINGS_WRITE_CAPABILITY: 'r/:reportID/settings/who-can-post',
     getReportSettingsWriteCapabilityRoute: (reportID) => `r/${reportID}/settings/who-can-post`,
-    TRANSITION_FROM_OLD_DOT: 'transition',
+    TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: (taskID) => `get-assistance/${taskID}`,
