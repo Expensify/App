@@ -9,9 +9,7 @@ import withLocalize from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import TabSelectorItem from './TabSelectorItem';
 import Tab from '../libs/actions/Tab';
-
-const TAB_MANUAL = 'manual';
-const TAB_SCAN = 'scan';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Which tab has been selected */
@@ -19,27 +17,27 @@ const propTypes = {
 };
 
 const defaultProps = {
-    tabSelected: TAB_MANUAL,
+    tabSelected: CONST.TAB.TAB_MANUAL,
 };
 
 function TabSelector(props) {
-    const selectedTab = lodashGet(props.tabSelected, 'selected', TAB_MANUAL);
+    const selectedTab = props.tabSelected ? props.tabSelected : CONST.TAB.TAB_MANUAL;
     return (
         <View style={{flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 20}}>
             <TabSelectorItem
                 title="Manual"
-                selected={selectedTab === TAB_MANUAL}
+                selected={selectedTab === CONST.TAB.TAB_MANUAL}
                 icon={Expensicons.Pencil}
                 onPress={() => {
-                    Tab.onTabPress(TAB_MANUAL);
+                    Tab.onTabPress(CONST.TAB.TAB_MANUAL);
                 }}
             />
             <TabSelectorItem
                 title="Scan"
-                selected={selectedTab === TAB_SCAN}
+                selected={selectedTab === CONST.TAB.TAB_SCAN}
                 icon={Expensicons.Receipt}
                 onPress={() => {
-                    Tab.onTabPress(TAB_SCAN);
+                    Tab.onTabPress(CONST.TAB.TAB_SCAN);
                 }}
             />
         </View>

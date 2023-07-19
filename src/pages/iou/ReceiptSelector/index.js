@@ -1,12 +1,8 @@
 import {View, Text, PixelRatio} from 'react-native';
 import React, {useRef, useState} from 'react';
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import * as IOU from '../../../libs/actions/IOU';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
-import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
@@ -18,6 +14,7 @@ import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
+import NavigateToNextIOUPage from '../NavigateToNextIOUPage';
 
 const propTypes = {
     /** Route params */
@@ -75,39 +72,7 @@ const defaultProps = {
 function ReceiptSelector(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
-
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
-
-    const navigateToNextPage = () => {
-        const moneyRequestID = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestID;
-        // If the money request ID in Onyx does not match the ID from params, we want to start a new request
-        // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
-        if (shouldReset) {
-            IOU.setMoneyRequestId(moneyRequestID);
-            IOU.setMoneyRequestDescription('');
-            IOU.setMoneyRequestParticipants([]);
-            IOU.setMoneyRequestReceipt({});
-        }
-
-        // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-        if (props.report.reportID) {
-            // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
-            if (_.isEmpty(props.iou.participants) || shouldReset) {
-                const currentUserAccountID = props.currentUserPersonalDetails.accountID;
-                const participants = ReportUtils.isPolicyExpenseChat(props.report)
-                    ? [{reportID: props.report.reportID, isPolicyExpenseChat: true, selected: true}]
-                    : _.chain(props.report.participantAccountIDs)
-                          .filter((accountID) => currentUserAccountID !== accountID)
-                          .map((accountID) => ({accountID, selected: true}))
-                          .value();
-                IOU.setMoneyRequestParticipants(participants);
-            }
-            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
-            return;
-        }
-        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
-    };
 
     const defaultView = () => (
         <>
@@ -139,13 +104,14 @@ function ReceiptSelector(props) {
                             medium
                             success
                             text="Choose File"
+                            accessibilityLabel="Choose File"
                             style={[styles.buttonReceiptUpload]}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
                                         const filePath = URL.createObjectURL(file);
                                         IOU.setMoneyRequestReceipt(filePath);
-                                        navigateToNextPage();
+                                        NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
                                     },
                                 });
                             }}

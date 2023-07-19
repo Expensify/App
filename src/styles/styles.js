@@ -24,6 +24,7 @@ import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import Colors from './colors';
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -771,6 +772,24 @@ const styles = {
         padding: 40,
         gap: 4,
         flex: 1,
+    },
+
+    cameraView: {
+        flex: 1,
+        overflow: 'hidden',
+        padding: 10,
+        borderRadius: 28,
+        borderStyle: 'solid',
+        borderWidth: 8,
+        backgroundColor: Colors.greenHighlightBackground,
+        borderColor: Colors.greenAppBackground,
+    },
+
+    permissionView: {
+        paddingVertical: 108,
+        paddingHorizontal: 61,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 
     headerAnonymousFooter: {
