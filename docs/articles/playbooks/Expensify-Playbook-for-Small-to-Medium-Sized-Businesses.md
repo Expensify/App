@@ -1,5 +1,5 @@
 ---
-title: Expensify Playbook for Small to Medium-Sized Businesses
+title: Expensify Playbook for Small to Medium-Sized Businesses 
 description: Best practices for how to deploy Expensify for your business
 ---
 ## Overview
