@@ -23,18 +23,13 @@ module.exports = {
                 paths: [
                     {
                         name: 'react-native',
-                        importNames: ['useWindowDimensions'],
-                        message: 'Please use useWindowDimensions from src/hooks/useWindowDimensions instead',
-                    },
-                    {
-                        name: 'react-native',
-                        importNames: ['StatusBar'],
-                        message: 'Please use StatusBar from src/libs/StatusBar instead',
-                    },
-                    {
-                        name: 'react-native',
-                        importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable'],
-                        message: 'Please use PressableWithFeedback and/or PressableWithoutFeedback from src/components/Pressable instead',
+                        importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable'],
+                        message: [
+                            '',
+                            "For 'useWindowDimensions', please use 'src/hooks/useWindowDimensions' instead.",
+                            "For 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable', please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
+                            "For 'StatusBar', please use 'src/libs/StatusBar' instead.",
+                        ].join('\n'),
                     },
                 ],
             },
