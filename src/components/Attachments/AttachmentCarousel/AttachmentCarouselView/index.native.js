@@ -1,14 +1,15 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View, Keyboard} from 'react-native';
 import _ from 'underscore';
-import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
-import Pager from '../Lightbox';
-import styles from '../../../styles/styles';
+import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
+import AttachmentCarouselPager from '../../AttachmentCarouselPager';
+import styles from '../../../../styles/styles';
 import CarouselButtons from '../CarouselButtons';
-import {propTypes as attachmentCarouselViewPropTypes} from './propTypes';
-import CONST from '../../../CONST';
+import AttachmentView from '../../AttachmentView';
+import propTypes from './propTypes';
+import CONST from '../../../..CONST';
 
-function AttachmentCarouselView({attachments, initialPage, containerDimensions, onClose, onNavigate}) {
+function AttachmentCarouselView({attachments, initialPage, initialActiveSource, containerDimensions, onClose, onNavigate}) {
     const pagerRef = useRef(null);
 
     // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
@@ -20,6 +21,7 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
     const reversePage = useCallback((page) => Math.max(0, Math.min(attachments.length - page - 1, attachments.length)), [attachments.length]);
 
     const [page, setPage] = useState(reversePage(initialPage));
+    const [activeSource, setActiveSource] = useState(initialActiveSource);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows] = useState(true);
 
@@ -53,12 +55,13 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
     const updatePage = useCallback(
         (newPageIndex) => {
             Keyboard.dismiss();
-
-            setPage(newPageIndex);
-
             showArrows();
 
             const item = reversedAttachments[newPageIndex];
+
+            setPage(newPageIndex);
+            setActiveSource(item.source);
+
             onNavigate(item);
         },
         [onNavigate, reversedAttachments, showArrows],
@@ -79,6 +82,21 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
         [autoHideArrow, page, updatePage],
     );
 
+    /**
+     * Defines how a single attachment should be rendered
+     * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String } }} item
+     * @returns {JSX.Element}
+     */
+    const renderItem = useCallback(
+        ({item}) => (
+            <AttachmentView
+                item={item}
+                isFocused={activeSource === item.source}
+            />
+        ),
+        [activeSource],
+    );
+
     useEffect(() => {
         autoHideArrow();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,8 +115,9 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
             />
 
             {containerDimensions.width > 0 && containerDimensions.height > 0 && (
-                <Pager
+                <AttachmentCarouselPager
                     items={processedItems}
+                    renderItem={renderItem}
                     initialIndex={page}
                     onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
                     onTap={() => (shouldShowArrows ? setShouldShowArrows(false) : showArrows())}
@@ -116,6 +135,6 @@ function AttachmentCarouselView({attachments, initialPage, containerDimensions, 
     );
 }
 
-AttachmentCarouselView.propTypes = attachmentCarouselViewPropTypes;
+AttachmentCarouselView.propTypes = propTypes;
 
 export default AttachmentCarouselView;

@@ -1,12 +1,12 @@
 import React, {useRef, useCallback, useState} from 'react';
 import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import _ from 'underscore';
-import styles from '../../../styles/styles';
+import styles from '../../../../styles/styles';
 import CarouselActions from '../CarouselActions';
 import AttachmentView from '../../AttachmentView';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../withWindowDimensions';
 import CarouselButtons from '../CarouselButtons';
-import {propTypes as attachmentCarouselViewPropTypes} from './propTypes';
+import attachmentCarouselViewPropTypes from './propTypes';
 
 const VIEWABILITY_CONFIG = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
@@ -117,10 +117,8 @@ function AttachmentCarouselView({containerDimensions, attachments, initialPage, 
     const renderItem = useCallback(
         ({item}) => (
             <AttachmentView
+                item={item}
                 isFocused={activeSource === item.source}
-                source={item.source}
-                file={item.file}
-                isAuthTokenRequired={item.isAuthTokenRequired}
             />
         ),
         [activeSource],

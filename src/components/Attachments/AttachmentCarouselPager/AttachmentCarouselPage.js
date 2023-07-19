@@ -1,27 +1,23 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {createContext, useContext, useEffect, useRef, useState, useImperativeHandle, useMemo} from 'react';
+import React, {useContext, useEffect, useRef, useState, useMemo} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
-import {Gesture, GestureDetector, GestureHandlerRootView, createNativeWrapper} from 'react-native-gesture-handler';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
     cancelAnimation,
     runOnJS,
     runOnUI,
-    useAnimatedProps,
     useAnimatedReaction,
     useAnimatedStyle,
     useDerivedValue,
-    useEvent,
-    useHandler,
     useSharedValue,
     useWorkletCallback,
     withDecay,
     withSpring,
 } from 'react-native-reanimated';
-import PagerView from 'react-native-pager-view';
-import _ from 'underscore';
 import Image from '../Image';
 import styles from '../../styles/styles';
+import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 
 const DOUBLE_TAP_SCALE = 3;
 const MAX_SCALE = 20;
@@ -32,8 +28,6 @@ const SPRING_CONFIG = {
     stiffness: 1000,
     damping: 500,
 };
-
-const Context = createContext(null);
 
 function clamp(value, lowerBound, upperBound) {
     'worklet';
@@ -76,7 +70,7 @@ const imageTransformerDefaultProps = {
 };
 
 function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth, scaledImageHeight, isActive, children}) {
-    const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(Context);
+    const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(AttachmentCarouselPagerContext);
 
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
@@ -601,8 +595,8 @@ const pagePropTypes = {
     }).isRequired,
 };
 
-function Page({isActive: isActiveProp, item}) {
-    const {canvasWidth, canvasHeight} = useContext(Context);
+function AttachmentCarouselPage({isActive: isActiveProp, item}) {
+    const {canvasWidth, canvasHeight} = useContext(AttachmentCarouselPagerContext);
 
     const dimensions = cachedDimensions.get(item.url);
 
@@ -708,158 +702,6 @@ function Page({isActive: isActiveProp, item}) {
         </>
     );
 }
-Page.propTypes = pagePropTypes;
+AttachmentCarouselPage.propTypes = pagePropTypes;
 
-const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
-
-function usePageScrollHandler(handlers, dependencies) {
-    const {context, doDependenciesDiffer} = useHandler(handlers, dependencies);
-    const subscribeForEvents = ['onPageScroll'];
-
-    return useEvent(
-        (event) => {
-            'worklet';
-
-            const {onPageScroll} = handlers;
-            if (onPageScroll && event.eventName.endsWith('onPageScroll')) {
-                onPageScroll(event, context);
-            }
-        },
-        subscribeForEvents,
-        doDependenciesDiffer,
-    );
-}
-
-const noopWorklet = () => {
-    'worklet';
-
-    // noop
-};
-
-const pagerPropTypes = {
-    items: PropTypes.arrayOf(
-        PropTypes.shape({
-            key: PropTypes.string,
-            url: PropTypes.string,
-        }),
-    ).isRequired,
-    initialIndex: PropTypes.number,
-    onPageSelected: PropTypes.func,
-    onTap: PropTypes.func,
-    onSwipe: PropTypes.func,
-    onSwipeSuccess: PropTypes.func,
-    onSwipeDown: PropTypes.func,
-    onPinchGestureChange: PropTypes.func,
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-    containerWidth: PropTypes.number.isRequired,
-    containerHeight: PropTypes.number.isRequired,
-};
-
-const pagerDefaultProps = {
-    initialIndex: 0,
-    onPageSelected: () => {},
-    onTap: () => {},
-    onSwipe: noopWorklet,
-    onSwipeSuccess: () => {},
-    onSwipeDown: () => {},
-    onPinchGestureChange: () => {},
-    forwardedRef: null,
-};
-
-function Pager({items, initialIndex, onPageSelected, onTap, onSwipe = noopWorklet, onSwipeSuccess, onSwipeDown, onPinchGestureChange, forwardedRef, containerWidth, containerHeight}) {
-    const shouldPagerScroll = useSharedValue(true);
-    const pagerRef = useRef(null);
-
-    const isScrolling = useSharedValue(false);
-    const activeIndex = useSharedValue(initialIndex);
-
-    const pageScrollHandler = usePageScrollHandler(
-        {
-            onPageScroll: (e) => {
-                'worklet';
-
-                activeIndex.value = e.position;
-                isScrolling.value = e.offset !== 0;
-            },
-        },
-        [],
-    );
-
-    const [activePage, setActivePage] = useState(initialIndex);
-
-    // we use reanimated for this since onPageSelected is called
-    // in the middle of the pager animation
-    useAnimatedReaction(
-        () => isScrolling.value,
-        (stillScrolling) => {
-            if (stillScrolling) {
-                return;
-            }
-
-            runOnJS(setActivePage)(activeIndex.value);
-        },
-    );
-
-    useImperativeHandle(
-        forwardedRef,
-        () => ({
-            setPage: (...props) => pagerRef.current.setPage(...props),
-        }),
-        [],
-    );
-
-    const animatedProps = useAnimatedProps(() => ({
-        scrollEnabled: shouldPagerScroll.value,
-    }));
-
-    return (
-        <GestureHandlerRootView style={styles.flex1}>
-            <Context.Provider
-                value={{
-                    canvasWidth: containerWidth,
-                    canvasHeight: containerHeight,
-                    isScrolling,
-                    pagerRef,
-                    shouldPagerScroll,
-                    onPinchGestureChange,
-                    onTap,
-                    onSwipe,
-                    onSwipeSuccess,
-                    onSwipeDown,
-                }}
-            >
-                <AnimatedPagerView
-                    pageMargin={40}
-                    onPageScroll={pageScrollHandler}
-                    animatedProps={animatedProps}
-                    onPageSelected={onPageSelected}
-                    ref={pagerRef}
-                    style={styles.flex1}
-                    initialPage={initialIndex}
-                >
-                    {_.map(items, (item, index) => (
-                        <View
-                            key={item.key}
-                            style={styles.flex1}
-                        >
-                            <Page
-                                isActive={index === activePage}
-                                item={item}
-                            />
-                        </View>
-                    ))}
-                </AnimatedPagerView>
-            </Context.Provider>
-        </GestureHandlerRootView>
-    );
-}
-Pager.propTypes = pagerPropTypes;
-Pager.defaultProps = pagerDefaultProps;
-
-export default React.forwardRef((props, ref) => (
-    <Pager
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default AttachmentCarouselPage;

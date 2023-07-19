@@ -1,13 +1,5 @@
 import PropTypes from 'prop-types';
-
-const attachmentsPropType = PropTypes.arrayOf(
-    PropTypes.shape({
-        // eslint-disable-next-line react/forbid-prop-types
-        file: PropTypes.object.isRequired,
-        isAuthTokenRequired: PropTypes.bool.isRequired,
-        source: PropTypes.string.isRequired,
-    }),
-);
+import * as AttachmentsPropTypes from '../../propTypes';
 
 const propTypes = {
     /**
@@ -18,7 +10,7 @@ const propTypes = {
     /**
      * The attachments of the carousel
      */
-    attachments: attachmentsPropType.isRequired,
+    attachments: AttachmentsPropTypes.attachmentsPropType.isRequired,
 
     /**
      * The initial active ource of the carousel
@@ -34,4 +26,4 @@ const propTypes = {
     }).isRequired,
 };
 
-export {propTypes, attachmentsPropType};
+export default propTypes;

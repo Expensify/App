@@ -7,7 +7,7 @@ import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
-import AttachmentView from './AttachmentView';
+import AttachmentView from './AttachmentView/AttachmentView';
 import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
