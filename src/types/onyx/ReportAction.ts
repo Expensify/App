@@ -1,3 +1,13 @@
+type User = {
+    accountID: number;
+    skinTone: number;
+};
+
+type Reaction = {
+    emoji: string;
+    users: User[];
+};
+
 type Message = {
     /** The type of the action item fragment. Used to render a corresponding component */
     type: string;
@@ -8,25 +18,29 @@ type Message = {
     /** Used to apply additional styling. Style refers to a predetermined constant and not a class name. e.g. 'normal'
      * or 'strong'
      */
-    style: string;
+    style?: string;
 
     /** ID of a report */
-    reportID: string;
+    reportID?: string;
 
     /** ID of a policy */
-    policyID: string;
+    policyID?: string;
 
     /** The target of a link fragment e.g. '_blank' */
-    target: string;
+    target?: string;
 
     /** The destination of a link fragment e.g. 'https://www.expensify.com' */
-    href: string;
+    href?: string;
 
     /** An additional avatar url - not the main avatar url but used within a message. */
-    iconUrl: string;
+    iconUrl?: string;
 
     /** Fragment edited flag */
     isEdited: boolean;
+
+    isDeletedParentAction: boolean;
+    whisperedTo: number[];
+    reactions: Reaction[];
 };
 
 type OriginalMessage = {
@@ -34,13 +48,13 @@ type OriginalMessage = {
     IOUTransactionID?: string;
 
     IOUReportID?: number;
-    amount?: number;
+    amount: number;
     comment?: string;
-    currency?: string;
+    currency: string;
     lastModified?: string;
     participantAccountIDs?: number[];
     participants?: string[];
-    type?: string;
+    type: string;
 };
 
 type Person = {

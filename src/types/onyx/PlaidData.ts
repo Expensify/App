@@ -9,7 +9,7 @@ type PlaidData = OnyxCommon.BaseState & {
      * Access token returned by Plaid once the user has logged into their bank.
      * This token can be used along with internal credentials to query for Plaid Balance or Assets
      */
-    plaidAccessToken?: string;
+    plaidAccessToken: string;
 
     /** List of plaid bank accounts */
     bankAccounts?: PlaidBankAccount[];
