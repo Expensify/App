@@ -139,10 +139,10 @@ function AttachmentModal(props) {
     );
 
     /**
-     * Toggles the visibility of the download button
+     * set the visibility of the download button
      * @param {Boolean} shouldShowButton
      */
-    const toggleDownloadButtonVisibility = useCallback(
+    const setDownloadButtonVisibility = useCallback(
         (shouldShowButton) => {
             if (shouldShowDownloadButton === shouldShowButton) {
                 return;
@@ -339,7 +339,7 @@ function AttachmentModal(props) {
                             onNavigate={onNavigate}
                             source={props.source}
                             onToggleKeyboard={updateConfirmButtonVisibility}
-                            toggleDownloadButtonVisibility={toggleDownloadButtonVisibility}
+                            setDownloadButtonVisibility={setDownloadButtonVisibility}
                         />
                     ) : (
                         Boolean(sourceForAttachmentView) &&

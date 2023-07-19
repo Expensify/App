@@ -32,8 +32,8 @@ const propTypes = {
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate: PropTypes.func,
 
-    /** Callback to change the download button Visibility */
-    toggleDownloadButtonVisibility: PropTypes.func,
+    /** Function to change the download button Visibility */
+    setDownloadButtonVisibility: PropTypes.func,
 
     /** Object of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
@@ -48,7 +48,7 @@ const defaultProps = {
     source: '',
     reportActions: {},
     onNavigate: () => {},
-    toggleDownloadButtonVisibility: () => {},
+    setDownloadButtonVisibility: () => {},
 };
 
 class AttachmentCarousel extends React.Component {
@@ -204,7 +204,7 @@ class AttachmentCarousel extends React.Component {
         }
 
         // Update the download button visibility in the parent modal
-        this.props.toggleDownloadButtonVisibility(page !== -1);
+        this.props.setDownloadButtonVisibility(page !== -1);
 
         return {
             page,
