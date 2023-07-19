@@ -5,7 +5,6 @@ import {createStackNavigator} from '@react-navigation/stack';
 import * as ModalStackNavigators from '../ModalStackNavigators';
 import RHPScreenOptions from '../RHPScreenOptions';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
-import variables from '../../../../styles/variables';
 import {withNavigationPropTypes} from '../../../../components/withNavigation';
 import styles from '../../../../styles/styles';
 import Overlay from './Overlay';
@@ -22,14 +21,7 @@ function RightModalNavigator(props) {
     return (
         <>
             {!isSmallScreenWidth && <Overlay onPress={props.navigation.goBack} />}
-            <View
-                style={[
-                    styles.RHPNavigatorContainer,
-                    {
-                        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-                    },
-                ]}
-            >
+            <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator screenOptions={RHPScreenOptions}>
                     <Stack.Screen
                         name="Settings"

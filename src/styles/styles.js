@@ -1265,11 +1265,12 @@ const styles = {
         textDecorationLine: 'none',
     },
 
-    RHPNavigatorContainer: {
+    RHPNavigatorContainer: (isSmallScreenWidth) => ({
+        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
         position: 'absolute',
         right: 0,
         height: '100%',
-    },
+    }),
 
     onlyEmojisText: {
         fontSize: variables.fontSizeOnlyEmojis,
@@ -2325,6 +2326,7 @@ const styles = {
     },
 
     rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
+    RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
 
     avatarInnerTextChat: {
         color: themeColors.textLight,
