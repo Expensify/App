@@ -72,7 +72,7 @@ const defaultProps = {
 function AttachmentView(props) {
     const [loadComplete, setLoadComplete] = useState(false);
     const containerStyles = [styles.flex1, styles.flexRow, styles.alignSelfStretch];
-    const [isInvalidImage, setIsInvalidImage] = useState(false);
+    const [isValidImage, setIsValidImage] = useState(true);
 
     // Handles case where source is a component (ex: SVG)
     if (_.isFunction(props.source)) {
@@ -105,15 +105,15 @@ function AttachmentView(props) {
 
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
-    const isImage = Str.isImage(props.source);
-    if ((isImage || (props.file && Str.isImage(props.file.name))) && !isInvalidImage) {
+    const isImage = Str.isImage(props.source) || (props.file && Str.isImage(props.file.name));
+    if (isImage && isValidImage) {
         const children = (
             <ImageView
                 onScaleChanged={props.onScaleChanged}
                 url={props.source}
                 fileName={props.file.name}
                 isAuthTokenRequired={isImage && props.isAuthTokenRequired}
-                onError={() => setIsInvalidImage(true)}
+                onError={() => setIsValidImage(false)}
             />
         );
         return props.onPress ? (
