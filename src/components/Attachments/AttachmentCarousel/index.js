@@ -155,7 +155,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
                 item={item}
                 isFocused={activeSource === item.source}
                 onScaleChanged={canUseTouchScreen ? updateZoomState : undefined}
-                onPress={() => setShouldShowArrows(!shouldShowArrows)}
+                onPress={() => canUseTouchScreen && setShouldShowArrows(!shouldShowArrows)}
                 isUsedInCarousel
             />
         ),
