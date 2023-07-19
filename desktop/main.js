@@ -71,7 +71,7 @@ let downloadedVersion;
 // Note that we have to subscribe to this separately and cannot use Localize.translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
-let preferredLocale = CONST.LOCALES.DEFAULT;
+const preferredLocale = CONST.LOCALES.DEFAULT;
 
 const appProtocol = CONST.DEEPLINK_BASE_URL.replace('://', '');
 
@@ -150,8 +150,8 @@ const electronUpdater = (browserWindow) => ({
         autoUpdater.on(ELECTRON_EVENTS.UPDATE_DOWNLOADED, (info) => {
             const systemMenu = Menu.getApplicationMenu();
             downloadedVersion = info.version;
-            systemMenu.getMenuItemById(`updateAppMenuItem-${preferredLocale}`).visible = true;
-            systemMenu.getMenuItemById(`checkForUpdateMenuItem-${preferredLocale}`).visible = false;
+            systemMenu.getMenuItemById(`update`).visible = true;
+            systemMenu.getMenuItemById(`checkForUpdates`).visible = false;
             if (browserWindow.isVisible()) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
@@ -170,66 +170,20 @@ const electronUpdater = (browserWindow) => ({
 /*
  * @param {Menu} systemMenu
  */
-const localizeMenuItems = (browserWindow, systemMenu) => {
-    // List the Expensify Chat instance under the Window menu, even when it's hidden
-    systemMenu.insert(
-        4,
-        new MenuItem({
-            id: `historyMenuItem-${preferredLocale}`,
-            label: Localize.translate(preferredLocale, 'desktopApplicationMenu.history'),
-            submenu: [
-                {
-                    id: `backMenuItem-${preferredLocale}`,
-                    label: Localize.translate(preferredLocale, 'historyMenu.back'),
-                    accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
-                    click: () => {
-                        browserWindow.webContents.goBack();
-                    },
-                },
-                {
-                    id: `forwardMenuItem-${preferredLocale}`,
-                    label: Localize.translate(preferredLocale, 'historyMenu.forward'),
-                    accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
-                    click: () => {
-                        browserWindow.webContents.goForward();
-                    },
-                },
-            ],
-        }),
-    );
-
-    // Defines the system-level menu item to manually apply an update
-    // This menu item should become visible after an update is downloaded and ready to be applied
-    const updateAppMenuItem = new MenuItem({
-        id: `updateAppMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.updateExpensify'),
-        visible: false,
-        click: quitAndInstallWithUpdate,
+const localizeMenuItems = (submenu, updatedLocale) =>
+    _.map(submenu, (menu) => {
+        const newMenu = _.clone(menu);
+        if (menu.id) {
+            const labelTranslation = Localize.translate(updatedLocale, `desktopApplicationMenu.${menu.id}`);
+            if (labelTranslation) {
+                newMenu.label = labelTranslation;
+            }
+        }
+        if (menu.submenu) {
+            newMenu.submenu = localizeMenuItems(menu.submenu, updatedLocale);
+        }
+        return newMenu;
     });
-
-    // System-level menu item to manually check for App updates
-    const checkForUpdateMenuItem = new MenuItem({
-        id: `checkForUpdateMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'desktopApplicationMenu.checkForUpdates'),
-        visible: true,
-        click: manuallyCheckForUpdates,
-    });
-
-    // Defines the system-level menu item for opening keyboard shortcuts modal
-    const keyboardShortcutsMenuItem = new MenuItem({
-        id: `keyboardShortcutsMenuItem-${preferredLocale}`,
-        label: Localize.translate(preferredLocale, 'initialSettingsPage.aboutPage.viewKeyboardShortcuts'),
-        accelerator: 'CmdOrCtrl+J',
-        click: () => {
-            showKeyboardShortcutsModal(browserWindow);
-        },
-    });
-
-    const appMenu = _.find(systemMenu.items, (item) => item.role === 'appmenu');
-    appMenu.submenu.insert(1, updateAppMenuItem);
-    appMenu.submenu.insert(2, checkForUpdateMenuItem);
-    appMenu.submenu.insert(3, keyboardShortcutsMenuItem);
-};
 
 const mainWindow = () => {
     let deeplinkUrl;
@@ -328,41 +282,142 @@ const mainWindow = () => {
                     browserWindow.setTitle('New Expensify');
                 }
 
-                const systemMenu = Menu.getApplicationMenu();
+                const initialMenuTemplate = [
+                    {
+                        id: 'mainMenu',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
+                        submenu: [
+                            {id: 'about', role: 'about'},
+                            {id: 'update', label: Localize.translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
+                            {id: 'checkForUpdates', label: Localize.translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
+                            {
+                                id: 'viewShortcuts',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewShortcuts`),
+                                accelerator: 'CmdOrCtrl+I',
+                                click: () => {
+                                    showKeyboardShortcutsModal(browserWindow);
+                                },
+                            },
+                            {type: 'separator'},
+                            {id: 'services', role: 'services'},
+                            {type: 'separator'},
+                            {id: 'hide', role: 'hide'},
+                            {id: 'hideOthers', role: 'hideOthers'},
+                            {id: 'showAll', role: 'unhide'},
+                            {type: 'separator'},
+                            {id: 'quit', role: 'quit'},
+                        ],
+                    },
+                    {
+                        id: 'fileMenu',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.fileMenu`),
+                        submenu: [{id: 'closeWindow', role: 'close', accelerator: 'Cmd+w'}],
+                    },
+                    {
+                        id: 'editMenu',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.editMenu`),
+                        submenu: [
+                            {id: 'undo', role: 'undo'},
+                            {id: 'redo', role: 'redo'},
+                            {type: 'separator'},
+                            {id: 'cut', role: 'cut'},
+                            {id: 'copy', role: 'copy'},
+                            {id: 'paste', role: 'paste'},
+                            {id: 'pasteAndMatchStyle', role: 'pasteAndMatchStyle'},
+                            {id: 'delete', role: 'delete'},
+                            {id: 'selectAll', role: 'selectAll'},
+                            {type: 'separator'},
+                            {
+                                id: 'speechSubmenu',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.speechSubmenu`),
+                                submenu: [
+                                    {id: 'startSpeaking', role: 'startSpeaking'},
+                                    {id: 'stopSpeaking', role: 'stopSpeaking'},
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        id: 'viewMenu',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.viewMenu`),
+                        submenu: [
+                            {id: 'reload', role: 'reload'},
+                            {id: 'forceReload', role: 'forceReload'},
+                            {type: 'separator'},
+                            {id: 'resetZoom', role: 'resetZoom'},
+                            {id: 'zoomIn', role: 'zoomIn'},
+                            {id: 'zoomOut', role: 'zoomOut'},
+                            {type: 'separator'},
+                            {id: 'togglefullscreen', role: 'togglefullscreen'},
+                        ],
+                    },
+                    {
+                        id: 'historyMenu',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.historyMenu`),
+                        submenu: [
+                            {
+                                id: 'back',
+                                role: 'back',
+                                accelerator: process.platform === 'darwin' ? 'Cmd+[' : 'Shift+[',
+                                click: () => {
+                                    browserWindow.webContents.goBack();
+                                },
+                            },
+                            {
+                                id: 'forward',
+                                role: 'forward',
+                                accelerator: process.platform === 'darwin' ? 'Cmd+]' : 'Shift+]',
+                                click: () => {
+                                    browserWindow.webContents.goForward();
+                                },
+                            },
+                        ],
+                    },
+                    {
+                        id: 'windowMenu',
+                        role: 'windowMenu',
+                        submenu: [{id: 'minimize', role: 'minimize'}, {id: 'zoom', role: 'zoom'}, {type: 'separator'}, {id: 'front', role: 'front'}],
+                    },
+                    {
+                        id: 'helpMenu',
+                        label: Localize.translate(preferredLocale, `desktopApplicationMenu.helpMenu`),
+                        role: 'help',
+                        submenu: [
+                            {
+                                id: 'learnMore',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.learnMore`),
+                                click: () => {
+                                    shell.openExternal(CONST.MENU_HELP_URLS.LEARN_MORE);
+                                },
+                            },
+                            {
+                                id: 'documentation',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.documentation`),
+                                click: () => {
+                                    shell.openExternal(CONST.MENU_HELP_URLS.DOCUMENTATION);
+                                },
+                            },
+                            {
+                                id: 'communityDiscussions',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.communityDiscussions`),
+                                click: () => {
+                                    shell.openExternal(CONST.MENU_HELP_URLS.COMMUNITY_DISCUSSIONS);
+                                },
+                            },
+                            {
+                                id: 'searchIssues',
+                                label: Localize.translate(preferredLocale, `desktopApplicationMenu.searchIssues`),
+                                click: () => {
+                                    shell.openExternal(CONST.MENU_HELP_URLS.SEARCH_ISSUES);
+                                },
+                            },
+                        ],
+                    },
+                ];
 
-                // Register the custom Paste and Match Style command and place it near the default shortcut of the same role.
-                const editMenu = _.find(systemMenu.items, (item) => item.role === 'editmenu');
-                editMenu.submenu.insert(
-                    6,
-                    new MenuItem({
-                        role: 'pasteAndMatchStyle',
-                        accelerator: 'CmdOrCtrl+Shift+V',
-                    }),
-                );
-
-                // Append custom context menu items using the preferred language of the user.
-                localizeMenuItems(browserWindow, systemMenu);
-
-                // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
-                // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
-                const viewWindow = _.find(systemMenu.items, (item) => item.role === 'viewmenu');
-                viewWindow.submenu.append(
-                    new MenuItem({
-                        role: 'zoomin',
-                        accelerator: 'CommandOrControl+=',
-                        visible: false,
-                    }),
-                );
-                const windowMenu = _.find(systemMenu.items, (item) => item.role === 'windowmenu');
-                windowMenu.submenu.append(new MenuItem({type: 'separator'}));
-                windowMenu.submenu.append(
-                    new MenuItem({
-                        label: 'New Expensify',
-                        accelerator: 'CmdOrCtrl+1',
-                        click: () => browserWindow.show(),
-                    }),
-                );
-                Menu.setApplicationMenu(systemMenu);
+                // Build and set the initial menu
+                const initialMenu = Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, preferredLocale));
+                Menu.setApplicationMenu(initialMenu);
 
                 // When the user clicks a link that has target="_blank" (which is all external links)
                 // open the default browser instead of a new electron window
@@ -439,34 +494,7 @@ const mainWindow = () => {
                 }
 
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale) => {
-                    // Store the old locale so we can hide/remove these items after adding/showing the new ones.
-                    const outdatedLocale = preferredLocale;
-                    preferredLocale = updatedLocale;
-
-                    const currentHistoryMenuItem = systemMenu.getMenuItemById(`historyMenuItem-${outdatedLocale}`);
-                    const currentUpdateAppMenuItem = systemMenu.getMenuItemById(`updateAppMenuItem-${outdatedLocale}`);
-                    const currentCheckForUpdateMenuItem = systemMenu.getMenuItemById(`checkForUpdateMenuItem-${outdatedLocale}`);
-                    const currentKeyboardShortcutsMenuItem = systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${outdatedLocale}`);
-
-                    // If we have previously added those languages, don't add new menu items, reshow them.
-                    if (!systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`)) {
-                        // Update the labels and ids to use the translations.
-                        localizeMenuItems(browserWindow, systemMenu);
-                    }
-
-                    // Show the localized menu items if there were visible before we updated the locale.
-                    systemMenu.getMenuItemById(`updateAppMenuItem-${updatedLocale}`).visible = currentUpdateAppMenuItem.visible;
-                    systemMenu.getMenuItemById(`checkForUpdateMenuItem-${updatedLocale}`).visible = currentCheckForUpdateMenuItem.visible;
-                    systemMenu.getMenuItemById(`keyboardShortcutsMenuItem-${updatedLocale}`).visible = currentKeyboardShortcutsMenuItem.visible;
-                    systemMenu.getMenuItemById(`historyMenuItem-${updatedLocale}`).visible = currentHistoryMenuItem.visible;
-
-                    // Since we can't remove menu items, we hide the old ones.
-                    currentUpdateAppMenuItem.visible = false;
-                    currentCheckForUpdateMenuItem.visible = false;
-                    currentKeyboardShortcutsMenuItem.visible = false;
-                    currentHistoryMenuItem.visible = false;
-
-                    Menu.setApplicationMenu(systemMenu);
+                    Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
