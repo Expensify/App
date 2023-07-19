@@ -32,7 +32,7 @@ const propTypes = {
 /*
  * This is a default anchor component for regular links.
  */
-function BaseAnchorForCommentsOnly({onPressIn = undefined, onPressOut = undefined, href = '', rel = '', target = '', children = null, style = {}, onPress = undefined, ...rest}) {
+function BaseAnchorForCommentsOnly({onPressIn = () => {}, onPressOut = () => {}, href = '', rel = '', target = '', children = null, style = {}, onPress = undefined, ...rest}) {
     useEffect(
         () => () => {
             ReportActionContextMenu.hideContextMenu();
