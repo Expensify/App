@@ -118,7 +118,10 @@ function AddressPage(props) {
     }, []);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.homeAddress')}
                 shouldShowBackButton

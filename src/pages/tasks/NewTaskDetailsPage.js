@@ -75,6 +75,7 @@ function NewTaskPage(props) {
         <ScreenWrapper
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}
