@@ -1099,7 +1099,7 @@ function getEmojiReactionCounterTextStyle(hasUserReacted) {
         return {color: themeColors.reactionActiveText};
     }
 
-    return {color: themeColors.textLight};
+    return {color: themeColors.text};
 }
 
 /**
