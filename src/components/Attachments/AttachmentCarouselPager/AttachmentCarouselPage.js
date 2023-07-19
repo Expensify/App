@@ -6,6 +6,7 @@ import Image from '../../Image';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageTransformer from './ImageTransformer';
 import ImageWrapper from './ImageWrapper';
+import * as AttachmentsPropTypes from '../propTypes';
 
 function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
     const scaleFactorX = canvasWidth / imageWidth;
@@ -18,16 +19,14 @@ const cachedDimensions = new Map();
 
 const pagePropTypes = {
     isActive: PropTypes.bool.isRequired,
-    item: PropTypes.shape({
-        url: PropTypes.string,
-    }).isRequired,
+    item: AttachmentsPropTypes.attachmentPropType.isRequired,
     isAuthTokenRequired: PropTypes.bool.isRequired,
 };
 
 function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequired}) {
     const {canvasWidth, canvasHeight} = useContext(AttachmentCarouselPagerContext);
 
-    const dimensions = cachedDimensions.get(item.url);
+    const dimensions = cachedDimensions.get(item.source);
 
     const areImageDimensionsSet = dimensions?.imageWidth !== 0 && dimensions?.imageHeight !== 0;
 
@@ -67,7 +66,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequir
                         imageScale={dimensions?.imageScale}
                     >
                         <Image
-                            source={{uri: item.url}}
+                            source={{uri: item.source}}
                             style={dimensions == null ? {} : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
                             isAuthTokenRequired={isAuthTokenRequired}
                             onLoad={(evt) => {
@@ -78,7 +77,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequir
 
                                 // Don't update the dimensions if they are already set
                                 if (dimensions?.imageWidth !== imageWidth || dimensions?.imageHeight !== imageHeight || dimensions?.imageScale !== imageScale) {
-                                    cachedDimensions.set(item.url, {
+                                    cachedDimensions.set(item.source, {
                                         ...dimensions,
                                         imageWidth,
                                         imageHeight,
@@ -98,7 +97,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequir
             {(!isActive || showFallback) && (
                 <ImageWrapper>
                     <Image
-                        source={{uri: item.url}}
+                        source={{uri: item.source}}
                         isAuthTokenRequired={isAuthTokenRequired}
                         onLoad={(evt) => {
                             const imageWidth = evt.nativeEvent.width;
@@ -112,7 +111,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequir
                             // Don't update the dimensions if they are already set
                             if (dimensions?.scaledImageWidth === scaledImageWidth && dimensions?.scaledImageHeight === scaledImageHeight) return;
 
-                            cachedDimensions.set(item.url, {
+                            cachedDimensions.set(item.source, {
                                 ...dimensions,
                                 scaledImageWidth,
                                 scaledImageHeight,

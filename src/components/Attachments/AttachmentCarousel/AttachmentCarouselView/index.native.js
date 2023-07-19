@@ -1,7 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View, Keyboard} from 'react-native';
-import _ from 'underscore';
-import addEncryptedAuthTokenToURL from '../../../../libs/addEncryptedAuthTokenToURL';
 import AttachmentCarouselPager from '../../AttachmentCarouselPager';
 import styles from '../../../../styles/styles';
 import CarouselButtons from '../CarouselButtons';
@@ -15,8 +13,6 @@ function AttachmentCarouselView({attachments, initialPage, initialActiveSource, 
     // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
     // promotes the natural feeling of swiping left/right to go to the next/previous image
     const reversedAttachments = useMemo(() => attachments.reverse(), [attachments]);
-
-    const processedItems = useMemo(() => _.map(reversedAttachments, (item) => ({key: item.source, url: addEncryptedAuthTokenToURL(item.source)})), [reversedAttachments]);
 
     const reversePage = useCallback((page) => Math.max(0, Math.min(attachments.length - page - 1, attachments.length)), [attachments.length]);
 
@@ -93,9 +89,10 @@ function AttachmentCarouselView({attachments, initialPage, initialActiveSource, 
                 item={item}
                 isFocused={activeSource === item.source}
                 isUsedInCarousel
+                onPress={() => (shouldShowArrows ? setShouldShowArrows(false) : showArrows())}
             />
         ),
-        [activeSource],
+        [activeSource, shouldShowArrows, showArrows],
     );
 
     useEffect(() => {
@@ -117,11 +114,10 @@ function AttachmentCarouselView({attachments, initialPage, initialActiveSource, 
 
             {containerDimensions.width > 0 && containerDimensions.height > 0 && (
                 <AttachmentCarouselPager
-                    items={processedItems}
+                    items={reversedAttachments}
                     renderItem={renderItem}
                     initialIndex={page}
                     onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}
-                    onTap={() => (shouldShowArrows ? setShouldShowArrows(false) : showArrows())}
                     onPinchGestureChange={(newIsPinchGestureRunning) => {
                         setIsPinchGestureRunning(newIsPinchGestureRunning);
                         if (!newIsPinchGestureRunning && !shouldShowArrows) showArrows();

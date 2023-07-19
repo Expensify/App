@@ -6,17 +6,18 @@ import compose from '../../../../libs/compose';
 import PressableWithoutFeedback from '../../../Pressable/PressableWithoutFeedback';
 import CONST from '../../../../CONST';
 import AttachmentCarouselPage from '../../AttachmentCarouselPager/AttachmentCarouselPage';
-import {attachmentViewPropTypes, attachmentViewDefaultProps} from '../propTypes';
+import {attachmentViewImagePropTypes, attachmentViewImageDefaultProps} from './propTypes';
 
 const propTypes = {
-    ...attachmentViewPropTypes,
+    ...attachmentViewImagePropTypes,
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({item, loadComplete, onPress, isImage, isUsedInCarousel, onScaleChanged, translate}) {
+function AttachmentViewImage({item, isFocused, isUsedInCarousel, loadComplete, onPress, isImage, onScaleChanged, translate}) {
     const children = isUsedInCarousel ? (
         <AttachmentCarouselPage
             item={item}
+            isActive={isFocused}
             isAuthTokenRequired={isImage && item.isAuthTokenRequired}
         />
     ) : (
@@ -44,6 +45,6 @@ function AttachmentViewImage({item, loadComplete, onPress, isImage, isUsedInCaro
 }
 
 AttachmentViewImage.propTypes = propTypes;
-AttachmentViewImage.defaultProps = attachmentViewDefaultProps;
+AttachmentViewImage.defaultProps = attachmentViewImageDefaultProps;
 
 export default compose(memo, withLocalize)(AttachmentViewImage);

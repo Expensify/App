@@ -5,10 +5,10 @@ import withLocalize, {withLocalizePropTypes} from '../../../withLocalize';
 import compose from '../../../../libs/compose';
 import PressableWithoutFeedback from '../../../Pressable/PressableWithoutFeedback';
 import CONST from '../../../../CONST';
-import {attachmentViewPropTypes, attachmentViewDefaultProps} from '../propTypes';
+import {attachmentViewImagePropTypes, attachmentViewImageDefaultProps} from './propTypes';
 
 const propTypes = {
-    ...attachmentViewPropTypes,
+    ...attachmentViewImagePropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -37,6 +37,6 @@ function AttachmentViewImage({item, loadComplete, onPress, isImage, onScaleChang
 }
 
 AttachmentViewImage.propTypes = propTypes;
-AttachmentViewImage.defaultProps = attachmentViewDefaultProps;
+AttachmentViewImage.defaultProps = attachmentViewImageDefaultProps;
 
 export default compose(memo, withLocalize)(AttachmentViewImage);

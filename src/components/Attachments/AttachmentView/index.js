@@ -28,9 +28,6 @@ const propTypes = {
     /** Flag to show the loading indicator */
     shouldShowLoadingSpinnerIcon: PropTypes.bool,
 
-    /** Whether this view is the active screen  */
-    isFocused: PropTypes.bool,
-
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
 
@@ -45,10 +42,9 @@ const defaultProps = {
     shouldShowLoadingSpinnerIcon: false,
     onToggleKeyboard: () => {},
     containerStyles: [],
-    isFocused: false,
 };
 
-function AttachmentView({item, onPress, shouldShowLoadingSpinnerIcon, shouldShowDownloadIcon, containerStyles, onScaleChanged, onToggleKeyboard, translate, isFocused}) {
+function AttachmentView({item, isUsedInCarousel, onPress, shouldShowLoadingSpinnerIcon, shouldShowDownloadIcon, containerStyles, onScaleChanged, onToggleKeyboard, translate, isFocused}) {
     const [loadComplete, setLoadComplete] = useState(false);
 
     // Handles case where source is a component (ex: SVG)
@@ -86,12 +82,12 @@ function AttachmentView({item, onPress, shouldShowLoadingSpinnerIcon, shouldShow
     if (isImage || (item.file && Str.isImage(item.file.name))) {
         return (
             <AttachmentViewImage
+                item={item}
+                isUsedInCarousel={isUsedInCarousel}
                 loadComplete={loadComplete}
-                onPress={onPress}
+                isFocused={isFocused}
                 isImage={isImage}
-                file={item.file}
-                source={item.source}
-                isAuthTokenRequired={item.isAuthTokenRequired}
+                onPress={onPress}
                 onScaleChanged={onScaleChanged}
             />
         );
