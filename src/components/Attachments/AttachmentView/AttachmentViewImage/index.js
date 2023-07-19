@@ -1,34 +1,15 @@
 import React, {memo} from 'react';
-import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
 import ImageView from '../../../ImageView';
 import withLocalize, {withLocalizePropTypes} from '../../../withLocalize';
 import compose from '../../../../libs/compose';
 import PressableWithoutFeedback from '../../../Pressable/PressableWithoutFeedback';
 import CONST from '../../../../CONST';
-import * as AttachmentsPropTypes from '../../propTypes';
+import {attachmentViewPropTypes, attachmentViewDefaultProps} from '../propTypes';
 
 const propTypes = {
-    item: AttachmentsPropTypes.attachmentPropType,
-
-    /** Function for handle on press */
-    onPress: PropTypes.func,
-
-    /** Handles scale changed event */
-    onScaleChanged: PropTypes.func,
-
+    ...attachmentViewPropTypes,
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    item: {
-        isAuthTokenRequired: false,
-        file: {
-            name: '',
-        },
-    },
-    onPress: undefined,
-    onScaleChanged: () => {},
 };
 
 function AttachmentViewImage({item, loadComplete, onPress, isImage, onScaleChanged, translate}) {
@@ -56,6 +37,6 @@ function AttachmentViewImage({item, loadComplete, onPress, isImage, onScaleChang
 }
 
 AttachmentViewImage.propTypes = propTypes;
-AttachmentViewImage.defaultProps = defaultProps;
+AttachmentViewImage.defaultProps = attachmentViewDefaultProps;
 
 export default compose(memo, withLocalize)(AttachmentViewImage);

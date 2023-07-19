@@ -15,11 +15,12 @@ import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
 import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import AttachmentViewImage from './AttachmentViewImage';
-import * as AttachmentsPropTypes from '../propTypes';
+
+import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
 
 const propTypes = {
-    /** The attachment to display */
-    item: AttachmentsPropTypes.attachmentPropType,
+    ...attachmentViewPropTypes,
+    ...withLocalizePropTypes,
 
     /** Flag to show/hide download icon */
     shouldShowDownloadIcon: PropTypes.bool,
@@ -30,33 +31,18 @@ const propTypes = {
     /** Whether this view is the active screen  */
     isFocused: PropTypes.bool,
 
-    /** Function for handle on press */
-    onPress: PropTypes.func,
-
-    /** Handles scale changed event */
-    onScaleChanged: PropTypes.func,
-
     /** Notify parent that the UI should be modified to accommodate keyboard */
     onToggleKeyboard: PropTypes.func,
 
     /** Extra styles to pass to View wrapper */
     // eslint-disable-next-line react/forbid-prop-types
     containerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    item: {
-        isAuthTokenRequired: false,
-        file: {
-            name: '',
-        },
-    },
+    ...attachmentViewDefaultProps,
     shouldShowDownloadIcon: false,
     shouldShowLoadingSpinnerIcon: false,
-    onPress: undefined,
-    onScaleChanged: () => {},
     onToggleKeyboard: () => {},
     containerStyles: [],
     isFocused: false,
