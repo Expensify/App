@@ -1396,6 +1396,30 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
 }
 
 /**
+ * Get optimistic data of parent report action
+ * @param {String} reportID The reportID of the report that is updated
+ * @param {String} lastVisibleActionCreated Last visible action created of the child report
+ * @param {String} type The type of action in the child report
+ * @returns {Object}
+ */
+const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type) => {
+    const report = getReport(reportID);
+    if (report && report.parentReportActionID) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        if (parentReportAction && parentReportAction.reportActionID) {
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type),
+                },
+            };
+        }
+    }
+    return {};
+};
+
+/**
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param {String} taskReportID - Report ID of the task
  * @param {String} taskTitle - Title of the task
@@ -2618,6 +2642,7 @@ export {
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
     updateOptimisticParentReportAction,
+    getOptimisticDataForParentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsByLoginList,

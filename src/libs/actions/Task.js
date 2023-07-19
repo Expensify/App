@@ -242,6 +242,12 @@ function completeTask(taskReportID, taskTitle) {
         },
     ];
 
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
+
     API.write(
         'CompleteTask',
         {
@@ -311,6 +317,12 @@ function reopenTask(taskReportID, taskTitle) {
             },
         },
     ];
+
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     API.write(
         'ReopenTask',
