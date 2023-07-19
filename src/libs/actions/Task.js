@@ -128,6 +128,15 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
+            value: {
+                [optimisticTaskCreatedAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
     ];
 
     const failureData = [
