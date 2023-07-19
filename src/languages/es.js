@@ -1398,6 +1398,7 @@ export default {
         about: 'Sobre Nuevo Expensify',
         update: 'Actualizar Nuevo Expensify',
         checkForUpdates: 'Buscar actualizaciones',
+        toggleDevTools: 'Ver herramientas de desarrollo',
         viewShortcuts: 'Ver atajos de teclado',
         services: 'Servicios',
         hide: 'Ocultar Nuevo Expensify',
