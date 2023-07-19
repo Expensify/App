@@ -18,6 +18,8 @@ function KeyboardDismissingFlatList(props) {
             return;
         }
 
+        // We're setting `isScreenTouched` in this listener only for web platforms with touchscreen (mWeb) where
+        // we want to dismiss the keyboard only when the list is scrolled by the user and not when it's scrolled programmatically.
         document.addEventListener('touchstart', touchStart);
         document.addEventListener('touchend', touchEnd);
 
@@ -43,5 +45,7 @@ function KeyboardDismissingFlatList(props) {
         />
     );
 }
+
+KeyboardDismissingFlatList.displayName = 'KeyboardDismissingFlatList';
 
 export default KeyboardDismissingFlatList;
