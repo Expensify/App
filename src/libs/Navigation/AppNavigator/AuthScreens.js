@@ -261,7 +261,7 @@ class AuthScreens extends React.Component {
                     }}
                 />
                 <RootStack.Screen
-                    name={SCREENS.TRANSITION_FROM_OLD_DOT}
+                    name={SCREENS.TRANSITION_BETWEEN_APPS}
                     options={defaultScreenOptions}
                     getComponent={() => {
                         const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
