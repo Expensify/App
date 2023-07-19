@@ -276,27 +276,11 @@ function extractEmojis(text) {
     for (let i = 0; i < parseEmojis.length; i++) {
         const character = parseEmojis[i];
         const emoji = Emojis.emojiCodeTable[character];
-        if (!emoji) continue;
+        if (!emoji) continue; // eslint-disable-line no-continue
         emojis.push(emoji);
     }
 
     return emojis;
-}
-
-/**
- * Find all emojis in a text and replace them with their code.
- * @param {string} text
- * @param {number} preferredSkinTone
- * @param {string} lang
- * @returns
- */
-function replaceAndExtractEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
-    const {text: newDraft = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
-
-    return {
-        text: newDraft,
-        emojis: emojis.concat(extractEmojis(text)),
-    };
 }
 
 /**
@@ -342,6 +326,22 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
     }
 
     return {text: newText, emojis};
+}
+
+/**
+ * Find all emojis in a text and replace them with their code.
+ * @param {string} text
+ * @param {number} preferredSkinTone
+ * @param {string} lang
+ * @returns {{text: string, emojis: string[]}}
+ */
+function replaceAndExtractEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
+    const {text: newDraft = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
+
+    return {
+        text: newDraft,
+        emojis: emojis.concat(extractEmojis(text)),
+    };
 }
 
 /**
