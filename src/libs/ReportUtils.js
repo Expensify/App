@@ -2635,5 +2635,5 @@ export {
     getOriginalReportID,
     canAccessReport,
     getReportOfflinePendingActionAndErrors,
-    isDM
+    isDM,
 };
