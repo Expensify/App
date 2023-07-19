@@ -169,15 +169,15 @@ function Expensify(props) {
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
 
-        const handleShare = (share) => {
+        const navigateToShare = (share) => {
             if (!share || !share.data) return;
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.NEW_GROUP);
                 Navigation.setParams({share});
             });
         };
-        ShareMenu.getInitialShare(handleShare);
-        const shareListener = ShareMenu.addNewShareListener(handleShare);
+        ShareMenu.getInitialShare(navigateToShare);
+        const shareListener = ShareMenu.addNewShareListener(navigateToShare);
 
         return () => {
             if (!appStateChangeListener.current) {
