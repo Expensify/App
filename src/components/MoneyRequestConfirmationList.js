@@ -133,7 +133,7 @@ function MoneyRequestConfirmationList(props) {
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
-    const shouldDisableWhoPaidSection = canModifyParticipants;
+    const shouldDisablePaidBySection = canModifyParticipants;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
@@ -150,14 +150,14 @@ function MoneyRequestConfirmationList(props) {
 
             sections.push(
                 {
-                    title: translate('moneyRequestConfirmationList.whoPaid'),
+                    title: translate('moneyRequestConfirmationList.paidBy'),
                     data: [formattedPayeeOption],
                     shouldShow: true,
                     indexOffset: 0,
-                    isDisabled: shouldDisableWhoPaidSection,
+                    isDisabled: shouldDisablePaidBySection,
                 },
                 {
-                    title: translate('moneyRequestConfirmationList.whoWasThere'),
+                    title: translate('moneyRequestConfirmationList.splitWith'),
                     data: formattedParticipantsList,
                     shouldShow: true,
                     indexOffset: 1,
@@ -181,7 +181,7 @@ function MoneyRequestConfirmationList(props) {
         selectedParticipants,
         payeePersonalDetails,
         translate,
-        shouldDisableWhoPaidSection,
+        shouldDisablePaidBySection,
     ]);
 
     const selectedOptions = useMemo(() => {
