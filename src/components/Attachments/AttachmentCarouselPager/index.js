@@ -6,7 +6,7 @@ import {GestureHandlerRootView, createNativeWrapper} from 'react-native-gesture-
 import Animated, {runOnJS, useAnimatedProps, useAnimatedReaction, useEvent, useHandler, useSharedValue} from 'react-native-reanimated';
 import PagerView from 'react-native-pager-view';
 import _ from 'underscore';
-import styles from '../../styles/styles';
+import styles from '../../../styles/styles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 
 const AnimatedPagerView = Animated.createAnimatedComponent(createNativeWrapper(PagerView));
