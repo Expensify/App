@@ -327,9 +327,10 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
  * @param {String} [bankAccount.incorporationState]
  * @param {String} [bankAccount.incorporationDate]
  * @param {Boolean} [bankAccount.hasNoConnectionToCannabis]
+ * @param {String} policyID
  */
-function updateCompanyInformationForBankAccount(bankAccount) {
-    API.write('UpdateCompanyInformationForBankAccount', bankAccount, getVBBADataForOnyx());
+function updateCompanyInformationForBankAccount(bankAccount, policyID) {
+    API.write('UpdateCompanyInformationForBankAccount', {...bankAccount, policyID}, getVBBADataForOnyx());
 }
 
 /**
