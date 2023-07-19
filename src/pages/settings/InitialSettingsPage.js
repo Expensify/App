@@ -219,7 +219,7 @@ class InitialSettingsPage extends React.Component {
                 },
             },
             {
-                translationKey: 'common.payments',
+                translationKey: 'common.wallet',
                 icon: Expensicons.Wallet,
                 action: () => {
                     Navigation.navigate(ROUTES.SETTINGS_WALLET);
