@@ -106,10 +106,11 @@ function signOutAndRedirectToSignIn() {
 
 /**
  * @param {Function} callback The callback to execute if the action is allowed
+ * @param {Boolean} isAnonymousAction The action is allowed for anonymous or not
  * @returns {Function} same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
-function checkIfActionIsAllowed(callback) {
-    if (isAnonymousUser()) {
+function checkIfActionIsAllowed(callback, isAnonymousAction = false) {
+    if (isAnonymousUser() && !isAnonymousAction) {
         return () => signOutAndRedirectToSignIn();
     }
     return callback;
@@ -171,62 +172,105 @@ function resendValidateCode(login = credentials.login) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 errors: null,
+                loadingForm: CONST.FORMS.RESEND_VALIDATE_CODE_FORM,
             },
         },
     ];
-    API.write('RequestNewValidateCode', {email: login}, {optimisticData});
-}
-
-/**
- * Checks the API to see if an account exists for the given login
- *
- * @param {String} login
- */
-function beginSignIn(login) {
-    const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                ...CONST.DEFAULT_ACCOUNT_DATA,
-                isLoading: true,
-                message: null,
-                loadingForm: CONST.FORMS.LOGIN_FORM,
-            },
-        },
-    ];
-
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false,
                 loadingForm: null,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CREDENTIALS,
-            value: {
-                validateCode: null,
-            },
-        },
     ];
-
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                isLoading: false,
                 loadingForm: null,
-                errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
             },
         },
     ];
+    API.write('RequestNewValidateCode', {email: login}, {optimisticData, successData, failureData});
+}
 
+/**
+
+/**
+ * Constructs the state object for the BeginSignIn && BeginAppleSignIn API calls.
+ *  @returns {Object}
+ */
+
+function signInAttemptState() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    ...CONST.DEFAULT_ACCOUNT_DATA,
+                    isLoading: true,
+                    message: null,
+                    loadingForm: CONST.FORMS.LOGIN_FORM,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    loadingForm: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.CREDENTIALS,
+                value: {
+                    validateCode: null,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ACCOUNT,
+                value: {
+                    isLoading: false,
+                    loadingForm: null,
+                    // eslint-disable-next-line rulesdir/prefer-localization
+                    errors: ErrorUtils.getMicroSecondOnyxError('loginForm.cannotGetAccountDetails'),
+                },
+            },
+        ],
+    };
+}
+
+/**
+ * Checks the API to see if an account exists for the given login.
+ *
+ * @param {String} login
+ */
+
+function beginSignIn(login) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
     API.read('BeginSignIn', {email: login}, {optimisticData, successData, failureData});
+}
+
+/**
+ * Given an idToken from Sign in with Apple, checks the API to see if an account
+ * exists for that email address and signs the user in if so.
+ *
+ * @param {String} idToken
+ */
+
+function beginAppleSignIn(idToken) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithApple', {idToken}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -246,11 +290,6 @@ function signInWithShortLivedAuthToken(email, authToken) {
                 isLoading: true,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_TOKEN_VALID,
-            value: true,
-        },
     ];
 
     const successData = [
@@ -271,24 +310,13 @@ function signInWithShortLivedAuthToken(email, authToken) {
                 isLoading: false,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_TOKEN_VALID,
-            value: false,
-        },
     ];
 
     // If the user is signing in with a different account from the current app, should not pass the auto-generated login as it may be tied to the old account.
     // scene 1: the user is transitioning to newDot from a different account on oldDot.
     // scene 2: the user is transitioning to desktop app from a different account on web app.
     const oldPartnerUserID = credentials.login === email ? credentials.autoGeneratedLogin : '';
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects('SignInWithShortLivedAuthToken', {authToken, oldPartnerUserID}, {optimisticData, successData, failureData}, null).then((response) => {
-        if (response) {
-            return;
-        }
-        Navigation.navigate();
-    });
+    API.read('SignInWithShortLivedAuthToken', {authToken, oldPartnerUserID, skipReauthentication: true}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -875,6 +903,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 
 export {
     beginSignIn,
+    beginAppleSignIn,
     setSupportAuthToken,
     checkIfActionIsAllowed,
     updatePasswordAndSignin,

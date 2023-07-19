@@ -81,6 +81,12 @@ Onyx.connect({
     callback: (val) => (allPolicies = val),
 });
 
+let loginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: (val) => (loginList = val),
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -1390,6 +1396,30 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
 }
 
 /**
+ * Get optimistic data of parent report action
+ * @param {String} reportID The reportID of the report that is updated
+ * @param {String} lastVisibleActionCreated Last visible action created of the child report
+ * @param {String} type The type of action in the child report
+ * @returns {Object}
+ */
+const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type) => {
+    const report = getReport(reportID);
+    if (report && report.parentReportActionID) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        if (parentReportAction && parentReportAction.reportActionID) {
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type),
+                },
+            };
+        }
+    }
+    return {};
+};
+
+/**
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param {String} taskReportID - Report ID of the task
  * @param {String} taskTitle - Title of the task
@@ -1423,7 +1453,6 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
 /**
  * Builds an optimistic IOU report with a randomly generated reportID
  *
- * @param {String} payeeEmail - Email of the person generating the IOU.
  * @param {Number} payeeAccountID - AccountID of the person generating the IOU.
  * @param {Number} payerAccountID - AccountID of the other person participating in the IOU.
  * @param {Number} total - IOU amount in the smallest unit of the currency.
@@ -1433,7 +1462,7 @@ function buildOptimisticTaskCommentReportAction(taskReportID, taskTitle, taskAss
  *
  * @returns {Object}
  */
-function buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, total, chatReportID, currency, isSendingMoney = false) {
+function buildOptimisticIOUReport(payeeAccountID, payerAccountID, total, chatReportID, currency, isSendingMoney = false) {
     const formattedTotal = CurrencyUtils.convertToDisplayString(total, currency);
     const personalDetails = getPersonalDetailsForAccountID(payerAccountID);
     const payerEmail = personalDetails.login;
@@ -1445,7 +1474,6 @@ function buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, to
         chatReportID,
         currency,
         managerID: payerAccountID,
-        ownerEmail: payeeEmail,
         ownerAccountID: payeeAccountID,
         reportID: generateReportID(),
         state: CONST.REPORT.STATE.SUBMITTED,
@@ -1462,14 +1490,13 @@ function buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, to
  *
  * @param {String} chatReportID - Report ID of the PolicyExpenseChat where the Expense Report is
  * @param {String} policyID - The policy ID of the PolicyExpenseChat
- * @param {String} payeeEmail - Email of the employee (payee)
  * @param {Number} payeeAccountID - AccountID of the employee (payee)
  * @param {Number} total - Amount in cents
  * @param {String} currency
  *
  * @returns {Object}
  */
-function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, payeeAccountID, total, currency) {
+function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, total, currency) {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const policyName = getPolicyName(allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]);
@@ -1483,7 +1510,6 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeEmail, payeeA
         chatReportID,
         policyID,
         type: CONST.REPORT.TYPE.EXPENSE,
-        ownerEmail: payeeEmail,
         ownerAccountID: payeeAccountID,
         hasOutstandingIOU: true,
         currency: outputCurrency,
@@ -1677,7 +1703,6 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {String} reportName
  * @param {String} chatType
  * @param {String} policyID
- * @param {String} ownerEmail
  * @param {Number} ownerAccountID
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
@@ -1692,7 +1717,6 @@ function buildOptimisticChatReport(
     reportName = CONST.REPORT.DEFAULT_REPORT_NAME,
     chatType = '',
     policyID = CONST.POLICY.OWNER_EMAIL_FAKE,
-    ownerEmail = CONST.REPORT.OWNER_EMAIL_FAKE,
     ownerAccountID = CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
@@ -1716,7 +1740,6 @@ function buildOptimisticChatReport(
         lastVisibleActionCreated: currentTime,
         notificationPreference,
         oldPolicyName,
-        ownerEmail: ownerEmail || CONST.REPORT.OWNER_EMAIL_FAKE,
         ownerAccountID: ownerAccountID || CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         parentReportActionID,
         parentReportID,
@@ -1733,10 +1756,10 @@ function buildOptimisticChatReport(
 
 /**
  * Returns the necessary reportAction onyx data to indicate that the chat has been created optimistically
- * @param {String} ownerEmail
+ * @param {String} emailCreatingAction
  * @returns {Object}
  */
-function buildOptimisticCreatedReportAction(ownerEmail) {
+function buildOptimisticCreatedReportAction(emailCreatingAction) {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -1746,7 +1769,7 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                text: emailCreatingAction === currentUserEmail ? 'You' : emailCreatingAction,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1771,11 +1794,11 @@ function buildOptimisticCreatedReportAction(ownerEmail) {
 /**
  * Returns the necessary reportAction onyx data to indicate that a task report has been edited
  *
- * @param {String} ownerEmail
+ * @param {String} emailEditingTask
  * @returns {Object}
  */
 
-function buildOptimisticEditedTaskReportAction(ownerEmail) {
+function buildOptimisticEditedTaskReportAction(emailEditingTask) {
     return {
         reportActionID: NumberUtils.rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
@@ -1785,7 +1808,7 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                text: emailEditingTask === currentUserEmail ? 'You' : emailEditingTask,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1810,12 +1833,12 @@ function buildOptimisticEditedTaskReportAction(ownerEmail) {
 /**
  * Returns the necessary reportAction onyx data to indicate that a chat has been archived
  *
- * @param {String} ownerEmail
+ * @param {String} emailClosingReport
  * @param {String} policyName
  * @param {String} reason - A reason why the chat has been archived
  * @returns {Object}
  */
-function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONST.REPORT.ARCHIVE_REASON.DEFAULT) {
+function buildOptimisticClosedReportAction(emailClosingReport, policyName, reason = CONST.REPORT.ARCHIVE_REASON.DEFAULT) {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
         actorAccountID: currentUserAccountID,
@@ -1826,7 +1849,7 @@ function buildOptimisticClosedReportAction(ownerEmail, policyName, reason = CONS
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
                 style: 'strong',
-                text: ownerEmail === currentUserEmail ? 'You' : ownerEmail,
+                text: emailClosingReport === currentUserEmail ? 'You' : emailClosingReport,
             },
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -1862,8 +1885,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.WORKSPACE_CHAT_ROOMS.ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         policyID,
-        null,
-        0,
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         policyName,
         null,
@@ -1872,7 +1894,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
     const announceChatReportID = announceChatData.reportID;
-    const announceCreatedAction = buildOptimisticCreatedReportAction(announceChatData.ownerEmail);
+    const announceCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
     const announceReportActionData = {
         [announceCreatedAction.reportActionID]: announceCreatedAction,
     };
@@ -1882,29 +1904,19 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS,
         CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         policyID,
-        null,
-        0,
+        CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         false,
         policyName,
     );
     const adminsChatReportID = adminsChatData.reportID;
-    const adminsCreatedAction = buildOptimisticCreatedReportAction(adminsChatData.ownerEmail);
+    const adminsCreatedAction = buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
     const adminsReportActionData = {
         [adminsCreatedAction.reportActionID]: adminsCreatedAction,
     };
 
-    const expenseChatData = buildOptimisticChatReport(
-        [currentUserAccountID],
-        '',
-        CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-        policyID,
-        currentUserEmail,
-        currentUserAccountID,
-        true,
-        policyName,
-    );
+    const expenseChatData = buildOptimisticChatReport([currentUserAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserAccountID, true, policyName);
     const expenseChatReportID = expenseChatData.reportID;
-    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(expenseChatData.ownerEmail);
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
     const expenseReportActionData = {
         [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
     };
@@ -1928,7 +1940,6 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
 /**
  * Builds an optimistic Task Report with a randomly generated reportID
  *
- * @param {String} ownerEmail - Email of the person generating the Task.
  * @param {Number} ownerAccountID - Account ID of the person generating the Task.
  * @param {String} assigneeAccountID - AccountID of the other person participating in the Task.
  * @param {String} parentReportID - Report ID of the chat where the Task is.
@@ -1938,12 +1949,11 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
  * @returns {Object}
  */
 
-function buildOptimisticTaskReport(ownerEmail, ownerAccountID, assigneeAccountID = 0, parentReportID, title, description) {
+function buildOptimisticTaskReport(ownerAccountID, assigneeAccountID = 0, parentReportID, title, description) {
     return {
         reportID: generateReportID(),
         reportName: title,
         description,
-        ownerEmail,
         ownerAccountID,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
@@ -2067,10 +2077,11 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Object} report
  * @param {Array<Object>} policies
  * @param {Array<String>} betas
+ * @param {Object} allReportActions
  * @returns {Boolean}
  */
-function canAccessReport(report, policies, betas) {
-    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report))) {
+function canAccessReport(report, policies, betas, allReportActions) {
+    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report, allReportActions))) {
         return false;
     }
 
@@ -2095,9 +2106,10 @@ function canAccessReport(report, policies, betas) {
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
+ * @param {Object} allReportActions
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2111,7 +2123,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    if (!canAccessReport(report, policies, betas)) {
+    if (!canAccessReport(report, policies, betas, allReportActions)) {
         return false;
     }
 
@@ -2144,7 +2156,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    // Include policy expense chats if the user isn't in the policy expense chat beta
+    // Exclude policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
         return false;
     }
@@ -2159,14 +2171,14 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 
 /**
  * Attempts to find a report in onyx with the provided list of participants. Does not include threads
- * @param {Array} newParticipantList
+ * @param {Array<Number>} newParticipantList
  * @returns {Array|undefined}
  */
 function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participantAccountIDs || isChatThread(report)) {
+        if (!report || _.isEmpty(report.participantAccountIDs) || isChatThread(report)) {
             return false;
         }
 
@@ -2188,7 +2200,7 @@ function getChatByParticipantsByLoginList(participantsLoginList) {
     participantsLoginList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || !report.participants || isThread(report)) {
+        if (!report || _.isEmpty(report.participantAccountIDs) || isThread(report)) {
             return false;
         }
 
@@ -2360,7 +2372,7 @@ function canRequestMoney(report) {
 
 /**
  * @param {Object} report
- * @param {Array} reportParticipants
+ * @param {Array<Number>} reportParticipants
  * @param {Array} betas
  * @returns {Array}
  */
@@ -2537,6 +2549,40 @@ function getOriginalReportID(reportID, reportAction) {
     return isThreadFirstChat(reportAction, reportID) ? lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, 'parentReportID']) : reportID;
 }
 
+/**
+ * Return the pendingAction and the errors when we have creating a chat or a workspace room offline
+ * @param {Object} report
+ * @returns {Object} pending action , errors
+ */
+function getReportOfflinePendingActionAndErrors(report) {
+    // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
+    // simply looking up the first truthy value for each case will get the relevant property if it's set.
+    const addWorkspaceRoomOrChatPendingAction = lodashGet(report, 'pendingFields.addWorkspaceRoom') || lodashGet(report, 'pendingFields.createChat');
+    const addWorkspaceRoomOrChatErrors = lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
+    return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
+}
+
+/**
+ * @param {Object|null} report
+ * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
+ * @returns {Boolean}
+ */
+function shouldDisableRename(report, policy) {
+    if (isDefaultRoom(report) || isArchivedRoom(report)) {
+        return true;
+    }
+
+    // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
+    // which means this has to be a public room we want to disable renaming for
+    if (!policy) {
+        return true;
+    }
+
+    // If there is a linked workspace, that means the user is a member of the workspace the report is in.
+    // Still, we only want policy owners and admins to be able to modify the name.
+    return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2598,6 +2644,7 @@ export {
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
     updateOptimisticParentReportAction,
+    getOptimisticDataForParentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsByLoginList,
@@ -2641,4 +2688,6 @@ export {
     shouldHideComposer,
     getOriginalReportID,
     canAccessReport,
+    getReportOfflinePendingActionAndErrors,
+    shouldDisableRename,
 };

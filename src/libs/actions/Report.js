@@ -248,7 +248,7 @@ function addActions(reportID, text = '', file) {
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(reportID);
     let prevVisibleMessageText;
     if (lastVisibleMessage.lastMessageTranslationKey) {
-        prevVisibleMessageText = Localize.translateLocal(prevVisibleMessageText);
+        prevVisibleMessageText = Localize.translateLocal(lastVisibleMessage.lastMessageTranslationKey);
     } else {
         prevVisibleMessageText = lastVisibleMessage.lastMessageText;
     }
@@ -321,19 +321,10 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
-    // Optimistically update the parent report action if the report is a thread
-    const report = ReportUtils.getReport(reportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(parentReportAction, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
-                },
-            });
-        }
+    // Update optimistic data for parent report action if the report is a child report
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
     }
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
@@ -459,7 +450,11 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
             isOptimisticReport: true,
         };
 
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(newReportObject.ownerEmail);
+        let reportOwnerEmail = CONST.REPORT.OWNER_EMAIL_FAKE;
+        if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
+            reportOwnerEmail = lodashGet(allPersonalDetails, [newReportObject.ownerAccountID, 'login'], '');
+        }
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(reportOwnerEmail);
         onyxData.optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -530,8 +525,9 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
  * @param {Array} userLogins list of user logins to start a chat report with.
+ * @param {Boolean} shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins) {
+function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     let newChat = {};
     const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
     const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
@@ -543,7 +539,11 @@ function navigateToAndOpenReport(userLogins) {
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(reportID, userLogins, newChat);
-    Navigation.dismissModal(reportID);
+    if (shouldDismissModal) {
+        Navigation.dismissModal(reportID);
+    } else {
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
+    }
 }
 
 /**
@@ -584,7 +584,6 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             lodashGet(parentReportAction, ['message', 0, 'text']),
             lodashGet(parentReport, 'chatType', ''),
             lodashGet(parentReport, 'policyID', CONST.POLICY.OWNER_EMAIL_FAKE),
-            CONST.POLICY.OWNER_EMAIL_FAKE,
             CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
             false,
             '',
@@ -951,22 +950,10 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    const report = ReportUtils.getReport(reportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(
-                        parentReportAction,
-                        optimisticReport.lastVisibleActionCreated,
-                        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    ),
-                },
-            });
-        }
+    // Update optimistic data for parent report action if the report is a child report
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, optimisticReport.lastVisibleActionCreated, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
     }
 
     const parameters = {
@@ -1246,7 +1233,7 @@ function navigateToConciergeChat() {
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
             // If we don't have a chat with Concierge then create it
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], false);
         });
     } else {
         Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
@@ -1259,18 +1246,17 @@ function navigateToConciergeChat() {
  * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
- * @param {Array} policyMembers
+ * @param {Array<Number>} policyMembersAccountIDs
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembers) {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
-    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembers : [];
+    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
         reportName,
         CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         policyID,
-        CONST.REPORT.OWNER_EMAIL_FAKE,
         CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
         false,
         '',
@@ -1279,7 +1265,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembers) {
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
     );
-    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(policyReport.ownerEmail);
+    const createdReportAction = ReportUtils.buildOptimisticCreatedReportAction(CONST.POLICY.OWNER_EMAIL_FAKE);
 
     // Onyx.set is used on the optimistic data so that it is present before navigating to the workspace room. With Onyx.merge the workspace room reportID is not present when
     // fetchReportIfNeeded is called on the ReportScreen, so openReport is called which is unnecessary since the optimistic data will be stored in Onyx.

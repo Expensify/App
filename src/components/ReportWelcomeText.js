@@ -101,12 +101,7 @@ function ReportWelcomeText(props) {
                                 <UserDetailsTooltip accountID={accountID}>
                                     <Text
                                         style={[styles.textStrong]}
-                                        onPress={() => {
-                                            const accountDetails = props.personalDetails[participantAccountIDs[index]];
-                                            if (accountDetails && accountDetails.accountID) {
-                                                Navigation.navigate(ROUTES.getProfileRoute(accountDetails.accountID));
-                                            }
-                                        }}
+                                        onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
                                     >
                                         {displayName}
                                     </Text>
