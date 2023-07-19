@@ -11,7 +11,7 @@ import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
  * @param {String} source
  * @returns {{attachments: Array, initialPage: Number, initialItem: Object, initialActiveSource: String}}
  */
-function extractAttachments(report, reportActions, source) {
+function extractAttachmentsFromReport(report, reportActions, source) {
     const actions = [ReportActionsUtils.getParentReportAction(report), ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     let attachments = [];
 
@@ -42,6 +42,7 @@ function extractAttachments(report, reportActions, source) {
     htmlParser.end();
 
     attachments = attachments.reverse();
+
     const initialPage = _.findIndex(attachments, (a) => a.source === source);
     if (initialPage === -1) {
         throw new Error('Attachment not found');
@@ -57,4 +58,4 @@ function extractAttachments(report, reportActions, source) {
     };
 }
 
-export default extractAttachments;
+export default extractAttachmentsFromReport;

@@ -10,11 +10,11 @@ import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import withWindowDimensions from '../../withWindowDimensions';
 import {attachmentCarouselPropTypes, attachmentCarouselDefaultProps} from './propTypes';
-import extractAttachments from './extractAttachments';
+import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}) {
-    const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachments(report, reportActions, source), [report, reportActions, source]);
+    const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachmentsFromReport(report, reportActions, source), [report, reportActions, source]);
 
     useEffect(() => {
         // Update the parent modal's state with the source and name from the mapped attachments
@@ -101,7 +101,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
                 cancelAutoHideArrow={cancelAutoHideArrows}
             />
 
-            {containerDimensions.width > 0 && containerDimensions.height > 0 && (
+            {containerDimensions.width > 0 && (
                 <AttachmentCarouselPager
                     items={attachments}
                     renderItem={renderItem}

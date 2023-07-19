@@ -1,21 +1,32 @@
 import React, {useRef, useCallback, useState, useEffect, useMemo} from 'react';
 import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import styles from '../../../styles/styles';
 import CarouselActions from './CarouselActions';
 import AttachmentView from '../AttachmentView';
 import withWindowDimensions from '../../withWindowDimensions';
 import CarouselButtons from './CarouselButtons';
-import extractAttachments from './extractAttachments';
+import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import {attachmentCarouselPropTypes, attachmentCarouselDefaultProps} from './propTypes';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
+import useCarouselArrows from './useCarouselArrows';
+
+const VIEWABILITY_CONFIG = {
+    // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
+    // more than 95% visible. When that happens we update the page index in the state.
+    itemVisiblePercentThreshold: 95,
+};
 
 function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallScreenWidth, windowWidth}) {
     const scrollRef = useRef(null);
 
-    const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachments(report, reportActions, source), [report, reportActions, source]);
+    const canUseTouchScreen = useMemo(() => DeviceCapabilities.canUseTouchScreen(), []);
+
+    const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachmentsFromReport(report, reportActions, source), [report, reportActions, source]);
 
     useEffect(() => {
         // Update the parent modal's state with the source and name from the mapped attachments
@@ -24,28 +35,32 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
     }, [initialItem]);
 
     const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
-    const [shouldShowArrows, setShouldShowArrows] = useState(false);
+    const [isZoomed, setIsZoomed] = useState(false);
     const [page, setPage] = useState(initialPage);
     const [activeSource, setActiveSource] = useState(initialActiveSource);
+    const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
 
     /**
      * Updates the page state when the user navigates between attachments
      * @param {Object} item
      * @param {number} index
      */
-    const updatePage = useCallback(
-        ({item, index}) => {
+    const updatePage = useRef(
+        ({viewableItems}) => {
             Keyboard.dismiss();
-
-            if (!item) {
+            // Since we can have only one item in view at a time, we can use the first item in the array
+            // to get the index of the current page
+            const entry = _.first(viewableItems);
+            if (!entry) {
                 setActiveSource(null);
                 return;
             }
 
-            setPage(index);
-            setActiveSource(item.source);
+            setPage(entry.index);
+            setActiveSource(entry.item.source);
+            setIsZoomed(false);
 
-            onNavigate(item);
+            onNavigate(entry.item);
         },
         [onNavigate],
     );
@@ -56,18 +71,38 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide) => {
-            const nextIndex = page + deltaSlide;
+            let delta = deltaSlide;
+            if (canUseTouchScreen) {
+                delta = deltaSlide * -1;
+            }
+
+            const nextIndex = page - delta;
             const nextItem = attachments[nextIndex];
 
             if (!nextItem || !scrollRef.current) {
                 return;
             }
 
-            updatePage({item: nextItem, index: nextIndex});
-
-            scrollRef.current.scrollToIndex({index: nextIndex, animated: false});
+            scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, page, updatePage],
+        [attachments, canUseTouchScreen, page],
+    );
+
+    /**
+     * Updates zoomed state to enable/disable panning the PDF
+     * @param {Number} scale current PDF scale
+     */
+    const updateZoomState = useCallback(
+        (scale) => {
+            const newIsZoomed = scale > 1;
+            if (newIsZoomed === isZoomed) {
+                return;
+            }
+
+            setShouldShowArrows(!newIsZoomed);
+            setIsZoomed(newIsZoomed);
+        },
+        [isZoomed, setShouldShowArrows],
     );
 
     /**
@@ -118,10 +153,11 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
             <AttachmentView
                 item={item}
                 isFocused={activeSource === item.source}
+                onScaleChanged={canUseTouchScreen ? updateZoomState : undefined}
                 isUsedInCarousel
             />
         ),
-        [activeSource],
+        [activeSource, canUseTouchScreen, updateZoomState],
     );
 
     return (
@@ -130,8 +166,8 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
             onLayout={({nativeEvent}) =>
                 setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
             }
-            onMouseEnter={() => setShouldShowArrows(true)}
-            onMouseLeave={() => setShouldShowArrows(false)}
+            onMouseEnter={() => !isZoomed && !canUseTouchScreen && setShouldShowArrows(true)}
+            onMouseLeave={() => !isZoomed && !canUseTouchScreen && setShouldShowArrows(false)}
         >
             <CarouselButtons
                 shouldShowArrows={shouldShowArrows}
@@ -139,9 +175,11 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
                 attachments={attachments}
                 onBack={() => cycleThroughAttachments(-1)}
                 onForward={() => cycleThroughAttachments(1)}
+                autoHideArrow={autoHideArrows}
+                cancelAutoHideArrow={cancelAutoHideArrows}
             />
 
-            {containerDimensions.width > 0 && containerDimensions.height > 0 && (
+            {containerDimensions.width > 0 && (
                 <FlatList
                     contentContainerStyle={{flex: 1}}
                     listKey="AttachmentCarousel"
@@ -152,12 +190,9 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
                     pagingEnabled
                     snapToAlignment="start"
                     snapToInterval={containerDimensions.width}
-                    // scrollEnabled={false}
-                    // ref={scrollRef}
-                    ref={(ref) => {
-                        scrollRef.current = ref;
-                    }}
-                    initialScrollIndex={initialPage}
+                    // scrollEnabled={canUseTouchScreen && !isZoomed}
+                    ref={scrollRef}
+                    initialScrollIndex={page}
                     initialNumToRender={3}
                     windowSize={5}
                     maxToRenderPerBatch={3}
@@ -166,6 +201,8 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
                     renderItem={renderItem}
                     getItemLayout={getItemLayout}
                     keyExtractor={(item) => item.source}
+                    viewabilityConfig={VIEWABILITY_CONFIG}
+                    onViewableItemsChanged={updatePage.current}
                 />
             )}
 
