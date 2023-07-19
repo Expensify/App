@@ -293,18 +293,6 @@ class ReportActionCompose extends React.Component {
         this.unsubscribeNavigationFocus();
     }
 
-    setUpComposeFocusManager() {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
-                return;
-            }
-
-            this.focus(false);
-        });
-    }
-
     onSelectionChange(e) {
         LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
         this.setState({selection: e.nativeEvent.selection});
@@ -316,6 +304,18 @@ class ReportActionCompose extends React.Component {
         }
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
+    }
+
+    setUpComposeFocusManager() {
+        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
+                return;
+            }
+
+            this.focus(false);
+        });
     }
 
     getDefaultSuggestionsValues() {
