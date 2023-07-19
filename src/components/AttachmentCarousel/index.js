@@ -263,7 +263,6 @@ class AttachmentCarousel extends React.Component {
         }
 
         const page = entry.index;
-
         this.props.onNavigate(entry.item);
         this.setState({page, isZoomed: false, activeSource: entry.item.source});
     }
