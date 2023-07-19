@@ -92,6 +92,7 @@ function AttachmentCarouselView({attachments, initialPage, initialActiveSource, 
             <AttachmentView
                 item={item}
                 isFocused={activeSource === item.source}
+                isUsedInCarousel
             />
         ),
         [activeSource],
