@@ -36,19 +36,36 @@ function AttachmentCarouselView({containerDimensions, attachments, initialPage, 
             Keyboard.dismiss();
 
             if (!item) {
-                // eslint-disable-next-line react/no-unused-state
                 setActiveSource(null);
                 return;
             }
 
-            const pageIndex = index;
-
-            setPage(pageIndex);
+            setPage(index);
             setActiveSource(item.source);
 
             onNavigate(item);
         },
         [onNavigate],
+    );
+
+    /**
+     * Increments or decrements the index to get another selected item
+     * @param {Number} deltaSlide
+     */
+    const cycleThroughAttachments = useCallback(
+        (deltaSlide) => {
+            const nextIndex = page + deltaSlide;
+            const nextItem = attachments[nextIndex];
+
+            if (!nextItem || !scrollRef.current) {
+                return;
+            }
+
+            updatePage({item: nextItem, index: nextIndex});
+
+            scrollRef.current.scrollToItem({item: nextItem, animated: true});
+        },
+        [attachments, page, updatePage],
     );
 
     /**
@@ -64,26 +81,6 @@ function AttachmentCarouselView({containerDimensions, attachments, initialPage, 
             index,
         }),
         [containerDimensions.height, containerDimensions.width],
-    );
-
-    /**
-     * Increments or decrements the index to get another selected item
-     * @param {Number} deltaSlide
-     */
-    const cycleThroughAttachments = useCallback(
-        (deltaSlide) => {
-            const nextIndex = page - deltaSlide;
-            const nextItem = attachments[nextIndex];
-
-            if (!nextItem || !scrollRef.current) {
-                return;
-            }
-
-            // The sliding transition is a bit too much on web, because of the wider and bigger images,
-            // so we only enable it for mobile
-            scrollRef.current.scrollToIndex({index: nextIndex, animated: false});
-        },
-        [attachments, page],
     );
 
     /**
@@ -158,7 +155,6 @@ function AttachmentCarouselView({containerDimensions, attachments, initialPage, 
                     decelerationRate="fast"
                     showsHorizontalScrollIndicator={false}
                     bounces={false}
-                    disableIntervalMomentum // Scroll only one image at a time no matter how fast the user swipes
                     pagingEnabled
                     snapToAlignment="start"
                     snapToInterval={containerDimensions.width}
