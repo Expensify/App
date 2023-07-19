@@ -1375,6 +1375,7 @@ export default {
         about: 'About New Expensify',
         update: 'Update New Expensify',
         checkForUpdates: 'Check for updates',
+        toggleDevTools: 'Toggle Developer Tools',
         viewShortcuts: 'View keyboard shortcuts',
         services: 'Services',
         hide: 'Hide New Expensify',
