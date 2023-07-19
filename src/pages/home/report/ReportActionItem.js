@@ -36,9 +36,9 @@ import SelectionScraper from '../../../libs/SelectionScraper';
 import focusTextInputAfterAnimation from '../../../libs/focusTextInputAfterAnimation';
 import * as User from '../../../libs/actions/User';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ReportActions from '../../../libs/actions/ReportActions';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
@@ -55,7 +55,9 @@ import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
 import TaskView from '../../../components/ReportActionItem/TaskView';
+import MoneyReportView from '../../../components/ReportActionItem/MoneyReportView';
 import * as Session from '../../../libs/actions/Session';
+import MoneyRequestView from '../../../components/ReportActionItem/MoneyRequestView';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
@@ -255,7 +257,7 @@ function ReportActionItem(props) {
             );
         } else if (
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED ||
-            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELED ||
+            props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED ||
             props.action.actionName === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED
         ) {
             children = (
@@ -415,9 +417,26 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        const parentReport = ReportActionsUtils.getParentReportAction(props.report);
+        if (ReportActionsUtils.isTransactionThread(parentReport)) {
+            return (
+                <MoneyRequestView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                />
+            );
+        }
         if (ReportUtils.isTaskReport(props.report)) {
             return (
                 <TaskView
+                    report={props.report}
+                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                />
+            );
+        }
+        if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
+            return (
+                <MoneyReportView
                     report={props.report}
                     shouldShowHorizontalRule={!props.isOnlyReportAction}
                 />
