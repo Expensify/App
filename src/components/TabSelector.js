@@ -1,7 +1,6 @@
 import {View} from 'react-native';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
 import compose from '../libs/compose';

@@ -81,7 +81,7 @@ function MoneyRequestParticipantsPage(props) {
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.amount, props.iou.id]);
+    }, [props.iou.amount, props.iou.id, props.iou.receiptPath]);
 
     return (
         <ScreenWrapper
