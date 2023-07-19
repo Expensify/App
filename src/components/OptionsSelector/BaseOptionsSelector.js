@@ -125,12 +125,10 @@ class BaseOptionsSelector extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.autoFocus && !prevProps.isFocused && this.props.isFocused) {
+        if (this.textInput && this.props.autoFocus && !prevProps.isFocused && this.props.isFocused) {
             InteractionManager.runAfterInteractions(() => {
-                // Focus text input
-                if (!this.textInput) {
-                    return;
-                }
+                // If we automatically focus on a text input when mounting a component,
+                // let's automatically focus on it when the component updates as well (eg, when navigating back from a page)
                 this.textInput.focus();
             });
         }
