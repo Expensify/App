@@ -358,23 +358,21 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
 
     // Optimistic personal details for the new accounts invited
-    const optimisticPersonalDetails = _.object(
-        _.compact(
-            _.map(
-                invitedEmailsToAccountIDs,
-                (accountID, memberLogin) =>
-                    !_.has(allPersonalDetails, accountID) && [
-                        accountID,
-                        {
-                            accountID,
-                            avatar: UserUtils.getDefaultAvatarURL(accountID),
-                            displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
-                            login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
-                        },
-                    ],
-            ),
-        ),
-    );
+    const optimisticPersonalDetails = _.chain(invitedEmailsToAccountIDs)
+        .map(
+            (accountID, memberLogin) => !_.has(allPersonalDetails, accountID) && [
+                accountID,
+                {
+                    accountID,
+                    avatar: UserUtils.getDefaultAvatarURL(accountID),
+                    displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
+                    login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
+                },
+            ],
+        )
+        .compact()
+        .object()
+        .value();
 
     const optimisticData = [
         {
