@@ -34,8 +34,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialItem]);
 
-    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
-    const [isZoomed, setIsZoomed] = useState(false);
+    const [containerWidth, setContainerWidth] = useState(0);
     const [page, setPage] = useState(initialPage);
     const [activeSource, setActiveSource] = useState(initialActiveSource);
     const [shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows] = useCarouselArrows();
@@ -59,7 +58,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
 
             setPage(entry.index);
             setActiveSource(entry.item.source);
-            setIsZoomed(false);
 
             onNavigate(entry.item);
         },
@@ -72,12 +70,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
      */
     const cycleThroughAttachments = useCallback(
         (deltaSlide) => {
-            let delta = deltaSlide;
-            if (canUseTouchScreen) {
-                delta = deltaSlide * -1;
-            }
-
-            const nextIndex = page - delta;
+            const nextIndex = page + deltaSlide;
             const nextItem = attachments[nextIndex];
 
             if (!nextItem || !scrollRef.current) {
@@ -90,23 +83,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
     );
 
     /**
-     * Updates zoomed state to enable/disable panning the PDF
-     * @param {Number} scale current PDF scale
-     */
-    const updateZoomState = useCallback(
-        (scale) => {
-            const newIsZoomed = scale > 1;
-            if (newIsZoomed === isZoomed) {
-                return;
-            }
-
-            setShouldShowArrows(!newIsZoomed);
-            setIsZoomed(newIsZoomed);
-        },
-        [isZoomed, setShouldShowArrows],
-    );
-
-    /**
      * Calculate items layout information to optimize scrolling performance
      * @param {*} data
      * @param {Number} index
@@ -114,11 +90,11 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
      */
     const getItemLayout = useCallback(
         (_data, index) => ({
-            length: containerDimensions.width,
-            offset: containerDimensions.height * index,
+            length: containerWidth,
+            offset: containerWidth * index,
             index,
         }),
-        [containerDimensions.height, containerDimensions.width],
+        [containerWidth],
     );
 
     /**
@@ -154,22 +130,19 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
             <AttachmentView
                 item={item}
                 isFocused={activeSource === item.source}
-                onScaleChanged={canUseTouchScreen ? updateZoomState : undefined}
                 onPress={() => canUseTouchScreen && setShouldShowArrows(!shouldShowArrows)}
                 isUsedInCarousel
             />
         ),
-        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows, updateZoomState],
+        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
         <View
             style={[styles.flex1, styles.attachmentCarouselContainer]}
-            onLayout={({nativeEvent}) =>
-                setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
-            }
-            onMouseEnter={() => !isZoomed && !canUseTouchScreen && setShouldShowArrows(true)}
-            onMouseLeave={() => !isZoomed && !canUseTouchScreen && setShouldShowArrows(false)}
+            onLayout={({nativeEvent}) => setContainerWidth(PixelRatio.roundToNearestPixel(nativeEvent.layout.width))}
+            onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
+            onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
         >
             <CarouselButtons
                 shouldShowArrows={shouldShowArrows}
@@ -181,7 +154,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
                 cancelAutoHideArrow={cancelAutoHideArrows}
             />
 
-            {containerDimensions.width > 0 && (
+            {containerWidth > 0 && (
                 <FlatList
                     keyboardShouldPersistTaps="handled"
                     listKey="AttachmentCarousel"
@@ -193,11 +166,11 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
                     disableIntervalMomentum
                     pagingEnabled
                     snapToAlignment="start"
-                    snapToInterval={containerDimensions.width}
+                    snapToInterval={containerWidth}
                     // Enable scrolling by swiping on mobile (touch) devices only
                     // disable scroll for desktop/browsers because they add their scrollbars
                     // Enable scrolling FlatList only when PDF is not in a zoomed state
-                    scrollEnabled={canUseTouchScreen && !isZoomed}
+                    scrollEnabled={canUseTouchScreen}
                     ref={scrollRef}
                     initialScrollIndex={page}
                     initialNumToRender={3}

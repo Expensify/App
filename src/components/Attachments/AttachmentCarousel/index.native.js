@@ -101,7 +101,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
                 cancelAutoHideArrow={cancelAutoHideArrows}
             />
 
-            {containerDimensions.width > 0 && (
+            {containerDimensions.width > 0 && containerDimensions.height > 0 && (
                 <AttachmentCarouselPager
                     items={attachments}
                     renderItem={renderItem}
