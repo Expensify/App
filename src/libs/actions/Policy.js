@@ -10,6 +10,7 @@ import CONST from '../../CONST';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
 
@@ -350,7 +351,9 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
+    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = _.values(invitedEmailsToAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
@@ -363,6 +366,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             // Convert to object with each key containing {pendingAction: ‘add’}
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
+        ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
     ];
 
@@ -375,6 +379,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: null, errors: null})),
         },
+        ...newPersonalDetailsOnyxData.successData,
         ...membersChats.onyxSuccessData,
     ];
 
@@ -392,10 +397,10 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
                 }),
             ),
         },
+        ...newPersonalDetailsOnyxData.failureData,
         ...membersChats.onyxFailureData,
     ];
 
-    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
