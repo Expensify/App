@@ -26,7 +26,7 @@ import useLocalize from '../../hooks/useLocalize';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
+    login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
     the person doesn't have their own avatar uploaded yet, except for anon users) */
