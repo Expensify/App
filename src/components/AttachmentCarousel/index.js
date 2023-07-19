@@ -205,7 +205,6 @@ class AttachmentCarousel extends React.Component {
         // wheel or trackpad scrolling (in cases like document preview where you can scroll vertically)
         if (this.canUseTouchScreen) {
             attachments.reverse();
-            return;
         }
 
         const page = _.findIndex(attachments, (a) => a.source === this.props.source);
