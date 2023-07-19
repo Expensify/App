@@ -119,6 +119,15 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 isOptimisticReport: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {
+                [optimisticAddCommentReport.reportAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
     ];
 
     const failureData = [
@@ -138,7 +147,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
         },
     ];
-
     if (optimisticAssigneeAddComment) {
         const lastAssigneeCommentText = ReportUtils.formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
 
@@ -161,6 +169,12 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 value: optimisticAssigneeReport,
             },
         );
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
