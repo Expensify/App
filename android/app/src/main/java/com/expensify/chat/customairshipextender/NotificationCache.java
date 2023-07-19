@@ -113,6 +113,10 @@ public class NotificationCache {
     }
 
     private static Person convertToPerson(Bundle b) {
+        if (b == null) {
+            return null;
+        }
+
         return new Person.Builder()
                 .setIcon(IconCompat.createFromBundle(b.getBundle("icon")))
                 .setKey(b.getString("key"))
