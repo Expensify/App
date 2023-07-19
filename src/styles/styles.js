@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -855,16 +856,16 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => {
-        const minHeight = variables.componentSizeLarge;
-        let height = textInputHeight;
-        if (height >= maxHeight) {
-            height = maxHeight;
-        } else if (height <= minHeight) {
-            height = minHeight;
-        }
-        return {height, minHeight};
-    },
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
+    }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
         maxWidth,
