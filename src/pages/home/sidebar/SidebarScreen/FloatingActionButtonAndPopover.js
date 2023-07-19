@@ -26,6 +26,7 @@ import * as Task from '../../../../libs/actions/Task';
 import * as Session from '../../../../libs/actions/Session';
 import * as IOU from '../../../../libs/actions/IOU';
 import usePrevious from '../../../../hooks/usePrevious';
+import * as App from '../../../../libs/actions/App';
 
 /**
  * @param {Object} [policy]
@@ -238,7 +239,7 @@ function FloatingActionButtonAndPopover(props) {
                                   iconHeight: 40,
                                   text: props.translate('workspace.new.newWorkspace'),
                                   description: props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => Policy.createWorkspace()),
+                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt()),
                               },
                           ]
                         : []),
