@@ -34,7 +34,7 @@ const defaultProps = {
  * @param {String} values.lastName
  * @param {String} values.phoneOrEmail
  */
-const updateDisplayName = () => {
+const submit = () => {
     // PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
 };
 
@@ -80,7 +80,7 @@ function KnowATeacherPage(props) {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.I_KNOW_A_TEACHER}
                 validate={validate}
-                onSubmit={updateDisplayName}
+                onSubmit={submit}
                 submitButtonText={props.translate('common.letsDoThis')}
                 enabledWhenOffline
             >
