@@ -12,11 +12,9 @@ import Tooltip from '../Tooltip';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
-import {
-    propTypes as anchorForCommentsOnlyPropTypes,
-} from './anchorForCommentsOnlyPropTypes';
+import {propTypes as anchorForCommentsOnlyPropTypes} from './anchorForCommentsOnlyPropTypes';
 import CONST from '../../CONST';
-import useWindowDimensions from "../../hooks/useWindowDimensions";
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Press in handler for the link */
@@ -34,20 +32,13 @@ const propTypes = {
 /*
  * This is a default anchor component for regular links.
  */
-function BaseAnchorForCommentsOnly({
-   onPressIn = undefined,
-   onPressOut = undefined,
-   href = '',
-   rel = '',
-   target = '',
-   children = null,
-   style = {},
-   onPress = undefined,
-   ...rest
-}) {
-    useEffect(() => () => {
-        ReportActionContextMenu.hideContextMenu();
-    }, [])
+function BaseAnchorForCommentsOnly({onPressIn = undefined, onPressOut = undefined, href = '', rel = '', target = '', children = null, style = {}, onPress = undefined, ...rest}) {
+    useEffect(
+        () => () => {
+            ReportActionContextMenu.hideContextMenu();
+        },
+        [],
+    );
 
     const {isSmallScreenWidth} = useWindowDimensions();
 
