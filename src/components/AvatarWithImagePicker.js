@@ -111,11 +111,11 @@ function AvatarWithImagePicker(props) {
      * @param {String} title
      * @param {String} prompt
      */
-    function showErrorModal(title, prompt) {
+    const showErrorModal = (title, prompt) => {
         setIsErrorModalVisible(true);
         setErrorModalTitle(title);
         setErrorModalPrompt(prompt);
-    }
+    };
 
     const hideErrorModal = useCallback(() => {
         setIsErrorModalVisible(false);
@@ -126,10 +126,10 @@ function AvatarWithImagePicker(props) {
      * @param {Object} image
      * @returns {Boolean}
      */
-    function isValidExtension(image) {
+    const isValidExtension = (image) => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(image, 'name', ''));
         return _.contains(CONST.AVATAR_ALLOWED_EXTENSIONS, fileExtension.toLowerCase());
-    }
+    };
 
     /**
      * Check if the attachment size is less than allowed size.
@@ -137,9 +137,7 @@ function AvatarWithImagePicker(props) {
      * @param {Object} image
      * @returns {Boolean}
      */
-    function isValidSize(image) {
-        return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
-    }
+    const isValidSize = (image) => image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
 
     /**
      * Check if the attachment resolution matches constraints.
@@ -147,22 +145,21 @@ function AvatarWithImagePicker(props) {
      * @param {Object} image
      * @returns {Promise}
      */
-    function isValidResolution(image) {
-        return getImageResolution(image).then(
+    const isValidResolution = (image) =>
+        getImageResolution(image).then(
             (resolution) =>
                 resolution.height >= CONST.AVATAR_MIN_HEIGHT_PX &&
                 resolution.width >= CONST.AVATAR_MIN_WIDTH_PX &&
                 resolution.height <= CONST.AVATAR_MAX_HEIGHT_PX &&
                 resolution.width <= CONST.AVATAR_MAX_WIDTH_PX,
         );
-    }
 
     /**
      * Validates if an image has a valid resolution and opens an avatar crop modal
      *
      * @param {Object} image
      */
-    function showAvatarCropModal(image) {
+    const showAvatarCropModal = (image) => {
         if (!isValidExtension(image)) {
             showErrorModal(
                 props.translate('avatarWithImagePicker.imageUploadFailed'),
@@ -197,7 +194,7 @@ function AvatarWithImagePicker(props) {
             setImageName(image.name);
             setImageType(image.type);
         });
-    }
+    };
 
     const hideAvatarCropModal = useCallback(() => {
         setIsAvatarCropModalOpen(false);
@@ -209,7 +206,7 @@ function AvatarWithImagePicker(props) {
      * @param {Function} openPicker
      * @returns {Array}
      */
-    function createMenuItems(openPicker) {
+    const createMenuItems = (openPicker) => {
         const menuItems = [
             {
                 icon: Expensicons.Upload,
@@ -233,7 +230,7 @@ function AvatarWithImagePicker(props) {
             });
         }
         return menuItems;
-    }
+    };
 
     return (
         <View style={[styles.alignItemsCenter, ...additionalStyles]}>
