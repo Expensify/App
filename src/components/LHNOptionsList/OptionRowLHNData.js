@@ -4,6 +4,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useMemo} from 'react';
 import {deepEqual} from 'fast-equals';
+import {diff} from 'jest-diff';
 import {withReportCommentDrafts} from '../OnyxProvider';
 import SidebarUtils from '../../libs/SidebarUtils';
 import compose from '../../libs/compose';
@@ -109,25 +110,32 @@ const personalDetailsSelector = (personalDetails) =>
         {},
     );
 
-export default compose(
-    withCurrentReportID,
-    withReportCommentDrafts({
-        propName: 'comment',
-        transformValue: (drafts, props) => {
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
-            return lodashGet(drafts, draftKey, '');
-        },
-    }),
-    withOnyx({
-        fullReport: {
-            key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            selector: personalDetailsSelector,
-        },
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-    }),
-)(OptionRowLHNData);
+// This component is rendered in a list.
+// On scroll we want to avoid that a item re-renders
+// just because the list has to re-render when adding more items.
+// Thats also why the React.memo is used on the outer component here, as we just
+// use it to prevent re-renders from parent re-renders.
+export default React.memo(
+    compose(
+        withCurrentReportID,
+        withReportCommentDrafts({
+            propName: 'comment',
+            transformValue: (drafts, props) => {
+                const draftKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${props.reportID}`;
+                return lodashGet(drafts, draftKey, '');
+            },
+        }),
+        withOnyx({
+            fullReport: {
+                key: (props) => ONYXKEYS.COLLECTION.REPORT + props.reportID,
+            },
+            personalDetails: {
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                selector: personalDetailsSelector,
+            },
+            preferredLocale: {
+                key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            },
+        }),
+    )(OptionRowLHNData),
+);
