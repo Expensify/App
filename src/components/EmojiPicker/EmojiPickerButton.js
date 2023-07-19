@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -26,11 +26,12 @@ const defaultProps = {
 };
 
 function EmojiPickerButton(props) {
-    let emojiPopoverAnchor = null;
+    const emojiPopoverAnchor = useRef(null);
+
     return (
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
-                ref={(el) => (emojiPopoverAnchor = el)}
+                ref={emojiPopoverAnchor}
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
                 onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor)}

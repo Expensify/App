@@ -29,25 +29,11 @@ const EmojiPicker = forwardRef((props, ref) => {
     });
     const [reportAction, setReportAction] = useState({});
     const emojiPopoverAnchorOrigin = useRef(DEFAULT_ANCHOR_ORIGIN);
+    const emojiPopoverAnchorRef = useRef(null);
     const emojiPopoverAnchor = useRef(null);
     const onModalHide = useRef(() => {});
     const onEmojiSelected = useRef(() => {});
     const emojiSearchInput = useRef();
-
-    useEffect(() => {
-        if (isEmojiPickerVisible) {
-            Keyboard.dismiss();
-        }
-
-        const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
-            calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
-                setEmojiPopoverAnchorPosition(value);
-            });
-        });
-        return () => {
-            emojiPopoverDimensionListener.remove();
-        };
-    }, [isEmojiPickerVisible]);
 
     /**
      * Show the emoji picker menu.
@@ -62,7 +48,8 @@ const EmojiPicker = forwardRef((props, ref) => {
     const showEmojiPicker = (onModalHideValue, onEmojiSelectedValue, emojiPopoverAnchorValue, anchorOrigin, onWillShow = () => {}, reportActionValue) => {
         onModalHide.current = onModalHideValue;
         onEmojiSelected.current = onEmojiSelectedValue;
-        emojiPopoverAnchor.current = emojiPopoverAnchorValue;
+        emojiPopoverAnchorRef.current = emojiPopoverAnchorValue;
+        emojiPopoverAnchor.current = emojiPopoverAnchorValue.current;
 
         if (emojiPopoverAnchor.current) {
             // Drop focus to avoid blue focus ring.
@@ -87,6 +74,7 @@ const EmojiPicker = forwardRef((props, ref) => {
         if (isNavigating) {
             onModalHide.current = () => {};
         }
+        emojiPopoverAnchorRef.current = null;
         emojiPopoverAnchor.current = null;
         setIsEmojiPickerVisible(false);
     };
@@ -131,6 +119,33 @@ const EmojiPicker = forwardRef((props, ref) => {
     const isActiveReportAction = (actionID) => Boolean(actionID) && reportAction.reportActionID === actionID;
 
     useImperativeHandle(ref, () => ({showEmojiPicker, isActiveReportAction, hideEmojiPicker, isEmojiPickerVisible}));
+
+    useEffect(() => {
+        if (isEmojiPickerVisible) {
+            Keyboard.dismiss();
+        }
+
+        const emojiPopoverDimensionListener = Dimensions.addEventListener('change', () => {
+            if (!isEmojiPickerVisible) {
+                return;
+            }
+
+            if (!emojiPopoverAnchorRef.current || !emojiPopoverAnchorRef.current.current) {
+                // In small screen width, the window size change might be due to keyboard open/hide, we should avoid hide EmojiPicker in those cases
+                if (!props.isSmallScreenWidth) {
+                    hideEmojiPicker();
+                }
+                return;
+            }
+
+            calculateAnchorPosition(emojiPopoverAnchor.current).then((value) => {
+                setEmojiPopoverAnchorPosition(value);
+            });
+        });
+        return () => {
+            emojiPopoverDimensionListener.remove();
+        };
+    }, [isEmojiPickerVisible, props.isSmallScreenWidth]);
 
     // There is no way to disable animations, and they are really laggy, because there are so many
     // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
