@@ -9,6 +9,8 @@ export default {
     REPORT_ATTACHMENTS: 'ReportAttachments',
     NOT_FOUND: 'not-found',
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
+    VALIDATE_LOGIN: 'ValidateLogin',
+    CONCIERGE: 'Concierge',
     SETTINGS: {
         PREFERENCES: 'Settings_Preferences',
     },

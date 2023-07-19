@@ -1,4 +1,4 @@
-import React, {useRef, useEffect} from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {useNavigationBuilder, createNavigatorFactory} from '@react-navigation/native';
 import {StackView} from '@react-navigation/stack';
@@ -34,9 +34,7 @@ function ResponsiveStackNavigator(props) {
     });
 
     // Options for useNavigationBuilder won't update on prop change, so we need to pass a getter for the router to have the current state of isSmallScreenWidth.
-    useEffect(() => {
-        isSmallScreenWidthRef.current = props.isSmallScreenWidth;
-    }, [props.isSmallScreenWidth, isSmallScreenWidthRef]);
+    isSmallScreenWidthRef.current = props.isSmallScreenWidth;
 
     return (
         <NavigationContent>

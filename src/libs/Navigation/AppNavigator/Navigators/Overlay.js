@@ -1,10 +1,8 @@
 import React from 'react';
-import {StyleSheet, Animated} from 'react-native';
+import {Animated} from 'react-native';
 import {useCardAnimation} from '@react-navigation/stack';
 
 import PropTypes from 'prop-types';
-import variables from '../../../../styles/variables';
-import themeColors from '../../../../styles/themes/default';
 import styles from '../../../../styles/styles';
 
 import PressableWithoutFeedback from '../../../../components/Pressable/PressableWithoutFeedback';
@@ -20,17 +18,8 @@ function Overlay(props) {
     const {current} = useCardAnimation();
     const {translate} = useLocalize();
 
-    const overlayStyles = {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: themeColors.overlay,
-        opacity: current.progress.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, variables.overlayOpacity],
-            extrapolate: 'clamp',
-        }),
-    };
     return (
-        <Animated.View style={overlayStyles}>
+        <Animated.View style={styles.overlayStyles(current)}>
             <PressableWithoutFeedback
                 style={[styles.flex1]}
                 onPress={props.onPress}

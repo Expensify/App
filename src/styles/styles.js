@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import {StyleSheet} from 'react-native';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -1438,6 +1439,16 @@ const styles = {
         height: variables.optionsListSectionHeaderHeight,
     },
 
+    overlayStyles: (current) => ({
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: themeColors.overlay,
+        opacity: current.progress.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, variables.overlayOpacity],
+            extrapolate: 'clamp',
+        }),
+    }),
+
     appContent: {
         backgroundColor: themeColors.appBG,
         overflow: 'hidden',
@@ -2312,6 +2323,8 @@ const styles = {
         opacity: variables.overlayOpacity,
         borderRadius: 88,
     },
+
+    rootNavigatorContainerStyles: (isSmallScreenWidth) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}),
 
     avatarInnerTextChat: {
         color: themeColors.textLight,

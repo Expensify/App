@@ -31,9 +31,9 @@ import RightModalNavigator from './Navigators/RightModalNavigator';
 import CentralPaneNavigator from './Navigators/CentralPaneNavigator';
 import NAVIGATORS from '../../../NAVIGATORS';
 import * as SessionUtils from '../../SessionUtils';
-import variables from '../../../styles/variables';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
+import styles from '../../../styles/styles'
 
 let currentUserEmail;
 Onyx.connect({
@@ -201,7 +201,7 @@ class AuthScreens extends React.Component {
         const screenOptions = getRootNavigatorScreenOptions(this.props.isSmallScreenWidth);
 
         return (
-            <View style={{marginLeft: this.props.isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1}}>
+            <View style={styles.rootNavigatorContainerStyles(this.props.isSmallScreenWidth)}>
                 <RootStack.Navigator
                     isSmallScreenWidth={this.props.isSmallScreenWidth}
                     mode="modal"
@@ -225,7 +225,7 @@ class AuthScreens extends React.Component {
                         component={CentralPaneNavigator}
                     />
                     <RootStack.Screen
-                        name="ValidateLogin"
+                        name={SCREENS.VALIDATE_LOGIN}
                         options={{
                             headerShown: false,
                             title: 'New Expensify',
@@ -244,7 +244,7 @@ class AuthScreens extends React.Component {
                         }}
                     />
                     <RootStack.Screen
-                        name="Concierge"
+                        name={SCREENS.CONCIERGE}
                         options={defaultScreenOptions}
                         getComponent={() => {
                             const ConciergePage = require('../../../pages/ConciergePage').default;

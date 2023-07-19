@@ -7,7 +7,6 @@ export default function getCardStyles(screenWidth) {
     return {
         position: 'fixed',
         width: screenWidth,
-        right: 0,
         height: '100%',
     };
 }
