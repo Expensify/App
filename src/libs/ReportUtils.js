@@ -1390,7 +1390,7 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
 }
 
 /**
- * get optimistic data of parent report action
+ * Get optimistic data of parent report action
  * @param {String} reportID The reportID of the report that is updated
  * @param {String} lastVisibleActionCreated Last visible action created of the child report
  * @param {String} type The type of action in the child report
