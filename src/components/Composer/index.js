@@ -1,5 +1,6 @@
-import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
+import React, {useState, useRef, useEffect, useCallback, useLayoutEffect} from 'react';
+import { flushSync } from 'react-dom';
+import {StyleSheet, View, LayoutAnimation} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -144,19 +145,8 @@ const getNextChars = (str, cursorPos) => {
 function Composer({onKeyPress, style, ...props}) {
     const textRef = useRef(null);
     const textInput = useRef(null);
-
-    const setTextRef = useCallback(
-        (el) => {
-            textRef.current = el;
-        },
-        [textRef],
-    );
-
     const initialValue = props.defaultValue ? `${props.defaultValue}` : `${props.value || ''}`;
-
-    const [numberOfLines, setNumberOfLines] = useState({
-        numberOfLines: props.numberOfLines,
-    });
+    const [numberOfLines, setNumberOfLines] = useState(props.numberOfLines);
     const [selection, setSelection] = useState({
         start: initialValue.length,
         end: initialValue.length,
@@ -210,7 +200,7 @@ function Composer({onKeyPress, style, ...props}) {
     const paste = useCallback((text) => {
         try {
             document.execCommand('insertText', false, text);
-            // updateNumberOfLines();
+            updateNumberOfLines();
 
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             textInput.blur();
@@ -314,27 +304,32 @@ function Composer({onKeyPress, style, ...props}) {
         event.preventDefault();
         event.stopPropagation();
     }, []);
+
+
+    // const updateNumberOfLines = useCallback(() => {
     const updateNumberOfLines = useCallback(() => {
-        const computedStyle = window.getComputedStyle(textInput.current);
-        const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-        const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
-        const computedNumberOfLines = ComposerUtils.getNumberOfLines(props.maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
-        const generalNumberOfLines = computedNumberOfLines === 0 ? props.numberOfLines : computedNumberOfLines;
+      if (textInput.current === null) {
+        return;
+      }
+      // flushSync(() => {
+        setTimeout(() => {
+          setNumberOfLines(1);
+          
+          const computedStyle = window.getComputedStyle(textInput.current);
+          const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
+          const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
+          const computedNumberOfLines = ComposerUtils.getNumberOfLines(props.maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
+          const generalNumberOfLines = computedNumberOfLines === 0 ? props.numberOfLines : computedNumberOfLines;
 
-        updateIsFullComposerAvailable({isFullComposerAvailable: props.isFullComposerAvailable, setIsFullComposerAvailable: props.setIsFullComposerAvailable}, generalNumberOfLines);
+          props.onNumberOfLinesChange(generalNumberOfLines);
+          updateIsFullComposerAvailable(props, generalNumberOfLines);
+          setNumberOfLines(generalNumberOfLines);
+      }, 0);
+    },[props.value, props.maxLines, props.isFullComposerAvailable, props.numberOfLines, props.isComposerFullSize]);
 
-        setNumberOfLines(generalNumberOfLines);
-        props.onNumberOfLinesChange(generalNumberOfLines);
-    }, [props.maxLines, props.numberOfLines, props.isComposerFullSize, props.value]);
-
-    useEffect(() => {
-        if (textInput.current === null) {
-            return;
-        }
-        setNumberOfLines(1);
-        props.setIsFullComposerAvailable(false);
+    useLayoutEffect(() => {
         updateNumberOfLines();
-    }, [props.maxLines, props.numberOfLines, props.isComposerFullSize, props.value]);
+    }, [props.isComposerFullSize]);
 
     const handleKeyPress = useCallback(
         (e) => {
@@ -347,11 +342,11 @@ function Composer({onKeyPress, style, ...props}) {
         [onKeyPress],
     );
 
-    //     /**
-    //  * Set the TextInput Ref
-    //  *
-    //  * @param {Element} el
-    //  */
+    /**
+     * Set the TextInput Ref
+     *
+     * @param {Element} el
+     */
     const setTextInputRef = useCallback((el) => {
         textInput.current = el;
 
@@ -368,8 +363,12 @@ function Composer({onKeyPress, style, ...props}) {
     useEffect(() => {
         // we need to handle listeners on navigation focus/blur as Composer is not unmounting
         // when navigating away to different report
+        // const textareaElement = textInput.current;
         const unsubscribeFocus = props.navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
         const unsubscribeBlur = props.navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
+
+        console.log('updateIsFullComposerAvailable.UseEffect',  props.isFullComposerAvailable);
+        // updateIsFullComposerAvailable({isFullComposerAvailable: props.isFullComposerAvailable, setIsFullComposerAvailable: props.setIsFullComposerAvailable}, numberOfLines);
 
         () => {
             unsubscribeFocus();
@@ -411,8 +410,9 @@ function Composer({onKeyPress, style, ...props}) {
                 placeholderTextColor={themeColors.placeholderText}
                 ref={setTextInputRef}
                 selection={selection}
+                onChange={updateNumberOfLines}
                 style={[
-                    StyleSheet.flatten([style, {outline: 'none'}, {backgroundColor: props.isComposerFullSize ? 'red' : 'purple'}]),
+                    StyleSheet.flatten([style, {outline: 'none'}]),
 
                     // We are hiding the scrollbar to prevent it from reducing the text input width,
                     // so we can get the correct scroll height while calculating the number of lines.
@@ -446,3 +446,4 @@ export default compose(
         />
     )),
 );
+
