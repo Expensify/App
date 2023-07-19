@@ -36,6 +36,7 @@ const defaultProps = {
 function openRouteInDesktopApp(expensifyDeeplinkUrl) {
     const browser = Browser.getBrowser();
 
+    // This imitates behavior from DeepLinkWrapper
     // This check is necessary for Safari, otherwise, if the user
     // does NOT have the Expensify desktop app installed, it's gonna
     // show an error in the page saying that the address is invalid
