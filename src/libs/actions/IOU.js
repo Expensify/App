@@ -411,6 +411,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         'RequestMoney',
         {
             debtorEmail: payerEmail,
+            debtorAccountID: payerAccountID,
             amount,
             currency,
             comment,
