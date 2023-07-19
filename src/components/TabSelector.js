@@ -47,7 +47,7 @@ function TabSelector(props) {
             />
             {Permissions.canUseDistanceRequests(props.betas) && (
                 <TabSelectorItem
-                    title="Distance"
+                    title={props.translate('tabSelector.distance')}
                     selected={selectedTab === CONST.TABS.DISTANCE}
                     icon={Expensicons.Car}
                     onPress={() => {
