@@ -1,15 +1,30 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View, Keyboard} from 'react-native';
-import AttachmentCarouselPager from '../../AttachmentCarouselPager';
-import styles from '../../../../styles/styles';
-import CarouselButtons from '../CarouselButtons';
-import AttachmentView from '../../AttachmentView';
-import propTypes from './propTypes';
-import CONST from '../../../../CONST';
+import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
+import {View, Keyboard, PixelRatio} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import AttachmentCarouselPager from '../AttachmentCarouselPager';
+import styles from '../../../styles/styles';
+import CarouselButtons from './CarouselButtons';
+import AttachmentView from '../AttachmentView';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+import withLocalize from '../../withLocalize';
+import compose from '../../../libs/compose';
+import withWindowDimensions from '../../withWindowDimensions';
+import {attachmentCarouselPropTypes, attachmentCarouselDefaultProps} from './propTypes';
+import extractAttachments from './extractAttachments';
 
-function AttachmentCarouselView({attachments, initialPage, initialActiveSource, containerDimensions, onClose, onNavigate}) {
+function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}) {
+    const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachments(report, reportActions, source), [report, reportActions, source]);
+
+    useEffect(() => {
+        // Update the parent modal's state with the source and name from the mapped attachments
+        onNavigate(initialItem);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialItem]);
+
     const pagerRef = useRef(null);
 
+    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
     const [page, setPage] = useState(initialPage);
     const [activeSource, setActiveSource] = useState(initialActiveSource);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
@@ -95,7 +110,14 @@ function AttachmentCarouselView({attachments, initialPage, initialActiveSource, 
     }, []);
 
     return (
-        <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
+        <View
+            style={[styles.flex1, styles.attachmentCarouselContainer]}
+            onLayout={({nativeEvent}) =>
+                setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
+            }
+            onMouseEnter={() => setShouldShowArrows(true)}
+            onMouseLeave={() => setShouldShowArrows(false)}
+        >
             <CarouselButtons
                 shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
                 page={page}
@@ -125,7 +147,16 @@ function AttachmentCarouselView({attachments, initialPage, initialActiveSource, 
         </View>
     );
 }
+AttachmentCarousel.propTypes = attachmentCarouselPropTypes;
+AttachmentCarousel.defaultProps = attachmentCarouselDefaultProps;
 
-AttachmentCarouselView.propTypes = propTypes;
-
-export default AttachmentCarouselView;
+export default compose(
+    withOnyx({
+        reportActions: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            canEvict: false,
+        },
+    }),
+    withLocalize,
+    withWindowDimensions,
+)(AttachmentCarousel);

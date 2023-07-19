@@ -2447,12 +2447,9 @@ const styles = {
     attachmentCarouselContainer: {
         height: '100%',
         width: '100%',
-        ...cursor.cursorUnset,
-    },
-
-    attachmentCarouselButtonsContainer: {
         display: 'flex',
         justifyContent: 'center',
+        ...cursor.cursorUnset,
     },
 
     attachmentArrow: {

@@ -1,134 +1,182 @@
-import React from 'react';
-import {View, PixelRatio} from 'react-native';
-import PropTypes from 'prop-types';
+import React, {useRef, useCallback, useState, useEffect, useMemo} from 'react';
+import {View, FlatList, PixelRatio, Keyboard} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import {Parser as HtmlParser} from 'htmlparser2';
 import styles from '../../../styles/styles';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
-import CONST from '../../../CONST';
-import ONYXKEYS from '../../../ONYXKEYS';
-import reportActionPropTypes from '../../../pages/home/report/reportActionPropTypes';
-import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
-import compose from '../../../libs/compose';
+import CarouselActions from './CarouselActions';
+import AttachmentView from '../AttachmentView';
 import withWindowDimensions from '../../withWindowDimensions';
-import reportPropTypes from '../../../pages/reportPropTypes';
-import AttachmentCarouselView from './AttachmentCarouselView';
+import CarouselButtons from './CarouselButtons';
+import extractAttachments from './extractAttachments';
+import {attachmentCarouselPropTypes, attachmentCarouselDefaultProps} from './propTypes';
+import ONYXKEYS from '../../../ONYXKEYS';
+import withLocalize from '../../withLocalize';
+import compose from '../../../libs/compose';
 
-const propTypes = {
-    /** source is used to determine the starting index in the array of attachments */
-    source: PropTypes.string,
+function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallScreenWidth, windowWidth}) {
+    const scrollRef = useRef(null);
 
-    /** Callback to update the parent modal's state with a source and name from the attachments array */
-    onNavigate: PropTypes.func,
+    const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachments(report, reportActions, source), [report, reportActions, source]);
 
-    /** Callback to close carousel when user swipes down (on native) */
-    onClose: PropTypes.func,
+    useEffect(() => {
+        // Update the parent modal's state with the source and name from the mapped attachments
+        onNavigate(initialItem);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [initialItem]);
 
-    /** Object of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
-
-    /** The report currently being looked at */
-    report: reportPropTypes.isRequired,
-
-    ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    source: '',
-    reportActions: {},
-    onNavigate: () => {},
-    onClose: () => {},
-};
-
-class AttachmentCarousel extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.createInitialState = this.createInitialState.bind(this);
-
-        this.state = this.createInitialState();
-    }
+    const [containerDimensions, setContainerDimensions] = useState({width: 0, height: 0});
+    const [shouldShowArrows, setShouldShowArrows] = useState(false);
+    const [page, setPage] = useState(initialPage);
+    const [activeSource, setActiveSource] = useState(initialActiveSource);
 
     /**
-     * Constructs the initial component state from report actions
-     * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number}}
+     * Updates the page state when the user navigates between attachments
+     * @param {Object} item
+     * @param {number} index
      */
-    createInitialState() {
-        const actions = [ReportActionsUtils.getParentReportAction(this.props.report), ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
-        let attachments = [];
+    const updatePage = useCallback(
+        ({item, index}) => {
+            Keyboard.dismiss();
 
-        const htmlParser = new HtmlParser({
-            onopentag: (name, attribs) => {
-                if (name !== 'img' || !attribs.src) {
-                    return;
-                }
-
-                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-
-                // By iterating actions in chronological order and prepending each attachment
-                // we ensure correct order of attachments even across actions with multiple attachments.
-                attachments.unshift({
-                    source: tryResolveUrlFromApiRoot(expensifySource || attribs.src),
-                    isAuthTokenRequired: Boolean(expensifySource),
-                    file: {name: attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE]},
-                });
-            },
-        });
-
-        _.forEach(actions, (action, key) => {
-            if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
+            if (!item) {
+                setActiveSource(null);
                 return;
             }
-            htmlParser.write(_.get(action, ['message', 0, 'html']));
-        });
-        htmlParser.end();
 
-        attachments = attachments.reverse();
-        const initialPage = _.findIndex(attachments, (a) => a.source === this.props.source);
-        if (initialPage === -1) {
-            throw new Error('Attachment not found');
-        }
+            setPage(index);
+            setActiveSource(item.source);
 
-        const initialItem = attachments[initialPage];
+            onNavigate(item);
+        },
+        [onNavigate],
+    );
 
-        // Update the parent modal's state with the source and name from the mapped attachments
-        this.props.onNavigate(initialItem);
+    /**
+     * Increments or decrements the index to get another selected item
+     * @param {Number} deltaSlide
+     */
+    const cycleThroughAttachments = useCallback(
+        (deltaSlide) => {
+            const nextIndex = page + deltaSlide;
+            const nextItem = attachments[nextIndex];
 
-        return {
-            initialPage,
-            attachments,
-            containerWidth: 0,
-            containerHeight: 0,
-            initialActiveSource: initialItem.source,
-        };
-    }
+            if (!nextItem || !scrollRef.current) {
+                return;
+            }
 
-    render() {
-        return (
-            <View
-                style={[styles.flex1, styles.attachmentCarouselContainer]}
-                onLayout={({nativeEvent}) =>
-                    // eslint-disable-next-line react/no-unused-state
-                    this.setState({containerWidth: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), containerHeight: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
-                }
-            >
-                <AttachmentCarouselView
-                    attachments={this.state.attachments}
-                    initialPage={this.state.initialPage}
-                    initialActiveSource={this.state.initialActiveSource}
-                    containerDimensions={{width: this.state.containerWidth, height: this.state.containerHeight}}
-                    onClose={this.props.onClose}
-                    onNavigate={this.props.onNavigate}
+            updatePage({item: nextItem, index: nextIndex});
+
+            scrollRef.current.scrollToIndex({index: nextIndex, animated: false});
+        },
+        [attachments, page, updatePage],
+    );
+
+    console.log({page});
+
+    /**
+     * Calculate items layout information to optimize scrolling performance
+     * @param {*} data
+     * @param {Number} index
+     * @returns {{offset: Number, length: Number, index: Number}}
+     */
+    const getItemLayout = useCallback(
+        (_data, index) => ({
+            length: containerDimensions.width,
+            offset: containerDimensions.height * index,
+            index,
+        }),
+        [containerDimensions.height, containerDimensions.width],
+    );
+
+    /**
+     * Defines how a container for a single attachment should be rendered
+     * @param {Object} props
+     * @returns {JSX.Element}
+     */
+    const renderCell = useCallback(
+        (cellProps) => {
+            // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
+            // considering horizontal margin and border width in centered modal
+            const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
+            const style = [cellProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
+
+            return (
+                <View
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...cellProps}
+                    style={style}
                 />
-            </View>
-        );
-    }
-}
+            );
+        },
+        [isSmallScreenWidth, windowWidth],
+    );
 
-AttachmentCarousel.propTypes = propTypes;
-AttachmentCarousel.defaultProps = defaultProps;
+    /**
+     * Defines how a single attachment should be rendered
+     * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String } }} item
+     * @returns {JSX.Element}
+     */
+    const renderItem = useCallback(
+        ({item}) => (
+            <AttachmentView
+                item={item}
+                isFocused={activeSource === item.source}
+                isUsedInCarousel
+            />
+        ),
+        [activeSource],
+    );
+
+    return (
+        <View
+            style={[styles.flex1, styles.attachmentCarouselContainer]}
+            onLayout={({nativeEvent}) =>
+                setContainerDimensions({width: PixelRatio.roundToNearestPixel(nativeEvent.layout.width), height: PixelRatio.roundToNearestPixel(nativeEvent.layout.height)})
+            }
+            onMouseEnter={() => setShouldShowArrows(true)}
+            onMouseLeave={() => setShouldShowArrows(false)}
+        >
+            <CarouselButtons
+                shouldShowArrows={shouldShowArrows}
+                page={page}
+                attachments={attachments}
+                onBack={() => cycleThroughAttachments(-1)}
+                onForward={() => cycleThroughAttachments(1)}
+            />
+
+            {containerDimensions.width > 0 && containerDimensions.height > 0 && (
+                <FlatList
+                    contentContainerStyle={{flex: 1}}
+                    listKey="AttachmentCarousel"
+                    horizontal
+                    decelerationRate="fast"
+                    showsHorizontalScrollIndicator={false}
+                    bounces={false}
+                    pagingEnabled
+                    snapToAlignment="start"
+                    snapToInterval={containerDimensions.width}
+                    // scrollEnabled={false}
+                    // ref={scrollRef}
+                    ref={(ref) => {
+                        scrollRef.current = ref;
+                    }}
+                    initialScrollIndex={initialPage}
+                    initialNumToRender={3}
+                    windowSize={5}
+                    maxToRenderPerBatch={3}
+                    data={attachments}
+                    CellRendererComponent={renderCell}
+                    renderItem={renderItem}
+                    getItemLayout={getItemLayout}
+                    keyExtractor={(item) => item.source}
+                />
+            )}
+
+            <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
+        </View>
+    );
+}
+AttachmentCarousel.propTypes = attachmentCarouselPropTypes;
+AttachmentCarousel.defaultProps = attachmentCarouselDefaultProps;
 
 export default compose(
     withOnyx({
