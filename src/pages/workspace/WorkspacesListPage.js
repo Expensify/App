@@ -28,7 +28,7 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import withWindowDimensions from "../../components/withWindowDimensions";
+import withWindowDimensions from '../../components/withWindowDimensions';
 import * as App from '../../libs/actions/App';
 
 const propTypes = {
