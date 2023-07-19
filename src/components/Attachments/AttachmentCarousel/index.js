@@ -70,8 +70,6 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
         [attachments, page, updatePage],
     );
 
-    console.log({page});
-
     /**
      * Calculate items layout information to optimize scrolling performance
      * @param {*} data
