@@ -21,9 +21,10 @@ const pagePropTypes = {
     item: PropTypes.shape({
         url: PropTypes.string,
     }).isRequired,
+    isAuthTokenRequired: PropTypes.bool.isRequired,
 };
 
-function AttachmentCarouselPage({isActive: isActiveProp, item}) {
+function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequired}) {
     const {canvasWidth, canvasHeight} = useContext(AttachmentCarouselPagerContext);
 
     const dimensions = cachedDimensions.get(item.url);
@@ -68,6 +69,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item}) {
                         <Image
                             source={{uri: item.url}}
                             style={dimensions == null ? {} : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
+                            isAuthTokenRequired={isAuthTokenRequired}
                             onLoad={(evt) => {
                                 const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
                                 const imageHeight = (evt.nativeEvent?.height || 0) / PixelRatio.get();
@@ -97,6 +99,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item}) {
                 <ImageWrapper>
                     <Image
                         source={{uri: item.url}}
+                        isAuthTokenRequired={isAuthTokenRequired}
                         onLoad={(evt) => {
                             const imageWidth = evt.nativeEvent.width;
                             const imageHeight = evt.nativeEvent.height;
