@@ -26,7 +26,12 @@ type Policy = {
 
     /** Error objects keyed by field name containing errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;
+
     pendingAction?: OnyxCommon.PendingAction;
+    errors: Record<string, string>;
+    isFromFullPolicy?: boolean;
+    lastModified?: string;
+    customUnits?: Record<string, unknown>;
 };
 
 export default Policy;
