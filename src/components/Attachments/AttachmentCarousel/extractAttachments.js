@@ -7,10 +7,11 @@ import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
 /**
  * Constructs the initial component state from report actions
  * @param {Object} report
- * @param {object} reportActions
- * @returns {{page: Number, attachments: Array, shouldShowArrow: Boolean, containerWidth: Number}}
+ * @param {Array} reportActions
+ * @param {String} source
+ * @returns {{attachments: Array, initialPage: Number, initialItem: Object, initialActiveSource: String}}
  */
-function extractAttachments({report, reportActions, source}) {
+function extractAttachments(report, reportActions, source) {
     const actions = [ReportActionsUtils.getParentReportAction(report), ...ReportActionsUtils.getSortedReportActions(_.values(reportActions))];
     let attachments = [];
 
