@@ -13,6 +13,7 @@ import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
 import * as Browser from '../libs/Browser';
+import { TapGestureHandler } from 'react-native-gesture-handler';
 
 const propTypes = {
     /** Information about the network */
@@ -101,6 +102,7 @@ function MagicCodeInput(props) {
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
     const shouldFocusLast = useRef(false);
+    const inputWidth = useRef(0);
     const lastFocusedIndex = useRef(0);
 
     const blurMagicCodeInput = () => {
@@ -317,39 +319,43 @@ function MagicCodeInput(props) {
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
-                <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
-                    <TextInput
-                        ref={(ref) => (inputRefs.current = ref)}
-                        autoFocus={props.autoFocus && !props.shouldDelayFocus}
-                        inputMode="numeric"
-                        textContentType="oneTimeCode"
-                        name={props.name}
-                        maxLength={props.maxLength}
-                        value={input}
-                        hideFocusedState
-                        autoComplete={props.autoComplete}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        onChangeText={(value) => {
-                            onChangeText(value);
+                <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0, {zIndex: 100}]}>
+                    <TapGestureHandler
+                        onBegan={(e) => {
+                            onPress(Math.floor(e.nativeEvent.x / (inputWidth.current / props.maxLength)))
                         }}
-                        onKeyPress={onKeyPress}
-                        onFocus={onFocus}
-                        onBlur={() => {
-                            console.log('blur', focusedIndex);
-                            lastFocusedIndex.current = focusedIndex;
-                            setFocusedIndex(undefined);
-                        }}
-                        caretHidden={isMobileSafari}
-                        inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    />
+                    >
+                        <TextInput
+                            onLayout={(e) => {
+                                inputWidth.current = e.nativeEvent.layout.width;
+                            }}
+                            ref={(ref) => (inputRefs.current = ref)}
+                            autoFocus={props.autoFocus && !props.shouldDelayFocus}
+                            inputMode="numeric"
+                            textContentType="oneTimeCode"
+                            name={props.name}
+                            maxLength={props.maxLength}
+                            value={input}
+                            hideFocusedState
+                            autoComplete={props.autoComplete}
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                            onChangeText={(value) => {
+                                onChangeText(value);
+                            }}
+                            onKeyPress={onKeyPress}
+                            onFocus={onFocus}
+                            onBlur={() => {
+                                lastFocusedIndex.current = focusedIndex;
+                                setFocusedIndex(undefined);
+                            }}
+                            caretHidden={isMobileSafari}
+                            inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        />
+                    </TapGestureHandler>
                 </View>
                 {_.map(getInputPlaceholderSlots(props.maxLength), (index) => (
-                    <Pressable
-                        key={index}
-                        onPress={() => onPress(index)}
-                        style={[styles.w15]}
-                    >
+                    <View key={index} style={[styles.w15]}>
                         <View
                             style={[
                                 styles.textInputContainer,
@@ -360,7 +366,7 @@ function MagicCodeInput(props) {
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value, props.maxLength)[index] || ''}</Text>
                         </View>
-                    </Pressable>
+                    </View>
                 ))}
             </View>
             {!_.isEmpty(props.errorText) && (
