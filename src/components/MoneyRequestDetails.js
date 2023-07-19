@@ -181,7 +181,7 @@ function MoneyRequestDetails(props) {
                             title={formattedTransactionAmount}
                             shouldShowTitleIcon={isSettled}
                             titleIcon={Expensicons.Checkmark}
-                            description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
+                            description={description}
                             titleStyle={styles.newKansasLarge}
                             disabled={isSettled}
                             // Note: These options are temporarily disabled while we figure out the required API changes
