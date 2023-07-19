@@ -399,7 +399,7 @@ class BaseWalletPage extends React.Component {
         return (
             <ScreenWrapper>
                 <HeaderWithBackButton
-                    title={this.props.translate('common.payments')}
+                    title={this.props.translate('common.wallet')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
                 />
                 <View style={[styles.flex1, styles.mb4]}>

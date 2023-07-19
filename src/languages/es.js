@@ -29,6 +29,7 @@ export default {
         workspaces: 'Espacios de trabajo',
         profile: 'Perfil',
         payments: 'Pagos',
+        wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
         not: 'No',

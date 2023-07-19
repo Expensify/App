@@ -30,6 +30,7 @@ export default {
         workspaces: 'Workspaces',
         profile: 'Profile',
         payments: 'Payments',
+        wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
         not: 'Not',
