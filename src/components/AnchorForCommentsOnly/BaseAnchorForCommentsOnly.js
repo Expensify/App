@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -41,6 +41,10 @@ const defaultProps = {
  * This is a default anchor component for regular links.
  */
 function BaseAnchorForCommentsOnly(props) {
+    useEffect(() => () => {
+        ReportActionContextMenu.hideContextMenu();
+    }, [])
+
     let linkRef;
     const rest = _.omit(props, _.keys(propTypes));
     const linkProps = {};
