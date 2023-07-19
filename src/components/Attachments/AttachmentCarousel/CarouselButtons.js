@@ -8,7 +8,7 @@ import Tooltip from '../../Tooltip';
 import Button from '../../Button';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
-import * as AttachmentCarouselViewPropTypes from './AttachmentCarouselView/propTypes';
+import * as AttachmentCarouselViewPropTypes from '../propTypes';
 
 const propTypes = {
     /** Where the arrows should be visible */
