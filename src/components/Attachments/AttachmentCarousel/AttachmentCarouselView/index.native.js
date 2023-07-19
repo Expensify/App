@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View, Keyboard} from 'react-native';
 import AttachmentCarouselPager from '../../AttachmentCarouselPager';
 import styles from '../../../../styles/styles';
@@ -10,13 +10,7 @@ import CONST from '../../../../CONST';
 function AttachmentCarouselView({attachments, initialPage, initialActiveSource, containerDimensions, onClose, onNavigate}) {
     const pagerRef = useRef(null);
 
-    // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
-    // promotes the natural feeling of swiping left/right to go to the next/previous image
-    const reversedAttachments = useMemo(() => attachments.reverse(), [attachments]);
-
-    const reversePage = useCallback((page) => Math.max(0, Math.min(attachments.length - page - 1, attachments.length)), [attachments.length]);
-
-    const [page, setPage] = useState(reversePage(initialPage));
+    const [page, setPage] = useState(initialPage);
     const [activeSource, setActiveSource] = useState(initialActiveSource);
     const [isPinchGestureRunning, setIsPinchGestureRunning] = useState(true);
     const [shouldShowArrows, setShouldShowArrows] = useState(true);
@@ -53,14 +47,14 @@ function AttachmentCarouselView({attachments, initialPage, initialActiveSource, 
             Keyboard.dismiss();
             showArrows();
 
-            const item = reversedAttachments[newPageIndex];
+            const item = attachments[newPageIndex];
 
             setPage(newPageIndex);
             setActiveSource(item.source);
 
             onNavigate(item);
         },
-        [onNavigate, reversedAttachments, showArrows],
+        [onNavigate, attachments, showArrows],
     );
 
     /**
@@ -104,7 +98,7 @@ function AttachmentCarouselView({attachments, initialPage, initialActiveSource, 
         <View style={[styles.flex1, styles.attachmentCarouselButtonsContainer]}>
             <CarouselButtons
                 shouldShowArrows={shouldShowArrows && !isPinchGestureRunning}
-                page={reversePage(page)}
+                page={page}
                 attachments={attachments}
                 onBack={() => cycleThroughAttachments(-1)}
                 onForward={() => cycleThroughAttachments(1)}
@@ -114,7 +108,7 @@ function AttachmentCarouselView({attachments, initialPage, initialActiveSource, 
 
             {containerDimensions.width > 0 && containerDimensions.height > 0 && (
                 <AttachmentCarouselPager
-                    items={reversedAttachments}
+                    items={attachments}
                     renderItem={renderItem}
                     initialIndex={page}
                     onPageSelected={({nativeEvent: {position: newPage}}) => updatePage(newPage)}

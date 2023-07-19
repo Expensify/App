@@ -57,7 +57,7 @@ class AttachmentCarousel extends React.Component {
      */
     createInitialState() {
         const actions = [ReportActionsUtils.getParentReportAction(this.props.report), ...ReportActionsUtils.getSortedReportActions(_.values(this.props.reportActions))];
-        const attachments = [];
+        let attachments = [];
 
         const htmlParser = new HtmlParser({
             onopentag: (name, attribs) => {
@@ -85,20 +85,23 @@ class AttachmentCarousel extends React.Component {
         });
         htmlParser.end();
 
+        attachments = attachments.reverse();
         const initialPage = _.findIndex(attachments, (a) => a.source === this.props.source);
         if (initialPage === -1) {
             throw new Error('Attachment not found');
         }
 
+        const initialItem = attachments[initialPage];
+
         // Update the parent modal's state with the source and name from the mapped attachments
-        this.props.onNavigate(attachments[initialPage]);
+        this.props.onNavigate(initialItem);
 
         return {
             initialPage,
             attachments,
             containerWidth: 0,
             containerHeight: 0,
-            initialActiveSource: null,
+            initialActiveSource: initialItem.source,
         };
     }
 

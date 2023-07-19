@@ -37,8 +37,8 @@ const defaultProps = {
 };
 
 function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow, ...props}) {
-    const isForwardDisabled = page === 0;
-    const isBackDisabled = page === _.size(attachments) - 1;
+    const isBackDisabled = page === 0;
+    const isForwardDisabled = page === _.size(attachments) - 1;
 
     return shouldShowArrows ? (
         <>
