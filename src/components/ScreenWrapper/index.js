@@ -19,6 +19,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import withEnvironment from '../withEnvironment';
 import toggleTestToolsModal from '../../libs/actions/TestTool';
 import CustomDevMenu from '../CustomDevMenu';
+import * as Browser from '../../libs/Browser';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -38,7 +39,7 @@ class ScreenWrapper extends React.Component {
                 return false;
             },
             onPanResponderGrant: () => {
-                if(!Keyboard.isVisible()) {
+                if(!Keyboard.isVisible() || !Browser.isMobile()) {
                     return;
                 }
                 Keyboard.dismiss();
