@@ -12,9 +12,12 @@ import Tooltip from '../Tooltip';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import {propTypes as anchorForCommentsOnlyPropTypes, defaultProps as anchorForCommentsOnlyDefaultProps} from './anchorForCommentsOnlyPropTypes';
+import {
+    propTypes as anchorForCommentsOnlyPropTypes,
+    defaultProps as anchorForCommentsOnlyDefaultProps
+} from './anchorForCommentsOnlyPropTypes';
 import CONST from '../../CONST';
+import useWindowDimensions from "../../hooks/useWindowDimensions";
 
 const propTypes = {
     /** Press in handler for the link */
@@ -27,7 +30,6 @@ const propTypes = {
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...anchorForCommentsOnlyPropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -45,6 +47,8 @@ function BaseAnchorForCommentsOnly(props) {
         ReportActionContextMenu.hideContextMenu();
     }, [])
 
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     let linkRef;
     const rest = _.omit(props, _.keys(propTypes));
     const linkProps = {};
@@ -53,7 +57,7 @@ function BaseAnchorForCommentsOnly(props) {
     } else {
         linkProps.href = props.href;
     }
-    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || props.isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
+    const defaultTextStyle = DeviceCapabilities.canUseTouchScreen() || isSmallScreenWidth ? {} : {...styles.userSelectText, ...styles.cursorPointer};
     const isEmail = Str.isValidEmailMarkdown(props.href.replace(/mailto:/i, ''));
 
     return (
@@ -100,4 +104,4 @@ BaseAnchorForCommentsOnly.propTypes = propTypes;
 BaseAnchorForCommentsOnly.defaultProps = defaultProps;
 BaseAnchorForCommentsOnly.displayName = 'BaseAnchorForCommentsOnly';
 
-export default withWindowDimensions(BaseAnchorForCommentsOnly);
+export default BaseAnchorForCommentsOnly;
