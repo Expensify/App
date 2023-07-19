@@ -7,11 +7,13 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
+import * as UserUtils from '../UserUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -364,6 +366,21 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
         ...membersChats.onyxOptimisticData,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: _.object(
+                _.map(invitedEmailsToAccountIDs, (accountID, memberLogin) => [
+                    accountID,
+                    {
+                        accountID,
+                        avatar: UserUtils.getDefaultAvatarURL(accountID),
+                        displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
+                        login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
+                    },
+                ]),
+            ),
+        },
     ];
 
     const successData = [
@@ -376,6 +393,11 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: null, errors: null})),
         },
         ...membersChats.onyxSuccessData,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: _.object(accountIDs, Array(accountIDs.length).fill(null)),
+        },
     ];
 
     const failureData = [
