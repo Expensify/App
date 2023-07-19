@@ -1,4 +1,4 @@
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 
 const TwoFactorAuthPropTypes = {
     account: PropTypes.shape({
@@ -22,9 +22,6 @@ const TwoFactorAuthPropTypes = {
 const defaultAccount = {
     requiresTwoFactorAuth: false,
     twoFactorAuthStep: '',
-}
+};
 
-export {
-    TwoFactorAuthPropTypes,
-    defaultAccount
-}
+export {TwoFactorAuthPropTypes, defaultAccount};

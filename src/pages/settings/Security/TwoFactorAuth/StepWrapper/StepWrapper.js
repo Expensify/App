@@ -3,14 +3,9 @@ import HeaderWithBackButton from '../../../../../components/HeaderWithBackButton
 import ScreenWrapper from '../../../../../components/ScreenWrapper';
 import FullPageOfflineBlockingView from '../../../../../components/BlockingViews/FullPageOfflineBlockingView';
 import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
-import StepWrapperPropTypes from "./StepWrapperPropTypes";
+import StepWrapperPropTypes from './StepWrapperPropTypes';
 
-function StepWrapper({
-    title = '',
-    stepCounter = null,
-    onBackButtonPress = TwoFactorAuthActions.quitAndNavigateBackToSettings,
-    children = null
-}) {
+function StepWrapper({title = '', stepCounter = null, onBackButtonPress = TwoFactorAuthActions.quitAndNavigateBackToSettings, children = null}) {
     const shouldShowStepCounter = Boolean(stepCounter);
 
     return (
@@ -21,9 +16,7 @@ function StepWrapper({
                 stepCounter={stepCounter}
                 onBackButtonPress={onBackButtonPress}
             />
-            <FullPageOfflineBlockingView>
-                {children}
-            </FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView>{children}</FullPageOfflineBlockingView>
         </ScreenWrapper>
     );
 }

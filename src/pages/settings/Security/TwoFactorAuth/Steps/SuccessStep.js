@@ -1,11 +1,11 @@
 import React from 'react';
 import FireworksAnimation from '../../../../../../assets/animations/Fireworks.json';
 import ConfirmationPage from '../../../../../components/ConfirmationPage';
-import * as TwoFactorAuthActions from "../../../../../libs/actions/TwoFactorAuthActions";
-import CONST from "../../../../../CONST";
-import StepWrapper from "../StepWrapper/StepWrapper";
-import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
-import useLocalize from "../../../../../hooks/useLocalize";
+import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
+import CONST from '../../../../../CONST';
+import StepWrapper from '../StepWrapper/StepWrapper';
+import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
+import useLocalize from '../../../../../hooks/useLocalize';
 
 function SuccessStep() {
     const {setStep} = useTwoFactorAuthContext();

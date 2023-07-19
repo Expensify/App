@@ -35,7 +35,7 @@ function SecuritySettingsPage(props) {
         {
             translationKey: 'twoFactorAuth.headerTitle',
             icon: Expensicons.Shield,
-            action: () => Navigation.navigate(ROUTES.SETTINGS_2FA)
+            action: () => Navigation.navigate(ROUTES.SETTINGS_2FA),
         },
         {
             translationKey: 'passwordPage.changePassword',

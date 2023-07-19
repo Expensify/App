@@ -15,14 +15,13 @@ import ONYXKEYS from '../../../../../ONYXKEYS';
 import Clipboard from '../../../../../libs/Clipboard';
 import themeColors from '../../../../../styles/themes/default';
 import localFileDownload from '../../../../../libs/localFileDownload';
-import * as Session from "../../../../../libs/actions/Session";
-import CONST from "../../../../../CONST";
-import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
-import useLocalize from "../../../../../hooks/useLocalize";
-import useWindowDimensions from "../../../../../hooks/useWindowDimensions";
-import StepWrapper from "../StepWrapper/StepWrapper";
-import {defaultAccount, TwoFactorAuthPropTypes} from "../TwoFactorAuthPropTypes";
-
+import * as Session from '../../../../../libs/actions/Session';
+import CONST from '../../../../../CONST';
+import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
+import useLocalize from '../../../../../hooks/useLocalize';
+import useWindowDimensions from '../../../../../hooks/useWindowDimensions';
+import StepWrapper from '../StepWrapper/StepWrapper';
+import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
 
 function CodesStep({account = defaultAccount}) {
     const {translate} = useLocalize();
@@ -38,7 +37,6 @@ function CodesStep({account = defaultAccount}) {
         }
         Session.toggleTwoFactorAuth(true);
     }, [account.recoveryCodes]);
-
 
     return (
         <StepWrapper
@@ -62,7 +60,7 @@ function CodesStep({account = defaultAccount}) {
                     <View style={styles.twoFactorAuthCodesBox({isExtraSmallScreenWidth, isSmallScreenWidth})}>
                         {account.isLoading ? (
                             <View style={styles.twoFactorLoadingContainer}>
-                                <ActivityIndicator color={themeColors.spinner}/>
+                                <ActivityIndicator color={themeColors.spinner} />
                             </View>
                         ) : (
                             <>

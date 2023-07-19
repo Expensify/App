@@ -2542,7 +2542,7 @@ const CONST = {
         SUCCESS: 'SUCCESS',
         IS_ENABLED: 'IS_ENABLED',
         DISABLE: 'DISABLE',
-    }
+    },
 };
 
 export default CONST;

@@ -1,15 +1,15 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {withOnyx} from "react-native-onyx";
-import CodesStep from "./Steps/CodesStep";
-import DisableStep from "./Steps/DisableStep";
-import IsEnabledStep from "./Steps/IsEnabledStep";
-import VerifyStep from "./Steps/VerifyStep";
-import SuccessStep from "./Steps/SuccessStep";
-import ONYXKEYS from "../../../../ONYXKEYS";
-import CONST from "../../../../CONST";
+import {withOnyx} from 'react-native-onyx';
+import CodesStep from './Steps/CodesStep';
+import DisableStep from './Steps/DisableStep';
+import IsEnabledStep from './Steps/IsEnabledStep';
+import VerifyStep from './Steps/VerifyStep';
+import SuccessStep from './Steps/SuccessStep';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import CONST from '../../../../CONST';
 import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
-import TwoFactorAuthContext from "./TwoFactorAuthContext";
-import {defaultAccount, TwoFactorAuthPropTypes} from "./TwoFactorAuthPropTypes";
+import TwoFactorAuthContext from './TwoFactorAuthContext';
+import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
 
 function TwoFactorAuthPage({account = defaultAccount}) {
     const [currentStep, setCurrentStep] = useState(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
@@ -17,7 +17,7 @@ function TwoFactorAuthPage({account = defaultAccount}) {
     useEffect(() => {
         if (account.twoFactorAuthStep) {
             setCurrentStep(account.twoFactorAuthStep);
-            return
+            return;
         }
         if (account.requiresTwoFactorAuth) {
             setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.IS_ENABLED);
@@ -29,33 +29,29 @@ function TwoFactorAuthPage({account = defaultAccount}) {
     }, [account.requiresTwoFactorAuth]);
 
     const handleSetStep = useCallback((step) => {
-        TwoFactorAuthActions.setTwoFactorAuthStep(step)
-        setCurrentStep(step)
+        TwoFactorAuthActions.setTwoFactorAuthStep(step);
+        setCurrentStep(step);
     }, []);
 
     const renderStep = () => {
         switch (currentStep) {
             case CONST.TWO_FACTOR_AUTH_STEPS.CODES:
-                return <CodesStep/>;
+                return <CodesStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.VERIFY:
-                return <VerifyStep/>;
+                return <VerifyStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
-                return <SuccessStep/>;
+                return <SuccessStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.IS_ENABLED:
-                return <IsEnabledStep/>;
+                return <IsEnabledStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
-                return <DisableStep/>;
+                return <DisableStep />;
             default:
-                return <CodesStep/>;
+                return <CodesStep />;
         }
-    }
+    };
 
-    return (
-        <TwoFactorAuthContext.Provider value={{setStep: handleSetStep}}>
-            {renderStep()}
-        </TwoFactorAuthContext.Provider>
-    );
-};
+    return <TwoFactorAuthContext.Provider value={{setStep: handleSetStep}}>{renderStep()}</TwoFactorAuthContext.Provider>;
+}
 
 TwoFactorAuthPage.propTypes = TwoFactorAuthPropTypes;
 

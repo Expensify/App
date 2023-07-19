@@ -15,12 +15,12 @@ import TwoFactorAuthForm from '../TwoFactorAuthForm';
 import QRCode from '../../../../../components/QRCode';
 import expensifyLogo from '../../../../../../assets/images/expensify-logo-round-transparent.png';
 import CONST from '../../../../../CONST';
-import StepWrapper from "../StepWrapper/StepWrapper";
-import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
-import useLocalize from "../../../../../hooks/useLocalize";
-import {defaultAccount, TwoFactorAuthPropTypes} from "../TwoFactorAuthPropTypes";
+import StepWrapper from '../StepWrapper/StepWrapper';
+import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
+import useLocalize from '../../../../../hooks/useLocalize';
+import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
 
-const TROUBLESHOOTING_LINK = "https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1"
+const TROUBLESHOOTING_LINK = 'https://community.expensify.com/discussion/7736/faq-troubleshooting-two-factor-authentication-issues/p1?new=1';
 
 function VerifyStep({account = defaultAccount}) {
     const {translate} = useLocalize();
@@ -64,7 +64,6 @@ function VerifyStep({account = defaultAccount}) {
         return `otpauth://totp/Expensify:${account.primaryLogin}?secret=${account.twoFactorAuthSecretKey}&issuer=Expensify`;
     }
 
-
     return (
         <StepWrapper
             title={translate('twoFactorAuth.headerTitle')}
@@ -82,11 +81,7 @@ function VerifyStep({account = defaultAccount}) {
                 <View style={[styles.ph5, styles.mt3]}>
                     <Text>
                         {translate('twoFactorAuth.scanCode')}
-                        <TextLink href={TROUBLESHOOTING_LINK}>
-                            {' '}
-                            {translate('twoFactorAuth.authenticatorApp')}
-                        </TextLink>
-                        .
+                        <TextLink href={TROUBLESHOOTING_LINK}> {translate('twoFactorAuth.authenticatorApp')}</TextLink>.
                     </Text>
                     <View style={[styles.alignItemsCenter, styles.mt5]}>
                         <QRCode
@@ -97,10 +92,8 @@ function VerifyStep({account = defaultAccount}) {
                         />
                     </View>
                     <Text style={styles.mt5}>{translate('twoFactorAuth.addKey')}</Text>
-                    <View
-                        style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        {Boolean(account.twoFactorAuthSecretKey) &&
-                            <Text>{splitSecretInChunks(account.twoFactorAuthSecretKey)}</Text>}
+                    <View style={[styles.mt11, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                        {Boolean(account.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(account.twoFactorAuthSecretKey)}</Text>}
                         <PressableWithDelayToggle
                             text={translate('twoFactorAuth.copy')}
                             textChecked={translate('common.copied')}
@@ -114,7 +107,7 @@ function VerifyStep({account = defaultAccount}) {
                     <Text style={styles.mt11}>{translate('twoFactorAuth.enterCode')}</Text>
                 </View>
                 <View style={[styles.mt3, styles.mh5]}>
-                    <TwoFactorAuthForm innerRef={formRef}/>
+                    <TwoFactorAuthForm innerRef={formRef} />
                 </View>
             </ScrollView>
             <FixedFooter style={[styles.mtAuto, styles.pt2]}>

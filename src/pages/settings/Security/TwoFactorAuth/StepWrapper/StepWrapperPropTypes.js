@@ -1,4 +1,4 @@
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 
 export default {
     /** Title of the Header */
@@ -16,4 +16,4 @@ export default {
 
     /** Children components */
     children: PropTypes.node,
-}
+};

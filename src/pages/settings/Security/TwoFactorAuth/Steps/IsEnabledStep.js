@@ -6,11 +6,11 @@ import * as Expensicons from '../../../../../components/Icon/Expensicons';
 import themeColors from '../../../../../styles/themes/default';
 import styles from '../../../../../styles/styles';
 import ConfirmModal from '../../../../../components/ConfirmModal';
-import * as Session from "../../../../../libs/actions/Session";
-import StepWrapper from "../StepWrapper/StepWrapper";
-import CONST from "../../../../../CONST";
-import useLocalize from "../../../../../hooks/useLocalize";
-import useTwoFactorAuthContext from "../TwoFactorAuthContext/useTwoFactorAuth";
+import * as Session from '../../../../../libs/actions/Session';
+import StepWrapper from '../StepWrapper/StepWrapper';
+import CONST from '../../../../../CONST';
+import useLocalize from '../../../../../hooks/useLocalize';
+import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
 
 function IsEnabledStep() {
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
@@ -20,9 +20,7 @@ function IsEnabledStep() {
     const {translate} = useLocalize();
 
     return (
-        <StepWrapper
-            title={translate('twoFactorAuth.headerTitle')}
-        >
+        <StepWrapper title={translate('twoFactorAuth.headerTitle')}>
             <ScrollView>
                 <Section
                     title={translate('twoFactorAuth.twoFactorAuthEnabled')}
