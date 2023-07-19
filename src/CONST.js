@@ -491,7 +491,7 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
-                TASKCANCELED: 'TASKCANCELED',
+                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -744,6 +744,7 @@ const CONST = {
         VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
         RESEND_VALIDATION_FORM: 'ResendValidationForm',
         UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
+        RESEND_VALIDATE_CODE_FORM: 'ResendValidateCodeForm',
     },
     APP_STATE: {
         ACTIVE: 'active',
@@ -1247,6 +1248,7 @@ const CONST = {
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
+    LOGIN_CHARACTER_LIMIT: 254,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -2459,6 +2461,13 @@ const CONST = {
     TEST_TOOL: {
         // Number of concurrent taps to open then the Test modal menu
         NUMBER_OF_TAPS: 4,
+    },
+
+    MENU_HELP_URLS: {
+        LEARN_MORE: 'https://www.expensify.com',
+        DOCUMENTATION: 'https://github.com/Expensify/App/blob/main/README.md',
+        COMMUNITY_DISCUSSIONS: 'https://expensify.slack.com/archives/C01GTK53T8Q',
+        SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
     },
 
     PAYPAL_SUPPORTED_CURRENCIES: [

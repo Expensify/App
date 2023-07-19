@@ -180,7 +180,7 @@ function SignInPage({credentials, account}) {
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
                 />
-                {shouldShowValidateCodeForm ? <ValidateCodeForm isVisible={shouldShowValidateCodeForm} /> : <PasswordForm isVisible={shouldShowPasswordForm} />}
+                {shouldShowValidateCodeForm ? <ValidateCodeForm /> : <PasswordForm isVisible={shouldShowPasswordForm} />}
                 {shouldShowResendValidationForm && <ResendValidationForm />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
