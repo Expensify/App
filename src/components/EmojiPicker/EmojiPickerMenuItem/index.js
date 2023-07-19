@@ -1,9 +1,12 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import styles from '../../styles/styles';
-import Text from '../Text';
-import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import getButtonState from '../../../libs/getButtonState';
+import Text from '../../Text';
+import PressableWithoutFeedback from '../../Pressable/PressableWithoutFeedback';
+import CONST from '../../../CONST';
+import * as Browser from '../../../libs/Browser';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */
@@ -68,7 +71,9 @@ class EmojiPickerMenuItem extends PureComponent {
                 onFocus={this.props.onFocus}
                 onBlur={this.props.onBlur}
                 ref={(ref) => (this.ref = ref)}
-                style={[
+                pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
+                style={({pressed}) => [
+                    Browser.isMobile() && StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
                     this.props.isHighlighted && this.props.isUsingKeyboardMovement ? styles.emojiItemKeyboardHighlighted : {},
                     this.props.isHighlighted && !this.props.isUsingKeyboardMovement ? styles.emojiItemHighlighted : {},
                     styles.emojiItem,
