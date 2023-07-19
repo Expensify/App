@@ -110,7 +110,7 @@ const personalDetailsSelector = (personalDetails) =>
     );
 
 // This component is rendered in a list.
-// On scroll we want to avoid that a item re-renders
+// On scroll we want to avoid item re-renders
 // just because the list has to re-render when adding more items.
 // Thats also why the React.memo is used on the outer component here, as we just
 // use it to prevent re-renders from parent re-renders.
