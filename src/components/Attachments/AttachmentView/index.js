@@ -4,7 +4,6 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
-import PDFView from '../../PDFView';
 import Icon from '../../Icon';
 import * as Expensicons from '../../Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
@@ -13,8 +12,9 @@ import Text from '../../Text';
 import Tooltip from '../../Tooltip';
 import themeColors from '../../../styles/themes/default';
 import variables from '../../../styles/variables';
-import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 import AttachmentViewImage from './AttachmentViewImage';
+import AttachmentViewPdf from './AttachmentViewPdf';
+import addEncryptedAuthTokenToURL from '../../../libs/addEncryptedAuthTokenToURL';
 
 import {attachmentViewPropTypes, attachmentViewDefaultProps} from './propTypes';
 
@@ -61,16 +61,17 @@ function AttachmentView({item, isUsedInCarousel, onPress, shouldShowLoadingSpinn
     // Check both source and file.name since PDFs dragged into the the text field
     // will appear with a source that is a blob
     if (Str.isPDF(item.source) || (item.file && Str.isPDF(item.file.name || translate('attachmentView.unknownFilename')))) {
-        const sourceURL = item.isAuthTokenRequired ? addEncryptedAuthTokenToURL(item.source) : item.source;
+        const encryptedSourceUrl = item.isAuthTokenRequired ? addEncryptedAuthTokenToURL(item.source) : item.source;
+
         return (
-            <PDFView
-                onPress={onPress}
+            <AttachmentViewPdf
+                item={item}
+                encryptedSourceUrl={encryptedSourceUrl}
+                isUsedInCarousel={isUsedInCarousel}
                 isFocused={isFocused}
-                sourceURL={sourceURL}
-                fileName={item.file.name}
-                style={styles.imageModalPDF}
-                onToggleKeyboard={onToggleKeyboard}
+                onPress={onPress}
                 onScaleChanged={onScaleChanged}
+                onToggleKeyboard={onToggleKeyboard}
                 onLoadComplete={() => !loadComplete && setLoadComplete(true)}
             />
         );

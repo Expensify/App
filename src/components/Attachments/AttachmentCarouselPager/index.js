@@ -152,7 +152,7 @@ function AttachmentCarouselPager({
                 >
                     {_.map(items, (item, index) => (
                         <View
-                            key={item.key}
+                            key={item.source}
                             style={styles.flex1}
                         >
                             {renderItem({item, index, isActive: index === activePage})}
