@@ -1,5 +1,5 @@
 ---
-title: Expensify Playbook for US-Based Bootstrapped Startups
+title: Expensify Playbook for US-Based Bootstrapped Startups 
 description: Best practices for how to deploy Expensify for your business
 ---
 
