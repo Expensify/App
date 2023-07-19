@@ -187,8 +187,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         {optimisticData, successData, failureData},
     );
 
-    clearOutTaskInfo();
-
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
 
@@ -522,23 +520,6 @@ function setShareDestinationValue(shareDestination) {
 }
 
 /**
- * Auto-assign participant when creating a task in a DM
- * @param {String} reportID
- */
-
-function setAssigneeValueWithParentReportID(reportID) {
-    const report = ReportUtils.getReport(reportID);
-    const isDefault = !(ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report));
-    const participants = lodashGet(report, 'participants', []);
-    const hasMultipleParticipants = participants.length > 1;
-    if (!isDefault || hasMultipleParticipants || report.parentReportID) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.TASK, {assignee: participants[0]});
-}
-
-/**
  * Sets the assignee value for the task and checks for an existing chat with the assignee
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
@@ -553,7 +534,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
 
     // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
     if (!newAssigneeAccountID) {
-        newAssigneeAccountID = UserUtils.generateAccountID();
+        newAssigneeAccountID = UserUtils.generateAccountID(assignee);
     }
     if (!isCurrentUser) {
         let newChat = {};
@@ -640,7 +621,7 @@ function getShareDestination(reportID, reports, personalDetails) {
  */
 function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
     const message = `canceled task: ${taskTitle}`;
-    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELED, message);
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
 
     const optimisticData = [
@@ -759,7 +740,6 @@ export {
     setTaskReport,
     setDetailsValue,
     setAssigneeValue,
-    setAssigneeValueWithParentReportID,
     setShareDestinationValue,
     clearOutTaskInfo,
     reopenTask,

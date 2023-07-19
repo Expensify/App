@@ -534,8 +534,9 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
  * This will find an existing chat, or create a new one if none exists, for the given user or set of users. It will then navigate to this chat.
  *
  * @param {Array} userLogins list of user logins to start a chat report with.
+ * @param {Boolean} shouldDismissModal a flag to determine if we should dismiss modal before navigate to report or navigate to report directly.
  */
-function navigateToAndOpenReport(userLogins) {
+function navigateToAndOpenReport(userLogins, shouldDismissModal = true) {
     let newChat = {};
     const formattedUserLogins = _.map(userLogins, (login) => OptionsListUtils.addSMSDomainIfPhoneNumber(login).toLowerCase());
     const chat = ReportUtils.getChatByParticipantsByLoginList(formattedUserLogins);
@@ -547,7 +548,11 @@ function navigateToAndOpenReport(userLogins) {
 
     // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
     openReport(reportID, userLogins, newChat);
-    Navigation.dismissModal(reportID);
+    if (shouldDismissModal) {
+        Navigation.dismissModal(reportID);
+    } else {
+        Navigation.navigate(ROUTES.getReportRoute(reportID));
+    }
 }
 
 /**
@@ -1249,7 +1254,7 @@ function navigateToConciergeChat() {
         // we need to ensure that the server data has been successfully pulled
         Welcome.serverDataIsReadyPromise().then(() => {
             // If we don't have a chat with Concierge then create it
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE]);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], false);
         });
     } else {
         Navigation.navigate(ROUTES.getReportRoute(conciergeChatReportID));
@@ -1262,11 +1267,11 @@ function navigateToConciergeChat() {
  * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
- * @param {Array} policyMembers
+ * @param {Array<Number>} policyMembersAccountIDs
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembers) {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
-    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembers : [];
+    const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
     const policyReport = ReportUtils.buildOptimisticChatReport(
         participants,
