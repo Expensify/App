@@ -421,6 +421,7 @@ function WorkspaceMembersPage(props) {
                     />
                     <ConfirmModal
                         danger
+                        cancelWithHoverEffect
                         title={props.translate('workspace.people.removeMembersTitle')}
                         isVisible={removeMembersConfirmModalVisible}
                         onConfirm={removeUsers}

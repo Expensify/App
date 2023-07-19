@@ -36,6 +36,9 @@ const propTypes = {
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
+    /** Whether the cancel button has hover effect */
+    cancelWithHoverEffect: PropTypes.bool,
+
     /** Styles for view */
     // eslint-disable-next-line react/forbid-prop-types
     contentStyles: PropTypes.arrayOf(PropTypes.object),
@@ -51,6 +54,7 @@ const defaultProps = {
     danger: false,
     onCancel: () => {},
     shouldShowCancelButton: true,
+    cancelWithHoverEffect: false,
     contentStyles: [],
 };
 
@@ -76,6 +80,7 @@ function ConfirmContent(props) {
                     style={[styles.mt3, styles.noSelect]}
                     onPress={props.onCancel}
                     text={props.cancelText || props.translate('common.no')}
+                    default={props.cancelWithHoverEffect}
                 />
             )}
         </View>

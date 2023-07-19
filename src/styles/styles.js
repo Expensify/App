@@ -519,6 +519,11 @@ const styles = {
         textAlign: 'center',
     },
 
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
+    },
+
     buttonSuccess: {
         backgroundColor: themeColors.success,
         borderWidth: 0,
