@@ -267,7 +267,7 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         const cleanAccountID = Number(accountID);
         const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
 
-        if (_.isEmpty(personalDetails[accountID])) {
+        if (_.isEmpty(allPersonalDetails[accountID])) {
             optimisticPersonalDetails[accountID] = {
                 login,
                 accountID,
@@ -403,7 +403,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
                 accountIDs,
                 (memo, accountID) => {
                     let value = null;
-                    const isExistedAccount = !_.isEmpty(personalDetails[accountID]);
+                    const isExistedAccount = !_.isEmpty(allPersonalDetails[accountID]);
 
                     if (isExistedAccount) {
                         value = {pendingAction: null, errors: null};
