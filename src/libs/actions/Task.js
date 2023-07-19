@@ -242,24 +242,9 @@ function completeTask(taskReportID, taskTitle) {
         },
     ];
 
-    // Optimistically update the parent report action
-    const report = ReportUtils.getReport(taskReportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(
-                        parentReportAction,
-                        completedTaskReportAction.created,
-                        CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    ),
-                },
-            });
-        }
-    }
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) optimisticData.push(optimisticParentReportData);
 
     API.write(
         'CompleteTask',
@@ -331,24 +316,9 @@ function reopenTask(taskReportID, taskTitle) {
         },
     ];
 
-    // Optimistically update the parent report action
-    const report = ReportUtils.getReport(taskReportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(
-                        parentReportAction,
-                        reopenedTaskReportAction.created,
-                        CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    ),
-                },
-            });
-        }
-    }
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) optimisticData.push(optimisticParentReportData);
 
     API.write(
         'ReopenTask',
