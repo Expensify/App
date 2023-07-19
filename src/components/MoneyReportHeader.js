@@ -82,7 +82,7 @@ function MoneyReportHeader(props) {
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
-                shouldShowBackButton
+                shouldShowBackButton={props.isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
                 shouldShowBorderBottom={!shouldShowSettlementButton || !props.isSmallScreenWidth}
             >
