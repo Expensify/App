@@ -92,7 +92,7 @@ class AddPersonalBankAccountPage extends React.Component {
             >
                 <HeaderWithBackButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
                 />
                 {shouldShowSuccess ? (
                     <ConfirmationPage
@@ -101,7 +101,7 @@ class AddPersonalBankAccountPage extends React.Component {
                         shouldShowButton
                         buttonText={this.props.translate('common.continue')}
                         onButtonPress={() => {
-                            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+                            Navigation.navigate(ROUTES.SETTINGS_WALLET);
                         }}
                     />
                 ) : (

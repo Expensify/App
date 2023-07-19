@@ -71,7 +71,7 @@ export default {
                                 exact: true,
                             },
                             Settings_Payments: {
-                                path: ROUTES.SETTINGS_PAYMENTS,
+                                path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
                             Settings_Payments_EnablePayments: {
@@ -79,11 +79,11 @@ export default {
                                 exact: true,
                             },
                             Settings_Payments_Transfer_Balance: {
-                                path: ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE,
+                                path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                                 exact: true,
                             },
                             Settings_Payments_Choose_Transfer_Account: {
-                                path: ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT,
+                                path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
                             Settings_Add_Paypal_Me: {

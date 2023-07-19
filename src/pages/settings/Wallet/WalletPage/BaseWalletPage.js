@@ -327,7 +327,7 @@ class BaseWalletPage extends React.Component {
     }
 
     navigateToTransferBalancePage() {
-        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     }
 
     navigateToAddPaypalRoute() {

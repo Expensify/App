@@ -222,7 +222,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.payments',
                 icon: Expensicons.Wallet,
                 action: () => {
-                    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+                    Navigation.navigate(ROUTES.SETTINGS_WALLET);
                 },
                 brickRoadIndicator:
                     PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) ||

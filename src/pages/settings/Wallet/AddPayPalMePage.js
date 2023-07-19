@@ -58,14 +58,14 @@ function AddPayPalMePage(props) {
         User.addPaypalMeAddress(payPalMeUsername);
 
         Growl.show(growlMessageOnSave, CONST.GROWL.SUCCESS, 3000);
-        Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
+        Navigation.goBack(ROUTES.SETTINGS_WALLET);
     }, [payPalMeUsername, growlMessageOnSave]);
 
     return (
         <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
             <HeaderWithBackButton
                 title={props.translate('common.payPalMe')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             />
             <View style={[styles.flex1, styles.p5]}>
                 <View style={[styles.flex1]}>
