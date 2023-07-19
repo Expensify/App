@@ -38,20 +38,6 @@ const menuItems = [
 function LoungeAccessPage({user}) {
     const {translate} = useLocalize();
 
-    /*
-     * The correct aspect ratio for this animation for our product is 375:240 (0.64).
-     * However, the existing lottie animation file has aspect ratio 1920:1080 (0.5625)
-     * So that means that we can get the correct aspect ratio with the following adjustment:
-     *
-     * existingAspectRatio x widthAdjustment = desiredAspectRatio
-     * => 0.5625 x widthAdjustment = 0.64
-     * => widthAdjustment = 0.64 / 0.5625
-     * => widthAdjustment = 1.1377
-     */
-    const illustrationStyle = {
-        width: '114%',
-    };
-
     if (!user.hasLoungeAccess) {
         return <FullPageNotFoundView shouldShow />;
     }
@@ -61,8 +47,6 @@ function LoungeAccessPage({user}) {
             title={translate('loungeAccessPage.loungeAccess')}
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             illustration={LottieAnimations.ExpensifyLounge}
-            illustrationStyle={illustrationStyle}
-            illustrationWrapperStyle={illustrationStyle}
         >
             <FeatureList
                 headline="loungeAccessPage.headline"
