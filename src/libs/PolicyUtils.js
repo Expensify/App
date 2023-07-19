@@ -5,7 +5,7 @@ import CONST from '../CONST';
 import ONYXKEYS from '../ONYXKEYS';
 
 /**
- * Filter out the active policies, which will exclude the pending delete policies
+ * Filter out the active policies, which will exclude policies with pending deletion
  * @param {Object} policies
  * @returns {Array}
  */
