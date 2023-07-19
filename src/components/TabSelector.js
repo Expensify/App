@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
 import compose from '../libs/compose';
-import withLocalize from './withLocalize';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import TabSelectorItem from './TabSelectorItem';
 import Tab from '../libs/actions/Tab';
@@ -13,6 +13,8 @@ import CONST from '../CONST';
 const propTypes = {
     /** Which tab has been selected */
     tabSelected: PropTypes.string,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -24,7 +26,7 @@ function TabSelector(props) {
     return (
         <View style={{flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 20}}>
             <TabSelectorItem
-                title="Manual"
+                title={props.translate('tabSelector.manual')}
                 selected={selectedTab === CONST.TAB.TAB_MANUAL}
                 icon={Expensicons.Pencil}
                 onPress={() => {
@@ -32,7 +34,7 @@ function TabSelector(props) {
                 }}
             />
             <TabSelectorItem
-                title="Scan"
+                title={props.translate('tabSelector.scan')}
                 selected={selectedTab === CONST.TAB.TAB_SCAN}
                 icon={Expensicons.Receipt}
                 onPress={() => {

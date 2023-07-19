@@ -15,6 +15,7 @@ import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import NavigateToNextIOUPage from '../NavigateToNextIOUPage';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
     /** Route params */
@@ -49,6 +50,8 @@ const propTypes = {
 
     /** Used by drag and drop to determine if we have a file dragged over the view */
     isDraggingOver: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -86,16 +89,16 @@ function ReceiptSelector(props) {
                     height={CONST.RECEIPT.ICON_SIZE}
                 />
             </View>
-            <Text style={[styles.textReceiptUpload]}>Upload receipt</Text>
+            <Text style={[styles.textReceiptUpload]}>{props.translate('receipt.upload')}</Text>
             <Text style={[styles.subTextReceiptUpload]}>
-                Drag a receipt onto this page, forward a receipt to{' '}
+                {props.translate('receipt.dragReceiptBeforeEmail')}
                 <View style={{flexDirection: 'row'}}>
                     <CopyTextToClipboard
                         text="receipts@expensify.com"
                         textStyles={[styles.textBlue]}
                     />
-                </View>{' '}
-                or choose a file to upload below.
+                </View>
+                {props.translate('receipt.dragReceiptAfterEmail')}
             </Text>
             <AttachmentPicker>
                 {({openPicker}) => (
@@ -103,8 +106,7 @@ function ReceiptSelector(props) {
                         <Button
                             medium
                             success
-                            text="Choose File"
-                            accessibilityLabel="Choose File"
+                            text={props.translate('receipt.chooseFile')}
                             style={[styles.buttonReceiptUpload]}
                             onPress={() => {
                                 openPicker({
@@ -122,7 +124,6 @@ function ReceiptSelector(props) {
         </>
     );
 
-    // TODO: Add strings correctly with translate
     return (
         <View style={[styles.uploadReceiptView]}>
             {!props.isDraggingOver ? defaultView() : null}
@@ -135,4 +136,4 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default ReceiptSelector;
+export default withLocalize(ReceiptSelector);

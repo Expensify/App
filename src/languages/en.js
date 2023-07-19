@@ -353,6 +353,19 @@ export default {
         listOfChatMessages: 'List of chat messages',
         listOfChats: 'List of chats',
     },
+    tabSelector: {
+        manual: 'Manual',
+        scan: 'Scan',
+    },
+    receipt: {
+        upload: 'Upload receipt',
+        dragReceiptBeforeEmail: 'Drag a receipt onto this page, forward a receipt to ',
+        dragReceiptAfterEmail: ' or choose a file to upload below.',
+        chooseFile: 'Choose File',
+        givePermission: 'Give permission',
+        takePhoto: 'Take a photo',
+        cameraAccess: 'Camera access is required to take pictures of receipts.',
+    },
     iou: {
         amount: 'Amount',
         cash: 'Cash',

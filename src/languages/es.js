@@ -352,6 +352,19 @@ export default {
         listOfChatMessages: 'Lista de mensajes del chat',
         listOfChats: 'lista de chats',
     },
+    tabSelector: {
+        manual: 'Manual',
+        scan: 'Escanear',
+    },
+    receipt: {
+        upload: 'Subir recibo',
+        dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
+        dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
+        chooseFile: 'Elegir archivo',
+        givePermission: 'Permitir',
+        takePhoto: 'Haz una foto',
+        cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
+    },
     iou: {
         amount: 'Importe',
         cash: 'Efectivo',

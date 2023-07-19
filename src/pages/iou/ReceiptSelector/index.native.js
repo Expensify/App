@@ -216,13 +216,13 @@ function ReceiptSelector(props) {
                 height={200}
                 style={{paddingBottom: 20}}
             />
-            <Text style={[styles.textReceiptUpload]}>Take a photo</Text>
-            <Text style={[styles.subTextReceiptUpload]}>Camera access is required to take pictures of receipts.</Text>
+            <Text style={[styles.textReceiptUpload]}>{props.translate('receipt.takePhoto')}</Text>
+            <Text style={[styles.subTextReceiptUpload]}>{props.translate('receipt.cameraAccess')}</Text>
             <PressableWithFeedback accessibilityRole="button">
                 <Button
                     medium
                     success
-                    text="Give permission"
+                    text={props.translate('receipt.givePermission')}
                     style={[styles.buttonReceiptUpload, {paddingTop: 20}]}
                     onPress={() => {
                         if (permissions === 'not-determined') {
