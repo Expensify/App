@@ -218,7 +218,11 @@ class OptionRow extends Component {
                                             numberOfLines={1}
                                             textStyles={displayNameStyle}
                                             shouldUseFullTitle={
-                                                this.props.option.isChatRoom || this.props.option.isPolicyExpenseChat || this.props.option.isMoneyRequestReport || this.props.option.isThread
+                                                this.props.option.isChatRoom ||
+                                                this.props.option.isPolicyExpenseChat ||
+                                                this.props.option.isMoneyRequestReport ||
+                                                this.props.option.isThread ||
+                                                this.props.option.isTaskReport
                                             }
                                         />
                                         {this.props.option.alternateText ? (
