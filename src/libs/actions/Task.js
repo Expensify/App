@@ -451,8 +451,9 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
  * @param {String} editedTask.assignee
  * @param {Number} editedTask.assigneeAccountID
  * @param {Boolean} editedTask.isOptimisticAssignee
+ * @param {String} editedTask.previousAssignee
  */
-function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', assigneeAccountID = 0, isOptimisticAssignee = false}) {
+function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', assigneeAccountID = 0, isOptimisticAssignee = false, previousAssignee = ''}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
 
@@ -483,8 +484,8 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', ass
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
-                managerID: assigneeAccountID || report.managerID,
-                managerEmail: assignee || report.managerEmail,
+                managerID: assigneeAccountID,
+                managerEmail: assignee,
             },
         },
     ];
@@ -498,7 +499,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', ass
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
-            value: {assignee: report.managerEmail, assigneeAccountID: report.managerID},
+            value: {managerEmail: previousAssignee, managerID: report.managerID},
         },
     ];
 
@@ -549,8 +550,8 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', ass
         'EditTaskAssignee',
         {
             taskReportID: report.reportID,
-            assignee: assignee || report.managerEmail,
-            assigneeAccountID: assigneeAccountID || report.managerID,
+            assignee,
+            assigneeAccountID,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportActionID: optimisticAssigneeAddComment ? optimisticAssigneeAddComment.reportAction.reportActionID : 0,
         },

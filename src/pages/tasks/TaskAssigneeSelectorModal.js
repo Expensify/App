@@ -50,6 +50,9 @@ const propTypes = {
 
     /** Grab the Share destination of the Task */
     task: PropTypes.shape({
+        /** Current assignee of task */
+        assignee: PropTypes.string,
+
         /** Share destination of the Task */
         shareDestination: PropTypes.string,
 
@@ -174,6 +177,7 @@ function TaskAssigneeSelectorModal(props) {
                 assignee: option.login,
                 assigneeAccountID: option.accountID,
                 isOptimisticAssignee: option.isOptimisticAccount,
+                previousAssignee: props.task.assignee,
             });
         }
     };
