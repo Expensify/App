@@ -13,4 +13,4 @@ Project: <Project Link>
 
 # Manual Test Steps
 
-#Automated Tests
+# Automated Tests
