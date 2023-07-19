@@ -34,7 +34,7 @@ import Button from '../../../../components/Button';
 import themeColors from '../../../../styles/themes/default';
 import variables from '../../../../styles/variables';
 
-class BasePaymentsPage extends React.Component {
+class BaseWalletPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -529,8 +529,8 @@ class BasePaymentsPage extends React.Component {
     }
 }
 
-BasePaymentsPage.propTypes = propTypes;
-BasePaymentsPage.defaultProps = defaultProps;
+BaseWalletPage.propTypes = propTypes;
+BaseWalletPage.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
@@ -562,4 +562,4 @@ export default compose(
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         },
     }),
-)(BasePaymentsPage);
+)(BaseWalletPage);

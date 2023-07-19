@@ -1,3 +1,3 @@
-import BasePaymentsPage from './BasePaymentsPage';
+import BaseWalletPage from './BaseWalletPage';
 
-export default BasePaymentsPage;
+export default BaseWalletPage;

@@ -1,8 +1,8 @@
 import React from 'react';
-import BasePaymentsPage from './BasePaymentsPage';
+import BaseWalletPage from './BaseWalletPage';
 
 function PaymentsPage() {
-    return <BasePaymentsPage shouldListenForResize />;
+    return <BaseWalletPage shouldListenForResize />;
 }
 
 PaymentsPage.displayName = 'PaymentsPage';
