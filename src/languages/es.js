@@ -248,6 +248,11 @@ export default {
         signInAgreementMessage: 'Al iniciar sesión, aceptas las',
         termsOfService: 'Términos de servicio',
         privacy: 'Privacidad',
+        loggedInAs: ({email}) => `Has iniciado sesión como ${email}. Haga clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
+        doNotSeePrompt: '¿No ves el aviso?',
+        tryAgain: 'Inténtalo de nuevo',
+        or: ', o',
+        continueInWeb: 'continuar en la web',
     },
     reportActionCompose: {
         addAction: 'Acción',
