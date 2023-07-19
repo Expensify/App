@@ -147,6 +147,8 @@ export default {
         km: 'kilometer',
         copied: 'Copied!',
         someone: 'Someone',
+        total: 'Total',
+        edit: 'Edit',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
@@ -201,8 +203,8 @@ export default {
         tfaRequiredDescription: 'Please enter the two-factor authentication code\nwhere you are trying to sign in.',
     },
     moneyRequestConfirmationList: {
-        whoPaid: 'Who paid?',
-        whoWasThere: 'Who was there?',
+        paidBy: 'Paid by',
+        splitWith: 'Split with',
         whatsItFor: "What's it for?",
     },
     iOUCurrencySelection: {
@@ -352,10 +354,9 @@ export default {
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
-        settleExpensify: 'Pay with Expensify',
-        settleElsewhere: "I'll settle up elsewhere",
-        payExpenseElsewhere: 'Pay elsewhere',
-        settlePaypalMe: 'Pay with PayPal.me',
+        settleExpensify: ({formattedAmount}) => `Pay ${formattedAmount} with Expensify`,
+        payElsewhere: 'Pay elsewhere',
+        settlePaypalMe: ({formattedAmount}) => `Pay ${formattedAmount} with PayPal.me`,
         requestAmount: ({amount}) => `request ${amount}`,
         splitAmount: ({amount}) => `split ${amount}`,
         amountEach: ({amount}) => `${amount} each`,
@@ -567,7 +568,7 @@ export default {
     },
     twoFactorAuthForm: {
         error: {
-            pleaseFillTwoFactorAuth: 'Please enter your two-factor code',
+            pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
             incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
         },
     },
@@ -581,6 +582,8 @@ export default {
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+        updatePaypalAccount: 'Save PayPal account',
+        growlMessageOnUpdate: 'Your PayPal username was successfully saved',
         formatError: 'Invalid PayPal.me username',
         checkListOf: 'Check the list of ',
         supportedCurrencies: 'supported currencies',
@@ -682,6 +685,21 @@ export default {
             },
         },
     },
+    themePage: {
+        theme: 'Theme',
+        themes: {
+            dark: {
+                label: 'Dark',
+            },
+            light: {
+                label: 'Light',
+            },
+            system: {
+                label: 'Use Device Settings',
+            },
+        },
+        chooseThemeBelowOrSync: 'Choose a theme below, or sync with your device settings.',
+    },
     signInPage: {
         expensifyDotCash: 'New Expensify',
         theCode: 'the code',
@@ -712,7 +730,7 @@ export default {
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
             incorrectMagicCode: 'Incorrect magic code.',
-            pleaseFillTwoFactorAuth: 'Please enter your two-factor code',
+            pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
         },
     },
     passwordForm: {
@@ -775,6 +793,16 @@ export default {
         unlink: 'Unlink',
         linkSent: 'Link sent!',
         succesfullyUnlinkedLogin: 'Secondary login successfully unlinked!',
+    },
+    emailDeliveryFailurePage: {
+        ourEmailProvider: ({login}) => `Our email provider has temporarily suspended emails to ${login} due to delivery issues. To unblock your login, please follow these steps:`,
+        confirmThat: ({login}) => `Confirm that ${login} is spelled correctly and is a real, deliverable email address. `,
+        emailAliases: 'Email aliases such as "expenses@domain.com" must have access to their own email inbox for it to be a valid Expensify login.',
+        ensureYourEmailClient: 'Ensure your email client allows expensify.com emails. ',
+        youCanFindDirections: 'You can find directions on how to complete this step ',
+        helpConfigure: ' but you may need your IT department to help configure your email settings.',
+        onceTheAbove: 'Once the above steps are completed, please reach out to ',
+        toUnblock: ' to unblock your login.',
     },
     detailsPage: {
         localTime: 'Local time',
@@ -1256,6 +1284,7 @@ export default {
         restrictedDescription: 'People in your workspace can find this room',
         privateDescription: 'People invited to this room can find it',
         publicDescription: 'Anyone can find this room',
+        public_announceDescription: 'Anyone can find this room',
         createRoom: 'Create room',
         roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: ({reservedName}) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
@@ -1422,6 +1451,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        hiddenMessage: '[Hidden message]',
     },
     threads: {
         replies: 'Replies',
