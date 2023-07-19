@@ -76,7 +76,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
                 item={item}
                 isFocused={activeSource === item.source}
                 isUsedInCarousel
-                onPress={() => (shouldShowArrows ? setShouldShowArrows(false) : setShouldShowArrows(true))}
+                onPress={() => setShouldShowArrows(!shouldShowArrows)}
             />
         ),
         [activeSource, setShouldShowArrows, shouldShowArrows],

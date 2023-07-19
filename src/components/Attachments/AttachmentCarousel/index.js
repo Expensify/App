@@ -48,6 +48,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
     const updatePage = useRef(
         ({viewableItems}) => {
             Keyboard.dismiss();
+
             // Since we can have only one item in view at a time, we can use the first item in the array
             // to get the index of the current page
             const entry = _.first(viewableItems);
@@ -154,10 +155,11 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
                 item={item}
                 isFocused={activeSource === item.source}
                 onScaleChanged={canUseTouchScreen ? updateZoomState : undefined}
+                onPress={() => setShouldShowArrows(!shouldShowArrows)}
                 isUsedInCarousel
             />
         ),
-        [activeSource, canUseTouchScreen, updateZoomState],
+        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows, updateZoomState],
     );
 
     return (
@@ -181,16 +183,21 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
 
             {containerDimensions.width > 0 && (
                 <FlatList
-                    contentContainerStyle={{flex: 1}}
+                    keyboardShouldPersistTaps="handled"
                     listKey="AttachmentCarousel"
                     horizontal
                     decelerationRate="fast"
                     showsHorizontalScrollIndicator={false}
                     bounces={false}
+                    // Scroll only one image at a time no matter how fast the user swipes
+                    disableIntervalMomentum
                     pagingEnabled
                     snapToAlignment="start"
                     snapToInterval={containerDimensions.width}
-                    // scrollEnabled={canUseTouchScreen && !isZoomed}
+                    // Enable scrolling by swiping on mobile (touch) devices only
+                    // disable scroll for desktop/browsers because they add their scrollbars
+                    // Enable scrolling FlatList only when PDF is not in a zoomed state
+                    scrollEnabled={canUseTouchScreen && !isZoomed}
                     ref={scrollRef}
                     initialScrollIndex={page}
                     initialNumToRender={3}
