@@ -343,6 +343,7 @@ const mainWindow = () => {
                         submenu: [
                             {id: 'reload', role: 'reload'},
                             {id: 'forceReload', role: 'forceReload'},
+                            {id: 'toggleDevTools', role: 'toggleDevTools'},
                             {type: 'separator'},
                             {id: 'resetZoom', role: 'resetZoom'},
                             {id: 'zoomIn', role: 'zoomIn'},
