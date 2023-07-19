@@ -24,7 +24,7 @@ const propTypes = {
     /** State for the account */
     account: PropTypes.shape({
         /** Whether or not the user is loading */
-        loading: PropTypes.bool,
+        isLoading: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -47,7 +47,7 @@ function ThirdPartySignInPage(props) {
 
     return (
         <SafeAreaView style={[styles.signInPage]}>
-            {props.account.loading ? (
+            {props.account.isLoading ? (
                 <View style={styles.thirdPartyLoadingContainer}>
                     <ActivityIndicator
                         size="large"
