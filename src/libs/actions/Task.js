@@ -450,8 +450,9 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
  * @param {Object} editedTask
  * @param {String} editedTask.assignee
  * @param {Number} editedTask.assigneeAccountID
+ * @param {Boolean} editedTask.isOptimisticAssignee
  */
-function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', assigneeAccountID = 0}) {
+function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', assigneeAccountID = 0, isOptimisticAssignee = false}) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
 
@@ -459,7 +460,7 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', ass
     let optimisticAssigneeAddComment;
     let assigneeChatReportID;
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID) {
-        assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID]).reportID;
+        assigneeChatReportID = ReportUtils.getChatByParticipants([assigneeAccountID])?.reportID;
 
         if (assigneeChatReportID !== report.parentReportID.toString()) {
             optimisticAssigneeAddComment = ReportUtils.buildOptimisticTaskCommentReportAction(
@@ -529,6 +530,18 @@ function editTaskAssigneeAndNavigate(report, ownerAccountID, {assignee = '', ass
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
             value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+    }
+
+    // If we're assigning an account with an optimistic account ID, the API response will return with the
+    // correct user accountID so we should delete the optimistic one from Onyx here.
+    // Other optimistic data (reports & report actions) will be overridden by the API response so no need to
+    // clean up that data on success.
+    if (isOptimisticAssignee) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {[assigneeAccountID]: null},
         });
     }
 
