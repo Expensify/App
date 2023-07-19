@@ -119,6 +119,16 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 isOptimisticReport: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
+            value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        },
     ];
 
     const failureData = [
@@ -162,6 +172,12 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             },
         );
 
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
@@ -186,8 +202,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         },
         {optimisticData, successData, failureData},
     );
-
-    clearOutTaskInfo();
 
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
@@ -243,6 +257,12 @@ function completeTask(taskReportID, taskTitle) {
             },
         },
     ];
+
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     API.write(
         'CompleteTask',
@@ -313,6 +333,12 @@ function reopenTask(taskReportID, taskTitle) {
             },
         },
     ];
+
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     API.write(
         'ReopenTask',
@@ -498,7 +524,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
 
     // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
     if (!newAssigneeAccountID) {
-        newAssigneeAccountID = UserUtils.generateAccountID();
+        newAssigneeAccountID = UserUtils.generateAccountID(assignee);
     }
     if (!isCurrentUser) {
         let newChat = {};
