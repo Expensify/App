@@ -175,6 +175,11 @@ function ReceiptSelector(props) {
         });
 
     const takePhoto = () => {
+        if (!camera.current) {
+            showCameraAlert();
+            return;
+        }
+
         camera.current
             .takePhoto({
                 qualityPrioritization: 'speed',
@@ -222,7 +227,10 @@ function ReceiptSelector(props) {
             />
             <Text style={[styles.textReceiptUpload]}>{props.translate('receipt.takePhoto')}</Text>
             <Text style={[styles.subTextReceiptUpload]}>{props.translate('receipt.cameraAccess')}</Text>
-            <PressableWithFeedback accessibilityRole="button">
+            <PressableWithFeedback
+                accessibilityLabel={props.translate('receipt.givePermission')}
+                accessibilityRole="button"
+            >
                 <Button
                     medium
                     success
@@ -255,6 +263,7 @@ function ReceiptSelector(props) {
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter]}>
                 <PressableWithFeedback
                     accessibilityRole="button"
+                    accessibilityLabel={CONST.RECEIPT.GALLERY}
                     style={[styles.alignItemsStart]}
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
@@ -272,6 +281,7 @@ function ReceiptSelector(props) {
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     accessibilityRole="button"
+                    accessibilityLabel={CONST.RECEIPT.SHUTTER}
                     style={[styles.alignItemsCenter]}
                     onPress={() => takePhoto()}
                 >
@@ -282,6 +292,7 @@ function ReceiptSelector(props) {
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     accessibilityRole="button"
+                    accessibilityLabel={CONST.RECEIPT.FLASH}
                     style={[styles.alignItemsEnd]}
                     onPress={() => setFlash(!flash)}
                 >

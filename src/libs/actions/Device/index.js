@@ -3,6 +3,8 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../Log';
 import generateDeviceID from './generateDeviceID';
 import getDeviceInfo from './getDeviceInfo';
+import lodashGet from 'lodash/get';
+import getOSAndName from './getDeviceInfo/getOSAndName';
 
 let deviceID;
 
