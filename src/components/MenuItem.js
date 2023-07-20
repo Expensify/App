@@ -72,8 +72,8 @@ const defaultProps = {
     isAnonymousAction: false,
     isSmallAvatarSubscriptMenu: false,
     title: '',
-    shouldGreyOutWhenDisabled: true,
     numberOfLinesTitle: 1,
+    shouldGreyOutWhenDisabled: true,
 };
 
 function MenuItem(props) {
