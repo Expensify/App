@@ -2,11 +2,13 @@ import {View, Text, PixelRatio} from 'react-native';
 import React, {useCallback, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import {compose} from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Button from '../../../components/Button';
@@ -17,13 +19,18 @@ import AttachmentPicker from '../../../components/AttachmentPicker';
 import NavigateToNextIOUPage from '../NavigateToNextIOUPage';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ConfirmModal from '../../../components/ConfirmModal';
-import _, {compose} from 'underscore';
 import AttachmentUtils from '../../../libs/AttachmentUtils';
-import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
 
 const propTypes = {
+    /** Information shown to the user when a receipt is not valid */
+    receiptModal: PropTypes.shape({
+        isAttachmentInvalid: PropTypes.bool,
+        attachmentInvalidReasonTitle: PropTypes.string,
+        attachmentInvalidReason: PropTypes.string,
+    }),
+
     /** Route params */
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -61,6 +68,11 @@ const propTypes = {
 };
 
 const defaultProps = {
+    receiptModal: {
+        isAttachmentInvalid: false,
+        attachmentInvalidReasonTitle: '',
+        attachmentInvalidReason: '',
+    },
     route: {
         params: {
             iouType: '',
