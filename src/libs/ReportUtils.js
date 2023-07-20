@@ -584,7 +584,7 @@ function isDM(report) {
  * @returns {Boolean}
  */
 function hasSingleParticipant(report) {
-    return report.participants.length === 1;
+    return report.participants && report.participants.length === 1;
 }
 
 /**
@@ -2433,7 +2433,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && report.participants && hasSingleParticipant(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipant(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
