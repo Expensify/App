@@ -29,6 +29,7 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     fullReport: PropTypes.object,
 
+    /** The policies which the user has access to and which the report could be tied to */
     policies: PropTypes.shape({
         /** Name of the policy */
         name: PropTypes.string,
