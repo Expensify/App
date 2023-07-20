@@ -29,6 +29,11 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     fullReport: PropTypes.object,
 
+    policies: PropTypes.shape({
+        /** Name of the policy */
+        name: PropTypes.string,
+    }),
+
     ...withCurrentReportIDPropTypes,
     ...basePropTypes,
 };
@@ -37,6 +42,7 @@ const defaultProps = {
     shouldDisableFocusOptions: false,
     personalDetails: {},
     fullReport: {},
+    policies: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...withCurrentReportIDDefaultProps,
     ...baseDefaultProps,
@@ -48,22 +54,24 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullReport, personalDetails, preferredLocale, comment, ...propsToForward}) {
+function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullReport, personalDetails, preferredLocale, comment, policies, ...propsToForward}) {
     const reportID = propsToForward.reportID;
     // We only want to pass a boolean to the memoized component,
     // instead of a changing number (so we prevent unnecessary re-renders).
     const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
 
+    const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
+
     const optionItemRef = useRef();
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
-        const item = SidebarUtils.getOptionData(fullReport, personalDetails, preferredLocale);
+        const item = SidebarUtils.getOptionData(fullReport, personalDetails, preferredLocale, policy);
         if (deepEqual(item, optionItemRef.current)) {
             return optionItemRef.current;
         }
         optionItemRef.current = item;
         return item;
-    }, [fullReport, preferredLocale, personalDetails]);
+    }, [fullReport, personalDetails, preferredLocale, policy]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
@@ -136,6 +144,9 @@ export default React.memo(
             },
             preferredLocale: {
                 key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
             },
         }),
     )(OptionRowLHNData),

@@ -426,13 +426,14 @@ function getLastMessageTextForReport(report) {
  * @param {Array<Number>} accountIDs
  * @param {Object} personalDetails
  * @param {Object} report
- * @param {Object} reportActions
- * @param {Object} options
+ * @param {Object} [policy]
+ * @param {Object} [reportActions]
+ * @param {Object} [options]
  * @param {Boolean} [options.showChatPreviewLine]
  * @param {Boolean} [options.forcePolicyNamePreview]
  * @returns {Object}
  */
-function createOption(accountIDs, personalDetails, report, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false}) {
+function createOption(accountIDs, personalDetails, report, policy = undefined, reportActions = {}, {showChatPreviewLine = false, forcePolicyNamePreview = false}) {
     const result = {
         text: null,
         alternateText: null,
@@ -511,7 +512,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                 CONST.REPORT.ARCHIVE_REASON.DEFAULT;
             lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
                 displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
-                policyName: ReportUtils.getPolicyName(report),
+                policyName: ReportUtils.getPolicyName(report, false, policy),
             });
         }
 
