@@ -578,6 +578,16 @@ function isDM(report) {
 }
 
 /**
+ * Returns true if report has a single participant.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function hasSingleParticipant(report) {
+    return report.participants.length === 1;
+}
+
+/**
  * If the report is a thread and has a chat type set, it is a workspace chat.
  *
  * @param {Object} report
@@ -2704,4 +2714,5 @@ export {
     getReportOfflinePendingActionAndErrors,
     isDM,
     shouldDisableRename,
+    hasSingleParticipant,
 };
