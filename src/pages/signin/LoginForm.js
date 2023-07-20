@@ -199,6 +199,7 @@ function LoginForm(props) {
                     keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                     errorText={formErrorText}
                     hasError={hasError}
+                    maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
             </View>
             {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
