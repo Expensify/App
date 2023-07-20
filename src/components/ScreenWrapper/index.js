@@ -39,7 +39,7 @@ class ScreenWrapper extends React.Component {
                 return false;
             },
             onPanResponderGrant: () => {
-                if(!Keyboard.isVisible() || !Browser.isMobile()) {
+                if (!Keyboard.isVisible() || !Browser.isMobile()) {
                     return;
                 }
                 Keyboard.dismiss();
