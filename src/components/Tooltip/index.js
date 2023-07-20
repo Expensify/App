@@ -51,7 +51,7 @@ function Tooltip(props) {
 
         // When TooltipSense is active, immediately show the tooltip
         if (TooltipSense.isActive()) {
-            animation.setValue(1);
+            animation.current.setValue(1);
         } else {
             isTooltipSenseInitiator.current = true;
             Animated.timing(animation.current, {
@@ -125,7 +125,7 @@ function Tooltip(props) {
         <>
             {isRendered && (
                 <TooltipRenderedOnPageBody
-                    animation={animation}
+                    animation={animation.current}
                     windowWidth={props.windowWidth}
                     xOffset={xOffset}
                     yOffset={yOffset}
