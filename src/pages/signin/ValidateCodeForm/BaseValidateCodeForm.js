@@ -265,7 +265,7 @@ function BaseValidateCodeForm(props) {
                         autoFocus
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
-                    <View>
+                    <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !props.network.isOffline ? (
                             <Text style={[styles.mt2]}>
                                 {props.translate('validateCodeForm.requestNewCode')}
