@@ -1074,10 +1074,10 @@ class ReportActionCompose extends React.Component {
                                                     this.setState({isDraggingOver: false});
                                                     return;
                                                 }
-
-                                                const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-
-                                                displayFileInModal(file);
+                                                
+                                                const data = lodashGet(e, ['dataTransfer', 'items', 0]);                                                
+                                                
+                                                displayFileInModal(data);
 
                                                 this.setState({isDraggingOver: false});
                                             }}

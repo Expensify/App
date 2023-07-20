@@ -177,15 +177,21 @@ function AttachmentModal(props) {
         setIsAttachmentInvalid(false);
     }, []);
     /**
-     * @param {Object} _file
+     * @param {Object} _data
      * @returns {Boolean}
      */
     const isValidFile = useCallback(
-        (_file) => {
+        (_data) => {
+            const _file = _data.getAsFile();
             const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
+            if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
+                setIsAttachmentInvalid(true);
+                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentError'));
+                setAttachmentInvalidReason(props.translate('attachmentPicker.folderNotAllowedMessage'));
+                return false;
+            }
             if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
                 const invalidReason = props.translate('attachmentPicker.notAllowedExtension');
-
                 setIsAttachmentInvalid(true);
                 setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.wrongFileType'));
                 setAttachmentInvalidReason(invalidReason);
@@ -212,15 +218,16 @@ function AttachmentModal(props) {
         [props.translate],
     );
     /**
-     * @param {Object} _file
+     * @param {Object} _data
      */
     const validateAndDisplayFileToUpload = useCallback(
-        (_file) => {
+        (_data) => {
+            const _file = _data.getAsFile();
             if (!_file) {
                 return;
             }
 
-            if (!isValidFile(_file)) {
+            if (!isValidFile(_data)) {
                 return;
             }
 
