@@ -25,6 +25,7 @@ import themeColors from '../../../../styles/themes/default';
 import NotFoundPage from '../../../ErrorPage/NotFoundPage';
 import ValidateCodeForm from './ValidateCodeForm';
 import ROUTES from '../../../../ROUTES';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -68,6 +69,9 @@ const propTypes = {
         }),
     }),
 
+    /** Indicated whether the report data is loading */
+    isLoadingReportData: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -83,6 +87,7 @@ const defaultProps = {
             contactMethod: '',
         },
     },
+    isLoadingReportData: true,
 };
 
 class ContactMethodDetailsPage extends Component {
@@ -194,6 +199,10 @@ class ContactMethodDetailsPage extends Component {
         // Replacing spaces with "hard spaces" to prevent breaking the number
         const formattedContactMethod = Str.isSMSLogin(contactMethod) ? this.props.formatPhoneNumber(contactMethod).replace(/ /g, '\u00A0') : contactMethod;
 
+        if (this.props.isLoadingReportData && _.isEmpty(this.props.loginList)) {
+            return <FullscreenLoadingIndicator />;
+        }
+
         const loginData = this.props.loginList[contactMethod];
         if (!contactMethod || !loginData) {
             return <NotFoundPage />;
@@ -301,6 +310,9 @@ export default compose(
         },
         securityGroups: {
             key: `${ONYXKEYS.COLLECTION.SECURITY_GROUP}`,
+        },
+        isLoadingReportData: {
+            key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
         },
     }),
 )(ContactMethodDetailsPage);

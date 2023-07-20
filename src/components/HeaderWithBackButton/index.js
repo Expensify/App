@@ -27,7 +27,6 @@ function HeaderWithBackButton({
     onDownloadButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report = null,
-    parentReport = null,
     policies = {},
     personalDetails = {},
     shouldShowAvatarWithDisplay = false,
@@ -37,7 +36,6 @@ function HeaderWithBackButton({
     shouldShowDownloadButton = false,
     shouldShowGetAssistanceButton = false,
     shouldShowPinButton = false,
-    shouldShowStepCounter = false,
     shouldShowThreeDotsButton = false,
     stepCounter = null,
     subtitle = '',
@@ -52,6 +50,7 @@ function HeaderWithBackButton({
         horizontal: 0,
     },
     threeDotsMenuItems = [],
+    children = null,
 }) {
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
@@ -81,7 +80,7 @@ function HeaderWithBackButton({
                 )}
                 {shouldShowAvatarWithDisplay && (
                     <AvatarWithDisplayName
-                        report={parentReport || report}
+                        report={report}
                         policies={policies}
                         personalDetails={personalDetails}
                     />
@@ -89,11 +88,12 @@ function HeaderWithBackButton({
                 {!shouldShowAvatarWithDisplay && (
                     <Header
                         title={title}
-                        subtitle={stepCounter && shouldShowStepCounter ? translate('stepCounter', stepCounter) : subtitle}
+                        subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
                         textStyles={titleColor ? [StyleUtils.getTextColorStyle(titleColor)] : []}
                     />
                 )}
                 <View style={[styles.reportOptions, styles.flexRow, styles.pr5, styles.alignItemsCenter]}>
+                    {children}
                     {shouldShowDownloadButton && (
                         <Tooltip text={translate('common.download')}>
                             <PressableWithoutFeedback
