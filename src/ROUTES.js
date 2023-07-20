@@ -137,6 +137,7 @@ export default {
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
 
     APPLE_SIGN_IN: 'sign-in-with-apple',
+    GOOGLE_SIGN_IN: 'sign-in-with-google',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
