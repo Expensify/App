@@ -162,7 +162,7 @@ function ReportActionItemMessageEdit(props) {
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
+            const {text: newDraft, emojis} = EmojiUtils.replaceAndExtractEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
 
             if (!_.isEmpty(emojis)) {
                 insertedEmojis.current = [...insertedEmojis.current, ...emojis];

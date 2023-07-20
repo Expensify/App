@@ -789,7 +789,7 @@ class ReportActionCompose extends React.Component {
      * @param {Boolean} shouldDebounceSaveComment
      */
     updateComment(comment, shouldDebounceSaveComment) {
-        const {text: newComment = '', emojis = []} = EmojiUtils.replaceAndExtractEmojis(comment, this.props.preferredSkinTone, this.props.preferredLocale);
+        const {text: newComment, emojis} = EmojiUtils.replaceAndExtractEmojis(comment, this.props.preferredSkinTone, this.props.preferredLocale);
 
         if (!_.isEmpty(emojis)) {
             this.insertedEmojis = [...this.insertedEmojis, ...emojis];
