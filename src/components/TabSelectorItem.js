@@ -9,6 +9,9 @@ import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import fontFamily from '../styles/fontFamily';
 
 const propTypes = {
+    /** Title of the tab */
+    title: PropTypes.string.isRequired,
+
     /** Function to call when onPress */
     onPress: PropTypes.func,
 
@@ -17,16 +20,12 @@ const propTypes = {
 
     /** True if tab is the selected item */
     selected: PropTypes.bool,
-
-    /** Title of the tab */
-    title: PropTypes.string,
 };
 
 const defaultProps = {
     onPress: () => {},
     icon: () => {},
     selected: false,
-    title: '',
 };
 
 function TabSelectorItem(props) {
