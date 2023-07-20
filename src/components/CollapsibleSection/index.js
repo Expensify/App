@@ -17,7 +17,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-function CollapsibleSection() {
+function CollapsibleSection(props) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     function toggleSection() {
@@ -28,10 +28,11 @@ function CollapsibleSection() {
     return (
         <View style={styles.mt4}>
             <PressableWithFeedback
+                // eslint-disable-next-line react/jsx-no-bind
                 onPress={toggleSection}
                 style={[styles.pb4, styles.flexRow]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                accessibilityLabel={this.props.title}
+                accessibilityLabel={props.title}
                 hoverDimmingValue={1}
                 pressDimmingValue={0.2}
             >
@@ -39,14 +40,14 @@ function CollapsibleSection() {
                     selectable={false}
                     style={[styles.flex1, styles.textStrong]}
                 >
-                    {this.props.title}
+                    {props.title}
                 </Text>
                 <Icon src={src} />
             </PressableWithFeedback>
             <View style={styles.collapsibleSectionBorder} />
 
-            <Collapsible isOpened={.isExpanded}>
-                <View>{this.props.children}</View>
+            <Collapsible isOpened={isExpanded}>
+                <View>{props.children}</View>
             </Collapsible>
         </View>
     );
