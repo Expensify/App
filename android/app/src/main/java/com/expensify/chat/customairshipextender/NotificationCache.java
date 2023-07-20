@@ -1,5 +1,6 @@
 package com.expensify.chat.customairshipextender;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Parcel;
@@ -9,8 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class NotificationCache {
 
@@ -36,6 +39,29 @@ public class NotificationCache {
      */
     public static void setNotificationData(long reportID, NotificationData data) {
         cache.putParcelable(Long.toString(reportID), data);
+    }
+
+    private static void writeToInternalStorage(Context context) {
+        Parcel parcel = Parcel.obtain();
+        parcel.writeBundle(cache);
+
+        FileOutputStream output = null;
+        try {
+            File file = new File(context.getFilesDir(), "notification-cache");
+            output = new FileOutputStream(file);
+            output.write(parcel.marshall());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (output != null) {
+                    output.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            parcel.recycle();
+        }
     }
 
     public static class NotificationData implements Parcelable {
