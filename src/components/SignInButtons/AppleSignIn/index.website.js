@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import Config from 'react-native-config';
+import CONFIG from '../../../CONFIG';
 import get from 'lodash/get';
 import getUserLanguage from '../GetUserLanguage';
 import * as Session from '../../../libs/actions/Session';
@@ -39,7 +40,7 @@ const config = {
     clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONST.APPLE_SIGN_IN_SERVICE_ID),
     scope: 'name email',
     // never used, but required for configuration
-    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', CONST.APPLE_SIGN_IN_REDIRECT_URI),
+    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${CONST.APPLE_SIGN_IN_REDIRECT_ROUTE}`),
     state: '',
     nonce: '',
     usePopup: true,
