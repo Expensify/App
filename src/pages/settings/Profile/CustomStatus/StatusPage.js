@@ -7,8 +7,11 @@ import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
 import Text from '../../../../components/Text';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
+import useLocalize from '../../../../hooks/useLocalize';
 
 function StatusPage() {
+    const localize = useLocalize();
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
@@ -16,10 +19,10 @@ function StatusPage() {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
 
-            <Text style={[styles.textHeadline]}>Set your status</Text>
-            <Text style={[styles.textLabel]}>Add an emoji to give your colleagues and friends an easy way to know what's going on. You can optionally add a message too!</Text>
+            <Text style={[styles.textHeadline]}>{localize.translate('statusPage.setStatusTitle')}</Text>
+            <Text style={[styles.textNormal, styles.mt2]}>{localize.translate('statusPage.statusExplanation')}</Text>
 
-            <View style={[styles.mt4]}>
+            <View style={[styles.mt5]}>
                 <MenuItemWithTopDescription
                     title=""
                     description="Status"
