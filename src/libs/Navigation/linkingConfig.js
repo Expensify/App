@@ -13,6 +13,7 @@ export default {
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             Concierge: ROUTES.CONCIERGE,
+            AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
             // Sidebar
