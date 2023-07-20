@@ -1,8 +1,8 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
-import _, {compose} from 'underscore';
+import {compose} from 'underscore';
 import {PortalHost} from '@gorhom/portal';
 import PropTypes from 'prop-types';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
@@ -21,14 +21,10 @@ import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
 import ReceiptSelector from './ReceiptSelector';
 import DragAndDrop from '../../components/DragAndDrop';
 import * as IOU from '../../libs/actions/IOU';
-import * as ReportUtils from '../../libs/ReportUtils';
 import DistanceRequest from '../../components/DistanceRequest';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from './NavigateToNextIOUPage';
-import ConfirmModal from '../../components/ConfirmModal';
-import * as FileUtils from '../../libs/fileDownload/FileUtils';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Receipt from '../../libs/actions/Receipt';
 import AttachmentUtils from '../../libs/AttachmentUtils';
 
 const propTypes = {
@@ -107,26 +103,32 @@ function MoneyRequestSelectorPage(props) {
     const renderTabContent = () => {
         switch (selectedTab) {
             case CONST.TAB.TAB_MANUAL:
-                return <MoneyRequestAmountPage
-                    route={props.route}
-                    report={props.report}
-                    iou={props.iou}
-                    currentUserPersonalDetails={props.currentUserPersonalDetails}
-                />;
+                return (
+                    <MoneyRequestAmountPage
+                        route={props.route}
+                        report={props.report}
+                        iou={props.iou}
+                        currentUserPersonalDetails={props.currentUserPersonalDetails}
+                    />
+                );
             case CONST.TAB.TAB_SCAN:
-                return <ReceiptSelector
-                    route={props.route}
-                    report={props.report}
-                    iou={props.iou}
-                    isDraggingOver={isDraggingOver}
-                    currentUserPersonalDetails={props.currentUserPersonalDetails}
-                />;
+                return (
+                    <ReceiptSelector
+                        route={props.route}
+                        report={props.report}
+                        iou={props.iou}
+                        isDraggingOver={isDraggingOver}
+                        currentUserPersonalDetails={props.currentUserPersonalDetails}
+                    />
+                );
             case CONST.TAB.TAB_DISTANCE:
-                return <DistanceRequest
-                    route={props.route}
-                    report={props.report}
-                    iou={props.iou}
-                />;
+                return (
+                    <DistanceRequest
+                        route={props.route}
+                        report={props.report}
+                        iou={props.iou}
+                    />
+                );
             default:
                 return null;
         }

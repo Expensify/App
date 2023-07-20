@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -8,7 +8,6 @@ import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
-
 
 const propTypes = {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
