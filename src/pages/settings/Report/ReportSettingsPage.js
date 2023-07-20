@@ -57,7 +57,7 @@ function ReportSettingsPage(props) {
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => _.find(policies, (policy) => policy && policy.id === report.policyID), [policies, report.policyID]);
-    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace) || ReportUtils.isChatThread(report), [report, linkedWorkspace]);
+    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace), [report, linkedWorkspace]);
 
     // We only want policy owners and admins to be able to modify the welcome message.
     const shouldDisableWelcomeMessage =
