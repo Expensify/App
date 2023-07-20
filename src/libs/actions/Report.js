@@ -321,19 +321,10 @@ function addActions(reportID, text = '', file) {
         },
     ];
 
-    // Optimistically update the parent report action if the report is a thread
-    const report = ReportUtils.getReport(reportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(parentReportAction, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
-                },
-            });
-        }
+    // Update optimistic data for parent report action if the report is a child report
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, currentTime, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
     }
 
     // Update the timezone if it's been 5 minutes from the last time the user added a comment
@@ -959,22 +950,10 @@ function deleteReportComment(reportID, reportAction) {
         },
     ];
 
-    const report = ReportUtils.getReport(reportID);
-    if (report && report.parentReportActionID) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        if (parentReportAction && parentReportAction.reportActionID) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
-                value: {
-                    [parentReportAction.reportActionID]: ReportUtils.updateOptimisticParentReportAction(
-                        parentReportAction,
-                        optimisticReport.lastVisibleActionCreated,
-                        CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    ),
-                },
-            });
-        }
+    // Update optimistic data for parent report action if the report is a child report
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, optimisticReport.lastVisibleActionCreated, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
     }
 
     const parameters = {
