@@ -300,6 +300,8 @@ function MagicCodeInput(props) {
         }
     };
 
+    const isBrowser = Boolean(Browser.getBrowser());
+
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
@@ -344,7 +346,8 @@ function MagicCodeInput(props) {
                                 onPress={(event) => onPress(event, index)}
                                 onFocus={onFocus}
                                 caretHidden
-                                inputStyle={[styles.magicCodeInputTransparent]}
+                                textInputContainerStyles={[styles.borderNone]}
+                                inputStyle={[isBrowser ? styles.magicCodeInputTransparent : undefined]}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
