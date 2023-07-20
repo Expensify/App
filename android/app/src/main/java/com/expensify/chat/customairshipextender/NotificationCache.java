@@ -14,14 +14,14 @@ import java.util.HashMap;
 
 public class NotificationCache {
 
-    private static final HashMap<Long, NotificationData> cache = new HashMap<>();
+    private static final Bundle cache = new Bundle();
 
     /*
      * Get NotificationData for an existing notification or create a new instance
      * if it doesn't exist
      */
     public static NotificationData getNotificationData(long reportID) {
-        NotificationData notificationData = cache.get(reportID);
+        NotificationData notificationData = cache.getParcelable(Long.toString(reportID));
 
         if (notificationData == null) {
             notificationData = new NotificationData();
@@ -35,7 +35,7 @@ public class NotificationCache {
      * Set and persist NotificationData in the cache
      */
     public static void setNotificationData(long reportID, NotificationData data) {
-        cache.put(reportID, data);
+        cache.putParcelable(Long.toString(reportID), data);
     }
 
     public static class NotificationData implements Parcelable {
