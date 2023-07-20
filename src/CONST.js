@@ -635,7 +635,7 @@ const CONST = {
         OWNER_EMAIL_FAKE: '__FAKE__',
         OWNER_ACCOUNT_ID_FAKE: 0,
         DEFAULT_REPORT_NAME: 'Chat Report',
-        MAX_TASK_DESCRIPTION: 1000
+        MAX_TASK_DESCRIPTION: 1000,
     },
     COMPOSER: {
         MAX_LINES: 16,
