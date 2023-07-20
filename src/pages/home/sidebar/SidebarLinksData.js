@@ -65,7 +65,7 @@ const defaultProps = {
 };
 
 function SidebarLinksData({isFocused, allReportActions, betas, chatReports, currentReportID, insets, isPersonalDetailsLoading, isSmallScreenWidth, onLinkClick, policies, priorityMode}) {
-    const localize = useLocalize();
+    const {translate} = useLocalize();
 
     const reportIDsRef = useRef([]);
     const optionListItems = useMemo(() => {
@@ -82,7 +82,7 @@ function SidebarLinksData({isFocused, allReportActions, betas, chatReports, curr
     return (
         <View
             accessibilityElementsHidden={!isFocused}
-            accessibilityLabel={localize.translate('sidebarScreen.listOfChats')}
+            accessibilityLabel={translate('sidebarScreen.listOfChats')}
             style={[styles.flex1, styles.h100]}
         >
             <SidebarLinks

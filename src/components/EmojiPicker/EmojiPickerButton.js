@@ -17,12 +17,20 @@ const propTypes = {
     /** Id to use for the emoji picker button */
     nativeID: PropTypes.string,
 
+    /**
+     * ReportAction for EmojiPicker.
+     */
+    reportAction: PropTypes.shape({
+        reportActionID: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isDisabled: false,
     nativeID: '',
+    reportAction: {},
 };
 
 function EmojiPickerButton(props) {
@@ -35,7 +43,7 @@ function EmojiPickerButton(props) {
                 disabled={props.isDisabled}
                 onPress={() => {
                     if (!EmojiPickerAction.emojiPickerRef.current.isEmojiPickerVisible) {
-                        EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor.current);
+                        EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor.current, undefined, () => {}, props.reportAction);
                     } else {
                         EmojiPickerAction.emojiPickerRef.current.hideEmojiPicker();
                     }
