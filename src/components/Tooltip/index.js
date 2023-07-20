@@ -10,13 +10,14 @@ import TooltipSense from './TooltipSense';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import compose from '../../libs/compose';
 import withLocalize from '../withLocalize';
+import usePrevious from '../../hooks/usePrevious';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
 /**
  * A component used to wrap an element intended for displaying a tooltip. The term "tooltip's target" refers to the
  * wrapped element, which, upon hover, triggers the tooltip to be shown.
- *  @param {propTypes} props
+ * @param {propTypes} props
  * @returns {ReactNodeLike}
  */
 function Tooltip(props) {
@@ -35,7 +36,7 @@ function Tooltip(props) {
     const isTooltipSenseInitiator = useRef(false);
     const animation = useRef(new Animated.Value(0));
     const isAnimationCanceled = useRef(false);
-    const prevText = useRef(props.text);
+    const prevText = usePrevious(props.text);
 
     /**
      * Display the tooltip in an animation.
@@ -69,13 +70,14 @@ function Tooltip(props) {
     useEffect(() => {
         // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
         // we need to show the tooltip again
+
         if (isVisible && isAnimationCanceled.current && props.text && prevText !== props.text) {
             isAnimationCanceled.current = false;
             showTooltip();
         }
 
         prevText.current = props.text;
-    }, [isVisible, props.text, showTooltip]);
+    }, [isVisible, props.text, prevText, showTooltip]);
 
     /**
      * Update the tooltip bounding rectangle
@@ -137,8 +139,8 @@ function Tooltip(props) {
                     maxWidth={props.maxWidth}
                     numberOfLines={props.numberOfLines}
                     renderTooltipContent={props.renderTooltipContent}
-                    // We pass a key, so whenever the content changes component will completely remount with a fresh
-                    // prevents flickering/moving while remaining performant.
+                    // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
+                    // This prevents flickering/moving while remaining performant.
                     key={[props.text, ...props.renderTooltipContentKey, props.preferredLocale]}
                 />
             )}
