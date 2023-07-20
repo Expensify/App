@@ -395,7 +395,7 @@ function BaseTextInput(props) {
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >
-                    {props.value || props.placeholder}
+                    {props.value ? props.value + '\u200B' : props.placeholder}
                 </Text>
             )}
         </>
