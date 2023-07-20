@@ -35,10 +35,10 @@ type Props = {
 
 | PropTypes                                                            | TypeScript                                    | Instructions                                                                                                                                                                                                                                  |
 | -------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PropTypes.any`                                                      | `T`, `Record<string, unknown>` or `any`       | Figure out what would be the correct data type and use it.<br><br>If you know that it's a object but isn't possible to determine the internal structure, use `Record<string, unknown>`.                                                       |
+| `PropTypes.any`                                                      | `T`, `Record<string, unknown>` or `unknown`   | Figure out what would be the correct data type and use it.<br><br>If you know that it's a object but isn't possible to determine the internal structure, use `Record<string, unknown>`.                                                       |
 | `PropTypes.array` or `PropTypes.arrayOf(T)`                          | `T[]` or `Array<T>`                           | Convert to `T[]`, where `T` is the data type of the array.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure of your prop and use it.                                                                   |
 | `PropTypes.bool`                                                     | `boolean`                                     | Convert to `boolean`.                                                                                                                                                                                                                         |
-| `PropTypes.func`                                                     | `(arg1: Type1, arg2, Type2...) => ReturnType` | Convert to the function signature.                                                                                                                                                                                                            |
+| `PropTypes.func`                                                     | `(arg1: Type1, arg2: Type2...) => ReturnType` | Convert to the function signature.                                                                                                                                                                                                            |
 | `PropTypes.number`                                                   | `number`                                      | Convert to `number`.                                                                                                                                                                                                                          |
 | `PropTypes.object`, `PropTypes.shape(T)` or `PropTypes.exact(T)`     | `T`                                           | If `T` isn't a primitive type, create a separate `type` for the `T` object structure of your prop and use it.<br><br>If you want an object but isn't possible to determine the internal structure, use `Record<string, unknown>`.             |
 | `PropTypes.objectOf(T)`                                              | `Record<string, T>`                           | Convert to a `Record<string, T>` where `T` is the data type of values stored in the object.<br><br>If `T` isn't a primitive type, create a separate `type` for the object structure and use it.                                               |
@@ -120,7 +120,7 @@ type Props = {
 
   // It's not possible to infer the data as it can be anything because of reasons X, Y and Z.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  anotherUnknownData: any;
+  anotherUnknownData: unknown;
 
   indexes: number[];
   items: Item[];
