@@ -1182,10 +1182,9 @@ function getReportName(report, policy = undefined) {
  * Recursively navigates through thread parents to get the root report and workspace name.
  * The recursion stops when we find a non thread or money request report, whichever comes first.
  * @param {Object} report
- * @param {Object} policy
  * @returns {Object}
  */
-function getRootReportAndWorkspaceName(report, policy) {
+function getRootReportAndWorkspaceName(report) {
     if (isChildReport(report) && !isMoneyRequestReport(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         return getRootReportAndWorkspaceName(parentReport);
@@ -1199,13 +1198,13 @@ function getRootReportAndWorkspaceName(report, policy) {
     if (isMoneyRequestReport(report)) {
         return {
             rootReportName: lodashGet(report, 'displayName', ''),
-            workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true, policy),
+            workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
         };
     }
 
     return {
         rootReportName: getReportName(report),
-        workspaceName: getPolicyName(report, true, policy),
+        workspaceName: getPolicyName(report, true),
     };
 }
 
