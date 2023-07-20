@@ -171,7 +171,7 @@ function TransferBalancePage(props) {
     const isButtonDisabled = !isTransferable || !selectedAccount;
     const errorMessage = !_.isEmpty(props.walletTransfer.errors) ? _.chain(props.walletTransfer.errors).values().first().value() : '';
 
-    const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(cardList, props.bankAccountList) && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
+    const shouldShowTransferView = PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, props.bankAccountList) && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
     return (
         <ScreenWrapper>
