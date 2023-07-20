@@ -360,6 +360,7 @@ export default {
         upload: 'Subir recibo',
         dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
         dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
+        chooseReceiptBeforeEmail: 'Elige un recibo para subir o reenvía un recibo a ',
         chooseFile: 'Elegir archivo',
         givePermission: 'Permitir',
         takePhoto: 'Haz una foto',

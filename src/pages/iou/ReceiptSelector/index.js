@@ -22,6 +22,7 @@ import ConfirmModal from '../../../components/ConfirmModal';
 import AttachmentUtils from '../../../libs/AttachmentUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -97,6 +98,7 @@ function ReceiptSelector(props) {
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
     const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
      * Close the confirm modal.
@@ -104,6 +106,30 @@ function ReceiptSelector(props) {
     const closeConfirmModal = useCallback(() => {
         Receipt.clearUploadReceiptError();
     }, []);
+
+    const uploadText = () =>
+        isSmallScreenWidth ? (
+            <Text style={[styles.subTextReceiptUpload]}>
+                {props.translate('receipt.chooseReceiptBeforeEmail')}
+                <View style={{flexDirection: 'row'}}>
+                    <CopyTextToClipboard
+                        text="receipts@expensify.com"
+                        textStyles={[styles.textBlue]}
+                    />
+                </View>
+            </Text>
+        ) : (
+            <Text style={[styles.subTextReceiptUpload]}>
+                {props.translate('receipt.dragReceiptBeforeEmail')}
+                <View style={{flexDirection: 'row'}}>
+                    <CopyTextToClipboard
+                        text="receipts@expensify.com"
+                        textStyles={[styles.textBlue]}
+                    />
+                </View>
+                {props.translate('receipt.dragReceiptAfterEmail')}
+            </Text>
+        );
 
     const defaultView = () => (
         <>
@@ -118,16 +144,7 @@ function ReceiptSelector(props) {
                 />
             </View>
             <Text style={[styles.textReceiptUpload]}>{props.translate('receipt.upload')}</Text>
-            <Text style={[styles.subTextReceiptUpload]}>
-                {props.translate('receipt.dragReceiptBeforeEmail')}
-                <View style={{flexDirection: 'row'}}>
-                    <CopyTextToClipboard
-                        text="receipts@expensify.com"
-                        textStyles={[styles.textBlue]}
-                    />
-                </View>
-                {props.translate('receipt.dragReceiptAfterEmail')}
-            </Text>
+            {uploadText()}
             <AttachmentPicker>
                 {({openPicker}) => (
                     <PressableWithFeedback
@@ -160,7 +177,7 @@ function ReceiptSelector(props) {
     );
 
     return (
-        <View style={[styles.uploadReceiptView]}>
+        <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
             {!props.isDraggingOver ? defaultView() : null}
             {props.isDraggingOver && <ReceiptDropUI receiptImageTopPosition={receiptImageTopPosition} />}
             <ConfirmModal

@@ -759,9 +759,9 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
-    uploadReceiptView: {
+    uploadReceiptView: (isSmallScreenWidth) => ({
         borderRadius: variables.componentBorderRadiusLarge,
-        borderWidth: 2,
+        borderWidth: isSmallScreenWidth ? 0 : 2,
         borderColor: themeColors.borderFocus,
         borderStyle: 'dotted',
         marginBottom: 20,
@@ -772,7 +772,7 @@ const styles = {
         padding: 40,
         gap: 4,
         flex: 1,
-    },
+    }),
 
     cameraView: {
         flex: 1,
