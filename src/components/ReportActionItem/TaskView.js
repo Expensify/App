@@ -107,8 +107,8 @@ function TaskView(props) {
                 shouldShowRightIcon={isOpen}
                 disabled={!isOpen}
                 wrapperStyle={[styles.pv2]}
-                numberOfLinesTitle={3}
                 shouldGreyOutWhenDisabled={false}
+                titleStyle={[styles.preWrap]}
             />
             {props.report.managerID ? (
                 <MenuItem

@@ -116,6 +116,7 @@ function NewTaskPage(props) {
                         textAlignVertical="top"
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
+                        maxLength={CONST.REPORT.MAX_TASK_DESCRIPTION}
                     />
                 </View>
             </Form>
