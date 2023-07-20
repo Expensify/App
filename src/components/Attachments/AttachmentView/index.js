@@ -73,7 +73,7 @@ function AttachmentView({
 
     // Check both source and file.name since PDFs dragged into the the text field
     // will appear with a source that is a blob
-    if ((source != null && Str.isPDF(source)) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
+    if (Str.isPDF(source) || (file && Str.isPDF(file.name || translate('attachmentView.unknownFilename')))) {
         const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source) : source;
 
         return (
@@ -94,7 +94,7 @@ function AttachmentView({
 
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the the text field
-    const isImage = source != null && Str.isImage(source);
+    const isImage = Str.isImage(source);
     if (isImage || (file && Str.isImage(file.name))) {
         return (
             <AttachmentViewImage
