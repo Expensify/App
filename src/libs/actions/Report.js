@@ -1645,7 +1645,7 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
- * @param {String} reportAction
+ * @param {Object} reportAction
  * @param {Object} reactionObject
  * @param {Object} existingReactions
  * @param {Number} [paramSkinTone]
