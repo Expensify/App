@@ -10,7 +10,7 @@ import Text from './Text';
 
 const propTypes = {
     /** A list of menuItems representing the feature list. */
-    menuItems: PropTypes.arrayOf(PropTypes.shape(menuItemPropTypes)).isRequired,
+    menuItems: PropTypes.arrayOf(PropTypes.shape({...menuItemPropTypes, translationKey: PropTypes.string})).isRequired,
 
     /** A headline translation key to show above the feature list. */
     headline: PropTypes.string.isRequired,
