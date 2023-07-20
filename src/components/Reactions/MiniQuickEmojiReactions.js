@@ -12,7 +12,7 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
-import {baseQuickEmojiReactionsPropTypes} from './QuickEmojiReactions/BaseQuickEmojiReactions';
+import {baseQuickEmojiReactionsPropTypes, baseQuickEmojiReactionsDefaultProps} from './QuickEmojiReactions/BaseQuickEmojiReactions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -40,6 +40,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    ...baseQuickEmojiReactionsDefaultProps,
     onEmojiPickerClosed: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
     reportAction: {},
@@ -61,7 +62,7 @@ function MiniQuickEmojiReactions(props) {
         EmojiPickerAction.showEmojiPicker(
             props.onEmojiPickerClosed,
             (emojiCode, emojiObject) => {
-                props.onEmojiSelected(emojiObject);
+                props.onEmojiSelected(emojiObject, props.emojiReactions);
             },
             ref.current,
             undefined,
@@ -77,7 +78,7 @@ function MiniQuickEmojiReactions(props) {
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${EmojiUtils.getLocalizedEmojiName(emoji.name, props.preferredLocale)}:`}
-                    onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji))}
+                    onPress={Session.checkIfActionIsAllowed(() => props.onEmojiSelected(emoji, props.emojiReactions))}
                 >
                     <Text style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}>{EmojiUtils.getPreferredEmojiCode(emoji, props.preferredSkinTone)}</Text>
                 </BaseMiniContextMenuItem>
@@ -105,9 +106,15 @@ MiniQuickEmojiReactions.propTypes = propTypes;
 MiniQuickEmojiReactions.defaultProps = defaultProps;
 export default compose(
     withLocalize,
+    // ESLint throws an error because it can't see that emojiReactions is defined in props. It is defined in props, but
+    // because of a couple spread operators, I think that's why ESLint struggles to see it
+    // eslint-disable-next-line rulesdir/onyx-props-must-have-default
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        emojiReactions: {
+            key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
         },
     }),
 )(MiniQuickEmojiReactions);
