@@ -33,7 +33,7 @@ import NAVIGATORS from '../../../NAVIGATORS';
 import * as SessionUtils from '../../SessionUtils';
 import NotFoundPage from '../../../pages/ErrorPage/NotFoundPage';
 import getRootNavigatorScreenOptions from './getRootNavigatorScreenOptions';
-import styles from '../../../styles/styles'
+import styles from '../../../styles/styles';
 
 let currentUserEmail;
 Onyx.connect({
