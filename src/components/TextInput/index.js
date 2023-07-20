@@ -8,11 +8,6 @@ import DomUtils from '../../libs/DomUtils';
 import Visibility from '../../libs/Visibility';
 
 class TextInput extends React.Component {
-    constructor(props) {
-        super(props);
-        this.unsubscribeVisibilityListener = null;
-    }
-
     componentDidMount() {
         if (this.props.disableKeyboard) {
             this.textInput.setAttribute('inputmode', 'none');
