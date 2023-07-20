@@ -845,6 +845,9 @@ export default {
         setPasswordLinkInvalid: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
         validateAccount: 'Verify account',
     },
+    statusPage: {
+        status: 'Status',
+    },
     stepCounter: ({step, total, text}) => {
         let result = `Step ${step}`;
 

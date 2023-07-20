@@ -74,6 +74,11 @@ function ProfilePage(props) {
             brickRoadIndicator: contactMethodBrickRoadIndicator,
         },
         {
+            description: props.translate('statusPage.status'),
+            title: '', // TODO: Get the status from onyx
+            pageRoute: ROUTES.SETTINGS_STATUS,
+        },
+        {
             description: props.translate('pronounsPage.pronouns'),
             title: getPronouns(),
             pageRoute: ROUTES.SETTINGS_PRONOUNS,

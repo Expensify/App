@@ -849,6 +849,9 @@ export default {
         setPasswordLinkInvalid: 'El enlace para configurar tu contraseña ha expirado. Te hemos enviado un nuevo enlace a tu correo.',
         validateAccount: 'Verificar cuenta',
     },
+    StatusPage: {
+        status: 'Estado',
+    },
     stepCounter: ({step, total, text}) => {
         let result = `Paso ${step}`;
 

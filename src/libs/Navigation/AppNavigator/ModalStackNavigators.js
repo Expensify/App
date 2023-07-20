@@ -524,6 +524,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
+            const SettingsStatus = require('../../../pages/settings/Profile/CustomStatus/StatusPage').default;
+            return SettingsStatus;
+        },
+        name: 'Settings_Status',
+    },
+    {
+        getComponent: () => {
             const WorkspaceInitialPage = require('../../../pages/workspace/WorkspaceInitialPage').default;
             return WorkspaceInitialPage;
         },

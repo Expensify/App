@@ -181,6 +181,10 @@ export default {
                                 path: ROUTES.SETTINGS_SHARE_CODE,
                                 exact: true,
                             },
+                            Settings_Status: {
+                                path: ROUTES.SETTINGS_STATUS,
+                                exact: true,
+                            },
                             Workspace_Initial: {
                                 path: ROUTES.WORKSPACE_INITIAL,
                             },
