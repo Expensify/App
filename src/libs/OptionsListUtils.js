@@ -40,6 +40,12 @@ Onyx.connect({
     callback: (val) => (loginList = _.isEmpty(val) ? {} : val),
 });
 
+let allPersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (val) => (allPersonalDetails = _.isEmpty(val) ? {} : val),
+});
+
 let preferredLocale;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -150,11 +156,18 @@ function addSMSDomainIfPhoneNumber(login) {
  *
  * @param {Array<Number>} accountIDs
  * @param {Object} personalDetails
+ * @param {Object} defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns {Object}
  */
-function getAvatarsForAccountIDs(accountIDs, personalDetails) {
+function getAvatarsForAccountIDs(accountIDs, personalDetails, defaultValues = {}) {
+    const reversedDefaultValues = {};
+    _.map(Object.entries(defaultValues), (item) => {
+        reversedDefaultValues[item[1]] = item[0];
+    });
+
     return _.map(accountIDs, (accountID) => {
-        const userPersonalDetail = lodashGet(personalDetails, accountID, {login: '', accountID, avatar: ''});
+        const login = lodashGet(reversedDefaultValues, accountID, '');
+        const userPersonalDetail = lodashGet(personalDetails, accountID, {login, accountID, avatar: ''});
         return {
             id: accountID,
             source: UserUtils.getAvatar(userPersonalDetail.avatar, userPersonalDetail.accountID),
@@ -332,7 +345,14 @@ function getSearchText(report, reportName, personalDetailList, isChatRoomOrPolic
 
             Array.prototype.push.apply(searchTerms, chatRoomSubtitle.split(/[,\s]/));
         } else {
-            searchTerms = searchTerms.concat(report.participants);
+            const participantAccountIDs = report.participantAccountIDs || [];
+            for (let i = 0; i < participantAccountIDs.length; i++) {
+                const accountID = participantAccountIDs[i];
+
+                if (allPersonalDetails[accountID] && allPersonalDetails[accountID].login) {
+                    searchTerms = searchTerms.concat(allPersonalDetails[accountID].login);
+                }
+            }
         }
     }
 
@@ -499,6 +519,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isMoneyRequestReport) {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        } else if (result.isTaskReport) {
+            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
@@ -772,7 +794,7 @@ function getOptions(
 
     let userToInvite = null;
     const noOptions = recentReportOptions.length + personalDetailsOptions.length === 0 && !currentUserOption;
-    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === searchValue.toLowerCase());
+    const noOptionsMatchExactly = !_.find(personalDetailsOptions.concat(recentReportOptions), (option) => option.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase());
 
     if (
         searchValue &&
@@ -784,7 +806,7 @@ function getOptions(
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // Generates an optimistic account ID for new users not yet saved in Onyx
-        const optimisticAccountID = UserUtils.generateAccountID();
+        const optimisticAccountID = UserUtils.generateAccountID(searchValue);
         const personalDetailsExtended = {
             ...personalDetails,
             [optimisticAccountID]: {
@@ -869,6 +891,7 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         includeOwnedWorkspaceChats: true,
         includeThreads: true,
         includeMoneyRequests: true,
+        includeTasks: true,
     });
 }
 
