@@ -57,6 +57,7 @@ class PDFPasswordForm extends Component {
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
         this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
+        this.getErrorText = this.getErrorText.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -64,6 +65,17 @@ class PDFPasswordForm extends Component {
             return;
         }
         this.textInputRef.focus();
+    }
+
+    getErrorText() {
+        if (this.props.isPasswordInvalid) {
+            return this.props.translate('attachmentView.passwordIncorrect');
+        }
+        if (!_.isEmpty(this.state.validationErrorText)) {
+            return this.props.translate(this.state.validationErrorText);
+        }
+
+        return '';
     }
 
     submitPassword() {
@@ -86,7 +98,7 @@ class PDFPasswordForm extends Component {
             return true;
         }
         this.setState({
-            validationErrorText: this.props.translate('attachmentView.passwordRequired'),
+            validationErrorText: 'attachmentView.passwordRequired',
         });
         return false;
     }
@@ -101,6 +113,7 @@ class PDFPasswordForm extends Component {
     }
 
     render() {
+        const errorText = this.getErrorText();
         const containerStyle = this.props.isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth;
 
         return (
@@ -129,7 +142,7 @@ class PDFPasswordForm extends Component {
                             onChangeText={this.updatePassword}
                             returnKeyType="done"
                             onSubmitEditing={this.submitPassword}
-                            errorText={this.props.isPasswordInvalid ? this.props.translate('attachmentView.passwordIncorrect') : this.state.validationErrorText}
+                            errorText={errorText}
                             onFocus={() => this.props.onPasswordFieldFocused(true)}
                             onBlur={this.validateAndNotifyPasswordBlur}
                             autoFocus

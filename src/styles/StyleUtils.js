@@ -625,7 +625,7 @@ function getLoginPagePromoStyle() {
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
         },
         {
-            backgroundColor: colors.floralwhite,
+            backgroundColor: colors.ivory,
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
             redirectUri: `${CONST.USE_EXPENSIFY_URL}/accountants`,
         },
@@ -663,6 +663,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
     return {
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
+        ...styles.cursorDefault,
         position: 'absolute',
         zIndex: 1,
     };
@@ -1115,13 +1116,13 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
     if (isContextMenu) {
         return {
             fontSize: 17,
-            lineHeight: 28,
+            lineHeight: 24,
         };
     }
 
     return {
         fontSize: 15,
-        lineHeight: 24,
+        lineHeight: 22,
     };
 }
 
