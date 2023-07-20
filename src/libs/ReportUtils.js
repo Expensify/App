@@ -519,10 +519,10 @@ function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined
     }
     const finalPolicy = policy || _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
 
-    //     // Public rooms send back the policy name with the reportSummary,
-    //     // since they can also be accessed by people who aren't in the workspace
+    // Public rooms send back the policy name with the reportSummary,
+    // since they can also be accessed by people who aren't in the workspace
 
-    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
+    return lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
 }
 
 /**
@@ -1156,11 +1156,11 @@ function getReportName(report, policy = undefined) {
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = getPolicyExpenseChatName(report);
+        formattedName = getPolicyExpenseChatName(report, policy);
     }
 
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName(report);
+        formattedName = getMoneyRequestReportName(report, policy);
     }
 
     if (isArchivedRoom(report)) {
