@@ -274,6 +274,17 @@ function beginAppleSignIn(idToken) {
 }
 
 /**
+ * Shows Google sign-in process, and if an auth token is successfully obtained,
+ * passes the token on to the Expensify API to sign in with
+ *
+ * @param {String} token
+ */
+function beginGoogleSignIn(token) {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    API.write('SignInWithGoogle', {token}, {optimisticData, successData, failureData});
+}
+
+/**
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  *
@@ -767,6 +778,7 @@ function validateTwoFactorAuth(twoFactorAuthCode) {
 export {
     beginSignIn,
     beginAppleSignIn,
+    beginGoogleSignIn,
     setSupportAuthToken,
     checkIfActionIsAllowed,
     signIn,
