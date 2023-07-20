@@ -174,6 +174,7 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -474,16 +475,6 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
 
-    SIGN_IN_FORM_WIDTH: 300,
-
-    APPLE_SIGN_IN_SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
-    APPLE_SIGN_IN_REDIRECT_URI: 'https://new.expensify.com/appleauth',
-
-    SIGN_IN_METHOD: {
-        APPLE: 'Apple',
-        GOOGLE: 'Google',
-    },
-
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -613,6 +604,7 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+            BILLING: 3,
         },
         STATUS: {
             OPEN: 0,

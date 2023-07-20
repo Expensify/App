@@ -119,6 +119,16 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 isOptimisticReport: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
+            value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        },
     ];
 
     const failureData = [
@@ -162,6 +172,12 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             },
         );
 
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
@@ -186,6 +202,8 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         },
         {optimisticData, successData, failureData},
     );
+
+    clearOutTaskInfo();
 
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
