@@ -86,7 +86,7 @@ function MenuItem(props) {
             props.icon && !_.isArray(props.icon) && (props.avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
             props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
-            props.numberOfLinesTitle > 1 ? styles.preWrap : styles.pre,
+            props.numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
