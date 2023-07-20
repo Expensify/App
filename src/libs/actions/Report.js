@@ -263,6 +263,7 @@ function addActions(reportID, text = '', file) {
         lastMessageHtml: lastCommentText,
         lastActorAccountID: currentUserAccountID,
         lastReadTime: currentTime,
+        isLastMessageDeletedParentAction: null,
     };
 
     // Optimistically add the new actions to the store before waiting to save them to the server
@@ -899,14 +900,22 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
-    if (lastMessageText || lastMessageTranslationKey) {
-        const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions).created;
+    if (reportAction.reportActionID && reportAction.childVisibleActionCount > 0) {
         optimisticReport = {
-            lastMessageTranslationKey,
-            lastMessageText,
-            lastVisibleActionCreated,
+            lastMessageTranslationKey: '',
+            lastMessageText: '',
+            isLastMessageDeletedParentAction: true,
         };
+    } else {
+        const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
+        if (lastMessageText || lastMessageTranslationKey) {
+            const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions).created;
+            optimisticReport = {
+                lastMessageTranslationKey,
+                lastMessageText,
+                lastVisibleActionCreated,
+            };
+        }
     }
 
     // If the API call fails we must show the original message again, so we revert the message content back to how it was
@@ -1636,15 +1645,16 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
- * @param {String} reportActionID
+ * @param {Object} reportAction
  * @param {Object} reactionObject
  * @param {Object} existingReactions
  * @param {Number} [paramSkinTone]
  */
-function toggleEmojiReaction(reportID, reportActionID, reactionObject, existingReactions, paramSkinTone = preferredSkinTone) {
-    const reportAction = ReportActionsUtils.getReportAction(reportID, reportActionID);
+function toggleEmojiReaction(reportID, reportAction, reactionObject, existingReactions, paramSkinTone = preferredSkinTone) {
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+    const originalReportAction = ReportActionsUtils.getReportAction(originalReportID, reportAction.reportActionID);
 
-    if (_.isEmpty(reportAction)) {
+    if (_.isEmpty(originalReportAction)) {
         return;
     }
 
