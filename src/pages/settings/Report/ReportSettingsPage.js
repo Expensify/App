@@ -57,26 +57,7 @@ function ReportSettingsPage(props) {
     const {translate} = useLocalize();
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = useMemo(() => _.find(policies, (policy) => policy && policy.id === report.policyID), [policies, report.policyID]);
-    const shouldDisableRename = useMemo(() => {
-        if (ReportUtils.isDefaultRoom(report) || ReportUtils.isArchivedRoom(report) || ReportUtils.isChatThread(report)) {
-            return true;
-        }
-
-        // The remaining checks only apply to public rooms
-        if (!ReportUtils.isPublicRoom(report)) {
-            return false;
-        }
-
-        // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
-        // which means this has to be a public room we want to disable renaming for
-        if (!linkedWorkspace) {
-            return true;
-        }
-
-        // If there is a linked workspace, that means the user is a member of the workspace the report is in.
-        // Still, we only want policy owners and admins to be able to modify the name.
-        return !Policy.isPolicyOwner(linkedWorkspace) && linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
-    }, [report, linkedWorkspace]);
+    const shouldDisableRename = useMemo(() => ReportUtils.shouldDisableRename(report, linkedWorkspace) || ReportUtils.isChatThread(report), [report, linkedWorkspace]);
 
     // We only want policy owners and admins to be able to modify the welcome message.
     const shouldDisableWelcomeMessage =
