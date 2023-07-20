@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import { View } from 'react-native';
+import { withOnyx } from 'react-native-onyx';
 import _ from 'underscore';
 import UserDetailsTooltip from './UserDetailsTooltip';
 import styles from '../styles/styles';
 import Text from './Text';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withLocalize, { withLocalizePropTypes } from './withLocalize';
 import compose from '../libs/compose';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
@@ -96,7 +96,7 @@ function ReportWelcomeText(props) {
                 {isDefault && (
                     <Text>
                         <Text>{props.translate('reportActionsView.beginningOfChatHistory')}</Text>
-                        {_.map(displayNamesWithTooltips, ({displayName, pronouns, accountID}, index) => (
+                        {_.map(displayNamesWithTooltips, ({ displayName, pronouns, accountID }, index) => (
                             <Text key={`${displayName}${pronouns}${index}`}>
                                 <UserDetailsTooltip accountID={accountID}>
                                     <Text
@@ -114,7 +114,7 @@ function ReportWelcomeText(props) {
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
+                {(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
                     <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
                 )}
             </Text>
