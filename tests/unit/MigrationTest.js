@@ -641,7 +641,7 @@ describe('Migrations', () => {
 
         it('Should remove any instances of ownerEmail found in a report', () =>
             Onyx.multiSet({
-                [`${ONYXKEYS.REPORT}1`]: {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
                     reportID: 1,
                     ownerEmail: 'fake@test.com',
                     ownerAccountID: 5,
@@ -659,14 +659,14 @@ describe('Migrations', () => {
                                 reportID: 1,
                                 ownerAccountID: 5,
                             };
-                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`][1]).toMatchObject(expectedReport);
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`]).toMatchObject(expectedReport);
                         },
                     });
                 }));
 
         it('Should remove any instances of managerEmail found in a report', () =>
             Onyx.multiSet({
-                [`${ONYXKEYS.REPORT}1`]: {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
                     reportID: 1,
                     managerEmail: 'fake@test.com',
                     managerID: 5,
@@ -684,14 +684,14 @@ describe('Migrations', () => {
                                 reportID: 1,
                                 managerID: 5,
                             };
-                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`][1]).toMatchObject(expectedReport);
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`]).toMatchObject(expectedReport);
                         },
                     });
                 }));
 
         it('Should remove any instances of lastActorEmail found in a report', () =>
             Onyx.multiSet({
-                [`${ONYXKEYS.REPORT}1`]: {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
                     reportID: 1,
                     lastActorEmail: 'fake@test.com',
                     lastActorAccountID: 5,
@@ -709,14 +709,14 @@ describe('Migrations', () => {
                                 reportID: 1,
                                 lastActorAccountID: 5,
                             };
-                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`][1]).toMatchObject(expectedReport);
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`]).toMatchObject(expectedReport);
                         },
                     });
                 }));
 
         it('Should remove any instances of participants found in a report', () =>
             Onyx.multiSet({
-                [`${ONYXKEYS.REPORT}1`]: {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: {
                     reportID: 1,
                     participants: ['fake@test.com'],
                     participantAccountIDs: 5,
@@ -734,7 +734,7 @@ describe('Migrations', () => {
                                 reportID: 1,
                                 participantAccountIDs: 5,
                             };
-                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`][1]).toMatchObject(expectedReport);
+                            expect(allReports[`${ONYXKEYS.COLLECTION.REPORT}1`]).toMatchObject(expectedReport);
                         },
                     });
                 }));
