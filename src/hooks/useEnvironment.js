@@ -1,22 +1,12 @@
-import {useEffect, useState} from 'react';
-import * as Environment from '../libs/Environment/Environment';
+import {useContext} from 'react';
 import CONST from '../CONST';
+import {EnvironmentContext} from '../components/withEnvironment';
 
 export default function useEnvironment() {
-    const [environment, setEnvironment] = useState(CONST.ENVIRONMENT.PRODUCTION);
-    const [environmentURL, setEnvironmentURL] = useState(CONST.NEW_EXPENSIFY_URL);
-
-    useEffect(() => {
-        Environment.getEnvironment().then((env) => {
-            setEnvironment(env);
-        });
-        Environment.getEnvironmentURL().then((envUrl) => {
-            setEnvironmentURL(envUrl);
-        });
-    }, []);
-
+    const {environment, environmentURL} = useContext(EnvironmentContext);
     return {
         environment,
         environmentURL,
+        isProduction: environment === CONST.ENVIRONMENT.PRODUCTION,
     };
 }
