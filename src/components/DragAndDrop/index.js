@@ -5,6 +5,7 @@ import _ from 'underscore';
 import variables from '../../styles/variables';
 import DragAndDropPropTypes from './dragAndDropPropTypes';
 import withNavigationFocus from '../withNavigationFocus';
+import usePrevious from '../../hooks/usePrevious';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
@@ -47,6 +48,8 @@ const defaultProps = {
 };
 
 function DragAndDrop(props) {
+    const prevIsFocused = usePrevious(props.isFocused);
+    const prevIsDisabled = usePrevious(props.disabled);
     const dropZone = useRef(null);
     const dropZoneRect = useRef(null);
     /*
@@ -179,24 +182,16 @@ function DragAndDrop(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Use refs to store the previous values of props
-    const prevIsFocused = useRef(props.isFocused);
-    const prevIsDisabled = useRef(props.disabled);
-
     useEffect(() => {
-        const isDisabled = props.disabled;
-        if (props.isFocused === prevIsFocused && isDisabled === prevIsDisabled) {
+        if (props.isFocused === prevIsFocused && props.disabled === prevIsDisabled) {
             return;
         }
-        if (!props.isFocused || isDisabled) {
+        if (!props.isFocused || props.disabled) {
             removeEventListeners();
         } else {
             addEventListeners();
         }
-
-        prevIsFocused.current = props.isFocused;
-        prevIsDisabled.current = props.disabled;
-    });
+    }, [props.disabled, props.isFocused, prevIsDisabled, prevIsFocused, addEventListeners, removeEventListeners]);
 
     return props.children;
 }
