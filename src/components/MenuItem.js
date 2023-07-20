@@ -72,7 +72,6 @@ const defaultProps = {
     isAnonymousAction: false,
     isSmallAvatarSubscriptMenu: false,
     title: '',
-    numberOfLinesTitle: 1,
     shouldGreyOutWhenDisabled: true,
 };
 
