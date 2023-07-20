@@ -17,11 +17,7 @@ class TextInput extends React.Component {
             this.textInput.setAttribute('name', this.props.name);
         }
 
-        /**
-         * A visibliity listener responsible for re-establishing focus on the TextInput in cases where a user
-         * switches away from an MWeb tab and back. This forces the soft keyboard to be activated on Android
-         * after switching back to the tab. See https://github.com/Expensify/App/issues/20690 for more details.
-         */
+        // Forcefully activate the soft keyboard when the user switches between tabs while input was focused.
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!Visibility.isVisible() || !this.textInput || DomUtils.getActiveElement() !== this.textInput) {
                 return;
