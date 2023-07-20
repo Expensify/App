@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -855,9 +856,15 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
     }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
@@ -1153,8 +1160,8 @@ const styles = {
     },
 
     signInPageLeftContainer: {
-        paddingLeft: 48,
-        paddingRight: 48,
+        paddingLeft: 40,
+        paddingRight: 40,
     },
 
     signInPageLeftContainerWide: {
@@ -1162,11 +1169,11 @@ const styles = {
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: CONST.SIGN_IN_FORM_WIDTH,
+        maxWidth: 300,
     },
 
     signInPageWelcomeTextContainer: {
-        width: CONST.SIGN_IN_FORM_WIDTH,
+        width: 300,
     },
 
     changeExpensifyLoginLinkContainer: {
@@ -3515,31 +3522,6 @@ const styles = {
     qrShareTitle: {
         marginTop: 15,
         textAlign: 'center',
-    },
-
-    loginButtonRow: {
-        justifyContent: 'center',
-        width: '100%',
-        ...flex.flexRow,
-    },
-
-    loginButtonRowSmallScreen: {
-        justifyContent: 'center',
-        width: '100%',
-        marginBottom: 10,
-        ...flex.flexRow,
-    },
-
-    appleButtonContainer: {
-        width: 40,
-        height: 40,
-        marginRight: 20,
-    },
-
-    signInIconButton: {
-        margin: 10,
-        marginTop: 0,
-        padding: 2,
     },
 
     /**
