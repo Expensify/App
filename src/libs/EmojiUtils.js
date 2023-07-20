@@ -266,7 +266,9 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  */
 function extractEmojis(text) {
     const emojis = [];
-    if (!text || typeof text !== 'string') return emojis;
+    if (!text) {
+        return emojis;
+    }
 
     let parseEmojis = text.match(CONST.REGEX.CODE_EMOJIS);
 
