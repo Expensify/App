@@ -1105,9 +1105,13 @@ function getReportPreviewMessage(report, reportAction = {}) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isSettled(report.reportID)) {
-        // A settled message is in the format of either "paid $1.00 elsewhere" or "paid $1.00 using Paypal.me"
-        const isSettledPaypalMe = Boolean(reportActionMessage.match(/ Paypal.me$/));
-        const translatePhraseKey = isSettledPaypalMe ? 'iou.settledPaypalMeWithAmount' : 'iou.settledElsewhereWithAmount';
+        // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... using Expensify"
+        let translatePhraseKey = 'iou.paidElsewhereWithAmount';
+        if (reportActionMessage.match(/ Paypal.me$/)) {
+            translatePhraseKey = 'iou.paidUsingPaypalWithAmount';
+        } else if (reportActionMessage.match(/ using Expensify$/)) {
+            translatePhraseKey = 'iou.paidUsingExpensifyWithAmount';
+        }
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
     }
     return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
@@ -1533,11 +1537,14 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  */
 function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
     const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    const amount = NumberFormatUtils.format(preferredLocale, total / currencyUnit, {style: 'currency', currency});
+    const amount = NumberFormatUtils.format(preferredLocale, Math.abs(total) / currencyUnit, {style: 'currency', currency});
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
             paymentMethodMessage = ' elsewhere';
+            break;
+        case CONST.IOU.PAYMENT_TYPE.VBBA:
+            paymentMethodMessage = ' using Expensify';
             break;
         default:
             paymentMethodMessage = ` using ${paymentType}`;

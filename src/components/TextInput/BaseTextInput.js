@@ -249,7 +249,11 @@ function BaseTextInput(props) {
                     onPress={onPress}
                     focusable={false}
                     accessibilityLabel={props.label}
-                    style={[props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, maxHeight), !isMultiline && styles.componentHeightLarge, ...props.containerStyles]}
+                    style={[
+                        props.autoGrowHeight && styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, maxHeight),
+                        !isMultiline && styles.componentHeightLarge,
+                        ...props.containerStyles,
+                    ]}
                 >
                     <View
                         // When autoGrowHeight is true we calculate the width for the textInput, so it will break lines properly
