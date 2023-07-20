@@ -102,7 +102,7 @@ function DetailsPage(props) {
                 avatar: UserUtils.getDefaultAvatar(CONST.ACCOUNT_ID.CONCIERGE),
             };
         } else {
-            const optimisticAccountID = UserUtils.generateAccountID();
+            const optimisticAccountID = UserUtils.generateAccountID(login);
             details = {
                 accountID: optimisticAccountID,
                 login,
