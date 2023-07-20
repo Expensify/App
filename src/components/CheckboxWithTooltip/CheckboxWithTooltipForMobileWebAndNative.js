@@ -1,49 +1,47 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import Checkbox from '../Checkbox';
 import {propTypes, defaultProps} from './checkboxWithTooltipPropTypes';
 import Growl from '../../libs/Growl';
 import withWindowDimensions from '../withWindowDimensions';
+import usePrevious from '../../hooks/usePrevious';
 
-class CheckboxWithTooltipForMobileWebAndNative extends React.Component {
-    constructor(props) {
-        super(props);
-        this.showGrowlOrTriggerOnPress = this.showGrowlOrTriggerOnPress.bind(this);
-    }
+function CheckboxWithTooltipForMobileWebAndNative({toggleTooltip, text, growlType, onPress, style, isChecked, disabled, accessibilityLabel}) {
+    const previousToggleTooltip = usePrevious(toggleTooltip);
 
-    componentDidUpdate(prevProps) {
-        if (!this.props.toggleTooltip) {
+    useEffect(() => {
+        if (!toggleTooltip) {
             return;
         }
 
-        if (prevProps.toggleTooltip !== this.props.toggleTooltip) {
-            Growl.show(this.props.text, this.props.growlType, 3000);
+        if (previousToggleTooltip !== toggleTooltip) {
+            Growl.show(text, growlType, 3000);
         }
-    }
+    }, [toggleTooltip, text, growlType, previousToggleTooltip]);
 
     /**
      * Show warning modal on mobile devices since tooltips are not supported when checkbox is disabled.
      */
-    showGrowlOrTriggerOnPress() {
-        if (this.props.toggleTooltip) {
-            Growl.show(this.props.text, this.props.growlType, 3000);
+    function showGrowlOrTriggerOnPress() {
+        if (toggleTooltip) {
+            Growl.show(text, growlType, 3000);
             return;
         }
-        this.props.onPress();
+
+        onPress();
     }
 
-    render() {
-        return (
-            <View style={this.props.style}>
-                <Checkbox
-                    isChecked={this.props.isChecked}
-                    onPress={this.showGrowlOrTriggerOnPress}
-                    disabled={this.props.disabled}
-                    accessibilityLabel={this.props.accessibilityLabel || this.props.text}
-                />
-            </View>
-        );
-    }
+    return (
+        <View style={style}>
+            <Checkbox
+                isChecked={isChecked}
+                // eslint-disable-next-line react/jsx-no-bind
+                onPress={showGrowlOrTriggerOnPress}
+                disabled={disabled}
+                accessibilityLabel={accessibilityLabel || text}
+            />
+        </View>
+    );
 }
 
 CheckboxWithTooltipForMobileWebAndNative.propTypes = propTypes;
