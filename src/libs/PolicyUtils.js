@@ -133,6 +133,13 @@ function getClientPolicyMemberEmailsToAccountIDs(policyMembers, personalDetails)
     return memberEmailsToAccountIDs;
 }
 
+/**
+ * Get login list that we should not show in the workspace invite options
+ * 
+ * @param {Object} policyMembers 
+ * @param {Object} personalDetails 
+ * @returns {Array}
+ */
 function getExcludedUsers(policyMembers, personalDetails) {
     const memberEmailsToExclude = [...CONST.EXPENSIFY_EMAILS];
     _.each(policyMembers, (policyMember, accountID) => {
