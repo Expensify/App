@@ -1,11 +1,11 @@
 import moment from 'moment';
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
 import TextInput from '../TextInput';
-import withWindowDimensions, { windowDimensionsPropTypes } from '../withWindowDimensions';
-import { defaultProps, propTypes } from './datepickerPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import {defaultProps, propTypes} from './datepickerPropTypes';
 import './styles.css';
 
 const datePickerPropTypes = {
