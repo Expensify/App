@@ -58,8 +58,8 @@ export default [
                 }
             };
 
-            const onEmojiSelected = (emoji) => {
-                Report.toggleEmojiReaction(reportID, reportAction.reportActionID, emoji);
+            const toggleEmojiAndCloseMenu = (emoji, existingReactions) => {
+                Report.toggleEmojiReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
                 closeContextMenu();
             };
 
@@ -67,9 +67,10 @@ export default [
                 return (
                     <MiniQuickEmojiReactions
                         key="MiniQuickEmojiReactions"
-                        onEmojiSelected={onEmojiSelected}
+                        onEmojiSelected={toggleEmojiAndCloseMenu}
                         onPressOpenPicker={openContextMenu}
                         onEmojiPickerClosed={closeContextMenu}
+                        reportActionID={reportAction.reportActionID}
                         reportAction={reportAction}
                     />
                 );
@@ -79,7 +80,8 @@ export default [
                 <QuickEmojiReactions
                     key="BaseQuickEmojiReactions"
                     closeContextMenu={closeContextMenu}
-                    onEmojiSelected={onEmojiSelected}
+                    onEmojiSelected={toggleEmojiAndCloseMenu}
+                    reportActionID={reportAction.reportActionID}
                     reportAction={reportAction}
                 />
             );
