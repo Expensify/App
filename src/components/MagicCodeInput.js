@@ -300,11 +300,6 @@ function MagicCodeInput(props) {
         }
     };
 
-    // We need to check the browser because, in iOS Safari, an input in a container with its opacity set to
-    // 0 (completely transparent) cannot handle user interaction, hence the Paste option is never shown.
-    // Alternate styling will be applied based on this condition.
-    const isMobileSafari = Browser.isMobileSafari();
-
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
@@ -323,7 +318,7 @@ function MagicCodeInput(props) {
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(props.value, props.maxLength)[index] || ''}</Text>
                         </View>
-                        <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
+                        <View style={[StyleSheet.absoluteFillObject, styles.w100, styles.bgTransparent]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
                                 autoFocus={index === 0 && props.autoFocus && !props.shouldDelayFocus}
@@ -348,8 +343,8 @@ function MagicCodeInput(props) {
                                 onKeyPress={onKeyPress}
                                 onPress={(event) => onPress(event, index)}
                                 onFocus={onFocus}
-                                caretHidden={isMobileSafari}
-                                inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                                caretHidden
+                                inputStyle={[styles.magicCodeInputTransparent]}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
