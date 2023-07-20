@@ -67,16 +67,14 @@ function Tooltip(props) {
         TooltipSense.activate();
     }, [isRendered]);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
         // we need to show the tooltip again
-
         if (isVisible && isAnimationCanceled.current && props.text && prevText !== props.text) {
             isAnimationCanceled.current = false;
             showTooltip();
         }
-
-        prevText.current = props.text;
     }, [isVisible, props.text, prevText, showTooltip]);
 
     /**
