@@ -49,6 +49,10 @@ const defaultProps = {
 function DragAndDrop(props) {
     const dropZone = useRef(null);
     const dropZoneRect = useRef(null);
+    /*
+        Last detected drag state on the dropzone -> we start with dragleave since user is not dragging initially.
+        This state is updated when drop zone is left/entered entirely(not taking the children in the account) or entire window is left
+    */
     const dropZoneDragState = useRef(DRAG_LEAVE_EVENT);
 
     /**
@@ -182,20 +186,14 @@ function DragAndDrop(props) {
     const prevIsDisabled = useRef(props.disabled);
 
     useEffect(() => {
-        if (props.isFocused !== prevIsFocused.current) {
-            if (!props.isFocused) {
-                removeEventListeners();
-            } else {
-                addEventListeners();
-            }
+        const isDisabled = props.disabled;
+        if (props.isFocused === prevIsFocused && isDisabled === prevIsDisabled) {
+            return;
         }
-
-        if (props.disabled !== prevIsDisabled.current) {
-            if (props.disabled) {
-                removeEventListeners();
-            } else {
-                addEventListeners();
-            }
+        if (!props.isFocused || isDisabled) {
+            removeEventListeners();
+        } else {
+            addEventListeners();
         }
 
         prevIsFocused.current = props.isFocused;
