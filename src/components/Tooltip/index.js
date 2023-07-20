@@ -33,6 +33,7 @@ function Tooltip(props) {
     const [wrapperWidth, setWrapperWidth] = useState(0);
     const [wrapperHeight, setWrapperHeight] = useState(0);
 
+    // Whether the tooltip is first tooltip to activate the TooltipSense
     const isTooltipSenseInitiator = useRef(false);
     const animation = useRef(new Animated.Value(0));
     const isAnimationCanceled = useRef(false);
