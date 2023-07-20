@@ -1847,7 +1847,7 @@ function flagComment(reportID, reportAction, severity) {
         reportActionID,
         // This check is to prevent flooding Concierge with test flags
         // If you need to test moderation responses from Concierge on dev, set this to false!
-        isDevRequest: false,
+        isDevRequest: Environment.isDevelopment(),
     };
 
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
