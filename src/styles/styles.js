@@ -1763,16 +1763,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationModalCard: (isSmallScreenWidth, windowHeight) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: windowHeight,
-        minHeight: windowHeight,
-    }),
-
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
         position: 'absolute',

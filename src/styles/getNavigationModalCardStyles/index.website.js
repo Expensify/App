@@ -8,4 +8,5 @@ export default ({windowHeight, isSmallScreenWidth}) => ({
     // https://github.com/Expensify/App/issues/12005
     // https://github.com/Expensify/App/issues/17824
     height: `${windowHeight}px`,
+    minHeight: `${windowHeight}px`,
 });
