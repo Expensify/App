@@ -38,12 +38,46 @@ public class NotificationCache {
         cache.put(reportID, data);
     }
 
-    public static class NotificationData {
-        private final Bundle people = new Bundle();
-        private final Bundle icons = new Bundle();
+    public static class NotificationData implements Parcelable {
+        private Bundle people = new Bundle();
+        private Bundle icons = new Bundle();
         public ArrayList<NotificationMessage> messages = new ArrayList<>();
 
         public int prevNotificationID = -1;
+
+        public NotificationData() {
+        }
+
+        protected NotificationData(Parcel parcel) {
+            people = parcel.readBundle();
+            icons = parcel.readBundle();
+            messages = parcel.createTypedArrayList(NotificationMessage.CREATOR);
+            prevNotificationID = parcel.readInt();
+        }
+
+        @Override
+        public void writeToParcel(@NonNull Parcel parcel, int i) {
+            parcel.writeBundle(people);
+            parcel.writeBundle(icons);
+            parcel.writeList(messages);
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        public static final Creator<NotificationData> CREATOR = new Creator<NotificationData>() {
+            @Override
+            public NotificationData createFromParcel(Parcel in) {
+                return new NotificationData(in);
+            }
+
+            @Override
+            public NotificationData[] newArray(int size) {
+                return new NotificationData[size];
+            }
+        };
 
         public Person getPerson(String accountID) {
             return convertToPerson(people.getParcelable(accountID));
@@ -91,8 +125,7 @@ public class NotificationCache {
             return 0;
         }
 
-        public static final Parcelable.Creator<NotificationMessage> CREATOR = new Parcelable.Creator<NotificationMessage>()
-        {
+        public static final Parcelable.Creator<NotificationMessage> CREATOR = new Parcelable.Creator<NotificationMessage>() {
             public NotificationMessage createFromParcel(Parcel in) {
                 return new NotificationMessage(in);
             }
