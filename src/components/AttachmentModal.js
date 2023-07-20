@@ -136,6 +136,7 @@ function AttachmentModal(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.translate],
     );
+
     /**
      * Download the currently viewed attachment.
      */
@@ -176,6 +177,7 @@ function AttachmentModal(props) {
     const closeConfirmModal = useCallback(() => {
         setIsAttachmentInvalid(false);
     }, []);
+
     /**
      * @param {Object} _file
      * @returns {Boolean}
@@ -211,6 +213,7 @@ function AttachmentModal(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.translate],
     );
+
     /**
      * @param {Object} _file
      */

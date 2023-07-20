@@ -276,6 +276,8 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
+    console.log(`props.receiptPath: ${props.receiptPath}`);
+
     return (
         <OptionsSelector
             sections={optionSelectorSections}

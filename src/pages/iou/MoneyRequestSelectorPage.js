@@ -1,8 +1,8 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
-import {compose} from 'underscore';
+import _, {compose} from 'underscore';
 import {PortalHost} from '@gorhom/portal';
 import PropTypes from 'prop-types';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
@@ -25,6 +25,11 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import DistanceRequest from '../../components/DistanceRequest';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from './NavigateToNextIOUPage';
+import ConfirmModal from '../../components/ConfirmModal';
+import * as FileUtils from '../../libs/fileDownload/FileUtils';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import Receipt from '../../libs/actions/Receipt';
+import AttachmentUtils from '../../libs/AttachmentUtils';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -57,6 +62,7 @@ const propTypes = {
     tabSelected: PropTypes.string,
 
     ...withCurrentUserPersonalDetailsPropTypes,
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -143,6 +149,11 @@ function MoneyRequestSelectorPage(props) {
                             e.preventDefault();
                             setIsDraggingOver(false);
                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+
+                            if (!AttachmentUtils.isValidFile(file, props)) {
+                                return;
+                            }
+
                             const filePath = URL.createObjectURL(file);
 
                             IOU.setMoneyRequestReceipt(filePath);
@@ -174,6 +185,7 @@ MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default compose(
     withCurrentUserPersonalDetails,
+    withLocalize,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         report: {
