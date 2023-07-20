@@ -270,7 +270,7 @@ function extractEmojis(text) {
         return emojis;
     }
 
-    let parseEmojis = text.match(CONST.REGEX.CODE_EMOJIS);
+    let parseEmojis = text.match(CONST.REGEX.EMOJIS);
 
     if (!parseEmojis) {
         return emojis;
