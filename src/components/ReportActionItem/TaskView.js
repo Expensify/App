@@ -109,6 +109,7 @@ function TaskView(props) {
                 wrapperStyle={[styles.pv2]}
                 shouldGreyOutWhenDisabled={false}
                 titleStyle={[styles.preWrap]}
+                numberOfLinesTitle={0}
             />
             {props.report.managerID ? (
                 <MenuItem

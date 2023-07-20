@@ -73,6 +73,7 @@ const defaultProps = {
     isSmallAvatarSubscriptMenu: false,
     title: '',
     shouldGreyOutWhenDisabled: true,
+    numberOfLinesTitle: 1,
 };
 
 function MenuItem(props) {
@@ -85,7 +86,7 @@ function MenuItem(props) {
             props.icon && !_.isArray(props.icon) && (props.avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
             props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
-            styles.pre,
+            props.numberOfLinesTitle > 1 ? styles.preWrap : styles.pre,
             props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
@@ -203,7 +204,14 @@ function MenuItem(props) {
                                             </Text>
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                            {Boolean(props.title) && <Text style={titleTextStyle}>{convertToLTR(props.title)}</Text>}
+                                            {Boolean(props.title) && (
+                                                <Text
+                                                    style={titleTextStyle}
+                                                    numberOfLines={props.numberOfLinesTitle}
+                                                >
+                                                    {convertToLTR(props.title)}
+                                                </Text>
+                                            )}
                                             {Boolean(props.shouldShowTitleIcon) && (
                                                 <View style={[styles.ml2]}>
                                                     <Icon
