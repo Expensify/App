@@ -629,8 +629,6 @@ PODS:
     - React-jsi (= 0.71.2-alpha.3)
     - React-logger (= 0.71.2-alpha.3)
     - React-perflogger (= 0.71.2-alpha.3)
-  - RNAppleAuthentication (2.2.2):
-    - React-Core
   - RNCAsyncStorage (1.17.11):
     - React-Core
   - RNCClipboard (1.5.1):
@@ -802,7 +800,6 @@ DEPENDENCIES:
   - React-RCTVibration (from `../node_modules/react-native/Libraries/Vibration`)
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
@@ -983,8 +980,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/runtimeexecutor"
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  RNAppleAuthentication:
-    :path: "../node_modules/@invertase/react-native-apple-authentication"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCClipboard:
@@ -1119,7 +1114,6 @@ SPEC CHECKSUMS:
   React-RCTVibration: 53291ee889eb2e1558a1507168af310926ad1ce1
   React-runtimeexecutor: 2c2c364acf7d90ec4d503e9f97b83683e040de08
   ReactCommon: 470b1793330b7254a68741f071c5ae432a0a25d6
-  RNAppleAuthentication: 0571c08da8c327ae2afc0261b48b4a515b0286a6
   RNCAsyncStorage: 8616bd5a58af409453ea4e1b246521bb76578d60
   RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
   RNCPicker: 0b65be85fe7954fbb2062ef079e3d1cde252d888

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+
 import * as Report from './libs/actions/Report';
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -23,11 +24,11 @@ import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
 import * as User from './libs/actions/User';
 import NetworkConnection from './libs/NetworkConnection';
 import Navigation from './libs/Navigation/Navigation';
+import DeeplinkWrapper from './components/DeeplinkWrapper';
 import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
 import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 import SplashScreenHider from './components/SplashScreenHider';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
-import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 
@@ -182,7 +183,7 @@ function Expensify(props) {
     }
 
     return (
-        <>
+        <DeeplinkWrapper>
             {shouldInit && (
                 <>
                     <KeyboardShortcutsModal />
@@ -205,7 +206,6 @@ function Expensify(props) {
                 </>
             )}
 
-            <AppleAuthWrapper />
             {hasAttemptedToOpenPublicRoom && (
                 <NavigationRoot
                     onReady={setNavigationReady}
@@ -214,7 +214,7 @@ function Expensify(props) {
             )}
 
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-        </>
+        </DeeplinkWrapper>
     );
 }
 
