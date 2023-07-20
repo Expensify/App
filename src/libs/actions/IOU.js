@@ -19,6 +19,7 @@ import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
+import * as NumberUtils from '../NumberUtils';
 
 const chatReports = {};
 const iouReports = {};
@@ -1399,6 +1400,12 @@ function setMoneyRequestReceipt(receiptPath) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath});
 }
 
+function createEmptyTransaction() {
+    const transactionID = NumberUtils.rand64();
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {});
+    Onyx.merge(ONYXKEYS.IOU, {transactionID});
+}
+
 export {
     deleteMoneyRequest,
     splitBill,
@@ -1416,4 +1423,5 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
+    createEmptyTransaction,
 };
