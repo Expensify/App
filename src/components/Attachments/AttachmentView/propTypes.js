@@ -2,8 +2,14 @@ import PropTypes from 'prop-types';
 import * as AttachmentsPropTypes from '../propTypes';
 
 const attachmentViewPropTypes = {
-    /** Attachment to display */
-    item: AttachmentsPropTypes.attachmentPropType,
+    /** Whether source url requires authentication */
+    isAuthTokenRequired: PropTypes.bool,
+
+    /** URL to full-sized attachment or SVG function */
+    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
+
+    /** File object maybe be instance of File or Object */
+    file: AttachmentsPropTypes.attachmentFilePropType,
 
     /** Whether this view is the active screen  */
     isFocused: PropTypes.bool,
@@ -19,11 +25,9 @@ const attachmentViewPropTypes = {
 };
 
 const attachmentViewDefaultProps = {
-    item: {
-        isAuthTokenRequired: false,
-        file: {
-            name: '',
-        },
+    isAuthTokenRequired: false,
+    file: {
+        name: '',
     },
     isFocused: false,
     isUsedInCarousel: false,

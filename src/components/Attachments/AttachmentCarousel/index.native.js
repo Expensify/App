@@ -73,7 +73,9 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
     const renderItem = useCallback(
         ({item}) => (
             <AttachmentView
-                item={item}
+                source={item.source}
+                file={item.file}
+                isAuthTokenRequired={item.isAuthTokenRequired}
                 isFocused={activeSource === item.source}
                 isUsedInCarousel
                 onPress={() => setShouldShowArrows(!shouldShowArrows)}

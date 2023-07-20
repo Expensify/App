@@ -13,19 +13,19 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-function AttachmentViewImage({item, isFocused, isUsedInCarousel, loadComplete, onPress, isImage, onScaleChanged, translate}) {
+function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, isUsedInCarousel, loadComplete, onPress, isImage, onScaleChanged, translate}) {
     const children = isUsedInCarousel ? (
         <AttachmentCarouselPage
-            item={item}
+            item={{source, file, isAuthTokenRequired}}
             isActive={isFocused}
-            isAuthTokenRequired={isImage && item.isAuthTokenRequired}
+            isAuthTokenRequired={isImage && isAuthTokenRequired}
         />
     ) : (
         <ImageView
             onScaleChanged={onScaleChanged}
-            url={item.source}
-            fileName={item.file.name}
-            isAuthTokenRequired={isImage && item.isAuthTokenRequired}
+            url={source}
+            fileName={file.name}
+            isAuthTokenRequired={isImage && isAuthTokenRequired}
         />
     );
 
@@ -35,7 +35,7 @@ function AttachmentViewImage({item, isFocused, isUsedInCarousel, loadComplete, o
             disabled={loadComplete}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
-            accessibilityLabel={item.file.name || translate('attachmentView.unknownFilename')}
+            accessibilityLabel={file.name || translate('attachmentView.unknownFilename')}
         >
             {children}
         </PressableWithoutFeedback>

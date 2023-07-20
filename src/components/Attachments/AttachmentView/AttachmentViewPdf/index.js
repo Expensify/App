@@ -3,13 +3,13 @@ import styles from '../../../../styles/styles';
 import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propTypes';
 import PDFView from '../../../PDFView';
 
-function AttachmentViewPdf({item, encryptedSourceUrl, isFocused, onPress, onScaleChanged, onToggleKeyboard, onLoadComplete}) {
+function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onScaleChanged, onToggleKeyboard, onLoadComplete}) {
     return (
         <PDFView
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
-            fileName={item.file.name}
+            fileName={file.name}
             style={styles.imageModalPDF}
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}

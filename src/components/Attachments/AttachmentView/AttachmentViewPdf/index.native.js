@@ -5,7 +5,7 @@ import PDFView from '../../../PDFView';
 
 import AttachmentCarouselPagerContext from '../../AttachmentCarouselPager/AttachmentCarouselPagerContext';
 
-function AttachmentViewPdf({item, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete}) {
+function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
 
     const onScaleChanged = useCallback(
@@ -29,7 +29,7 @@ function AttachmentViewPdf({item, encryptedSourceUrl, isFocused, isUsedInCarouse
             onPress={onPress}
             isFocused={isFocused}
             sourceURL={encryptedSourceUrl}
-            fileName={item.file.name}
+            fileName={file.name}
             style={styles.imageModalPDF}
             onToggleKeyboard={onToggleKeyboard}
             onScaleChanged={onScaleChanged}
