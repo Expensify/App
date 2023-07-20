@@ -1667,11 +1667,11 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
     if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
-        removeEmojiReaction(reportID, originalReportAction.reportActionID, emoji);
+        removeEmojiReaction(reportID, reportAction.reportActionID, emoji);
         return;
     }
 
-    addEmojiReaction(reportID, originalReportAction.reportActionID, emoji, skinTone);
+    addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
 }
 
 /**
