@@ -4,14 +4,15 @@ import Log from '../../../libs/Log';
 import IconButton from '../IconButton';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
-
+import CONFIG from '../../../CONFIG';
+import ROUTES from '../../../ROUTES';
 /**
  * Apple Sign In Configuration for Android.
  */
 
 const config = {
     clientId: CONST.APPLE_SIGN_IN_SERVICE_ID,
-    redirectUri: CONST.APPLE_SIGN_IN_REDIRECT_URI,
+    redirectUri: `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${ROUTES.APPLE_SIGN_IN_REDIRECT_URI}`,
     responseType: appleAuthAndroid.ResponseType.ALL,
     scope: appleAuthAndroid.Scope.ALL,
 };

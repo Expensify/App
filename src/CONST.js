@@ -478,7 +478,6 @@ const CONST = {
     SIGN_IN_FORM_WIDTH: 300,
 
     APPLE_SIGN_IN_SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
-    APPLE_SIGN_IN_REDIRECT_URI: 'https://new.expensify.com/appleauth',
 
     SIGN_IN_METHOD: {
         APPLE: 'Apple',
