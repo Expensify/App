@@ -175,9 +175,7 @@ function DragAndDrop(props) {
         }
         addEventListeners();
 
-        return () => {
-            removeEventListeners();
-        };
+        return removeEventListeners;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
