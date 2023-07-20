@@ -14,24 +14,6 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
-// Note: Earlier SidebarUtils.getOrderedReportIDs() used to have no parameters. All the needed data was loaded here directly
-// using Onyx.connect. We then had to connect SidebarLinks additionally to all the keys that were used in SidebarUtils.getOrderedReportIDs().
-// That's because we wanted to cause a re-render in SidebarLinks to run SidebarUtils.getOrderedReportIDs() again.
-// This caused bugs in the past as we were forgetting to include e.g. very nested data.
-// Now we pass all the data from SidebarLinks props to SidebarUtils.getOrderedReportIDs().
-// This makes the code easier to understand and less error prone.
-
-// However, in getOptionData() we still use Onyx.connect() to get some of the data.
-// That's because we can't connect to specific nested data. Once we added dependent
-// selectors to Onyx, we can remove this as well.
-
-let allReports;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (val) => (allReports = val),
-});
-
 const visibleReportActionItems = {};
 const lastReportActions = {};
 const reportActions = {};
@@ -108,7 +90,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
 
     // Filter out all the reports that shouldn't be displayed
     const reportsToDisplay = _.filter(allReportsDict, (report) =>
-        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions),
+        ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions),
     );
 
     if (_.isEmpty(reportsToDisplay)) {
@@ -128,7 +110,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
         report.displayName = ReportUtils.getReportName(report);
 
         // eslint-disable-next-line no-param-reassign
-        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report);
+        report.iouReportAmount = ReportUtils.getMoneyRequestTotal(report, allReportsDict);
     });
 
     // The LHN is split into five distinct groups, and each group is sorted a little differently. The groups will ALWAYS be in this order:
@@ -152,7 +134,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
             return;
         }
 
-        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report)) {
+        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report, allReportsDict)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -278,8 +260,6 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
     result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
-    result.shouldShowGreenDotIndicator = report.shouldShowGreenDotIndicator;
-
     result.notificationPreference = report.notificationPreference || null;
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);

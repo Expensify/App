@@ -1028,8 +1028,9 @@ function getMoneyRequestAction(reportAction = {}) {
  * @param {Object} report (chatReport or iouReport)
  * @returns {boolean}
  */
-function isWaitingForIOUActionFromCurrentUser(report) {
-    if (!report || !allReports) {
+function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
+    const allAvailableReports = allReportsDict || allReports;
+    if (!report || !allAvailableReports) {
         return false;
     }
 
@@ -1040,7 +1041,7 @@ function isWaitingForIOUActionFromCurrentUser(report) {
 
     let reportToLook = report;
     if (report.iouReportID) {
-        const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+        const iouReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
             reportToLook = iouReport;
         }
@@ -1057,13 +1058,14 @@ function isWaitingForIOUActionFromCurrentUser(report) {
  * @param {Object} report
  * @returns {Number}
  */
-function getMoneyRequestTotal(report) {
+function getMoneyRequestTotal(report, allReportsDict = null) {
+    const allAvailableReports = allReportsDict || allReports;
     let moneyRequestReport;
     if (isMoneyRequestReport(report)) {
         moneyRequestReport = report;
     }
-    if (report.hasOutstandingIOU && report.iouReportID) {
-        moneyRequestReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+    if (allAvailableReports && report.hasOutstandingIOU && report.iouReportID) {
+        moneyRequestReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
     }
     if (moneyRequestReport) {
         const total = lodashGet(moneyRequestReport, 'total', 0);
@@ -2075,14 +2077,15 @@ function isUnreadWithMention(report) {
  * @param {String} report.iouReportID
  * @returns {Boolean}
  */
-function isIOUOwnedByCurrentUser(report) {
-    if (!report || !allReports) {
+function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
+    const allAvailableReports = allReportsDict || allReports;
+    if (!report || !allAvailableReports) {
         return false;
     }
 
     let reportToLook = report;
     if (report.iouReportID) {
-        const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
+        const iouReport = allAvailableReports[`${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`];
         if (iouReport) {
             reportToLook = iouReport;
         }
@@ -2160,12 +2163,13 @@ function canAccessReport(report, policies, betas, allReportActions) {
  * @param {Object} report
  * @param {String} currentReportId
  * @param {Boolean} isInGSDMode
+ * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
  * @param {Object} allReportActions
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas, policies, allReportActions) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2192,7 +2196,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, betas,
 
     // Include reports if they have a draft, are pinned, or have an outstanding IOU
     // These are always relevant to the user no matter what view mode the user prefers
-    if (report.hasDraft || report.isPinned || isWaitingForIOUActionFromCurrentUser(report)) {
+    if (report.hasDraft || report.isPinned || isWaitingForIOUActionFromCurrentUser(report, iouReports)) {
         return true;
     }
 
