@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 public class NotificationCache {
 
-    public static final HashMap<Long, NotificationData> cache = new HashMap<>();
+    private static final HashMap<Long, NotificationData> cache = new HashMap<>();
 
     /*
      * Get NotificationData for an existing notification or create a new instance
@@ -41,7 +41,7 @@ public class NotificationCache {
     public static class NotificationData {
         private final Bundle people = new Bundle();
         private final Bundle icons = new Bundle();
-        public ArrayList<Message> messages = new ArrayList<>();
+        public ArrayList<NotificationMessage> messages = new ArrayList<>();
 
         public int prevNotificationID = -1;
 
@@ -60,48 +60,48 @@ public class NotificationCache {
         public void putIcon(String accountID, Bitmap bitmap) {
             icons.putParcelable(accountID, bitmap);
         }
+    }
 
-        public static class Message implements Parcelable {
-            public Person person;
-            public String text;
-            public long time;
+    public static class NotificationMessage implements Parcelable {
+        public Person person;
+        public String text;
+        public long time;
 
-            Message(Person person, String text, long time) {
-                this.person = person;
-                this.text = text;
-                this.time = time;
-            }
-
-            Message(Parcel parcel) {
-                this.person = convertToPerson(parcel.readBundle());
-                this.text = parcel.readString();
-                this.time = parcel.readLong();
-            }
-
-            @Override
-            public void writeToParcel(@NonNull Parcel parcel, int i) {
-                parcel.writeBundle(convertToBundle(person));
-                parcel.writeString(text);
-                parcel.writeLong(time);
-            }
-
-            @Override
-            public int describeContents() {
-                return 0;
-            }
-
-            public static final Parcelable.Creator CREATOR = new Parcelable.Creator()
-            {
-                public Message createFromParcel(Parcel in) {
-                    return new Message(in);
-                }
-
-                @Override
-                public Object[] newArray(int size) {
-                    return new Person[size];
-                }
-            };
+        NotificationMessage(Person person, String text, long time) {
+            this.person = person;
+            this.text = text;
+            this.time = time;
         }
+
+        NotificationMessage(Parcel parcel) {
+            this.person = convertToPerson(parcel.readBundle());
+            this.text = parcel.readString();
+            this.time = parcel.readLong();
+        }
+
+        @Override
+        public void writeToParcel(@NonNull Parcel parcel, int i) {
+            parcel.writeBundle(convertToBundle(person));
+            parcel.writeString(text);
+            parcel.writeLong(time);
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        public final Parcelable.Creator CREATOR = new Parcelable.Creator()
+        {
+            public NotificationMessage createFromParcel(Parcel in) {
+                return new NotificationMessage(in);
+            }
+
+            @Override
+            public Object[] newArray(int size) {
+                return new Person[size];
+            }
+        };
     }
 
     private static Bundle convertToBundle(Person p) {

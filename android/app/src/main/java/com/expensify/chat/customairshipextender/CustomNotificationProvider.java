@@ -50,6 +50,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import com.expensify.chat.customairshipextender.NotificationCache.NotificationData;
+import com.expensify.chat.customairshipextender.NotificationCache.NotificationMessage;
 
 public class CustomNotificationProvider extends ReactNotificationProvider {
     // Resize icons to 100 dp x 100 dp
@@ -207,7 +208,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
             // Despite not using conversation style for the initial notification from each chat, we need to cache it to enable conversation style for future notifications
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
-            notificationData.messages.add(new NotificationData.Message(person, message, createdTimeInMillis));
+            notificationData.messages.add(new NotificationMessage(person, message, createdTimeInMillis));
 
 
             // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
@@ -218,7 +219,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                         .setConversationTitle(conversationName);
 
                 // Add all conversation messages to the notification, including the last one we just received.
-                for (NotificationData.Message cachedMessage : notificationData.messages) {
+                for (NotificationMessage cachedMessage : notificationData.messages) {
                     messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
                 }
                 builder.setStyle(messagingStyle);
