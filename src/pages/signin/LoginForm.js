@@ -25,6 +25,7 @@ import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
 import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
+import GoogleSignIn from '../../components/SignInButtons/GoogleSignIn';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Log from '../../libs/Log';
@@ -233,6 +234,7 @@ function LoginForm(props) {
                             <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{props.translate('common.signInWith')}</Text>
                             <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
                                 <AppleSignIn />
+                                <GoogleSignIn />
                             </View>
                         </View>
                     </View>
