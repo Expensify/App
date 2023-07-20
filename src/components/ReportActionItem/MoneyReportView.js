@@ -42,7 +42,7 @@ function MoneyReportView(props) {
             <View style={[styles.flexRow, styles.menuItemTextContainer, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
                 <View style={[styles.flex1, styles.justifyContentCenter]}>
                     <Text
-                        style={[styles.textLabelSupporting, styles.lhNormal, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
+                        style={[styles.textLabelSupporting, StyleUtils.getFontSizeStyle(variables.fontSizeNormal)]}
                         numberOfLines={1}
                     >
                         {translate('common.total')}
