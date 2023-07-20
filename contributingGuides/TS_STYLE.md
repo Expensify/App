@@ -264,7 +264,7 @@ type Foo = {
   }
   ```
 
-  In the above example, because the parameter age doesn't have any accompanying comment, it is completely omitted from the JSDoc.
+  In the above example, because the parameter `age` doesn't have any accompanying comment, it is completely omitted from the JSDoc.
 
 <a name="proptypes-and-defaultprops"></a><a name="1.11"></a>
 
@@ -272,7 +272,7 @@ type Foo = {
 
   > Refer to [the propTypes Migration Table](./PROPTYPES_CONVERSION_TABLE.md) on how to type props based on existing `propTypes`.
 
-  > Assign a default value to each optional prop unless the default values is `undefined` or `null`.
+  > Assign a default value to each optional prop unless the default values is `undefined`.
 
   ```tsx
   type MyComponentProps = {
@@ -493,9 +493,9 @@ declare module "external-library-name" {
 
 - Found type bugs. Now what?
 
-  If TypeScript migration uncovers a bug that has been “invisible,” there are two options an author of a migration PR can take
+  If TypeScript migration uncovers a bug that has been “invisible,” there are two options an author of a migration PR can take:
 
-  - Fix issues if they are minor. Document each fix in the PR comment
+  - Fix issues if they are minor. Document each fix in the PR comment.
   - Suppress a TypeScript error stemming from the bug with `@ts-expect-error`. Create a separate GH issue. Prefix the issue title with `[TS ERROR #<issue-number-of-migration-PR>]`. Cross-link the migration PR and the created GH issue. On the same line as `@ts-expect-error`, put down the GH issue number prefixed with `TODO:`.
 
   > The `@ts-expect-error` annotation tells the TS compiler to ignore any errors in the line that follows it. However, if there's no error in the line, TypeScript will also raise an error.
