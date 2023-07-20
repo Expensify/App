@@ -30,10 +30,16 @@ const propTypes = {
     fullReport: PropTypes.object,
 
     /** The policies which the user has access to and which the report could be tied to */
-    policies: PropTypes.shape({
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
+    policies: PropTypes.objectOf(
+        PropTypes.shape({
+            /** The ID of the policy */
+            id: PropTypes.string,
+            /** Name of the policy */
+            name: PropTypes.string,
+            /** Avatar of the policy */
+            avatar: PropTypes.string,
+        }),
+    ),
 
     ...withCurrentReportIDPropTypes,
     ...basePropTypes,
