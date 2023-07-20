@@ -70,7 +70,7 @@ const defaultProps = {
 };
 
 function TransferBalancePage(props) {
-    const cardList = props.fundList || props.cardList;
+    const paymentCardList = props.fundList || props.cardList;
 
     const paymentTypes = [
         {
@@ -97,7 +97,7 @@ function TransferBalancePage(props) {
      * @returns {Object|undefined}
      */
     function getSelectedPaymentMethodAccount() {
-        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, cardList);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList);
 
         const defaultAccount = _.find(paymentMethods, (method) => method.isDefault);
         const selectedAccount = _.find(
@@ -114,7 +114,7 @@ function TransferBalancePage(props) {
         PaymentMethods.saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, cardList);
+        const combinedPaymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList);
 
         const filteredMethods = _.filter(combinedPaymentMethods, (paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
