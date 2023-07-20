@@ -22,7 +22,7 @@ function DatePicker(props) {
         inputRef.current.setAttribute('max', moment(props.maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
         inputRef.current.setAttribute('min', moment(props.minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
         inputRef.current.classList.add('expensify-datepicker');
-    }, []);
+    }, [props.maxDate, props.minDate]);
 
     /**
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
