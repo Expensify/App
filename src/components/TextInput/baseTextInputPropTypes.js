@@ -67,9 +67,6 @@ const propTypes = {
     /** Hint text to display below the TextInput */
     hint: PropTypes.string,
 
-    /** Style the Hint container */
-    hintContainerStyle: stylePropTypes,
-
     /** Prefix character */
     prefixCharacter: PropTypes.string,
 

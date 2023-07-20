@@ -371,7 +371,6 @@ function BaseTextInput(props) {
                 </PressableWithoutFeedback>
                 {!_.isEmpty(inputHelpText) && (
                     <FormHelpMessage
-                        style={props.hintContainerStyle}
                         isError={!_.isEmpty(props.errorText)}
                         message={inputHelpText}
                     />

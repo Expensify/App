@@ -14,12 +14,6 @@ const propTypes = {
     /** Callback fired when a field changes. Passes args as {[fieldName]: val} */
     onFieldChange: PropTypes.func,
 
-    /** Callback fired when a Address search changes the Country. */
-    onCountryChange: PropTypes.func,
-
-    /** Callback fired when a Address search changes the State.  */
-    onStateChange: PropTypes.func,
-
     /** Default values */
     defaultValues: PropTypes.shape({
         /** Address street field */
@@ -95,8 +89,6 @@ const defaultProps = {
     },
     shouldSaveDraft: false,
     onFieldChange: () => {},
-    onCountryChange: () => {},
-    onStateChange: () => {},
 };
 
 function AddressForm(props) {
@@ -146,7 +138,6 @@ function AddressForm(props) {
                 label={props.translate('common.zip')}
                 accessibilityLabel={props.translate('common.zip')}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                containerStyles={[styles.mt4]}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}

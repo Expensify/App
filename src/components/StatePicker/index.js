@@ -1,5 +1,6 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useState, useRef} from 'react';
 import {View} from 'react-native';
+import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
@@ -12,6 +13,7 @@ const propTypes = {
     errorText: PropTypes.string,
 
     /** State to display */
+    // Adding a default value overrides the value coming from the Form
     // eslint-disable-next-line react/require-default-props
     value: PropTypes.string,
 
@@ -28,19 +30,19 @@ const defaultProps = {
     onInputChange: () => {},
 };
 
-function StatePicker({value: stateValue, errorText, onInputChange, forwardedRef}) {
+function StatePicker({value, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
+    const allStates = useRef(translate('allStates')).current;
     const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
 
     const title = useMemo(() => {
-        const allStates = translate('allStates');
-
-        if (allStates[stateValue]) {
-            return allStates[stateValue].stateName;
+        if (allStates[value]) {
+            return allStates[value].stateName;
         }
 
         return '';
-    }, [translate, stateValue]);
+    }, [value, allStates]);
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
@@ -52,6 +54,7 @@ function StatePicker({value: stateValue, errorText, onInputChange, forwardedRef}
 
     const updateStateInput = (state) => {
         onInputChange(state.value);
+        setSearchValue(lodashGet(allStates, `${state.value}.stateName`, ''));
         hidePickerModal();
     };
 
@@ -71,11 +74,12 @@ function StatePicker({value: stateValue, errorText, onInputChange, forwardedRef}
                 <FormHelpMessage message={errorText} />
             </View>
             <StateSelectorModal
-                key={stateValue}
                 isVisible={isPickerVisible}
-                currentState={stateValue}
+                currentState={value}
                 onClose={hidePickerModal}
                 onStateSelected={updateStateInput}
+                searchValue={searchValue}
+                setSearchValue={setSearchValue}
             />
         </View>
     );

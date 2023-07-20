@@ -1997,4 +1997,7 @@ export default {
     countrySelectorModal: {
         placeholderText: 'Buscar para ver opciones',
     },
+    stateSelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
+    },
 };

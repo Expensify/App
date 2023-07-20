@@ -1526,4 +1526,7 @@ export default {
     countrySelectorModal: {
         placeholderText: 'Search to see options',
     },
+    stateSelectorModal: {
+        placeholderText: 'Search to see options',
+    },
 };

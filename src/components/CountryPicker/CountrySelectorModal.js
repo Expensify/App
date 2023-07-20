@@ -1,7 +1,6 @@
 import _ from 'underscore';
-import React, {useState, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
@@ -20,6 +19,12 @@ const propTypes = {
 
     /** Function to call when the user closes the Country modal */
     onClose: PropTypes.func,
+
+    /** The search value from the selection list */
+    searchValue: PropTypes.string.isRequired,
+
+    /** Function to call when the user types in the search input */
+    setSearchValue: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -37,10 +42,8 @@ function filterOptions(searchValue, data) {
     return _.filter(data, (country) => country.text.toLowerCase().includes(searchValue.toLowerCase()));
 }
 
-function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected}) {
+function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected, setSearchValue, searchValue}) {
     const {translate} = useLocalize();
-    const selectedSearchCountry = PersonalDetails.getCountryName(currentCountry);
-    const [searchValue, setSearchValue] = useState(selectedSearchCountry);
 
     const countries = useMemo(
         () =>

@@ -1,6 +1,5 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
-import React, {useState, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import Modal from '../Modal';
@@ -20,6 +19,12 @@ const propTypes = {
 
     /** Function to call when the user closes the State modal */
     onClose: PropTypes.func,
+
+    /** The search value from the selection list */
+    searchValue: PropTypes.string.isRequired,
+
+    /** Function to call when the user types in the search input */
+    setSearchValue: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -37,10 +42,8 @@ function filterOptions(searchValue, data) {
     return _.filter(data, (country) => country.text.toLowerCase().includes(searchValue.toLowerCase()));
 }
 
-function StateSelectorModal({currentState, isVisible, onClose, onStateSelected}) {
+function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue}) {
     const {translate} = useLocalize();
-    const allStates = translate('allStates');
-    const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${currentState}.stateName`, ''));
 
     const countryStates = useMemo(
         () =>
@@ -73,7 +76,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected})
             <SelectionListRadio
                 headerMessage={headerMessage}
                 textInputLabel={translate('common.state')}
-                textInputPlaceholder={translate('pronounsPage.placeholderText')}
+                textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
                 textInputValue={searchValue}
                 sections={[{data: filteredData, indexOffset: 0}]}
                 onSelectRow={onStateSelected}

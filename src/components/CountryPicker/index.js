@@ -1,9 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import useLocalize from '../../hooks/useLocalize';
 import CountrySelectorModal from './CountrySelectorModal';
 import FormHelpMessage from '../FormHelpMessage';
@@ -13,6 +13,7 @@ const propTypes = {
     errorText: PropTypes.string,
 
     /** Country to display */
+    // Adding a default value overrides the value coming from the Form
     // eslint-disable-next-line react/require-default-props
     value: PropTypes.string,
 
@@ -29,9 +30,11 @@ const defaultProps = {
     onInputChange: () => {},
 };
 
-function CountryPicker({value: countryValue, errorText, onInputChange, forwardedRef}) {
+function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
+    const allCountries = useRef(translate('allCountries')).current;
     const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const [searchValue, setSearchValue] = useState(lodashGet(allCountries, value, ''));
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
@@ -43,10 +46,11 @@ function CountryPicker({value: countryValue, errorText, onInputChange, forwarded
 
     const updateCountryInput = (country) => {
         onInputChange(country.value);
+        setSearchValue(lodashGet(allCountries, country.value, ''));
         hidePickerModal();
     };
 
-    const title = PersonalDetails.getCountryName(countryValue);
+    const title = allCountries[value] || '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
@@ -63,9 +67,10 @@ function CountryPicker({value: countryValue, errorText, onInputChange, forwarded
                 <FormHelpMessage message={errorText} />
             </View>
             <CountrySelectorModal
-                key={countryValue}
                 isVisible={isPickerVisible}
-                currentCountry={countryValue}
+                currentCountry={value}
+                searchValue={searchValue}
+                setSearchValue={setSearchValue}
                 onClose={hidePickerModal}
                 onCountrySelected={updateCountryInput}
             />
