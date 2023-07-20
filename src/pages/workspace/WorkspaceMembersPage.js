@@ -32,16 +32,13 @@ import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
-import withCurrentUserPersonalDetails, {
-    withCurrentUserPersonalDetailsDefaultProps,
-    withCurrentUserPersonalDetailsPropTypes
-} from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import OptionsListSkeletonView from "../../components/OptionsListSkeletonView";
+import OptionsListSkeletonView from '../../components/OptionsListSkeletonView';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -496,7 +493,7 @@ function WorkspaceMembersPage(props) {
                                 />
                             </View>
                         ) : (
-                            <OptionsListSkeletonView shouldAnimate/>
+                            <OptionsListSkeletonView shouldAnimate />
                         )}
                     </View>
                 </FullPageNotFoundView>
