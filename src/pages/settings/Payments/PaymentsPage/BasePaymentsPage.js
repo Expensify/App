@@ -78,6 +78,8 @@ class BasePaymentsPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        const paymentCardList = this.props.fundList || this.props.cardList;
+
         if (this.shouldListenForResize) {
             this.setMenuPosition();
         }
@@ -95,7 +97,7 @@ class BasePaymentsPage extends React.Component {
 
             if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT && _.isEmpty(this.props.bankAccountList[this.state.methodID])) {
                 shouldResetPaymentMethodData = true;
-            } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(this.props.cardList[this.state.methodID])) {
+            } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && _.isEmpty(paymentCardList[this.state.methodID])) {
                 shouldResetPaymentMethodData = true;
             } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL && this.props.payPalMeData !== prevProps.payPalMeData && _.isEmpty(this.props.payPalMeData)) {
                 shouldResetPaymentMethodData = true;
@@ -302,8 +304,10 @@ class BasePaymentsPage extends React.Component {
     }
 
     makeDefaultPaymentMethod(password = '') {
+        const paymentCardList = this.props.fundList || this.props.cardList;
+        const paymentCardOnyxKey = this.props.fundList ? ONYXKEYS.FUND_LIST : ONYXKEYS.CARD_LIST;
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList);
+        const paymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, paymentCardList);
 
         const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
         const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === this.state.methodID);
@@ -551,6 +555,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,

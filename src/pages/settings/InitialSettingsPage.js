@@ -82,6 +82,10 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+
+    /** List of cards */
+    fundList: PropTypes.objectOf(cardPropTypes),
+
     /** Bank account attached to free plan */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes,
 
@@ -118,6 +122,7 @@ const defaultProps = {
     walletTerms: {},
     bankAccountList: {},
     cardList: {},
+    fundList: {},
     loginList: {},
     allPolicyMembers: {},
     ...withCurrentUserPersonalDetailsDefaultProps,
@@ -177,6 +182,8 @@ class InitialSettingsPage extends React.Component {
                 : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(this.props.loginList);
 
+        const paymentCardList = this.props.fundList || this.props.cardList;
+
         return [
             {
                 translationKey: 'common.shareCode',
@@ -225,7 +232,7 @@ class InitialSettingsPage extends React.Component {
                     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
                 },
                 brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, this.props.cardList) ||
+                    PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, paymentCardList) ||
                     !_.isEmpty(this.props.userWallet.errors) ||
                     !_.isEmpty(this.props.walletTerms.errors)
                         ? 'error'
@@ -412,6 +419,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         walletTerms: {
             key: ONYXKEYS.WALLET_TERMS,
