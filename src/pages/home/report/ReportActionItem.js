@@ -209,7 +209,7 @@ function ReportActionItem(props) {
 
     const toggleReaction = useCallback(
         (emoji) => {
-            Report.toggleEmojiReaction(props.report.reportID, props.action.reportActionID, emoji, props.emojiReactions);
+            Report.toggleEmojiReaction(props.report.reportID, props.action, emoji, props.emojiReactions);
         },
         [props.report, props.action, props.emojiReactions],
     );
