@@ -25,7 +25,7 @@ const propTypes = {
 const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 function NotificationPreferencePage(props) {
-    const shouldNotificationPreferences = ReportUtils.shouldDisableSettings(props.report);
+    const shouldDisableNotificationPreferences = ReportUtils.shouldDisableSettings(props.report);
     const notificationPreferenceOptions = _.map(props.translate('notificationPreferencesPage.notificationPreferences'), (preference, key) => ({
         value: key,
         text: preference,
@@ -40,7 +40,7 @@ function NotificationPreferencePage(props) {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView shouldShow={shouldNotificationPreferences}>
+            <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
                 <HeaderWithBackButton
                     title={props.translate('notificationPreferencesPage.header')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
