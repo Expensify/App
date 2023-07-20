@@ -2,7 +2,7 @@ import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 
 type OriginalMessageIOU = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.IOU;
     originalMessage: {
         /** The ID of the iou transaction */
         IOUTransactionID?: string;
@@ -40,7 +40,7 @@ type Reaction = {
 };
 
 type OriginalMessageAddComment = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT>;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
     originalMessage: {
         html: string;
         lastModified?: string;
@@ -56,7 +56,7 @@ type OriginalMessageAddComment = {
 };
 
 type OriginalMessageClosed = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CLOSED;
     originalMessage: {
         policyName: string;
         reason: 'default' | 'accountClosed' | 'accountMerged' | 'removedPolicy' | 'policyDeleted';
@@ -65,12 +65,12 @@ type OriginalMessageClosed = {
 };
 
 type OriginalMessageCreated = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
     originalMessage: undefined;
 };
 
 type OriginalMessageRenamed = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.RENAMED;
     originalMessage: {
         html: string;
         lastModified: string;
@@ -95,7 +95,7 @@ type ChronosOOOEvent = {
 };
 
 type OriginalMessageChronosOOOList = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST>;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHRONOSOOOLIST;
     originalMessage: {
         edits: string[];
         events: ChronosOOOEvent[];
@@ -105,10 +105,24 @@ type OriginalMessageChronosOOOList = {
 };
 
 type OriginalMessageReportPreview = {
-    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW>;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
     originalMessage: {
         linkedReportID: string;
     };
+};
+
+type OriginalMessagePolicyChangeLog = {
+    actionName: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG>;
+    originalMessage: unknown;
+};
+
+type OriginalMessagePolicyTask = {
+    actionName:
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASKEDITED
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASKCANCELED
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASKREOPENED;
+    originalMessage: unknown;
 };
 
 type OriginalMessage =
@@ -118,6 +132,8 @@ type OriginalMessage =
     | OriginalMessageCreated
     | OriginalMessageRenamed
     | OriginalMessageChronosOOOList
-    | OriginalMessageReportPreview;
+    | OriginalMessageReportPreview
+    | OriginalMessagePolicyChangeLog
+    | OriginalMessagePolicyTask;
 
 export default OriginalMessage;
