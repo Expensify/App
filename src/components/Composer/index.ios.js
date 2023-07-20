@@ -96,7 +96,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
      * Set maximum number of lines
      * @return {Number}
      */
-    const maximumNumberOfLines = useMemo(() => {
+    const maxNumberOfLines = useMemo(() => {
         if (isComposerFullSize) return undefined;
         return maxLines;
     }, [isComposerFullSize, maxLines]);
@@ -118,7 +118,7 @@ function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isC
             rejectResponderTermination={false}
             textAlignVertical="center"
             smartInsertDelete={false}
-            maximumNumberOfLines={maximumNumberOfLines}
+            maxNumberOfLines={maxNumberOfLines}
             style={styles}
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...propsToPass}
