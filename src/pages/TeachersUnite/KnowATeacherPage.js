@@ -28,7 +28,7 @@ const defaultProps = {
 };
 
 /**
- * Submit form to update user's first and last name (and display name)
+ * Submit form to pass firstName, lastName and phoneOrEmail
  * @param {Object} values
  * @param {String} values.firstName
  * @param {String} values.lastName
