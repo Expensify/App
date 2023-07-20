@@ -15,7 +15,7 @@ import Animated, {
     withDecay,
     withSpring,
 } from 'react-native-reanimated';
-import styles from '../../../styles/styles';
+import styles from '../../../../styles/styles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageWrapper from './ImageWrapper';
 

@@ -2,11 +2,11 @@
 import React, {useContext, useEffect, useState, useMemo} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
-import Image from '../../Image';
+import Image from '../../../Image';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageTransformer from './ImageTransformer';
 import ImageWrapper from './ImageWrapper';
-import * as AttachmentsPropTypes from '../propTypes';
+import * as AttachmentsPropTypes from '../../propTypes';
 
 function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
     const scaleFactorX = canvasWidth / imageWidth;
@@ -18,15 +18,29 @@ function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight})
 const cachedDimensions = new Map();
 
 const pagePropTypes = {
+    /** Whether source url requires authentication */
+    isAuthTokenRequired: PropTypes.bool,
+
+    /** URL to full-sized attachment or SVG function */
+    source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
+
+    /** File object maybe be instance of File or Object */
+    file: AttachmentsPropTypes.attachmentFilePropType,
+
     isActive: PropTypes.bool.isRequired,
-    item: AttachmentsPropTypes.attachmentPropType.isRequired,
-    isAuthTokenRequired: PropTypes.bool.isRequired,
 };
 
-function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequired}) {
+const defaultProps = {
+    isAuthTokenRequired: false,
+    file: {
+        name: '',
+    },
+};
+
+function AttachmentCarouselPage({source, file, isAuthTokenRequired, isActive: isActiveProp}) {
     const {canvasWidth, canvasHeight} = useContext(AttachmentCarouselPagerContext);
 
-    const dimensions = cachedDimensions.get(item.source);
+    const dimensions = cachedDimensions.get(source);
 
     const areImageDimensionsSet = dimensions?.imageWidth !== 0 && dimensions?.imageHeight !== 0;
 
@@ -66,7 +80,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequir
                         imageScale={dimensions?.imageScale}
                     >
                         <Image
-                            source={{uri: item.source}}
+                            source={{uri: source}}
                             style={dimensions == null ? {} : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
                             isAuthTokenRequired={isAuthTokenRequired}
                             onLoad={(evt) => {
@@ -77,7 +91,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequir
 
                                 // Don't update the dimensions if they are already set
                                 if (dimensions?.imageWidth !== imageWidth || dimensions?.imageHeight !== imageHeight || dimensions?.imageScale !== imageScale) {
-                                    cachedDimensions.set(item.source, {
+                                    cachedDimensions.set(source, {
                                         ...dimensions,
                                         imageWidth,
                                         imageHeight,
@@ -97,7 +111,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequir
             {(!isActive || showFallback) && (
                 <ImageWrapper>
                     <Image
-                        source={{uri: item.source}}
+                        source={{uri: source}}
                         isAuthTokenRequired={isAuthTokenRequired}
                         onLoad={(evt) => {
                             const imageWidth = evt.nativeEvent.width;
@@ -111,7 +125,7 @@ function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequir
                             // Don't update the dimensions if they are already set
                             if (dimensions?.scaledImageWidth === scaledImageWidth && dimensions?.scaledImageHeight === scaledImageHeight) return;
 
-                            cachedDimensions.set(item.source, {
+                            cachedDimensions.set(source, {
                                 ...dimensions,
                                 scaledImageWidth,
                                 scaledImageHeight,
@@ -133,5 +147,6 @@ function AttachmentCarouselPage({isActive: isActiveProp, item, isAuthTokenRequir
     );
 }
 AttachmentCarouselPage.propTypes = pagePropTypes;
+AttachmentCarouselPage.defaultProps = defaultProps;
 
 export default AttachmentCarouselPage;

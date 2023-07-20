@@ -5,7 +5,7 @@ import ImageView from '../../../ImageView';
 import compose from '../../../../libs/compose';
 import PressableWithoutFeedback from '../../../Pressable/PressableWithoutFeedback';
 import CONST from '../../../../CONST';
-import AttachmentCarouselPage from '../../AttachmentCarouselPager/AttachmentCarouselPage';
+import AttachmentCarouselPage from '../../AttachmentCarousel/Pager/AttachmentCarouselPage';
 import {attachmentViewImagePropTypes, attachmentViewImageDefaultProps} from './propTypes';
 
 const propTypes = {
@@ -16,9 +16,10 @@ const propTypes = {
 function AttachmentViewImage({source, file, isAuthTokenRequired, isFocused, isUsedInCarousel, loadComplete, onPress, isImage, onScaleChanged, translate}) {
     const children = isUsedInCarousel ? (
         <AttachmentCarouselPage
-            item={{source, file, isAuthTokenRequired}}
-            isActive={isFocused}
+            source={source}
             isAuthTokenRequired={isImage && isAuthTokenRequired}
+            file={file}
+            isActive={isFocused}
         />
     ) : (
         <ImageView

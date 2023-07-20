@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import {View, Keyboard, PixelRatio} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import AttachmentCarouselPager from '../AttachmentCarouselPager';
+import AttachmentCarouselPager from './Pager';
 import styles from '../../../styles/styles';
 import CarouselButtons from './CarouselButtons';
 import AttachmentView from '../AttachmentView';
