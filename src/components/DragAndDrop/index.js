@@ -9,6 +9,12 @@ import withNavigationFocus from '../withNavigationFocus';
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
 
+const DRAG_OVER_EVENT = 'dragover';
+const DRAG_ENTER_EVENT = 'dragenter';
+const DRAG_LEAVE_EVENT = 'dragleave';
+const DROP_EVENT = 'drop';
+const RESIZE_EVENT = 'resize';
+
 const propTypes = {
     ...DragAndDropPropTypes,
 
@@ -43,7 +49,7 @@ const defaultProps = {
 function DragAndDrop(props) {
     const dropZone = useRef(null);
     const dropZoneRect = useRef(null);
-    const dropZoneDragState = useRef('dragleave');
+    const dropZoneDragState = useRef(DRAG_LEAVE_EVENT);
 
     /**
      * @param {Object} event native Event
@@ -79,27 +85,25 @@ function DragAndDrop(props) {
      */
     const dropZoneDragHandler = useCallback(
         (event) => {
-            console.log('dropZoneDragHandler');
             // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
             switch (event.type) {
-                case 'dragover':
+                case DRAG_OVER_EVENT:
                     // Continuous event -> can hurt performance, be careful when subscribing
                     // eslint-disable-next-line no-param-reassign
                     event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                     throttledDragOverHandler(event);
                     break;
-                case 'dragenter':
+                case DRAG_ENTER_EVENT:
                     // Avoid reporting onDragEnter for children views -> not performant
-                    if (dropZoneDragState.current === 'dragleave') {
-                        dropZoneDragState.current = 'dragenter';
-                        console.log('should assign copy effect');
+                    if (dropZoneDragState.current === DRAG_LEAVE_EVENT) {
+                        dropZoneDragState.current = DRAG_ENTER_EVENT;
                         // eslint-disable-next-line no-param-reassign
                         event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
                         props.onDragEnter(event);
                     }
                     break;
-                case 'dragleave':
-                    if (dropZoneDragState.current === 'dragenter') {
+                case DRAG_LEAVE_EVENT:
+                    if (dropZoneDragState.current === DRAG_ENTER_EVENT) {
                         if (
                             event.clientY <= dropZoneRect.current.top ||
                             event.clientY >= dropZoneRect.current.bottom ||
@@ -108,13 +112,13 @@ function DragAndDrop(props) {
                             // Cancel drag when file manager is on top of the drop zone area - works only on chromium
                             (event.target.getAttribute('id') === props.activeDropZoneId && !event.relatedTarget)
                         ) {
-                            dropZoneDragState.current = 'dragleave';
+                            dropZoneDragState.current = DRAG_LEAVE_EVENT;
                             props.onDragLeave(event);
                         }
                     }
                     break;
-                case 'drop':
-                    dropZoneDragState.current = 'dragleave';
+                case DROP_EVENT:
+                    dropZoneDragState.current = DRAG_LEAVE_EVENT;
                     props.onDrop(event);
                     break;
                 default:
@@ -146,61 +150,56 @@ function DragAndDrop(props) {
     const addEventListeners = useCallback(() => {
         dropZone.current = document.getElementById(props.dropZoneId);
         dropZoneRect.current = calculateDropZoneClientReact();
-        document.addEventListener('dragover', dropZoneDragListener);
-        document.addEventListener('dragenter', dropZoneDragListener);
-        document.addEventListener('dragleave', dropZoneDragListener);
-        document.addEventListener('drop', dropZoneDragListener);
-        window.addEventListener('resize', throttledDragNDropWindowResizeListener);
+        document.addEventListener(DRAG_OVER_EVENT, dropZoneDragListener);
+        document.addEventListener(DRAG_ENTER_EVENT, dropZoneDragListener);
+        document.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragListener);
+        document.addEventListener(DROP_EVENT, dropZoneDragListener);
+        window.addEventListener(RESIZE_EVENT, throttledDragNDropWindowResizeListener);
     }, [props.dropZoneId, calculateDropZoneClientReact, dropZoneDragListener, throttledDragNDropWindowResizeListener]);
 
     const removeEventListeners = useCallback(() => {
-        document.removeEventListener('dragover', dropZoneDragListener);
-        document.removeEventListener('dragenter', dropZoneDragListener);
-        document.removeEventListener('dragleave', dropZoneDragListener);
-        document.removeEventListener('drop', dropZoneDragListener);
-        window.removeEventListener('resize', throttledDragNDropWindowResizeListener);
+        document.removeEventListener(DRAG_OVER_EVENT, dropZoneDragListener);
+        document.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragListener);
+        document.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragListener);
+        document.removeEventListener(DROP_EVENT, dropZoneDragListener);
+        window.removeEventListener(RESIZE_EVENT, throttledDragNDropWindowResizeListener);
     }, [dropZoneDragListener, throttledDragNDropWindowResizeListener]);
 
     useEffect(() => {
         if (props.disabled) {
             return;
         }
-        console.log('did add listeners');
         addEventListeners();
 
         return () => {
-            console.log('did remove listeners');
             removeEventListeners();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // These refs are used to store the previous values of props
-    const isFocusedRef = useRef(props.isFocused);
-    const isDisabledRef = useRef(props.disabled);
+    // Use refs to store the previous values of props
+    const prevIsFocused = useRef(props.isFocused);
+    const prevIsDisabled = useRef(props.disabled);
 
     useEffect(() => {
-        if (props.isFocused !== isFocusedRef.current) {
+        if (props.isFocused !== prevIsFocused.current) {
             if (!props.isFocused) {
-                console.log('focused did remove listeners');
                 removeEventListeners();
             } else {
-                console.log('focused add listeners');
                 addEventListeners();
             }
         }
 
-        if (props.disabled !== isDisabledRef.current) {
+        if (props.disabled !== prevIsDisabled.current) {
             if (props.disabled) {
-                console.log('disabled did remove listeners');
                 removeEventListeners();
             } else {
-                console.log('disabled add listeners');
                 addEventListeners();
             }
         }
 
-        isFocusedRef.current = props.isFocused;
-        isDisabledRef.current = props.disabled;
+        prevIsFocused.current = props.isFocused;
+        prevIsDisabled.current = props.disabled;
     });
 
     return props.children;
