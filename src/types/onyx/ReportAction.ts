@@ -1,3 +1,5 @@
+import OriginalMessage from './OriginalMessage';
+
 type User = {
     accountID: number;
     skinTone: number;
@@ -43,34 +45,17 @@ type Message = {
     reactions: Reaction[];
 };
 
-type OriginalMessage = {
-    /** The ID of the iou transaction */
-    IOUTransactionID?: string;
-
-    IOUReportID?: number;
-    amount: number;
-    comment?: string;
-    currency: string;
-    lastModified?: string;
-    participantAccountIDs?: number[];
-    participants?: string[];
-    type: string;
-};
-
 type Person = {
     type?: string;
     style?: string;
     text?: string;
 };
 
-type ReportAction = {
+type ReportActionBase = {
     /** The ID of the reportAction. It is the string representation of the a 64-bit integer. */
     reportActionID?: string;
 
     actorAccountID?: number;
-
-    /** Name of the action e.g. ADDCOMMENT */
-    actionName?: string;
 
     /** Person who created the action */
     person?: Person[];
@@ -80,9 +65,6 @@ type ReportAction = {
 
     /** report action message */
     message?: Message[];
-
-    /** Original message associated with this action */
-    originalMessage?: OriginalMessage;
 
     /** Whether we have received a response back from the server */
     isLoading?: boolean;
@@ -104,5 +86,7 @@ type ReportAction = {
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
 };
+
+type ReportAction = ReportActionBase & OriginalMessage;
 
 export default ReportAction;
