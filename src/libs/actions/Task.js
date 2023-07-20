@@ -602,8 +602,8 @@ function getShareDestination(reportID, reports, personalDetails) {
     if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && report.participants && ReportUtils.hasSingleParticipant(report)) {
         subtitle = LocalePhoneNumber.formatPhoneNumber(report.participants[0]);
     } else {
-            subtitle = ReportUtils.getChatRoomSubtitle(report);
-        }
+        subtitle = ReportUtils.getChatRoomSubtitle(report);
+    }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
