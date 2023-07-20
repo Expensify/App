@@ -2571,6 +2571,14 @@ function getReportOfflinePendingActionAndErrors(report) {
 
 /**
  * @param {Object|null} report
+ * @returns {Boolean}
+ */
+function shouldDisableSettings(report) {
+    return !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
+}
+
+/**
+ * @param {Object|null} report
  * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
  * @returns {Boolean}
  */
@@ -2696,5 +2704,6 @@ export {
     getOriginalReportID,
     canAccessReport,
     getReportOfflinePendingActionAndErrors,
+    shouldDisableSettings,
     shouldDisableRename,
 };
