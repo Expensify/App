@@ -56,7 +56,7 @@ const propTypes = {
 
     currentUserPersonalDetails: personalDetailsPropType,
 
-    priorityMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
+    priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
     ...withLocalizePropTypes,
 };
