@@ -91,15 +91,15 @@ public class NotificationCache {
             return 0;
         }
 
-        public final Parcelable.Creator CREATOR = new Parcelable.Creator()
+        public static final Parcelable.Creator<NotificationMessage> CREATOR = new Parcelable.Creator<NotificationMessage>()
         {
             public NotificationMessage createFromParcel(Parcel in) {
                 return new NotificationMessage(in);
             }
 
             @Override
-            public Object[] newArray(int size) {
-                return new Person[size];
+            public NotificationMessage[] newArray(int size) {
+                return new NotificationMessage[size];
             }
         };
     }
