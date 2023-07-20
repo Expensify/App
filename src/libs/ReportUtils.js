@@ -1026,6 +1026,7 @@ function getMoneyRequestAction(reportAction = {}) {
  * Determines if a report has an IOU that is waiting for an action from the current user (either Pay or Add a credit bank account)
  *
  * @param {Object} report (chatReport or iouReport)
+ * @param {Object} allReportsDict
  * @returns {boolean}
  */
 function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
@@ -1056,6 +1057,7 @@ function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
 
 /**
  * @param {Object} report
+ * @param {Object} allReportsDict
  * @returns {Number}
  */
 function getMoneyRequestTotal(report, allReportsDict = null) {
@@ -2074,7 +2076,7 @@ function isUnreadWithMention(report) {
 
 /**
  * @param {Object} report
- * @param {String} report.iouReportID
+ * @param {Object} allReportsDict
  * @returns {Boolean}
  */
 function isIOUOwnedByCurrentUser(report, allReportsDict = null) {
