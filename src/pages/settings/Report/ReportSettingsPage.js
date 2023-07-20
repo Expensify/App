@@ -81,7 +81,7 @@ class ReportSettingsPage extends Component {
 
         return (
             <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={shouldDisableSettings}>
+                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report) || shouldDisableSettings}>
                     <HeaderWithBackButton
                         title={this.props.translate('common.settings')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(this.props.report.reportID))}
