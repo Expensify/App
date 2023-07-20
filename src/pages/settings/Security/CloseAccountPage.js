@@ -75,10 +75,7 @@ function CloseAccountPage(props) {
     const userEmailOrPhone = props.formatPhoneNumber(props.session.email);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableMaxHeight
-        >
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('closeAccountPage.closeAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
