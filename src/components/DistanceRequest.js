@@ -5,23 +5,12 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Text from './Text';
 import CONST from '../CONST';
-import reportPropTypes from '../pages/reportPropTypes';
 import * as IOU from '../libs/actions/IOU';
 import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 
 
 const propTypes = {
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            iouType: PropTypes.string,
-            reportID: PropTypes.string,
-        }),
-    }),
-
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
-
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
         id: PropTypes.string,
@@ -40,13 +29,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
-    report: {},
     iou: {
         id: '',
         amount: 0,
@@ -77,7 +59,4 @@ DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
 export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
-    report: {
-        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-    },
 })(DistanceRequest);
