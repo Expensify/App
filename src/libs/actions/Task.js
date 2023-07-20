@@ -187,8 +187,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         {optimisticData, successData, failureData},
     );
 
-    clearOutTaskInfo();
-
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
 
@@ -498,7 +496,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
 
     // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
     if (!newAssigneeAccountID) {
-        newAssigneeAccountID = UserUtils.generateAccountID();
+        newAssigneeAccountID = UserUtils.generateAccountID(assignee);
     }
     if (!isCurrentUser) {
         let newChat = {};
