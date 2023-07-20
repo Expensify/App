@@ -3,7 +3,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import getComponentDisplayName from '../../libs/getComponentDisplayName';
 
-export default function (WrappedComponent) {
+export default function WithBlockViewportScrollHOC(WrappedComponent) {
     const PassThroughComponent = (props) => <WrappedComponent {...props} />;
 
     PassThroughComponent.displayName = `PassThroughComponent(${getComponentDisplayName(WrappedComponent)})`;
