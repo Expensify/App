@@ -37,7 +37,7 @@ const defaultProps = {
     },
 };
 
-function AttachmentCarouselPage({source, file, isAuthTokenRequired, isActive: isActiveProp}) {
+function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActiveProp}) {
     const {canvasWidth, canvasHeight} = useContext(AttachmentCarouselPagerContext);
 
     const dimensions = cachedDimensions.get(source);
