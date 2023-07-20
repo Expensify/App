@@ -356,7 +356,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report, false, policy);
+    const reportName = ReportUtils.getReportName(report, policy);
 
     result.text = reportName;
     result.subtitle = subtitle;
