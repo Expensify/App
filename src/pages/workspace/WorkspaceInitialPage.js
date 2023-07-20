@@ -104,7 +104,7 @@ function WorkspaceInitialPage(props) {
      */
     const goToRoom = useCallback(
         (type) => {
-            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type);
+            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type && !ReportUtils.isThread(report));
             Navigation.navigate(ROUTES.getReportRoute(room.reportID));
         },
         [props.reports, policy],

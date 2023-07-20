@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -24,10 +25,6 @@ import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
-
-function getTransparentColor(color, transparency = '') {
-    return `${color}${transparency}`;
-}
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -859,9 +856,15 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
     }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
@@ -1157,8 +1160,8 @@ const styles = {
     },
 
     signInPageLeftContainer: {
-        paddingLeft: 40,
-        paddingRight: 40,
+        paddingLeft: 48,
+        paddingRight: 48,
     },
 
     signInPageLeftContainerWide: {
@@ -1166,11 +1169,11 @@ const styles = {
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: 300,
+        maxWidth: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     signInPageWelcomeTextContainer: {
-        width: 300,
+        width: CONST.SIGN_IN_FORM_WIDTH,
     },
 
     changeExpensifyLoginLinkContainer: {
@@ -2356,6 +2359,12 @@ const styles = {
         paddingBottom: 20,
     },
 
+    avatarSectionWrapperSkeleton: {
+        width: '100%',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
@@ -3388,7 +3397,7 @@ const styles = {
     linkPreviewWrapper: {
         marginTop: 16,
         borderLeftWidth: 4,
-        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        borderLeftColor: themeColors.border,
         paddingLeft: 12,
     },
 
@@ -3445,7 +3454,7 @@ const styles = {
         ...spacing.mr3,
     },
 
-    taskHorizontalRule: {
+    reportHorizontalRule: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.mh5,
@@ -3514,6 +3523,46 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+
+    loginButtonRow: {
+        justifyContent: 'center',
+        width: '100%',
+        ...flex.flexRow,
+    },
+
+    loginButtonRowSmallScreen: {
+        justifyContent: 'center',
+        width: '100%',
+        marginBottom: 10,
+        ...flex.flexRow,
+    },
+
+    appleButtonContainer: {
+        width: 40,
+        height: 40,
+        marginRight: 20,
+    },
+
+    signInIconButton: {
+        margin: 10,
+        marginTop: 0,
+        padding: 2,
+    },
+
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
+        height,
+        width: '100%',
+        position: 'absolute',
+        top: -height,
+        left: 0,
+        right: 0,
+    }),
 };
 
 export default styles;

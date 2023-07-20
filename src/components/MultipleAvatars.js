@@ -112,6 +112,10 @@ function MultipleAvatars(props) {
             <UserDetailsTooltip
                 accountID={props.icons[0].id}
                 icon={props.icons[0]}
+                fallbackUserDetails={{
+                    displayName: props.icons[0].name,
+                    avatar: props.icons[0].avatar,
+                }}
             >
                 <View style={avatarContainerStyles}>
                     <Avatar
@@ -158,6 +162,10 @@ function MultipleAvatars(props) {
                                 key={`stackedAvatars-${index}`}
                                 accountID={icon.id}
                                 icon={icon}
+                                fallbackUserDetails={{
+                                    displayName: icon.name,
+                                    avatar: icon.avatar,
+                                }}
                             >
                                 <View
                                     style={[
@@ -213,7 +221,10 @@ function MultipleAvatars(props) {
                                             StyleUtils.getWidthStyle(oneAvatarSize.width),
                                         ]}
                                     >
-                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
+                                        <Text
+                                            selectable={false}
+                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
+                                        >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
                                 </View>
                             </Tooltip>
@@ -226,6 +237,10 @@ function MultipleAvatars(props) {
                         <UserDetailsTooltip
                             accountID={props.icons[0].id}
                             icon={props.icons[0]}
+                            fallbackUserDetails={{
+                                displayName: props.icons[0].name,
+                                avatar: props.icons[0].avatar,
+                            }}
                         >
                             {/* View is necessary for tooltip to show for multiple avatars in LHN */}
                             <View>
@@ -244,6 +259,10 @@ function MultipleAvatars(props) {
                                 <UserDetailsTooltip
                                     accountID={props.icons[1].id}
                                     icon={props.icons[1]}
+                                    fallbackUserDetails={{
+                                        displayName: props.icons[1].name,
+                                        avatar: props.icons[1].avatar,
+                                    }}
                                 >
                                     <View>
                                         <Avatar

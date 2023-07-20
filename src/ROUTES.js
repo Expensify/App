@@ -31,6 +31,7 @@ export default {
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
+    SETTINGS_THEME: 'settings/preferences/theme',
     SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
@@ -130,11 +131,13 @@ export default {
     getReportWelcomeMessageRoute: (reportID) => `r/${reportID}/welcomeMessage`,
     REPORT_SETTINGS_WRITE_CAPABILITY: 'r/:reportID/settings/who-can-post',
     getReportSettingsWriteCapabilityRoute: (reportID) => `r/${reportID}/settings/who-can-post`,
-    TRANSITION_FROM_OLD_DOT: 'transition',
+    TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: (taskID) => `get-assistance/${taskID}`,
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
+
+    APPLE_SIGN_IN: 'sign-in-with-apple',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
@@ -171,11 +174,17 @@ export default {
      * @returns {Object}
      */
     parseReportRouteParams: (route) => {
-        if (!route.startsWith(Url.addTrailingForwardSlash(REPORT))) {
+        let parsingRoute = route;
+        if (parsingRoute.at(0) === '/') {
+            // remove the first slash
+            parsingRoute = parsingRoute.slice(1);
+        }
+
+        if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(REPORT))) {
             return {reportID: '', isSubReportPageRoute: false};
         }
 
-        const pathSegments = route.split('/');
+        const pathSegments = parsingRoute.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
             isSubReportPageRoute: Boolean(lodashGet(pathSegments, 2)),
