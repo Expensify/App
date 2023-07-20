@@ -285,7 +285,10 @@ function ReportActionItemMessageEdit(props) {
             // SetTimeout is used as a workaround
             // https://github.com/react-native-modal/react-native-modal/issues/114
             // We carefully choose a delay. 100ms is found enough for keyboard to open.
-            setTimeout(() => textInputRef.current.focus(), 100);
+            setTimeout(() => {
+                setIsFocused(true);
+                textInputRef.current.focus();
+            }, 100);
         });
     }, []);
 
