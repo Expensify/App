@@ -1094,10 +1094,9 @@ function getTransactionReportName(reportAction) {
  *
  * @param {Object} report
  * @param {Object} [reportAction={}]
- * @param {Object} [policy]
  * @returns  {String}
  */
-function getReportPreviewMessage(report, reportAction = {}, policy = undefined) {
+function getReportPreviewMessage(report, reportAction = {}) {
     const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
 
     if (_.isEmpty(report) || !report.reportID) {
@@ -1107,7 +1106,7 @@ function getReportPreviewMessage(report, reportAction = {}, policy = undefined) 
     }
 
     const totalAmount = getMoneyRequestTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID, true);
+    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isSettled(report.reportID)) {
