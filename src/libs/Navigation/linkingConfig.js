@@ -11,8 +11,9 @@ export default {
             // Main Routes
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
-            [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
+            [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             Concierge: ROUTES.CONCIERGE,
+            AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
             // Sidebar
@@ -42,7 +43,7 @@ export default {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
-                            Settings_Preferences: {
+                            [SCREENS.SETTINGS.PREFERENCES]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
                                 exact: true,
                             },
@@ -52,6 +53,10 @@ export default {
                             },
                             Settings_Preferences_Language: {
                                 path: ROUTES.SETTINGS_LANGUAGE,
+                                exact: true,
+                            },
+                            Settings_Preferences_Theme: {
+                                path: ROUTES.SETTINGS_THEME,
                                 exact: true,
                             },
                             Settings_Close: {
@@ -218,9 +223,6 @@ export default {
                             },
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
-                            },
-                            YearPicker_Root: {
-                                path: ROUTES.SELECT_YEAR,
                             },
                         },
                     },

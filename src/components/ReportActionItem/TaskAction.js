@@ -22,8 +22,8 @@ const propTypes = {
         /** Title of the task */
         reportName: PropTypes.string,
 
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** AccountID of the manager in this iou report */
+        managerID: PropTypes.number,
 
         /** AccountID of the creator of this iou report */
         ownerAccountID: PropTypes.number,
@@ -43,21 +43,23 @@ function TaskAction(props) {
         case CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED:
             messageLinkText = props.translate('task.messages.completed');
             break;
-        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELED:
+        case CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED:
             messageLinkText = props.translate('task.messages.canceled');
             break;
         case CONST.REPORT.ACTIONS.TYPE.TASKREOPENED:
             messageLinkText = props.translate('task.messages.reopened');
             break;
         default:
-            messageLinkText = props.translate('newTaskPage.task');
+            messageLinkText = props.translate('task.task');
     }
 
     return (
         <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={styles.chatItemMessageLink}>{messageLinkText}</Text>
-                <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
+                <Text>
+                    <Text style={styles.chatItemMessageLink}>{messageLinkText}</Text>
+                    <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
+                </Text>
             </View>
         </>
     );

@@ -173,7 +173,12 @@ class AttachmentCarousel extends React.Component {
             },
         });
 
-        _.forEach(actions, (action) => htmlParser.write(_.get(action, ['message', 0, 'html'])));
+        _.forEach(actions, (action, key) => {
+            if (!ReportActionsUtils.shouldReportActionBeVisible(action, key)) {
+                return;
+            }
+            htmlParser.write(_.get(action, ['message', 0, 'html']));
+        });
         htmlParser.end();
 
         // Inverting the list for touchscreen devices that can swipe or have an animation when scrolling
@@ -265,7 +270,11 @@ class AttachmentCarousel extends React.Component {
 
     /**
      * Defines how a single attachment should be rendered
-     * @param {{ isAuthTokenRequired: Boolean, source: String, file: { name: String } }} item
+     * @param {Object} item
+     * @param {Boolean} item.isAuthTokenRequired
+     * @param {String} item.source
+     * @param {Object} item.file
+     * @param {String} item.file.name
      * @returns {JSX.Element}
      */
     renderItem({item}) {

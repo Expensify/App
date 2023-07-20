@@ -142,17 +142,22 @@ function NewContactMethodPage(props) {
                 <View style={[styles.mb6]}>
                     <TextInput
                         label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         ref={(el) => (loginInputRef.current = el)}
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
+                        maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
                 {!Permissions.canUsePasswordlessLogins(props.betas) && (
                     <View style={[styles.mb6]}>
                         <TextInput
                             label={props.translate('common.password')}
+                            accessibilityLabel={props.translate('common.password')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="password"
                             returnKeyType="done"
                         />

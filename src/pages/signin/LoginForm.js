@@ -24,7 +24,11 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
+import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
+import * as PolicyUtils from '../../libs/PolicyUtils';
+import Log from '../../libs/Log';
+import withNavigationFocus, {withNavigationFocusPropTypes} from '../../components/withNavigationFocus';
 
 const propTypes = {
     /** Should we dismiss the keyboard when transitioning away from the page? */
@@ -57,12 +61,21 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     ...toggleVisibilityViewPropTypes,
+
+    ...withNavigationFocusPropTypes,
 };
 
 const defaultProps = {
     account: {},
     closeAccount: {},
     blurOnSubmit: false,
+};
+
+/**
+ * Enables experimental "memory only keys" mode in Onyx
+ */
+const setEnableMemoryOnlyKeys = () => {
+    window.enableMemoryOnlyKeys();
 };
 
 function LoginForm(props) {
@@ -93,6 +106,10 @@ function LoginForm(props) {
         },
         [props.account, props.closeAccount, input, setFormError, setLogin],
     );
+
+    function getSignInWithStyles() {
+        return props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
+    }
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
@@ -125,6 +142,12 @@ function LoginForm(props) {
             return;
         }
 
+        // If the user has entered a guide email, then we are going to enable an experimental Onyx mode to help with performance
+        if (PolicyUtils.isExpensifyGuideTeam(loginTrim)) {
+            Log.info('Detected guide email in login field, setting memory only keys.');
+            setEnableMemoryOnlyKeys();
+        }
+
         setFormError(null);
 
         // Check if this login has an account associated with it or not
@@ -132,7 +155,11 @@ function LoginForm(props) {
     }, [login, props.closeAccount, props.network, setFormError]);
 
     useEffect(() => {
-        Session.clearAccountMessages();
+        // Just call clearAccountMessages on the login page (home route), because when the user is in the transition route and not yet authenticated,
+        // this component will also be mounted, resetting account.isLoading will cause the app to briefly display the session expiration page.
+        if (props.isFocused) {
+            Session.clearAccountMessages();
+        }
         if (!canFocusInputOnScreenFocus() || !input.current || !props.isVisible) {
             return;
         }
@@ -163,6 +190,8 @@ function LoginForm(props) {
                 <TextInput
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
+                    accessibilityLabel={translate('loginForm.phoneOrEmail')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={login}
                     autoCompleteType="username"
                     textContentType="username"
@@ -175,6 +204,7 @@ function LoginForm(props) {
                     keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                     errorText={formErrorText}
                     hasError={hasError}
+                    maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
             </View>
             {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
@@ -199,6 +229,12 @@ function LoginForm(props) {
                             isAlertVisible={!_.isEmpty(serverErrorText)}
                             containerStyles={[styles.mh0]}
                         />
+                        <View style={[getSignInWithStyles()]}>
+                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{props.translate('common.signInWith')}</Text>
+                            <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
+                                <AppleSignIn />
+                            </View>
+                        </View>
                     </View>
                 )
             }
@@ -211,6 +247,7 @@ LoginForm.defaultProps = defaultProps;
 LoginForm.displayName = 'LoginForm';
 
 export default compose(
+    withNavigationFocus,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         closeAccount: {key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM},

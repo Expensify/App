@@ -134,11 +134,10 @@ class ValidationStep extends React.Component {
             >
                 <HeaderWithBackButton
                     title={isVerifying ? this.props.translate('validationStep.headerTitle') : this.props.translate('workspace.common.testTransactions')}
-                    stepCounter={{step: 5, total: 5}}
+                    stepCounter={isVerifying ? undefined : {step: 5, total: 5}}
                     onBackButtonPress={this.props.onBackButtonPress}
                     shouldShowGetAssistanceButton
                     guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    shouldShowStepCounter={!isVerifying}
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
@@ -167,6 +166,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="decimal-pad"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                             <TextInput
                                 inputID="amount2"
@@ -174,6 +174,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="decimal-pad"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                             <TextInput
                                 shouldSaveDraft
@@ -181,6 +182,7 @@ class ValidationStep extends React.Component {
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="decimal-pad"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                         {!requiresTwoFactorAuth && (
