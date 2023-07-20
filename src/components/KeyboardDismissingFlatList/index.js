@@ -5,18 +5,18 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 function KeyboardDismissingFlatList(props) {
     const isScreenTouched = useRef(false);
 
-    const touchStart = () => {
-        isScreenTouched.current = true;
-    };
-
-    const touchEnd = () => {
-        isScreenTouched.current = false;
-    };
-
     useEffect(() => {
         if (!DeviceCapabilities.canUseTouchScreen()) {
             return;
         }
+
+        const touchStart = () => {
+            isScreenTouched.current = true;
+        };
+
+        const touchEnd = () => {
+            isScreenTouched.current = false;
+        };
 
         // We're setting `isScreenTouched` in this listener only for web platforms with touchscreen (mWeb) where
         // we want to dismiss the keyboard only when the list is scrolled by the user and not when it's scrolled programmatically.
