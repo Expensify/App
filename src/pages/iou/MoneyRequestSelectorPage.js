@@ -100,14 +100,14 @@ function MoneyRequestSelectorPage(props) {
 
     const renderTabContent = () => {
         switch (selectedTab) {
-            case CONST.TABS.MANUAL:
+            case CONST.TAB.TAB_MANUAL:
                 return <MoneyRequestAmountPage
                     route={props.route}
                     report={props.report}
                     iou={props.iou}
                     currentUserPersonalDetails={props.currentUserPersonalDetails}
                 />;
-            case CONST.TABS.SCAN:
+            case CONST.TAB.TAB_SCAN:
                 return <ReceiptSelector
                     route={props.route}
                     report={props.report}
@@ -115,7 +115,7 @@ function MoneyRequestSelectorPage(props) {
                     isDraggingOver={isDraggingOver}
                     currentUserPersonalDetails={props.currentUserPersonalDetails}
                 />;
-            case CONST.TABS.DISTANCE:
+            case CONST.TAB.TAB_DISTANCE:
                 return <DistanceRequest
                     route={props.route}
                     report={props.report}

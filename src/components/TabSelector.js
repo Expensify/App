@@ -21,7 +21,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    tabSelected: CONST.TABS.MANUAL,
+    tabSelected: CONST.TAB.TAB_MANUAL,
     betas: [],
 };
 
@@ -48,7 +48,7 @@ function TabSelector(props) {
             {Permissions.canUseDistanceRequests(props.betas) && (
                 <TabSelectorItem
                     title={props.translate('tabSelector.distance')}
-                    selected={selectedTab === CONST.TABS.DISTANCE}
+                    selected={selectedTab === CONST.TAB.TAB_DISTANCE}
                     icon={Expensicons.Car}
                     onPress={() => {
                         Tab.onTabPress(CONST.TAB.TAB_DISTANCE);
