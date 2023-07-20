@@ -242,6 +242,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
         isExpenseRequest: false,
+        isLastMessageDeletedParentAction: false,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -365,6 +366,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), true, '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
+    result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;
     return result;
 }
 
