@@ -10,7 +10,6 @@ import styles from '../../../styles/styles';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as Report from '../../../libs/actions/Report';
-import * as Policy from '../../../libs/actions/Policy';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';

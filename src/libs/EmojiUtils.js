@@ -2,6 +2,7 @@ import _ from 'underscore';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
@@ -384,20 +385,24 @@ const getPreferredEmojiCode = (emoji, preferredSkinTone) => {
  * Given an emoji object and a list of senders it will return an
  * array of emoji codes, that represents all used variations of the
  * emoji.
- * @param {{ name: string, code: string, types: string[] }} emoji
+ * @param {Object} emojiAsset
+ * @param {String} emojiAsset.name
+ * @param {String} emojiAsset.code
+ * @param {String[]} [emojiAsset.types]
  * @param {Array} users
  * @return {string[]}
  * */
-const getUniqueEmojiCodes = (emoji, users) => {
-    const emojiCodes = [];
-    _.forEach(users, (user) => {
-        const emojiCode = getPreferredEmojiCode(emoji, user.skinTone);
-
-        if (emojiCode && !emojiCodes.includes(emojiCode)) {
-            emojiCodes.push(emojiCode);
-        }
+const getUniqueEmojiCodes = (emojiAsset, users) => {
+    const uniqueEmojiCodes = [];
+    _.each(users, (userSkinTones) => {
+        _.each(lodashGet(userSkinTones, 'skinTones'), (createdAt, skinTone) => {
+            const emojiCode = getPreferredEmojiCode(emojiAsset, skinTone);
+            if (emojiCode && !uniqueEmojiCodes.includes(emojiCode)) {
+                uniqueEmojiCodes.push(emojiCode);
+            }
+        });
     });
-    return emojiCodes;
+    return uniqueEmojiCodes;
 };
 
 export {

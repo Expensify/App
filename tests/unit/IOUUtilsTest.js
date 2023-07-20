@@ -9,7 +9,6 @@ import currencyList from './currencyList.json';
 
 let iouReport;
 let reportActions;
-const ownerEmail = 'owner@iou.com';
 const ownerAccountID = 5;
 const managerEmail = 'manager@iou.com';
 const managerID = 10;
@@ -54,7 +53,7 @@ describe('IOUUtils', () => {
             const amount = 1000;
             const currency = 'USD';
 
-            iouReport = ReportUtils.buildOptimisticIOUReport(ownerEmail, ownerAccountID, managerID, amount, chatReportID, currency);
+            iouReport = ReportUtils.buildOptimisticIOUReport(ownerAccountID, managerID, amount, chatReportID, currency);
 
             // The starting point of all tests is the IOUReport containing a single non-pending transaction in USD
             // All requests in the tests are assumed to be online, unless isOffline is specified
@@ -138,21 +137,21 @@ describe('IOUUtils', () => {
         beforeAll(() => initCurrencyList());
 
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
-            const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants.length, 103, true)).toBe(35);
-            expect(IOUUtils.calculateAmount(participants.length, 103)).toBe(34);
+            const participantsAccountIDs = [100, 101];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 103, true)).toBe(35);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 103)).toBe(34);
         });
 
         test('10 AFN split among 4 participants including the default user should be [1, 3, 3, 3]', () => {
-            const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants.length, 10, true)).toBe(1);
-            expect(IOUUtils.calculateAmount(participants.length, 10)).toBe(3);
+            const participantsAccountIDs = [100, 101, 102];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10, true)).toBe(1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 10)).toBe(3);
         });
 
         test('0.02 USD split among 4 participants including the default user should be [-1, 1, 1, 1]', () => {
-            const participants = ['tonystark@expensify.com', 'reedrichards@expensify.com', 'suestorm@expensify.com'];
-            expect(IOUUtils.calculateAmount(participants.length, 2, true)).toBe(-1);
-            expect(IOUUtils.calculateAmount(participants.length, 2)).toBe(1);
+            const participantsAccountIDs = [100, 101, 102];
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2, true)).toBe(-1);
+            expect(IOUUtils.calculateAmount(participantsAccountIDs.length, 2)).toBe(1);
         });
     });
 });
