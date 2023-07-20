@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import Config from 'react-native-config';
-import CONFIG from '../../../CONFIG';
 import get from 'lodash/get';
 import getUserLanguage from '../GetUserLanguage';
 import * as Session from '../../../libs/actions/Session';
 import Log from '../../../libs/Log';
 import * as Environment from '../../../libs/Environment/Environment';
+import CONFIG from '../../../CONFIG';
 import CONST from '../../../CONST';
 import withNavigationFocus from '../../withNavigationFocus';
 
@@ -37,10 +37,10 @@ const defaultProps = {
  * Apple Sign In Configuration for Web.
  */
 const config = {
-    clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONST.APPLE_SIGN_IN_SERVICE_ID),
+    clientId: lodashGet(Config, 'ASI_CLIENTID_OVERRIDE', CONFIG.APPLE_SIGN_IN.SERVICE_ID),
     scope: 'name email',
     // never used, but required for configuration
-    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}${CONST.APPLE_SIGN_IN_REDIRECT_ROUTE}`),
+    redirectURI: lodashGet(Config, 'ASI_REDIRECTURI_OVERRIDE', CONFIG.APPLE_SIGN_IN.REDIRECT_URI),
     state: '',
     nonce: '',
     usePopup: true,

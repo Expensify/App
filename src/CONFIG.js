@@ -84,4 +84,8 @@ export default {
     E2E_TESTING: lodashGet(Config, 'E2E_TESTING', 'false') === 'true',
     SEND_CRASH_REPORTS: lodashGet(Config, 'SEND_CRASH_REPORTS', 'false') === 'true',
     IS_USING_WEB_PROXY: getPlatform() === 'web' && useWebProxy,
+    APPLE_SIGN_IN: {
+        SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
+        REDIRECT_URI: `${newExpensifyURL}appleauth`,
+    },
 };

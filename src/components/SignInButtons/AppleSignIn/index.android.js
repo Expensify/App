@@ -3,6 +3,7 @@ import {appleAuthAndroid} from '@invertase/react-native-apple-authentication';
 import Log from '../../../libs/Log';
 import IconButton from '../IconButton';
 import * as Session from '../../../libs/actions/Session';
+import CONFIG from '../../../CONFIG';
 import CONST from '../../../CONST';
 
 /**
@@ -10,8 +11,8 @@ import CONST from '../../../CONST';
  */
 
 const config = {
-    clientId: CONST.APPLE_SIGN_IN_SERVICE_ID,
-    redirectUri: CONST.APPLE_SIGN_IN_REDIRECT_URI,
+    clientId: CONFIG.APPLE_SIGN_IN.SERVICE_ID,
+    redirectUri: CONFIG.APPLE_SIGN_IN.REDIRECT_URI,
     responseType: appleAuthAndroid.ResponseType.ALL,
     scope: appleAuthAndroid.Scope.ALL,
 };
