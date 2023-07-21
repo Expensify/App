@@ -186,7 +186,7 @@ let newActionSubscribers = []
 function subscribeToNewActionEvent(reportID, callback) {
     newActionSubscribers.push({callback, reportID})
     return () => {
-        newActionSubscribers = newActionSubscribers.filter(s => s.reportID !== reportID);
+        newActionSubscribers = _.filter(newActionSubscribers, (subscriber) => subscriber.reportID !== reportID)
     };
 }
 
@@ -198,8 +198,8 @@ function subscribeToNewActionEvent(reportID, callback) {
  * @param {String} reportActionID
  */
 function notifyNewAction(reportID, accountID, reportActionID) {
-    const actionSubscriber = newActionSubscribers.find(s => s.reportID === reportID)
-    if (!actionSubscriber) {
+    const actionSubscriber = _.find(newActionSubscribers, (subscriber) => subscriber.reportID === reportID)
+        if (!actionSubscriber) {
         return
     }
     const isFromCurrentUser = accountID === currentUserAccountID;
