@@ -208,7 +208,7 @@ function MoneyRequestConfirmPage(props) {
                             IOU.setMoneyRequestParticipants(newParticipants);
                         }}
                         receiptPath={props.iou.receiptPath}
-                        isImage={props.iou.isImage}
+                        receiptSource={props.iou.receiptSource}
                         iouType={iouType.current}
                         reportID={reportID.current}
                         // The participants can only be modified when the action is initiated from directly within a group chat and not the floating-action-button.

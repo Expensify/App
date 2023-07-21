@@ -186,7 +186,7 @@ function ReceiptSelector(props) {
                 flash: flash ? 'on' : 'off',
             })
             .then((photo) => {
-                IOU.setMoneyRequestReceipt(`file://${photo.path}`, true);
+                IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
                 NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
             })
             .catch(() => {
@@ -267,7 +267,7 @@ function ReceiptSelector(props) {
                     style={[styles.alignItemsStart]}
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
-                            IOU.setMoneyRequestReceipt(receiptImage[0].uri, true);
+                            IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
                             NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
                         });
                     }}

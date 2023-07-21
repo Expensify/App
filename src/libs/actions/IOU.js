@@ -1394,10 +1394,10 @@ function setMoneyRequestParticipants(participants) {
 
 /**
  * @param {String} receiptPath
- * @param {Boolean} isImage
+ * @param {String} receiptSource
  */
-function setMoneyRequestReceipt(receiptPath, isImage) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath, isImage});
+function setMoneyRequestReceipt(receiptPath, receiptSource) {
+    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
 }
 
 export {

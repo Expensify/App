@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {compose} from 'underscore';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
@@ -165,7 +164,7 @@ function ReceiptSelector(props) {
                                         }
 
                                         const filePath = URL.createObjectURL(file);
-                                        IOU.setMoneyRequestReceipt(filePath, Str.isImage(file.name));
+                                        IOU.setMoneyRequestReceipt(filePath, file.name);
                                         NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
                                     },
                                 });

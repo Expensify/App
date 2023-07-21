@@ -5,7 +5,6 @@ import lodashGet from 'lodash/get';
 import {compose} from 'underscore';
 import {PortalHost} from '@gorhom/portal';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -123,7 +122,7 @@ function MoneyRequestSelectorPage(props) {
                             }
 
                             const filePath = URL.createObjectURL(file);
-                            IOU.setMoneyRequestReceipt(filePath, Str.isImage(file.name));
+                            IOU.setMoneyRequestReceipt(filePath, file.name);
                             NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
                         }}
                     >

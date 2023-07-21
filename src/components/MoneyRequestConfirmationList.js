@@ -2,6 +2,7 @@ import React, {useState, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
@@ -21,7 +22,10 @@ import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import Image from './Image';
-import * as Lounge from './Icon/Illustrations';
+import ReceiptHTML from '../../assets/images/receipt-html.png';
+import ReceiptDoc from '../../assets/images/receipt-doc.png';
+import ReceiptGeneric from '../../assets/images/receipt-generic.png';
+import * as FileUtils from '../libs/fileDownload/FileUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -277,7 +281,31 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
-    const getFileImage = () => <Lounge style={styles.moneyRequestImage} />;
+    /**
+     * Grab the appropriate image URI based on file type
+     *
+     * @param {String} receiptPath
+     * @param {String} receiptSource
+     * @returns {*}
+     */
+    const getImageURI = (receiptPath, receiptSource) => {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(receiptSource);
+        const isReceiptImage = Str.isImage(props.receiptSource);
+
+        if (isReceiptImage) {
+            return receiptPath;
+        }
+
+        if (fileExtension === 'html') {
+            return ReceiptHTML;
+        }
+
+        if (fileExtension === 'doc' || fileExtension === 'docx') {
+            return ReceiptDoc;
+        }
+
+        return ReceiptGeneric;
+    };
 
     return (
         <OptionsSelector
@@ -296,13 +324,12 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            {props.receiptPath && props.isImage && (
+            {props.receiptPath && (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: props.receiptPath}}
+                    source={{uri: getImageURI(props.receiptPath, props.receiptSource)}}
                 />
             )}
-            {props.receiptPath && !props.isImage && getFileImage()}
             {!props.receiptPath && (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!props.isReadOnly}
