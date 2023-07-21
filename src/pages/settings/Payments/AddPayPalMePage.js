@@ -44,22 +44,25 @@ function AddPayPalMePage(props) {
     const growlMessageOnSave = props.translate(hasPaypalAccount ? 'addPayPalMePage.growlMessageOnUpdate' : 'addPayPalMePage.growlMessageOnSave');
 
     const validate = (values) => {
-        const errors = {}
+        const errors = {};
         if (!ValidationUtils.isValidPaypalUsername(values.payPalMeUsername)) {
             errors.payPalMeUsername = 'addPayPalMePage.formatError';
         }
 
         return errors;
-    }
+    };
 
     /**
      * Sets the payPalMe username and error data for the current user
      */
-    const setPayPalMeData = useCallback((values) => {
-        User.addPaypalMeAddress(values.payPalMeUsername);
-        Growl.show(growlMessageOnSave, CONST.GROWL.SUCCESS, 3000);
-        Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
-    }, [growlMessageOnSave]);
+    const setPayPalMeData = useCallback(
+        (values) => {
+            User.addPaypalMeAddress(values.payPalMeUsername);
+            Growl.show(growlMessageOnSave, CONST.GROWL.SUCCESS, 3000);
+            Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
+        },
+        [growlMessageOnSave],
+    );
 
     return (
         <ScreenWrapper onEntryTransitionEnd={() => payPalMeInput.current && payPalMeInput.current.focus()}>
