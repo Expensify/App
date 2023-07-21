@@ -174,7 +174,7 @@ function unsubscribeFromReportChannel(reportID) {
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING);
 }
 
-// new action subscriber array for report pages
+// New action subscriber array for report pages
 let newActionSubscribers = []
 
 /**
