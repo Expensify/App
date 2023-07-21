@@ -155,7 +155,7 @@ function ReportDetailsPage(props) {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.textHeadline, styles.textAlignCenter, styles.pre]}
-                                    shouldUseFullTitle={shouldUseFullTitle}
+                                    shouldUseFullTitle={!shouldUseFullTitle}
                                 />
                             </View>
                             {isPolicyAdmin ? (
