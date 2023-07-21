@@ -1,7 +1,8 @@
 import React, {useEffect, useImperativeHandle, useRef, useState, forwardRef} from 'react';
-import {StyleSheet, View, Pressable} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import { TapGestureHandler } from 'react-native-gesture-handler';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import * as ValidationUtils from '../libs/ValidationUtils';
@@ -13,7 +14,6 @@ import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
 import * as Browser from '../libs/Browser';
-import { TapGestureHandler } from 'react-native-gesture-handler';
 
 const propTypes = {
     /** Information about the network */
@@ -192,14 +192,12 @@ function MagicCodeInput(props) {
             setEditIndex(lastFocusedIndex.current);
         }
         event.preventDefault();
-        shouldFocusLast.current = true;
     };
 
     /**
      * Callback for the onPress event, updates the indexes
      * of the currently focused input.
      *
-     * @param {Object} event
      * @param {Number} index
      */
     const onPress = (index) => {
@@ -208,6 +206,7 @@ function MagicCodeInput(props) {
         setInput('');
         setFocusedIndex(index);
         setEditIndex(index);
+        lastFocusedIndex.current = index;
     };
 
     /**
@@ -346,6 +345,7 @@ function MagicCodeInput(props) {
                             onKeyPress={onKeyPress}
                             onFocus={onFocus}
                             onBlur={() => {
+                                shouldFocusLast.current = true;
                                 lastFocusedIndex.current = focusedIndex;
                                 setFocusedIndex(undefined);
                             }}
