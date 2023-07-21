@@ -2535,7 +2535,6 @@ const styles = {
 
     magicCodeInputTransparent: {
         color: 'transparent',
-        caretColor: 'transparent',
     },
 
     magicCodeInputTransparentWebKit: {
