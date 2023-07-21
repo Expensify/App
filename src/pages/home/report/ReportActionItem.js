@@ -161,7 +161,14 @@ function ReportActionItem(props) {
     const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
     const latestDecision = lodashGet(_.last(decisions), 'decision', '');
     useEffect(() => {
-        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
+        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
+            return;
+        }
+
+        // Hide reveal message button and show the message if latestDecision is changed to empty
+        if (_.isEmpty(latestDecision)) {
+            setModerationDecision(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
+            setIsHidden(false);
             return;
         }
 
