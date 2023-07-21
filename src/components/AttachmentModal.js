@@ -177,12 +177,12 @@ function AttachmentModal(props) {
         setIsAttachmentInvalid(false);
     }, []);
     /**
+     * @param {Object} _file
      * @param {Object} _data
      * @returns {Boolean}
      */
     const isValidFile = useCallback(
-        (_data) => {
-            const _file = _data.getAsFile();
+        (_file,_data) => {
             const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
             if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
                 setIsAttachmentInvalid(true);
@@ -223,12 +223,15 @@ function AttachmentModal(props) {
      */
     const validateAndDisplayFileToUpload = useCallback(
         (_data) => {
-            const _file = _data.getAsFile();
+            let _file = _data
+            if (typeof _data.getAsFile === 'function' ){
+                _file = _data.getAsFile();
+            }
             if (!_file) {
                 return;
             }
 
-            if (!isValidFile(_data)) {
+            if (!isValidFile(_file,_data)) {
                 return;
             }
 
