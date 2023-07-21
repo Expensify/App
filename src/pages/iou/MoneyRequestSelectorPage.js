@@ -23,7 +23,6 @@ import DragAndDrop from '../../components/DragAndDrop';
 import * as IOU from '../../libs/actions/IOU';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from './NavigateToNextIOUPage';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import AttachmentUtils from '../../libs/AttachmentUtils';
 
 const propTypes = {
@@ -57,7 +56,6 @@ const propTypes = {
     tabSelected: PropTypes.string,
 
     ...withCurrentUserPersonalDetailsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -166,7 +164,6 @@ MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default compose(
     withCurrentUserPersonalDetails,
-    withLocalize,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         report: {

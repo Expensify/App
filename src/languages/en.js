@@ -356,6 +356,8 @@ export default {
         cameraAccess: 'Camera access is required to take pictures of receipts.',
         cameraErrorTitle: 'Camera Error',
         cameraErrorMessage: 'An error occurred while taking a photo, please try again',
+        dropTitle: 'Let it go',
+        dropMessage: 'Drop your file here',
     },
     iou: {
         amount: 'Amount',

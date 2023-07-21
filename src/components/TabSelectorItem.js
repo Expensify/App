@@ -1,7 +1,6 @@
 import {Text, View} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
-import withLocalize from './withLocalize';
 import Icon from './Icon';
 import Colors from '../styles/colors';
 import styles from '../styles/styles';
@@ -54,4 +53,4 @@ TabSelectorItem.propTypes = propTypes;
 TabSelectorItem.defaultProps = defaultProps;
 TabSelectorItem.displayName = 'TabSelectorItem';
 
-export default withLocalize(TabSelectorItem);
+export default TabSelectorItem;

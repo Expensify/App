@@ -7,8 +7,6 @@ import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import CONST from '../CONST';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -25,7 +23,9 @@ import Image from './Image';
 import ReceiptHTML from '../../assets/images/receipt-html.png';
 import ReceiptDoc from '../../assets/images/receipt-doc.png';
 import ReceiptGeneric from '../../assets/images/receipt-generic.png';
+import ReceiptSVG from '../../assets/images/receipt-svg.png';
 import * as FileUtils from '../libs/fileDownload/FileUtils';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -67,10 +67,6 @@ const propTypes = {
     /** Depending on expense report or personal IOU report, respective bank account route */
     bankAccountRoute: PropTypes.string,
 
-    ...windowDimensionsPropTypes,
-
-    ...withLocalizePropTypes,
-
     ...withCurrentUserPersonalDetailsPropTypes,
 
     /* Onyx Props */
@@ -107,7 +103,8 @@ const defaultProps = {
 function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {translate, onSendMoney, onConfirm, onSelectParticipant} = props;
+    const {onSendMoney, onConfirm, onSelectParticipant} = props;
+    const {translate} = useLocalize();
 
     /**
      * Returns the participants with amount
@@ -304,6 +301,10 @@ function MoneyRequestConfirmationList(props) {
             return ReceiptDoc;
         }
 
+        if (fileExtension === 'svg') {
+            return ReceiptSVG;
+        }
+
         return ReceiptGeneric;
     };
 
@@ -357,8 +358,6 @@ MoneyRequestConfirmationList.propTypes = propTypes;
 MoneyRequestConfirmationList.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
     withCurrentUserPersonalDetails,
     withOnyx({
         session: {

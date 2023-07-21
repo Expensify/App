@@ -2,7 +2,6 @@ import {View, Text, PixelRatio} from 'react-native';
 import React, {useCallback, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {compose} from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
@@ -17,12 +16,12 @@ import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import NavigateToNextIOUPage from '../NavigateToNextIOUPage';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ConfirmModal from '../../../components/ConfirmModal';
 import AttachmentUtils from '../../../libs/AttachmentUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -64,8 +63,6 @@ const propTypes = {
 
     /** Used by drag and drop to determine if we have a file dragged over the view */
     isDraggingOver: PropTypes.bool,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -99,6 +96,7 @@ function ReceiptSelector(props) {
     const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
 
     /**
      * Close the confirm modal.
@@ -110,7 +108,7 @@ function ReceiptSelector(props) {
     const uploadText = () =>
         isSmallScreenWidth ? (
             <Text style={[styles.subTextReceiptUpload]}>
-                {props.translate('receipt.chooseReceiptBeforeEmail')}
+                {translate('receipt.chooseReceiptBeforeEmail')}
                 <View style={{flexDirection: 'row'}}>
                     <CopyTextToClipboard
                         text="receipts@expensify.com"
@@ -120,14 +118,14 @@ function ReceiptSelector(props) {
             </Text>
         ) : (
             <Text style={[styles.subTextReceiptUpload]}>
-                {props.translate('receipt.dragReceiptBeforeEmail')}
+                {translate('receipt.dragReceiptBeforeEmail')}
                 <View style={{flexDirection: 'row'}}>
                     <CopyTextToClipboard
                         text="receipts@expensify.com"
                         textStyles={[styles.textBlue]}
                     />
                 </View>
-                {props.translate('receipt.dragReceiptAfterEmail')}
+                {translate('receipt.dragReceiptAfterEmail')}
             </Text>
         );
 
@@ -143,18 +141,18 @@ function ReceiptSelector(props) {
                     height={CONST.RECEIPT.ICON_SIZE}
                 />
             </View>
-            <Text style={[styles.textReceiptUpload]}>{props.translate('receipt.upload')}</Text>
+            <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
             {uploadText()}
             <AttachmentPicker>
                 {({openPicker}) => (
                     <PressableWithFeedback
-                        accessibilityLabel={props.translate('receipt.chooseFile')}
+                        accessibilityLabel={translate('receipt.chooseFile')}
                         accessibilityRole="button"
                     >
                         <Button
                             medium
                             success
-                            text={props.translate('receipt.chooseFile')}
+                            text={translate('receipt.chooseFile')}
                             style={[styles.buttonReceiptUpload]}
                             onPress={() => {
                                 openPicker({
@@ -186,7 +184,7 @@ function ReceiptSelector(props) {
                 onCancel={closeConfirmModal}
                 isVisible={isAttachmentInvalid}
                 prompt={attachmentInvalidReason}
-                confirmText={props.translate('common.close')}
+                confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />
         </View>
@@ -197,9 +195,6 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
-    }),
-)(ReceiptSelector);
+export default withOnyx({
+    receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
+})(ReceiptSelector);

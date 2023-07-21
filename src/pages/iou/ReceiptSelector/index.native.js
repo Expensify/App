@@ -17,9 +17,9 @@ import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
 import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import NavigateToNextIOUPage from '../NavigateToNextIOUPage';
+import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
     /** Route params */
@@ -53,8 +53,6 @@ const propTypes = {
      * Current user personal details
      */
     currentUserPersonalDetails: personalDetailsPropType,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -111,20 +109,21 @@ function ReceiptSelector(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
+    const {translate} = useLocalize();
     /**
      * Inform the users when they need to grant camera access and guide them to settings
      */
     const showPermissionsAlert = () => {
         Alert.alert(
-            props.translate('attachmentPicker.cameraPermissionRequired'),
-            props.translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+            translate('attachmentPicker.cameraPermissionRequired'),
+            translate('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
             [
                 {
-                    text: props.translate('common.cancel'),
+                    text: translate('common.cancel'),
                     style: 'cancel',
                 },
                 {
-                    text: props.translate('common.settings'),
+                    text: translate('common.settings'),
                     onPress: () => Linking.openSettings(),
                 },
             ],
@@ -137,11 +136,11 @@ function ReceiptSelector(props) {
      *
      */
     const showGeneralAlert = () => {
-        Alert.alert(props.translate('attachmentPicker.attachmentError'), props.translate('attachmentPicker.errorWhileSelectingAttachment'));
+        Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
     };
 
     const showCameraAlert = () => {
-        Alert.alert(props.translate('receipt.cameraErrorTitle'), props.translate('receipt.cameraErrorMessage'));
+        Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
     };
 
     /**
@@ -225,16 +224,16 @@ function ReceiptSelector(props) {
                 height={200}
                 style={{paddingBottom: 20}}
             />
-            <Text style={[styles.textReceiptUpload]}>{props.translate('receipt.takePhoto')}</Text>
-            <Text style={[styles.subTextReceiptUpload]}>{props.translate('receipt.cameraAccess')}</Text>
+            <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
+            <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
             <PressableWithFeedback
-                accessibilityLabel={props.translate('receipt.givePermission')}
+                accessibilityLabel={translate('receipt.givePermission')}
                 accessibilityRole="button"
             >
                 <Button
                     medium
                     success
-                    text={props.translate('receipt.givePermission')}
+                    text={translate('receipt.givePermission')}
                     style={[styles.buttonReceiptUpload, {paddingTop: 20}]}
                     onPress={() => {
                         if (permissions === 'not-determined') {
@@ -312,4 +311,4 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default withLocalize(ReceiptSelector);
+export default ReceiptSelector;
