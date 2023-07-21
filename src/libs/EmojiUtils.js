@@ -341,10 +341,10 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
  * @returns {Object}
  */
 function replaceAndExtractEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
-    const {text: covertedText = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
+    const {text: convertedText = '', emojis = []} = replaceEmojis(text, preferredSkinTone, lang);
 
     return {
-        text: covertedText,
+        text: convertedText,
         emojis: emojis.concat(extractEmojis(text)),
     };
 }
