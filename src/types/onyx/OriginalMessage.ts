@@ -51,7 +51,7 @@ type OriginalMessageAddComment = {
         flags?: Record<FlagSeverityName, FlagSeverity[]>;
         moderationDecisions?: Decision[];
         whisperedTo: number[];
-        reactions: Reaction[];
+        reactions?: Reaction[];
     };
 };
 

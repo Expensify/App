@@ -73,7 +73,7 @@ type ReportActionBase = {
     error?: string;
 
     /** accountIDs of the people to which the whisper was sent to (if any). Returns empty array if it is not a whisper */
-    whisperedToAccountIDs: number[];
+    whisperedToAccountIDs?: number[];
 
     avatar?: string;
     automatic?: boolean;
