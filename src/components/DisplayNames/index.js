@@ -78,11 +78,11 @@ class DisplayNames extends PureComponent {
         }
 
         return (
-            // Tokenization of string only support 1 numberOfLines on Web
+            // Tokenization of string only support prop numberOfLines on Web
             <Text
                 style={[...this.props.textStyles, styles.pRelative]}
                 onLayout={this.setContainerLayout}
-                numberOfLines={1}
+                numberOfLines={this.props.numberOfLines || undefined}
                 ref={(el) => (this.containerRef = el)}
             >
                 {this.props.shouldUseFullTitle
