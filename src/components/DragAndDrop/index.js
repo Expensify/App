@@ -1,13 +1,20 @@
-import React from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
 import variables from '../../styles/variables';
 import DragAndDropPropTypes from './dragAndDropPropTypes';
 import withNavigationFocus from '../withNavigationFocus';
+import usePrevious from '../../hooks/usePrevious';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
+
+const DRAG_OVER_EVENT = 'dragover';
+const DRAG_ENTER_EVENT = 'dragenter';
+const DRAG_LEAVE_EVENT = 'dragleave';
+const DROP_EVENT = 'drop';
+const RESIZE_EVENT = 'resize';
 
 const propTypes = {
     ...DragAndDropPropTypes,
@@ -40,80 +47,28 @@ const defaultProps = {
     disabled: false,
 };
 
-class DragAndDrop extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.throttledDragOverHandler = _.throttle(this.dragOverHandler.bind(this), 100);
-        this.throttledDragNDropWindowResizeListener = _.throttle(this.dragNDropWindowResizeListener.bind(this), 100);
-        this.dropZoneDragHandler = this.dropZoneDragHandler.bind(this);
-        this.dropZoneDragListener = this.dropZoneDragListener.bind(this);
-
-        /*
+function DragAndDrop(props) {
+    const prevIsFocused = usePrevious(props.isFocused);
+    const prevIsDisabled = usePrevious(props.disabled);
+    const dropZone = useRef(null);
+    const dropZoneRect = useRef(null);
+    /*
         Last detected drag state on the dropzone -> we start with dragleave since user is not dragging initially.
         This state is updated when drop zone is left/entered entirely(not taking the children in the account) or entire window is left
-        */
-        this.dropZoneDragState = 'dragleave';
-    }
-
-    componentDidMount() {
-        if (this.props.disabled) {
-            return;
-        }
-        this.addEventListeners();
-    }
-
-    componentDidUpdate(prevProps) {
-        const isDisabled = this.props.disabled;
-        if (this.props.isFocused === prevProps.isFocused && isDisabled === prevProps.disabled) {
-            return;
-        }
-        if (!this.props.isFocused || isDisabled) {
-            this.removeEventListeners();
-        } else {
-            this.addEventListeners();
-        }
-    }
-
-    componentWillUnmount() {
-        if (this.props.disabled) {
-            return;
-        }
-        this.removeEventListeners();
-    }
-
-    addEventListeners() {
-        this.dropZone = document.getElementById(this.props.dropZoneId);
-        this.dropZoneRect = this.calculateDropZoneClientReact();
-        document.addEventListener('dragover', this.dropZoneDragListener);
-        document.addEventListener('dragenter', this.dropZoneDragListener);
-        document.addEventListener('dragleave', this.dropZoneDragListener);
-        document.addEventListener('drop', this.dropZoneDragListener);
-        window.addEventListener('resize', this.throttledDragNDropWindowResizeListener);
-    }
-
-    removeEventListeners() {
-        document.removeEventListener('dragover', this.dropZoneDragListener);
-        document.removeEventListener('dragenter', this.dropZoneDragListener);
-        document.removeEventListener('dragleave', this.dropZoneDragListener);
-        document.removeEventListener('drop', this.dropZoneDragListener);
-        window.removeEventListener('resize', this.throttledDragNDropWindowResizeListener);
-    }
+    */
+    const dropZoneDragState = useRef(DRAG_LEAVE_EVENT);
 
     /**
      * @param {Object} event native Event
      */
-    dragOverHandler(event) {
-        this.props.onDragOver(event);
-    }
+    const dragOverHandler = (event) => {
+        props.onDragOver(event);
+    };
 
-    dragNDropWindowResizeListener() {
-        // Update bounding client rect on window resize
-        this.dropZoneRect = this.calculateDropZoneClientReact();
-    }
+    const throttledDragOverHandler = _.throttle(dragOverHandler, 100);
 
-    calculateDropZoneClientReact() {
-        const boundingClientRect = this.dropZone.getBoundingClientRect();
+    const calculateDropZoneClientReact = useCallback(() => {
+        const boundingClientRect = dropZone.current.getBoundingClientRect();
 
         // Handle edge case when we are under responsive breakpoint the browser doesn't normalize rect.left to 0 and rect.right to window.innerWidth
         return {
@@ -123,72 +78,122 @@ class DragAndDrop extends React.Component {
             top: boundingClientRect.top,
             bottom: boundingClientRect.bottom,
         };
-    }
+    }, []);
+
+    const dragNDropWindowResizeListener = () => {
+        // Update bounding client rect on window resize
+        dropZoneRect.current = calculateDropZoneClientReact();
+    };
+
+    const throttledDragNDropWindowResizeListener = _.throttle(dragNDropWindowResizeListener, 100);
 
     /**
      * @param {Object} event native Event
      */
-    dropZoneDragHandler(event) {
-        // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
-        switch (event.type) {
-            case 'dragover':
-                // Continuous event -> can hurt performance, be careful when subscribing
-                // eslint-disable-next-line no-param-reassign
-                event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                this.throttledDragOverHandler(event);
-                break;
-            case 'dragenter':
-                // Avoid reporting onDragEnter for children views -> not performant
-                if (this.dropZoneDragState === 'dragleave') {
-                    this.dropZoneDragState = 'dragenter';
+    const dropZoneDragHandler = useCallback(
+        (event) => {
+            // Setting dropEffect for dragover is required for '+' icon on certain platforms/browsers (eg. Safari)
+            switch (event.type) {
+                case DRAG_OVER_EVENT:
+                    // Continuous event -> can hurt performance, be careful when subscribing
                     // eslint-disable-next-line no-param-reassign
                     event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
-                    this.props.onDragEnter(event);
-                }
-                break;
-            case 'dragleave':
-                if (this.dropZoneDragState === 'dragenter') {
-                    if (
-                        event.clientY <= this.dropZoneRect.top ||
-                        event.clientY >= this.dropZoneRect.bottom ||
-                        event.clientX <= this.dropZoneRect.left ||
-                        event.clientX >= this.dropZoneRect.right ||
-                        // Cancel drag when file manager is on top of the drop zone area - works only on chromium
-                        (event.target.getAttribute('id') === this.props.activeDropZoneId && !event.relatedTarget)
-                    ) {
-                        this.dropZoneDragState = 'dragleave';
-                        this.props.onDragLeave(event);
+                    throttledDragOverHandler(event);
+                    break;
+                case DRAG_ENTER_EVENT:
+                    // Avoid reporting onDragEnter for children views -> not performant
+                    if (dropZoneDragState.current === DRAG_LEAVE_EVENT) {
+                        dropZoneDragState.current = DRAG_ENTER_EVENT;
+                        // eslint-disable-next-line no-param-reassign
+                        event.dataTransfer.dropEffect = COPY_DROP_EFFECT;
+                        props.onDragEnter(event);
                     }
-                }
-                break;
-            case 'drop':
-                this.dropZoneDragState = 'dragleave';
-                this.props.onDrop(event);
-                break;
-            default:
-                break;
-        }
-    }
+                    break;
+                case DRAG_LEAVE_EVENT:
+                    if (dropZoneDragState.current === DRAG_ENTER_EVENT) {
+                        if (
+                            event.clientY <= dropZoneRect.current.top ||
+                            event.clientY >= dropZoneRect.current.bottom ||
+                            event.clientX <= dropZoneRect.current.left ||
+                            event.clientX >= dropZoneRect.current.right ||
+                            // Cancel drag when file manager is on top of the drop zone area - works only on chromium
+                            (event.target.getAttribute('id') === props.activeDropZoneId && !event.relatedTarget)
+                        ) {
+                            dropZoneDragState.current = DRAG_LEAVE_EVENT;
+                            props.onDragLeave(event);
+                        }
+                    }
+                    break;
+                case DROP_EVENT:
+                    dropZoneDragState.current = DRAG_LEAVE_EVENT;
+                    props.onDrop(event);
+                    break;
+                default:
+                    break;
+            }
+        },
+        [props, throttledDragOverHandler],
+    );
 
     /**
      * Handles all types of drag-N-drop events on the drop zone associated with composer
      *
      * @param {Object} event native Event
      */
-    dropZoneDragListener(event) {
-        event.preventDefault();
+    const dropZoneDragListener = useCallback(
+        (event) => {
+            event.preventDefault();
 
-        if (this.dropZone.contains(event.target) && this.props.shouldAcceptDrop(event)) {
-            this.dropZoneDragHandler(event);
-        } else {
-            // eslint-disable-next-line no-param-reassign
-            event.dataTransfer.dropEffect = NONE_DROP_EFFECT;
+            if (dropZone.current.contains(event.target) && props.shouldAcceptDrop(event)) {
+                dropZoneDragHandler(event);
+            } else {
+                // eslint-disable-next-line no-param-reassign
+                event.dataTransfer.dropEffect = NONE_DROP_EFFECT;
+            }
+        },
+        [props, dropZoneDragHandler],
+    );
+
+    const addEventListeners = useCallback(() => {
+        dropZone.current = document.getElementById(props.dropZoneId);
+        dropZoneRect.current = calculateDropZoneClientReact();
+        document.addEventListener(DRAG_OVER_EVENT, dropZoneDragListener);
+        document.addEventListener(DRAG_ENTER_EVENT, dropZoneDragListener);
+        document.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragListener);
+        document.addEventListener(DROP_EVENT, dropZoneDragListener);
+        window.addEventListener(RESIZE_EVENT, throttledDragNDropWindowResizeListener);
+    }, [props.dropZoneId, calculateDropZoneClientReact, dropZoneDragListener, throttledDragNDropWindowResizeListener]);
+
+    const removeEventListeners = useCallback(() => {
+        document.removeEventListener(DRAG_OVER_EVENT, dropZoneDragListener);
+        document.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragListener);
+        document.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragListener);
+        document.removeEventListener(DROP_EVENT, dropZoneDragListener);
+        window.removeEventListener(RESIZE_EVENT, throttledDragNDropWindowResizeListener);
+    }, [dropZoneDragListener, throttledDragNDropWindowResizeListener]);
+
+    useEffect(() => {
+        if (props.disabled) {
+            return;
         }
-    }
+        addEventListeners();
 
-    render() {
-        return this.props.children;
-    }
+        return removeEventListeners;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (props.isFocused === prevIsFocused && props.disabled === prevIsDisabled) {
+            return;
+        }
+        if (!props.isFocused || props.disabled) {
+            removeEventListeners();
+        } else {
+            addEventListeners();
+        }
+    }, [props.disabled, props.isFocused, prevIsDisabled, prevIsFocused, addEventListeners, removeEventListeners]);
+
+    return props.children;
 }
 
 DragAndDrop.propTypes = propTypes;
