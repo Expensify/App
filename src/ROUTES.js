@@ -72,6 +72,8 @@ export default {
     REPORT_ATTACHMENTS: 'r/:reportID/attachment',
     getReportAttachmentRoute: (reportID, source) => `r/${reportID}/attachment?source=${encodeURI(source)}`,
 
+    SHARE_MESSAGE: 'shareMessage',
+
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
 

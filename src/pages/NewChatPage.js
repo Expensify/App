@@ -1,21 +1,23 @@
-import _ from 'underscore';
-import React, {useState, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import React, {useEffect, useMemo, useState} from 'react';
+import {Platform, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../components/OptionsSelector';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
-import * as ReportUtils from '../libs/ReportUtils';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import * as Report from '../libs/actions/Report';
+import {ShareMenuReactView} from 'react-native-share-menu';
+import _ from 'underscore';
+
 import CONST from '../CONST';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
+import ONYXKEYS from '../ONYXKEYS';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
+import OptionsSelector from '../components/OptionsSelector';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import * as Browser from '../libs/Browser';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as ReportUtils from '../libs/ReportUtils';
+import * as Report from '../libs/actions/Report';
 import compose from '../libs/compose';
+import styles from '../styles/styles';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 
@@ -61,6 +63,7 @@ function NewChatPage(props) {
         maxParticipantsReached,
     );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
+    const share = props.route.params && props.route.params.share;
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -160,6 +163,10 @@ function NewChatPage(props) {
         if (logins.length < 1) {
             return;
         }
+        if (share) {
+            Report.navigateToAndOpenShare(logins, share);
+            return;
+        }
         Report.navigateToAndOpenReport(logins);
     };
 
@@ -186,7 +193,14 @@ function NewChatPage(props) {
         >
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={props.isGroupChat ? props.translate('sidebarScreen.newGroup') : props.translate('sidebarScreen.newChat')} />
+                    <HeaderWithBackButton
+                        title={
+                            share ? props.translate('newChatPage.shareToExpensify') : props.isGroupChat ? props.translate('sidebarScreen.newGroup') : props.translate('sidebarScreen.newChat')
+                        }
+                        shouldShowBackButton={!share}
+                        shouldShowCloseButton={share}
+                        onCloseButtonPress={Platform.select({ios: () => ShareMenuReactView.dismissExtension(), default: undefined})}
+                    />
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
                             canSelectMultipleOptions={props.isGroupChat}

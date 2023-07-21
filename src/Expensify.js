@@ -1,39 +1,41 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import React, {useCallback, useState, useEffect, useRef, useLayoutEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {AppState, Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
-import * as Report from './libs/actions/Report';
-import BootSplash from './libs/BootSplash';
-import * as ActiveClientManager from './libs/ActiveClientManager';
+import ShareMenu from 'react-native-share-menu';
+import _ from 'underscore';
+
 import ONYXKEYS from './ONYXKEYS';
-import NavigationRoot from './libs/Navigation/NavigationRoot';
-import migrateOnyx from './libs/migrateOnyx';
-import PushNotification from './libs/Notification/PushNotification';
-import UpdateAppModal from './components/UpdateAppModal';
-import Visibility from './libs/Visibility';
-import GrowlNotification from './components/GrowlNotification';
-import * as Growl from './libs/Growl';
-import StartupTimer from './libs/StartupTimer';
-import Log from './libs/Log';
+import ROUTES from './ROUTES';
 import ConfirmModal from './components/ConfirmModal';
-import compose from './libs/compose';
-import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
-import * as User from './libs/actions/User';
-import NetworkConnection from './libs/NetworkConnection';
-import Navigation from './libs/Navigation/Navigation';
-import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
-import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import SplashScreenHider from './components/SplashScreenHider';
+import EmojiPicker from './components/EmojiPicker/EmojiPicker';
+import GrowlNotification from './components/GrowlNotification';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
-import EmojiPicker from './components/EmojiPicker/EmojiPicker';
+import SplashScreenHider from './components/SplashScreenHider';
+import UpdateAppModal from './components/UpdateAppModal';
+import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
+import * as ActiveClientManager from './libs/ActiveClientManager';
+import BootSplash from './libs/BootSplash';
+import * as Growl from './libs/Growl';
+import Log from './libs/Log';
+import Navigation from './libs/Navigation/Navigation';
+import NavigationRoot from './libs/Navigation/NavigationRoot';
+import NetworkConnection from './libs/NetworkConnection';
+import PushNotification from './libs/Notification/PushNotification';
+import StartupTimer from './libs/StartupTimer';
+import Visibility from './libs/Visibility';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
+import * as Report from './libs/actions/Report';
+import * as User from './libs/actions/User';
+import compose from './libs/compose';
+import migrateOnyx from './libs/migrateOnyx';
+import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
+import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
 
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 // eslint-disable-next-line no-unused-vars
-import UnreadIndicatorUpdater from './libs/UnreadIndicatorUpdater';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -167,11 +169,22 @@ function Expensify(props) {
         // Open chat report from a deep link (only mobile native)
         Linking.addEventListener('url', (state) => Report.openReportFromDeepLink(state.url, isAuthenticated));
 
+        const navigateToShare = (share) => {
+            if (!share || !share.data) return;
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.NEW_GROUP);
+                Navigation.setParams({share});
+            });
+        };
+        ShareMenu.getInitialShare(navigateToShare);
+        const shareListener = ShareMenu.addNewShareListener(navigateToShare);
+
         return () => {
             if (!appStateChangeListener.current) {
                 return;
             }
             appStateChangeListener.current.remove();
+            shareListener.remove();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);

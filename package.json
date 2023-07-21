@@ -123,7 +123,7 @@
     "react-native-picker-select": "git+https://github.com/Expensify/react-native-picker-select.git#107b3786ae6bc155dec05c7fc5ee525d3421dc21",
     "react-native-plaid-link-sdk": "^10.0.0",
     "react-native-qrcode-svg": "^6.2.0",
-    "react-native-quick-sqlite": "^8.0.0-beta.2",
+    "react-native-quick-sqlite": "^8.0.4",
     "react-native-reanimated": "3.1.0",
     "react-native-render-html": "6.3.1",
     "react-native-safe-area-context": "4.4.1",

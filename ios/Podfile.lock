@@ -529,7 +529,7 @@ PODS:
     - React
   - react-native-progress-view (1.3.2):
     - React-Core
-  - react-native-quick-sqlite (8.0.0-beta.2):
+  - react-native-quick-sqlite (8.0.4):
     - React
     - React-callinvoker
     - React-Core
@@ -1106,7 +1106,7 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: 9eb0f71dad94b3bdde649c7a384cba93024af46c
   react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
   react-native-progress-view: 4d3bbe6a099ba027b1fedb1548c2c87f74249b70
-  react-native-quick-sqlite: bcc7a7a250a40222f18913a97cd356bf82d0a6c4
+  react-native-quick-sqlite: 9daf75c171e3d0bad2011f95cb501303e4a28363
   react-native-render-html: 96c979fe7452a0a41559685d2f83b12b93edac8c
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   react-native-view-shot: 705f999ac2a24e4e6c909c0ca65c732ed33ca2ff

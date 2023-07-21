@@ -822,6 +822,7 @@ export default {
     },
     newChatPage: {
         createGroup: 'Create group',
+        shareToExpensify: 'Share to Expensify',
     },
     yearPickerPage: {
         year: 'Year',

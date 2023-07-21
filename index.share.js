@@ -1,37 +1,39 @@
-import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-import lodashGet from 'lodash/get';
-import {useEffect, useState} from 'react';
-import {AppRegistry, Pressable, Text, View} from 'react-native';
+import {useEffect} from 'react';
+import {AppRegistry} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-import Button from './src/components/Button';
+
 import ComposeProviders from './src/components/ComposeProviders';
 import CustomStatusBar from './src/components/CustomStatusBar';
-import MenuItem from './src/components/MenuItem';
 import OnyxProvider from './src/components/OnyxProvider';
 import SafeArea from './src/components/SafeArea';
-import TextInput from './src/components/TextInput';
+import {EnvironmentProvider} from './src/components/withEnvironment';
 import {KeyboardStateProvider} from './src/components/withKeyboardState';
-import withLocalize, {LocaleContextProvider, withLocalizePropTypes} from './src/components/withLocalize';
+import {LocaleContextProvider} from './src/components/withLocalize';
 import {WindowDimensionsProvider} from './src/components/withWindowDimensions';
 import CONFIG from './src/CONFIG';
 import * as App from './src/libs/actions/App';
 import * as User from './src/libs/actions/User';
+// eslint-disable-next-line rulesdir/prefer-import-module-contents
+import {shareNavigationRef} from './src/libs/Navigation/Navigation';
 import NetworkConnection from './src/libs/NetworkConnection';
 import * as Pusher from './src/libs/Pusher/pusher';
 import PusherConnectionManager from './src/libs/PusherConnectionManager';
-import * as UserUtils from './src/libs/UserUtils';
 import ONYXKEYS from './src/ONYXKEYS';
-import ShareExtensionPage from './src/pages/ShareExtensionPage';
+import NewGroupPage from './src/pages/NewGroupPage';
+import ShareMessagePage from './src/pages/ShareMessagePage';
 // import additionalAppSetup from './src/setup';
-import {ShareMenuReactView} from 'react-native-share-menu';
-import AttachmentView from './src/components/AttachmentView';
+import HTMLEngineProvider from './src/components/HTMLEngineProvider';
+import {CurrentReportIDContextProvider} from './src/components/withCurrentReportID';
 import CONST from './src/CONST';
-import * as Report from './src/libs/actions/Report';
 import * as Metrics from './src/libs/Metrics';
-import styles from './src/styles/styles';
+import RHPScreenOptions from './src/libs/Navigation/AppNavigator/RHPScreenOptions';
+import ROUTES from './src/ROUTES';
+import ThemeProvider from './src/styles/themes/ThemeProvider';
+import ThemeStylesProvider from './src/styles/ThemeStylesProvider';
 
 // TODO: can/should we use additionalAppSetup here?
 Onyx.init({
@@ -55,78 +57,17 @@ Onyx.init({
     },
 });
 
-const Message = withLocalize((props) => {
-    const toDetails = props.route.params.option;
-    const [attachment, setAttachment] = useState();
-    const [message, setMessage] = useState('');
-
-    useEffect(() => {
-        ShareMenuReactView.data().then(({data}) => setAttachment(data[0]));
-    }, []);
-
-    return (
-        <View style={{backgroundColor: '#07271F', flex: 1}}>
-            <Pressable
-                onPress={props.navigation.goBack}
-                style={{padding: 24}}
-            >
-                <Text style={{color: '#E7ECE9', fontWeight: 'bold'}}>{props.translate('common.goBack')}</Text>
-            </Pressable>
-            <Text style={[styles.textLabelSupporting, {paddingLeft: 24}]}>{props.translate('common.to')}</Text>
-            <MenuItem
-                title={toDetails.text}
-                description={toDetails.alternateText}
-                icon={UserUtils.getAvatar(lodashGet(toDetails, 'avatar', ''), lodashGet(toDetails, 'login', ''))}
-                iconHeight={40}
-                iconWidth={40}
-                shouldShowRightIcon
-            />
-            <View style={{padding: 24}}>
-                <TextInput
-                    inputID="addAMessage"
-                    name="addAMessage"
-                    label={props.translate('moneyRequestConfirmationList.whatsItFor')}
-                    onChangeText={setMessage}
-                    value={message}
-                />
-            </View>
-            <View style={{padding: 24}}>
-                <Text style={styles.textLabelSupporting}>{props.translate('common.share')}</Text>
-                {attachment && (
-                    <View style={{borderRadius: 8, height: 200, marginTop: 8, overflow: 'hidden', width: '100%'}}>
-                        <AttachmentView source={attachment.data} />
-                    </View>
-                )}
-            </View>
-            <View style={{padding: 24}}>
-                <Button
-                    success
-                    pressOnEnter
-                    text={props.translate('common.share')}
-                    onPress={() => {
-                        const name = attachment.data.split('/').pop();
-                        const source = attachment.data;
-                        Report.addAttachment(toDetails.reportID, {name, source, type: attachment.mimeType, uri: source}, message);
-                    }}
-                />
-            </View>
-        </View>
-    );
-});
-
-Message.propTypes = {
-    ...withLocalizePropTypes,
-};
-Message.defaultProps = {};
-
-// eslint-disable-next-line
-export const navigationRef = createNavigationContainerRef();
-
 const Stack = createStackNavigator();
 
 const ShareExtension = withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    lastOpenedPublicRoomID: {
+        key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+    },
+    isUsingMemoryOnlyKeys: {
+        key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
     },
 })((props) => {
     useEffect(() => {
@@ -154,23 +95,29 @@ const ShareExtension = withOnyx({
                     // PortalProvider,
                     SafeArea,
                     LocaleContextProvider,
+                    HTMLEngineProvider,
                     WindowDimensionsProvider,
                     KeyboardStateProvider,
+                    CurrentReportIDContextProvider,
                     // PickerStateProvider,
+                    EnvironmentProvider,
+                    ThemeProvider,
+                    ThemeStylesProvider,
                 ]}
             >
                 <CustomStatusBar />
                 {/* this appears to require firebase */}
                 {/* <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary"> */}
-                <NavigationContainer ref={navigationRef}>
-                    <Stack.Navigator screenOptions={{headerShown: false}}>
+                <NavigationContainer ref={shareNavigationRef}>
+                    <Stack.Navigator screenOptions={RHPScreenOptions}>
                         <Stack.Screen
-                            name="Home"
-                            component={ShareExtensionPage}
+                            name={ROUTES.NEW_GROUP}
+                            component={NewGroupPage}
+                            initialParams={{share: true}}
                         />
                         <Stack.Screen
-                            name="Message"
-                            component={Message}
+                            name={ROUTES.SHARE_MESSAGE}
+                            component={ShareMessagePage}
                         />
                     </Stack.Navigator>
                 </NavigationContainer>
