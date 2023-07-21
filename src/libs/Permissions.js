@@ -102,6 +102,10 @@ function canUseScanReceipts(betas) {
     return _.contains(betas, CONST.BETAS.SCAN_RECEIPTS) || canUseAllBetas(betas);
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
 function canUseDistanceRequests(betas) {
     return _.contains(betas, CONST.BETAS.DISTANCE_REQUESTS) || canUseAllBetas(betas);
 }
