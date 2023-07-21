@@ -339,8 +339,8 @@ function shouldReportActionBeVisible(reportAction, key) {
 }
 
 /**
- * Checks if a reportAction is fit for display as report last action, meaning that it's not deprecated, is of a valid
- * and supported type, it's not deleted and also not closed.
+ * Checks if a reportAction is fit for display as report last action, meaning that
+ * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  *
  * @param {Object} reportAction
  * @returns {Boolean}
