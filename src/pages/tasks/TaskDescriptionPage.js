@@ -50,7 +50,10 @@ function TaskDescriptionPage(props) {
     const inputRef = useRef(null);
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton title={props.translate('task.task')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
