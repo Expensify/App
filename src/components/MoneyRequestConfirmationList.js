@@ -199,7 +199,7 @@ function MoneyRequestConfirmationList({
         if (!hasMultipleParticipants) {
             return [];
         }
-        return [...memoSelectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
+        return [...memoSelectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(memoPayeePersonalDetails)];
     }, [memoSelectedParticipants, hasMultipleParticipants, memoPayeePersonalDetails]);
 
     /**
