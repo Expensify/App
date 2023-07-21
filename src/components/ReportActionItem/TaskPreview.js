@@ -22,6 +22,10 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
+import {showContextMenuForReport} from '../ShowContextMenuContext';
+import reportPropTypes from '../../pages/reportPropTypes';
+import refPropTypes from '../refPropTypes';
+import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -49,6 +53,16 @@ const propTypes = {
         ownerAccountID: PropTypes.number,
     }),
 
+    /* Onyx Props */
+    /** chatReport associated with taskReport */
+    chatReport: reportPropTypes,
+    
+    /** Popover context menu anchor, used for showing context menu */
+    contextMenuAnchor: refPropTypes,
+
+    /** Callback for updating context menu active state, used for showing context menu */
+    checkIfContextMenuActive: PropTypes.func,
+
     ...withLocalizePropTypes,
 };
 
@@ -74,6 +88,9 @@ function TaskPreview(props) {
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
+                onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onLongPress={(event) => showContextMenuForReport(event, props.contextMenuAnchor, props.chatReportID, props.action, props.checkIfContextMenuActive)}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}

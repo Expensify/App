@@ -281,8 +281,11 @@ function ReportActionItem(props) {
             children = (
                 <TaskPreview
                     taskReportID={props.action.originalMessage.taskReportID.toString()}
+                    chatReportID={props.report.reportID}
                     action={props.action}
                     isHovered={hovered}
+                    contextMenuAnchor={popoverAnchorRef}
+                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                 />
             );
         } else {
