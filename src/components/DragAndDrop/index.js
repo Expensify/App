@@ -155,8 +155,6 @@ function DragAndDrop(props) {
     );
 
     const addEventListeners = useCallback(() => {
-        dropZone.current = document.getElementById(props.dropZoneId);
-        dropZoneRect.current = calculateDropZoneClientReact();
         document.addEventListener(DRAG_OVER_EVENT, dropZoneDragListener);
         document.addEventListener(DRAG_ENTER_EVENT, dropZoneDragListener);
         document.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragListener);
@@ -171,6 +169,23 @@ function DragAndDrop(props) {
         document.removeEventListener(DROP_EVENT, dropZoneDragListener);
         window.removeEventListener(RESIZE_EVENT, throttledDragNDropWindowResizeListener);
     }, [dropZoneDragListener, throttledDragNDropWindowResizeListener]);
+
+    useEffect(() => {
+        const onPageLoad = () => {
+            dropZoneRect.current = calculateDropZoneClientReact();
+        };
+
+        dropZone.current = document.getElementById(props.dropZoneId);
+
+        // Check if the page has already loaded
+        if (document.readyState === 'complete') {
+            onPageLoad();
+        } else {
+            window.addEventListener('load', onPageLoad);
+            // Remove the event listener when component unmounts
+            return () => window.removeEventListener('load', onPageLoad);
+        }
+    }, [props.dropZoneId, calculateDropZoneClientReact]);
 
     useEffect(() => {
         if (props.disabled) {
