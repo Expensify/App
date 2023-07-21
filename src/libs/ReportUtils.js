@@ -2587,6 +2587,15 @@ function getReportOfflinePendingActionAndErrors(report) {
 }
 
 /**
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getPolicy(policyID) {
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
+    return policy;
+}
+
+/*
  * @param {Object|null} report
  * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
  * @returns {Boolean}
@@ -2714,6 +2723,7 @@ export {
     canAccessReport,
     getReportOfflinePendingActionAndErrors,
     isDM,
+    getPolicy,
     shouldDisableRename,
     hasSingleParticipant,
 };
