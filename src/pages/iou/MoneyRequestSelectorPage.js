@@ -98,40 +98,6 @@ function MoneyRequestSelectorPage({route, report, tabSelected, iou, currentUserP
     const selectedTab = tabSelected || CONST.TAB.TAB_MANUAL;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-    const renderTabContent = () => {
-        switch (selectedTab) {
-            case CONST.TAB.TAB_MANUAL:
-                return (
-                    <MoneyRequestAmountPage
-                        route={route}
-                        report={report}
-                        iou={iou}
-                        currentUserPersonalDetails={currentUserPersonalDetails}
-                    />
-                );
-            case CONST.TAB.TAB_SCAN:
-                return (
-                    <ReceiptSelector
-                        route={route}
-                        report={report}
-                        iou={iou}
-                        isDraggingOver={isDraggingOver}
-                        currentUserPersonalDetails={currentUserPersonalDetails}
-                    />
-                );
-            case CONST.TAB.TAB_DISTANCE:
-                return (
-                    <DistanceRequest
-                        route={route}
-                        report={report}
-                        iou={iou}
-                    />
-                );
-            default:
-                return null;
-        }
-    };
-
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -168,7 +134,30 @@ function MoneyRequestSelectorPage({route, report, tabSelected, iou, currentUserP
                                 onBackButtonPress={navigateBack}
                             />
                             <TabSelector />
-                            {renderTabContent()}
+                            {selectedTab === CONST.TAB.TAB_MANUAL && (
+                                <MoneyRequestAmountPage
+                                    route={route}
+                                    report={report}
+                                    iou={iou}
+                                    currentUserPersonalDetails={currentUserPersonalDetails}
+                                />
+                            )}
+                            {selectedTab === CONST.TAB.TAB_SCAN && (
+                                <ReceiptSelector
+                                    route={route}
+                                    report={report}
+                                    iou={iou}
+                                    isDraggingOver={isDraggingOver}
+                                    currentUserPersonalDetails={currentUserPersonalDetails}
+                                />
+                            )}
+                            {selectedTab === CONST.TAB.TAB_DISTANCE && (
+                                <DistanceRequest
+                                    route={route}
+                                    report={report}
+                                    iou={iou}
+                                />
+                            )}
                             <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
                         </View>
                     </DragAndDrop>
