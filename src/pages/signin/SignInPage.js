@@ -167,7 +167,9 @@ function SignInPage({credentials, account}) {
     }
 
     return (
-        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(safeAreaInsets, 1)]}>
+        // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
+        // The SVG should flow under the Home Indicator on iOS.
+        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0}, 1)]}>
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}

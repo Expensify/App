@@ -9,10 +9,10 @@ import _ from 'underscore';
 import ONYXKEYS from './ONYXKEYS';
 import ROUTES from './ROUTES';
 import ConfirmModal from './components/ConfirmModal';
-import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
+import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
 import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
@@ -195,7 +195,7 @@ function Expensify(props) {
     }
 
     return (
-        <DeeplinkWrapper>
+        <>
             {shouldInit && (
                 <>
                     <KeyboardShortcutsModal />
@@ -218,6 +218,7 @@ function Expensify(props) {
                 </>
             )}
 
+            <AppleAuthWrapper />
             {hasAttemptedToOpenPublicRoom && (
                 <NavigationRoot
                     onReady={setNavigationReady}
@@ -226,7 +227,7 @@ function Expensify(props) {
             )}
 
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-        </DeeplinkWrapper>
+        </>
     );
 }
 
