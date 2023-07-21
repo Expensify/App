@@ -369,6 +369,7 @@ export {
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openProfile,
+    redirectThirdPartyDesktopSignIn,
     openApp,
     reconnectApp,
     confirmReadyToOpenApp,
