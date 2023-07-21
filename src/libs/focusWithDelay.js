@@ -6,12 +6,12 @@ import {InteractionManager} from 'react-native';
  * @returns {Function} a function that focuses the text input with a configurable delay
  */
 
-function createFocusFunction(textInput) {
+function focusWithDelay(textInput) {
     /**
      * Focus the text input
      * @param {Boolean} [shouldelay=false] Impose delay before focusing the text input
      */
-    return function focus(shouldelay = false) {
+    return (shouldelay = false) => {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         InteractionManager.runAfterInteractions(() => {
@@ -32,4 +32,4 @@ function createFocusFunction(textInput) {
     };
 }
 
-export default createFocusFunction;
+export default focusWithDelay;
