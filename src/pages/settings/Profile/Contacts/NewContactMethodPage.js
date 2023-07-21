@@ -65,7 +65,7 @@ const getPhoneLogin = (phoneOrEmail) => {
 const validateNumber = (values) => {
     const parsedPhoneNumber = parsePhoneNumber(values);
 
-    if (parsedPhoneNumber.possible) {
+    if (parsedPhoneNumber.possible && Str.isValidPhone(values.slice(0))) {
         return parsedPhoneNumber.number.e164 + CONST.SMS.DOMAIN;
     }
 
@@ -94,7 +94,7 @@ function NewContactMethodPage(props) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.contactMethodRequired');
             }
 
-            if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
+            if (!_.isEmpty(values.phoneOrEmail) && !(validateIfnumber || Str.isValidEmail(values.phoneOrEmail))) {
                 ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
             }
 
@@ -125,6 +125,7 @@ function NewContactMethodPage(props) {
                 loginInputRef.current.focus();
             }}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
@@ -149,6 +150,7 @@ function NewContactMethodPage(props) {
                         inputID="phoneOrEmail"
                         autoCapitalize="none"
                         returnKeyType={Permissions.canUsePasswordlessLogins(props.betas) ? 'done' : 'next'}
+                        maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                     />
                 </View>
                 {!Permissions.canUsePasswordlessLogins(props.betas) && (

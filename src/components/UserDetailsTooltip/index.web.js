@@ -15,7 +15,7 @@ import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 import useLocalize from '../../hooks/useLocalize';
 
 function UserDetailsTooltip(props) {
-    const localize = useLocalize();
+    const {translate} = useLocalize();
 
     const userDetails = lodashGet(props.personalDetailsList, props.accountID, props.fallbackUserDetails);
     let userDisplayName = userDetails.displayName ? userDetails.displayName.trim() : '';
@@ -28,7 +28,7 @@ function UserDetailsTooltip(props) {
     if (props.delegateAccountID) {
         const delegateUserDetails = lodashGet(props.personalDetailsList, props.delegateAccountID, {});
         const delegateUserDisplayName = delegateUserDetails.displayName ? delegateUserDetails.displayName.trim() : '';
-        userDisplayName = `${delegateUserDisplayName} (${localize.translate('reportAction.asCopilot')} ${userDisplayName})`;
+        userDisplayName = `${delegateUserDisplayName} (${translate('reportAction.asCopilot')} ${userDisplayName})`;
         userLogin = delegateUserDetails.login;
         userAvatar = delegateUserDetails.avatar;
         userAccountID = props.delegateAccountID;

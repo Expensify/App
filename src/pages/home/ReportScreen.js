@@ -31,12 +31,10 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
-import withNavigationFocus from '../../components/withNavigationFocus';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
 import MoneyReportHeader from '../../components/MoneyReportHeader';
-import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
 import * as ComposerActions from '../../libs/actions/Composer';
 import ReportScreenContext from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
@@ -88,7 +86,6 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
-    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -140,13 +137,18 @@ class ReportScreen extends React.Component {
 
         this.flatListRef = React.createRef();
         this.reactionListRef = React.createRef();
+
+        // We need unique ID for drag and drop to work properly with stack navigator.
+        this.dragAndDropId = CONST.REPORT.DROP_NATIVE_ID + ReportUtils.generateReportID();
     }
 
     componentDidMount() {
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(this.props.route);
+
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
             // we don't need to call openReport
-            if (!getIsReportFullyVisible(this.props.isFocused) || this.props.report.isOptimisticReport) {
+            if (!getIsReportFullyVisible(isTopMostReportId) || this.props.report.isOptimisticReport) {
                 return;
             }
 
@@ -210,11 +212,6 @@ class ReportScreen extends React.Component {
         Report.addComment(getReportID(this.props.route), text);
     }
 
-    getNavigationKey() {
-        const navigation = this.props.navigation.getState();
-        return lodashGet(navigation.routes, [navigation.index, 'key']);
-    }
-
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
      *
@@ -273,6 +270,8 @@ class ReportScreen extends React.Component {
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
 
+        const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(this.props.route);
+
         let headerView = (
             <HeaderView
                 reportID={reportID}
@@ -315,7 +314,7 @@ class ReportScreen extends React.Component {
             >
                 <ScreenWrapper
                     style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={this.props.isFocused}
+                    shouldEnableKeyboardAvoidingView={isTopMostReportId}
                 >
                     <FullPageNotFoundView
                         shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading && !this.state.isReportRemoved) || shouldHideReport}
@@ -351,7 +350,7 @@ class ReportScreen extends React.Component {
                             />
                         )}
                         <View
-                            nativeID={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
+                            nativeID={this.dragAndDropId}
                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                             onLayout={(event) => {
                                 // Rounding this value for comparison because they can look like this: 411.9999694824219
@@ -396,6 +395,7 @@ class ReportScreen extends React.Component {
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
                                         policies={this.props.policies}
+                                        dragAndDropId={this.dragAndDropId}
                                     />
                                 </>
                             )}
@@ -404,6 +404,7 @@ class ReportScreen extends React.Component {
                                 <ReportFooter
                                     shouldDisableCompose
                                     isOffline={this.props.network.isOffline}
+                                    dragAndDropId={this.dragAndDropId}
                                 />
                             )}
 
@@ -423,8 +424,6 @@ export default compose(
     withViewportOffsetTop,
     withLocalize,
     withWindowDimensions,
-    withNavigationFocus,
-    withNavigation,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {
