@@ -308,9 +308,9 @@ class Composer extends React.Component {
     handlePaste(event) {
         event.preventDefault();
 
-        const isVisible = this.props.checkComposerVisibility() 
-        const isFocused = this.textInput.isFocused()
-        
+        const isVisible = this.props.checkComposerVisibility();
+        const isFocused = this.textInput.isFocused();
+
         if (!(isVisible || isFocused)) {
             return;
         }
