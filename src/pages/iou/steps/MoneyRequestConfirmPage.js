@@ -1,7 +1,7 @@
-import React, {useCallback, useEffect, useRef, useMemo} from 'react';
-import {View} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { View } from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import { withOnyx } from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
@@ -17,7 +17,7 @@ import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import withLocalize from '../../../components/withLocalize';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ONYXKEYS from '../../../ONYXKEYS';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes } from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 
@@ -148,9 +148,10 @@ function MoneyRequestConfirmPage(props) {
                 props.currentUserPersonalDetails.accountID,
                 selectedParticipants[0],
                 trimmedComment,
+                props.iou.merchant,
             );
         },
-        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report],
+        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report, props.iou.merchant],
     );
 
     /**
@@ -180,10 +181,10 @@ function MoneyRequestConfirmPage(props) {
         },
         [props.iou.amount, props.iou.comment, participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
     );
-
+    console.log('stuff', props.report, props.iou);
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            {({safeAreaPaddingBottomStyle}) => (
+            {({ safeAreaPaddingBottomStyle }) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
                         title={props.translate('iou.cash')}
@@ -200,7 +201,7 @@ function MoneyRequestConfirmPage(props) {
                         onSelectParticipant={(option) => {
                             const newParticipants = _.map(props.iou.participants, (participant) => {
                                 if (participant.accountID === option.accountID) {
-                                    return {...participant, selected: !participant.selected};
+                                    return { ...participant, selected: !participant.selected };
                                 }
                                 return participant;
                             });
@@ -216,6 +217,8 @@ function MoneyRequestConfirmPage(props) {
                         canModifyParticipants={!_.isEmpty(reportID.current)}
                         policyID={props.report.policyID}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
+                        iouMerchant={props.iou.merchant}
+                        iouModifiedMerchant={props.iou.modifiedMerchant}
                     />
                 </View>
             )}
@@ -232,7 +235,7 @@ export default compose(
     withLocalize,
     withOnyx({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+            key: ({ route }) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
         iou: {
             key: ONYXKEYS.IOU,
