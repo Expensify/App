@@ -84,6 +84,7 @@ class DragAndDrop extends React.Component {
 
     addEventListeners() {
         this.dropZone = document.getElementById(this.props.dropZoneId);
+        document.documentElement.setAttribute('webkitdirectory',"")
         this.dropZoneRect = this.calculateDropZoneClientReact();
         document.addEventListener('dragover', this.dropZoneDragListener);
         document.addEventListener('dragenter', this.dropZoneDragListener);
@@ -93,6 +94,7 @@ class DragAndDrop extends React.Component {
     }
 
     removeEventListeners() {
+        document.documentElement.removeAttribute('webkitdirectory')
         document.removeEventListener('dragover', this.dropZoneDragListener);
         document.removeEventListener('dragenter', this.dropZoneDragListener);
         document.removeEventListener('dragleave', this.dropZoneDragListener);
