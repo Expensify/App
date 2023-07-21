@@ -18,9 +18,9 @@ const defaultProps = {
     tabSelected: CONST.TAB.TAB_MANUAL,
 };
 
-function TabSelector(props) {
+function TabSelector({tabSelected}) {
     const {translate} = useLocalize();
-    const selectedTab = props.tabSelected ? props.tabSelected : CONST.TAB.TAB_MANUAL;
+    const selectedTab = tabSelected || CONST.TAB.TAB_MANUAL;
     return (
         <View style={{flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 20}}>
             <TabSelectorItem

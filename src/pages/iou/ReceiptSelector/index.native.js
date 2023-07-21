@@ -97,7 +97,7 @@ function getImagePickerOptions(type) {
     };
 }
 
-function ReceiptSelector(props) {
+function ReceiptSelector({report, currentUserPersonalDetails, iou, route}) {
     const devices = useCameraDevices('wide-angle-camera');
     const device = devices.back;
 
@@ -106,8 +106,8 @@ function ReceiptSelector(props) {
 
     const [permissions, setPermissions] = useState('authorized');
 
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
+    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
 
     const {translate} = useLocalize();
     /**
@@ -186,7 +186,7 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
+                NavigateToNextIOUPage(iou, iouType, reportID, report, currentUserPersonalDetails);
             })
             .catch(() => {
                 showCameraAlert();
@@ -267,7 +267,7 @@ function ReceiptSelector(props) {
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
                             IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                            NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
+                            NavigateToNextIOUPage(iou, iouType, reportID, report, currentUserPersonalDetails);
                         });
                     }}
                 >

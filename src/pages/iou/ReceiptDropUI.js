@@ -15,7 +15,7 @@ const defaultProps = {
     receiptImageTopPosition: 0,
 };
 
-function ReceiptDropUI(props) {
+function ReceiptDropUI({receiptImageTopPosition}) {
     const {translate} = useLocalize();
     return (
         <DropZone
@@ -24,13 +24,13 @@ function ReceiptDropUI(props) {
             dropZoneViewHolderStyle={[styles.receiptTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}
             dropZoneViewStyle={styles.receiptDropZoneTopInvisibleOverlay}
         >
-            <View style={{position: 'absolute', top: props.receiptImageTopPosition}}>
+            <View style={{position: 'absolute', top: receiptImageTopPosition}}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
                     height={CONST.RECEIPT.ICON_SIZE}
                 />
             </View>
-            <View style={{position: 'absolute', top: props.receiptImageTopPosition + CONST.RECEIPT.ICON_SIZE}}>
+            <View style={{position: 'absolute', top: receiptImageTopPosition + CONST.RECEIPT.ICON_SIZE}}>
                 <Text style={[styles.textReceiptUpload]}>{translate('receipt.dropTitle')}</Text>
                 <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.dropMessage')}</Text>
             </View>

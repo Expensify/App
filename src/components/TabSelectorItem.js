@@ -28,22 +28,20 @@ const defaultProps = {
     title: '',
 };
 
-function TabSelectorItem(props) {
-    const textStyle = props.selected
-        ? [styles.textStrong, styles.mt2, styles.textWhite, {fontFamily: fontFamily.EXP_NEUE}]
-        : [styles.mt2, styles.colorMuted, {fontFamily: fontFamily.EXP_NEUE}];
+function TabSelectorItem({onPress, icon, selected, title}) {
+    const textStyle = selected ? [styles.textStrong, styles.mt2, styles.textWhite, {fontFamily: fontFamily.EXP_NEUE}] : [styles.mt2, styles.colorMuted, {fontFamily: fontFamily.EXP_NEUE}];
     return (
         <View>
             <PressableWithFeedback
-                accessibilityLabel={props.title}
+                accessibilityLabel={title}
                 style={[styles.tabSelectorButton]}
-                onPress={props.onPress}
+                onPress={onPress}
             >
                 <Icon
-                    src={props.icon}
-                    fill={props.selected ? Colors.green : Colors.greenIcons}
+                    src={icon}
+                    fill={selected ? Colors.green : Colors.greenIcons}
                 />
-                <Text style={textStyle}>{props.title}</Text>
+                <Text style={textStyle}>{title}</Text>
             </PressableWithFeedback>
         </View>
     );

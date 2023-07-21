@@ -88,12 +88,12 @@ const defaultProps = {
     isDraggingOver: false,
 };
 
-function ReceiptSelector(props) {
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
-    const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
-    const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
-    const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
+function ReceiptSelector({route, currentUserPersonalDetails, isDraggingOver, iou, report, receiptModal}) {
+    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
+    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
+    const isAttachmentInvalid = lodashGet(receiptModal, 'isAttachmentInvalid', false);
+    const attachmentInvalidReasonTitle = lodashGet(receiptModal, 'attachmentInvalidReasonTitle', '');
+    const attachmentInvalidReason = lodashGet(receiptModal, 'attachmentInvalidReason', '');
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -157,13 +157,13 @@ function ReceiptSelector(props) {
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
-                                        if (!AttachmentUtils.isValidFile(file, props)) {
+                                        if (!AttachmentUtils.isValidFile(translate, file)) {
                                             return;
                                         }
 
                                         const filePath = URL.createObjectURL(file);
                                         IOU.setMoneyRequestReceipt(filePath, file.name);
-                                        NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
+                                        NavigateToNextIOUPage(iou, iouType, reportID, report, currentUserPersonalDetails);
                                     },
                                 });
                             }}
@@ -176,8 +176,8 @@ function ReceiptSelector(props) {
 
     return (
         <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
-            {!props.isDraggingOver ? defaultView() : null}
-            {props.isDraggingOver && <ReceiptDropUI receiptImageTopPosition={receiptImageTopPosition} />}
+            {!isDraggingOver ? defaultView() : null}
+            {isDraggingOver && <ReceiptDropUI receiptImageTopPosition={receiptImageTopPosition} />}
             <ConfirmModal
                 title={attachmentInvalidReasonTitle}
                 onConfirm={closeConfirmModal}

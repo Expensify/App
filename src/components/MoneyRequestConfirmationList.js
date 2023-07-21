@@ -100,10 +100,27 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function MoneyRequestConfirmationList(props) {
-    // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
-    // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {onSendMoney, onConfirm, onSelectParticipant} = props;
+function MoneyRequestConfirmationList({
+    onConfirm,
+    onSendMoney,
+    onSelectParticipant,
+    hasMultipleParticipants,
+    iouAmount,
+    iouComment,
+    iouCurrencyCode,
+    iouType,
+    selectedParticipants,
+    canModifyParticipants,
+    isReadOnly,
+    bankAccountRoute,
+    policyID,
+    reportID,
+    session,
+    currentUserPersonalDetails,
+    payeePersonalDetails,
+    receiptPath,
+    receiptSource,
+}) {
     const {translate} = useLocalize();
 
     /**
@@ -113,44 +130,43 @@ function MoneyRequestConfirmationList(props) {
      */
     const getParticipantsWithAmount = useCallback(
         (participantsList) => {
-            const iouAmount = IOUUtils.calculateAmount(participantsList.length, props.iouAmount);
-            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(iouAmount, props.iouCurrencyCode));
+            const ammount = IOUUtils.calculateAmount(participantsList.length, iouAmount);
+            return OptionsListUtils.getIOUConfirmationOptionsFromParticipants(participantsList, CurrencyUtils.convertToDisplayString(ammount, iouCurrencyCode));
         },
-        [props.iouAmount, props.iouCurrencyCode],
+        [iouAmount, iouCurrencyCode],
     );
 
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
-        const text = props.receiptPath
+        const text = receiptPath
             ? translate('iou.request')
-            : translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-                  amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode),
+            : translate(hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
+                  amount: CurrencyUtils.convertToDisplayString(iouAmount, iouCurrencyCode),
               });
         return [
             {
                 text: text[0].toUpperCase() + text.slice(1),
-                value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
+                value: hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
-    }, [props.hasMultipleParticipants, props.iouAmount, props.receiptPath, props.iouCurrencyCode, translate]);
+    }, [hasMultipleParticipants, iouAmount, receiptPath, iouCurrencyCode, translate]);
 
-    const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
-    const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
-    const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
+    const memoSelectedParticipants = useMemo(() => _.filter(selectedParticipants, (participant) => participant.selected), [selectedParticipants]);
+    const memoPayeePersonalDetails = useMemo(() => payeePersonalDetails || currentUserPersonalDetails, [payeePersonalDetails, currentUserPersonalDetails]);
     const shouldDisablePaidBySection = canModifyParticipants;
 
     const optionSelectorSections = useMemo(() => {
         const sections = [];
-        const unselectedParticipants = _.filter(props.selectedParticipants, (participant) => !participant.selected);
-        if (props.hasMultipleParticipants) {
-            const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
+        const unselectedParticipants = _.filter(memoSelectedParticipants, (participant) => !participant.selected);
+        if (hasMultipleParticipants) {
+            const formattedSelectedParticipants = getParticipantsWithAmount(memoSelectedParticipants);
             const formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
 
-            const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, true);
+            const myIOUAmount = IOUUtils.calculateAmount(memoSelectedParticipants.length, iouAmount, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
-                payeePersonalDetails,
-                CurrencyUtils.convertToDisplayString(myIOUAmount, props.iouCurrencyCode),
+                memoPayeePersonalDetails,
+                CurrencyUtils.convertToDisplayString(myIOUAmount, iouCurrencyCode),
             );
 
             sections.push(
@@ -171,30 +187,20 @@ function MoneyRequestConfirmationList(props) {
         } else {
             sections.push({
                 title: translate('common.to'),
-                data: props.selectedParticipants,
+                data: memoSelectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });
         }
         return sections;
-    }, [
-        props.selectedParticipants,
-        props.hasMultipleParticipants,
-        props.iouAmount,
-        props.iouCurrencyCode,
-        getParticipantsWithAmount,
-        selectedParticipants,
-        payeePersonalDetails,
-        translate,
-        shouldDisablePaidBySection,
-    ]);
+    }, [memoSelectedParticipants, hasMultipleParticipants, iouAmount, iouCurrencyCode, getParticipantsWithAmount, memoPayeePersonalDetails, translate, shouldDisablePaidBySection]);
 
     const selectedOptions = useMemo(() => {
-        if (!props.hasMultipleParticipants) {
+        if (!hasMultipleParticipants) {
             return [];
         }
-        return [...selectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
-    }, [selectedParticipants, props.hasMultipleParticipants, payeePersonalDetails]);
+        return [...memoSelectedParticipants, OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(payeePersonalDetails)];
+    }, [memoSelectedParticipants, hasMultipleParticipants, memoPayeePersonalDetails]);
 
     /**
      * @param {Object} option
@@ -202,12 +208,12 @@ function MoneyRequestConfirmationList(props) {
     const selectParticipant = useCallback(
         (option) => {
             // Return early if selected option is currently logged in user.
-            if (option.accountID === props.session.accountID) {
+            if (option.accountID === session.accountID) {
                 return;
             }
             onSelectParticipant(option);
         },
-        [props.session.accountID, onSelectParticipant],
+        [session.accountID, onSelectParticipant],
     );
 
     /**
@@ -228,11 +234,11 @@ function MoneyRequestConfirmationList(props) {
         (paymentMethod) => {
             setDidConfirm(true);
 
-            if (_.isEmpty(selectedParticipants)) {
+            if (_.isEmpty(memoSelectedParticipants)) {
                 return;
             }
 
-            if (props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
+            if (iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND) {
                 if (!paymentMethod) {
                     return;
                 }
@@ -240,22 +246,22 @@ function MoneyRequestConfirmationList(props) {
                 Log.info(`[IOU] Sending money via: ${paymentMethod}`);
                 onSendMoney(paymentMethod);
             } else {
-                onConfirm(selectedParticipants);
+                onConfirm(memoSelectedParticipants);
             }
         },
-        [selectedParticipants, onSendMoney, onConfirm, props.iouType],
+        [memoSelectedParticipants, onSendMoney, onConfirm, iouType],
     );
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(iouAmount, iouCurrencyCode);
 
     const footerContent = useMemo(() => {
-        if (props.isReadOnly) {
+        if (isReadOnly) {
             return;
         }
 
-        const shouldShowSettlementButton = props.iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
-        const shouldDisableButton = selectedParticipants.length === 0;
-        const recipient = props.selectedParticipants[0] || {};
+        const shouldShowSettlementButton = iouType === CONST.IOU.MONEY_REQUEST_TYPE.SEND;
+        const shouldDisableButton = memoSelectedParticipants.length === 0;
+        const recipient = memoSelectedParticipants[0] || {};
 
         return shouldShowSettlementButton ? (
             <SettlementButton
@@ -263,10 +269,10 @@ function MoneyRequestConfirmationList(props) {
                 onPress={confirm}
                 shouldShowPaypal={Boolean(recipient && recipient.payPalMeAddress)}
                 enablePaymentsRoute={ROUTES.IOU_SEND_ENABLE_PAYMENTS}
-                addBankAccountRoute={props.bankAccountRoute}
+                addBankAccountRoute={bankAccountRoute}
                 addDebitCardRoute={ROUTES.IOU_SEND_ADD_DEBIT_CARD}
-                currency={props.iouCurrencyCode}
-                policyID={props.policyID}
+                currency={iouCurrencyCode}
+                policyID={policyID}
                 shouldShowPaymentOptions
             />
         ) : (
@@ -276,7 +282,7 @@ function MoneyRequestConfirmationList(props) {
                 options={splitOrRequestOptions}
             />
         );
-    }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
+    }, [confirm, memoSelectedParticipants, bankAccountRoute, iouCurrencyCode, iouType, isReadOnly, policyID, splitOrRequestOptions]);
 
     /**
      * Grab the appropriate image URI based on file type
@@ -285,9 +291,9 @@ function MoneyRequestConfirmationList(props) {
      * @param {String} receiptSource
      * @returns {*}
      */
-    const getImageURI = (receiptPath, receiptSource) => {
+    const getImageURI = () => {
         const {fileExtension} = FileUtils.splitExtensionFromFileName(receiptSource);
-        const isReceiptImage = Str.isImage(props.receiptSource);
+        const isReceiptImage = Str.isImage(receiptSource);
 
         if (isReceiptImage) {
             return receiptPath;
@@ -325,30 +331,30 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            {props.receiptPath && (
+            {receiptPath && (
                 <Image
                     style={styles.moneyRequestImage}
-                    source={{uri: getImageURI(props.receiptPath, props.receiptSource)}}
+                    source={{uri: getImageURI()}}
                 />
             )}
-            {!props.receiptPath && (
+            {!receiptPath && (
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon={!props.isReadOnly}
+                    shouldShowRightIcon={!isReadOnly}
                     title={formattedAmount}
                     description={translate('iou.amount')}
-                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
+                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(iouType, reportID))}
                     style={[styles.moneyRequestMenuItem, styles.mt2]}
                     titleStyle={styles.moneyRequestConfirmationAmount}
-                    disabled={didConfirm || props.isReadOnly}
+                    disabled={didConfirm || isReadOnly}
                 />
             )}
             <MenuItemWithTopDescription
-                shouldShowRightIcon={!props.isReadOnly}
-                title={props.iouComment}
+                shouldShowRightIcon={!isReadOnly}
+                title={iouComment}
                 description={translate('common.description')}
-                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(props.iouType, props.reportID))}
+                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestDescriptionRoute(iouType, reportID))}
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
-                disabled={didConfirm || props.isReadOnly}
+                disabled={didConfirm || isReadOnly}
             />
         </OptionsSelector>
     );

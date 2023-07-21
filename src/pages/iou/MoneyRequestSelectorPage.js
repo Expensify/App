@@ -76,12 +76,12 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function MoneyRequestSelectorPage(props) {
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+function MoneyRequestSelectorPage({route, report, tabSelected, iou, currentUserPersonalDetails}) {
+    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const {translate} = useLocalize();
 
-    const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const isEditing = useRef(lodashGet(route, 'path', '').includes('amount'));
+    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -94,7 +94,7 @@ function MoneyRequestSelectorPage(props) {
         Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
     };
 
-    const selectedTab = props.tabSelected ? props.tabSelected : CONST.TAB.TAB_MANUAL;
+    const selectedTab = tabSelected || CONST.TAB.TAB_MANUAL;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     return (
@@ -115,13 +115,13 @@ function MoneyRequestSelectorPage(props) {
                             setIsDraggingOver(false);
                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
 
-                            if (!AttachmentUtils.isValidFile(file, props)) {
+                            if (!AttachmentUtils.isValidFile(translate, file)) {
                                 return;
                             }
 
                             const filePath = URL.createObjectURL(file);
                             IOU.setMoneyRequestReceipt(filePath, file.name);
-                            NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
+                            NavigateToNextIOUPage(iou, iouType, reportID, report, currentUserPersonalDetails);
                         }}
                     >
                         <View
@@ -135,18 +135,18 @@ function MoneyRequestSelectorPage(props) {
                             <TabSelector />
                             {selectedTab === CONST.TAB.TAB_MANUAL ? (
                                 <MoneyRequestAmountPage
-                                    route={props.route}
-                                    report={props.report}
-                                    iou={props.iou}
-                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                                    route={route}
+                                    report={report}
+                                    iou={iou}
+                                    currentUserPersonalDetails={currentUserPersonalDetails}
                                 />
                             ) : (
                                 <ReceiptSelector
-                                    route={props.route}
-                                    report={props.report}
-                                    iou={props.iou}
+                                    route={route}
+                                    report={report}
+                                    iou={iou}
                                     isDraggingOver={isDraggingOver}
-                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                                    currentUserPersonalDetails={currentUserPersonalDetails}
                                 />
                             )}
                             <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
