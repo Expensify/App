@@ -147,7 +147,14 @@ class PopoverReactionList extends React.Component {
     getSelectedReactionFromAction(reportAction, emojiName) {
         const reactions = lodashGet(reportAction, ['message', 0, 'reactions'], []);
         const reactionsWithCount = _.filter(reactions, (reaction) => reaction.users.length > 0);
-        return _.find(reactionsWithCount, (reaction) => reaction.emoji === emojiName);
+        const reaction = _.find(reactionsWithCount, (reaction) => reaction.emoji === emojiName);
+        if (reaction) {
+            return {
+                ...reaction,
+                users: reaction.users.map(({accountID, skinTone}) => ({accountID, skinTones: {skinTone}}))
+            };
+        }
+        return undefined;
     }
 
     /**
@@ -186,7 +193,7 @@ class PopoverReactionList extends React.Component {
         const reactionUsers = _.map(selectedReaction.users, (sender) => sender.accountID);
         const emoji = EmojiUtils.findEmojiByName(selectedReaction.emoji);
         const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, selectedReaction.users);
-        const hasUserReacted = Report.hasAccountIDReacted(this.props.currentUserPersonalDetails.accountID, reactionUsers);
+        const hasUserReacted = Report.hasAccountIDEmojiReacted(this.props.currentUserPersonalDetails.accountID, reactionUsers);
         const users = PersonalDetailsUtils.getPersonalDetailsByIDs(reactionUsers, this.props.currentUserPersonalDetails.accountID, true);
         return {
             emojiCount,
