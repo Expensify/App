@@ -125,6 +125,7 @@ function NewContactMethodPage(props) {
                 loginInputRef.current.focus();
             }}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={props.translate('contacts.newContactMethod')}
