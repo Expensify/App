@@ -345,7 +345,7 @@ function MagicCodeInput(props) {
                                 onKeyPress={onKeyPress}
                                 onPress={(event) => onPress(event, index)}
                                 onFocus={onFocus}
-                                caretHidden
+                                selectionColor="transparent"
                                 textInputContainerStyles={[styles.borderNone]}
                                 inputStyle={[styles.magicCodeInputTransparent, isBrowser ? styles.magicCodeInputTransparentWebKit : undefined]}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
