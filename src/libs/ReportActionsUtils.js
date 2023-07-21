@@ -275,49 +275,6 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 }
 
 /**
- * @param {String} reportID
- * @param {Object} [actionsToMerge]
- * @return {Object}
- */
-function getLastVisibleAction(reportID, actionsToMerge = {}) {
-    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => shouldReportActionBeVisibleAsLastAction(action));
-
-    if (_.isEmpty(visibleActions)) {
-        return {};
-    }
-
-    return _.max(visibleActions, (action) => moment.utc(action.created).valueOf());
-}
-
-/**
- * @param {String} reportID
- * @param {Object} [actionsToMerge]
- * @return {Object}
- */
-function getLastVisibleMessage(reportID, actionsToMerge = {}) {
-    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
-    const message = lodashGet(lastVisibleAction, ['message', 0], {});
-
-    if (isReportMessageAttachment(message)) {
-        return {
-            lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
-        };
-    }
-
-    if (isCreatedAction(lastVisibleAction)) {
-        return {
-            lastMessageText: '',
-        };
-    }
-
-    const messageText = lodashGet(message, 'text', '');
-    return {
-        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
-    };
-}
-
-/**
  * Checks if a reportAction is deprecated.
  *
  * @param {Object} reportAction
@@ -390,6 +347,49 @@ function shouldReportActionBeVisible(reportAction, key) {
  */
 function shouldReportActionBeVisibleAsLastAction(reportAction) {
     return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
+}
+
+/**
+ * @param {String} reportID
+ * @param {Object} [actionsToMerge]
+ * @return {Object}
+ */
+function getLastVisibleAction(reportID, actionsToMerge = {}) {
+    const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
+    const visibleActions = _.filter(actions, (action) => shouldReportActionBeVisibleAsLastAction(action));
+
+    if (_.isEmpty(visibleActions)) {
+        return {};
+    }
+
+    return _.max(visibleActions, (action) => moment.utc(action.created).valueOf());
+}
+
+/**
+ * @param {String} reportID
+ * @param {Object} [actionsToMerge]
+ * @return {Object}
+ */
+function getLastVisibleMessage(reportID, actionsToMerge = {}) {
+    const lastVisibleAction = getLastVisibleAction(reportID, actionsToMerge);
+    const message = lodashGet(lastVisibleAction, ['message', 0], {});
+
+    if (isReportMessageAttachment(message)) {
+        return {
+            lastMessageTranslationKey: CONST.TRANSLATION_KEYS.ATTACHMENT,
+        };
+    }
+
+    if (isCreatedAction(lastVisibleAction)) {
+        return {
+            lastMessageText: '',
+        };
+    }
+
+    const messageText = lodashGet(message, 'text', '');
+    return {
+        lastMessageText: String(messageText).replace(CONST.REGEX.AFTER_FIRST_LINE_BREAK, '').substring(0, CONST.REPORT.LAST_MESSAGE_TEXT_MAX_LENGTH).trim(),
+    };
 }
 
 /**
