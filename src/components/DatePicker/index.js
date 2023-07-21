@@ -1,16 +1,14 @@
 import moment from 'moment';
-import React, {useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef} from 'react';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
 import TextInput from '../TextInput';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import {defaultProps, propTypes} from './datepickerPropTypes';
 import './styles.css';
 
 const datePickerPropTypes = {
     ...propTypes,
-    ...windowDimensionsPropTypes,
 };
 
 function DatePicker(props) {
@@ -81,13 +79,12 @@ function DatePicker(props) {
 
 DatePicker.propTypes = datePickerPropTypes;
 DatePicker.defaultProps = defaultProps;
+DatePicker.displayName = 'DatePicker';
 
-export default withWindowDimensions(
-    React.forwardRef((props, ref) => (
-        <DatePicker
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+export default forwardRef((props, ref) => (
+    <DatePicker
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));
