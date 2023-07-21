@@ -175,7 +175,7 @@ function unsubscribeFromReportChannel(reportID) {
 }
 
 // New action subscriber array for report pages
-let newActionSubscribers = []
+let newActionSubscribers = [];
 
 /**
  * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
@@ -185,9 +185,9 @@ let newActionSubscribers = []
  * @returns {Function} Remove subscriber for report id
  */
 function subscribeToNewActionEvent(reportID, callback) {
-    newActionSubscribers.push({callback, reportID})
+    newActionSubscribers.push({callback, reportID});
     return () => {
-        newActionSubscribers = _.filter(newActionSubscribers, (subscriber) => subscriber.reportID !== reportID)
+        newActionSubscribers = _.filter(newActionSubscribers, (subscriber) => subscriber.reportID !== reportID);
     };
 }
 
@@ -199,9 +199,9 @@ function subscribeToNewActionEvent(reportID, callback) {
  * @param {String} reportActionID
  */
 function notifyNewAction(reportID, accountID, reportActionID) {
-    const actionSubscriber = _.find(newActionSubscribers, (subscriber) => subscriber.reportID === reportID)
-        if (!actionSubscriber) {
-        return
+    const actionSubscriber = _.find(newActionSubscribers, (subscriber) => subscriber.reportID === reportID);
+    if (!actionSubscriber) {
+        return;
     }
     const isFromCurrentUser = accountID === currentUserAccountID;
     actionSubscriber.callback(isFromCurrentUser, reportActionID);
