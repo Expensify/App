@@ -31,7 +31,6 @@ const propTypes = {
 const defaultProps = {
     session: {},
     report: {},
-
 };
 
 function TaskDescriptionPage(props) {
