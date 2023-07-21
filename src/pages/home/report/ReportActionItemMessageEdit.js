@@ -35,6 +35,7 @@ import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
+import focusAfterDelay from '../../../libs/focusWithDelay';
 
 const propTypes = {
     /** All the data of the action */
@@ -273,24 +274,7 @@ function ReportActionItemMessageEdit(props) {
     /**
      * Focus the composer text input
      */
-    const focus = React.useCallback(() => {
-        // There could be other animations running while we trigger manual focus.
-        // This prevents focus from making those animations janky.
-        InteractionManager.runAfterInteractions(() => {
-            if (!textInputRef.current) {
-                return;
-            }
-
-            // Keyboard is not opened after Emoji Picker is closed
-            // SetTimeout is used as a workaround
-            // https://github.com/react-native-modal/react-native-modal/issues/114
-            // We carefully choose a delay. 100ms is found enough for keyboard to open.
-            setTimeout(() => {
-                setIsFocused(true);
-                textInputRef.current.focus();
-            }, 100);
-        });
-    }, []);
+    const focus = focusAfterDelay(textInputRef.current);
 
     return (
         <>
@@ -367,7 +351,10 @@ function ReportActionItemMessageEdit(props) {
                     <View style={styles.editChatItemEmojiWrapper}>
                         <EmojiPickerButton
                             isDisabled={props.shouldDisableEmojiPicker}
-                            onModalHide={focus}
+                            onModalHide={() => {
+                                setIsFocused(true);
+                                focus(true);
+                            }}
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
                             reportAction={props.action}
