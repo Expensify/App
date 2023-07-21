@@ -1,6 +1,5 @@
-import React, {useState, useRef, useEffect, useCallback, useLayoutEffect} from 'react';
-import { flushSync } from 'react-dom';
-import {StyleSheet, View, LayoutAnimation} from 'react-native';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
@@ -138,10 +137,8 @@ const getNextChars = (str, cursorPos) => {
     return substr.substring(0, spaceIndex);
 };
 
-/**
- * Enable Markdown parsing.
- * On web we like to have the Text Input field always focused so the user can easily type a new chat
- */
+// Enable Markdown parsing.
+// On web we like to have the Text Input field always focused so the user can easily type a new chat
 function Composer({onKeyPress, style, ...props}) {
     const textRef = useRef(null);
     const textInput = useRef(null);
@@ -154,11 +151,6 @@ function Composer({onKeyPress, style, ...props}) {
     const [caretContent, setCaretContent] = useState('');
     const [valueBeforeCaret, setValueBeforeCaret] = useState('');
     const [textInputWidth, setTextInputWidth] = useState('');
-    const [cursorPosition, setCursorPosition] = useState({
-        positionX: 0,
-        positionY: 0,
-    });
-    const [propStyles, setPropStyle] = useState(StyleSheet.flatten([style, {outline: 'none'}]));
 
     useEffect(() => {
         if (!props.shouldClear) {
@@ -169,29 +161,32 @@ function Composer({onKeyPress, style, ...props}) {
         props.onClear();
     }, [props.shouldClear]);
 
+    useEffect(() => {
+        setSelection(props.selection);
+    }, [props.selection]);
+
     /**
      *  Adds the cursor position to the selection change event.
      *
      * @param {Event} event
      */
     const addCursorPositionToSelectionChange = (event) => {
-        if (props.shouldCalculateCaretPosition) {
+        flushSync(() => {
             setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
             setCaretContent(getNextChars(props.value, event.nativeEvent.selection.start));
-        }
-        props.onSelectionChange(event);
-    };
+        });
 
-    useEffect(() => {
-        setSelection({
-            start: valueBeforeCaret.length,
-            end: valueBeforeCaret.length + caretContent.length,
+        props.onSelectionChange({
+            nativeEvent: {
+                selection: {
+                    start: event.nativeEvent.selection.start,
+                    end: event.nativeEvent.selection.end,
+                    positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
+                    positionY: textRef.current.offsetTop,
+                },
+            },
         });
-        setCursorPosition({
-            positionX: textRef.current.offsetLeft - CONST.SPACE_CHARACTER_WIDTH,
-            positionY: textRef.current.offsetTop,
-        });
-    }, [valueBeforeCaret, caretContent]);
+    };
 
     // /**
     //  * Set pasted text to clipboard
@@ -200,8 +195,6 @@ function Composer({onKeyPress, style, ...props}) {
     const paste = useCallback((text) => {
         try {
             document.execCommand('insertText', false, text);
-            updateNumberOfLines();
-
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
             textInput.blur();
             textInput.focus();
@@ -305,31 +298,38 @@ function Composer({onKeyPress, style, ...props}) {
         event.stopPropagation();
     }, []);
 
-
-    // const updateNumberOfLines = useCallback(() => {
     const updateNumberOfLines = useCallback(() => {
-      if (textInput.current === null) {
-        return;
-      }
-      // flushSync(() => {
-        setTimeout(() => {
-          setNumberOfLines(1);
-          
-          const computedStyle = window.getComputedStyle(textInput.current);
-          const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-          const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
-          const computedNumberOfLines = ComposerUtils.getNumberOfLines(props.maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
-          const generalNumberOfLines = computedNumberOfLines === 0 ? props.numberOfLines : computedNumberOfLines;
+        if (textInput.current === null) {
+            return;
+        }
+        const computedStyle = window.getComputedStyle(textInput.current);
+        const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
+        const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
+        setTextInputWidth(computedStyle.width);
 
-          props.onNumberOfLinesChange(generalNumberOfLines);
-          updateIsFullComposerAvailable(props, generalNumberOfLines);
-          setNumberOfLines(generalNumberOfLines);
-      }, 0);
-    },[props.value, props.maxLines, props.isFullComposerAvailable, props.numberOfLines, props.isComposerFullSize]);
+        const computedNumberOfLines = ComposerUtils.getNumberOfLines(props.maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
+        const generalNumberOfLines = computedNumberOfLines === 0 ? props.numberOfLines : computedNumberOfLines;
 
-    useLayoutEffect(() => {
+        props.onNumberOfLinesChange(generalNumberOfLines);
+        updateIsFullComposerAvailable(props, generalNumberOfLines);
+        setNumberOfLines(generalNumberOfLines);
+    }, [props.value, props.maxLines, props.isFullComposerAvailable, props.numberOfLines, props.isComposerFullSize]);
+
+    const triggerUpdateNumberOfLines = useCallback(() => {
+        if (textInput.current === null) {
+            return;
+        }
         updateNumberOfLines();
-    }, [props.isComposerFullSize]);
+
+        setTimeout(() => {
+            setNumberOfLines(1);
+            updateNumberOfLines();
+        }, 0);
+    }, [props.value, props.maxLines, props.isFullComposerAvailable, props.numberOfLines, props.isComposerFullSize]);
+
+    useEffect(() => {
+        triggerUpdateNumberOfLines();
+    }, [props.isComposerFullSize, triggerUpdateNumberOfLines]);
 
     const handleKeyPress = useCallback(
         (e) => {
@@ -363,18 +363,14 @@ function Composer({onKeyPress, style, ...props}) {
     useEffect(() => {
         // we need to handle listeners on navigation focus/blur as Composer is not unmounting
         // when navigating away to different report
-        // const textareaElement = textInput.current;
         const unsubscribeFocus = props.navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
         const unsubscribeBlur = props.navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
 
-        console.log('updateIsFullComposerAvailable.UseEffect',  props.isFullComposerAvailable);
-        // updateIsFullComposerAvailable({isFullComposerAvailable: props.isFullComposerAvailable, setIsFullComposerAvailable: props.setIsFullComposerAvailable}, numberOfLines);
-
-        () => {
+        return () => {
             unsubscribeFocus();
             unsubscribeBlur();
-            document.removeEventListener('paste', this.handlePaste);
-            textInput.removeEventListener('wheel', this.handleWheel);
+            document.removeEventListener('paste', handlePaste);
+            textInput.removeEventListener('wheel', handleWheel);
         };
     }, []);
 
@@ -410,7 +406,7 @@ function Composer({onKeyPress, style, ...props}) {
                 placeholderTextColor={themeColors.placeholderText}
                 ref={setTextInputRef}
                 selection={selection}
-                onChange={updateNumberOfLines}
+                onChange={triggerUpdateNumberOfLines}
                 style={[
                     StyleSheet.flatten([style, {outline: 'none'}]),
 
@@ -446,4 +442,3 @@ export default compose(
         />
     )),
 );
-
