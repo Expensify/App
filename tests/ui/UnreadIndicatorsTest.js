@@ -28,7 +28,6 @@ import * as Localize from '../../src/libs/Localize';
 jest.setTimeout(30000);
 
 jest.mock('../../src/libs/Notification/LocalNotification');
-jest.mock('../../src/components/Icon/Expensicons');
 
 beforeAll(() => {
     // In this test, we are generically mocking the responses of all API requests by mocking fetch() and having it

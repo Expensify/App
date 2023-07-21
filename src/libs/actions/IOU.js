@@ -1395,9 +1395,10 @@ function setMoneyRequestParticipants(participants) {
 
 /**
  * @param {String} receiptPath
+ * @param {String} receiptSource
  */
-function setMoneyRequestReceipt(receiptPath) {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath});
+function setMoneyRequestReceipt(receiptPath, receiptSource) {
+    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
 }
 
 function createEmptyTransaction() {

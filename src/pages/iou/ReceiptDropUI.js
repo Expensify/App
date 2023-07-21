@@ -2,14 +2,12 @@ import React from 'react';
 import {Text, View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../CONST';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import DropZone from '../../components/DragAndDrop/DropZone';
 import styles from '../../styles/styles';
 import ReceiptUpload from '../../../assets/images/receipt-upload.svg';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     receiptImageTopPosition: PropTypes.number,
 };
 
@@ -17,7 +15,8 @@ const defaultProps = {
     receiptImageTopPosition: 0,
 };
 
-function ReceiptDropUI(props) {
+function ReceiptDropUI({receiptImageTopPosition}) {
+    const {translate} = useLocalize();
     return (
         <DropZone
             dropZoneViewHolderName={CONST.RECEIPT.DROP_HOST_NAME}
@@ -25,15 +24,15 @@ function ReceiptDropUI(props) {
             dropZoneViewHolderStyle={[styles.receiptTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}
             dropZoneViewStyle={styles.receiptDropZoneTopInvisibleOverlay}
         >
-            <View style={{position: 'absolute', top: props.receiptImageTopPosition}}>
+            <View style={{position: 'absolute', top: receiptImageTopPosition}}>
                 <ReceiptUpload
                     width={CONST.RECEIPT.ICON_SIZE}
                     height={CONST.RECEIPT.ICON_SIZE}
                 />
             </View>
-            <View style={{position: 'absolute', top: props.receiptImageTopPosition + CONST.RECEIPT.ICON_SIZE}}>
-                <Text style={[styles.textReceiptUpload]}>Let it go</Text>
-                <Text style={[styles.subTextReceiptUpload]}>Drop your file here</Text>
+            <View style={{position: 'absolute', top: receiptImageTopPosition + CONST.RECEIPT.ICON_SIZE}}>
+                <Text style={[styles.textReceiptUpload]}>{translate('receipt.dropTitle')}</Text>
+                <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.dropMessage')}</Text>
             </View>
         </DropZone>
     );
@@ -43,4 +42,4 @@ ReceiptDropUI.displayName = 'ReportDropUI';
 ReceiptDropUI.propTypes = propTypes;
 ReceiptDropUI.defaultProps = defaultProps;
 
-export default withLocalize(ReceiptDropUI);
+export default ReceiptDropUI;

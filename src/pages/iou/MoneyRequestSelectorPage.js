@@ -24,7 +24,6 @@ import * as IOU from '../../libs/actions/IOU';
 import DistanceRequest from '../../components/DistanceRequest';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from './NavigateToNextIOUPage';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import AttachmentUtils from '../../libs/AttachmentUtils';
 
 const propTypes = {
@@ -58,7 +57,6 @@ const propTypes = {
     tabSelected: PropTypes.string,
 
     ...withCurrentUserPersonalDetailsPropTypes,
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -79,12 +77,12 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function MoneyRequestSelectorPage(props) {
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+function MoneyRequestSelectorPage({route, report, tabSelected, iou, currentUserPersonalDetails}) {
+    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const {translate} = useLocalize();
 
-    const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const isEditing = useRef(lodashGet(route, 'path', '').includes('amount'));
+    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -97,7 +95,7 @@ function MoneyRequestSelectorPage(props) {
         Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
     };
 
-    const selectedTab = props.tabSelected ? props.tabSelected : CONST.TAB.TAB_MANUAL;
+    const selectedTab = tabSelected || CONST.TAB.TAB_MANUAL;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const renderTabContent = () => {
@@ -105,28 +103,28 @@ function MoneyRequestSelectorPage(props) {
             case CONST.TAB.TAB_MANUAL:
                 return (
                     <MoneyRequestAmountPage
-                        route={props.route}
-                        report={props.report}
-                        iou={props.iou}
-                        currentUserPersonalDetails={props.currentUserPersonalDetails}
+                        route={route}
+                        report={report}
+                        iou={iou}
+                        currentUserPersonalDetails={currentUserPersonalDetails}
                     />
                 );
             case CONST.TAB.TAB_SCAN:
                 return (
                     <ReceiptSelector
-                        route={props.route}
-                        report={props.report}
-                        iou={props.iou}
+                        route={route}
+                        report={report}
+                        iou={iou}
                         isDraggingOver={isDraggingOver}
-                        currentUserPersonalDetails={props.currentUserPersonalDetails}
+                        currentUserPersonalDetails={currentUserPersonalDetails}
                     />
                 );
             case CONST.TAB.TAB_DISTANCE:
                 return (
                     <DistanceRequest
-                        route={props.route}
-                        report={props.report}
-                        iou={props.iou}
+                        route={route}
+                        report={report}
+                        iou={iou}
                     />
                 );
             default:
@@ -152,14 +150,13 @@ function MoneyRequestSelectorPage(props) {
                             setIsDraggingOver(false);
                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
 
-                            if (!AttachmentUtils.isValidFile(file, props)) {
+                            if (!AttachmentUtils.isValidFile(translate, file)) {
                                 return;
                             }
 
                             const filePath = URL.createObjectURL(file);
-
-                            IOU.setMoneyRequestReceipt(filePath);
-                            NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
+                            IOU.setMoneyRequestReceipt(filePath, file.name);
+                            NavigateToNextIOUPage(iou, iouType, reportID, report, currentUserPersonalDetails);
                         }}
                     >
                         <View
@@ -187,7 +184,6 @@ MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default compose(
     withCurrentUserPersonalDetails,
-    withLocalize,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         report: {

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -44,6 +44,7 @@ const defaultProps = {
 function DebitCardPage(props) {
     const {translate} = useLocalize();
     const prevFormDataSetupComplete = usePrevious(props.formData.setupComplete);
+    const nameOnCardRef = useRef(null);
 
     useEffect(() => {
         PaymentMethods.clearDebitCardFormErrorAndSubmit();
@@ -108,7 +109,10 @@ function DebitCardPage(props) {
     };
 
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            onEntryTransitionEnd={() => nameOnCardRef.current && nameOnCardRef.current.focus()}
+            includeSafeAreaPaddingBottom={false}
+        >
             <HeaderWithBackButton
                 title={translate('addDebitCardPage.addADebitCard')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
@@ -126,6 +130,7 @@ function DebitCardPage(props) {
                     label={translate('addDebitCardPage.nameOnCard')}
                     accessibilityLabel={translate('addDebitCardPage.nameOnCard')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    ref={(ref) => (nameOnCardRef.current = ref)}
                 />
                 <TextInput
                     inputID="cardNumber"
