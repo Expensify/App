@@ -85,6 +85,10 @@ function isReportPreviewAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW;
 }
 
+function isWhisperAction(action) {
+    return (action.whisperedToAccountIDs || []).length > 0;
+}
+
 /**
  * @param {Object} reportAction
  * @returns {Boolean}
@@ -277,7 +281,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
  */
 function getLastVisibleAction(reportID, actionsToMerge = {}) {
     const actions = _.toArray(lodashMerge({}, allReportActions[reportID], actionsToMerge));
-    const visibleActions = _.filter(actions, (action) => !isDeletedAction(action));
+    const visibleActions = _.filter(actions, (action) => shouldReportActionBeVisibleAsLastAction(action));
 
     if (_.isEmpty(visibleActions)) {
         return {};
@@ -375,6 +379,17 @@ function shouldReportActionBeVisible(reportAction, key) {
     const isPending = !_.isEmpty(reportAction.pendingAction);
     const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
     return !isDeleted || isPending || isDeletedParentAction;
+}
+
+/**
+ * Checks if a reportAction is fit for display as report last action, meaning that it's not deprecated, is of a valid
+ * and supported type, it's not deleted and also not closed.
+ *
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
+function shouldReportActionBeVisibleAsLastAction(reportAction) {
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
 }
 
 /**
@@ -535,10 +550,6 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
-function isWhisperAction(action) {
-    return (action.whisperedToAccountIDs || []).length > 0;
-}
-
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -547,6 +558,7 @@ export {
     extractLinksFromMessageHtml,
     isDeletedAction,
     shouldReportActionBeVisible,
+    shouldReportActionBeVisibleAsLastAction,
     isReportActionDeprecated,
     isConsecutiveActionMadeByPreviousActor,
     getSortedReportActionsForDisplay,
