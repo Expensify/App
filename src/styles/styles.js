@@ -3529,6 +3529,10 @@ const styles = {
         left: 0,
         right: 0,
     }),
+
+    willChangeTransform: {
+        willChange: 'transform',
+    }
 };
 
 export default styles;
