@@ -205,10 +205,12 @@ function MenuItem(props) {
                                         )}
                                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                             {Boolean(props.title) && (
-                                                <Text style={titleTextStyle} numberOfLines={props.numberOfLinesTitle || undefined}>
-                                                {convertToLTR(props.title)}
-                                            </Text>
-
+                                                <Text
+                                                    style={titleTextStyle}
+                                                    numberOfLines={props.numberOfLinesTitle || undefined}
+                                                >
+                                                    {convertToLTR(props.title)}
+                                                </Text>
                                             )}
                                             {Boolean(props.shouldShowTitleIcon) && (
                                                 <View style={[styles.ml2]}>
