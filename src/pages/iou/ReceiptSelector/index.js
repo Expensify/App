@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {compose} from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
@@ -23,7 +24,6 @@ import AttachmentUtils from '../../../libs/AttachmentUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */

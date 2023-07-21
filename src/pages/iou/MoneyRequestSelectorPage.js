@@ -5,6 +5,7 @@ import lodashGet from 'lodash/get';
 import {compose} from 'underscore';
 import {PortalHost} from '@gorhom/portal';
 import PropTypes from 'prop-types';
+import Str from 'expensify-common/lib/str';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -25,7 +26,6 @@ import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from './NavigateToNextIOUPage';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import AttachmentUtils from '../../libs/AttachmentUtils';
-import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -123,9 +123,6 @@ function MoneyRequestSelectorPage(props) {
                             }
 
                             const filePath = URL.createObjectURL(file);
-
-                            console.log(`Drop file type ${Str.isImage(file.name)}`);
-
                             IOU.setMoneyRequestReceipt(filePath, Str.isImage(file.name));
                             NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
                         }}
