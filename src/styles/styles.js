@@ -2538,6 +2538,7 @@ const styles = {
     },
 
     magicCodeInputTransparentWebKit: {
+        caretColor: 'transparent',
         WebkitTextFillColor: 'transparent',
         // After setting the input text color to transparent, it acquires the background-color.
         // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
