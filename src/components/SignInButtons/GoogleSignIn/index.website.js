@@ -47,6 +47,7 @@ function GoogleSignIn({translate, isDesktopFlow, isFocused}) {
                     size: 'large',
                     type: 'standard',
                     shape: 'pill',
+                    width: '300',
                 });
             } else {
                 google.accounts.id.renderButton(document.getElementById(id), {
