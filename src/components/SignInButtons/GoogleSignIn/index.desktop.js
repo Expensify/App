@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'reactnative';
+import {View} from 'react-native';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import IconButton from '../IconButton';
 import CONFIG from '../../../CONFIG';

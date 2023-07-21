@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {View} from 'reactnative';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import getUserLanguage from '../GetUserLanguage';

@@ -17,6 +17,8 @@ const config = {
     scope: appleAuthAndroid.Scope.ALL,
 };
 
+console.log("CONFIG", config.redirectUri)
+
 /**
  * Apple Sign In method for Android that returns authToken.
  * @returns {Promise<string>}
