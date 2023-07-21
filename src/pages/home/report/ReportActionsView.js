@@ -10,6 +10,7 @@ import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import useCopySelectionHelper from '../../../hooks/useCopySelectionHelper';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Performance from '../../../libs/Performance';
@@ -17,7 +18,6 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import networkPropTypes from '../../../components/networkPropTypes';
 import ReportActionsList from './ReportActionsList';
-import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
@@ -60,6 +60,8 @@ const defaultProps = {
 
 function ReportActionsView(props) {
     const context = useContext(ReportScreenContext);
+
+    useCopySelectionHelper();
 
     const reportScrollManager = useReportScrollManager();
 
@@ -340,7 +342,6 @@ function ReportActionsView(props) {
                 ref={context.reactionListRef}
                 report={props.report}
             />
-            <CopySelectionHelper />
         </>
     );
 }

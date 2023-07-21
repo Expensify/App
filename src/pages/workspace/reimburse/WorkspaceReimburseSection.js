@@ -10,12 +10,11 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import * as Illustrations from '../../../components/Icon/Illustrations';
 import Section from '../../../components/Section';
 import * as Link from '../../../libs/actions/Link';
-import Button from '../../../components/Button';
 import BankAccount from '../../../libs/models/BankAccount';
 import * as ReimbursementAccountProps from '../../ReimbursementAccount/reimbursementAccountPropTypes';
-import * as ReimbursementAccount from '../../../libs/actions/ReimbursementAccount';
 import networkPropTypes from '../../../components/networkPropTypes';
 import CONST from '../../../CONST';
+import ConnectBankAccountButton from '../../../components/ConnectBankAccountButton';
 
 const propTypes = {
     /** Policy values needed in the component */
@@ -118,15 +117,9 @@ class WorkspaceReimburseSection extends React.Component {
                         <View style={[styles.mv3]}>
                             <Text>{this.props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
                         </View>
-                        <Button
-                            text={this.props.translate('workspace.common.connectBankAccount')}
-                            onPress={() => ReimbursementAccount.navigateToBankAccountRoute(this.props.policy.id)}
-                            icon={Expensicons.Bank}
+                        <ConnectBankAccountButton
+                            policyID={this.props.policy.id}
                             style={[styles.mt4]}
-                            iconStyles={[styles.buttonCTAIcon]}
-                            shouldShowRightIcon
-                            large
-                            success
                         />
                     </Section>
                 )}

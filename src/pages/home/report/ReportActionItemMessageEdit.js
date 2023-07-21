@@ -34,6 +34,7 @@ import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
+import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     /** All the data of the action */
@@ -118,8 +119,9 @@ function ReportActionItemMessageEdit(props) {
         });
 
         return () => {
-            // Skip if this is not the focused message so the other edit composer stays focused
-            if (!isFocusedRef.current) {
+            // Skip if this is not the focused message so the other edit composer stays focused.
+            // In small screen devices, when EmojiPicker is shown, the current edit message will lose focus, we need to check this case as well.
+            if (!isFocusedRef.current && !EmojiPickerAction.isActiveReportAction(props.action.reportActionID)) {
                 return;
             }
 
@@ -127,7 +129,7 @@ function ReportActionItemMessageEdit(props) {
             // to prevent the main composer stays hidden until we swtich to another chat.
             ComposerActions.setShouldShowComposeInput(true);
         };
-    }, []);
+    }, [props.action.reportActionID]);
 
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
@@ -346,6 +348,7 @@ function ReportActionItemMessageEdit(props) {
                             onModalHide={() => InteractionManager.runAfterInteractions(() => textInputRef.current.focus())}
                             onEmojiSelected={addEmojiToTextBox}
                             nativeID={emojiButtonID}
+                            reportAction={props.action}
                         />
                     </View>
 

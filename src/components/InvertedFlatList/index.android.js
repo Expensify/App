@@ -1,10 +1,11 @@
 import React, {forwardRef} from 'react';
-import {View, FlatList} from 'react-native';
+import {FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 import styles from '../../styles/styles';
 import stylePropTypes from '../../styles/stylePropTypes';
+import CellRendererComponent from './CellRendererComponent';
 
 const propTypes = {
     /** Passed via forwardRef so we can access the FlatList ref */
@@ -19,16 +20,6 @@ const propTypes = {
 const defaultProps = {
     ListFooterComponentStyle: {},
 };
-
-function InvertedCell(props) {
-    return (
-        <View
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            style={styles.invert}
-        />
-    );
-}
 
 class InvertedFlatList extends React.Component {
     constructor(props) {
@@ -57,7 +48,13 @@ class InvertedFlatList extends React.Component {
                 style={styles.invert}
                 ListFooterComponentStyle={[styles.invert, this.props.ListFooterComponentStyle]}
                 verticalScrollbarPosition="left" // We are mirroring the X and Y axis, so we need to swap the scrollbar position
-                CellRendererComponent={InvertedCell}
+                CellRendererComponent={CellRendererComponent}
+                /**
+                 * To achieve absolute positioning and handle overflows for list items, the property must be disabled
+                 * for Android native builds.
+                 * Source: https://reactnative.dev/docs/0.71/optimizing-flatlist-configuration#removeclippedsubviews
+                 */
+                removeClippedSubviews={false}
             />
         );
     }

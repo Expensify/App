@@ -55,6 +55,7 @@ function NewTaskDescriptionPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={props.translate('task.description')}

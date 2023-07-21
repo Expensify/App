@@ -10,19 +10,22 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import * as Policy from './Policy';
-import Navigation from '../Navigation/Navigation';
+import Navigation, {navigationRef} from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import Timing from './Timing';
+import * as Browser from '../Browser';
 
 let currentUserAccountID;
+let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -179,6 +182,50 @@ function reconnectApp() {
 }
 
 /**
+ * This promise is used so that deeplink component know when a transition is end.
+ * This is necessary because we want to begin deeplink redirection after the transition is end.
+ */
+let resolveSignOnTransitionToFinishPromise;
+const signOnTransitionToFinishPromise = new Promise((resolve) => {
+    resolveSignOnTransitionToFinishPromise = resolve;
+});
+
+function waitForSignOnTransitionToFinish() {
+    return signOnTransitionToFinishPromise;
+}
+
+function endSignOnTransition() {
+    return resolveSignOnTransitionToFinishPromise();
+}
+
+/**
+ * Create a new workspace and navigate to it
+ *
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ */
+function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
+    const policyID = Policy.generatePolicyID();
+    const adminsChatReportID = Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
+    Navigation.isNavigationReady()
+        .then(() => {
+            if (transitionFromOldDot) {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack();
+            }
+
+            // Get the reportID associated with the newly created #admins room and route the user to that chat
+            const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
+            Navigation.setParams({reportID: adminsChatReportID}, routeKey);
+
+            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+        })
+        .then(endSignOnTransition);
+}
+
+/**
  * This action runs when the Navigator is ready and the current route changes
  *
  * currentPath should be the path as reported by the NavigationContainer
@@ -214,23 +261,25 @@ function setUpPoliciesAndNavigate(session) {
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName');
 
-    // Sign out the current user if we're transitioning from oldDot with a different user
-    const isTransitioningFromOldDot = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT));
-    if (isLoggingInAsNewUser && isTransitioningFromOldDot) {
+    // Sign out the current user if we're transitioning with a different user
+    const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
+    if (isLoggingInAsNewUser && isTransitioning) {
         Session.signOut();
     }
 
-    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioningFromOldDot && exitTo === ROUTES.WORKSPACE_NEW;
+    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, true);
+        createWorkspaceAndNavigateToIt(policyOwnerEmail, makeMeAdmin, policyName, true);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.isNavigationReady().then(() => {
-            // We must call goBack() to remove the /transition route from history
-            Navigation.goBack();
-            Navigation.navigate(exitTo);
-        });
+        Navigation.isNavigationReady()
+            .then(() => {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack();
+                Navigation.navigate(exitTo);
+            })
+            .then(endSignOnTransition);
     }
 }
 
@@ -277,4 +326,37 @@ function openProfile(personalDetails) {
     );
 }
 
-export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp, confirmReadyToOpenApp};
+function beginDeepLinkRedirect() {
+    // There's no support for anonymous users on desktop
+    if (Session.isAnonymousUser()) {
+        return;
+    }
+
+    if (!currentUserAccountID) {
+        Browser.openRouteInDesktopApp();
+        return;
+    }
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects('OpenOldDotLink', {shouldRetry: false}, {}).then((response) => {
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
+    });
+}
+
+function beginDeepLinkRedirectAfterTransition() {
+    waitForSignOnTransitionToFinish().then(beginDeepLinkRedirect);
+}
+
+export {
+    setLocale,
+    setLocaleAndNavigate,
+    setSidebarLoaded,
+    setUpPoliciesAndNavigate,
+    openProfile,
+    openApp,
+    reconnectApp,
+    confirmReadyToOpenApp,
+    beginDeepLinkRedirect,
+    beginDeepLinkRedirectAfterTransition,
+    createWorkspaceAndNavigateToIt,
+};

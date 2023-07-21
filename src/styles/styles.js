@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -855,9 +856,15 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
     }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
@@ -3447,7 +3454,7 @@ const styles = {
         ...spacing.mr3,
     },
 
-    taskHorizontalRule: {
+    reportHorizontalRule: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.mh5,
@@ -3516,6 +3523,21 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
+        height,
+        width: '100%',
+        position: 'absolute',
+        top: -height,
+        left: 0,
+        right: 0,
+    }),
 };
 
 export default styles;

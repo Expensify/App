@@ -97,13 +97,14 @@ function hasCommentThread(reportAction) {
  * Returns the parentReportAction if the given report is a thread/task.
  *
  * @param {Object} report
+ * @param {Object} [allReportActionsParam]
  * @returns {Object}
  */
-function getParentReportAction(report) {
+function getParentReportAction(report, allReportActionsParam = undefined) {
     if (!report || !report.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
+    return lodashGet(allReportActionsParam || allReportActions, [report.parentReportID, report.parentReportActionID], {});
 }
 
 /**
@@ -531,7 +532,7 @@ function isCreatedTaskReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isMessageDeleted(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
+    return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
 function isWhisperAction(action) {

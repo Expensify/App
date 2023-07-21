@@ -11,7 +11,7 @@ export default {
             // Main Routes
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
-            [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
+            [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             Concierge: ROUTES.CONCIERGE,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
@@ -42,7 +42,7 @@ export default {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
-                            Settings_Preferences: {
+                            [SCREENS.SETTINGS.PREFERENCES]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
                                 exact: true,
                             },
