@@ -154,7 +154,7 @@ jobs:
           command: cd ios && bundle exec pod install
 
       - name: Decrypt profile
-        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output chat_expensify_adhoc.mobileprovision chat_expensify_adhoc.mobileprovision.gpg
+        run: cd ios && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output expensify_chat_adhoc.mobileprovision expensify_chat_adhoc.mobileprovision.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 

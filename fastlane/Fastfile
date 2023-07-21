@@ -143,19 +143,19 @@ platform :ios do
     )
 
     install_provisioning_profile(
-        path: "./ios/chat_expensify_adhoc.mobileprovision"
+        path: "./ios/expensify_chat_adhoc.mobileprovision"
     )
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
         skip_profile_detection: true,
         scheme: "New Expensify AdHoc",
-        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "chat_expensify_adhoc", },
+        xcargs: { :PROVISIONING_PROFILE_SPECIFIER => "expensify_chat_adhoc", },
         export_method: "ad-hoc",
         export_options: {
             method: "ad-hoc",
             provisioningProfiles: {
-              "com.chat.expensify.chat" => "chat_expensify_adhoc",
+              "com.expensify.chat.adhoc" => "expensify_chat_adhoc",
             },
             manageAppVersionAndBuildNumber: false
         }
