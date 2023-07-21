@@ -141,7 +141,7 @@
 
 <a name="type-narrowing"></a><a name="1.6"></a>
 
-- [1.6](#type-narrowing) **Type Narrowing** Narrow types down using `typeof`, discriminated unions, or custom type guards. Refer [this guide](https://medium.com/@hayata.suenaga/discriminated-unions-custom-type-guards-182ebe1f92fb) for more information on when to use discriminated unions and custom type guards.
+- [1.6](#type-narrowing) **Type Narrowing** Narrow types down using `typeof`, discriminated unions, or custom type guards. Refer to [this guide](https://medium.com/@hayata.suenaga/discriminated-unions-custom-type-guards-182ebe1f92fb) for more information on when to use discriminated unions and custom type guards.
 
   ```ts
   type Manager = {
@@ -214,7 +214,7 @@
   const person2 = { name: "Bob", age: 30 } as const; // type: { readonly name: "Bob", readonly age: 30 }
 
   const array1 = ["hello", 1]; // type: (string | number)[]
-  const array2 = ["goodbye", 2]; // type: readonly ["goodbye", 2]
+  const array2 = ["goodbye", 2] as const; // type: readonly ["goodbye", 2]
   ```
 
 <a name="higher-order-components"></a><a name="1.9"></a>
