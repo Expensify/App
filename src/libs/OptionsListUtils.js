@@ -806,7 +806,7 @@ function getOptions(
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // Generates an optimistic account ID for new users not yet saved in Onyx
-        const optimisticAccountID = UserUtils.generateAccountID();
+        const optimisticAccountID = UserUtils.generateAccountID(searchValue);
         const personalDetailsExtended = {
             ...personalDetails,
             [optimisticAccountID]: {
