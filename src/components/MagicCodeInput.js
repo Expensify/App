@@ -347,7 +347,7 @@ function MagicCodeInput(props) {
                                 onFocus={onFocus}
                                 caretHidden
                                 textInputContainerStyles={[styles.borderNone]}
-                                inputStyle={[isBrowser ? styles.magicCodeInputTransparent : undefined]}
+                                inputStyle={[styles.magicCodeInputTransparent, isBrowser ? styles.magicCodeInputTransparentWebKit : undefined]}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
