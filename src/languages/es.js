@@ -355,6 +355,8 @@ export default {
         cameraAccess: 'Se requiere acceso a la cámara para hacer fotos de los recibos.',
         cameraErrorTitle: 'Error en la cámara',
         cameraErrorMessage: 'Se produjo un error al hacer una foto, Por favor, inténtalo de nuevo.',
+        dropTitle: 'Suéltalo',
+        dropMessage: 'Suelta tu archivo aquí',
     },
     iou: {
         amount: 'Importe',
