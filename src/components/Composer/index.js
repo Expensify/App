@@ -215,9 +215,18 @@ function Composer({onKeyPress, style, ...props}) {
         [paste],
     );
 
+/**
+ * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
+ * Otherwise, convert pasted HTML to Markdown and set it on the composer.
+ *
+ * @param {ClipboardEvent} event
+ */
     const handlePaste = useCallback(
         (event) => {
             event.preventDefault();
+            if (!props.checkComposerVisibility()) {
+                return;
+            }
 
             const {files, types} = event.clipboardData;
             const TEXT_HTML = 'text/html';

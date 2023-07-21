@@ -43,12 +43,19 @@ jobs:
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
+      - name: Get previous app version
+        id: getPreviousVersion
+        uses: Expensify/App/.github/actions/javascript/getPreviousVersion@main
+        with:
+          SEMVER_LEVEL: 'PATCH'
+
+      - name: Fetch history of relevant refs
+        run: |
+          git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+
       - name: Get version bump commit
         id: getVersionBumpCommit
         run: |
-          # Find the commit for the version-bump
-          # This command fetches commits in the last hour on the main branch
-          git fetch origin main --no-tags --shallow-since="$(( $(date +%s) - 3600 ))"
           git switch main
           VERSION_BUMP_COMMIT="$(git log --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
@@ -60,21 +67,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: ${{ github.actor }}
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-
-      - name: Get previous app version
-        id: getPreviousVersion
-        uses: Expensify/App/.github/actions/javascript/getPreviousVersion@main
-        with:
-          SEMVER_LEVEL: 'PATCH'
-
-      - name: Fetch history of relevant refs
-        run: |
-          git fetch origin \
-            staging \
-            ${{ steps.getVersionBumpCommit.outputs.VERSION_BUMP_SHA }} \
-            ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }} \
-            --no-tags \
-            --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
 
       - name: Cherry-pick the version-bump to staging
         run: |

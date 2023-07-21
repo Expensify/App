@@ -162,7 +162,7 @@ function HeaderView(props) {
                 {Boolean(props.report && title) && (
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <PressableWithoutFeedback
-                            onPress={() => (isTaskReport ? Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID)) : ReportUtils.navigateToDetailsPage(props.report))}
+                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={isTaskReport && !ReportUtils.isOpenTaskReport(props.report)}
                             accessibilityLabel={title}

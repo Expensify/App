@@ -33,6 +33,7 @@ import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
+import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 
 let currentUserEmail;
 Onyx.connect({
@@ -210,7 +211,10 @@ class AuthScreens extends React.Component {
             ...commonScreenOptions,
             // we want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
-            cardStyle: styles.navigationModalCard(this.props.isSmallScreenWidth),
+            cardStyle: getNavigationModalCardStyle({
+                windowHeight: this.props.windowHeight,
+                isSmallScreenWidth: this.props.isSmallScreenWidth,
+            }),
         };
 
         return (
@@ -261,7 +265,7 @@ class AuthScreens extends React.Component {
                     }}
                 />
                 <RootStack.Screen
-                    name={SCREENS.TRANSITION_FROM_OLD_DOT}
+                    name={SCREENS.TRANSITION_BETWEEN_APPS}
                     options={defaultScreenOptions}
                     getComponent={() => {
                         const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
