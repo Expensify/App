@@ -236,7 +236,8 @@ function MagicCodeInput(props) {
         numbers = [...numbers.slice(0, editIndex), ...numbersArr, ...numbers.slice(numbersArr.length + editIndex, props.maxLength)];
 
         setFocusedIndex(updatedFocusedIndex);
-        setInput(value);
+        setEditIndex(updatedFocusedIndex);
+        setInput('');
 
         const finalInput = composeToString(numbers);
         props.onChangeText(finalInput);
