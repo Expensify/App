@@ -574,6 +574,7 @@ export default compose(
         },
         iouReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.iouReportID}`,
+        },
         emojiReactions: {
             key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
         },
