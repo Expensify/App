@@ -26,6 +26,7 @@ import {showContextMenuForReport} from '../ShowContextMenuContext';
 import reportPropTypes from '../../pages/reportPropTypes';
 import refPropTypes from '../refPropTypes';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import ControlSelection from '../../libs/ControlSelection';
 
 const propTypes = {
     /** All personal details asssociated with user */
