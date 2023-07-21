@@ -13,7 +13,6 @@ import compose from '../../libs/compose';
 import reportPropTypes from '../reportPropTypes';
 import * as Task from '../../libs/actions/Task';
 import CONST from '../../CONST';
-import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 
 const propTypes = {
     /** Current user session */
@@ -51,10 +50,7 @@ function TaskDescriptionPage(props) {
     const inputRef = useRef(null);
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
-        >
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton title={props.translate('task.task')} />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
@@ -75,6 +71,7 @@ function TaskDescriptionPage(props) {
                         ref={(el) => (inputRef.current = el)}
                         autoGrowHeight
                         submitOnEnter
+                        autoFocus
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
                     />

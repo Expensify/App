@@ -15,6 +15,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import Checkbox from '../Checkbox';
 import getSecureEntryKeyboardType from '../../libs/getSecureEntryKeyboardType';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 import CONST from '../../CONST';
 import FormHelpMessage from '../FormHelpMessage';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
@@ -65,10 +66,11 @@ function BaseTextInput(props) {
 
         let focusTimeout;
         if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => input.current.focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeout = setTimeout(() => focusAndUpdateMultilineInputRange(input.current), CONST.ANIMATED_TRANSITION);
             return;
         }
-        input.current.focus();
+
+        focusAndUpdateMultilineInputRange(input.current);
 
         return () => {
             if (!focusTimeout) {
