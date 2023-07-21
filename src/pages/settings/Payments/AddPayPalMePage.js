@@ -69,7 +69,7 @@ function AddPayPalMePage(props) {
             />
             <Form
                 style={[styles.flex1, styles.p5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
+                formID={ONYXKEYS.FORMS.PAYPAL_FORM}
                 validate={validate}
                 onSubmit={setPayPalMeData}
                 submitButtonText={props.translate(hasPaypalAccount ? 'addPayPalMePage.updatePaypalAccount' : 'addPayPalMePage.addPayPalAccount')}
