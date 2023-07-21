@@ -2,6 +2,7 @@ import React, {useState, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
@@ -21,6 +22,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import Image from './Image';
+import {Lounge} from './Icon/Illustrations';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -276,7 +278,7 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
-    console.log(`props.receiptPath: ${props.receiptPath}`);
+    const getFileImage = () => <Lounge style={styles.moneyRequestImage} />;
 
     return (
         <OptionsSelector
@@ -295,12 +297,14 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            {props.receiptPath ? (
+            {props.receiptPath && props.isImage && (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: props.receiptPath}}
                 />
-            ) : (
+            )}
+            {props.receiptPath && !props.isImage && getFileImage()}
+            {!props.receiptPath && (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!props.isReadOnly}
                     title={formattedAmount}

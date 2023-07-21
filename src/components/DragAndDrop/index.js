@@ -160,7 +160,7 @@ function DragAndDrop(props) {
         document.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragListener);
         document.addEventListener(DROP_EVENT, dropZoneDragListener);
         window.addEventListener(RESIZE_EVENT, throttledDragNDropWindowResizeListener);
-    }, [props.dropZoneId, calculateDropZoneClientReact, dropZoneDragListener, throttledDragNDropWindowResizeListener]);
+    }, [dropZoneDragListener, throttledDragNDropWindowResizeListener]);
 
     const removeEventListeners = useCallback(() => {
         document.removeEventListener(DRAG_OVER_EVENT, dropZoneDragListener);

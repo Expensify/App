@@ -23,6 +23,7 @@ import AttachmentUtils from '../../../libs/AttachmentUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import Str from 'expensify-common/lib/str';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -164,7 +165,7 @@ function ReceiptSelector(props) {
                                         }
 
                                         const filePath = URL.createObjectURL(file);
-                                        IOU.setMoneyRequestReceipt(filePath);
+                                        IOU.setMoneyRequestReceipt(filePath, Str.isImage(file.name));
                                         NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
                                     },
                                 });
