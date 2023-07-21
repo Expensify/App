@@ -11,16 +11,16 @@ const datePickerPropTypes = {
     ...propTypes,
 };
 
-function DatePicker(props) {
+function DatePicker({defaultValue, maxDate, minDate, onInputChange, innerRef, label, value, placeholder, errorText, containerStyles, disabled, onBlur}) {
     const inputRef = useRef(null);
-    const defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+    const defaultDateValue = defaultValue ? moment(defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
     useEffect(() => {
         inputRef.current.setAttribute('type', 'date');
-        inputRef.current.setAttribute('max', moment(props.maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-        inputRef.current.setAttribute('min', moment(props.minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        inputRef.current.setAttribute('max', moment(maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        inputRef.current.setAttribute('min', moment(minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
         inputRef.current.classList.add('expensify-datepicker');
-    }, [props.maxDate, props.minDate]);
+    }, [maxDate, minDate]);
 
     /**
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
@@ -28,13 +28,13 @@ function DatePicker(props) {
      */
     const setDate = (text) => {
         if (!text) {
-            props.onInputChange('');
+            onInputChange('');
             return;
         }
 
         const asMoment = moment(text, true);
         if (asMoment.isValid()) {
-            props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+            onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
     };
 
@@ -57,22 +57,22 @@ function DatePicker(props) {
             ref={(el) => {
                 inputRef.current = el;
 
-                if (_.isFunction(props.innerRef)) {
-                    props.innerRef(el);
+                if (_.isFunction(innerRef)) {
+                    innerRef(el);
                 }
             }}
             onFocus={showDatepicker}
-            label={props.label}
-            accessibilityLabel={props.label}
+            label={label}
+            accessibilityLabel={label}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
             onInputChange={setDate}
-            value={props.value}
-            defaultValue={defaultValue}
-            placeholder={props.placeholder}
-            errorText={props.errorText}
-            containerStyles={props.containerStyles}
-            disabled={props.disabled}
-            onBlur={props.onBlur}
+            value={value}
+            defaultValue={defaultDateValue}
+            placeholder={placeholder}
+            errorText={errorText}
+            containerStyles={containerStyles}
+            disabled={disabled}
+            onBlur={onBlur}
         />
     );
 }
