@@ -2,8 +2,7 @@ import React, {memo, useCallback, useContext} from 'react';
 import styles from '../../../../styles/styles';
 import {attachmentViewPdfPropTypes, attachmentViewPdfDefaultProps} from './propTypes';
 import PDFView from '../../../PDFView';
-
-import AttachmentCarouselPagerContext from '../../AttachmentCarouselPager/AttachmentCarouselPagerContext';
+import AttachmentCarouselPagerContext from '../../AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 
 function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, isUsedInCarousel, onPress, onScaleChanged: onScaleChangedProp, onToggleKeyboard, onLoadComplete}) {
     const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
