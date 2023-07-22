@@ -1,7 +1,10 @@
-import React from 'react';
+import React, {createContext, useState, useEffect, forwardRef, useContext, useMemo} from 'react';
 import PropTypes from 'prop-types';
+import * as Environment from '../libs/Environment/Environment';
+import CONST from '../CONST';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
-import useEnvironment from '../hooks/useEnvironment';
+
+const EnvironmentContext = createContext(null);
 
 const environmentPropTypes = {
     /** The string value representing the current environment */
@@ -11,35 +14,49 @@ const environmentPropTypes = {
     environmentURL: PropTypes.string.isRequired,
 };
 
-export default function (WrappedComponent) {
-    function WithEnvironment(props) {
-        const {environment, environmentURL} = useEnvironment();
+function EnvironmentProvider({children}) {
+    const [environment, setEnvironment] = useState(CONST.ENVIRONMENT.PRODUCTION);
+    const [environmentURL, setEnvironmentURL] = useState(CONST.NEW_EXPENSIFY_URL);
 
+    useEffect(() => {
+        Environment.getEnvironment().then(setEnvironment);
+        Environment.getEnvironmentURL().then(setEnvironmentURL);
+    }, []);
+
+    const contextValue = useMemo(
+        () => ({
+            environment,
+            environmentURL,
+        }),
+        [environment, environmentURL],
+    );
+
+    return <EnvironmentContext.Provider value={contextValue}>{children}</EnvironmentContext.Provider>;
+}
+
+EnvironmentProvider.displayName = 'EnvironmentProvider';
+EnvironmentProvider.propTypes = {
+    /** Actual content wrapped by this component */
+    children: PropTypes.node.isRequired,
+};
+
+export default function withEnvironment(WrappedComponent) {
+    const WithEnvironment = forwardRef((props, ref) => {
+        const {environment, environmentURL} = useContext(EnvironmentContext);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                ref={props.forwardedRef}
+                ref={ref}
                 environment={environment}
                 environmentURL={environmentURL}
             />
         );
-    }
+    });
 
     WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
-    WithEnvironment.propTypes = {
-        forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
-    };
-    WithEnvironment.defaultProps = {
-        forwardedRef: undefined,
-    };
-    return React.forwardRef((props, ref) => (
-        <WithEnvironment
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    ));
+
+    return WithEnvironment;
 }
 
-export {environmentPropTypes};
+export {EnvironmentContext, environmentPropTypes, EnvironmentProvider};
