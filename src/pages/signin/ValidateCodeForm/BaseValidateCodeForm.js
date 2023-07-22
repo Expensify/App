@@ -282,6 +282,7 @@ function BaseValidateCodeForm(props) {
                 <View style={[styles.mv3]}>
                     {isUsingRecoveryCode ? (
                         <TextInput
+                            shouldDelayFocus
                             accessibilityLabel={props.translate('recoveryCodeForm.recoveryCode')}
                             value={recoveryCode}
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
@@ -293,6 +294,7 @@ function BaseValidateCodeForm(props) {
                         />
                     ) : (
                         <MagicCodeInput
+                            shouldDelayFocus
                             autoComplete={props.autoComplete}
                             ref={input2FARef}
                             label={props.translate('common.twoFactorCode')}
