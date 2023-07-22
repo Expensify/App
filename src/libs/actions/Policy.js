@@ -1141,4 +1141,5 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
+    isPolicyAdmin,
 };

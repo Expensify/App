@@ -105,7 +105,7 @@ function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCal
         >
             <FullPageNotFoundView
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
-                shouldShow={_.isEmpty(policy) || !Policy.isPolicyOwner(policy)}
+                shouldShow={_.isEmpty(policy) || !Policy.isPolicyAdmin(policy)}
                 subtitleKey={_.isEmpty(policy) ? undefined : 'workspace.common.notAuthorized'}
             >
                 <HeaderWithBackButton

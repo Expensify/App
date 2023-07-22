@@ -332,7 +332,7 @@ class ReimbursementAccountPage extends React.Component {
         const policyName = lodashGet(this.props.policy, 'name');
         const policyID = lodashGet(this.props.route.params, 'policyID');
 
-        if (_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)) {
+        if (_.isEmpty(this.props.policy) || !Policy.isPolicyAdmin(this.props.policy)) {
             return (
                 <ScreenWrapper>
                     <FullPageNotFoundView
