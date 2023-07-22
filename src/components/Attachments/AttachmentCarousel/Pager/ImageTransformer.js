@@ -212,8 +212,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth
             };
 
             const targetImageSize = {
-                x: usableImage.x * DOUBLE_TAP_SCALE,
-                y: usableImage.y * DOUBLE_TAP_SCALE,
+                x: usableImage.x * doubleTapScale,
+                y: usableImage.y * doubleTapScale,
             };
 
             const CENTER = {
