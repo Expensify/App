@@ -171,6 +171,16 @@ function isPolicyOwner(policy) {
 }
 
 /**
+ * Is the user an admin of the given policy?
+ *
+ * @param {Object} policy
+ * @returns {Boolean}
+ */
+function isPolicyAdmin(policy) {
+    return policy.role === CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Check if the user has any active free policies (aka workspaces)
  *
  * @param {Array} policies
