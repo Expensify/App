@@ -21,6 +21,7 @@ const propTypes = {
 };
 
 function BaseSelectionListRadio(props) {
+    const firstLayoutRef = useRef(true);
     const listRef = useRef(null);
     const textInputRef = useRef(null);
     const focusTimeoutRef = useRef(null);
@@ -221,6 +222,8 @@ function BaseSelectionListRadio(props) {
                                 <TextInput
                                     ref={textInputRef}
                                     label={props.textInputLabel}
+                                    accessibilityLabel={props.textInputLabel}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                     value={props.textInputValue}
                                     placeholder={props.textInputPlaceholder}
                                     maxLength={props.textInputMaxLength}
@@ -252,7 +255,13 @@ function BaseSelectionListRadio(props) {
                             maxToRenderPerBatch={5}
                             windowSize={5}
                             viewabilityConfig={{viewAreaCoveragePercentThreshold: 95}}
-                            onLayout={() => scrollToIndex(focusedIndex, false)}
+                            onLayout={() => {
+                                if (!firstLayoutRef.current) {
+                                    return;
+                                }
+                                scrollToIndex(focusedIndex, false);
+                                firstLayoutRef.current = false;
+                            }}
                         />
                     </View>
                 )}

@@ -33,6 +33,7 @@ import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
+import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 
 let currentUserEmail;
 Onyx.connect({
@@ -91,10 +92,14 @@ const propTypes = {
     /** The report ID of the last opened public room as anonymous user */
     lastOpenedPublicRoomID: PropTypes.string,
 
+    /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
+    isUsingMemoryOnlyKeys: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
+    isUsingMemoryOnlyKeys: false,
     session: {
         email: null,
     },
@@ -122,13 +127,16 @@ class AuthScreens extends React.Component {
 
         // If we are on this screen then we are "logged in", but the user might not have "just logged in". They could be reopening the app
         // or returning from background. If so, we'll assume they have some app data already and we can call reconnectApp() instead of openApp().
-        if (SessionUtils.didUserLogInDuringSession()) {
+        // Note: If a Guide has enabled the memory only key mode then we do want to run OpenApp as their app will not be rehydrated with
+        // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
+        // the optimizations performed during ReconnectApp.
+        if (this.props.isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession()) {
             App.openApp();
         } else {
             App.reconnectApp();
         }
 
-        App.setUpPoliciesAndNavigate(this.props.session);
+        App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
 
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
@@ -203,7 +211,10 @@ class AuthScreens extends React.Component {
             ...commonScreenOptions,
             // we want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
-            cardStyle: styles.navigationModalCard(this.props.isSmallScreenWidth),
+            cardStyle: getNavigationModalCardStyle({
+                windowHeight: this.props.windowHeight,
+                isSmallScreenWidth: this.props.isSmallScreenWidth,
+            }),
         };
 
         return (
@@ -254,7 +265,7 @@ class AuthScreens extends React.Component {
                     }}
                 />
                 <RootStack.Screen
-                    name={SCREENS.TRANSITION_FROM_OLD_DOT}
+                    name={SCREENS.TRANSITION_BETWEEN_APPS}
                     options={defaultScreenOptions}
                     getComponent={() => {
                         const LogOutPreviousUserPage = require('../../../pages/LogOutPreviousUserPage').default;
@@ -307,6 +318,9 @@ export default compose(
         },
         lastOpenedPublicRoomID: {
             key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
+        },
+        isUsingMemoryOnlyKeys: {
+            key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
         },
     }),
 )(AuthScreens);

@@ -4,10 +4,14 @@ import CONST from '../CONST';
  * Check whether a report action is Attachment or not.
  * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
  *
- * @param {Object} reportActionMessage report action's message as text and html
+ * @param {Object} reportActionMessage report action's message as text, html and translationKey
  * @returns {Boolean}
  */
-export default function isReportMessageAttachment({text, html}) {
+export default function isReportMessageAttachment({text, html, translationKey}) {
+    if (translationKey) {
+        return translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
+    }
+
     if (!text || !html) {
         return false;
     }
