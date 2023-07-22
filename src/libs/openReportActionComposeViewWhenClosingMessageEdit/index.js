@@ -1,5 +1,5 @@
 import * as Composer from '../actions/Composer';
 
-export default () => {
-    Composer.setShouldShowComposeInput(true);
+export default (shouldShow) => {
+    Composer.setShouldShowComposeInput(shouldShow);
 };

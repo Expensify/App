@@ -286,6 +286,7 @@ function ReportActionItemMessageEdit(props) {
                             pressDimmingValue={1}
                             hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
                             pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
+                            onMouseDown={(e) => e.preventDefault()}
                         >
                             {({hovered, pressed}) => (
                                 <Icon
@@ -322,21 +323,16 @@ function ReportActionItemMessageEdit(props) {
                             onFocus={() => {
                                 setIsFocused(true);
                                 reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
-                                ComposerActions.setShouldShowComposeInput(false);
+                                openReportActionComposeViewWhenClosingMessageEdit(false);
                             }}
                             onBlur={(event) => {
                                 setIsFocused(false);
                                 const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
 
-                                // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
-                                if (_.contains([saveButtonID, cancelButtonID, emojiButtonID], relatedTargetId)) {
-                                    return;
-                                }
-
                                 if (messageEditInput === relatedTargetId) {
                                     return;
                                 }
-                                openReportActionComposeViewWhenClosingMessageEdit();
+                                openReportActionComposeViewWhenClosingMessageEdit(true);
                             }}
                             selection={!isFocused ? undefined : selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
@@ -363,6 +359,7 @@ function ReportActionItemMessageEdit(props) {
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
+                                onMouseDown={(e) => e.preventDefault()}
                             >
                                 <Icon
                                     src={Expensicons.Checkmark}
