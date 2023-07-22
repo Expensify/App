@@ -48,16 +48,11 @@ const propTypes = {
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
-    /** Any errors associated with an attempt to create a chat */
-    // eslint-disable-next-line react/forbid-prop-types
-    errors: PropTypes.object,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     report: {},
-    errors: {},
     currencyList: {},
     iou: {
         currency: CONST.CURRENCY.USD,
@@ -71,7 +66,7 @@ function IOUCurrencySelection(props) {
     const iouType = lodashGet(props.route, 'params.iouType', CONST.IOU.MONEY_REQUEST_TYPE.REQUEST);
     const reportID = lodashGet(props.route, 'params.reportID', '');
 
-    const shouldDismissModal = ReportUtils.shouldHideComposer(props.report, props.errors);
+    const shouldDismissModal = ReportUtils.shouldHideComposer(props.report);
 
     useEffect(() => {
         if (!shouldDismissModal) {

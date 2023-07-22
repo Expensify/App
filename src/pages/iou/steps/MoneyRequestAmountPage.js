@@ -210,11 +210,11 @@ function MoneyRequestAmountPage(props) {
      * Check and dismiss modal
      */
     useEffect(() => {
-        if (!ReportUtils.shouldHideComposer(props.report, props.errors)) {
+        if (!ReportUtils.shouldHideComposer(props.report)) {
             return;
         }
         Navigation.dismissModal(reportID.current);
-    }, [props.errors, props.report]);
+    }, [props.report]);
 
     /**
      * Focus text input

@@ -161,7 +161,7 @@ class ReportScreen extends React.Component {
 
     componentDidUpdate(prevProps) {
         // If composer should be hidden, hide emoji picker as well
-        if (ReportUtils.shouldHideComposer(this.props.report, this.props.errors)) {
+        if (ReportUtils.shouldHideComposer(this.props.report)) {
             EmojiPickerAction.hideEmojiPicker(true);
         }
         const onyxReportID = this.props.report.reportID;
@@ -387,7 +387,6 @@ class ReportScreen extends React.Component {
                             {this.isReportReadyForDisplay() && (
                                 <>
                                     <ReportFooter
-                                        errors={addWorkspaceRoomOrChatErrors}
                                         pendingAction={addWorkspaceRoomOrChatPendingAction}
                                         isOffline={this.props.network.isOffline}
                                         reportActions={this.props.reportActions}
