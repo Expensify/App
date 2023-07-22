@@ -19,10 +19,10 @@ import styles from '../../../../styles/styles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageWrapper from './ImageWrapper';
 
-const DOUBLE_TAP_SCALE = 3;
 const DEFAULT_INITIAL_SCALE = 1;
 const MAX_SCALE = 20;
 const MIN_SCALE = 0.7;
+const DOUBLE_TAP_SCALE = 3;
 
 const SPRING_CONFIG = {
     mass: 3,
@@ -60,6 +60,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth
     const initialScale = useMemo(() => DEFAULT_INITIAL_SCALE * imageScale, [imageScale]);
     const minScale = useMemo(() => MIN_SCALE * imageScale, [imageScale]);
     const maxScale = useMemo(() => MAX_SCALE * imageScale, [imageScale]);
+    const doubleTapScale = useMemo(() => DOUBLE_TAP_SCALE * imageScale, [imageScale]);
 
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
@@ -248,8 +249,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth
 
             offsetX.value = withSpring(target.x, SPRING_CONFIG);
             offsetY.value = withSpring(target.y, SPRING_CONFIG);
-            zoomScale.value = withSpring(DOUBLE_TAP_SCALE, SPRING_CONFIG);
-            scaleOffset.value = DOUBLE_TAP_SCALE;
+            zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
+            scaleOffset.value = doubleTapScale;
         },
         [scaledImageWidth, scaledImageHeight, canvasWidth, canvasHeight],
     );
