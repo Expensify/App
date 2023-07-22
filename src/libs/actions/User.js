@@ -18,6 +18,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
+import Log from '../Log';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -532,7 +533,16 @@ function subscribeToUserEvents() {
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
-        _.each(pushJSON, (multipleEvent) => {
+        let updates;
+        if (_.isArray(pushJSON)) {
+            updates = pushJSON;
+        } else {
+            // TODO: use these
+            // const lastUpdateID = pushJSON.lastUpdateID;
+            // const previousUpdateID = pushJSON.previousUpdateID;
+            updates = pushJSON.updates;
+        }
+        _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
         });
     });
