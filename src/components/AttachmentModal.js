@@ -92,7 +92,7 @@ function AttachmentModal(props) {
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
     const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState(null);
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);

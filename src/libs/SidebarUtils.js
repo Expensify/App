@@ -258,6 +258,7 @@ function getOptionData(reportID) {
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
+        isExpenseRequest: false,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -272,6 +273,7 @@ function getOptionData(reportID) {
     }
     result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
     result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+    result.isExpenseRequest = ReportUtils.isExpenseRequest(report);
     result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
     result.shouldShowSubscript = ReportUtils.shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom || report.pendingFields.createChat : null;
@@ -332,6 +334,10 @@ function getOptionData(reportID) {
         if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.RENAMED) {
             const newName = lodashGet(lastAction, 'originalMessage.newName', '');
             result.alternateText = Localize.translate(preferredLocale, 'newRoomPage.roomRenamedTo', {newName});
+        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKREOPENED) {
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.reopened')}: ${report.reportName}`;
+        } else if (lodashGet(lastAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED) {
+            result.alternateText = `${Localize.translate(preferredLocale, 'task.messages.completed')}: ${report.reportName}`;
         } else {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
         }

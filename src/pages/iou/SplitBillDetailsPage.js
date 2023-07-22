@@ -18,7 +18,6 @@ import withReportOrNotFound from '../home/report/withReportOrNotFound';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import CONST from '../../CONST';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -65,7 +64,7 @@ function getReportID(route) {
 
 function SplitBillDetailsPage(props) {
     const reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-    const participantAccountIDs = reportAction.originalMessage.participantAccountIDs || PersonalDetailsUtils.getAccountIDsByLogins(reportAction.originalMessage.participants);
+    const participantAccountIDs = reportAction.originalMessage.participantAccountIDs;
     const participants = OptionsListUtils.getParticipantsOptions(
         _.map(participantAccountIDs, (accountID) => ({accountID, selected: true})),
         props.personalDetails,

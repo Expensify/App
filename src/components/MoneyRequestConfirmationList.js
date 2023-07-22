@@ -46,7 +46,7 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
-    /** Selected participants from MoneyRequestModal with login */
+    /** Selected participants from MoneyRequestModal with login / accountID */
     participants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
     /** Payee of the money request with login */

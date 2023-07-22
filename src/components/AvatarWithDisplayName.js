@@ -70,8 +70,6 @@ function AvatarWithDisplayName(props) {
                             backgroundColor={themeColors.highlightBG}
                             mainAvatar={icons[0]}
                             secondaryAvatar={icons[1]}
-                            mainTooltip={props.report.ownerEmail}
-                            secondaryTooltip={subtitle}
                             size={props.size}
                         />
                     ) : (

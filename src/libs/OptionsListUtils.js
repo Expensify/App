@@ -444,6 +444,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isArchivedRoom: false,
         shouldShowSubscript: false,
         isPolicyExpenseChat: false,
+        isExpenseReport: false,
     };
 
     const personalDetailMap = getPersonalDetailsForAccountIDs(accountIDs, personalDetails);
@@ -460,6 +461,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.isDefaultRoom = ReportUtils.isDefaultRoom(report);
         result.isArchivedRoom = ReportUtils.isArchivedRoom(report);
         result.isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(report);
+        result.isExpenseReport = ReportUtils.isExpenseReport(report);
         result.isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
         result.isThread = ReportUtils.isChatThread(report);
         result.isTaskReport = ReportUtils.isTaskReport(report);
@@ -620,7 +622,7 @@ function getOptions(
     let recentReportOptions = [];
     let personalDetailsOptions = [];
     const reportMapForAccountIDs = {};
-    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(searchInputValue));
+    const parsedPhoneNumber = parsePhoneNumber(LoginUtils.appendCountryCode(Str.removeSMSDomain(searchInputValue)));
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
@@ -773,7 +775,7 @@ function getOptions(
         (noOptions || noOptionsMatchExactly) &&
         !isCurrentUser({login: searchValue}) &&
         _.every(selectedOptions, (option) => option.login !== searchValue) &&
-        ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || parsedPhoneNumber.possible) &&
+        ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) || parsedPhoneNumber.possible) &&
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
