@@ -63,6 +63,7 @@ function ReportSettingsPage(props) {
     const shouldDisableWelcomeMessage =
         ReportUtils.isArchivedRoom(report) || !ReportUtils.isChatRoom(report) || _.isEmpty(linkedWorkspace) || linkedWorkspace.role !== CONST.POLICY.ROLE.ADMIN;
 
+    const shouldDisableSettings = _.isEmpty(report) || ReportUtils.shouldDisableSettings(report);
     const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(report) && !ReportUtils.isChatThread(report);
     const notificationPreference = translate(`notificationPreferencesPage.notificationPreferences.${report.notificationPreference}`);
     const writeCapability = ReportUtils.isAdminRoom(report) ? CONST.REPORT.WRITE_CAPABILITIES.ADMINS : report.writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL;
@@ -72,7 +73,7 @@ function ReportSettingsPage(props) {
 
     return (
         <ScreenWrapper>
-            <FullPageNotFoundView shouldShow={_.isEmpty(report)}>
+            <FullPageNotFoundView shouldShow={shouldDisableSettings}>
                 <HeaderWithBackButton
                     title={translate('common.settings')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(report.reportID))}
