@@ -328,7 +328,6 @@ function ReportActionItemMessageEdit(props) {
                             onBlur={(event) => {
                                 setIsFocused(false);
                                 const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
-
                                 if (messageEditInput === relatedTargetId) {
                                     return;
                                 }
