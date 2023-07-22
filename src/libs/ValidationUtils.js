@@ -307,6 +307,10 @@ function isValidValidateCode(validateCode) {
     return validateCode.match(CONST.VALIDATE_CODE_REGEX_STRING);
 }
 
+function isValidRecoveryCode(recoveryCode) {
+    return recoveryCode.match(CONST.RECOVERY_CODE_REGEX_STRING);
+}
+
 /**
  * @param {String} code
  * @returns {Boolean}
@@ -478,4 +482,5 @@ export {
     doesContainReservedWord,
     isNumeric,
     isValidAccountRoute,
+    isValidRecoveryCode,
 };
