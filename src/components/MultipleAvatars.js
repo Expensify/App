@@ -193,8 +193,8 @@ function MultipleAvatars(props) {
                         ))}
                         {avatars.length > props.maxAvatarsInRow && (
                             <Tooltip
-                                // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                                text={tooltipTexts.slice(3, 10).join(', ')}
+                                // We only want to cap tooltips to only the first 20 users or so since some reports have hundreds of users, causing performance to degrade.
+                                text={tooltipTexts.slice((avatarRows.length * props.maxAvatarsInRow) - 1, 20).join(', ')}
                             >
                                 <View
                                     style={[
