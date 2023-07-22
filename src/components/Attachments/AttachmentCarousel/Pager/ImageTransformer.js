@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -20,6 +20,7 @@ import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageWrapper from './ImageWrapper';
 
 const DOUBLE_TAP_SCALE = 3;
+const DEFAULT_INITIAL_SCALE = 1;
 const MAX_SCALE = 20;
 const MIN_SCALE = 0.7;
 
@@ -56,10 +57,14 @@ const imageTransformerDefaultProps = {
 function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth, scaledImageHeight, isActive, children}) {
     const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(AttachmentCarouselPagerContext);
 
+    const initialScale = useMemo(() => DEFAULT_INITIAL_SCALE * imageScale, [imageScale]);
+    const minScale = useMemo(() => MIN_SCALE * imageScale, [imageScale]);
+    const maxScale = useMemo(() => MAX_SCALE * imageScale, [imageScale]);
+
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
     // Substracting 1, because both scales have the initial image as the base reference
-    const totalScale = useDerivedValue(() => Math.max(zoomScale.value + imageScale - 1, 0), [imageScale]);
+    const totalScale = useDerivedValue(() => Math.max(zoomScale.value + initialScale - 1, 0), []);
 
     const zoomScaledImageWidth = useDerivedValue(() => imageWidth * totalScale.value, [imageWidth]);
     const zoomScaledImageHeight = useDerivedValue(() => imageHeight * totalScale.value, [imageHeight]);
@@ -156,7 +161,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth
         const deceleration = 0.9915;
 
         if (isInBoundaryX) {
-            if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= MAX_SCALE) {
+            if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= maxScale) {
                 offsetX.value = withDecay({
                     velocity: panVelocityX.value,
                     clamp: [minVector.x, maxVector.x],
@@ -171,7 +176,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth
         if (isInBoundaryY) {
             if (
                 Math.abs(panVelocityY.value) > 0 &&
-                zoomScale.value <= MAX_SCALE &&
+                zoomScale.value <= maxScale &&
                 // limit vertical pan only when image is smaller than screen
                 offsetY.value !== minVector.y &&
                 offsetY.value !== maxVector.y
@@ -434,9 +439,9 @@ function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth
             origin.y.value = adjustFocal.y;
         })
         .onChange((evt) => {
-            zoomScale.value = clamp(scaleOffset.value * evt.scale, MIN_SCALE, MAX_SCALE);
+            zoomScale.value = clamp(scaleOffset.value * evt.scale, minScale, maxScale);
 
-            if (zoomScale.value > MIN_SCALE && zoomScale.value < MAX_SCALE) {
+            if (zoomScale.value > minScale && zoomScale.value < maxScale) {
                 gestureScale.value = evt.scale;
             }
 
@@ -459,9 +464,9 @@ function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth
 
                 // this runs the timing animation
                 zoomScale.value = withSpring(1, SPRING_CONFIG);
-            } else if (scaleOffset.value > MAX_SCALE) {
-                scaleOffset.value = MAX_SCALE;
-                zoomScale.value = withSpring(MAX_SCALE, SPRING_CONFIG);
+            } else if (scaleOffset.value > maxScale) {
+                scaleOffset.value = maxScale;
+                zoomScale.value = withSpring(maxScale, SPRING_CONFIG);
             }
 
             afterGesture();
