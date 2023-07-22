@@ -4,11 +4,12 @@ import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Text from '../../Text';
-import Tooltip from '../../Tooltip';
+import UserDetailsTooltip from '../../UserDetailsTooltip';
 import htmlRendererPropTypes from './htmlRendererPropTypes';
 import withCurrentUserPersonalDetails from '../../withCurrentUserPersonalDetails';
 import personalDetailsPropType from '../../../pages/personalDetailsPropType';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import TextLink from '../../TextLink';
 
 const propTypes = {
@@ -33,11 +34,18 @@ function MentionUserRenderer(props) {
     // We need to remove the leading @ from data as it is not part of the login
     const loginWithoutLeadingAt = props.tnode.data.slice(1);
 
+    const accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([loginWithoutLeadingAt]));
+
     const isOurMention = loginWithoutLeadingAt === props.currentUserPersonalDetails.login;
 
     return (
         <Text>
-            <Tooltip text={loginWithoutLeadingAt}>
+            <UserDetailsTooltip
+                accountID={accountID}
+                fallbackUserDetails={{
+                    displayName: loginWithoutLeadingAt,
+                }}
+            >
                 <TextLink
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...defaultRendererProps}
@@ -49,7 +57,7 @@ function MentionUserRenderer(props) {
                 >
                     <TNodeChildrenRenderer tnode={props.tnode} />
                 </TextLink>
-            </Tooltip>
+            </UserDetailsTooltip>
         </Text>
     );
 }
