@@ -433,13 +433,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     // },
     {
         getComponent: () => {
-            const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
-            return SettingsPasswordPage;
-        },
-        name: 'Settings_Password',
-    },
-    {
-        getComponent: () => {
             const SettingsCloseAccountPage = require('../../../pages/settings/Security/CloseAccountPage').default;
             return SettingsCloseAccountPage;
         },

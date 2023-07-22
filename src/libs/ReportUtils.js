@@ -2576,6 +2576,23 @@ function getReportOfflinePendingActionAndErrors(report) {
 }
 
 /**
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getPolicy(policyID) {
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
+    return policy;
+}
+
+/*
+ * @param {Object|null} report
+ * @returns {Boolean}
+ */
+function shouldDisableSettings(report) {
+    return !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
+}
+
+/**
  * @param {Object|null} report
  * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
  * @returns {Boolean}
@@ -2702,5 +2719,7 @@ export {
     getOriginalReportID,
     canAccessReport,
     getReportOfflinePendingActionAndErrors,
+    getPolicy,
+    shouldDisableSettings,
     shouldDisableRename,
 };

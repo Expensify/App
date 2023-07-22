@@ -161,7 +161,14 @@ function ReportActionItem(props) {
     const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
     const latestDecision = lodashGet(_.last(decisions), 'decision', '');
     useEffect(() => {
-        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
+        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
+            return;
+        }
+
+        // Hide reveal message button and show the message if latestDecision is changed to empty
+        if (_.isEmpty(latestDecision)) {
+            setModerationDecision(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
+            setIsHidden(false);
             return;
         }
 
@@ -209,7 +216,7 @@ function ReportActionItem(props) {
 
     const toggleReaction = useCallback(
         (emoji) => {
-            Report.toggleEmojiReaction(props.report.reportID, props.action.reportActionID, emoji, props.emojiReactions);
+            Report.toggleEmojiReaction(props.report.reportID, props.action, emoji, props.emojiReactions);
         },
         [props.report, props.action, props.emojiReactions],
     );
@@ -252,6 +259,7 @@ function ReportActionItem(props) {
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
+                    containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
                     action={props.action}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}

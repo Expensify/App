@@ -24,6 +24,7 @@ import * as App from '../../libs/actions/App';
 import useLocalize from '../../hooks/useLocalize';
 import useNetwork from '../../hooks/useNetwork';
 import usePermissions from '../../hooks/usePermissions';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 import SCREENS from '../../SCREENS';
 import * as LottieAnimations from '../../components/LottieAnimations';
@@ -111,6 +112,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {canUseWallet} = usePermissions();
+    const {isSmallScreenWidth} = useWindowDimensions();
 
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
@@ -192,7 +194,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     accessibilityLabel={translate('workspace.new.newWorkspace')}
                     success
                     text={translate('workspace.new.newWorkspace')}
-                    onPress={App.createWorkspaceAndNavigateToIt}
+                    onPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, !isSmallScreenWidth)}
                 />
             }
         >
