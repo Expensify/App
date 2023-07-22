@@ -271,7 +271,7 @@ function BaseValidateCodeForm(props) {
         if (accountID) {
             Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, recoveryCodeOr2faCode);
         } else {
-            Session.signIn('', validateCode, recoveryCodeOr2faCode, props.preferredLocale);
+            Session.signIn(validateCode, recoveryCodeOr2faCode, props.preferredLocale);
         }
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
 
