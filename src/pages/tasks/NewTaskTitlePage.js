@@ -76,6 +76,7 @@ function NewTaskTitlePage(props) {
                 inputRef.current.focus();
             }}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={props.translate('task.title')}

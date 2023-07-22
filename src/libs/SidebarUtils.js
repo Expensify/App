@@ -200,9 +200,10 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
  * @param {Object} report
  * @param {Object} personalDetails
  * @param {String} preferredLocale
+ * @param {Object} [policy]
  * @returns {Object}
  */
-function getOptionData(report, personalDetails, preferredLocale) {
+function getOptionData(report, personalDetails, preferredLocale, policy) {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
     // a null check here and return early.
@@ -306,7 +307,7 @@ function getOptionData(report, personalDetails, preferredLocale) {
             CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         lastMessageText = Localize.translate(preferredLocale, `reportArchiveReasons.${archiveReason}`, {
             displayName: archiveReason.displayName || PersonalDetailsUtils.getDisplayNameOrDefault(lastActorDetails, 'displayName'),
-            policyName: ReportUtils.getPolicyName(report),
+            policyName: ReportUtils.getPolicyName(report, false, policy),
         });
     }
 
@@ -356,13 +357,13 @@ function getOptionData(report, personalDetails, preferredLocale) {
         result.payPalMeAddress = personalDetail.payPalMeAddress;
     }
 
-    const reportName = ReportUtils.getReportName(report);
+    const reportName = ReportUtils.getReportName(report, policy);
 
     result.text = reportName;
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), true);
+    result.icons = ReportUtils.getIcons(report, personalDetails, UserUtils.getAvatar(personalDetail.avatar, personalDetail.accountID), true, '', -1, policy);
     result.searchText = OptionsListUtils.getSearchText(report, reportName, participantPersonalDetailList, result.isChatRoom || result.isPolicyExpenseChat, result.isThread);
     result.displayNamesWithTooltips = displayNamesWithTooltips;
     result.isLastMessageDeletedParentAction = report.isLastMessageDeletedParentAction;
