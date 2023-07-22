@@ -7,10 +7,12 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
+import compose from '../../../libs/compose';
 import themeColors from '../../../styles/themes/default';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
+import { withReportActionsDrafts} from '../../../components/OnyxProvider';
 import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -35,6 +37,7 @@ import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
+import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -59,6 +62,10 @@ const propTypes = {
     /** Whether or not the emoji picker is disabled */
     shouldDisableEmojiPicker: PropTypes.bool,
 
+    /** Draft message - if this is set the comment is in 'edit' mode */
+    // eslint-disable-next-line react/forbid-prop-types
+    drafts: PropTypes.object,
+
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
@@ -70,6 +77,7 @@ const defaultProps = {
     report: {},
     shouldDisableEmojiPicker: false,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    drafts: {}
 };
 
 // native ids
@@ -229,6 +237,20 @@ function ReportActionItemMessageEdit(props) {
 
         const trimmedNewDraft = draft.trim();
 
+        const report = ReportUtils.getReport(props.reportID);
+        if (report && report.parentReportActionID) {
+            const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+            if ((lodashGet(props.drafts, [`reportActionsDrafts_${report.parentReportID}_${parentReportAction.reportActionID}`], undefined))) {
+                Report.saveReportActionDraft(report.parentReportID, parentReportAction.reportActionID, trimmedNewDraft);
+            }
+        } 
+        const childReport = ReportUtils.getReport(props.action.childReportID);
+        if (props.action.childReportID && childReport) {
+            if ((lodashGet(props.drafts, [`reportActionsDrafts_${childReport.reportID}_${props.action.reportActionID}`], undefined))) {
+                Report.saveReportActionDraft(childReport.reportID, props.action.reportActionID, trimmedNewDraft);
+            }
+        } 
+
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             ReportActionContextMenu.showDeleteModal(props.reportID, props.action, false, deleteDraft, () => InteractionManager.runAfterInteractions(() => textInputRef.current.focus()));
@@ -236,7 +258,7 @@ function ReportActionItemMessageEdit(props) {
         }
         Report.editReportComment(props.reportID, props.action, trimmedNewDraft);
         deleteDraft();
-    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID]);
+    }, [props.action, debouncedSaveDraft, deleteDraft, draft, props.reportID, props.drafts]);
 
     /**
      * @param {String} emoji
@@ -385,7 +407,13 @@ ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default withLocalize(
+export default compose(
+    withLocalize,
+    withReportActionsDrafts({
+        propName: 'drafts',
+        transformValue: (drafts) => drafts,
+    }),
+)(
     React.forwardRef((props, ref) => (
         <ReportActionItemMessageEdit
             // eslint-disable-next-line react/jsx-props-no-spreading
