@@ -19,7 +19,6 @@ import styles from '../../../../styles/styles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageWrapper from './ImageWrapper';
 
-const DEFAULT_INITIAL_SCALE = 1;
 const MAX_SCALE = 20;
 const MIN_SCALE = 0.7;
 const DOUBLE_TAP_SCALE = 3;
@@ -57,15 +56,13 @@ const imageTransformerDefaultProps = {
 function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth, scaledImageHeight, isActive, children}) {
     const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(AttachmentCarouselPagerContext);
 
-    const initialScale = useMemo(() => DEFAULT_INITIAL_SCALE * imageScale, [imageScale]);
     const minScale = useMemo(() => MIN_SCALE * imageScale, [imageScale]);
     const maxScale = useMemo(() => MAX_SCALE * imageScale, [imageScale]);
     const doubleTapScale = useMemo(() => DOUBLE_TAP_SCALE * imageScale, [imageScale]);
 
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
-    // Substracting 1, because both scales have the initial image as the base reference
-    const totalScale = useDerivedValue(() => Math.max(zoomScale.value + initialScale - 1, 0), []);
+    const totalScale = useDerivedValue(() => clamp(zoomScale.value * imageScale, minScale, maxScale), [imageScale]);
 
     const zoomScaledImageWidth = useDerivedValue(() => imageWidth * totalScale.value, [imageWidth]);
     const zoomScaledImageHeight = useDerivedValue(() => imageHeight * totalScale.value, [imageHeight]);
@@ -507,7 +504,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth
                 {scale: totalScale.value},
             ],
         };
-    }, []);
+    });
 
     // reacts to scale change and enables/disables pager scroll
     useAnimatedReaction(
