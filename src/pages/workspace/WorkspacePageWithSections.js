@@ -84,7 +84,7 @@ function fetchData(skipVBBACal) {
 }
 
 function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCallTaskID, headerText, policy, reimbursementAccount, route, shouldUseScrollView, shouldSkipVBBACall, user}) {
-    useNetwork(() => fetchData(shouldSkipVBBACall));
+    useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
 
     const achState = lodashGet(reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;

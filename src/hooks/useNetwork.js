@@ -2,10 +2,11 @@ import {useRef, useContext, useEffect} from 'react';
 import {NetworkContext} from '../components/OnyxProvider';
 
 /**
- * @param {Function} [onReconnect]
+ * @param {Object} [options]
+ * @param {Function} [options.onReconnect]
  * @returns {Object}
  */
-export default function useNetwork(onReconnect = () => {}) {
+export default function useNetwork({onReconnect = () => {}}) {
     const callback = useRef(onReconnect);
     callback.current = onReconnect;
 
