@@ -640,7 +640,7 @@ describe('Migrations', () => {
                     });
                 }));
     });
-    
+
     describe('CheckPreviousReportActionID', () => {
         // Note: this test has to come before the others in this suite because Onyx.clear leaves traces and keys with null values aren't cleared out between tests
         it("Should work even if there's no reportAction data in Onyx", () =>
