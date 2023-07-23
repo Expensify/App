@@ -639,4 +639,72 @@ describe('Migrations', () => {
                     });
                 }));
     });
+    
+    describe('CheckPreviousReportActionID', () => {
+        // Note: this test has to come before the others in this suite because Onyx.clear leaves traces and keys with null values aren't cleared out between tests
+        it("Should work even if there's no reportAction data in Onyx", () =>
+            CheckForPreviousReportActionID().then(() =>
+                expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no reportActions'),
+            ));
+
+        it('Should remove all report actions given that a previousReportActionID does not exist', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        actorEmail: 'sample_email@example.com',
+                    },
+                    2: {
+                        actorEmail: 'another_sample_email@example.com',
+                    },
+                },
+            })
+                .then(CheckForPreviousReportActionID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        '[Migrate Onyx] CheckForPreviousReportActionID Migration: removing all reportActions because previousReportActionID not found in the first reportAction',
+                    );
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReportAction = {};
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
+                        },
+                    });
+                }));
+
+        it('Should not remove any report action given that previousReportActionID exists in every action', () => {
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    1: {
+                        previousReportActionID: 0,
+                    },
+                    2: {
+                        previousReportActionID: 1,
+                    },
+                },
+            })
+                .then(CheckForPreviousReportActionID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] CheckForPreviousReportActionID Migration: previousReportActionID found. Migration complete');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReportAction = {
+                                1: {
+                                    previousReportActionID: 0,
+                                },
+                                2: {
+                                    previousReportActionID: 1,
+                                },
+                            };
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
+                        },
+                    });
+                });
+        });
+    });
 });
