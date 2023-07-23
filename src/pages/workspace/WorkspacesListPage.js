@@ -28,6 +28,7 @@ import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursemen
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import withWindowDimensions from '../../components/withWindowDimensions';
 import * as App from '../../libs/actions/App';
 
 const propTypes = {
@@ -100,7 +101,7 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas, network, translate}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas, network, translate, isSmallScreenWidth}) {
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
@@ -190,7 +191,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     accessibilityLabel={translate('workspace.new.newWorkspace')}
                     success
                     text={translate('workspace.new.newWorkspace')}
-                    onPress={() => App.createWorkspaceAndNavigateToIt()}
+                    onPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, !isSmallScreenWidth)}
                 />
             </FixedFooter>
         </ScreenWrapper>
@@ -202,6 +203,7 @@ WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withPolicyAndFullscreenLoading,
     withNetwork(),
     withOnyx({
