@@ -527,7 +527,7 @@ describe('OptionsListUtils', () => {
 
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
-        expect(results.userToInvite).toBe(null);        
+        expect(results.userToInvite).toBe(null);
 
         // Test Concierge's existence in new group options
         results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
