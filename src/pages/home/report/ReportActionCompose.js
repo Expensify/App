@@ -37,6 +37,7 @@ import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import withNavigation from '../../../components/withNavigation';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as UserUtils from '../../../libs/UserUtils';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
@@ -115,6 +116,9 @@ const propTypes = {
 
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
+    /** Unique id for nativeId in DragAndDrop */
+    dragAndDropId: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -493,7 +497,7 @@ class ReportActionCompose extends React.Component {
                 icons: [
                     {
                         name: detail.login,
-                        source: detail.avatar,
+                        source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                         type: 'avatar',
                     },
                 ],
@@ -501,11 +505,6 @@ class ReportActionCompose extends React.Component {
         });
 
         return suggestions;
-    }
-
-    getNavigationKey() {
-        const navigation = this.props.navigation.getState();
-        return lodashGet(navigation.routes, [navigation.index, 'key']);
     }
 
     /**
@@ -1113,7 +1112,7 @@ class ReportActionCompose extends React.Component {
                                     </AttachmentPicker>
                                     <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder]}>
                                         <DragAndDrop
-                                            dropZoneId={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
+                                            dropZoneId={this.props.dragAndDropId}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + this.props.reportID}
                                             onDragEnter={() => {
                                                 this.setState({isDraggingOver: true});

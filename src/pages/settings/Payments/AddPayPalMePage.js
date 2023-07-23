@@ -58,7 +58,7 @@ function AddPayPalMePage(props) {
         User.addPaypalMeAddress(payPalMeUsername);
 
         Growl.show(growlMessageOnSave, CONST.GROWL.SUCCESS, 3000);
-        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+        Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
     }, [payPalMeUsername, growlMessageOnSave]);
 
     return (
