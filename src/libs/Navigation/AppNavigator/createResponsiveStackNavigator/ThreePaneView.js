@@ -1,16 +1,17 @@
 import * as React from 'react';
 import _ from 'underscore';
-import {View} from 'react-native';
+import { View } from 'react-native';
 import PropTypes from 'prop-types';
 import SCREENS from '../../../../SCREENS';
 import themeColors from '../../../../styles/themes/default';
 import NAVIGATORS from '../../../../NAVIGATORS';
 import * as StyleUtils from '../../../../styles/StyleUtils';
-import {withNavigationPropTypes} from '../../../../components/withNavigation';
+import { withNavigationPropTypes } from '../../../../components/withNavigation';
 import styles from '../../../../styles/styles';
 import CONST from '../../../../CONST';
 import PressableWithoutFeedback from '../../../../components/Pressable/PressableWithoutFeedback';
 import useLocalize from '../../../../hooks/useLocalize';
+import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 
 const propTypes = {
     /* State from useNavigationBuilder */
@@ -25,8 +26,8 @@ const propTypes = {
 };
 
 function ThreePaneView(props) {
-    const lastCentralPaneIndex = _.findLastIndex(props.state.routes, {name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR});
-    const {translate} = useLocalize();
+    const lastCentralPaneIndex = _.findLastIndex(props.state.routes, { name: NAVIGATORS.CENTRAL_PANE_NAVIGATOR });
+    const { translate } = useLocalize();
 
     return (
         <View style={[styles.flex1, styles.flexRow]}>
@@ -53,25 +54,26 @@ function ThreePaneView(props) {
                 }
                 if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
                     return (
-                        <View
-                            key={route.key}
-                            style={[
-                                styles.flexRow,
-                                styles.pAbsolute,
-                                styles.w100,
-                                styles.h100,
-                                StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.shadow, CONST.RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY),
-                                StyleUtils.displayIfTrue(props.state.index === i),
-                            ]}
-                        >
-                            <PressableWithoutFeedback
-                                style={[styles.flex1]}
-                                onPress={() => props.navigation.goBack()}
-                                accessibilityLabel={translate('common.close')}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            />
-                            <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
-                        </View>
+                        <NoDropZone key={route.key}>
+                            <View
+                                style={[
+                                    styles.flexRow,
+                                    styles.pAbsolute,
+                                    styles.w100,
+                                    styles.h100,
+                                    StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.shadow, CONST.RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY),
+                                    StyleUtils.displayIfTrue(props.state.index === i),
+                                ]}
+                            >
+                                <PressableWithoutFeedback
+                                    style={[styles.flex1]}
+                                    onPress={() => props.navigation.goBack()}
+                                    accessibilityLabel={translate('common.close')}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                />
+                                <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
+                            </View>
+                        </NoDropZone>
                     );
                 }
                 return (
