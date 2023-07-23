@@ -72,15 +72,15 @@ function PopoverWithMeasuredContent(props) {
      * When Popover becomes visible, we need to recalculate the Dimensions.
      * Skip render on Popover until recalculations have done by setting isContentMeasured false as early as possible.
      */
+    if (!isVisible && props.isVisible) {
+        // We use additional function to guarantee that async state change would be completed
+        setIsVisible(() => { 
+            setIsContentMeasured(props.popoverDimensions.width > 0 && props.popoverDimensions.height > 0);
+            return true;
+        });
+    }
+
     useEffect(() => {
-        // When Popover is shown recalculate
-        if (!isVisible && props.isVisible) {
-            // We use additional function to guarantee that async state change would be completed
-            setIsVisible(() => {
-                setIsContentMeasured(lodashGet(props, 'popoverDimensions.width', 0) > 0 && lodashGet(props, 'popoverDimensions.height', 0) > 0);
-                return true;
-            });
-        }
         if (!props.isVisible) {
             setIsVisible(false);
         }
