@@ -24,17 +24,11 @@ const pagePropTypes = {
     /** URL to full-sized attachment or SVG function */
     source: AttachmentsPropTypes.attachmentSourcePropType.isRequired,
 
-    /** File object maybe be instance of File or Object */
-    file: AttachmentsPropTypes.attachmentFilePropType,
-
     isActive: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
     isAuthTokenRequired: false,
-    file: {
-        name: '',
-    },
 };
 
 function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActiveProp}) {
