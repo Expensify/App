@@ -95,9 +95,7 @@ const EmojiPicker = forwardRef((props, ref) => {
     const selectEmoji = (emoji, emojiObject) => {
         // Prevent fast click / multiple emoji selection;
         // The first click will hide the emoji picker by calling the hideEmojiPicker() function
-        // and in that function the emojiPopoverAnchor ref to will be set to null (synchronously)
-        // thus we rely on that prop to prevent fast click / multiple emoji selection
-        if (!emojiPopoverAnchor.current) {
+        if (!isEmojiPickerVisible) {
             return;
         }
 
