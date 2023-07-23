@@ -8,6 +8,7 @@ import AddLastVisibleActionCreated from '../../src/libs/migrations/AddLastVisibl
 import MoveToIndexedDB from '../../src/libs/migrations/MoveToIndexedDB';
 import KeyReportActionsByReportActionID from '../../src/libs/migrations/KeyReportActionsByReportActionID';
 import PersonalDetailsByAccountID from '../../src/libs/migrations/PersonalDetailsByAccountID';
+import CheckForPreviousReportActionID from '../../src/libs/migrations/CheckForPreviousReportActionID';
 import ONYXKEYS from '../../src/ONYXKEYS';
 
 jest.mock('../../src/libs/getPlatform');
