@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** Input label */

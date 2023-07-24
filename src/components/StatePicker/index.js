@@ -13,8 +13,6 @@ const propTypes = {
     errorText: PropTypes.string,
 
     /** State to display */
-    // Adding a default value overrides the value coming from the Form
-    // eslint-disable-next-line react/require-default-props
     value: PropTypes.string,
 
     /** Callback to call when the input changes */
@@ -25,6 +23,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    value: undefined,
     forwardedRef: undefined,
     errorText: '',
     onInputChange: () => {},
