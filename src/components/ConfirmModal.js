@@ -37,7 +37,7 @@ const propTypes = {
     shouldShowCancelButton: PropTypes.bool,
 
     /** Whether the cancel button has hover effect */
-    cancelWithHoverEffect: PropTypes.bool,
+    shouldCancelBtnHaveHoverEffect: PropTypes.bool,
 
     /** Callback method fired when the modal is hidden */
     onModalHide: PropTypes.func,
@@ -56,7 +56,7 @@ const defaultProps = {
     danger: false,
     onCancel: () => {},
     shouldShowCancelButton: true,
-    cancelWithHoverEffect: false,
+    shouldCancelBtnHaveHoverEffect: false,
     shouldSetModalVisibility: true,
     title: '',
     onModalHide: () => {},
@@ -84,7 +84,7 @@ function ConfirmModal(props) {
                 success={props.success}
                 danger={props.danger}
                 shouldShowCancelButton={props.shouldShowCancelButton}
-                cancelWithHoverEffect={props.cancelWithHoverEffect}
+                shouldCancelBtnHaveHoverEffect={props.shouldCancelBtnHaveHoverEffect}
             />
         </Modal>
     );
