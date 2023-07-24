@@ -306,11 +306,18 @@ class Composer extends React.Component {
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
-        if (!this.props.checkComposerVisibility()) {
+        event.preventDefault();
+
+        const isVisible = this.props.checkComposerVisibility();
+        const isFocused = this.textInput.isFocused();
+
+        if (!(isVisible || isFocused)) {
             return;
         }
 
-        event.preventDefault();
+        if (this.textInput.id !== event.target.id) {
+            return;
+        }
 
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
