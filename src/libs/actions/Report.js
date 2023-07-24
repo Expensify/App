@@ -1728,7 +1728,6 @@ function removeEmojiReaction(reportID, reportAction, emoji) {
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-
     API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
 
