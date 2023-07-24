@@ -2617,7 +2617,7 @@ function shouldDisableSettings(report) {
  * @returns {Boolean}
  */
 function shouldDisableRename(report, policy) {
-    if (isDefaultRoom(report) || isArchivedRoom(report)) {
+    if (isDefaultRoom(report) || isArchivedRoom(report) || isChatThread(report)) {
         return true;
     }
 
