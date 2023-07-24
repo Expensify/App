@@ -1600,7 +1600,6 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-
     API.write('AddEmojiReaction', parameters, {optimisticData});
 }
 
@@ -1636,7 +1635,6 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-
     API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
 
