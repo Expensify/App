@@ -26,8 +26,8 @@ function save(requestsToPersist) {
  */
 function remove(requestToRemove) {
     /**
-     * Removes the first matching request, even if there are multiple matching requests.
-     * Because if multiple identical requests are queued. We want to keep the same requests then see more here: https://github.com/Expensify/App/issues/19640
+     * We only remove the first matching request because the order of requests matters.
+     * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
      */
     const index = _.findIndex(persistedRequests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
     if (index !== -1) {
