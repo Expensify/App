@@ -29,12 +29,13 @@ const defaultProps = {
 const BasePreRenderer = forwardRef((props, ref) => {
     const TDefaultRenderer = props.TDefaultRenderer;
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'onPressIn', 'onPressOut', 'onLongPress']);
+    const isLast = props.renderLength - 1 === props.renderIndex;
 
     return (
         <ScrollView
             ref={ref}
             horizontal
-            style={[styles.mv2, styles.overscrollBehaviorNone]}
+            style={[!isLast && styles.mb2, styles.overscrollBehaviorNone]}
             bounces={false}
         >
             <ShowContextMenuContext.Consumer>
