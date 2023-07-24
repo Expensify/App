@@ -107,9 +107,8 @@ function ReportActionsList(props) {
      * @return {Number}
      */
     const calculateInitialNumToRender = useCallback(() => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        return Math.ceil(availableHeight / minimumReportActionHeight);
+        return Math.ceil(availableHeight / variables.fontSizeNormalHeight);
     }, [windowHeight]);
 
     const report = props.report;
