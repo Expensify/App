@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -860,9 +861,15 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
     }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
@@ -1076,10 +1083,6 @@ const styles = {
 
     lh140Percent: {
         lineHeight: '140%',
-    },
-
-    lhNormal: {
-        lineHeight: variables.lineHeightNormal,
     },
 
     formHelp: {
@@ -1771,15 +1774,6 @@ const styles = {
         marginTop: 5,
         marginRight: 4,
     },
-
-    navigationModalCard: (isSmallScreenWidth) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    }),
 
     navigationModalOverlay: {
         ...userSelect.userSelectNone,

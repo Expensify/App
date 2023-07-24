@@ -1116,13 +1116,13 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
     if (isContextMenu) {
         return {
             fontSize: 17,
-            lineHeight: 28,
+            lineHeight: 24,
         };
     }
 
     return {
         fontSize: 15,
-        lineHeight: 24,
+        lineHeight: 22,
     };
 }
 

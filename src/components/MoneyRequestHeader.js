@@ -33,9 +33,6 @@ const propTypes = {
     /** Personal details so we can get the ones for the report participants */
     personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
-    /** Whether we're viewing a report with a single transaction in it */
-    isSingleTransactionView: PropTypes.bool,
-
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
         /** Currently logged in user email */
@@ -46,7 +43,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    isSingleTransactionView: false,
     session: {
         email: null,
     },
@@ -54,21 +50,20 @@ const defaultProps = {
 };
 
 function MoneyRequestHeader(props) {
-    const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
+    const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer =
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
     const report = props.report;
-    if (props.isSingleTransactionView) {
-        report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
-    }
+    report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
+    report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
     return (
-        <View style={[styles.highlightBG, styles.pl0]}>
+        <View style={[styles.pl0]}>
             <HeaderWithBackButton
                 shouldShowAvatarWithDisplay
-                shouldShowPinButton={props.isSingleTransactionView}
-                shouldShowThreeDotsButton={!isPayer && !isSettled && props.isSingleTransactionView}
+                shouldShowPinButton={false}
+                shouldShowThreeDotsButton={!isPayer && !isSettled}
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,
@@ -82,6 +77,7 @@ function MoneyRequestHeader(props) {
                 personalDetails={props.personalDetails}
                 shouldShowBackButton={props.isSmallScreenWidth}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                shouldShowBorderBottom
             />
         </View>
     );
