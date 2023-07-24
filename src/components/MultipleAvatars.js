@@ -74,6 +74,7 @@ const defaultProps = {
 function MultipleAvatars(props) {
     const [avatarRows, setAvatarRows] = useState([props.icons]);
     let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
+    avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALLER ? [styles.emptyAvatarSmaller, styles.emptyAvatarMargin] : avatarContainerStyles;
     const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
@@ -108,9 +109,6 @@ function MultipleAvatars(props) {
     }
 
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
-        if (props.size === CONST.AVATAR_SIZE.SMALLER) {
-            avatarContainerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMargin];
-        }
         return (
             <UserDetailsTooltip
                 accountID={props.icons[0].id}
