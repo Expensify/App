@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import styles from '../../../../styles/styles';
-import SidebarLinks from '../SidebarLinks';
+import SidebarLinksData from '../SidebarLinksData';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
@@ -47,7 +47,7 @@ function BaseSidebarScreen(props) {
             {({insets}) => (
                 <>
                     <View style={[styles.flex1]}>
-                        <SidebarLinks
+                        <SidebarLinksData
                             onLinkClick={startTimer}
                             insets={insets}
                             onAvatarClick={navigateToSettings}

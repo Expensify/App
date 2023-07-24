@@ -90,20 +90,21 @@ function isReportPreviewAction(reportAction) {
  * @returns {Boolean}
  */
 function hasCommentThread(reportAction) {
-    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT;
+    return lodashGet(reportAction, 'childType', '') === CONST.REPORT.TYPE.CHAT && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
 }
 
 /**
  * Returns the parentReportAction if the given report is a thread/task.
  *
  * @param {Object} report
+ * @param {Object} [allReportActionsParam]
  * @returns {Object}
  */
-function getParentReportAction(report) {
+function getParentReportAction(report, allReportActionsParam = undefined) {
     if (!report || !report.parentReportID || !report.parentReportActionID) {
         return {};
     }
-    return lodashGet(allReportActions, [report.parentReportID, report.parentReportActionID], {});
+    return lodashGet(allReportActionsParam || allReportActions, [report.parentReportID, report.parentReportActionID], {});
 }
 
 /**
@@ -372,7 +373,7 @@ function shouldReportActionBeVisible(reportAction, key) {
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
     const isPending = !_.isEmpty(reportAction.pendingAction);
-    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
+    const isDeletedParentAction = lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false) && lodashGet(reportAction, 'childVisibleActionCount', 0) > 0;
     return !isDeleted || isPending || isDeletedParentAction;
 }
 
@@ -531,7 +532,7 @@ function isCreatedTaskReportAction(reportAction) {
  * @returns {Boolean}
  */
 function isMessageDeleted(reportAction) {
-    return lodashGet(reportAction, 'originalMessage.isDeletedParentAction', false);
+    return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
 function isWhisperAction(action) {

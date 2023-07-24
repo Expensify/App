@@ -46,13 +46,6 @@ function SecuritySettingsPage(props) {
             },
         },
         {
-            translationKey: 'passwordPage.changePassword',
-            icon: Expensicons.Key,
-            action: () => {
-                Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
-            },
-        },
-        {
             translationKey: 'closeAccountPage.closeAccount',
             icon: Expensicons.ClosedSign,
             action: () => {
