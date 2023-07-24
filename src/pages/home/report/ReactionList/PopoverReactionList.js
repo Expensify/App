@@ -151,7 +151,7 @@ class PopoverReactionList extends React.Component {
         if (reaction) {
             return {
                 ...reaction,
-                users: _.map(reaction.users, ({accountID, skinTone}) => ({accountID, skinTones: {skinTone}}))
+                users: _.map(reaction.users, ({accountID, skinTone}) => ({accountID, skinTones: {skinTone}})),
             };
         }
         return undefined;

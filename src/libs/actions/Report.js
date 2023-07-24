@@ -1563,15 +1563,17 @@ function hasAccountIDEmojiReacted(accountID, users, skinTone) {
  * Adds a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
- * @param {String} reportActionID
+ * @param {Object} reportAction
  * @param {Object} emoji
  * @param {String} emoji.name
  * @param {String} emoji.code
  * @param {String[]} [emoji.types]
  * @param {Number} [skinTone]
  */
-function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredSkinTone) {
+function addEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSkinTone) {
+    const reportActionID = reportAction.reportActionID;
     const createdAt = moment().utc().format(CONST.DATE.SQL_DATE_TIME);
+
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1591,6 +1593,46 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
         },
     ];
 
+    // We need to update the REPORT_ACTIONS on success
+    const originalReportID = ReportUtils.getOriginalReportID(reportID, reportAction);
+    const message = reportAction.message[0];
+
+    let reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
+    const needToInsertReactionObject = !reactionObject;
+    if (needToInsertReactionObject) {
+        reactionObject = {
+            emoji: emoji.name,
+            users: [],
+        };
+    } else {
+        // Make a copy of the reaction object so that we can modify it without mutating the original
+        reactionObject = {...reactionObject};
+    }
+
+    reactionObject.users = [...reactionObject.users, {accountID: currentUserAccountID, skinTone}];
+    let updatedReactions = [...(message.reactions || [])];
+    if (needToInsertReactionObject) {
+        updatedReactions = [...updatedReactions, reactionObject];
+    } else {
+        updatedReactions = _.map(updatedReactions, (reaction) => (reaction.emoji === emoji.name ? reactionObject : reaction));
+    }
+
+    const updatedMessage = {
+        ...message,
+        reactions: updatedReactions,
+    };
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
+            value: {
+                [reportActionID]: {
+                    message: [updatedMessage],
+                },
+            },
+        },
+    ];
+
     const parameters = {
         reportID,
         skinTone,
@@ -1600,20 +1642,21 @@ function addEmojiReaction(reportID, reportActionID, emoji, skinTone = preferredS
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-    API.write('AddEmojiReaction', parameters, {optimisticData});
+    API.write('AddEmojiReaction', parameters, {optimisticData, successData});
 }
 
 /**
  * Removes a reaction to the report action.
  * Uses the NEW FORMAT for "emojiReactions"
  * @param {String} reportID
- * @param {String} reportActionID
+ * @param {Object} reportAction
  * @param {Object} emoji
  * @param {String} emoji.name
  * @param {String} emoji.code
  * @param {String[]} [emoji.types]
  */
-function removeEmojiReaction(reportID, reportActionID, emoji) {
+function removeEmojiReaction(reportID, reportAction, emoji) {
+    const reportActionID = reportAction.reportActionID;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1628,6 +1671,48 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
         },
     ];
 
+    // We need to update the REPORT_ACTIONS on success
+    const message = reportAction.message[0];
+    const reactionObject = message.reactions && _.find(message.reactions, (reaction) => reaction.emoji === emoji.name);
+    if (!reactionObject) {
+        return;
+    }
+
+    const updatedReactionObject = {
+        ...reactionObject,
+    };
+    updatedReactionObject.users = _.filter(reactionObject.users, (sender) => sender.accountID !== currentUserAccountID);
+    const updatedReactions = _.filter(
+        // Replace the reaction object either with the updated one or null if there are no users
+        _.map(message.reactions, (reaction) => {
+            if (reaction.emoji === emoji.name) {
+                if (updatedReactionObject.users.length === 0) {
+                    return null;
+                }
+                return updatedReactionObject;
+            }
+            return reaction;
+        }),
+
+        // Remove any null reactions
+        (reportObject) => reportObject !== null,
+    );
+    const updatedMessage = {
+        ...message,
+        reactions: updatedReactions,
+    };
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    message: [updatedMessage],
+                },
+            },
+        },
+    ];
+
     const parameters = {
         reportID,
         reportActionID,
@@ -1635,7 +1720,7 @@ function removeEmojiReaction(reportID, reportActionID, emoji) {
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-    API.write('RemoveEmojiReaction', parameters, {optimisticData});
+    API.write('RemoveEmojiReaction', parameters, {optimisticData, successData});
 }
 
 /**
@@ -1664,11 +1749,10 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
     const skinTone = emoji.types === undefined ? -1 : paramSkinTone;
 
     if (existingReactionObject && hasAccountIDEmojiReacted(currentUserAccountID, existingReactionObject.users, skinTone)) {
-        removeEmojiReaction(reportID, reportAction.reportActionID, emoji);
+        removeEmojiReaction(reportID, reportAction, emoji);
         return;
     }
-
-    addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
+    addEmojiReaction(reportID, reportAction, emoji, skinTone);
 }
 
 /**
