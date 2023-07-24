@@ -198,7 +198,7 @@ class AuthScreens extends React.Component {
     }
 
     render() {
-        const screenOptions = getRootNavigatorScreenOptions(this.props.isSmallScreenWidth, this.props.windowHeight);
+        const screenOptions = getRootNavigatorScreenOptions({windowHeight: this.props.windowHeight, isSmallScreenWidth: this.props.isSmallScreenWidth});
 
         return (
             <View style={styles.rootNavigatorContainerStyles(this.props.isSmallScreenWidth)}>

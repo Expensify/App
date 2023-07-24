@@ -1,6 +1,8 @@
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
+import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
+import CONFIG from '../../../CONFIG';
 
 const commonScreenOptions = {
     headerShown: false,
@@ -10,7 +12,7 @@ const commonScreenOptions = {
     animationTypeForReplace: 'push',
 };
 
-export default (isSmallScreenWidth) => ({
+export default ({isSmallScreenWidth, windowHeight}) => ({
     rightModalNavigator: {
         ...commonScreenOptions,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
@@ -19,7 +21,7 @@ export default (isSmallScreenWidth) => ({
         // We want pop in RHP since there are some flows that would work weird otherwise
         animationTypeForReplace: 'pop',
         cardStyle: {
-            ...styles.cardStyleNavigator,
+            ...getNavigationModalCardStyle({windowHeight}),
 
             // This is necessary to cover translated sidebar with overlay.
             marginLeft: isSmallScreenWidth ? 0 : -2 * variables.sideBarWidth,
@@ -27,13 +29,12 @@ export default (isSmallScreenWidth) => ({
     },
 
     homeScreen: {
-        title: 'New Expensify',
+        title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, false, props),
 
-        // Prevent unnecessary scrolling
         cardStyle: {
-            ...styles.cardStyleNavigator,
+            ...getNavigationModalCardStyle({windowHeight}),
             width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
 
             // We need to translate the sidebar to not be covered by the StackNavigator so it can be clickable.
@@ -46,7 +47,7 @@ export default (isSmallScreenWidth) => ({
         ...commonScreenOptions,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
         cardStyle: {
-            ...styles.cardStyleNavigator,
+            ...getNavigationModalCardStyle({windowHeight}),
 
             // This is necessary to cover whole screen. Including translated sidebar.
             marginLeft: isSmallScreenWidth ? 0 : -variables.sideBarWidth,
@@ -54,12 +55,11 @@ export default (isSmallScreenWidth) => ({
     },
 
     centralPaneNavigator: {
-        title: 'New Expensify',
+        title: CONFIG.SITE_TITLE,
         ...commonScreenOptions,
         animationEnabled: isSmallScreenWidth,
         cardStyleInterpolator: (props) => modalCardStyleInterpolator(isSmallScreenWidth, true, props),
 
-        // Prevent unnecessary scrolling
-        cardStyle: styles.cardStyleNavigator,
+        cardStyle: getNavigationModalCardStyle({windowHeight}),
     },
 });

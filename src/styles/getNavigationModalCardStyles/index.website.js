@@ -1,8 +1,4 @@
-import getBaseNavigationModalCardStyles from './getBaseNavigationModalCardStyles';
-
-export default ({windowHeight, isSmallScreenWidth}) => ({
-    ...getBaseNavigationModalCardStyles({isSmallScreenWidth}),
-
+export default ({windowHeight}) => ({
     // This height is passed from JavaScript, instead of using CSS expressions like "100%" or "100vh", to work around
     // Safari issues:
     // https://github.com/Expensify/App/issues/12005
