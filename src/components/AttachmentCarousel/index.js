@@ -86,7 +86,7 @@ class AttachmentCarousel extends React.Component {
                 if (!this.scrollRef || !this.scrollRef.current) {
                     return;
                 }
-                this.scrollRef.current.scrollToIndex({index: this.state.page, animated: this.canUseTouchScreen});
+                this.scrollRef.current.scrollToIndex({index: this.state.page, animated: false});
             });
         }
     }
