@@ -25,7 +25,15 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    persistedRequests = _.reject(persistedRequests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
+    /**
+     * We only remove the first matching request because the order of requests matters.
+     * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
+     */
+    const index = _.findIndex(persistedRequests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
+    if (index !== -1) {
+        persistedRequests.splice(index, 1);
+    }
+
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
