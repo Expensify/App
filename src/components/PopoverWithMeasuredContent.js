@@ -13,6 +13,7 @@ import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopover
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
+    // 2) windowDimensionsPropTypes - we exclude them because we use useWindowDimensions hook instead
     ..._.omit(popoverPropTypes, ['anchorPosition', ..._.keys(windowDimensionsPropTypes)]),
 
     /** The horizontal and vertical anchors points for the popover */
@@ -70,6 +71,7 @@ function PopoverWithMeasuredContent(props) {
      * Skip render on Popover until recalculations have done by setting isContentMeasured false as early as possible.
      */
     if (!isVisible && props.isVisible) {
+        // When Popover is shown recalculate
         setIsContentMeasured(props.popoverDimensions.width > 0 && props.popoverDimensions.height > 0);
         setIsVisible(true);
     } else if (isVisible && !props.isVisible) {
