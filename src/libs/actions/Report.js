@@ -1632,10 +1632,7 @@ function addEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSki
             },
         },
     ];
-    const optimisticData = [
-        ...reportActionsReactionsData,
-        ...reportActionsData,
-    ];
+    const optimisticData = [...reportActionsReactionsData, ...reportActionsData];
 
     const parameters = {
         reportID,
@@ -1716,10 +1713,7 @@ function removeEmojiReaction(reportID, reportAction, emoji) {
             },
         },
     ];
-    const optimisticData = [
-        ...reportActionsReactionsData,
-        ...reportActionsData,
-    ];
+    const optimisticData = [...reportActionsReactionsData, ...reportActionsData];
 
     const parameters = {
         reportID,
