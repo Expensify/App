@@ -3532,7 +3532,7 @@ const styles = {
 
     willChangeTransform: {
         willChange: 'transform',
-    }
+    },
 };
 
 export default styles;
