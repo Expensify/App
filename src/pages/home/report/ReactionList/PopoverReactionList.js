@@ -147,11 +147,11 @@ class PopoverReactionList extends React.Component {
     getSelectedReactionFromAction(reportAction, emojiName) {
         const reactions = lodashGet(reportAction, ['message', 0, 'reactions'], []);
         const reactionsWithCount = _.filter(reactions, (reaction) => reaction.users.length > 0);
-        const reaction = _.find(reactionsWithCount, (reaction) => reaction.emoji === emojiName);
+        const reaction = _.find(reactionsWithCount, (item) => item.emoji === emojiName);
         if (reaction) {
             return {
                 ...reaction,
-                users: reaction.users.map(({accountID, skinTone}) => ({accountID, skinTones: {skinTone}}))
+                users: _.map(reaction.users, ({accountID, skinTone}) => ({accountID, skinTones: {skinTone}}))
             };
         }
         return undefined;
