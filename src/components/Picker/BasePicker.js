@@ -84,6 +84,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    forwardedRef: null,
     label: '',
     isDisabled: false,
     errorText: '',
