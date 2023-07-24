@@ -41,6 +41,10 @@ const propTypes = {
     /** chatReport associated with iouReport */
     chatReport: reportPropTypes,
 
+    /** Extra styles to pass to View wrapper */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
         /** AccountID of the manager in this iou report */
@@ -80,6 +84,7 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: null,
     chatReport: {},
+    containerStyles: [],
     iouReport: {},
     checkIfContextMenuActive: () => {},
     session: {
@@ -110,7 +115,7 @@ function ReportPreview(props) {
     const previewMessage = props.translate(ReportUtils.isSettled(props.iouReportID) || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
 
     return (
-        <View style={styles.chatItemMessage}>
+        <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
                 onPress={() => {
                     Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));

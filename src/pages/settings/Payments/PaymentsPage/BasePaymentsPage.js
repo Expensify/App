@@ -1,11 +1,10 @@
 import React from 'react';
-import {ActivityIndicator, View, InteractionManager, LayoutAnimation} from 'react-native';
+import {ActivityIndicator, View, InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import PasswordPopover from '../../../../components/PasswordPopover';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
@@ -64,7 +63,6 @@ class BasePaymentsPage extends React.Component {
         this.hideDefaultDeleteMenu = this.hideDefaultDeleteMenu.bind(this);
         this.makeDefaultPaymentMethod = this.makeDefaultPaymentMethod.bind(this);
         this.deletePaymentMethod = this.deletePaymentMethod.bind(this);
-        this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
         this.navigateToTransferBalancePage = this.navigateToTransferBalancePage.bind(this);
         this.setMenuPosition = this.setMenuPosition.bind(this);
         this.listHeaderComponent = this.listHeaderComponent.bind(this);
@@ -104,8 +102,6 @@ class BasePaymentsPage extends React.Component {
                 // Close corresponding selected payment method modals which are open
                 if (this.state.shouldShowDefaultDeleteMenu) {
                     this.hideDefaultDeleteMenu();
-                } else if (this.state.shouldShowPasswordPrompt) {
-                    this.hidePasswordPrompt();
                 }
             }
         }
@@ -290,27 +286,16 @@ class BasePaymentsPage extends React.Component {
         });
     }
 
-    hidePasswordPrompt(shouldClearSelectedData = true) {
-        this.setState({shouldShowPasswordPrompt: false});
-        if (shouldClearSelectedData) {
-            this.resetSelectedPaymentMethodData();
-        }
-
-        // Due to iOS modal freeze issue, password modal freezes the app when closed.
-        // LayoutAnimation undoes the running animation.
-        LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-    }
-
-    makeDefaultPaymentMethod(password = '') {
+    makeDefaultPaymentMethod() {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
         const paymentMethods = PaymentUtils.formatPaymentMethods(this.props.bankAccountList, this.props.cardList);
 
         const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
         const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === this.state.methodID);
         if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-            PaymentMethods.makeDefaultPaymentMethod(password, this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(this.state.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
         } else if (this.state.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-            PaymentMethods.makeDefaultPaymentMethod(password, null, this.state.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
+            PaymentMethods.makeDefaultPaymentMethod(null, this.state.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
         }
         this.resetSelectedPaymentMethodData();
     }
@@ -459,14 +444,7 @@ class BasePaymentsPage extends React.Component {
                                         // InteractionManager fires after the currently running animation is completed.
                                         // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                         InteractionManager.runAfterInteractions(() => {
-                                            if (Permissions.canUsePasswordlessLogins(this.props.betas)) {
-                                                this.makeDefaultPaymentMethod();
-                                            } else {
-                                                this.setState({
-                                                    shouldShowPasswordPrompt: true,
-                                                    passwordButtonText: this.props.translate('paymentsPage.setDefaultConfirmation'),
-                                                });
-                                            }
+                                            this.makeDefaultPaymentMethod();
                                         });
                                     }}
                                     text={this.props.translate('paymentsPage.setDefaultConfirmation')}
@@ -511,19 +489,6 @@ class BasePaymentsPage extends React.Component {
                         />
                     )}
                 </Popover>
-                <PasswordPopover
-                    isVisible={this.state.shouldShowPasswordPrompt}
-                    onClose={this.hidePasswordPrompt}
-                    anchorPosition={{
-                        top: this.state.anchorPositionTop,
-                        right: this.state.anchorPositionRight,
-                    }}
-                    onSubmit={(password) => {
-                        this.hidePasswordPrompt(false);
-                        this.makeDefaultPaymentMethod(password);
-                    }}
-                    submitButtonText={this.state.passwordButtonText}
-                />
             </ScreenWrapper>
         );
     }

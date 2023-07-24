@@ -19,11 +19,11 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** Welcome text to show in the header of the form, changes depending
-     * on form type (set password, sign in, etc.) */
+     * on form type (for example, sign in) */
     welcomeText: PropTypes.string.isRequired,
 
     /** Welcome header to show in the header of the form, changes depending
-     * on form type (set password, sign in, etc.) and small vs large screens */
+     * on form type (for example. sign in) and small vs large screens */
     welcomeHeader: PropTypes.string.isRequired,
 
     /** Whether to show welcome text on a particular page */
@@ -77,7 +77,7 @@ function SignInPageContent(props) {
                         <OfflineIndicator style={[styles.m0, styles.pl0, styles.alignItemsStart]} />
                     </View>
                     {props.isSmallScreenWidth ? (
-                        <View>
+                        <View style={[styles.mt8]}>
                             <SignInHeroImage />
                         </View>
                     ) : null}
