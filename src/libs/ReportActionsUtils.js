@@ -346,7 +346,7 @@ function shouldReportActionBeVisible(reportAction, key) {
  * @returns {Boolean}
  */
 function shouldReportActionBeVisibleAsLastAction(reportAction) {
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID) && !isWhisperAction(reportAction) && !isDeletedAction(reportAction);
 }
 
 /**
