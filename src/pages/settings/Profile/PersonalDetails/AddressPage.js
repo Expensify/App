@@ -1,8 +1,10 @@
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -19,17 +21,37 @@ import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
-import withPrivatePersonalDetails, {withPrivatePersonalDetailsDefaultProps, withPrivatePersonalDetailsPropTypes} from '../../../../components/withPrivatePersonalDetails';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
-    ...withPrivatePersonalDetailsPropTypes,
+
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        /** User's home address */
+        address: PropTypes.shape({
+            street: PropTypes.string,
+            city: PropTypes.string,
+            state: PropTypes.string,
+            zip: PropTypes.string,
+            country: PropTypes.string,
+        }),
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    ...withPrivatePersonalDetailsDefaultProps,
+    privatePersonalDetails: {
+        address: {
+            street: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
+    },
 };
 
 /**
@@ -40,33 +62,17 @@ function updateAddress(values) {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
 }
 
-function AddressPage({translate, privatePersonalDetails}) {
-    const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
+function AddressPage(props) {
+    usePrivatePersonalDetails();
+    const {translate} = props;
+    const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(props.privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
     const isUSAForm = countryISO === CONST.COUNTRY.US;
 
     const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [countryISO, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
-    const [addressStreet1, setAddressStreet1] = useState('');
-    const [addressStreet2, setAddressStreet2] = useState('');
-    const [addressCity, setAddressCity] = useState('');
-    const [addressState, setAddressState] = useState('');
-    const [addressZip, setAddressZip] = useState('');
-    const [addressCountry, setAddressCountry] = useState('');
-
-    useEffect(() => {
-        const {address} = privatePersonalDetails;
-        if (!address) {
-            return;
-        }
-        const [street1, street2] = (address.street || '\n').split('\n');
-        setAddressStreet1(street1);
-        setAddressStreet2(street2);
-        setAddressCity(address.city);
-        setAddressState(address.state);
-        setAddressZip(address.zip);
-        setAddressCountry(address.country);
-    }, [privatePersonalDetails, privatePersonalDetails.address]);
+    const address = lodashGet(props.privatePersonalDetails, 'address') || {};
+    const [street1, street2] = (address.street || '').split('\n');
 
     /**
      * @param {Function} translate - translate function
@@ -114,14 +120,14 @@ function AddressPage({translate, privatePersonalDetails}) {
         return errors;
     }, []);
 
-    if (privatePersonalDetails.isLoading) {
+    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
         return <FullscreenLoadingIndicator />;
     }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={translate('privatePersonalDetails.homeAddress')}
+                title={props.translate('privatePersonalDetails.homeAddress')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
@@ -130,15 +136,14 @@ function AddressPage({translate, privatePersonalDetails}) {
                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
                 validate={validate}
                 onSubmit={updateAddress}
-                submitButtonText={translate('common.save')}
+                submitButtonText={props.translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
                     <AddressSearch
                         inputID="addressLine1"
-                        label={translate('common.addressLine', {lineNumber: 1})}
-                        value={addressStreet1}
-                        onValueChange={setAddressStreet1}
+                        label={props.translate('common.addressLine', {lineNumber: 1})}
+                        defaultValue={street1 || ''}
                         isLimitedToUSA={false}
                         renamedInputKeys={{
                             street: 'addressLine1',
@@ -154,22 +159,20 @@ function AddressPage({translate, privatePersonalDetails}) {
                 <View style={styles.mb4}>
                     <TextInput
                         inputID="addressLine2"
-                        label={translate('common.addressLine', {lineNumber: 2})}
-                        accessibilityLabel={translate('common.addressLine')}
+                        label={props.translate('common.addressLine', {lineNumber: 2})}
+                        accessibilityLabel={props.translate('common.addressLine')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        value={addressStreet2}
-                        onValueChange={setAddressStreet2}
+                        defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                     />
                 </View>
                 <View style={styles.mb4}>
                     <TextInput
                         inputID="city"
-                        label={translate('common.city')}
-                        accessibilityLabel={translate('common.city')}
+                        label={props.translate('common.city')}
+                        accessibilityLabel={props.translate('common.city')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        value={addressCity}
-                        onValueChange={setAddressCity}
+                        defaultValue={address.city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                     />
                 </View>
@@ -177,17 +180,15 @@ function AddressPage({translate, privatePersonalDetails}) {
                     {isUSAForm ? (
                         <StatePicker
                             inputID="state"
-                            value={addressState}
-                            onValueChange={setAddressState}
+                            defaultValue={address.state || ''}
                         />
                     ) : (
                         <TextInput
                             inputID="state"
-                            label={translate('common.stateOrProvince')}
-                            accessibilityLabel={translate('common.stateOrProvince')}
+                            label={props.translate('common.stateOrProvince')}
+                            accessibilityLabel={props.translate('common.stateOrProvince')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            value={addressState}
-                            onValueChange={setAddressState}
+                            defaultValue={address.state || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
                     )}
@@ -195,12 +196,11 @@ function AddressPage({translate, privatePersonalDetails}) {
                 <View style={styles.mb4}>
                     <TextInput
                         inputID="zipPostCode"
-                        label={translate('common.zipPostCode')}
-                        accessibilityLabel={translate('common.zipPostCode')}
+                        label={props.translate('common.zipPostCode')}
+                        accessibilityLabel={props.translate('common.zipPostCode')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCapitalize="characters"
-                        value={addressZip}
-                        onValueChange={setAddressZip}
+                        defaultValue={address.zip || ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                         hint={zipFormat}
                     />
@@ -209,7 +209,7 @@ function AddressPage({translate, privatePersonalDetails}) {
                     <CountryPicker
                         inputID="country"
                         onValueChange={setCountryISO}
-                        value={PersonalDetails.getCountryISO(addressCountry)}
+                        defaultValue={PersonalDetails.getCountryISO(address.country)}
                     />
                 </View>
             </Form>
@@ -220,4 +220,11 @@ function AddressPage({translate, privatePersonalDetails}) {
 AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withPrivatePersonalDetails)(AddressPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+    }),
+)(AddressPage);

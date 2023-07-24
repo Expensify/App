@@ -1,5 +1,8 @@
 import moment from 'moment';
-import React, {useState, useEffect, useCallback} from 'react';
+import PropTypes from 'prop-types';
+import React, {useCallback} from 'react';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
@@ -13,20 +16,29 @@ import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import styles from '../../../../styles/styles';
-import withPrivatePersonalDetails, {withPrivatePersonalDetailsDefaultProps, withPrivatePersonalDetailsPropTypes} from '../../../../components/withPrivatePersonalDetails';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
-    ...withPrivatePersonalDetailsPropTypes,
+
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        dob: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    ...withPrivatePersonalDetailsDefaultProps,
+    privatePersonalDetails: {
+        dob: '',
+    },
 };
 
 function DateOfBirthPage({translate, privatePersonalDetails}) {
+    usePrivatePersonalDetails();
+
     /**
      * @param {Object} values
      * @param {String} values.dob - date of birth
@@ -48,13 +60,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
         return errors;
     }, []);
 
-    const [dob, setDob] = useState(privatePersonalDetails.dob || '');
-
-    useEffect(() => {
-        setDob(privatePersonalDetails.dob);
-    }, [privatePersonalDetails.dob]);
-
-    if (privatePersonalDetails.isLoading) {
+    if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
         return <FullscreenLoadingIndicator />;
     }
 
@@ -75,8 +81,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                 <NewDatePicker
                     inputID="dob"
                     label={translate('common.date')}
-                    value={dob}
-                    onValueChange={setDob}
+                    defaultValue={privatePersonalDetails.dob || ''}
                     minDate={moment().subtract(CONST.DATE_BIRTH.MAX_AGE, 'years').toDate()}
                     maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'years').toDate()}
                 />
@@ -89,4 +94,11 @@ DateOfBirthPage.propTypes = propTypes;
 DateOfBirthPage.defaultProps = defaultProps;
 DateOfBirthPage.displayName = 'DateOfBirthPage';
 
-export default compose(withLocalize, withPrivatePersonalDetails)(DateOfBirthPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+    }),
+)(DateOfBirthPage);

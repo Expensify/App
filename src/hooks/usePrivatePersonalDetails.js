@@ -1,10 +1,17 @@
-import {useContext} from 'react';
-import {PrivatePersonalDetailsContext} from '../components/withPrivatePersonalDetails';
+import {useEffect, useContext} from 'react';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import {NetworkContext} from '../components/OnyxProvider';
 
 /**
  * Hook for fetching private personal details
- * @returns {Object}
  */
 export default function usePrivatePersonalDetails() {
-    return useContext(PrivatePersonalDetailsContext);
+    const {isOffline} = useContext(NetworkContext);
+
+    useEffect(() => {
+        if (isOffline || Boolean(PersonalDetails.getPrivatePersonalDetails())) {
+            return;
+        }
+        PersonalDetails.openPersonalDetailsPage();
+    }, [isOffline]);
 }

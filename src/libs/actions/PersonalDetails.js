@@ -26,6 +26,12 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
+let privatePersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    callback: (val) => (privatePersonalDetails = val),
+});
+
 /**
  * Returns the displayName for a user
  *
@@ -508,6 +514,14 @@ function clearAvatarErrors() {
     });
 }
 
+/**
+ * Get private personal details value
+ * @returns {Boolean}
+ */
+function getPrivatePersonalDetails() {
+    return privatePersonalDetails;
+}
+
 export {
     getDisplayName,
     getDisplayNameForTypingIndicator,
@@ -525,4 +539,5 @@ export {
     updateAutomaticTimezone,
     updateSelectedTimezone,
     getCountryISO,
+    getPrivatePersonalDetails,
 };

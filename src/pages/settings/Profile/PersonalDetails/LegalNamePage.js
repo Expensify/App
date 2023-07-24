@@ -1,6 +1,8 @@
 import _ from 'underscore';
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useCallback} from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
@@ -15,35 +17,36 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
-import withPrivatePersonalDetails, {
-    // eslint-disable-next-line import/named
-    withPrivatePersonalDetailsDefaultProps,
-    withPrivatePersonalDetailsPropTypes,
-} from '../../../../components/withPrivatePersonalDetails';
 
 const propTypes = {
     /* Onyx Props */
-    ...withPrivatePersonalDetailsPropTypes,
+
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    ...withPrivatePersonalDetailsDefaultProps,
+    privatePersonalDetails: {
+        legalFirstName: '',
+        legalLastName: '',
+    },
 };
 
 const updateLegalName = (values) => {
     PersonalDetails.updateLegalName(values.legalFirstName.trim(), values.legalLastName.trim());
 };
 
-function LegalNamePage({translate, privatePersonalDetails}) {
-    const [legalFirstName, setLegalFirstName] = useState(lodashGet(privatePersonalDetails, 'legalFirstName', ''));
-    const [legalLastName, setLegalLastName] = useState(lodashGet(privatePersonalDetails, 'legalLastName', ''));
-
-    useEffect(() => {
-        setLegalFirstName(lodashGet(privatePersonalDetails, 'legalFirstName', ''));
-        setLegalLastName(lodashGet(privatePersonalDetails, 'legalLastName', ''));
-    }, [privatePersonalDetails, privatePersonalDetails.legalFirstName, privatePersonalDetails.legalLastName]);
+function LegalNamePage(props) {
+    usePrivatePersonalDetails();
+    const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
+    const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
 
     const validate = useCallback((values) => {
         const errors = {};
@@ -63,14 +66,14 @@ function LegalNamePage({translate, privatePersonalDetails}) {
         return errors;
     }, []);
 
-    if (privatePersonalDetails.isLoading) {
+    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
         return <FullscreenLoadingIndicator />;
     }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={translate('privatePersonalDetails.legalName')}
+                title={props.translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
             <Form
@@ -78,18 +81,17 @@ function LegalNamePage({translate, privatePersonalDetails}) {
                 formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                 validate={validate}
                 onSubmit={updateLegalName}
-                submitButtonText={translate('common.save')}
+                submitButtonText={props.translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={[styles.mb4]}>
                     <TextInput
                         inputID="legalFirstName"
                         name="lfname"
-                        label={translate('privatePersonalDetails.legalFirstName')}
-                        accessibilityLabel={translate('privatePersonalDetails.legalFirstName')}
+                        label={props.translate('privatePersonalDetails.legalFirstName')}
+                        accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        value={legalFirstName}
-                        onValueChange={setLegalFirstName}
+                        defaultValue={legalFirstName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                     />
                 </View>
@@ -97,11 +99,10 @@ function LegalNamePage({translate, privatePersonalDetails}) {
                     <TextInput
                         inputID="legalLastName"
                         name="llname"
-                        label={translate('privatePersonalDetails.legalLastName')}
-                        accessibilityLabel={translate('privatePersonalDetails.legalLastName')}
+                        label={props.translate('privatePersonalDetails.legalLastName')}
+                        accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        value={legalLastName}
-                        onValueChange={setLegalLastName}
+                        defaultValue={legalLastName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                     />
                 </View>
@@ -113,4 +114,11 @@ function LegalNamePage({translate, privatePersonalDetails}) {
 LegalNamePage.propTypes = propTypes;
 LegalNamePage.defaultProps = defaultProps;
 
-export default compose(withLocalize, withPrivatePersonalDetails)(LegalNamePage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+    }),
+)(LegalNamePage);

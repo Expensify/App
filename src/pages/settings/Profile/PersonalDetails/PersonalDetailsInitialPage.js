@@ -1,5 +1,8 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -9,20 +12,51 @@ import styles from '../../../../styles/styles';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import compose from '../../../../libs/compose';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
-import withPrivatePersonalDetails, {withPrivatePersonalDetailsDefaultProps, withPrivatePersonalDetailsPropTypes} from '../../../../components/withPrivatePersonalDetails';
+import ONYXKEYS from '../../../../ONYXKEYS';
+import {withNetwork} from '../../../../components/OnyxProvider';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
-    ...withPrivatePersonalDetailsPropTypes,
+
+    /** User's private personal details */
+    privatePersonalDetails: PropTypes.shape({
+        legalFirstName: PropTypes.string,
+        legalLastName: PropTypes.string,
+        dob: PropTypes.string,
+
+        /** User's home address */
+        address: PropTypes.shape({
+            street: PropTypes.string,
+            city: PropTypes.string,
+            state: PropTypes.string,
+            zip: PropTypes.string,
+            country: PropTypes.string,
+        }),
+    }),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    ...withPrivatePersonalDetailsDefaultProps,
+    privatePersonalDetails: {
+        legalFirstName: '',
+        legalLastName: '',
+        dob: '',
+        address: {
+            street: '',
+            street2: '',
+            city: '',
+            state: '',
+            zip: '',
+            country: '',
+        },
+    },
 };
 
 function PersonalDetailsInitialPage(props) {
+    usePrivatePersonalDetails();
     const privateDetails = props.privatePersonalDetails || {};
     const address = privateDetails.address || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
@@ -49,7 +83,7 @@ function PersonalDetailsInitialPage(props) {
         return formattedAddress.trim().replace(/,$/, '');
     };
 
-    if (props.privatePersonalDetails.isLoading) {
+    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
         return <FullscreenLoadingIndicator />;
     }
 
@@ -93,4 +127,12 @@ PersonalDetailsInitialPage.propTypes = propTypes;
 PersonalDetailsInitialPage.defaultProps = defaultProps;
 PersonalDetailsInitialPage.displayName = 'PersonalDetailsInitialPage';
 
-export default compose(withLocalize, withPrivatePersonalDetails)(PersonalDetailsInitialPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        privatePersonalDetails: {
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+        },
+    }),
+    withNetwork(),
+)(PersonalDetailsInitialPage);
