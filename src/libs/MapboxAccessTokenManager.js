@@ -11,7 +11,7 @@ const refreshToken = () => {
     // Cancel any previous timeouts so that there is only one request to get a token at a time.
     clearTimeout(refreshTimeoutID);
 
-    // @TODO call the API GetMapboxAccessToken()
+    API.read('GetMapboxAccessToken');
 
     // Refresh the token every 25 minutes
     refreshTimeoutID = setTimeout(refreshToken, 1000 * 60 * 25);
@@ -43,7 +43,7 @@ const init = () => {
             // token is an object with. If it is falsy or an empty object, the token needs to be retrieved from the API.
             // The API sets a token in Onyx with a 30 minute expiration.
             if (!token || _.size(token) === 0) {
-                // @TODO call the API GetMapboxAccessToken()
+                API.read('GetMapboxAccessToken');
                 return;
             }
 
