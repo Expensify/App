@@ -208,7 +208,7 @@ class BaseOptionsList extends Component {
         return (
             <View style={this.props.listContainerStyles}>
                 {this.props.isLoading ? (
-                    <OptionsListSkeletonView />
+                    <OptionsListSkeletonView shouldAnimate />
                 ) : (
                     <>
                         {this.props.headerMessage ? (

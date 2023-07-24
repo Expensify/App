@@ -74,6 +74,8 @@ const lightTheme = {
     ourMentionBG: colors.green100,
     tooltipSupportingText: colors.darkSupportingText,
     tooltipPrimaryText: colors.darkPrimaryText,
+    skeletonLHNIn: colors.lightBorders,
+    skeletonLHNOut: colors.lightDefaultButtonPressed,
 };
 
 lightTheme.PAGE_BACKGROUND_COLORS = {

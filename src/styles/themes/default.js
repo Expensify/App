@@ -75,6 +75,10 @@ const darkTheme = {
     mentionBG: colors.blue600,
     ourMentionText: colors.green100,
     ourMentionBG: colors.green600,
+    tooltipSupportingText: colors.lightSupportingText,
+    tooltipPrimaryText: colors.lightPrimaryText,
+    skeletonLHNIn: colors.darkBorders,
+    skeletonLHNOut: colors.darkDefaultButton,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
