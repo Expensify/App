@@ -79,7 +79,7 @@ const darkTheme = {
     tooltipPrimaryText: colors.lightPrimaryText,
     skeletonLHNIn: colors.darkBorders,
     skeletonLHNOut: colors.darkDefaultButton,
-    QRLogo: colors.green500,
+    QRLogo: colors.green400,
 };
 
 darkTheme.PAGE_BACKGROUND_COLORS = {
