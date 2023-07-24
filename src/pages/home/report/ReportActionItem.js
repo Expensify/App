@@ -484,6 +484,13 @@ function ReportActionItem(props) {
                                 (props.network.isOffline && props.action.isLoading) || props.action.error,
                             )}
                         >
+                            {hovered && (
+                                <>
+                                    <View style={StyleUtils.getReportActionItemHoverStyle()} />
+
+                                    <View style={StyleUtils.getReportActionItemHoverStyle(false)} />
+                                </>
+                            )}
                             <OfflineWithFeedback
                                 onClose={() => ReportActions.clearReportActionErrors(props.report.reportID, props.action)}
                                 pendingAction={props.draftMessage ? null : props.action.pendingAction}

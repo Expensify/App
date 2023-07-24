@@ -654,6 +654,23 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
 }
 
 /**
+ * Generate the styles for the ReportActionItem wrapper view.
+ *
+ * @param {Boolean} [isTop]
+ * @returns {Object}
+ */
+function getReportActionItemHoverStyle(isTop = true) {
+    return {
+        height: 4,
+        backgroundColor: themeColors.hoverComponentBG,
+        ...styles.pAbsolute,
+        ...(isTop ? styles.tn1 : styles.bn1),
+        ...styles.l0,
+        ...styles.r0,
+    };
+}
+
+/**
  * Generate the wrapper styles for the mini ReportActionContextMenu.
  *
  * @param {Boolean} isReportActionItemGrouped
@@ -1321,6 +1338,7 @@ export {
     getEmojiPickerStyle,
     getLoginPagePromoStyle,
     getReportActionItemStyle,
+    getReportActionItemHoverStyle,
     getMiniReportActionContextMenuWrapperStyle,
     getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,

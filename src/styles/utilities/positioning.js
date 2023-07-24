@@ -12,6 +12,9 @@ export default {
     t0: {
         top: 0,
     },
+    tn1: {
+        top: -4,
+    },
     tn4: {
         top: -16,
     },
@@ -44,5 +47,8 @@ export default {
     },
     b0: {
         bottom: 0,
+    },
+    bn1: {
+        bottom: -4,
     },
 };
