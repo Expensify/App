@@ -397,15 +397,15 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             onyxMethod: Onyx.METHOD.MERGE,
             key: membersListKey,
 
-            // Convert to object with each key clearing pendingAction, when it is an existed account.
-            // Remove the object, when it is a new created account.
+            // Convert to object with each key clearing pendingAction, when it is an existing account.
+            // Remove the object, when it is a newly created account.
             value: _.reduce(
                 accountIDs,
                 (memo, accountID) => {
                     let value = null;
-                    const isExistedAccount = !_.isEmpty(allPersonalDetails[accountID]);
+                    const accountAlreadyExists = !_.isEmpty(allPersonalDetails[accountID]);
 
-                    if (isExistedAccount) {
+                    if (accountAlreadyExists) {
                         value = {pendingAction: null, errors: null};
                     }
 
