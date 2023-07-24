@@ -108,6 +108,9 @@ function MultipleAvatars(props) {
     }
 
     if (props.icons.length === 1 && !props.shouldStackHorizontally) {
+        if (props.size === CONST.AVATAR_SIZE.SMALLER) {
+            avatarContainerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMargin];
+        }
         return (
             <UserDetailsTooltip
                 accountID={props.icons[0].id}

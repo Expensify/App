@@ -150,7 +150,7 @@ function MenuItem(props) {
                                             isHovered={isHovered}
                                             isPressed={pressed}
                                             icons={props.icon}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
+                                            size={props.avatarSize || CONST.AVATAR_SIZE.DEFAULT}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
                                                 pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
