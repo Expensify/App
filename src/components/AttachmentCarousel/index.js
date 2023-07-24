@@ -55,7 +55,6 @@ class AttachmentCarousel extends React.Component {
             // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
             // more than 90% visible. When that happens we update the page index in the state.
             itemVisiblePercentThreshold: 95,
-            // waitForInteraction: true
         };
 
         this.cycleThroughAttachments = this.cycleThroughAttachments.bind(this);
