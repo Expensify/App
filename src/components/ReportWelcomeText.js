@@ -101,12 +101,7 @@ function ReportWelcomeText(props) {
                                 <UserDetailsTooltip accountID={accountID}>
                                     <Text
                                         style={[styles.textStrong]}
-                                        onPress={() => {
-                                            const accountDetails = props.personalDetails[participantAccountIDs[index]];
-                                            if (accountDetails && accountDetails.accountID) {
-                                                Navigation.navigate(ROUTES.getProfileRoute(accountDetails.accountID));
-                                            }
-                                        }}
+                                        onPress={() => Navigation.navigate(ROUTES.getProfileRoute(accountID))}
                                     >
                                         {displayName}
                                     </Text>
@@ -119,9 +114,7 @@ function ReportWelcomeText(props) {
                         ))}
                     </Text>
                 )}
-                {(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND) || moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)) && (
-                    <Text>{props.translate('reportActionsView.usePlusButton')}</Text>
-                )}
+                {moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) && <Text>{props.translate('reportActionsView.usePlusButton')}</Text>}
             </Text>
         </>
     );

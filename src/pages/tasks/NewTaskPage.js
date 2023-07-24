@@ -155,6 +155,7 @@ function NewTaskPage(props) {
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                             shouldShowRightIcon
                             numberOfLinesTitle={2}
+                            titleStyle={styles.flex1}
                         />
                         <MenuItem
                             label={assignee.displayName ? props.translate('task.assignee') : ''}

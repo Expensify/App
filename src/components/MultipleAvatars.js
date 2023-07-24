@@ -71,9 +71,25 @@ const defaultProps = {
     maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
+function getContainerStyles(size) {
+    let containerStyles;
+
+    switch (size) {
+        case CONST.AVATAR_SIZE.SMALL:
+            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+            break;
+        case CONST.AVATAR_SIZE.SMALLER:
+            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
+            break;
+        default:
+            containerStyles = [styles.emptyAvatar, styles.emptyAvatarMargin];
+    }
+
+    return containerStyles;
+}
 function MultipleAvatars(props) {
     const [avatarRows, setAvatarRows] = useState([props.icons]);
-    let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
+    let avatarContainerStyles = getContainerStyles(props.size);
     const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
@@ -221,7 +237,10 @@ function MultipleAvatars(props) {
                                             StyleUtils.getWidthStyle(oneAvatarSize.width),
                                         ]}
                                     >
-                                        <Text style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}>{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
+                                        <Text
+                                            selectable={false}
+                                            style={[styles.avatarInnerTextSmall, StyleUtils.getAvatarExtraFontSizeStyle(props.size)]}
+                                        >{`+${avatars.length - props.maxAvatarsInRow}`}</Text>
                                     </View>
                                 </View>
                             </Tooltip>

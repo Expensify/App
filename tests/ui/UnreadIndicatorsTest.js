@@ -152,7 +152,6 @@ function signInAndGetAppWithUnreadChat() {
                 lastReadTime: reportAction3CreatedDate,
                 lastVisibleActionCreated: reportAction9CreatedDate,
                 lastMessageText: 'Test',
-                participants: [USER_B_EMAIL],
                 participantAccountIDs: [USER_B_ACCOUNT_ID],
                 type: CONST.REPORT.TYPE.CHAT,
             });
@@ -308,7 +307,6 @@ describe('Unread Indicators', () => {
                                     lastReadTime: '',
                                     lastVisibleActionCreated: DateUtils.getDBTime(NEW_REPORT_FIST_MESSAGE_CREATED_MOMENT.utc().valueOf()),
                                     lastMessageText: 'Comment 1',
-                                    participants: [USER_C_EMAIL],
                                     participantAccountIDs: [USER_C_ACCOUNT_ID],
                                 },
                             },

@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -21,9 +22,13 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+
+// touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -129,6 +134,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+            ...touchCalloutNone,
         },
 
         p: {
@@ -855,9 +861,15 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
     }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
@@ -1763,15 +1775,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationModalCard: (isSmallScreenWidth) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    }),
-
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
         position: 'absolute',
@@ -1942,6 +1945,11 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarSmaller: {
+        height: variables.avatarSizeSmaller,
+        width: variables.avatarSizeSmaller,
+    },
+
     emptyAvatarMedium: {
         height: variables.avatarSizeMedium,
         width: variables.avatarSizeMedium,
@@ -1957,6 +1965,10 @@ const styles = {
     },
 
     emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
+    },
+
+    emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
     },
 
@@ -3434,6 +3446,11 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
+    taskDescriptionMenuItem: {
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
     taskTitleDescription: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
@@ -3447,7 +3464,7 @@ const styles = {
         ...spacing.mr3,
     },
 
-    taskHorizontalRule: {
+    reportHorizontalRule: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.mh5,
@@ -3515,6 +3532,25 @@ const styles = {
     qrShareTitle: {
         marginTop: 15,
         textAlign: 'center',
+    },
+
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
+        height,
+        width: '100%',
+        position: 'absolute',
+        top: -height,
+        left: 0,
+        right: 0,
+    }),
+
+    willChangeTransform: {
+        willChange: 'transform',
     },
 };
 
