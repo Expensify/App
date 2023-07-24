@@ -3437,6 +3437,11 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
+    taskDescriptionMenuItem: {
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
     taskTitleDescription: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
