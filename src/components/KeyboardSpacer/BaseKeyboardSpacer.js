@@ -11,17 +11,20 @@ function BaseKeyboardSpacer(props) {
      *
      * @param {Object} [event] - A Keyboard Event.
      */
-    const updateKeyboardSpace = useCallback((event) => {
-        if (!event.endCoordinates) {
-            return;
-        }
+    const updateKeyboardSpace = useCallback(
+        (event) => {
+            if (!event.endCoordinates) {
+                return;
+            }
 
-        const screenHeight = Dimensions.get('window').height;
-        const space = screenHeight - event.endCoordinates.screenY + props.topSpacing;
-        setKeyboardSpace(space);
-        props.onToggle(true, space);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [keyboardSpace, props]);
+            const screenHeight = Dimensions.get('window').height;
+            const space = screenHeight - event.endCoordinates.screenY + props.topSpacing;
+            setKeyboardSpace(space);
+            props.onToggle(true, space);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        },
+        [keyboardSpace, props],
+    );
 
     /**
      * Reset the height of Keyboard View.
@@ -40,8 +43,8 @@ function BaseKeyboardSpacer(props) {
 
         return () => {
             keyboardListeners.forEach((listener) => listener.remove());
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return <View style={StyleUtils.getHeight(keyboardSpace)} />;
