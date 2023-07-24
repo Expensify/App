@@ -191,6 +191,11 @@ export default {
         redirectedToDesktopApp: "We've redirected you to the desktop app.",
         youCanAlso: 'You can also',
         openLinkInBrowser: 'open this link in your browser',
+        loggedInAs: ({email}) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
+        doNotSeePrompt: "Can't see the prompt?",
+        tryAgain: 'Try again',
+        or: ', or',
+        continueInWeb: 'continue to the web app',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\nyou are signed in!',
@@ -249,11 +254,6 @@ export default {
         signInAgreementMessage: 'By logging in, you agree to the',
         termsOfService: 'Terms of Service',
         privacy: 'Privacy',
-        loggedInAs: ({email}) => `You're logged in as ${email}. Click "Open link" in the prompt to log into the desktop app with this account.`,
-        doNotSeePrompt: "Can't see the prompt?",
-        tryAgain: 'Try again',
-        or: ', or',
-        continueInWeb: 'continue to the web app',
     },
     reportActionCompose: {
         addAction: 'Actions',
