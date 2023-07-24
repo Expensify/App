@@ -5,7 +5,6 @@ import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import PasswordPopover from '../../../../components/PasswordPopover';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
@@ -524,19 +523,6 @@ function BasePaymentsPage(props) {
                     />
                 )}
             </Popover>
-            <PasswordPopover
-                isVisible={showPassword.shouldShowPasswordPrompt}
-                onClose={hidePasswordPrompt}
-                anchorPosition={{
-                    top: anchorPosition.anchorPositionTop,
-                    right: anchorPosition.anchorPositionRight,
-                }}
-                onSubmit={(password) => {
-                    hidePasswordPrompt(false);
-                    makeDefaultPaymentMethod(password);
-                }}
-                submitButtonText={showPassword.passwordButtonText}
-            />
         </ScreenWrapper>
     );
 }
