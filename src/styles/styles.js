@@ -1964,7 +1964,7 @@ const styles = {
     },
 
     emptyAvatarMarginSmaller: {
-        marginRight: 0,
+        marginRight: variables.avatarChatSpacing - 4,
     },
 
     modalViewContainer: {
