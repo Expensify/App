@@ -897,7 +897,7 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    if (reportAction.reportActionID && reportAction.childVisibleActionCount === 0) {
+    if (reportAction.childVisibleActionCount === 0) {
         optimisticReport = {
             lastMessageTranslationKey: '',
             lastMessageText: '',
