@@ -9,10 +9,12 @@ let refreshTimeoutID;
 
 const refreshToken = () => {
     // Cancel any previous timeouts so that there is only one request to get a token at a time.
-    if (refreshTimeoutID) {
-        clearTimeout(refreshTimeoutID);
-    }
+    clearTimeout(refreshTimeoutID);
+
     // @TODO call the API GetMapboxAccessToken()
+
+    // Refresh the token every 25 minutes
+    refreshTimeoutID = setTimeout(refreshToken, 1000 * 60 * 25);
 };
 
 const hasTokenExpired = () => {
@@ -53,8 +55,7 @@ const init = () => {
                 return;
             }
 
-            // Refresh the token every 25 minutes
-            refreshTimeoutID = setTimeout(refreshToken, 1000 * 60 * 25);
+            refreshToken();
         },
     });
 
