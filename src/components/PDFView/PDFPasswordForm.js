@@ -94,13 +94,17 @@ class PDFPasswordForm extends Component {
     }
 
     validate() {
-        if (!_.isEmpty(this.state.password)) {
-            return true;
+        if (this.props.isPasswordInvalid) {
+            return false;
         }
-        this.setState({
-            validationErrorText: 'attachmentView.passwordRequired',
-        });
-        return false;
+        if (_.isEmpty(this.state.password)) {
+            this.setState({
+                validationErrorText: 'attachmentView.passwordRequired',
+            });
+            return false;
+        }
+
+        return true;
     }
 
     validateAndNotifyPasswordBlur() {
