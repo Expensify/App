@@ -686,6 +686,7 @@ const CONST = {
         SUCCESS: 200,
         BAD_REQUEST: 400,
         NOT_AUTHENTICATED: 407,
+        ONYX_UPDATES_UNAVAILABLE: 423,
         EXP_ERROR: 666,
         MANY_WRITES_ERROR: 665,
         UNABLE_TO_RETRY: 'unableToRetry',

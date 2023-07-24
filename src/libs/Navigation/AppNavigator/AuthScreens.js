@@ -115,7 +115,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.reconnectApp());
+        NetworkConnection.onReconnect(() => App.getMissingOnyxUpdates());
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,

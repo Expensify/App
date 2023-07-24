@@ -181,6 +181,19 @@ function reconnectApp() {
     openApp(true);
 }
 
+function getMissingOnyxUpdates() {
+    API.makeRequestWithSideEffects('GetMissingOnyxUpdates', {
+        // @TODO figure out what these values should be
+        updateIDFrom: 1,
+        updateIDTo: 2,
+    }).then((response) => {
+        // When Onyx updates are unavailable, all data needs to be downloaded from the server by calling reconnectApp().
+        if (response.jsonCode === CONST.JSON_CODE.ONYX_UPDATES_UNAVAILABLE) {
+            reconnectApp();
+        }
+    });
+}
+
 /**
  * This promise is used so that deeplink component know when a transition is end.
  * This is necessary because we want to begin deeplink redirection after the transition is end.
@@ -357,6 +370,7 @@ export {
     openProfile,
     openApp,
     reconnectApp,
+    getMissingOnyxUpdates,
     confirmReadyToOpenApp,
     beginDeepLinkRedirect,
     beginDeepLinkRedirectAfterTransition,
