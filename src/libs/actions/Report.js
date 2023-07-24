@@ -1667,6 +1667,7 @@ function toggleEmojiReaction(reportID, reportAction, reactionObject, existingRea
         removeEmojiReaction(reportID, reportAction.reportActionID, emoji);
         return;
     }
+
     addEmojiReaction(reportID, reportAction.reportActionID, emoji, skinTone);
 }
 
