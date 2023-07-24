@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -24,10 +25,6 @@ import CONST from '../CONST';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
-
-function getTransparentColor(color, transparency = '') {
-    return `${color}${transparency}`;
-}
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -243,6 +240,14 @@ const styles = {
 
     linkMutedHovered: {
         color: themeColors.textMutedReversed,
+    },
+
+    highlightBG: {
+        backgroundColor: themeColors.highlightBG,
+    },
+
+    appBG: {
+        backgroundColor: themeColors.appBG,
     },
 
     h1: {
@@ -827,6 +832,7 @@ const styles = {
         alignItems: 'center',
         paddingHorizontal: 15,
         paddingRight: 5,
+        ...userSelect.userSelectNone,
     },
 
     calendarDayRoot: {
@@ -834,6 +840,7 @@ const styles = {
         height: 45,
         justifyContent: 'center',
         alignItems: 'center',
+        ...userSelect.userSelectNone,
     },
 
     calendarDayContainer: {
@@ -849,9 +856,15 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
     }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
@@ -1175,6 +1188,11 @@ const styles = {
         height: '100%',
     },
 
+    sidebarAnimatedWrapperContainer: {
+        height: '100%',
+        position: 'absolute',
+    },
+
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -1431,8 +1449,6 @@ const styles = {
     },
 
     appContentHeader: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
@@ -1584,6 +1600,10 @@ const styles = {
 
     chatItemReactionsDraftRight: {
         marginLeft: 52,
+    },
+    chatFooterAtTheTop: {
+        flexGrow: 1,
+        justifyContent: 'flex-start',
     },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
@@ -1750,15 +1770,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationModalCard: (isSmallScreenWidth) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    }),
-
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
         position: 'absolute',
@@ -1840,6 +1851,12 @@ const styles = {
         right: -1,
     },
 
+    secondAvatarSubscriptSmallNormal: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+    },
+
     leftSideLargeAvatar: {
         left: 15,
     },
@@ -1911,6 +1928,11 @@ const styles = {
     emptyAvatar: {
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
+    },
+
+    emptyAvatarSmallNormal: {
+        height: variables.avatarSizeSmallNormal,
+        width: variables.avatarSizeSmallNormal,
     },
 
     emptyAvatarSmall: {
@@ -2328,6 +2350,12 @@ const styles = {
         paddingBottom: 20,
     },
 
+    avatarSectionWrapperSkeleton: {
+        width: '100%',
+        paddingHorizontal: 20,
+        paddingBottom: 20,
+    },
+
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
@@ -2480,17 +2508,6 @@ const styles = {
         alignItems: 'center',
     },
 
-    checkboxContainer: {
-        backgroundColor: themeColors.componentBG,
-        borderRadius: 4,
-        height: 20,
-        width: 20,
-        borderColor: themeColors.borderLighter,
-        borderWidth: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-
     checkedContainer: {
         backgroundColor: themeColors.checkBox,
     },
@@ -2550,14 +2567,14 @@ const styles = {
     },
 
     requestPreviewBox: {
-        marginTop: 8,
+        marginTop: 12,
         maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
-        borderRadius: variables.componentBorderRadiusCard,
-        padding: 20,
+        borderRadius: variables.componentBorderRadiusLarge,
+        padding: 16,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
@@ -3137,18 +3154,6 @@ const styles = {
         zIndex: 2,
     },
 
-    textPill: {
-        backgroundColor: themeColors.border,
-        borderRadius: 10,
-        overflow: 'hidden',
-        paddingVertical: 2,
-        flexShrink: 0,
-        maxWidth: variables.badgeMaxWidth,
-        fontSize: variables.fontSizeSmall,
-        ...whiteSpace.pre,
-        ...spacing.ph2,
-    },
-
     dropZoneTopInvisibleOverlay: {
         position: 'absolute',
         width: '100%',
@@ -3383,7 +3388,7 @@ const styles = {
     linkPreviewWrapper: {
         marginTop: 16,
         borderLeftWidth: 4,
-        borderLeftColor: getTransparentColor(themeColors.inverse, 33),
+        borderLeftColor: themeColors.border,
         paddingLeft: 12,
     },
 
@@ -3415,6 +3420,51 @@ const styles = {
     taskCheckbox: {
         height: 16,
         width: 16,
+    },
+
+    taskTitleMenuItem: {
+        ...writingDirection.ltr,
+        ...headlineFont,
+        ...spacing.flexWrap,
+        ...spacing.flex1,
+        fontSize: variables.fontSizeXLarge,
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
+    taskTitleDescription: {
+        fontFamily: fontFamily.EXP_NEUE,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+        lineHeight: variables.lineHeightNormal,
+        ...spacing.mb1,
+    },
+
+    taskMenuItemCheckbox: {
+        height: 27,
+        ...spacing.mr3,
+    },
+
+    reportHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        ...spacing.mh5,
+        ...spacing.mv2,
+    },
+
+    assigneeTextStyle: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+        minHeight: variables.avatarSizeSubscript,
+    },
+
+    taskRightIconContainer: {
+        width: variables.componentSizeNormal,
+        marginLeft: 'auto',
+        ...spacing.mt1,
+        ...pointerEventsAuto,
+        ...spacing.dFlex,
+        ...spacing.alignItemsCenter,
     },
 
     shareCodePage: {
@@ -3464,6 +3514,21 @@ const styles = {
         marginTop: 15,
         textAlign: 'center',
     },
+
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
+        height,
+        width: '100%',
+        position: 'absolute',
+        top: -height,
+        left: 0,
+        right: 0,
+    }),
 };
 
 export default styles;

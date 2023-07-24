@@ -14,7 +14,8 @@ import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Beta features list */
@@ -57,7 +58,7 @@ function NewTaskTitlePage(props) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
-        TaskUtils.setTitleValue(values.taskTitle);
+        Task.setTitleValue(values.taskTitle);
         Navigation.navigate(ROUTES.NEW_TASK);
     }
 
@@ -75,10 +76,11 @@ function NewTaskTitlePage(props) {
                 inputRef.current.focus();
             }}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={props.translate('newTaskPage.title')}
-                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                title={props.translate('task.title')}
+                onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
@@ -92,10 +94,12 @@ function NewTaskTitlePage(props) {
             >
                 <View style={styles.mb5}>
                     <TextInput
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
-                        label={props.translate('newTaskPage.title')}
+                        label={props.translate('task.title')}
+                        accessibilityLabel={props.translate('task.title')}
                     />
                 </View>
             </Form>

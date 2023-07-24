@@ -7,11 +7,10 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import Navigation, {navigationRef} from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
 
@@ -60,10 +59,10 @@ Onyx.connect({
     },
 });
 
-let personalDetails;
+let allPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = val),
+    callback: (val) => (allPersonalDetails = val),
 });
 
 let loginList;
@@ -109,8 +108,13 @@ function deleteWorkspace(policyID, reports, policyName) {
         })),
 
         // Add closed actions to all chat reports linked to this policy
-        ..._.map(reports, ({reportID, ownerEmail}) => {
-            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(ownerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+        ..._.map(reports, ({reportID, ownerAccountID}) => {
+            // Announce & admin chats have FAKE owners, but workspace chats w/ users do have owners.
+            let reportOwnerEmail = CONST.POLICY.OWNER_EMAIL_FAKE;
+            if (ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
+                reportOwnerEmail = lodashGet(allPersonalDetails, [ownerAccountID, 'login'], '');
+            }
+            const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(reportOwnerEmail, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
             const optimisticReportActions = {};
             optimisticReportActions[optimisticClosedReportAction.reportActionID] = optimisticClosedReportAction;
             return {
@@ -233,7 +237,7 @@ function removeMembers(accountIDs, policyID) {
     API.write(
         'DeleteMembersFromWorkspace',
         {
-            emailList: _.map(accountIDs, (accountID) => personalDetails[accountID].login).join(','),
+            emailList: _.map(accountIDs, (accountID) => allPersonalDetails[accountID].login).join(','),
             policyID,
         },
         {optimisticData, successData, failureData},
@@ -282,15 +286,8 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
             });
             return;
         }
-        const optimisticReport = ReportUtils.buildOptimisticChatReport(
-            [sessionAccountID, cleanAccountID],
-            undefined,
-            CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-            policyID,
-            login,
-            cleanAccountID,
-        );
-        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(optimisticReport.ownerEmail);
+        const optimisticReport = ReportUtils.buildOptimisticChatReport([sessionAccountID, cleanAccountID], undefined, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, cleanAccountID);
+        const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(login);
 
         workspaceMembersChats.reportCreationData[login] = {
             reportID: optimisticReport.reportID,
@@ -354,7 +351,9 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
+    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = _.values(invitedEmailsToAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
@@ -367,6 +366,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             // Convert to object with each key containing {pendingAction: ‘add’}
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
+        ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
     ];
 
@@ -379,6 +379,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: null, errors: null})),
         },
+        ...newPersonalDetailsOnyxData.successData,
         ...membersChats.onyxSuccessData,
     ];
 
@@ -396,10 +397,10 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
                 }),
             ),
         },
+        ...newPersonalDetailsOnyxData.failureData,
         ...membersChats.onyxFailureData,
     ];
 
-    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
@@ -822,15 +823,14 @@ function generatePolicyID() {
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
- * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
- * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @returns {Promise}
+ * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ * @returns {String}
  */
-function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
-    const policyID = generatePolicyID();
-    const workspaceName = policyName || generateDefaultWorkspaceName(ownerEmail);
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
+    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {
         announceChatReportID,
@@ -854,7 +854,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             announceChatReportID,
             adminsChatReportID,
             expenseChatReportID,
-            ownerEmail,
+            ownerEmail: policyOwnerEmail,
             makeMeAdmin,
             policyName: workspaceName,
             type: CONST.POLICY.TYPE.FREE,
@@ -873,7 +873,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
-                        outputCurrency: lodashGet(personalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                        outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
@@ -1036,18 +1036,7 @@ function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', 
             ],
         },
     );
-
-    return Navigation.isNavigationReady().then(() => {
-        if (transitionFromOldDot) {
-            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
-        }
-
-        // Get the reportID associated with the newly created #admins room and route the user to that chat
-        const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
-        Navigation.setParams({reportID: adminsChatReportID}, routeKey);
-
-        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
-    });
+    return adminsChatReportID;
 }
 
 /**
