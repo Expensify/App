@@ -332,6 +332,8 @@ function Form(props) {
                 });
             });
 
+            // We need to verify that all references and values are still actual.
+            // We should not store it when e.g. some input has been unmounted
             _.each(inputRefs.current, (inputRef, inputID) => {
                 if (inputRef) {
                     return;
