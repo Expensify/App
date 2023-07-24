@@ -965,10 +965,13 @@ function deleteReportComment(reportID, reportAction) {
 
     // If the reportID doesn't equal the originalReportID then this is the first comment on a thread report and we need to trigger
     // some sort of update to let the LHN know that the parentReportAction is now deleted.
-    if (reportID !== originalReportID) {
+    if (ReportUtils.isThreadFirstChat(reportAction, reportID)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+
+            // This may appear to be unused, but we don't use this field for anything other than to trigger an
+            // update to the LHN that the report action we are deleting is the first message of a thread.
             value: {isParentReportActionDeleted: true},
         });
     }
