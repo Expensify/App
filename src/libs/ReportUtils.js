@@ -81,6 +81,12 @@ Onyx.connect({
     callback: (val) => (allPolicies = val),
 });
 
+let loginList;
+Onyx.connect({
+    key: ONYXKEYS.LOGIN_LIST,
+    callback: (val) => (loginList = val),
+});
+
 function getChatType(report) {
     return report ? report.chatType : '';
 }
@@ -501,7 +507,7 @@ function isArchivedRoom(report) {
  * @param {Boolean} [returnEmptyIfNotFound]
  * @returns {Object|String}
  */
-function getPolicyName(report, returnEmptyIfNotFound = false) {
+function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined) {
     const noPolicyFound = returnEmptyIfNotFound
         ? ''
         : {
@@ -516,12 +522,12 @@ function getPolicyName(report, returnEmptyIfNotFound = false) {
             key: 'workspace.common.unavailable',
         };
     }
-    const policy = _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
+    const finalPolicy = policy || _.get(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
 
-    //     // Public rooms send back the policy name with the reportSummary,
-    //     // since they can also be accessed by people who aren't in the workspace
+    // Public rooms send back the policy name with the reportSummary,
+    // since they can also be accessed by people who aren't in the workspace
 
-    const policyName = lodashGet(policy, 'name') || report.policyName || report.oldPolicyName;
+    const policyName = lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName;
 
     if (policyName) {
         return policyName;
@@ -790,10 +796,11 @@ function getIconsForParticipants(participants, personalDetails) {
  * Given a report, return the associated workspace icon.
  *
  * @param {Object} report
+ * @param {Object} [policy]
  * @returns {Object}
  */
-function getWorkspaceIcon(report) {
-    const workspaceName = Localize.translateIfNeeded(getPolicyName(report));
+function getWorkspaceIcon(report, policy = undefined) {
+    const workspaceName = Localize.translateIfNeeded(getPolicyName(report, false, policy));
     const policyExpenseChatAvatarSource = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'avatar']) || getDefaultWorkspaceAvatar(workspaceName);
     const workspaceIcon = {
         source: policyExpenseChatAvatarSource,
@@ -814,9 +821,10 @@ function getWorkspaceIcon(report) {
  * @param {Boolean} [isPayer]
  * @param {String} [defaultName]
  * @param {Number} [defaultAccountID]
+ * @param {Object} [policy]
  * @returns {Array<*>}
  */
-function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '', defaultAccountID = -1) {
+function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, defaultName = '', defaultAccountID = -1, policy = undefined) {
     if (_.isEmpty(report)) {
         const fallbackIcon = {
             source: defaultIcon || Expensicons.FallbackAvatar,
@@ -828,7 +836,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
     }
     if (isExpenseRequest(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        const workspaceIcon = getWorkspaceIcon(report);
+        const workspaceIcon = getWorkspaceIcon(report, policy);
         const memberIcon = {
             source: UserUtils.getAvatar(lodashGet(personalDetails, [parentReportAction.actorAccountID, 'avatar']), parentReportAction.actorAccountID),
             id: parentReportAction.actorAccountID,
@@ -851,7 +859,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         };
 
         if (isWorkspaceThread(report)) {
-            const workspaceIcon = getWorkspaceIcon(report);
+            const workspaceIcon = getWorkspaceIcon(report, policy);
             return [actorIcon, workspaceIcon];
         }
         return [actorIcon];
@@ -865,7 +873,7 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         };
 
         if (isWorkspaceTaskReport(report)) {
-            const workspaceIcon = getWorkspaceIcon(report);
+            const workspaceIcon = getWorkspaceIcon(report, policy);
             return [ownerIcon, workspaceIcon];
         }
 
@@ -884,11 +892,11 @@ function getIcons(report, personalDetails, defaultIcon = null, isPayer = false, 
         return [domainIcon];
     }
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedRoom(report)) {
-        const workspaceIcon = getWorkspaceIcon(report);
+        const workspaceIcon = getWorkspaceIcon(report, policy);
         return [workspaceIcon];
     }
     if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
-        const workspaceIcon = getWorkspaceIcon(report);
+        const workspaceIcon = getWorkspaceIcon(report, policy);
         const memberIcon = {
             source: UserUtils.getAvatar(lodashGet(personalDetails, [report.ownerAccountID, 'avatar']), report.ownerAccountID),
             id: report.ownerAccountID,
@@ -1037,14 +1045,15 @@ function getMoneyRequestTotal(report, moneyRequestReports = {}) {
  * Get the title for a policy expense chat which depends on the role of the policy member seeing this report
  *
  * @param {Object} report
+ * @param {Object} [policy]
  * @returns {Object|String}
  */
-function getPolicyExpenseChatName(report) {
+function getPolicyExpenseChatName(report, policy = undefined) {
     const reportOwnerDisplayName = getDisplayNameForParticipant(report.ownerAccountID) || lodashGet(allPersonalDetails, [report.ownerAccountID, 'login']) || report.reportName;
 
     // If the policy expense chat is owned by this user, use the name of the policy as the report name.
     if (report.isOwnPolicyExpenseChat) {
-        return getPolicyName(report);
+        return getPolicyName(report, false, policy);
     }
 
     const policyExpenseChatRole = lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'role']) || 'user';
@@ -1055,7 +1064,7 @@ function getPolicyExpenseChatName(report) {
         const lastAction = ReportActionsUtils.getLastVisibleAction(report.reportID);
         const archiveReason = (lastAction && lastAction.originalMessage && lastAction.originalMessage.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED && policyExpenseChatRole !== CONST.POLICY.ROLE.ADMIN) {
-            return getPolicyName(report);
+            return getPolicyName(report, false, policy);
         }
     }
 
@@ -1067,11 +1076,12 @@ function getPolicyExpenseChatName(report) {
  * Get the title for a IOU or expense chat which will be showing the payer and the amount
  *
  * @param {Object} report
+ * @param {Object} [policy]
  * @returns  {String}
  */
-function getMoneyRequestReportName(report) {
+function getMoneyRequestReportName(report, policy = undefined) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
-    const payerName = isExpenseReport(report) ? Localize.translateIfNeeded(getPolicyName(report)) : getDisplayNameForParticipant(report.managerID);
+    const payerName = isExpenseReport(report) ? Localize.translateIfNeeded(getPolicyName(report, false, policy)) : getDisplayNameForParticipant(report.managerID);
 
     return Localize.translateLocal(report.hasOutstandingIOU ? 'iou.payerOwesAmount' : 'iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
 }
@@ -1110,9 +1120,13 @@ function getReportPreviewMessage(report, reportAction = {}) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
 
     if (isSettled(report.reportID)) {
-        // A settled message is in the format of either "paid $1.00 elsewhere" or "paid $1.00 using Paypal.me"
-        const isSettledPaypalMe = Boolean(reportActionMessage.match(/ Paypal.me$/));
-        const translatePhraseKey = isSettledPaypalMe ? 'iou.settledPaypalMeWithAmount' : 'iou.settledElsewhereWithAmount';
+        // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... using Expensify"
+        let translatePhraseKey = 'iou.paidElsewhereWithAmount';
+        if (reportActionMessage.match(/ Paypal.me$/)) {
+            translatePhraseKey = 'iou.paidUsingPaypalWithAmount';
+        } else if (reportActionMessage.match(/ using Expensify$/)) {
+            translatePhraseKey = 'iou.paidUsingExpensifyWithAmount';
+        }
         return {
             key: translatePhraseKey,
             params: {amount: formattedAmount},
@@ -1128,9 +1142,10 @@ function getReportPreviewMessage(report, reportAction = {}) {
  * Get the title for a report.
  *
  * @param {Object} report
+ * @param {Object} [policy]
  * @returns {String}
  */
-function getReportName(report) {
+function getReportName(report, policy = undefined) {
     let formattedName;
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
@@ -1156,11 +1171,11 @@ function getReportName(report) {
     }
 
     if (isPolicyExpenseChat(report)) {
-        formattedName = Localize.translateIfNeeded(getPolicyExpenseChatName(report));
+        formattedName = Localize.translateIfNeeded(getPolicyExpenseChatName(report, policy));
     }
 
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName(report);
+        formattedName = getMoneyRequestReportName(report, policy);
     }
 
     if (isArchivedRoom(report)) {
@@ -1409,6 +1424,30 @@ function updateOptimisticParentReportAction(parentReportAction, lastVisibleActio
 }
 
 /**
+ * Get optimistic data of parent report action
+ * @param {String} reportID The reportID of the report that is updated
+ * @param {String} lastVisibleActionCreated Last visible action created of the child report
+ * @param {String} type The type of action in the child report
+ * @returns {Object}
+ */
+const getOptimisticDataForParentReportAction = (reportID, lastVisibleActionCreated, type) => {
+    const report = getReport(reportID);
+    if (report && report.parentReportActionID) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        if (parentReportAction && parentReportAction.reportActionID) {
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`,
+                value: {
+                    [parentReportAction.reportActionID]: updateOptimisticParentReportAction(parentReportAction, lastVisibleActionCreated, type),
+                },
+            };
+        }
+    }
+    return {};
+};
+
+/**
  * Builds an optimistic reportAction for the parent report when a task is created
  * @param {String} taskReportID - Report ID of the task
  * @param {String} taskTitle - Title of the task
@@ -1522,11 +1561,14 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  */
 function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
     const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    const amount = NumberFormatUtils.format(preferredLocale, total / currencyUnit, {style: 'currency', currency});
+    const amount = NumberFormatUtils.format(preferredLocale, Math.abs(total) / currencyUnit, {style: 'currency', currency});
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
             paymentMethodMessage = ' elsewhere';
+            break;
+        case CONST.IOU.PAYMENT_TYPE.VBBA:
+            paymentMethodMessage = ' using Expensify';
             break;
         default:
             paymentMethodMessage = ` using ${paymentType}`;
@@ -2066,10 +2108,11 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Object} report
  * @param {Array<Object>} policies
  * @param {Array<String>} betas
+ * @param {Object} allReportActions
  * @returns {Boolean}
  */
-function canAccessReport(report, policies, betas) {
-    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report))) {
+function canAccessReport(report, policies, betas, allReportActions) {
+    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report, allReportActions))) {
         return false;
     }
 
@@ -2094,9 +2137,10 @@ function canAccessReport(report, policies, betas) {
  * @param {Object} iouReports
  * @param {String[]} betas
  * @param {Object} policies
+ * @param {Object} allReportActions
  * @returns {boolean}
  */
-function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies) {
+function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouReports, betas, policies, allReportActions) {
     const isInDefaultMode = !isInGSDMode;
 
     // Exclude reports that have no data because there wouldn't be anything to show in the option item.
@@ -2110,7 +2154,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    if (!canAccessReport(report, policies, betas)) {
+    if (!canAccessReport(report, policies, betas, allReportActions)) {
         return false;
     }
 
@@ -2143,7 +2187,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    // Include policy expense chats if the user isn't in the policy expense chat beta
+    // Exclude policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
         return false;
     }
@@ -2549,6 +2593,44 @@ function getReportOfflinePendingActionAndErrors(report) {
     return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
 }
 
+/**
+ * @param {String} policyID
+ * @returns {Object}
+ */
+function getPolicy(policyID) {
+    const policy = lodashGet(allPolicies, `${ONYXKEYS.COLLECTION.POLICY}${policyID}`) || {};
+    return policy;
+}
+
+/*
+ * @param {Object|null} report
+ * @returns {Boolean}
+ */
+function shouldDisableSettings(report) {
+    return !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
+}
+
+/**
+ * @param {Object|null} report
+ * @param {Object|null} policy - the workspace the report is on, null if the user isn't a member of the workspace
+ * @returns {Boolean}
+ */
+function shouldDisableRename(report, policy) {
+    if (isDefaultRoom(report) || isArchivedRoom(report)) {
+        return true;
+    }
+
+    // if the linked workspace is null, that means the person isn't a member of the workspace the report is in
+    // which means this has to be a public room we want to disable renaming for
+    if (!policy) {
+        return true;
+    }
+
+    // If there is a linked workspace, that means the user is a member of the workspace the report is in.
+    // Still, we only want policy owners and admins to be able to modify the name.
+    return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2610,6 +2692,7 @@ export {
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
     updateOptimisticParentReportAction,
+    getOptimisticDataForParentReportAction,
     shouldReportBeInOptionList,
     getChatByParticipants,
     getChatByParticipantsByLoginList,
@@ -2654,4 +2737,7 @@ export {
     getOriginalReportID,
     canAccessReport,
     getReportOfflinePendingActionAndErrors,
+    getPolicy,
+    shouldDisableSettings,
+    shouldDisableRename,
 };

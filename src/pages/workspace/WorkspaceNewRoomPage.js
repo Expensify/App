@@ -18,6 +18,7 @@ import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import Form from '../../components/Form';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
 import policyMemberPropType from '../policyMemberPropType';
@@ -106,15 +107,7 @@ function WorkspaceNewRoomPage(props) {
         [props.reports],
     );
 
-    // Workspaces are policies with type === 'free'
-    const workspaceOptions = useMemo(
-        () =>
-            _.map(
-                _.filter(props.policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE),
-                (policy) => ({label: policy.name, key: policy.id, value: policy.id}),
-            ),
-        [props.policies],
-    );
+    const workspaceOptions = useMemo(() => _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({label: policy.name, key: policy.id, value: policy.id})), [props.policies]);
 
     const visibilityOptions = useMemo(
         () =>
