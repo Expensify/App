@@ -36,7 +36,7 @@ function processHTTPRequest(url, method = 'get', body = null, command = '') {
     let signal;
     // We don't want to cancel/abort any log requests so we leave the signal undefined if this is a Log command
     if (command !== CONST.NETWORK.COMMAND.LOG) {
-        signal = command === CONST.NETWORK.COMMAND.RECONNECT_APP ? reconnectAppCancellationController.signal : cancellationController.signal;
+        signal = undefined;
     }
 
     return fetch(url, {
