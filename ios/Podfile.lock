@@ -211,7 +211,7 @@ PODS:
     - libwebp/demux
   - libwebp/webp (1.2.4)
   - lottie-ios (4.2.0)
-  - lottie-react-native (6.0.0-rc.7):
+  - lottie-react-native (6.0.0-rc.8):
     - lottie-ios (~> 4.2.0)
     - RCT-Folly
     - RCTRequired
@@ -1938,7 +1938,7 @@ SPEC CHECKSUMS:
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   libwebp: f62cb61d0a484ba548448a4bd52aabf150ff6eef
   lottie-ios: 809ecf2d460ed650a6aed7aa88b2ec45fab4779c
-  lottie-react-native: 97db21d70bc65e58953b578f45dddc259015c6f1
+  lottie-react-native: 7af15f614fd10876b146cdead207a8da94924ad0
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   Onfido: e36f284b865adcf99d9c905590a64ac09d4a576b
   onfido-react-native-sdk: 448b08db971604fb7bcbbd30a779421b5a4a2dd2
