@@ -1,8 +1,7 @@
 import _ from 'underscore';
-import React, {useState, useEffect, useMemo} from 'react';
+import React, {useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
 import useWindowDimensions from '../hooks/useWindowDimensions';
@@ -74,18 +73,13 @@ function PopoverWithMeasuredContent(props) {
      */
     if (!isVisible && props.isVisible) {
         // We use additional function to guarantee that async state change would be completed
-        setIsVisible(() => { 
+        setIsVisible(() => {
             setIsContentMeasured(props.popoverDimensions.width > 0 && props.popoverDimensions.height > 0);
             return true;
         });
+    } else if (isVisible && !props.isVisible) {
+        setIsVisible(false);
     }
-
-    useEffect(() => {
-        if (!props.isVisible) {
-            setIsVisible(false);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.popoverDimensions.width, props.popoverDimensions.height, props.isVisible, isVisible]);
 
     /**
      * Measure the size of the popover's content.
@@ -171,9 +165,9 @@ PopoverWithMeasuredContent.propTypes = propTypes;
 PopoverWithMeasuredContent.defaultProps = defaultProps;
 PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
 
-export default React.memo(
-    withWindowDimensions(PopoverWithMeasuredContent),
-    (prevProps, nextProps) =>
-        (prevProps.isVisible && (nextProps.windowWidth === prevProps.windowWidth || nextProps.windowHeight === prevProps.windowHeight)) ||
-        _.isEqual(_.omit(prevProps, ['windowWidth', 'windowHeight']), _.omit(nextProps, ['windowWidth', 'windowHeight'])),
-);
+export default React.memo(withWindowDimensions(PopoverWithMeasuredContent), (prevProps, nextProps) => {
+    if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
+        return true;
+    }
+    return _.isEqual(prevProps, nextProps);
+});
