@@ -5,6 +5,7 @@ import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
+import PasswordPopover from '../../../../components/PasswordPopover';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
