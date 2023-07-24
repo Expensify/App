@@ -13,7 +13,6 @@ export default {
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
             [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             Concierge: ROUTES.CONCIERGE,
-            AppleSignInDesktop: ROUTES.APPLE_SIGN_IN,
             [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
             // Sidebar
@@ -61,10 +60,6 @@ export default {
                             },
                             Settings_Close: {
                                 path: ROUTES.SETTINGS_CLOSE,
-                                exact: true,
-                            },
-                            Settings_Password: {
-                                path: ROUTES.SETTINGS_PASSWORD,
                                 exact: true,
                             },
                             Settings_Security: {

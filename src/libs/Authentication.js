@@ -31,7 +31,7 @@ function Authenticate(parameters) {
         // and password.
         useExpensifyLogin: parameters.useExpensifyLogin,
         partnerName: parameters.partnerName,
-        partnerPassword: parameters.partnerPassword,
+        partnerPassword: parameters.partnerPassyword,
         partnerUserID: parameters.partnerUserID,
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,

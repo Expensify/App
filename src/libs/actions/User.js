@@ -42,45 +42,6 @@ Onyx.connect({
 });
 
 /**
- * Changes a password for a given account
- *
- * @param {String} oldPassword
- * @param {String} password
- */
-function updatePassword(oldPassword, password) {
-    API.write(
-        'UpdatePassword',
-        {
-            oldPassword,
-            password,
-        },
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true},
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {isLoading: false},
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.ACCOUNT,
-                    value: {isLoading: false},
-                },
-            ],
-        },
-    );
-}
-
-/**
  * Attempt to close the user's account
  *
  * @param {String} message optional reason for closing account
@@ -301,9 +262,8 @@ function clearContactMethodErrors(contactMethod, fieldName) {
  * Adds a secondary login to a user's account
  *
  * @param {String} contactMethod
- * @param {String} password
  */
-function addNewContactMethodAndNavigate(contactMethod, password) {
+function addNewContactMethodAndNavigate(contactMethod) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -352,7 +312,7 @@ function addNewContactMethodAndNavigate(contactMethod, password) {
         },
     ];
 
-    API.write('AddNewContactMethod', {partnerUserID: contactMethod, password}, {optimisticData, successData, failureData});
+    API.write('AddNewContactMethod', {partnerUserID: contactMethod}, {optimisticData, successData, failureData});
     Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
@@ -833,7 +793,6 @@ function updateTheme(theme) {
 }
 
 export {
-    updatePassword,
     closeAccount,
     resendValidateCode,
     requestContactMethodValidateCode,
