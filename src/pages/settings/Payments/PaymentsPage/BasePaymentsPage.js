@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, View, InteractionManager, LayoutAnimation} from 'react-native';
-=======
-import React from 'react';
-import {ActivityIndicator, View, InteractionManager} from 'react-native';
->>>>>>> cd851d0fbd901c70a32220472104ffc887639f2a
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
