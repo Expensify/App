@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, useMemo} from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -138,13 +138,37 @@ function InitialSettingsPage(props) {
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
      */
-    const getWalletBalance = (isPaymentItem) => (isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
+    const getWalletBalance = useMemo(
+        (isPaymentItem) => (isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined),
+        [props.betas, props.userWallet.currentBalance],
+    );
+
+    const toggleSignoutConfirmModal = (value) => {
+        setShouldShowSignoutConfirmModal(value);
+    };
+
+    const openProfileSettings = () => {
+        Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    };
+
+    const signOut = useMemo(
+        (shouldForceSignout = false) => {
+            if (props.network.isOffline || shouldForceSignout) {
+                Session.signOutAndRedirectToSignIn();
+                return;
+            }
+
+            // When offline, warn the user that any actions they took while offline will be lost if they sign out
+            toggleSignoutConfirmModal(true);
+        },
+        [props.network.isOffline],
+    );
 
     /**
      * Retuns a list of default menu items
      * @returns {Array} the default menu items
      */
-    const getDefaultMenuItems = () => {
+    const getDefaultMenuItems = useMemo(() => {
         const policiesAvatars = _.chain(props.policies)
             .filter((policy) => PolicyUtils.shouldShowPolicy(policy, props.network.isOffline))
             .sortBy((policy) => policy.name.toLowerCase())
@@ -238,56 +262,52 @@ function InitialSettingsPage(props) {
                 translationKey: 'initialSettingsPage.signOut',
                 icon: Expensicons.Exit,
                 action: () => {
-                    signout(false);
+                    signOut(false);
                 },
             },
         ];
-    };
+    }, [
+        props.allPolicyMembers,
+        props.bankAccountList,
+        props.cardList,
+        props.loginList,
+        props.network.isOffline,
+        props.policies,
+        props.reimbursementAccount.errors,
+        props.userWallet.errors,
+        props.walletTerms.errors,
+        signOut,
+    ]);
 
-    const getMenuItem = (item, index) => {
-        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-        const isPaymentItem = item.translationKey === 'common.payments';
+    const getMenuItem = useMemo(
+        (item, index) => {
+            const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+            const isPaymentItem = item.translationKey === 'common.payments';
 
-        return (
-            <MenuItem
-                key={`${keyTitle}_${index}`}
-                title={keyTitle}
-                icon={item.icon}
-                iconType={item.iconType}
-                onPress={item.action}
-                iconStyles={item.iconStyles}
-                shouldShowRightIcon
-                iconRight={item.iconRight}
-                badgeText={getWalletBalance(isPaymentItem)}
-                fallbackIcon={item.fallbackIcon}
-                brickRoadIndicator={item.brickRoadIndicator}
-                floatRightAvatars={item.floatRightAvatars}
-                shouldStackHorizontally={item.shouldStackHorizontally}
-                floatRightAvatarSize={item.avatarSize}
-                ref={popoverAnchor}
-                shouldBlockSelection={Boolean(item.link)}
-                onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined}
-            />
-        );
-    };
-
-    const toggleSignoutConfirmModal = (value) => {
-        setShouldShowSignoutConfirmModal(value);
-    };
-
-    const signOut = (shouldForceSignout = false) => {
-        if (props.network.isOffline || shouldForceSignout) {
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
-
-        // When offline, warn the user that any actions they took while offline will be lost if they sign out
-        toggleSignoutConfirmModal(true);
-    };
-
-    const openProfileSettings = () => {
-        Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-    };
+            return (
+                <MenuItem
+                    key={`${keyTitle}_${index}`}
+                    title={keyTitle}
+                    icon={item.icon}
+                    iconType={item.iconType}
+                    onPress={item.action}
+                    iconStyles={item.iconStyles}
+                    shouldShowRightIcon
+                    iconRight={item.iconRight}
+                    badgeText={getWalletBalance(isPaymentItem)}
+                    fallbackIcon={item.fallbackIcon}
+                    brickRoadIndicator={item.brickRoadIndicator}
+                    floatRightAvatars={item.floatRightAvatars}
+                    shouldStackHorizontally={item.shouldStackHorizontally}
+                    floatRightAvatarSize={item.avatarSize}
+                    ref={popoverAnchor}
+                    shouldBlockSelection={Boolean(item.link)}
+                    onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined}
+                />
+            );
+        },
+        [getWalletBalance, translate],
+    );
 
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
