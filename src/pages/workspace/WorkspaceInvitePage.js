@@ -15,8 +15,8 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
-import {policyPropTypes, policyDefaultProps} from './withPolicy';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import * as Link from '../../libs/actions/Link';
+import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../../ROUTES';
 import * as Browser from '../../libs/Browser';
@@ -52,6 +52,7 @@ const propTypes = {
         }),
     }).isRequired,
 
+    isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
 };
 
@@ -260,13 +261,16 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 WorkspaceInvitePage.displayName = 'WorkspaceInvitePage';
 
 export default compose(
-    withPolicyAndFullscreenLoading,
+    withPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(WorkspaceInvitePage);

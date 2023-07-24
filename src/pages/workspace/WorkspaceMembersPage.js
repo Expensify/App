@@ -21,8 +21,7 @@ import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../../components/OptionRow';
-import {policyDefaultProps, policyPropTypes} from './withPolicy';
-import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+import withPolicy, {policyDefaultProps, policyPropTypes} from './withPolicy';
 import CONST from '../../CONST';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
 import {withNetwork} from '../../components/OnyxProvider';
@@ -38,7 +37,7 @@ import PressableWithFeedback from '../../components/Pressable/PressableWithFeedb
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import OptionsListSkeletonView from '../../components/OptionsListSkeletonView';
+import WorkspaceMembersPlaceholder from '../../components/WorkspaceMembersPlaceholder';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -59,6 +58,7 @@ const propTypes = {
         accountID: PropTypes.number,
     }),
 
+    isLoadingReportData: PropTypes.bool,
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -71,6 +71,7 @@ const defaultProps = {
     session: {
         accountID: 0,
     },
+    isLoadingReportData: true,
     ...policyDefaultProps,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -493,7 +494,12 @@ function WorkspaceMembersPage(props) {
                                 />
                             </View>
                         ) : (
-                            <OptionsListSkeletonView shouldAnimate />
+                            <View style={styles.flex1}>
+                                <WorkspaceMembersPlaceholder
+                                    dataLoaded={OptionsListUtils.isPersonalDetailsReady(props.personalDetails)}
+                                    dataEmptyText={props.translate('workspace.common.memberNotFound')}
+                                />
+                            </View>
                         )}
                     </View>
                 </FullPageNotFoundView>
@@ -509,7 +515,7 @@ WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
-    withPolicyAndFullscreenLoading,
+    withPolicy,
     withNetwork(),
     withOnyx({
         personalDetails: {
@@ -517,6 +523,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        isLoadingReportData: {
+            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
     withCurrentUserPersonalDetails,
