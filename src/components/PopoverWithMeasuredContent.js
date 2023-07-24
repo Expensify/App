@@ -70,11 +70,8 @@ function PopoverWithMeasuredContent(props) {
      * Skip render on Popover until recalculations have done by setting isContentMeasured false as early as possible.
      */
     if (!isVisible && props.isVisible) {
-        // We use additional function to guarantee that async state change would be completed
-        setIsVisible(() => {
-            setIsContentMeasured(props.popoverDimensions.width > 0 && props.popoverDimensions.height > 0);
-            return true;
-        });
+        setIsContentMeasured(props.popoverDimensions.width > 0 && props.popoverDimensions.height > 0);
+        setIsVisible(true);
     } else if (isVisible && !props.isVisible) {
         setIsVisible(false);
     }
@@ -85,11 +82,9 @@ function PopoverWithMeasuredContent(props) {
      * @param {Object} nativeEvent
      */
     const measurePopover = ({nativeEvent}) => {
-        setIsContentMeasured(() => {
-            setPopoverWidth(nativeEvent.layout.width);
-            setPopoverHeight(nativeEvent.layout.height);
-            return true;
-        });
+        setPopoverWidth(nativeEvent.layout.width);
+        setPopoverHeight(nativeEvent.layout.height);
+        setIsContentMeasured(true);
     };
 
     const adjustedAnchorPosition = useMemo(() => {
