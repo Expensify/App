@@ -87,8 +87,8 @@ const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** Whether we should use the default theme color */
-    default: PropTypes.bool,
+    /** Whether we should use the default hover style */
+    shouldHaveHoverEffect: PropTypes.bool,
 
     /** Whether we should use the success theme color */
     success: PropTypes.bool,
@@ -145,7 +145,7 @@ const defaultProps = {
     style: [],
     innerStyles: [],
     textStyles: [],
-    default: false,
+    shouldHaveHoverEffect: false,
     success: false,
     danger: false,
     children: null,
@@ -299,7 +299,7 @@ class Button extends Component {
                     ...this.props.innerStyles,
                 ]}
                 hoverStyle={[
-                    this.props.default && !this.props.isDisabled ? styles.buttonDefaultHovered : undefined,
+                    this.props.shouldHaveHoverEffect && !this.props.isDisabled ? styles.buttonDefaultHovered : undefined,
                     this.props.success && !this.props.isDisabled ? styles.buttonSuccessHovered : undefined,
                     this.props.danger && !this.props.isDisabled ? styles.buttonDangerHovered : undefined,
                 ]}

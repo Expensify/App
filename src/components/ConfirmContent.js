@@ -80,7 +80,7 @@ function ConfirmContent(props) {
                     style={[styles.mt3, styles.noSelect]}
                     onPress={props.onCancel}
                     text={props.cancelText || props.translate('common.no')}
-                    default={props.shouldCancelBtnHaveHoverEffect}
+                    shouldHaveHoverEffect={props.shouldCancelBtnHaveHoverEffect}
                 />
             )}
         </View>
