@@ -113,6 +113,10 @@ export default {
         marginLeft: 'auto',
     },
 
+    ml0: {
+        marginLeft: 0,
+    },
+
     ml1: {
         marginLeft: 4,
     },

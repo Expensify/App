@@ -64,6 +64,14 @@ Onyx.connect({
     },
 });
 
+let currentDate = '';
+Onyx.connect({
+    key: ONYXKEYS.CURRENT_DATE,
+    callback: (val) => {
+        currentDate = val;
+    },
+});
+
 /**
  * Reset money request info from the store with its initial value
  * @param {String} id
@@ -75,6 +83,8 @@ function resetMoneyRequestInfo(id = '') {
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
+        merchant: '',
+        date: currentDate,
     });
 }
 

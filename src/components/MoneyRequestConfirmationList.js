@@ -49,6 +49,12 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
+    /** IOU date */
+    iouDate: PropTypes.string,
+
+    /** IOU merchant */
+    iouMerchant: PropTypes.string,
+
     /** Selected participants from MoneyRequestModal with login / accountID */
     selectedParticipants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
@@ -278,7 +284,6 @@ function MoneyRequestConfirmationList(props) {
             />
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
-    console.log('list', props);
 
     return (
         <OptionsSelector
@@ -315,21 +320,21 @@ function MoneyRequestConfirmationList(props) {
                 disabled={didConfirm || props.isReadOnly}
             />
             <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
-                <View style={[styles.shortTermsHorizontalRule, styles.flex1]} />
+                <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
                 <Button
                     small
                     onPress={toggleShowAllFields}
                     text={showAllFields ? translate('common.showLess') : translate('common.showMore')}
                     shouldShowRightIcon
                     iconRight={showAllFields ? Expensicons.UpArrow : Expensicons.DownArrow}
-                    style={styles.mh3}
+                    style={styles.mh0}
                 />
-                <View style={[styles.shortTermsHorizontalRule, styles.flex1]} />
+                <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
             </View>
             {showAllFields && (
                 <>
                     <MenuItemWithTopDescription
-                        title={'2022'}
+                        title={props.iouDate}
                         description="Date"
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
                         disabled={didConfirm || props.isReadOnly}

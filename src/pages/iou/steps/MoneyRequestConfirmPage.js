@@ -181,7 +181,7 @@ function MoneyRequestConfirmPage(props) {
         },
         [props.iou.amount, props.iou.comment, participants, props.iou.currency, props.currentUserPersonalDetails.accountID, props.report],
     );
-    console.log('stuff', props.report, props.iou);
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({ safeAreaPaddingBottomStyle }) => (
@@ -219,6 +219,7 @@ function MoneyRequestConfirmPage(props) {
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
                         iouMerchant={props.iou.merchant}
                         iouModifiedMerchant={props.iou.modifiedMerchant}
+                        iouDate={props.iou.date}
                     />
                 </View>
             )}
