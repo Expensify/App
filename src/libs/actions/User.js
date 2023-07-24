@@ -18,7 +18,6 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
-import Log from '../Log';
 
 let currentUserAccountID = '';
 let currentEmail = '';
