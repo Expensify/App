@@ -395,6 +395,7 @@ function BaseTextInput(props) {
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >
+                    {/* Need to add \u200B(Zero-width space character) to get correct layout in cases value is ended with \n(EOL) */}
                     {props.value ? `${props.value}\u200B` : props.placeholder}
                 </Text>
             )}
