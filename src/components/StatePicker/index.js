@@ -1,4 +1,4 @@
-import React, {useMemo, useState, useRef} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -31,17 +31,9 @@ const defaultProps = {
 
 function StatePicker({value, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
-    const allStates = useRef(translate('allStates')).current;
+    const allStates = translate('allStates');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
-
-    const title = useMemo(() => {
-        if (allStates[value]) {
-            return allStates[value].stateName;
-        }
-
-        return '';
-    }, [value, allStates]);
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
@@ -57,6 +49,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
         hidePickerModal();
     };
 
+    const title = allStates[value] ? allStates[value].stateName : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (

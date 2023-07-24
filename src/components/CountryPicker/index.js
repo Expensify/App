@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -31,7 +31,7 @@ const defaultProps = {
 
 function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     const {translate} = useLocalize();
-    const allCountries = useRef(translate('allCountries')).current;
+    const allCountries = translate('allCountries');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState(lodashGet(allCountries, value, ''));
 

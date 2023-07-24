@@ -122,7 +122,6 @@ const defaultProps = {
     shouldSaveDraft: false,
     maxLength: null,
     hint: '',
-    hintContainerStyle: [],
     prefixCharacter: '',
     onInputChange: () => {},
     shouldDelayFocus: false,
