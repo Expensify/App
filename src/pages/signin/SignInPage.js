@@ -98,8 +98,8 @@ function SignInPage({credentials, account}) {
         },
     );
 
-    let welcomeHeader;
-    let welcomeText;
+    let welcomeHeader = '';
+    let welcomeText = '';
     if (shouldShowLoginForm) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
         welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
