@@ -53,10 +53,10 @@ const defaultProps = {
 };
 
 function AvatarWithDisplayName(props) {
-    const title = props.isAnonymous ? ReportUtils.getReportName(props.report) : ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID, true);
+    const title = ReportUtils.getReportName(props.report);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(props.report);
-    const isExpenseReport = ReportUtils.isExpenseReport(props.report);
+    const isMoneyRequestOrReport = ReportUtils.isMoneyRequestReport(props.report) || ReportUtils.isMoneyRequest(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies, true);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(_.values(ownerPersonalDetails), false);
@@ -88,7 +88,7 @@ function AvatarWithDisplayName(props) {
                             tooltipEnabled
                             numberOfLines={1}
                             textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
-                            shouldUseFullTitle={isExpenseReport || props.isAnonymous}
+                            shouldUseFullTitle={isMoneyRequestOrReport || props.isAnonymous}
                         />
                         {!_.isEmpty(parentNavigationSubtitle) && (
                             <PressableWithoutFeedback
