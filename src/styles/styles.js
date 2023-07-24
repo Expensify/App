@@ -2484,7 +2484,7 @@ const styles = {
     },
 
     switchInactive: {
-        backgroundColor: themeColors.border,
+        backgroundColor: themeColors.icon,
     },
 
     switchThumb: {

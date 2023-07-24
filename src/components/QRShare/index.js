@@ -50,7 +50,7 @@ class QRShare extends Component {
             >
                 <View style={styles.expensifyQrLogo}>
                     <ExpensifyWordmark
-                        fill={defaultTheme.borderFocus}
+                        fill={defaultTheme.QRLogo}
                         width="100%"
                         height="100%"
                     />
