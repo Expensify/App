@@ -112,10 +112,10 @@ function buildOnyxDataForMoneyRequest(
                 iouReportID: iouReport.reportID,
                 ...(isNewChatReport
                     ? {
-                        pendingFields: {
-                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    }
+                          pendingFields: {
+                              createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                          },
+                      }
                     : {}),
             },
         },
@@ -128,10 +128,10 @@ function buildOnyxDataForMoneyRequest(
                 lastMessageHtml: iouAction.message[0].html,
                 ...(isNewIOUReport
                     ? {
-                        pendingFields: {
-                            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                        },
-                    }
+                          pendingFields: {
+                              createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                          },
+                      }
                     : {}),
             },
         },
@@ -144,7 +144,7 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                ...(isNewChatReport ? { [chatCreatedAction.reportActionID]: chatCreatedAction } : {}),
+                ...(isNewChatReport ? {[chatCreatedAction.reportActionID]: chatCreatedAction} : {}),
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
             },
         },
@@ -152,7 +152,7 @@ function buildOnyxDataForMoneyRequest(
             onyxMethod: isNewIOUReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
             value: {
-                ...(isNewIOUReport ? { [iouCreatedAction.reportActionID]: iouCreatedAction } : {}),
+                ...(isNewIOUReport ? {[iouCreatedAction.reportActionID]: iouCreatedAction} : {}),
                 [iouAction.reportActionID]: iouAction,
             },
         },
@@ -169,32 +169,32 @@ function buildOnyxDataForMoneyRequest(
     const successData = [
         ...(isNewChatReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                    value: {
-                        pendingFields: null,
-                        errorFields: null,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                      value: {
+                          pendingFields: null,
+                          errorFields: null,
+                      },
+                  },
+              ]
             : []),
         ...(isNewIOUReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                    value: {
-                        pendingFields: null,
-                        errorFields: null,
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: {
+                          pendingFields: null,
+                          errorFields: null,
+                      },
+                  },
+              ]
             : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: { pendingAction: null },
+            value: {pendingAction: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -202,11 +202,11 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...(isNewChatReport
                     ? {
-                        [chatCreatedAction.reportActionID]: {
-                            pendingAction: null,
-                            errors: null,
-                        },
-                    }
+                          [chatCreatedAction.reportActionID]: {
+                              pendingAction: null,
+                              errors: null,
+                          },
+                      }
                     : {}),
                 [reportPreviewAction.reportActionID]: {
                     pendingAction: null,
@@ -219,11 +219,11 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...(isNewIOUReport
                     ? {
-                        [iouCreatedAction.reportActionID]: {
-                            pendingAction: null,
-                            errors: null,
-                        },
-                    }
+                          [iouCreatedAction.reportActionID]: {
+                              pendingAction: null,
+                              errors: null,
+                          },
+                      }
                     : {}),
                 [iouAction.reportActionID]: {
                     pendingAction: null,
@@ -243,25 +243,25 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: chatReport.lastReadTime,
                 ...(isNewChatReport
                     ? {
-                        errorFields: {
-                            createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
-                        },
-                    }
+                          errorFields: {
+                              createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                          },
+                      }
                     : {}),
             },
         },
         ...(isNewIOUReport
             ? [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-                    value: {
-                        errorFields: {
-                            createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
-                        },
-                    },
-                },
-            ]
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                      value: {
+                          errorFields: {
+                              createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                          },
+                      },
+                  },
+              ]
             : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -276,18 +276,18 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...(isNewChatReport
                     ? {
-                        [chatCreatedAction.reportActionID]: {
-                            errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
-                        },
-                        [reportPreviewAction.reportActionID]: {
-                            errors: ErrorUtils.getMicroSecondOnyxError(null),
-                        },
-                    }
+                          [chatCreatedAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                          },
+                          [reportPreviewAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
+                          },
+                      }
                     : {
-                        [reportPreviewAction.reportActionID]: {
-                            created: reportPreviewAction.created,
-                        },
-                    }),
+                          [reportPreviewAction.reportActionID]: {
+                              created: reportPreviewAction.created,
+                          },
+                      }),
             },
         },
         {
@@ -296,18 +296,18 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 ...(isNewIOUReport
                     ? {
-                        [iouCreatedAction.reportActionID]: {
-                            errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
-                        },
-                        [iouAction.reportActionID]: {
-                            errors: ErrorUtils.getMicroSecondOnyxError(null),
-                        },
-                    }
+                          [iouCreatedAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                          },
+                          [iouAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError(null),
+                          },
+                      }
                     : {
-                        [iouAction.reportActionID]: {
-                            errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
-                        },
-                    }),
+                          [iouAction.reportActionID]: {
+                              errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                          },
+                      }),
             },
         },
     ];
@@ -398,13 +398,13 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     // Add optimistic personal details for participant
     const optimisticPersonalDetailListAction = isNewChatReport
         ? {
-            [payerAccountID]: {
-                accountID: payerAccountID,
-                avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-                displayName: participant.displayName || payerEmail,
-                login: participant.login,
-            },
-        }
+              [payerAccountID]: {
+                  accountID: payerAccountID,
+                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+                  displayName: participant.displayName || payerEmail,
+                  login: participant.login,
+              },
+          }
         : undefined;
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
@@ -447,7 +447,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
         },
-        { optimisticData, successData, failureData },
+        {optimisticData, successData, failureData},
     );
     resetMoneyRequestInfo();
     Navigation.dismissModal(chatReport.reportID);
@@ -525,8 +525,8 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                 ...(existingGroupChatReport
                     ? {}
                     : {
-                        [groupCreatedReportAction.reportActionID]: groupCreatedReportAction,
-                    }),
+                          [groupCreatedReportAction.reportActionID]: groupCreatedReportAction,
+                      }),
                 [groupIOUReportAction.reportActionID]: groupIOUReportAction,
             },
         },
@@ -545,15 +545,15 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
                 ...(existingGroupChatReport
                     ? {}
                     : {
-                        [groupCreatedReportAction.reportActionID]: { pendingAction: null },
-                    }),
-                [groupIOUReportAction.reportActionID]: { pendingAction: null },
+                          [groupCreatedReportAction.reportActionID]: {pendingAction: null},
+                      }),
+                [groupIOUReportAction.reportActionID]: {pendingAction: null},
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${groupTransaction.transactionID}`,
-            value: { pendingAction: null },
+            value: {pendingAction: null},
         },
     ];
 
@@ -561,7 +561,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`,
-            value: { pendingFields: { createChat: null } },
+            value: {pendingFields: {createChat: null}},
         });
     }
 
@@ -685,13 +685,13 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // Add optimistic personal details for new participants
         const oneOnOnePersonalDetailListAction = shouldCreateOptimisticPersonalDetails
             ? {
-                [accountID]: {
-                    accountID,
-                    avatar: UserUtils.getDefaultAvatarURL(accountID),
-                    displayName: participant.displayName || email,
-                    login: participant.login,
-                },
-            }
+                  [accountID]: {
+                      accountID,
+                      avatar: UserUtils.getDefaultAvatarURL(accountID),
+                      displayName: participant.displayName || email,
+                      login: participant.login,
+                  },
+              }
             : undefined;
 
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
@@ -750,7 +750,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
     return {
         groupData,
         splits,
-        onyxData: { optimisticData, successData, failureData },
+        onyxData: {optimisticData, successData, failureData},
     };
 }
 
@@ -764,7 +764,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
  * @param {String} existingGroupChatReportID
  */
 function splitBill(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID = '') {
-    const { groupData, splits, onyxData } = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID);
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, existingGroupChatReportID);
 
     API.write(
         'SplitBill',
@@ -795,7 +795,7 @@ function splitBill(participants, currentUserLogin, currentUserAccountID, amount,
  * @param {String} currency
  */
 function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccountID, amount, comment, currency) {
-    const { groupData, splits, onyxData } = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency);
+    const {groupData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency);
 
     API.write(
         'SplitBillAndOpenReport',
@@ -843,7 +843,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
     const currentUserAccountID = optimisticIOUAction.actorAccountID;
     let updatedIOUReport = {};
     if (ReportUtils.isExpenseReport(iouReportID)) {
-        updatedIOUReport = { ...iouReport };
+        updatedIOUReport = {...iouReport};
 
         // Because of the Expense reports are stored as negative values, we add the total from the amount
         updatedIOUReport.total += amount;
@@ -917,7 +917,7 @@ function deleteMoneyRequest(chatReportID, iouReportID, moneyRequestAction, shoul
             reportActionID: optimisticIOUAction.reportActionID,
             iouReportID: updatedIOUReport.reportID,
         },
-        { optimisticData, successData, failureData },
+        {optimisticData, successData, failureData},
     );
 
     if (shouldCloseOnDelete) {
@@ -1043,7 +1043,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
-            value: { pendingAction: null },
+            value: {pendingAction: null},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1082,7 +1082,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: optimisticChatReportData.key,
-            value: { pendingFields: null },
+            value: {pendingFields: null},
         });
         failureData.push(
             {
@@ -1238,7 +1238,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-            value: { [iouReport.policyID]: paymentMethodType },
+            value: {[iouReport.policyID]: paymentMethodType},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1316,7 +1316,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
  * @param {Object} recipient - The user receiving the money
  */
 function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipient) {
-    const { params, optimisticData, successData, failureData } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
+    const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
     API.write('SendMoneyElsewhere', params, {
         optimisticData,
@@ -1338,7 +1338,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipi
  * @param {Object} recipient - The user receiving the money
  */
 function sendMoneyWithWallet(report, amount, currency, comment, managerID, recipient) {
-    const { params, optimisticData, successData, failureData } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
+    const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
 
     API.write('SendMoneyWithWallet', params, {
         optimisticData,
@@ -1360,7 +1360,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
  * @param {Object} recipient - The user receiving the money
  */
 function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipient) {
-    const { params, optimisticData, successData, failureData } = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerID, recipient);
+    const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerID, recipient);
 
     API.write('SendMoneyViaPaypal', params, {
         optimisticData,
@@ -1387,13 +1387,13 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
         accountID: iouReport.ownerAccountID,
         payPalMeAddress: iouReport.submitterPayPalMeAddress,
     };
-    const { params, optimisticData, successData, failureData } = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
 
     // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'PayMoneyRequestWithWallet' : 'PayMoneyRequest';
 
-    API.write(apiCommand, params, { optimisticData, successData, failureData });
+    API.write(apiCommand, params, {optimisticData, successData, failureData});
     Navigation.dismissModal(chatReport.reportID);
     if (paymentType === CONST.IOU.PAYMENT_TYPE.PAYPAL_ME) {
         asyncOpenURL(Promise.resolve(), buildPayPalPaymentUrl(iouReport.total, recipient.payPalMeAddress, iouReport.currency));
@@ -1414,35 +1414,35 @@ function startMoneyRequest(iouType, reportID = '') {
  * @param {String} id
  */
 function setMoneyRequestId(id) {
-    Onyx.merge(ONYXKEYS.IOU, { id });
+    Onyx.merge(ONYXKEYS.IOU, {id});
 }
 
 /**
  * @param {Number} amount
  */
 function setMoneyRequestAmount(amount) {
-    Onyx.merge(ONYXKEYS.IOU, { amount });
+    Onyx.merge(ONYXKEYS.IOU, {amount});
 }
 
 /**
  * @param {String} currency
  */
 function setMoneyRequestCurrency(currency) {
-    Onyx.merge(ONYXKEYS.IOU, { currency });
+    Onyx.merge(ONYXKEYS.IOU, {currency});
 }
 
 /**
  * @param {String} comment
  */
 function setMoneyRequestDescription(comment) {
-    Onyx.merge(ONYXKEYS.IOU, { comment: comment.trim() });
+    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
 }
 
 /**
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
-    Onyx.merge(ONYXKEYS.IOU, { participants });
+    Onyx.merge(ONYXKEYS.IOU, {participants});
 }
 
 export {

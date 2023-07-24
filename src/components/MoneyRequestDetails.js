@@ -1,10 +1,10 @@
 import React from 'react';
-import { withOnyx } from 'react-native-onyx';
-import { View } from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
-import withLocalize, { withLocalizePropTypes } from './withLocalize';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
@@ -74,7 +74,7 @@ const defaultProps = {
 
 function MoneyRequestDetails(props) {
     // These are only used for the single transaction view and not for expense and iou reports
-    const { amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription } = ReportUtils.getMoneyRequestAction(props.parentReportAction);
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const transactionDate = lodashGet(props.parentReportAction, ['created']);
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
@@ -92,14 +92,14 @@ function MoneyRequestDetails(props) {
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
-    const { addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors } = ReportUtils.getReportOfflinePendingActionAndErrors(props.report);
+    const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(props.report);
     return (
         <OfflineWithFeedback
             pendingAction={addWorkspaceRoomOrChatPendingAction}
             errors={addWorkspaceRoomOrChatErrors}
             shouldShowErrorMessages={false}
         >
-            <View style={[{ backgroundColor: themeColors.highlightBG }, styles.pl0]}>
+            <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
                 <View style={[styles.ph5, styles.pb2]}>
                     <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
@@ -177,22 +177,22 @@ function MoneyRequestDetails(props) {
                             description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
                             titleStyle={styles.newKansasLarge}
                             disabled={isSettled}
-                        // Note: These options are temporarily disabled while we figure out the required API changes
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                            // Note: These options are temporarily disabled while we figure out the required API changes
+                            // shouldShowRightIcon={!isSettled}
+                            // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         />
                         <MenuItemWithTopDescription
                             description={props.translate('common.description')}
                             title={transactionDescription}
                             disabled={isSettled}
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                            // shouldShowRightIcon={!isSettled}
+                            // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                         />
                         <MenuItemWithTopDescription
                             description={props.translate('common.date')}
                             title={formattedTransactionDate}
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                            // shouldShowRightIcon={!isSettled}
+                            // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                         />
                     </>
                 )}
@@ -210,7 +210,7 @@ export default compose(
     withLocalize,
     withOnyx({
         chatReport: {
-            key: ({ report }) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,

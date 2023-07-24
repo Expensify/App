@@ -1,21 +1,21 @@
-import React, { useCallback, useMemo, useReducer, useState } from 'react';
+import React, {useCallback, useMemo, useReducer, useState} from 'react';
 import PropTypes from 'prop-types';
-import { withOnyx } from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
-import withLocalize, { withLocalizePropTypes } from './withLocalize';
-import withWindowDimensions, { windowDimensionsPropTypes } from './withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import CONST from '../CONST';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import Log from '../libs/Log';
 import SettlementButton from './SettlementButton';
 import ROUTES from '../ROUTES';
-import withCurrentUserPersonalDetails, { withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes } from './withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from './withCurrentUserPersonalDetails';
 import * as IOUUtils from '../libs/IOUUtils';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
@@ -91,9 +91,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onConfirm: () => { },
-    onSendMoney: () => { },
-    onSelectParticipant: () => { },
+    onConfirm: () => {},
+    onSendMoney: () => {},
+    onSelectParticipant: () => {},
     iouType: CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
     payeePersonalDetails: null,
     canModifyParticipants: false,
@@ -110,7 +110,7 @@ const defaultProps = {
 function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const { translate, onSendMoney, onConfirm, onSelectParticipant } = props;
+    const {translate, onSendMoney, onConfirm, onSelectParticipant} = props;
 
     // A flag and a toggler for showing the rest of the form fields
     const [showAllFields, toggleShowAllFields] = useReducer((state) => !state, false);
