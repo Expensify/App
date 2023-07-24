@@ -578,6 +578,16 @@ function isDM(report) {
 }
 
 /**
+ * Returns true if report has a single participant.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function hasSingleParticipant(report) {
+    return report.participants && report.participants.length === 1;
+}
+
+/**
  * If the report is a thread and has a chat type set, it is a workspace chat.
  *
  * @param {Object} report
@@ -2183,7 +2193,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants. Does not include threads
+ * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, money request, room, and policy expense chat.
  * @param {Array<Number>} newParticipantList
  * @returns {Array|undefined}
  */
@@ -2191,12 +2201,20 @@ function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || _.isEmpty(report.participantAccountIDs) || isChatThread(report)) {
+        if (
+            !report ||
+            _.isEmpty(report.participantAccountIDs) ||
+            isChatThread(report) ||
+            isTaskReport(report) ||
+            isMoneyRequestReport(report) ||
+            isChatRoom(report) ||
+            isPolicyExpenseChat(report)
+        ) {
             return false;
         }
 
-        // Only return the room if it has all the participants and is not a policy room
-        return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
+        // Only return the chat if it has all the participants
+        return _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
     });
 }
 
@@ -2398,6 +2416,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
 
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+    const hasSingleParticipantInReport = participants.length === 1;
     const hasMultipleParticipants = participants.length > 1;
 
     if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) {
@@ -2423,7 +2442,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && participants.length === 1 ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
@@ -2719,7 +2738,9 @@ export {
     getOriginalReportID,
     canAccessReport,
     getReportOfflinePendingActionAndErrors,
+    isDM,
     getPolicy,
     shouldDisableSettings,
     shouldDisableRename,
+    hasSingleParticipant,
 };
