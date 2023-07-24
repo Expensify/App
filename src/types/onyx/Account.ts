@@ -2,7 +2,7 @@ import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
 import * as OnyxCommon from './OnyxCommon';
 
-type Account = OnyxCommon.BaseState & {
+type Account = {
     /** URL to the assigned guide's appointment booking calendar */
     guideCalendarLink?: string;
 
@@ -41,6 +41,12 @@ type Account = OnyxCommon.BaseState & {
 
     /** Whether the validation code has expired */
     validateCodeExpired?: boolean;
+
+    /** Whether a sign is loading */
+    isLoading?: boolean;
+
+    errors?: OnyxCommon.Errors;
+    success?: string;
 };
 
 export default Account;

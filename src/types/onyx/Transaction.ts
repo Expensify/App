@@ -13,7 +13,7 @@ type Transaction = {
     merchant: string;
     created: string;
     pendingAction: OnyxCommon.PendingAction;
-    errors: Record<string, string>;
+    errors: OnyxCommon.Errors;
     modifiedAmount?: number;
     modifiedCreated?: string;
     modifiedCurrency?: string;

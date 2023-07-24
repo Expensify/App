@@ -28,7 +28,7 @@ type Policy = {
     errorFields?: OnyxCommon.ErrorFields;
 
     pendingAction?: OnyxCommon.PendingAction;
-    errors: Record<string, string>;
+    errors: OnyxCommon.Errors;
     isFromFullPolicy?: boolean;
     lastModified?: string;
     customUnits?: Record<string, unknown>;

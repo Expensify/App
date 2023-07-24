@@ -1,6 +1,6 @@
 import * as OnyxCommon from './OnyxCommon';
 
-type WalletAdditionalDetails = OnyxCommon.BaseState & {
+type WalletAdditionalDetails = {
     /** Questions returned by Idology */
     questions?: {
         prompt: string;
@@ -16,6 +16,8 @@ type WalletAdditionalDetails = OnyxCommon.BaseState & {
 
     /** Which field needs attention? */
     errorFields?: OnyxCommon.ErrorFields;
+    isLoading?: boolean;
+    errors?: OnyxCommon.Errors;
 };
 
 export default WalletAdditionalDetails;
