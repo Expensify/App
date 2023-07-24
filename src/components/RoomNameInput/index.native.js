@@ -1,13 +1,15 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
 import _ from 'underscore';
 import CONST from '../../CONST';
-import withLocalize from '../withLocalize';
+import useLocalize from '../../hooks/useLocalize';
 import TextInput from '../TextInput';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
 import getOperatingSystem from '../../libs/getOperatingSystem';
 
-const RoomNameInput = forwardRef((props, ref) => {
+function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange, shouldDelayFocus}) {
+    const {translate} = useLocalize();
+
     /**
      * Calls the onChangeText callback with a modified room name
      * @param {Event} event
@@ -15,11 +17,11 @@ const RoomNameInput = forwardRef((props, ref) => {
     const setModifiedRoomName = (event) => {
         const roomName = event.nativeEvent.text;
         const modifiedRoomName = RoomNameInputUtils.modifyRoomName(roomName);
-        props.onChangeText(modifiedRoomName);
+        onChangeText(modifiedRoomName);
 
         // if custom component has onInputChange, use it to trigger changes (Form input)
-        if (_.isFunction(props.onInputChange)) {
-            props.onInputChange(modifiedRoomName);
+        if (_.isFunction(onInputChange)) {
+            onInputChange(modifiedRoomName);
         }
     };
 
@@ -27,27 +29,34 @@ const RoomNameInput = forwardRef((props, ref) => {
 
     return (
         <TextInput
-            ref={ref}
-            disabled={props.disabled}
-            label={props.translate('newRoomPage.roomName')}
-            accessibilityLabel={props.translate('newRoomPage.roomName')}
+            ref={forwardedRef}
+            disabled={disabled}
+            label={translate('newRoomPage.roomName')}
+            accessibilityLabel={translate('newRoomPage.roomName')}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
-            placeholder={props.translate('newRoomPage.social')}
+            placeholder={translate('newRoomPage.social')}
             onChange={setModifiedRoomName}
-            value={props.value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
-            errorText={props.errorText}
+            value={value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
+            errorText={errorText}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
             keyboardType={keyboardType} // this is a bit hacky solution to a RN issue https://github.com/facebook/react-native/issues/27449
-            onBlur={props.onBlur}
-            autoFocus={props.autoFocus}
+            onBlur={onBlur}
+            autoFocus={autoFocus}
             autoCapitalize="none"
-            shouldDelayFocus={props.shouldDelayFocus}
+            shouldDelayFocus={shouldDelayFocus}
         />
     );
-});
+}
 
 RoomNameInput.propTypes = roomNameInputPropTypes.propTypes;
 RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
+RoomNameInput.displayName = 'RoomNameInput';
 
-export default withLocalize(RoomNameInput);
+export default React.forwardRef((props, ref) => (
+    <RoomNameInput
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
