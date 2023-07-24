@@ -109,7 +109,7 @@ function TaskView(props) {
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 shouldShowRightIcon={isOpen}
                 disabled={disableState}
-                wrapperStyle={[styles.pv2]}
+                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                 shouldGreyOutWhenDisabled={false}
                 numberOfLinesTitle={0}
             />

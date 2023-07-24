@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View, InteractionManager, LayoutAnimation} from 'react-native';
+import {ActivityIndicator, View, InteractionManager} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
@@ -230,47 +230,27 @@ function BasePaymentsPage(props) {
         [setShouldShowDefaultDeleteMenu, setShowConfirmDeleteContent, resetSelectedPaymentMethodData],
     );
 
-    const hidePasswordPrompt = useCallback(
-        (shouldClearSelectedData = true) => {
-            setShowPassword({
-                shouldShowPasswordPrompt: false,
-                passwordButtonText: '',
-            });
-            if (shouldClearSelectedData) {
-                resetSelectedPaymentMethodData();
-            }
+    const makeDefaultPaymentMethod = useCallback(() => {
+        // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
+        const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, props.cardList);
 
-            // Due to iOS modal freeze issue, password modal freezes the app when closed.
-            // LayoutAnimation undoes the running animation.
-            LayoutAnimation.configureNext(LayoutAnimation.create(50, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-        },
-        [setShowPassword, resetSelectedPaymentMethodData],
-    );
-
-    const makeDefaultPaymentMethod = useCallback(
-        (password = '') => {
-            // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-            const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, props.cardList);
-
-            const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
-            const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === paymentMethod.methodID);
-            if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
-                PaymentMethods.makeDefaultPaymentMethod(password, paymentMethod.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
-            } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
-                PaymentMethods.makeDefaultPaymentMethod(password, null, paymentMethod.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
-            }
-            resetSelectedPaymentMethodData();
-        },
-        [
-            paymentMethod.methodID,
-            paymentMethod.selectedPaymentMethod.bankAccountID,
-            paymentMethod.selectedPaymentMethod.fundID,
-            paymentMethod.selectedPaymentMethodType,
-            props.bankAccountList,
-            props.cardList,
-            resetSelectedPaymentMethodData,
-        ],
-    );
+        const previousPaymentMethod = _.find(paymentMethods, (method) => method.isDefault);
+        const currentPaymentMethod = _.find(paymentMethods, (method) => method.methodID === paymentMethod.methodID);
+        if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+            PaymentMethods.makeDefaultPaymentMethod(paymentMethod.selectedPaymentMethod.bankAccountID, null, previousPaymentMethod, currentPaymentMethod);
+        } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+            PaymentMethods.makeDefaultPaymentMethod(null, paymentMethod.selectedPaymentMethod.fundID, previousPaymentMethod, currentPaymentMethod);
+        }
+        resetSelectedPaymentMethodData();
+    }, [
+        paymentMethod.methodID,
+        paymentMethod.selectedPaymentMethod.bankAccountID,
+        paymentMethod.selectedPaymentMethod.fundID,
+        paymentMethod.selectedPaymentMethodType,
+        props.bankAccountList,
+        props.cardList,
+        resetSelectedPaymentMethodData,
+    ]);
 
     const deletePaymentMethod = useCallback(() => {
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PAYPAL) {
@@ -386,13 +366,10 @@ function BasePaymentsPage(props) {
             // Close corresponding selected payment method modals which are open
             if (shouldShowDefaultDeleteMenu) {
                 hideDefaultDeleteMenu();
-            } else if (showPassword.shouldShowPasswordPrompt) {
-                hidePasswordPrompt();
             }
         }
     }, [
         hideDefaultDeleteMenu,
-        hidePasswordPrompt,
         paymentMethod.methodID,
         paymentMethod.selectedPaymentMethodType,
         props.bankAccountList,
@@ -509,7 +486,7 @@ function BasePaymentsPage(props) {
                             deletePaymentMethod();
                         }}
                         onCancel={hideDefaultDeleteMenu}
-                        contentStyles={!isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
+                        contentStyles={!isSmallScreenWidth ? [styles.sidebarPopover, styles.willChangeTransform] : undefined}
                         title={translate('paymentsPage.deleteAccount')}
                         prompt={translate('paymentsPage.deleteConfirmation')}
                         confirmText={translate('common.delete')}
