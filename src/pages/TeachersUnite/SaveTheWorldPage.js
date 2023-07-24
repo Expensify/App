@@ -38,7 +38,7 @@ function SaveTheWorldPage() {
             illustration={LottieAnimations.PreferencesDJ}
         >
             <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
-                <Text style={[styles.textHeadline, styles.mb3, styles.mt3]}>{translate('teachersUnitePage.teachersUnite')}</Text>
+                <Text style={[styles.textHeadline, styles.mb3]}>{translate('teachersUnitePage.teachersUnite')}</Text>
                 <Text>{translate('teachersUnitePage.joinExpensifyOrg')}</Text>
             </View>
             <MenuItem
@@ -50,8 +50,8 @@ function SaveTheWorldPage() {
             <MenuItem
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iAmATeacher')}
-                onPress={() => Navigation.navigate(ROUTES.I_Am_A_Teacher)}
-                // onPress={() => Navigation.navigate(ROUTES.Intro_School_Principal)}
+                // onPress={() => Navigation.navigate(ROUTES.I_Am_A_Teacher)}
+                onPress={() => Navigation.navigate(ROUTES.Intro_School_Principal)}
             />
         </IllustratedHeaderPageLayout>
     );
