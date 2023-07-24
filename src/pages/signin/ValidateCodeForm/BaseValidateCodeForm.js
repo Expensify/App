@@ -226,7 +226,7 @@ function BaseValidateCodeForm(props) {
         if (accountID) {
             Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, twoFactorAuthCode);
         } else {
-            Session.signIn('', validateCode, twoFactorAuthCode, props.preferredLocale);
+            Session.signIn(validateCode, twoFactorAuthCode, props.preferredLocale);
         }
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 

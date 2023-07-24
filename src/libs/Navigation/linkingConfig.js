@@ -62,10 +62,6 @@ export default {
                                 path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
                             },
-                            Settings_Password: {
-                                path: ROUTES.SETTINGS_PASSWORD,
-                                exact: true,
-                            },
                             Settings_Security: {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
