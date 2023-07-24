@@ -144,7 +144,6 @@ describe('ReportUtils', () => {
             test('with displayName', () => {
                 expect(
                     ReportUtils.getReportName({
-                        participants: [currentUserEmail, 'ragnar@vikings.net'],
                         participantAccountIDs: [currentUserAccountID, 1],
                     }),
                 ).toBe('Ragnar Lothbrok');
@@ -153,7 +152,6 @@ describe('ReportUtils', () => {
             test('no displayName', () => {
                 expect(
                     ReportUtils.getReportName({
-                        participants: [currentUserEmail, 'floki@vikings.net'],
                         participantAccountIDs: [currentUserAccountID, 2],
                     }),
                 ).toBe('floki@vikings.net');
@@ -162,7 +160,6 @@ describe('ReportUtils', () => {
             test('SMS', () => {
                 expect(
                     ReportUtils.getReportName({
-                        participants: [currentUserEmail, '+18332403627@expensify.sms'],
                         participantAccountIDs: [currentUserAccountID, 4],
                     }),
                 ).toBe('(833) 240-3627');
@@ -172,7 +169,6 @@ describe('ReportUtils', () => {
         test('Group DM', () => {
             expect(
                 ReportUtils.getReportName({
-                    participants: [currentUserEmail, 'ragnar@vikings.net', 'floki@vikings.net', 'lagertha@vikings.net', '+18332403627@expensify.sms'],
                     participantAccountIDs: [currentUserAccountID, 1, 2, 3, 4],
                 }),
             ).toBe('Ragnar, floki@vikings.net, Lagertha, (833) 240-3627');
@@ -367,7 +363,7 @@ describe('ReportUtils', () => {
     });
 
     describe('getMoneyRequestOptions', () => {
-        const participants = _.keys(participantsPersonalDetails);
+        const participantsAccountIDs = _.keys(participantsPersonalDetails);
 
         beforeAll(() => {
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -404,7 +400,7 @@ describe('ReportUtils', () => {
                             ...LHNTestUtils.getFakeReport(),
                             chatType,
                         };
-                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participants[0]], []);
+                        const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, participantsAccountIDs[0]], []);
                         return moneyRequestOptions.length === 1 && moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT);
                     },
                 );
@@ -412,13 +408,13 @@ describe('ReportUtils', () => {
             });
 
             it('has multiple participants exclude self', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], []);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participantsAccountIDs], []);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             });
 
             it(' does not have iou send permission', () => {
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participants], []);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({}, [currentUserAccountID, ...participantsAccountIDs], []);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)).toBe(true);
             });
@@ -431,14 +427,14 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                     isOwnPolicyExpenseChat: true,
                 };
-                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participants], [CONST.BETAS.IOU_SEND]);
+                const moneyRequestOptions = ReportUtils.getMoneyRequestOptions(report, [currentUserAccountID, ...participantsAccountIDs], [CONST.BETAS.IOU_SEND]);
                 expect(moneyRequestOptions.length).toBe(1);
                 expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             });
         });
 
         it('return both iou send and request money in DM', () => {
-            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserAccountID, participants[0]], [CONST.BETAS.IOU_SEND]);
+            const moneyRequestOptions = ReportUtils.getMoneyRequestOptions({type: 'chat'}, [currentUserAccountID, participantsAccountIDs[0]], [CONST.BETAS.IOU_SEND]);
             expect(moneyRequestOptions.length).toBe(2);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)).toBe(true);
             expect(moneyRequestOptions.includes(CONST.IOU.MONEY_REQUEST_TYPE.SEND)).toBe(true);

@@ -13,6 +13,7 @@ import styles from '../../styles/styles';
 import reportPropTypes from '../reportPropTypes';
 import compose from '../../libs/compose';
 import * as Task from '../../libs/actions/Task';
+import focusAndUpdateMultilineInputRange from '../../libs/focusAndUpdateMultilineInputRange';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -53,7 +54,7 @@ function TaskTitlePage(props) {
         (values) => {
             // Set the title of the report in the store and then call Task.editTaskReport
             // to update the title of the report on the server
-            Task.editTaskAndNavigate(props.report, props.session.email, props.session.accountID, {title: values.title});
+            Task.editTaskAndNavigate(props.report, props.session.accountID, {title: values.title});
         },
         [props],
     );
@@ -63,7 +64,8 @@ function TaskTitlePage(props) {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
+            onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton title={props.translate('task.task')} />
             <Form

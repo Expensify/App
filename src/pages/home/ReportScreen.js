@@ -31,11 +31,10 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import withViewportOffsetTop, {viewportOffsetTopPropTypes} from '../../components/withViewportOffsetTop';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import personalDetailsPropType from '../personalDetailsPropType';
-import withNavigationFocus from '../../components/withNavigationFocus';
 import getIsReportFullyVisible from '../../libs/getIsReportFullyVisible';
 import * as EmojiPickerAction from '../../libs/actions/EmojiPickerAction';
 import MoneyRequestHeader from '../../components/MoneyRequestHeader';
-import withNavigation, {withNavigationPropTypes} from '../../components/withNavigation';
+import MoneyReportHeader from '../../components/MoneyReportHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
 import ReportScreenContext from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
@@ -87,7 +86,6 @@ const propTypes = {
 
     ...windowDimensionsPropTypes,
     ...viewportOffsetTopPropTypes,
-    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
@@ -139,13 +137,18 @@ class ReportScreen extends React.Component {
 
         this.flatListRef = React.createRef();
         this.reactionListRef = React.createRef();
+
+        // We need unique ID for drag and drop to work properly with stack navigator.
+        this.dragAndDropId = CONST.REPORT.DROP_NATIVE_ID + ReportUtils.generateReportID();
     }
 
     componentDidMount() {
         this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+            const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(this.props.route);
+
             // If the report is not fully visible (AKA on small screen devices and LHR is open) or the report is optimistic (AKA not yet created)
             // we don't need to call openReport
-            if (!getIsReportFullyVisible(this.props.isFocused) || this.props.report.isOptimisticReport) {
+            if (!getIsReportFullyVisible(isTopMostReportId) || this.props.report.isOptimisticReport) {
                 return;
             }
 
@@ -209,11 +212,6 @@ class ReportScreen extends React.Component {
         Report.addComment(getReportID(this.props.route), text);
     }
 
-    getNavigationKey() {
-        const navigation = this.props.navigation.getState();
-        return lodashGet(navigation.routes, [navigation.index, 'key']);
-    }
-
     /**
      * When false the ReportActionsView will completely unmount and we will show a loader until it returns true.
      *
@@ -255,11 +253,8 @@ class ReportScreen extends React.Component {
     }
 
     render() {
-        // We are either adding a workspace room, or we're creating a chat, it isn't possible for both of these to be pending, or to have errors for the same report at the same time, so
-        // simply looking up the first truthy value for each case will get the relevant property if it's set.
         const reportID = getReportID(this.props.route);
-        const addWorkspaceRoomOrChatPendingAction = lodashGet(this.props.report, 'pendingFields.addWorkspaceRoom') || lodashGet(this.props.report, 'pendingFields.createChat');
-        const addWorkspaceRoomOrChatErrors = lodashGet(this.props.report, 'errorFields.addWorkspaceRoom') || lodashGet(this.props.report, 'errorFields.createChat');
+        const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(this.props.report);
         const screenWrapperStyle = [styles.appContent, styles.flex1, {marginTop: this.props.viewportOffsetTop}];
 
         // There are no reportActions at all to display and we are still in the process of loading the next set of actions.
@@ -275,6 +270,41 @@ class ReportScreen extends React.Component {
 
         const policy = this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.props.report.policyID}`];
 
+        const isTopMostReportId = Navigation.getTopmostReportId() === getReportID(this.props.route);
+
+        let headerView = (
+            <HeaderView
+                reportID={reportID}
+                onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                personalDetails={this.props.personalDetails}
+                report={this.props.report}
+            />
+        );
+
+        if (isSingleTransactionView) {
+            headerView = (
+                <MoneyRequestHeader
+                    report={this.props.report}
+                    policies={this.props.policies}
+                    personalDetails={this.props.personalDetails}
+                    isSingleTransactionView={isSingleTransactionView}
+                    parentReportAction={parentReportAction}
+                />
+            );
+        }
+
+        if (ReportUtils.isMoneyRequestReport(this.props.report)) {
+            headerView = (
+                <MoneyReportHeader
+                    report={this.props.report}
+                    policies={this.props.policies}
+                    personalDetails={this.props.personalDetails}
+                    isSingleTransactionView={isSingleTransactionView}
+                    parentReportAction={parentReportAction}
+                />
+            );
+        }
+
         return (
             <ReportScreenContext.Provider
                 value={{
@@ -284,7 +314,7 @@ class ReportScreen extends React.Component {
             >
                 <ScreenWrapper
                     style={screenWrapperStyle}
-                    shouldEnableKeyboardAvoidingView={this.props.isFocused}
+                    shouldEnableKeyboardAvoidingView={isTopMostReportId}
                 >
                     <FullPageNotFoundView
                         shouldShow={(!this.props.report.reportID && !this.props.report.isLoadingReportActions && !isLoading && !this.state.isReportRemoved) || shouldHideReport}
@@ -298,23 +328,7 @@ class ReportScreen extends React.Component {
                             errors={addWorkspaceRoomOrChatErrors}
                             shouldShowErrorMessages={false}
                         >
-                            {ReportUtils.isMoneyRequestReport(this.props.report) || isSingleTransactionView ? (
-                                <MoneyRequestHeader
-                                    report={this.props.report}
-                                    policies={this.props.policies}
-                                    personalDetails={this.props.personalDetails}
-                                    isSingleTransactionView={isSingleTransactionView}
-                                    parentReportAction={parentReportAction}
-                                />
-                            ) : (
-                                <HeaderView
-                                    reportID={reportID}
-                                    onNavigationMenuButtonClicked={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                                    personalDetails={this.props.personalDetails}
-                                    report={this.props.report}
-                                />
-                            )}
-
+                            {headerView}
                             {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(this.props.report) && (
                                 <View style={[styles.borderBottom]}>
                                     <View style={[styles.appBG, styles.pl0]}>
@@ -336,7 +350,7 @@ class ReportScreen extends React.Component {
                             />
                         )}
                         <View
-                            nativeID={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
+                            nativeID={this.dragAndDropId}
                             style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                             onLayout={(event) => {
                                 // Rounding this value for comparison because they can look like this: 411.9999694824219
@@ -381,6 +395,7 @@ class ReportScreen extends React.Component {
                                         isComposerFullSize={this.props.isComposerFullSize}
                                         onSubmitComment={this.onSubmitComment}
                                         policies={this.props.policies}
+                                        dragAndDropId={this.dragAndDropId}
                                     />
                                 </>
                             )}
@@ -389,6 +404,7 @@ class ReportScreen extends React.Component {
                                 <ReportFooter
                                     shouldDisableCompose
                                     isOffline={this.props.network.isOffline}
+                                    dragAndDropId={this.dragAndDropId}
                                 />
                             )}
 
@@ -408,8 +424,6 @@ export default compose(
     withViewportOffsetTop,
     withLocalize,
     withWindowDimensions,
-    withNavigationFocus,
-    withNavigation,
     withNetwork(),
     withOnyx({
         isSidebarLoaded: {

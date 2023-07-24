@@ -43,7 +43,7 @@ function TaskDescriptionPage(props) {
         (values) => {
             // Set the description of the report in the store and then call Task.editTaskReport
             // to update the description of the report on the server
-            Task.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {description: values.description});
+            Task.editTaskAndNavigate(props.task.report, props.session.accountID, {description: values.description});
         },
         [props],
     );
@@ -54,6 +54,7 @@ function TaskDescriptionPage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton title={props.translate('task.task')} />
             <Form

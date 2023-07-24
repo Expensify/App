@@ -1,5 +1,6 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import usePrivatePersonalDetails from '../../hooks/usePrivatePersonalDetails';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
@@ -11,9 +12,6 @@ const propTypes = {
         isLoading: PropTypes.bool,
     }),
 
-    /** Whether to include padding bottom */
-    includeSafeAreaPaddingBottom: PropTypes.bool,
-
     /** Children to wrap in AnimatedStep. */
     children: PropTypes.node.isRequired,
 };
@@ -22,7 +20,6 @@ const defaultProps = {
     privatePersonalDetails: {
         isLoading: true,
     },
-    includeSafeAreaPaddingBottom: true,
 };
 
 function PersonalDetailsScreenWrapper(props) {
@@ -32,7 +29,16 @@ function PersonalDetailsScreenWrapper(props) {
         return <FullscreenLoadingIndicator />;
     }
 
-    return <ScreenWrapper includeSafeAreaPaddingBottom={props.includeSafeAreaPaddingBottom}>{props.children}</ScreenWrapper>;
+    const screenWrapperProps = _.omit(props, ['privatePersonalDetails', 'children']);
+
+    return (
+        <ScreenWrapper
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...screenWrapperProps}
+        >
+            {props.children}
+        </ScreenWrapper>
+    );
 }
 
 PersonalDetailsScreenWrapper.propTypes = propTypes;

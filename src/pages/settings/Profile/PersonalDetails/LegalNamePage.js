@@ -64,7 +64,11 @@ function LegalNamePage(props) {
     }, []);
 
     return (
-        <PersonalDetailsScreenWrapper privatePersonalDetails={props.privatePersonalDetails} includeSafeAreaPaddingBottom={false}>
+        <PersonalDetailsScreenWrapper
+            privatePersonalDetails={props.privatePersonalDetails}
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
