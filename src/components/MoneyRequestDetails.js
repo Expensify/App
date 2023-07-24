@@ -26,6 +26,7 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import DateUtils from '../libs/DateUtils';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as UserUtils from '../libs/UserUtils';
+import OfflineWithFeedback from './OfflineWithFeedback';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -91,105 +92,112 @@ function MoneyRequestDetails(props) {
     const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
+    const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(props.report);
     return (
-        <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
-            <View style={[styles.ph5, styles.pb2]}>
-                <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Avatar
-                            source={payeeAvatar}
-                            type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
-                            name={payeeName}
-                            size={CONST.AVATAR_SIZE.DEFAULT}
-                        />
-                        <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
-                            <Text
-                                style={[styles.headerText, styles.pre]}
-                                numberOfLines={1}
-                            >
-                                {payeeName}
-                            </Text>
-                            {isExpenseReport && (
+        <OfflineWithFeedback
+            pendingAction={addWorkspaceRoomOrChatPendingAction}
+            errors={addWorkspaceRoomOrChatErrors}
+            shouldShowErrorMessages={false}
+        >
+            <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
+                <View style={[styles.ph5, styles.pb2]}>
+                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Avatar
+                                source={payeeAvatar}
+                                type={isExpenseReport ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR}
+                                name={payeeName}
+                                size={CONST.AVATAR_SIZE.DEFAULT}
+                            />
+                            <View style={[styles.flex1, styles.flexColumn, styles.ml3]}>
                                 <Text
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    style={[styles.headerText, styles.pre]}
                                     numberOfLines={1}
                                 >
-                                    {props.translate('workspace.common.workspace')}
+                                    {payeeName}
                                 </Text>
+                                {isExpenseReport && (
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                        numberOfLines={1}
+                                    >
+                                        {props.translate('workspace.common.workspace')}
+                                    </Text>
+                                )}
+                            </View>
+                        </View>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
+                            {!props.isSingleTransactionView && isSettled && (
+                                <View style={styles.defaultCheckmarkWrapper}>
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={themeColors.iconSuccessFill}
+                                    />
+                                </View>
+                            )}
+                            {shouldShowSettlementButton && !props.isSmallScreenWidth && (
+                                <View style={[styles.ml4]}>
+                                    <SettlementButton
+                                        currency={props.report.currency}
+                                        policyID={props.report.policyID}
+                                        shouldShowPaypal={shouldShowPaypal}
+                                        chatReportID={props.chatReport.reportID}
+                                        iouReport={props.report}
+                                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                                        addBankAccountRoute={bankAccountRoute}
+                                        shouldShowPaymentOptions
+                                    />
+                                </View>
                             )}
                         </View>
                     </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
-                        {!props.isSingleTransactionView && isSettled && (
-                            <View style={styles.defaultCheckmarkWrapper}>
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    fill={themeColors.iconSuccessFill}
-                                />
-                            </View>
-                        )}
-                        {shouldShowSettlementButton && !props.isSmallScreenWidth && (
-                            <View style={[styles.ml4]}>
-                                <SettlementButton
-                                    currency={props.report.currency}
-                                    policyID={props.report.policyID}
-                                    shouldShowPaypal={shouldShowPaypal}
-                                    chatReportID={props.chatReport.reportID}
-                                    iouReport={props.report}
-                                    onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
-                                    enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                                    addBankAccountRoute={bankAccountRoute}
-                                    shouldShowPaymentOptions
-                                />
-                            </View>
-                        )}
-                    </View>
+                    {shouldShowSettlementButton && props.isSmallScreenWidth && (
+                        <SettlementButton
+                            currency={props.report.currency}
+                            policyID={props.report.policyID}
+                            shouldShowPaypal={shouldShowPaypal}
+                            chatReportID={props.report.chatReportID}
+                            iouReport={props.report}
+                            onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
+                            enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
+                            addBankAccountRoute={bankAccountRoute}
+                            shouldShowPaymentOptions
+                        />
+                    )}
                 </View>
-                {shouldShowSettlementButton && props.isSmallScreenWidth && (
-                    <SettlementButton
-                        currency={props.report.currency}
-                        policyID={props.report.policyID}
-                        shouldShowPaypal={shouldShowPaypal}
-                        chatReportID={props.report.chatReportID}
-                        iouReport={props.report}
-                        onPress={(paymentType) => IOU.payMoneyRequest(paymentType, props.chatReport, props.report)}
-                        enablePaymentsRoute={ROUTES.BANK_ACCOUNT_NEW}
-                        addBankAccountRoute={bankAccountRoute}
-                        shouldShowPaymentOptions
-                    />
+                {props.isSingleTransactionView && (
+                    <>
+                        <MenuItemWithTopDescription
+                            title={formattedTransactionAmount}
+                            shouldShowTitleIcon={isSettled}
+                            titleIcon={Expensicons.Checkmark}
+                            description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
+                            titleStyle={styles.newKansasLarge}
+                            disabled={isSettled}
+                            // Note: These options are temporarily disabled while we figure out the required API changes
+                            // shouldShowRightIcon={!isSettled}
+                            // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                        />
+                        <MenuItemWithTopDescription
+                            description={props.translate('common.description')}
+                            title={transactionDescription}
+                            disabled={isSettled}
+                            // shouldShowRightIcon={!isSettled}
+                            // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                        />
+                        <MenuItemWithTopDescription
+                            description={props.translate('common.date')}
+                            title={formattedTransactionDate}
+                            // shouldShowRightIcon={!isSettled}
+                            // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                        />
+                    </>
                 )}
             </View>
-            {props.isSingleTransactionView && (
-                <>
-                    <MenuItemWithTopDescription
-                        title={formattedTransactionAmount}
-                        shouldShowTitleIcon={isSettled}
-                        titleIcon={Expensicons.Checkmark}
-                        description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
-                        titleStyle={styles.newKansasLarge}
-                        disabled={isSettled}
-                        // Note: These options are temporarily disabled while we figure out the required API changes
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
-                    />
-                    <MenuItemWithTopDescription
-                        description={props.translate('common.description')}
-                        title={transactionDescription}
-                        disabled={isSettled}
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
-                    />
-                    <MenuItemWithTopDescription
-                        description={props.translate('common.date')}
-                        title={formattedTransactionDate}
-                        // shouldShowRightIcon={!isSettled}
-                        // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
-                    />
-                </>
-            )}
-        </View>
+        </OfflineWithFeedback>
     );
 }
 

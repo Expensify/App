@@ -57,13 +57,15 @@ Please be aware that compensation for any support in solving an issue is provide
 
 **Important:** Payment amounts are variable, dependent on when your PR is merged. Your PR will be reviewed by a Contributor+ (C+) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
 
-**Payment timeline** all based on the day the contributor has an accepted proposal and is assigned to the Github issue
-- Merged PR within 3 business days - 50% **bonus**
-- Merged PR within 6 business days - 0% bonus 
-- Merged PR within 9 business days - 50% **penalty**  
+**Payment timeline** all based on the day and timestamp the contributor has an accepted proposal and is assigned to the Github issue
+- Merged PR within 3 business days (72 hours) - 50% **bonus**
+- Merged PR within 6 business days (144 hours) - 0% bonus 
+- Merged PR within 9 business days (216 hours) - 50% **penalty**  
 - No PR within 12 business days - **Contract terminated**  
 
-If the PR causes a regression at any point within the regression period (starting when the code is merged and ending 7 days after being deployed to production), contributors are not eligible for the 50% bonus. 
+If the PR causes a regression at any point within the regression period (starting when the code is merged and ending 7 days after being deployed to production), contributors are not eligible for the 50% bonus.
+
+We specify exact hours to make sure we can clearly decide what is eligible for the bonus given our team is global and contributors span across all the timezones.
 
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:

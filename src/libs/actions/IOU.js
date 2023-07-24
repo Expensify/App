@@ -136,7 +136,7 @@ function buildOnyxDataForMoneyRequest(
         },
     ];
 
-    if (isNewChatReport && !_.isEmpty(optimisticPersonalDetailListAction)) {
+    if (!_.isEmpty(optimisticPersonalDetailListAction)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -344,8 +344,8 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         }
     } else {
         iouReport = isPolicyExpenseChat
-            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, payeeAccountID, amount, currency)
-            : ReportUtils.buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency)
+            : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     }
 
     // STEP 3: Build optimistic transaction
@@ -371,14 +371,16 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     );
 
     // Add optimistic personal details for participant
-    const optimisticPersonalDetailListAction = {
-        [payerAccountID]: {
-            accountID: payerAccountID,
-            avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
-            displayName: participant.displayName || payerEmail,
-            login: participant.login,
-        },
-    };
+    const optimisticPersonalDetailListAction = isNewChatReport
+        ? {
+              [payerAccountID]: {
+                  accountID: payerAccountID,
+                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
+                  displayName: participant.displayName || payerEmail,
+                  login: participant.login,
+              },
+          }
+        : undefined;
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
@@ -589,11 +591,18 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         // If we only have one participant and the request was initiated from the global create menu, i.e. !existingGroupChatReportID, the oneOnOneChatReport is the groupChatReport
         let oneOnOneChatReport;
         let isNewOneOnOneChatReport = false;
-        oneOnOneChatReport = !hasMultipleParticipants && !existingGroupChatReportID ? groupChatReport : ReportUtils.getChatByParticipants([accountID]);
+        let shouldCreateOptimisticPersonalDetails = false;
 
-        if (!oneOnOneChatReport) {
-            isNewOneOnOneChatReport = true;
-            oneOnOneChatReport = ReportUtils.buildOptimisticChatReport([accountID]);
+        // If this is a split between two people only and the function
+        // wasn't provided with an existing group chat report id
+        if (!hasMultipleParticipants && !existingGroupChatReportID) {
+            oneOnOneChatReport = groupChatReport;
+            shouldCreateOptimisticPersonalDetails = !existingGroupChatReport;
+        } else {
+            const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
+            isNewOneOnOneChatReport = !existingChatReport;
+            shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport;
+            oneOnOneChatReport = existingChatReport || ReportUtils.buildOptimisticChatReport([accountID]);
         }
 
         // STEP 2: Get existing IOU report and update its total OR build a new optimistic one
@@ -602,7 +611,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         if (!isNewOneOnOneIOUReport) {
             oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`], currentUserAccountID, splitAmount, currency);
         } else {
-            oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(currentUserEmail, currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+            oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         }
 
         // STEP 3: Build optimistic transaction
@@ -635,14 +644,16 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         );
 
         // Add optimistic personal details for new participants
-        const oneOnOnePersonalDetailListAction = {
-            [accountID]: {
-                accountID,
-                avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: participant.displayName || email,
-                login: participant.login,
-            },
-        };
+        const oneOnOnePersonalDetailListAction = shouldCreateOptimisticPersonalDetails
+            ? {
+                  [accountID]: {
+                      accountID,
+                      avatar: UserUtils.getDefaultAvatarURL(accountID),
+                      displayName: participant.displayName || email,
+                      login: participant.login,
+                  },
+              }
+            : undefined;
 
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
@@ -917,7 +928,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID]);
         isNewChat = true;
     }
-    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
+    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
 
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, optimisticIOUReport.reportID, comment);
     const optimisticTransactionData = {

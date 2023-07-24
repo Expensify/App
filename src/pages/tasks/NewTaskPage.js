@@ -21,6 +21,7 @@ import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 const propTypes = {
     /** Task Creation Data */
@@ -154,11 +155,12 @@ function NewTaskPage(props) {
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                             shouldShowRightIcon
                             numberOfLinesTitle={2}
+                            titleStyle={styles.flex1}
                         />
                         <MenuItem
                             label={assignee.displayName ? props.translate('task.assignee') : ''}
                             title={assignee.displayName || ''}
-                            description={assignee.displayName ? assignee.subtitle : props.translate('task.assignee')}
+                            description={assignee.displayName ? LocalePhoneNumber.formatPhoneNumber(assignee.subtitle) : props.translate('task.assignee')}
                             icon={assignee.icons}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
                             shouldShowRightIcon
@@ -169,7 +171,8 @@ function NewTaskPage(props) {
                             description={shareDestination.displayName ? shareDestination.subtitle : props.translate('newTaskPage.shareSomewhere')}
                             icon={shareDestination.icons}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
-                            shouldShowRightIcon
+                            interactive={!props.task.parentReportID}
+                            shouldShowRightIcon={!props.task.parentReportID}
                         />
                     </View>
                     <FormAlertWithSubmitButton
