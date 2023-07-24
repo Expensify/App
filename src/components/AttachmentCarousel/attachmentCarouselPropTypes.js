@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import {withLocalizePropTypes} from '../withLocalize';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import reportPropTypes from '../../pages/reportPropTypes';
 
@@ -11,12 +10,10 @@ const propTypes = {
     onNavigate: PropTypes.func,
 
     /** Object of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+    reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** The report currently being looked at */
     report: reportPropTypes.isRequired,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {

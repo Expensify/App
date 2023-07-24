@@ -9,12 +9,11 @@ import CarouselActions from './CarouselActions';
 import Button from '../Button';
 import AttachmentView from '../AttachmentView';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import Tooltip from '../Tooltip';
-import withLocalize from '../withLocalize';
-import compose from '../../libs/compose';
-import withWindowDimensions from '../withWindowDimensions';
+import useLocalize from '../../hooks/useLocalize';
 import createInitialState from './createInitialState';
 import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
 
@@ -26,15 +25,20 @@ const viewabilityConfig = {
 };
 
 function AttachmentCarousel(props) {
+    const {onNavigate} = props;
+
+    const {translate} = useLocalize();
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
+
+    const scrollRef = useRef(null);
+    const autoHideArrowTimeout = useRef(null);
+
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState([]);
     const [shouldShowArrow, setShouldShowArrow] = useState(canUseTouchScreen);
     const [containerWidth, setContainerWidth] = useState(0);
     const [isZoomed, setIsZoomed] = useState(false);
     const [activeSource, setActiveSource] = useState(null);
-
-    const scrollRef = useRef(null);
-    const autoHideArrowTimeout = useRef(null);
 
     let isForwardDisabled = page === 0;
     let isBackDisabled = page === _.size(attachments) - 1;
@@ -169,7 +173,7 @@ function AttachmentCarousel(props) {
         }
 
         const pageToSet = entry.index;
-        props.onNavigate(entry.item);
+        onNavigate(entry.item);
         setPage(pageToSet);
         setIsZoomed(false);
         setActiveSource(entry.item.source);
@@ -184,8 +188,8 @@ function AttachmentCarousel(props) {
         (cellRendererProps) => {
             // Use window width instead of layout width to address the issue in https://github.com/Expensify/App/issues/17760
             // considering horizontal margin and border width in centered modal
-            const modalStyles = styles.centeredModalStyles(props.isSmallScreenWidth, true);
-            const style = [cellRendererProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(props.windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
+            const modalStyles = styles.centeredModalStyles(isSmallScreenWidth, true);
+            const style = [cellRendererProps.style, styles.h100, {width: PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2)}];
 
             return (
                 <View
@@ -195,7 +199,7 @@ function AttachmentCarousel(props) {
                 />
             );
         },
-        [props.isSmallScreenWidth, props.windowWidth],
+        [isSmallScreenWidth, windowWidth],
     );
 
     /**
@@ -227,8 +231,8 @@ function AttachmentCarousel(props) {
             {shouldShowArrow && (
                 <>
                     {!isBackDisabled && (
-                        <Tooltip text={props.translate('common.previous')}>
-                            <View style={[styles.attachmentArrow, props.isSmallScreenWidth ? styles.l2 : styles.l8]}>
+                        <Tooltip text={translate('common.previous')}>
+                            <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.l2 : styles.l8]}>
                                 <Button
                                     small
                                     innerStyles={[styles.arrowIcon]}
@@ -246,8 +250,8 @@ function AttachmentCarousel(props) {
                         </Tooltip>
                     )}
                     {!isForwardDisabled && (
-                        <Tooltip text={props.translate('common.next')}>
-                            <View style={[styles.attachmentArrow, props.isSmallScreenWidth ? styles.r2 : styles.r8]}>
+                        <Tooltip text={translate('common.next')}>
+                            <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.r2 : styles.r8]}>
                                 <Button
                                     small
                                     innerStyles={[styles.arrowIcon]}
@@ -306,13 +310,9 @@ function AttachmentCarousel(props) {
 AttachmentCarousel.propTypes = propTypes;
 AttachmentCarousel.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        reportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-            canEvict: false,
-        },
-    }),
-    withLocalize,
-    withWindowDimensions,
-)(AttachmentCarousel);
+export default withOnyx({
+    reportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+        canEvict: false,
+    },
+})(AttachmentCarousel);
