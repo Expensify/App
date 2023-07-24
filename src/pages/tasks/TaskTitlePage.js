@@ -65,6 +65,7 @@ function TaskTitlePage(props) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             onEntryTransitionEnd={() => focusAndUpdateMultilineInputRange(inputRef.current)}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton title={props.translate('task.task')} />
             <Form

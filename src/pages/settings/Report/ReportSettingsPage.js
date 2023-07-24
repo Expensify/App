@@ -66,6 +66,7 @@ class ReportSettingsPage extends Component {
     }
 
     render() {
+        const shouldDisableSettings = ReportUtils.shouldDisableSettings(this.props.report);
         const shouldShowRoomName = !ReportUtils.isPolicyExpenseChat(this.props.report) && !ReportUtils.isChatThread(this.props.report);
         const linkedWorkspace = _.find(this.props.policies, (policy) => policy && policy.id === this.props.report.policyID);
         const shouldDisableRename = ReportUtils.shouldDisableRename(this.props.report, linkedWorkspace) || ReportUtils.isChatThread(this.props.report);
@@ -80,7 +81,7 @@ class ReportSettingsPage extends Component {
 
         return (
             <ScreenWrapper>
-                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report)}>
+                <FullPageNotFoundView shouldShow={_.isEmpty(this.props.report) || shouldDisableSettings}>
                     <HeaderWithBackButton
                         title={this.props.translate('common.settings')}
                         onBackButtonPress={() => Navigation.goBack(ROUTES.getReportDetailsRoute(this.props.report.reportID))}

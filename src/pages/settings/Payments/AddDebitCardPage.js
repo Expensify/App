@@ -1,6 +1,5 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
@@ -17,9 +16,7 @@ import TextInput from '../../../components/TextInput';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import AddressSearch from '../../../components/AddressSearch';
-import * as ComponentUtils from '../../../libs/ComponentUtils';
 import Form from '../../../components/Form';
-import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import usePrevious from '../../../hooks/usePrevious';
@@ -29,16 +26,12 @@ const propTypes = {
     formData: PropTypes.shape({
         setupComplete: PropTypes.bool,
     }),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     formData: {
         setupComplete: false,
     },
-    betas: [],
 };
 
 function DebitCardPage(props) {
@@ -95,10 +88,6 @@ function DebitCardPage(props) {
 
         if (!values.addressState || !values.addressState) {
             errors.addressState = 'addDebitCardPage.error.addressState';
-        }
-
-        if (!Permissions.canUsePasswordlessLogins(props.betas) && (!values.password || _.isEmpty(values.password.trim()))) {
-            errors.password = 'addDebitCardPage.error.password';
         }
 
         if (!values.acceptTerms) {
@@ -184,19 +173,6 @@ function DebitCardPage(props) {
                 <View style={styles.mt4}>
                     <StatePicker inputID="addressState" />
                 </View>
-                {!Permissions.canUsePasswordlessLogins(props.betas) && (
-                    <View style={[styles.mt4]}>
-                        <TextInput
-                            inputID="password"
-                            label={translate('addDebitCardPage.expensifyPassword')}
-                            accessibilityLabel={translate('addDebitCardPage.expensifyPassword')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            textContentType="password"
-                            autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
-                            secureTextEntry
-                        />
-                    </View>
-                )}
                 <CheckboxWithLabel
                     accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
                     inputID="acceptTerms"
@@ -219,8 +195,5 @@ DebitCardPage.defaultProps = defaultProps;
 export default withOnyx({
     formData: {
         key: ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
 })(DebitCardPage);
