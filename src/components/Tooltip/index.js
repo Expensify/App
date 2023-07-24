@@ -4,13 +4,12 @@ import {Animated} from 'react-native';
 import {BoundsObserver} from '@react-ng/bounds-observer';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
-import withWindowDimensions from '../withWindowDimensions';
 import * as tooltipPropTypes from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
-import compose from '../../libs/compose';
-import withLocalize from '../withLocalize';
 import usePrevious from '../../hooks/usePrevious';
+import useLocalize from '../../hooks/useLocalize';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
 
@@ -21,6 +20,11 @@ const hasHoverSupport = DeviceCapabilities.hasHoverSupport();
  * @returns {ReactNodeLike}
  */
 function Tooltip(props) {
+    const {children, numberOfLines, maxWidth, text, renderTooltipContent, renderTooltipContentKey} = props;
+
+    const {preferredLocale} = useLocalize();
+    const {windowWidth} = useWindowDimensions();
+
     // Is tooltip already rendered on the page's body? happens once.
     const [isRendered, setIsRendered] = useState(false);
     // Is the tooltip currently visible?
@@ -37,7 +41,7 @@ function Tooltip(props) {
     const isTooltipSenseInitiator = useRef(false);
     const animation = useRef(new Animated.Value(0));
     const isAnimationCanceled = useRef(false);
-    const prevText = usePrevious(props.text);
+    const prevText = usePrevious(text);
 
     /**
      * Display the tooltip in an animation.
@@ -72,11 +76,11 @@ function Tooltip(props) {
     useEffect(() => {
         // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
         // we need to show the tooltip again
-        if (isVisible && isAnimationCanceled.current && props.text && prevText !== props.text) {
+        if (isVisible && isAnimationCanceled.current && text && prevText !== text) {
             isAnimationCanceled.current = false;
             showTooltip();
         }
-    }, [isVisible, props.text, prevText, showTooltip]);
+    }, [isVisible, text, prevText, showTooltip]);
 
     /**
      * Update the tooltip bounding rectangle
@@ -118,8 +122,8 @@ function Tooltip(props) {
 
     // Skip the tooltip and return the children if the text is empty,
     // we don't have a render function or the device does not support hovering
-    if ((_.isEmpty(props.text) && props.renderTooltipContent == null) || !hasHoverSupport) {
-        return props.children;
+    if ((_.isEmpty(text) && renderTooltipContent == null) || !hasHoverSupport) {
+        return children;
     }
 
     return (
@@ -127,20 +131,20 @@ function Tooltip(props) {
             {isRendered && (
                 <TooltipRenderedOnPageBody
                     animation={animation.current}
-                    windowWidth={props.windowWidth}
+                    windowWidth={windowWidth}
                     xOffset={xOffset}
                     yOffset={yOffset}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
                     shiftHorizontal={_.result(props, 'shiftHorizontal')}
                     shiftVertical={_.result(props, 'shiftVertical')}
-                    text={props.text}
-                    maxWidth={props.maxWidth}
-                    numberOfLines={props.numberOfLines}
-                    renderTooltipContent={props.renderTooltipContent}
+                    text={text}
+                    maxWidth={maxWidth}
+                    numberOfLines={numberOfLines}
+                    renderTooltipContent={renderTooltipContent}
                     // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
                     // This prevents flickering/moving while remaining performant.
-                    key={[props.text, ...props.renderTooltipContentKey, props.preferredLocale]}
+                    key={[text, ...renderTooltipContentKey, preferredLocale]}
                 />
             )}
             <BoundsObserver
@@ -151,7 +155,7 @@ function Tooltip(props) {
                     onHoverIn={showTooltip}
                     onHoverOut={hideTooltip}
                 >
-                    {props.children}
+                    {children}
                 </Hoverable>
             </BoundsObserver>
         </>
@@ -160,4 +164,4 @@ function Tooltip(props) {
 
 Tooltip.propTypes = tooltipPropTypes.propTypes;
 Tooltip.defaultProps = tooltipPropTypes.defaultProps;
-export default compose(withWindowDimensions, withLocalize)(memo(Tooltip));
+export default memo(Tooltip);
