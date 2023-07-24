@@ -525,6 +525,7 @@ describe('OptionsListUtils', () => {
         // When we use a search term for contact number that contains alphabet characters
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '998243aaaa');
 
+        // Then we shouldn't have any results or user to invite
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).toBe(null);
