@@ -60,7 +60,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 // of the new response created by handleExpiredAuthToken.
                 // If the request was from the sequential queue we don't want to return, we want to run the reauthentication callback and retry the request
                 const apiRequestType = lodashGet(request, 'data.apiRequestType');
-                
+
                 // For the SignInWithShortLivedAuthToken command, if the short token expires, the server returns a 407 error,
                 // and credentials are still empty at this time, which causes reauthenticate to throw an error (requireParameters),
                 // and the subsequent SaveResponseInOnyx also cannot be executed, so we need this parameter to skip the reauthentication logic.
