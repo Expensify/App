@@ -67,20 +67,18 @@ function WorkspaceInvitePage(props) {
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [personalDetails, setPersonalDetails] = useState([]);
     const [userToInvite, setUserToInvite] = useState(null);
-    const openWorkspaceInvitePageRef = useRef(null);
-
-    openWorkspaceInvitePageRef.current = () => {
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getClientPolicyMemberEmailsToAccountIDs(props.policyMembers, props.personalDetails);
+    const openWorkspaceInvitePage = () => {
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     };
 
     useEffect(() => {
         Policy.clearErrors(props.route.params.policyID);
-        openWorkspaceInvitePageRef.current();
+        openWorkspaceInvitePage();
         // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
     }, []);
 
-    useOnNetworkReconnect(openWorkspaceInvitePageRef.current);
+    useOnNetworkReconnect(openWorkspaceInvitePage);
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(
