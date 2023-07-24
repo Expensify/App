@@ -1574,7 +1574,7 @@ function addEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSki
     const reportActionID = reportAction.reportActionID;
     const createdAt = moment().utc().format(CONST.DATE.SQL_DATE_TIME);
 
-    const optimisticData = [
+    const reportActionsReactionsData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
@@ -1621,7 +1621,7 @@ function addEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSki
         ...message,
         reactions: updatedReactions,
     };
-    const successData = [
+    const reportActionsData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -1631,6 +1631,10 @@ function addEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSki
                 },
             },
         },
+    ];
+    const optimisticData = [
+        ...reportActionsReactionsData,
+        ...reportActionsData,
     ];
 
     const parameters = {
@@ -1642,7 +1646,7 @@ function addEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSki
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-    API.write('AddEmojiReaction', parameters, {optimisticData, successData});
+    API.write('AddEmojiReaction', parameters, {optimisticData});
 }
 
 /**
@@ -1657,7 +1661,7 @@ function addEmojiReaction(reportID, reportAction, emoji, skinTone = preferredSki
  */
 function removeEmojiReaction(reportID, reportAction, emoji) {
     const reportActionID = reportAction.reportActionID;
-    const optimisticData = [
+    const reportActionsReactionsData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
@@ -1701,7 +1705,7 @@ function removeEmojiReaction(reportID, reportAction, emoji) {
         ...message,
         reactions: updatedReactions,
     };
-    const successData = [
+    const reportActionsData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -1712,6 +1716,10 @@ function removeEmojiReaction(reportID, reportAction, emoji) {
             },
         },
     ];
+    const optimisticData = [
+        ...reportActionsReactionsData,
+        ...reportActionsData,
+    ];
 
     const parameters = {
         reportID,
@@ -1720,7 +1728,8 @@ function removeEmojiReaction(reportID, reportAction, emoji) {
         // This will be removed as part of https://github.com/Expensify/App/issues/19535
         useEmojiReactions: true,
     };
-    API.write('RemoveEmojiReaction', parameters, {optimisticData, successData});
+
+    API.write('RemoveEmojiReaction', parameters, {optimisticData});
 }
 
 /**
