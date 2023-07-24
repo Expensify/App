@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
 import useWindowDimensions from '../hooks/useWindowDimensions';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
@@ -13,7 +13,7 @@ import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopover
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
-    ..._.omit(popoverPropTypes, ['anchorPosition']),
+    ..._.omit(popoverPropTypes, ['anchorPosition', ..._.keys(windowDimensionsPropTypes)]),
 
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
@@ -35,8 +35,6 @@ const propTypes = {
         height: PropTypes.number,
         width: PropTypes.number,
     }),
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -165,7 +163,7 @@ PopoverWithMeasuredContent.propTypes = propTypes;
 PopoverWithMeasuredContent.defaultProps = defaultProps;
 PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
 
-export default React.memo(withWindowDimensions(PopoverWithMeasuredContent), (prevProps, nextProps) => {
+export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => {
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
         return true;
     }
