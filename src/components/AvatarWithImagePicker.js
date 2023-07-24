@@ -226,6 +226,7 @@ class AvatarWithImagePicker extends React.Component {
 
             this.setState({
                 isAvatarCropModalOpen: true,
+                isMenuVisible: false,
                 imageUri: image.uri,
                 imageName: image.name,
                 imageType: image.type,
@@ -279,6 +280,7 @@ class AvatarWithImagePicker extends React.Component {
                     onPress={() => this.setState({isMenuVisible: true})}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
                     accessibilityLabel={this.props.translate('avatarWithImagePicker.editImage')}
+                    disabled={this.state.isAvatarCropModalOpen}
                 >
                     <View style={[styles.pRelative, styles.avatarLarge]}>
                         <OfflineWithFeedback

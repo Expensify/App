@@ -2183,7 +2183,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 }
 
 /**
- * Attempts to find a report in onyx with the provided list of participants. Does not include threads
+ * Attempts to find a report in onyx with the provided list of participants. Does not include threads, task, money request, room, and policy expense chat.
  * @param {Array<Number>} newParticipantList
  * @returns {Array|undefined}
  */
@@ -2191,12 +2191,20 @@ function getChatByParticipants(newParticipantList) {
     newParticipantList.sort();
     return _.find(allReports, (report) => {
         // If the report has been deleted, or there are no participants (like an empty #admins room) then skip it
-        if (!report || _.isEmpty(report.participantAccountIDs) || isChatThread(report)) {
+        if (
+            !report ||
+            _.isEmpty(report.participantAccountIDs) ||
+            isChatThread(report) ||
+            isTaskReport(report) ||
+            isMoneyRequestReport(report) ||
+            isChatRoom(report) ||
+            isPolicyExpenseChat(report)
+        ) {
             return false;
         }
 
-        // Only return the room if it has all the participants and is not a policy room
-        return !isUserCreatedPolicyRoom(report) && _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
+        // Only return the chat if it has all the participants
+        return _.isEqual(newParticipantList, _.sortBy(report.participantAccountIDs));
     });
 }
 
