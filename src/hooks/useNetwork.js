@@ -6,7 +6,7 @@ import {NetworkContext} from '../components/OnyxProvider';
  * @param {Function} [options.onReconnect]
  * @returns {Object}
  */
-export default function useNetwork({onReconnect = () => {}}) {
+export default function useNetwork({onReconnect = () => {}} = {}) {
     const callback = useRef(onReconnect);
     callback.current = onReconnect;
 
