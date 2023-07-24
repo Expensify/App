@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import React, {useState, useEffect, useRef, useMemo} from 'react';
+import React, {useState, useEffect, useRef, useMemo, useCallback} from 'react';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -138,10 +138,7 @@ function InitialSettingsPage(props) {
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
      */
-    const getWalletBalance = useMemo(
-        (isPaymentItem) => (isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined),
-        [props.betas, props.userWallet.currentBalance],
-    );
+    const getWalletBalance = (isPaymentItem) => (isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
 
     const toggleSignoutConfirmModal = (value) => {
         setShouldShowSignoutConfirmModal(value);
@@ -151,18 +148,16 @@ function InitialSettingsPage(props) {
         Navigation.navigate(ROUTES.SETTINGS_PROFILE);
     };
 
-    const signOut = useMemo(
-        (shouldForceSignout = false) => {
-            if (props.network.isOffline || shouldForceSignout) {
-                Session.signOutAndRedirectToSignIn();
-                return;
-            }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const signOut = useCallback((shouldForceSignout = false) => {
+        if (props.network.isOffline || shouldForceSignout) {
+            Session.signOutAndRedirectToSignIn();
+            return;
+        }
 
-            // When offline, warn the user that any actions they took while offline will be lost if they sign out
-            toggleSignoutConfirmModal(true);
-        },
-        [props.network.isOffline],
-    );
+        // When offline, warn the user that any actions they took while offline will be lost if they sign out
+        toggleSignoutConfirmModal(true);
+    });
 
     /**
      * Retuns a list of default menu items
@@ -279,35 +274,32 @@ function InitialSettingsPage(props) {
         signOut,
     ]);
 
-    const getMenuItem = useMemo(
-        (item, index) => {
-            const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-            const isPaymentItem = item.translationKey === 'common.payments';
+    const getMenuItem = (item, index) => {
+        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+        const isPaymentItem = item.translationKey === 'common.payments';
 
-            return (
-                <MenuItem
-                    key={`${keyTitle}_${index}`}
-                    title={keyTitle}
-                    icon={item.icon}
-                    iconType={item.iconType}
-                    onPress={item.action}
-                    iconStyles={item.iconStyles}
-                    shouldShowRightIcon
-                    iconRight={item.iconRight}
-                    badgeText={getWalletBalance(isPaymentItem)}
-                    fallbackIcon={item.fallbackIcon}
-                    brickRoadIndicator={item.brickRoadIndicator}
-                    floatRightAvatars={item.floatRightAvatars}
-                    shouldStackHorizontally={item.shouldStackHorizontally}
-                    floatRightAvatarSize={item.avatarSize}
-                    ref={popoverAnchor}
-                    shouldBlockSelection={Boolean(item.link)}
-                    onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined}
-                />
-            );
-        },
-        [getWalletBalance, translate],
-    );
+        return (
+            <MenuItem
+                key={`${keyTitle}_${index}`}
+                title={keyTitle}
+                icon={item.icon}
+                iconType={item.iconType}
+                onPress={item.action}
+                iconStyles={item.iconStyles}
+                shouldShowRightIcon
+                iconRight={item.iconRight}
+                badgeText={getWalletBalance(isPaymentItem)}
+                fallbackIcon={item.fallbackIcon}
+                brickRoadIndicator={item.brickRoadIndicator}
+                floatRightAvatars={item.floatRightAvatars}
+                shouldStackHorizontally={item.shouldStackHorizontally}
+                floatRightAvatarSize={item.avatarSize}
+                ref={popoverAnchor}
+                shouldBlockSelection={Boolean(item.link)}
+                onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined}
+            />
+        );
+    };
 
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -371,7 +363,7 @@ function InitialSettingsPage(props) {
                                     )}
                                 </View>
                             )}
-                            {_.map(getDefaultMenuItems(), (item, index) => getMenuItem(item, index))}
+                            {_.map(getDefaultMenuItems, (item, index) => getMenuItem(item, index))}
 
                             <ConfirmModal
                                 danger
