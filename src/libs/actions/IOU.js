@@ -344,8 +344,8 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         }
     } else {
         iouReport = isPolicyExpenseChat
-            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeEmail, payeeAccountID, amount, currency)
-            : ReportUtils.buildOptimisticIOUReport(payeeEmail, payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency)
+            : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     }
 
     // STEP 3: Build optimistic transaction
@@ -611,7 +611,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
         if (!isNewOneOnOneIOUReport) {
             oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReports[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`], currentUserAccountID, splitAmount, currency);
         } else {
-            oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(currentUserEmail, currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+            oneOnOneIOUReport = ReportUtils.buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         }
 
         // STEP 3: Build optimistic transaction
@@ -928,7 +928,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID]);
         isNewChat = true;
     }
-    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientEmail, recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
+    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
 
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount * 100, currency, optimisticIOUReport.reportID, comment);
     const optimisticTransactionData = {

@@ -23,6 +23,7 @@ import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
+import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -37,10 +38,11 @@ const propTypes = {
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
-    chatReport: PropTypes.shape({
-        /** Whether the chat report has an outstanding IOU */
-        hasOutstandingIOU: PropTypes.bool.isRequired,
-    }),
+    chatReport: reportPropTypes,
+
+    /** Extra styles to pass to View wrapper */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
@@ -78,6 +80,7 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: null,
     chatReport: {},
+    containerStyles: [],
     iouReport: {},
     checkIfContextMenuActive: () => {},
     session: {
@@ -92,7 +95,7 @@ function ReportPreview(props) {
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     return (
-        <View style={styles.chatItemMessage}>
+        <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
                 onPress={() => {
                     Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
