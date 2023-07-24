@@ -297,7 +297,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartTwo: ' and ',
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
-        sayHello: 'Say hello!',
+        sayHello: 'hi!',
         usePlusButton: '\n\nYou can also use the + button below to send or request money!',
     },
     reportAction: {
@@ -1219,6 +1219,7 @@ export default {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace.',
+            nameIsAlreadyUsedError : 'This name is already used by another workspace.',
             nameIsTooLongError: `Your workspace name can be at most ${CONST.WORKSPACE_NAME_CHARACTER_LIMIT} characters long.`,
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',

@@ -75,8 +75,11 @@ function WorkspaceSettingsPage(props) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
             // code units.
             errors.name = 'workspace.editor.nameIsTooLongError';
+        }if (name !== lodashGet(props.policy, 'name', '')) {
+            // If the name has changed, make sure it's not already used by another workspace
+                errors.name = 'workspace.editor.nameIsAlreadyUsedError';
+            
         }
-
         return errors;
     }, []);
 
