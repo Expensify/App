@@ -1773,10 +1773,12 @@ function flagComment(reportID, reportAction, severity) {
     const message = reportAction.message[0];
     let updatedDecision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
-        if (!message.moderationDecision || message.moderationDecision.decision !== CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE) {
+        if (!message.moderationDecision) {
             updatedDecision = {
                 decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
             };
+        } else {
+            updatedDecision = message.moderationDecision;
         }
     } else if (severity === CONST.MODERATION.FLAG_SEVERITY_ASSAULT || severity === CONST.MODERATION.FLAG_SEVERITY_HARASSMENT) {
         updatedDecision = {
