@@ -24,7 +24,6 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import DotIndicatorMessage from '../../components/DotIndicatorMessage';
 import * as CloseAccount from '../../libs/actions/CloseAccount';
 import CONST from '../../CONST';
-import AppleSignIn from '../../components/SignInButtons/AppleSignIn';
 import isInputAutoFilled from '../../libs/isInputAutoFilled';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Log from '../../libs/Log';
@@ -106,10 +105,6 @@ function LoginForm(props) {
         },
         [props.account, props.closeAccount, input, setFormError, setLogin],
     );
-
-    function getSignInWithStyles() {
-        return props.isSmallScreenWidth ? [styles.mt1] : [styles.mt5, styles.mb5];
-    }
 
     /**
      * Check that all the form fields are valid, then trigger the submit callback
@@ -218,7 +213,7 @@ function LoginForm(props) {
             )}
             {
                 // We need to unmount the submit button when the component is not visible so that the Enter button
-                // key handler gets unsubscribed and does not conflict with the Password Form
+                // key handler gets unsubscribed
                 props.isVisible && (
                     <View style={[styles.mt5]}>
                         <FormAlertWithSubmitButton
@@ -229,12 +224,6 @@ function LoginForm(props) {
                             isAlertVisible={!_.isEmpty(serverErrorText)}
                             containerStyles={[styles.mh0]}
                         />
-                        <View style={[getSignInWithStyles()]}>
-                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mb3, styles.mt2]}>{props.translate('common.signInWith')}</Text>
-                            <View style={props.isSmallScreenWidth ? styles.loginButtonRowSmallScreen : styles.loginButtonRow}>
-                                <AppleSignIn />
-                            </View>
-                        </View>
                     </View>
                 )
             }

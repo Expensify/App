@@ -100,7 +100,7 @@ function hasCommentThread(reportAction) {
  * @param {Object} [allReportActionsParam]
  * @returns {Object}
  */
-function getParentReportAction(report, allReportActionsParam) {
+function getParentReportAction(report, allReportActionsParam = undefined) {
     if (!report || !report.parentReportID || !report.parentReportActionID) {
         return {};
     }
