@@ -25,7 +25,6 @@ const propTypes = {
     // eslint-disable-next-line react/require-default-props
     onPressOut: PropTypes.func,
 
-    // eslint-disable-next-line react/forbid-prop-types
     ...anchorForCommentsOnlyPropTypes,
 };
 
