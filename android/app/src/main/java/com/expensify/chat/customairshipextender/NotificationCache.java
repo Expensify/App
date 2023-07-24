@@ -114,11 +114,31 @@ public class NotificationCache {
         }
 
         public Bitmap getIcon(String accountID) {
-            return icons.getParcelable(accountID);
+            return decodeToBitmap(icons.getString(accountID));
         }
 
         public void putIcon(String accountID, Bitmap bitmap) {
-            icons.putParcelable(accountID, bitmap);
+            icons.putString(accountID, encodeTobase64(bitmap));
+        }
+
+        public static String encodeTobase64(Bitmap bitmap) {
+            if (bitmap == null) {
+                return "";
+            }
+
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
+            return Base64.encodeToString(byteArray, Base64.DEFAULT);
+        }
+
+        public static Bitmap decodeToBitmap(String base64String) {
+            if (base64String == null) {
+                return null;
+            }
+
+            byte[] decodedBytes = Base64.decode(base64String, Base64.DEFAULT);
+            return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
         }
     }
 
