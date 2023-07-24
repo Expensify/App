@@ -66,7 +66,7 @@ type OriginalMessageClosed = {
 
 type OriginalMessageCreated = {
     actionName: typeof CONST.REPORT.ACTIONS.TYPE.CREATED;
-    originalMessage: undefined;
+    originalMessage: unknown;
 };
 
 type OriginalMessageRenamed = {
