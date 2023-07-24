@@ -121,7 +121,6 @@ class BaseReportActionContextMenu extends React.Component {
                                 key={contextAction.textTranslateKey}
                                 onPress={() => interceptAnonymousUser(() => contextAction.onPress(closePopup, payload), contextAction.isAnonymousAction)}
                                 description={contextAction.getDescription(this.props.selection, this.props.isSmallScreenWidth)}
-                                autoReset={contextAction.autoReset}
                                 isAnonymousAction={contextAction.isAnonymousAction}
                             />
                         );

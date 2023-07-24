@@ -519,6 +519,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
             result.alternateText = showChatPreviewLine && !forcePolicyNamePreview && lastMessageText ? lastMessageText : subtitle;
         } else if (result.isMoneyRequestReport) {
             result.alternateText = lastMessageTextFromReport.length > 0 ? lastMessageText : Localize.translate(preferredLocale, 'report.noActivityYet');
+        } else if (result.isTaskReport) {
+            result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageTextFromReport : Localize.translate(preferredLocale, 'report.noActivityYet');
         } else {
             result.alternateText = showChatPreviewLine && lastMessageText ? lastMessageText : LocalePhoneNumber.formatPhoneNumber(personalDetail.login);
         }
@@ -804,7 +806,7 @@ function getOptions(
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // Generates an optimistic account ID for new users not yet saved in Onyx
-        const optimisticAccountID = UserUtils.generateAccountID();
+        const optimisticAccountID = UserUtils.generateAccountID(searchValue);
         const personalDetailsExtended = {
             ...personalDetails,
             [optimisticAccountID]: {
@@ -889,6 +891,7 @@ function getSearchOptions(reports, personalDetails, searchValue = '', betas) {
         includeOwnedWorkspaceChats: true,
         includeThreads: true,
         includeMoneyRequests: true,
+        includeTasks: true,
     });
 }
 
