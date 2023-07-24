@@ -395,8 +395,8 @@ function BaseTextInput(props) {
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >
-                    {/* \u200B added to solve the issue(https://github.com/Expensify/App/issues/21271): "Cursor not visible on hitting enter" */}
-                    {props.value ? `${props.value}\u200B` : props.placeholder}
+                    {/* \u200B added when value ends with '\n' to solve the issue(https://github.com/Expensify/App/issues/21271): "Cursor not visible on hitting enter" */}
+                    {props.value ? `${props.value}${props.value.endsWith('\n') ? '\u200B' : ''}` : props.placeholder}
                 </Text>
             )}
         </>
