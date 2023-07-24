@@ -21,9 +21,9 @@ function BaseKeyboardSpacer(props) {
             const space = screenHeight - event.endCoordinates.screenY + props.topSpacing;
             setKeyboardSpace(space);
             props.onToggle(true, space);
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         },
-        [keyboardSpace, props],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [],
     );
 
     /**
