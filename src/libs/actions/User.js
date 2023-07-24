@@ -533,10 +533,12 @@ function subscribeToUserEvents() {
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID, (pushJSON) => {
         let updates;
+
+        // This is the old format where each update was just an array, with the new changes it's an object with
+        // lastUpdateID, previousUpdateID and updates
         if (_.isArray(pushJSON)) {
             updates = pushJSON;
         } else {
-            // TODO: use these
             // const lastUpdateID = pushJSON.lastUpdateID;
             // const previousUpdateID = pushJSON.previousUpdateID;
             updates = pushJSON.updates;
