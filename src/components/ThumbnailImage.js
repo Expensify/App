@@ -41,7 +41,7 @@ const defaultProps = {
 
 function calculateThumbnailImageSize(width, height, windowHeight) {
     if (!width || !height) {
-        return {};
+        return {thumbnailWidth: 200, thumbnailHeight: 200};
     }
 
     // Width of the thumbnail works better as a constant than it does
@@ -84,7 +84,7 @@ function ThumbnailImage(props) {
     );
     return (
         <View style={[props.style, styles.overflowHidden]}>
-            <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth || 200, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <View style={[StyleUtils.getWidthAndHeightStyle(imageWidth, imageHeight), styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
                     url={props.previewSourceURL}
                     onMeasure={updateImageSize}
