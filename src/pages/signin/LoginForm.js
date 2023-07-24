@@ -199,6 +199,7 @@ function LoginForm(props) {
                     keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                     errorText={formErrorText}
                     hasError={hasError}
+                    maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                 />
             </View>
             {!_.isEmpty(props.account.success) && <Text style={[styles.formSuccess]}>{props.account.success}</Text>}
@@ -212,7 +213,7 @@ function LoginForm(props) {
             )}
             {
                 // We need to unmount the submit button when the component is not visible so that the Enter button
-                // key handler gets unsubscribed and does not conflict with the Password Form
+                // key handler gets unsubscribed
                 props.isVisible && (
                     <View style={[styles.mt5]}>
                         <FormAlertWithSubmitButton

@@ -1,11 +1,15 @@
+<<<<<<< HEAD
 import React, {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, View, InteractionManager, LayoutAnimation} from 'react-native';
+=======
+import React from 'react';
+import {ActivityIndicator, View, InteractionManager} from 'react-native';
+>>>>>>> cd851d0fbd901c70a32220472104ffc887639f2a
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PaymentMethodList from '../PaymentMethodList';
 import ROUTES from '../../../../ROUTES';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import PasswordPopover from '../../../../components/PasswordPopover';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import styles from '../../../../styles/styles';
