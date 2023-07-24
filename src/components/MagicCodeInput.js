@@ -15,6 +15,8 @@ import networkPropTypes from './networkPropTypes';
 import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
 import * as Browser from '../libs/Browser';
 
+const TEXT_INPUT_EMPTY_STATE = '';
+
 const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
@@ -98,7 +100,7 @@ const getInputPlaceholderSlots = (length) => Array.from(Array(length).keys());
 
 function MagicCodeInput(props) {
     const inputRefs = useRef();
-    const [input, setInput] = useState('');
+    const [input, setInput] = useState(TEXT_INPUT_EMPTY_STATE);
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [editIndex, setEditIndex] = useState(0);
     const shouldFocusLast = useRef(false);
@@ -120,11 +122,11 @@ function MagicCodeInput(props) {
             focusMagicCodeInput();
         },
         resetFocus() {
-            setInput('');
+            setInput(TEXT_INPUT_EMPTY_STATE);
             focusMagicCodeInput();
         },
         clear() {
-            setInput('');
+            setInput(TEXT_INPUT_EMPTY_STATE);
             setFocusedIndex(0);
             setEditIndex(0);
             inputRefs.current.focus();
@@ -187,7 +189,7 @@ function MagicCodeInput(props) {
      */
     const onFocus = (event) => {
         if (shouldFocusLast.current) {
-            setInput('');
+            setInput(TEXT_INPUT_EMPTY_STATE);
             setFocusedIndex(lastFocusedIndex.current);
             setEditIndex(lastFocusedIndex.current);
         }
@@ -203,7 +205,7 @@ function MagicCodeInput(props) {
     const onPress = (index) => {
         shouldFocusLast.current = false;
         inputRefs.current.focus();
-        setInput('');
+        setInput(TEXT_INPUT_EMPTY_STATE);
         setFocusedIndex(index);
         setEditIndex(index);
         lastFocusedIndex.current = index;
@@ -236,7 +238,7 @@ function MagicCodeInput(props) {
 
         setFocusedIndex(updatedFocusedIndex);
         setEditIndex(updatedFocusedIndex);
-        setInput('');
+        setInput(TEXT_INPUT_EMPTY_STATE);
 
         const finalInput = composeToString(numbers);
         props.onChangeText(finalInput);
@@ -257,7 +259,7 @@ function MagicCodeInput(props) {
             // If the currently focused index already has a value, it will delete
             // that value but maintain the focus on the same input.
             if (numbers[focusedIndex] !== CONST.MAGIC_CODE_EMPTY_CHAR) {
-                setInput('');
+                setInput(TEXT_INPUT_EMPTY_STATE);
                 numbers = [...numbers.slice(0, focusedIndex), CONST.MAGIC_CODE_EMPTY_CHAR, ...numbers.slice(focusedIndex + 1, props.maxLength)];
                 setEditIndex(focusedIndex);
                 props.onChangeText(composeToString(numbers));
@@ -280,7 +282,7 @@ function MagicCodeInput(props) {
             // Saves the input string so that it can compare to the change text
             // event that will be triggered, this is a workaround for mobile that
             // triggers the change text on the event after the key press.
-            setInput('');
+            setInput(TEXT_INPUT_EMPTY_STATE);
             setFocusedIndex(newFocusedIndex);
             setEditIndex(newFocusedIndex);
             props.onChangeText(composeToString(numbers));
@@ -291,13 +293,13 @@ function MagicCodeInput(props) {
         }
         if (keyValue === 'ArrowLeft' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
-            setInput('');
+            setInput(TEXT_INPUT_EMPTY_STATE);
             setFocusedIndex(newFocusedIndex);
             setEditIndex(newFocusedIndex);
             inputRefs.current.focus();
         } else if (keyValue === 'ArrowRight' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.min(focusedIndex + 1, props.maxLength - 1);
-            setInput('');
+            setInput(TEXT_INPUT_EMPTY_STATE);
             setFocusedIndex(newFocusedIndex);
             setEditIndex(newFocusedIndex);
             inputRefs.current.focus();
@@ -306,7 +308,7 @@ function MagicCodeInput(props) {
             if (props.network.isOffline) {
                 return;
             }
-            setInput('');
+            setInput(TEXT_INPUT_EMPTY_STATE);
             props.onFulfill(props.value);
         }
     };
@@ -352,6 +354,8 @@ function MagicCodeInput(props) {
                             caretHidden={isMobileSafari}
                             inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                            style={[isMobileSafari ? styles.bgTransparent : styles.opacity0]}
+                            textInputContainerStyles={[styles.borderNone]}
                         />
                     </TapGestureHandler>
                 </View>
