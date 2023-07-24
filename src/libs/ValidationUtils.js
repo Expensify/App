@@ -292,14 +292,6 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
 }
 
 /**
- * @param {String} password
- * @returns {Boolean}
- */
-function isValidPassword(password) {
-    return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
-}
-
-/**
  * @param {string} validateCode
  * @returns {Boolean}
  */
@@ -419,7 +411,7 @@ function isValidRoomName(roomName) {
  * @returns {Boolean}
  */
 function isValidTaxID(taxID) {
-    return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+    return taxID && CONST.REGEX.TAX_ID.test(taxID);
 }
 
 /**
@@ -461,7 +453,6 @@ export {
     isValidUSPhone,
     isValidWebsite,
     validateIdentity,
-    isValidPassword,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidPaypalUsername,

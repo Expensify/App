@@ -159,6 +159,9 @@ const CONST = {
             CONTAINER_MINHEIGHT: 500,
             VIEW_HEIGHT: 275,
         },
+        MONEY_REPORT: {
+            MIN_HEIGHT: 280,
+        },
     },
 
     RIGHT_MODAL_BACKGROUND_OVERLAY_OPACITY: 0.4,
@@ -171,6 +174,7 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -256,7 +260,6 @@ const CONST = {
     BETAS: {
         ALL: 'all',
         CHRONOS_IN_CASH: 'chronosInCash',
-        IOU: 'IOU',
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
@@ -269,6 +272,7 @@ const CONST = {
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
+        SCAN_RECEIPTS: 'scanReceipts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -488,7 +492,7 @@ const CONST = {
                 CLOSED: 'CLOSED',
                 CREATED: 'CREATED',
                 TASKEDITED: 'TASKEDITED',
-                TASKCANCELED: 'TASKCANCELED',
+                TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
@@ -590,6 +594,7 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+            BILLING: 3,
         },
         STATUS: {
             OPEN: 0,
@@ -671,6 +676,12 @@ const CONST = {
         GSD: 'gsd',
         DEFAULT: 'default',
     },
+    THEME: {
+        DEFAULT: 'dark',
+        LIGHT: 'light',
+        DARK: 'dark',
+        SYSTEM: 'system',
+    },
     JSON_CODE: {
         SUCCESS: 200,
         BAD_REQUEST: 400,
@@ -738,6 +749,7 @@ const CONST = {
         VALIDATE_TFA_CODE_FORM: 'ValidateTfaCodeForm',
         RESEND_VALIDATION_FORM: 'ResendValidationForm',
         UNLINK_LOGIN_FORM: 'UnlinkLoginForm',
+        RESEND_VALIDATE_CODE_FORM: 'ResendValidateCodeForm',
     },
     APP_STATE: {
         ACTIVE: 'active',
@@ -1111,6 +1123,11 @@ const CONST = {
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
+        SMALL_NORMAL: 'small-normal',
+    },
+    AVATAR_ROW_SIZE: {
+        DEFAULT: 4,
+        LARGE_SCREEN: 8,
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -1123,7 +1140,7 @@ const CONST = {
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
-        ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
+        ZIP_CODE: /^[0-9]{5}(?:[- ][0-9]{4})?$/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
@@ -1132,7 +1149,7 @@ const CONST = {
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]{1,20}$/,
-        ROOM_NAME: /^#[a-z0-9-]{1,80}$/,
+        ROOM_NAME: /^#[a-z0-9à-ÿ-]{1,80}$/,
 
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -1236,6 +1253,7 @@ const CONST = {
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
+    LOGIN_CHARACTER_LIMIT: 254,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -2450,6 +2468,13 @@ const CONST = {
         NUMBER_OF_TAPS: 4,
     },
 
+    MENU_HELP_URLS: {
+        LEARN_MORE: 'https://www.expensify.com',
+        DOCUMENTATION: 'https://github.com/Expensify/App/blob/main/README.md',
+        COMMUNITY_DISCUSSIONS: 'https://expensify.slack.com/archives/C01GTK53T8Q',
+        SEARCH_ISSUES: 'https://github.com/Expensify/App/issues',
+    },
+
     PAYPAL_SUPPORTED_CURRENCIES: [
         'AUD',
         'BRL',
@@ -2521,6 +2546,9 @@ const CONST = {
     },
     SETTINGS_LOUNGE_ACCESS: {
         HEADER_IMAGE_ASPECT_RATIO: 0.64,
+    },
+    TRANSLATION_KEYS: {
+        ATTACHMENT: 'common.attachment',
     },
 };
 

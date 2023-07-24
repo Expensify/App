@@ -31,7 +31,7 @@ function Authenticate(parameters) {
         // and password.
         useExpensifyLogin: parameters.useExpensifyLogin,
         partnerName: parameters.partnerName,
-        partnerPassword: parameters.partnerPassword,
+        partnerPassword: parameters.partnerPassyword,
         partnerUserID: parameters.partnerUserID,
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
@@ -98,13 +98,4 @@ function reauthenticate(command = '') {
     });
 }
 
-function getShortLivedAuthToken() {
-    return Network.post('OpenOldDotLink').then((response) => {
-        if (response && response.shortLivedAuthToken) {
-            return Promise.resolve(response.shortLivedAuthToken);
-        }
-        return Promise.reject();
-    });
-}
-
-export {reauthenticate, Authenticate, getShortLivedAuthToken};
+export {reauthenticate, Authenticate};

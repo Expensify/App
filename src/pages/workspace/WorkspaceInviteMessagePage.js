@@ -28,8 +28,11 @@ import withNavigationFocus from '../../components/withNavigationFocus';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 
 const personalDetailsPropTypes = PropTypes.shape({
+    /** The accountID of the person */
+    accountID: PropTypes.number.isRequired,
+
     /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
+    login: PropTypes.string,
 
     /** The URL of the person's avatar (there should already be a default avatar if
     the person doesn't have their own avatar uploaded yet, except for anon users) */
@@ -41,7 +44,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes),
+    allPersonalDetails: PropTypes.objectOf(personalDetailsPropTypes),
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -63,7 +66,7 @@ const propTypes = {
 
 const defaultProps = {
     ...policyDefaultProps,
-    personalDetails: {},
+    allPersonalDetails: {},
     betas: [],
     invitedEmailsToAccountIDsDraft: {},
 };
@@ -81,6 +84,10 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     componentDidMount() {
+        if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
+            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
+            return;
+        }
         this.focusWelcomeMessageInput();
     }
 
@@ -154,7 +161,8 @@ class WorkspaceInviteMessagePage extends React.Component {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(this.props.policy)}
+                    shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
+                    subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithBackButton
@@ -190,8 +198,13 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                             <MultipleAvatars
                                 size={CONST.AVATAR_SIZE.LARGE}
-                                icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(this.props.invitedEmailsToAccountIDsDraft), this.props.personalDetails)}
+                                icons={OptionsListUtils.getAvatarsForAccountIDs(
+                                    _.values(this.props.invitedEmailsToAccountIDsDraft),
+                                    this.props.allPersonalDetails,
+                                    this.props.invitedEmailsToAccountIDsDraft,
+                                )}
                                 shouldStackHorizontally
+                                shouldDisplayAvatarsInRows
                                 secondAvatarStyle={[styles.secondAvatarInline]}
                             />
                         </View>
@@ -201,8 +214,10 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
+                                accessibilityLabel={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight
@@ -227,7 +242,7 @@ export default compose(
     withLocalize,
     withPolicyAndFullscreenLoading,
     withOnyx({
-        personalDetails: {
+        allPersonalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
         betas: {

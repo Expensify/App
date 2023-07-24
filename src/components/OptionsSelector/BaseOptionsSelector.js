@@ -130,7 +130,15 @@ class BaseOptionsSelector extends Component {
         }
 
         const newOptions = this.flattenSections();
+
+        if (prevProps.preferredLocale !== this.props.preferredLocale) {
+            this.setState({
+                allOptions: newOptions,
+            });
+            return;
+        }
         const newFocusedIndex = this.props.selectedOptions.length;
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
@@ -296,6 +304,8 @@ class BaseOptionsSelector extends Component {
                 ref={(el) => (this.textInput = el)}
                 value={this.props.value}
                 label={this.props.textInputLabel}
+                accessibilityLabel={this.props.textInputLabel}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 onChangeText={this.props.onChangeText}
                 placeholder={this.props.placeholderText}
                 maxLength={this.props.maxLength}

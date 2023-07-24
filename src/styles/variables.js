@@ -29,15 +29,16 @@ export default {
     componentBorderRadiusCard: 12,
     componentBorderRadiusRounded: 24,
     buttonBorderRadius: 100,
-    avatarSizeLarge: 80,
-    avatarSizeHeader: 40,
     avatarSizeLargeBordered: 88,
+    avatarSizeLarge: 80,
     avatarSizeMedium: 52,
+    avatarSizeHeader: 40,
     avatarSizeNormal: 40,
+    avatarSizeSmallNormal: 32,
     avatarSizeSmall: 28,
     avatarSizeSmaller: 24,
-    avatarSizeMidSubscript: 18,
     avatarSizeSubscript: 20,
+    avatarSizeMidSubscript: 18,
     avatarSizeMentionIcon: 16,
     avatarSizeSmallSubscript: 14,
     defaultAvatarPreviewSize: 360,
@@ -141,6 +142,7 @@ export default {
     popoverWidth: 375,
     addPaymentPopoverTopSpacing: 8,
     addPaymentPopoverRightSpacing: 13,
+    anonymousReportFooterBreakpoint: 650,
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
     // This is calculated based on the values specified in the 'getGoogleListViewStyle' function of the 'StyleUtils' utility

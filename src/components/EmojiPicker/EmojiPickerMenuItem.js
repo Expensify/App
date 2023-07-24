@@ -63,6 +63,7 @@ class EmojiPickerMenuItem extends PureComponent {
     render() {
         return (
             <PressableWithoutFeedback
+                shouldUseAutoHitSlop={false}
                 onPress={() => this.props.onPress(this.props.emoji)}
                 onHoverIn={this.props.onHoverIn}
                 onHoverOut={this.props.onHoverOut}

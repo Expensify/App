@@ -114,7 +114,19 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shou
         return;
     }
 
-    if (shouldEnforceFallback || (!getActiveRouteIndex(navigationRef.current.getState()) && fallbackRoute)) {
+    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
+
+    if (isFirstRouteInNavigator) {
+        const rootState = navigationRef.getRootState();
+        const lastRoute = _.last(rootState.routes);
+        // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
+        if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute.state.index > 0) {
+            navigationRef.current.goBack();
+            return;
+        }
+    }
+
+    if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
         navigate(fallbackRoute, 'UP');
         return;
     }
@@ -188,19 +200,6 @@ function getActiveRoute() {
 }
 
 /**
- * @returns {String}
- */
-function getReportIDFromRoute() {
-    if (!navigationRef.current) {
-        return '';
-    }
-
-    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
-    const reportRoute = lodashGet(drawerState, ['routes', 0]);
-    return lodashGet(reportRoute, ['params', 'reportID'], '');
-}
-
-/**
  * Check whether the passed route is currently Active or not.
  *
  * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
@@ -250,7 +249,6 @@ export default {
     goBack,
     isNavigationReady,
     setIsNavigationReady,
-    getReportIDFromRoute,
     getTopmostReportId,
 };
 

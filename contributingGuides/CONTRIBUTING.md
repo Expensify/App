@@ -16,7 +16,11 @@ You can create as many accounts as needed in order to test your changes directly
 You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple New Expensify accounts connected to the same email address by using test+123@test.com, test+456@test.com, etc.
 
 ##### High Traffic Accounts
-All internal engineers, contributors, and C+ members are **required** to test with a "high traffic" account against the staging or production web servers. Ask in [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) if someone can turn your account into a High Traffic account. These accounts more closely mirror the accounts used in production by real people. Internal team members can follow [this Stack Overflow](https://stackoverflow.com/c/expensify/questions/14504) to upgrade an account.
+
+All internal engineers, contributors, and C+ members are required to test with a “high traffic” account against the staging or production web servers. Use these Google forms to manage your high-traffic accounts. You'll need to authenticate via Google first. 
+1. [Make an account high-traffic](https://docs.google.com/forms/d/e/1FAIpQLScpiS0Mo-HA5xHPsvDow79yTsMBgF0wjuqc0K37lTK5fheB8Q/viewform)
+2. [Remove a high-traffic account](https://docs.google.com/forms/d/e/1FAIpQLSd9_FDav83pnhhtu1KGAKIpf2yttQ_0Bvq1b9nuFM1-wbL11Q/viewform)
+
 
 #### Working on beta features
 Some features are locked behind beta flags while development is ongoing. As a contributor you can work on these beta features locally by overriding the [`Permissions.canUseAllBetas` function](https://github.com/Expensify/App/blob/5e268df7f2989ed04bc64c0c86ed77faf134554d/src/libs/Permissions.js#L10-L12) to return `true`.
@@ -53,13 +57,15 @@ Please be aware that compensation for any support in solving an issue is provide
 
 **Important:** Payment amounts are variable, dependent on when your PR is merged. Your PR will be reviewed by a Contributor+ (C+) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
 
-**Payment timeline** all based on the day the contributor has an accepted proposal and is assigned to the Github issue
-- Merged PR within 3 business days - 50% **bonus**
-- Merged PR within 6 business days - 0% bonus 
-- Merged PR within 9 business days - 50% **penalty**  
+**Payment timeline** all based on the day and timestamp the contributor has an accepted proposal and is assigned to the Github issue
+- Merged PR within 3 business days (72 hours) - 50% **bonus**
+- Merged PR within 6 business days (144 hours) - 0% bonus 
+- Merged PR within 9 business days (216 hours) - 50% **penalty**  
 - No PR within 12 business days - **Contract terminated**  
 
-If the PR causes a regression at any point within the regression period (starting when the code is merged and ending 7 days after being deployed to production), contributors are not eligible for the 50% bonus. 
+If the PR causes a regression at any point within the regression period (starting when the code is merged and ending 7 days after being deployed to production), contributors are not eligible for the 50% bonus.
+
+We specify exact hours to make sure we can clearly decide what is eligible for the bonus given our team is global and contributors span across all the timezones.
 
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:

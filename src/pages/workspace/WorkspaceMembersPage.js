@@ -32,7 +32,7 @@ import * as UserUtils from '../../libs/UserUtils';
 import FormHelpMessage from '../../components/FormHelpMessage';
 import TextInput from '../../components/TextInput';
 import KeyboardDismissingFlatList from '../../components/KeyboardDismissingFlatList';
-import withCurrentUserPersonalDetails from '../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
 import usePrevious from '../../hooks/usePrevious';
@@ -40,7 +40,7 @@ import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
-    /** The personal details of the person who is logged in */
+    /** All personal details asssociated with user */
     personalDetails: personalDetailsPropType,
 
     /** URL Route params */
@@ -61,6 +61,7 @@ const propTypes = {
     ...policyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
+    ...withCurrentUserPersonalDetailsPropTypes,
     network: networkPropTypes.isRequired,
 };
 
@@ -70,6 +71,7 @@ const defaultProps = {
         accountID: 0,
     },
     ...policyDefaultProps,
+    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function WorkspaceMembersPage(props) {
@@ -329,12 +331,13 @@ function WorkspaceMembersPage(props) {
                                     participantsList: [item],
                                     icons: [
                                         {
+                                            id: item.accountID,
                                             source: UserUtils.getAvatar(item.avatar, item.accountID),
                                             name: item.login,
                                             type: CONST.ICON_TYPE_AVATAR,
                                         },
                                     ],
-                                    keyForList: item.accountID,
+                                    keyForList: String(item.accountID),
                                 }}
                                 onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
@@ -402,7 +405,8 @@ function WorkspaceMembersPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(props.policy)}
+                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithBackButton
@@ -444,9 +448,11 @@ function WorkspaceMembersPage(props) {
                         </View>
                         <View style={[styles.w100, styles.pv3, styles.ph5]}>
                             <TextInput
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 value={searchValue}
                                 onChangeText={setSearchValue}
                                 label={props.translate('optionsSelector.findMember')}
+                                accessibilityLabel={props.translate('optionsSelector.findMember')}
                             />
                         </View>
                         {data.length > 0 ? (
