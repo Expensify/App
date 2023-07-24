@@ -4,15 +4,15 @@ import SCREENS from '../../SCREENS';
 const lightTheme = {
     // Figma keys
     appBG: colors.lightAppBackground,
-    splashBG: colors.green,
+    splashBG: colors.green400,
     highlightBG: colors.lightHighlightBackground,
     border: colors.lightBorders,
     borderLighter: colors.lightDefaultButtonPressed,
-    borderFocus: colors.green,
+    borderFocus: colors.green400,
     icon: colors.lightIcons,
-    iconMenu: colors.green,
+    iconMenu: colors.green400,
     iconHovered: colors.lightPrimaryText,
-    iconSuccessFill: colors.green,
+    iconSuccessFill: colors.green400,
     iconReversed: colors.lightAppBackground,
     textSupporting: colors.lightSupportingText,
     text: colors.lightPrimaryText,
@@ -25,7 +25,7 @@ const lightTheme = {
     dangerHover: colors.redHover,
     dangerPressed: colors.redHover,
     warning: colors.yellow400,
-    success: colors.green,
+    success: colors.green400,
     successHover: colors.greenHover,
     successPressed: colors.greenPressed,
     transparent: colors.transparent,
@@ -54,13 +54,13 @@ const lightTheme = {
     cardBG: colors.lightHighlightBackground,
     cardBorder: colors.lightHighlightBackground,
     spinner: colors.lightSupportingText,
-    unreadIndicator: colors.green,
+    unreadIndicator: colors.green400,
     placeholderText: colors.lightIcons,
     heroCard: colors.blue400,
     uploadPreviewActivityIndicator: colors.lightHighlightBackground,
     dropUIBG: 'rgba(252, 251, 249, 0.92)',
     dropTransparentOverlay: 'rgba(255,255,255,0)',
-    checkBox: colors.green,
+    checkBox: colors.green400,
     pickerOptionsTextColor: colors.lightPrimaryText,
     imageCropBackgroundColor: colors.lightIcons,
     fallbackIconColor: colors.green700,
@@ -78,6 +78,7 @@ const lightTheme = {
 
 lightTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: lightTheme.sidebar,
+    [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
 };
 
 export default lightTheme;
