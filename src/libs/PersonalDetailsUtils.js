@@ -24,7 +24,7 @@ Onyx.connect({
 function getDisplayNameOrDefault(passedPersonalDetails, pathToDisplayName, defaultValue) {
     const displayName = lodashGet(passedPersonalDetails, pathToDisplayName);
 
-    return displayName || defaultValue || 'Hidden';
+    return displayName || defaultValue || Localize.translateLocal('common.hidden');
 }
 
 /**
