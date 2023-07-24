@@ -13,7 +13,7 @@ const propTypes = {
     isVisible: PropTypes.bool.isRequired,
 
     /** The list of years to render */
-    years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes)).isRequired,
+    years: PropTypes.arrayOf(PropTypes.shape(radioListItemPropTypes.item)).isRequired,
 
     /** Currently selected year */
     currentYear: PropTypes.number,
