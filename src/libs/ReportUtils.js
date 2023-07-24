@@ -247,7 +247,7 @@ function isSettled(reportID) {
  */
 function isCurrentUserSubmitter(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    return report.ownerEmail === currentUserEmail;
+    return report && report.ownerEmail === currentUserEmail;
 }
 
 /**

@@ -61,7 +61,6 @@ import * as Session from '../../../libs/actions/Session';
 import MoneyRequestView from '../../../components/ReportActionItem/MoneyRequestView';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
 import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
-import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
@@ -308,13 +307,6 @@ function ReportActionItem(props) {
                     ) : null}
                 </ReportActionItemBasicMessage>
             );
-        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED) {
-            const amount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
-            const message = props.action.originalMessage.isSubmitterAddingBankAccount
-                ? props.translate('iou.settledAfterAddedBankAccount', {submitterDisplayName, amount})
-                : props.translate('iou.payerSettled', {amount});
-            children = <ReportActionItemBasicMessage message={message} />;
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
             const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
