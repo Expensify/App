@@ -205,7 +205,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
                     description="workspace.emptyWorkspace.subtitle"
                 />
             ) : (
-                <>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</>
+                _.map(workspaces, (item, index) => getMenuItem(item, index))
             )}
         </IllustratedHeaderPageLayout>
     );
