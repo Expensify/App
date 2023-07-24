@@ -5,7 +5,6 @@ import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import * as Session from '../../../libs/actions/Session';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
-import compose from '../../../libs/compose';
 
 const propTypes = {
     /** Whether we're rendering in the Desktop Flow, if so show a different button. */
@@ -19,12 +18,12 @@ const defaultProps = {
 };
 
 /** Div IDs for styling the two different Google Sign-In buttons. */
- const mainId = 'google-sign-in-main';
- const desktopId = 'google-sign-in-desktop';
+const mainId = 'google-sign-in-main';
+const desktopId = 'google-sign-in-desktop';
 
- const signIn = (response) => {
-     Session.beginGoogleSignIn(response.credential);
- };
+const signIn = (response) => {
+    Session.beginGoogleSignIn(response.credential);
+};
 
 /**
  * Google Sign In button for Web.
