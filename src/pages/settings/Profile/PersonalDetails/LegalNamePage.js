@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
+import PersonalDetailsScreenWrapper from '../../../../components/PersonalDetailsScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Form from '../../../../components/Form';
@@ -17,8 +17,6 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -44,7 +42,6 @@ const updateLegalName = (values) => {
 };
 
 function LegalNamePage(props) {
-    usePrivatePersonalDetails();
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
 
@@ -66,12 +63,8 @@ function LegalNamePage(props) {
         return errors;
     }, []);
 
-    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
-        return <FullscreenLoadingIndicator />;
-    }
-
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <PersonalDetailsScreenWrapper privatePersonalDetails={props.privatePersonalDetails} includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
@@ -107,7 +100,7 @@ function LegalNamePage(props) {
                     />
                 </View>
             </Form>
-        </ScreenWrapper>
+        </PersonalDetailsScreenWrapper>
     );
 }
 

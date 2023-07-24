@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import {withOnyx} from 'react-native-onyx';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
+import PersonalDetailsScreenWrapper from '../../../../components/PersonalDetailsScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Form from '../../../../components/Form';
@@ -21,8 +21,6 @@ import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
-import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
-import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -63,7 +61,6 @@ function updateAddress(values) {
 }
 
 function AddressPage(props) {
-    usePrivatePersonalDetails();
     const {translate} = props;
     const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(props.privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
     const isUSAForm = countryISO === CONST.COUNTRY.US;
@@ -120,12 +117,11 @@ function AddressPage(props) {
         return errors;
     }, []);
 
-    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
-        return <FullscreenLoadingIndicator />;
-    }
-
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <PersonalDetailsScreenWrapper
+            privatePersonalDetails={props.privatePersonalDetails}
+            includeSafeAreaPaddingBottom={false}
+        >
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.homeAddress')}
                 shouldShowBackButton
@@ -213,7 +209,7 @@ function AddressPage(props) {
                     />
                 </View>
             </Form>
-        </ScreenWrapper>
+        </PersonalDetailsScreenWrapper>
     );
 }
 
