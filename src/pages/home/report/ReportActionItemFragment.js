@@ -19,6 +19,7 @@ import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
 import editedLabelStyles from '../../../styles/editedLabelStyles';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
+import avatarPropTypes from '../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Users accountID */
@@ -60,6 +61,9 @@ const propTypes = {
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID: PropTypes.number,
 
+    /** icon */
+    actorIcon: avatarPropTypes,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -79,6 +83,12 @@ const defaultProps = {
     source: '',
     style: [],
     delegateAccountID: 0,
+    actorIcon: {
+        name: '',
+        source: '',
+        type: '',
+        id: 0,
+    },
 };
 
 function ReportActionItemFragment(props) {
@@ -152,6 +162,11 @@ function ReportActionItemFragment(props) {
                 <UserDetailsTooltip
                     accountID={props.accountID}
                     delegateAccountID={props.delegateAccountID}
+                    fallbackUserDetails={{
+                        type: props.actorIcon.type,
+                        avatar: props.actorIcon.source,
+                        displayName: props.actorIcon.name,
+                    }}
                 >
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
