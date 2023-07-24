@@ -897,7 +897,7 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    if (reportAction.reportActionID && reportAction.childVisibleActionCount > 0) {
+    if (reportAction.reportActionID && reportAction.childVisibleActionCount === 0) {
         optimisticReport = {
             lastMessageTranslationKey: '',
             lastMessageText: '',
@@ -961,6 +961,16 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, optimisticReport.lastVisibleActionCreated, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
+    }
+
+    // If the reportID doesn't equal the originalReportID then this is the first comment on a thread report and we need to trigger
+    // some sort of update to let the LHN know that the parentReportAction is now deleted.
+    if (reportID !== originalReportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {isParentReportActionDeleted: true},
+        });
     }
 
     const parameters = {
