@@ -14,6 +14,7 @@ const lightTheme = {
     iconHovered: colors.lightPrimaryText,
     iconSuccessFill: colors.green400,
     iconReversed: colors.lightAppBackground,
+    iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.lightSupportingText,
     text: colors.lightPrimaryText,
     link: colors.blue600,
