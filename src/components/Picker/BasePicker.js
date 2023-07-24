@@ -13,7 +13,7 @@ import {ScrollContext} from '../ScrollViewWithContext';
 
 const propTypes = {
     /** A forwarded ref */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
     /** BasePicker label */
     label: PropTypes.string,
