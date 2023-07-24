@@ -522,7 +522,7 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite).not.toBe(null);
         expect(results.userToInvite.login).toBe('+18003243233');
 
-        // When we use a search term for contact number, it shouldn't have any results if there are alphabets used
+        // When we use a search term for contact number that contains alphabet characters
         results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '998243aaaa');
 
         expect(results.recentReports.length).toBe(0);
