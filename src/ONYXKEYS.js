@@ -234,4 +234,7 @@ export default {
 
     // Experimental memory only Onyx mode flag
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
+
+    // The access token to be used with the Mapbox library
+    MAPBOX_ACCESS_TOKEN: 'mapboxAccessToken',
 };
