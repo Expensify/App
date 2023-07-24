@@ -285,11 +285,10 @@ function setUpPoliciesAndNavigate(session) {
 
 function redirectThirdPartyDesktopSignIn() {
     const currentUrl = getCurrentUrl();
-    const url = new URL(currentUrl);
-
     if (!currentUrl) {
         return;
     }
+    const url = new URL(currentUrl);
 
     if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
         Navigation.isNavigationReady().then(() => {
