@@ -178,21 +178,13 @@ function AttachmentModal(props) {
     }, []);
     /**
      * @param {Object} _file
-     * @param {Object} _data
      * @returns {Boolean}
      */
     const isValidFile = useCallback(
-        (_file,_data) => {
+        (_file) => {
             const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
-            if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
-                setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentError'));
-                setAttachmentInvalidReason(props.translate('attachmentPicker.folderNotAllowedMessage'));
-                return false;
-            }
             if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
                 const invalidReason = props.translate('attachmentPicker.notAllowedExtension');
-
                 setIsAttachmentInvalid(true);
                 setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.wrongFileType'));
                 setAttachmentInvalidReason(invalidReason);
@@ -220,9 +212,26 @@ function AttachmentModal(props) {
     );
     /**
      * @param {Object} _data
+     * @returns {Boolean}
+     */
+    const isDirectoryCheck = useCallback((_data) => {
+        if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
+            setIsAttachmentInvalid(true);
+            setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentError'));
+            setAttachmentInvalidReason(props.translate('attachmentPicker.folderNotAllowedMessage'));
+            return false;
+        }
+        return true
+
+    },[props.translate])
+    /**
+     * @param {Object} _data
      */
     const validateAndDisplayFileToUpload = useCallback(
         (_data) => {
+            if(!isDirectoryCheck(_data)) {
+                return;
+            }
             let _file = _data
             if (typeof _data.getAsFile === 'function' ){
                 _file = _data.getAsFile();
@@ -231,7 +240,7 @@ function AttachmentModal(props) {
                 return;
             }
 
-            if (!isValidFile(_file,_data)) {
+            if (!isValidFile(_file)) {
                 return;
             }
 
