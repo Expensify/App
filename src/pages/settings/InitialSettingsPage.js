@@ -82,7 +82,6 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
-
     /** List of cards */
     fundList: PropTypes.objectOf(cardPropTypes),
 
@@ -232,9 +231,7 @@ class InitialSettingsPage extends React.Component {
                     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
                 },
                 brickRoadIndicator:
-                    PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, paymentCardList) ||
-                    !_.isEmpty(this.props.userWallet.errors) ||
-                    !_.isEmpty(this.props.walletTerms.errors)
+                    PaymentMethods.hasPaymentMethodError(this.props.bankAccountList, paymentCardList) || !_.isEmpty(this.props.userWallet.errors) || !_.isEmpty(this.props.walletTerms.errors)
                         ? 'error'
                         : null,
             },

@@ -147,8 +147,20 @@ function isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, p
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 function PaymentMethodList(props) {
-    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, fundList, filterType, network, onPress, payPalMeData, shouldShowSelectedState, selectedMethodID, translate} =
-        props;
+    const {
+        actionPaymentMethodType,
+        activePaymentMethodID,
+        bankAccountList,
+        cardList,
+        fundList,
+        filterType,
+        network,
+        onPress,
+        payPalMeData,
+        shouldShowSelectedState,
+        selectedMethodID,
+        translate,
+    } = props;
 
     const paymentCardList = fundList || cardList;
 
@@ -179,7 +191,7 @@ function PaymentMethodList(props) {
         }));
 
         return combinedPaymentMethods;
-    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, fundList, filterType, network, onPress, payPalMeData]);
+    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, filterType, network, onPress, payPalMeData, paymentCardList]);
 
     /**
      * Render placeholder when there are no payments methods
