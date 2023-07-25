@@ -4,7 +4,6 @@ import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import * as ReportUtils from '../ReportUtils';
-import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
@@ -58,9 +57,8 @@ function clearOutTaskInfo() {
  * @param {String} description
  * @param {String} assignee
  * @param {Number} assigneeAccountID
- *
+ * @param {Object} assigneeChatReport - The chat report between you and the assignee
  */
-
 function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0, assigneeChatReport = {}) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
@@ -141,6 +139,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
 
     if (assigneeChatReport) {
         // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
+        // Only add the assignee chat report to onyx if we haven't already set it optimistically
         if (assigneeChatReport.isOptimisticReport && lodashGet(assigneeChatReport, 'pendingFields.createChat') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             optimisticChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(assigneeChatReportID);
             optimisticData.push(

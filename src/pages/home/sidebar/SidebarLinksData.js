@@ -116,6 +116,7 @@ const chatReportSelector = (report) =>
         participantAccountIDs: report.participantAccountIDs,
         hasDraft: report.hasDraft,
         isPinned: report.isPinned,
+        isHidden: report.isHidden,
         errorFields: {
             addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
         },
