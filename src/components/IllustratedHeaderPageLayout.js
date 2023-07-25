@@ -40,6 +40,7 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, f
             style={[StyleUtils.getBackgroundColorStyle(backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom={false}
+            offlineIndicatorStyle={[StyleUtils.getBackgroundColorStyle(themeColors.appBG)]}
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
