@@ -62,7 +62,7 @@ function Reauthentication(response, request, isFromSequentialQueue) {
                 const apiRequestType = lodashGet(request, 'data.apiRequestType');
                 const isDeprecatedRequest = !apiRequestType;
                 const skipReauthentication = lodashGet(request, 'data.skipReauthentication');
-                if (!isFromSequentialQueue && (apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS || isDeprecatedRequest || skipReauthentication)) {
+                if (!isFromSequentialQueue && (isDeprecatedRequest || skipReauthentication)) {
                     if (request.resolve) {
                         request.resolve(data);
                         return;
