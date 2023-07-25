@@ -912,7 +912,7 @@ function deleteReportComment(reportID, reportAction) {
                 lastMessageTranslationKey,
                 lastMessageText,
                 lastVisibleActionCreated,
-                lastActorAccountID
+                lastActorAccountID,
             };
         }
     }
