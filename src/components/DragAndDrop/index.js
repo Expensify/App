@@ -36,18 +36,16 @@ function DragAndDrop({onDragEnter, onDragLeave, onDrop, dropZoneID, activeDropZo
     }, [dropZoneID]);
 
     useEffectOnPageLoad(
-        () =>
-            _.throttle(() => {
-                const boundingClientRect = dropZone.current.getBoundingClientRect();
-                dropZoneRect.current = {
-                    width: boundingClientRect.width,
-                    left: isSmallScreenWidth ? 0 : boundingClientRect.left,
-                    right: isSmallScreenWidth ? windowWidth : boundingClientRect.right,
-                    top: boundingClientRect.top,
-                    bottom: boundingClientRect.bottom,
-                };
-            }),
-        [windowWidth, isSmallScreenWidth],
+        _.throttle(() => {
+            const boundingClientRect = dropZone.current.getBoundingClientRect();
+            dropZoneRect.current = {
+                width: boundingClientRect.width,
+                left: isSmallScreenWidth ? 0 : boundingClientRect.left,
+                right: isSmallScreenWidth ? windowWidth : boundingClientRect.right,
+                top: boundingClientRect.top,
+                bottom: boundingClientRect.bottom,
+            };
+        }, [windowWidth, isSmallScreenWidth]),
     );
 
     /*
