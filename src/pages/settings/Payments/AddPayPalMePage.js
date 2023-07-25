@@ -36,21 +36,21 @@ const defaultProps = {
     payPalMeData: {},
 };
 
+const validate = (values) => {
+    const errors = {};
+    if (!ValidationUtils.isValidPaypalUsername(values.payPalMeUsername)) {
+        errors.payPalMeUsername = 'addPayPalMePage.formatError';
+    }
+
+    return errors;
+};
+
 function AddPayPalMePage(props) {
     const payPalMeInput = useRef(null);
 
     const hasPaypalAccount = !_.isEmpty(props.payPalMeData);
 
     const growlMessageOnSave = props.translate(hasPaypalAccount ? 'addPayPalMePage.growlMessageOnUpdate' : 'addPayPalMePage.growlMessageOnSave');
-
-    const validate = (values) => {
-        const errors = {};
-        if (!ValidationUtils.isValidPaypalUsername(values.payPalMeUsername)) {
-            errors.payPalMeUsername = 'addPayPalMePage.formatError';
-        }
-
-        return errors;
-    };
 
     /**
      * Sets the payPalMe username and error data for the current user
