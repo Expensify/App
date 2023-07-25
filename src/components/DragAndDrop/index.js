@@ -45,7 +45,8 @@ function DragAndDrop({onDragEnter, onDragLeave, onDrop, dropZoneID, activeDropZo
                 top: boundingClientRect.top,
                 bottom: boundingClientRect.bottom,
             };
-        }, [windowWidth, isSmallScreenWidth]),
+        }, 100),
+        [windowWidth, isSmallScreenWidth],
     );
 
     /*
