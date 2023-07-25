@@ -7,8 +7,7 @@ import CONST from '../CONST';
  * @returns {Boolean}
  */
 function canUseAllBetas(betas) {
-    return true
-    // return _.contains(betas, CONST.BETAS.ALL);
+    return _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
