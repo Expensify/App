@@ -238,16 +238,14 @@ function ReportActionItemMessageEdit(props) {
         const trimmedNewDraft = draft.trim();
 
         const report = ReportUtils.getReport(props.reportID);
-        if (report && report.parentReportActionID) {
-            const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-            if ((lodashGet(props.drafts, [`reportActionsDrafts_${report.parentReportID}_${parentReportAction.reportActionID}`], undefined))) {
-                Report.saveReportActionDraft(report.parentReportID, parentReportAction.reportActionID, trimmedNewDraft);
+        if (report && report.parentReportActionID && ReportActionsUtils.hasCommentThread(props.action)) {
+            if ((lodashGet(props.drafts, [`reportActionsDrafts_${report.parentReportID}_${props.action.reportActionID}`], undefined))) {
+                Report.saveReportActionDraft(report.parentReportID, props.action.reportActionID, trimmedNewDraft);
             }
         } 
-        const childReport = ReportUtils.getReport(props.action.childReportID);
-        if (props.action.childReportID && childReport) {
-            if ((lodashGet(props.drafts, [`reportActionsDrafts_${childReport.reportID}_${props.action.reportActionID}`], undefined))) {
-                Report.saveReportActionDraft(childReport.reportID, props.action.reportActionID, trimmedNewDraft);
+        if (!report.parentReportActionID && props.action.childReportID) {
+            if ((lodashGet(props.drafts, [`reportActionsDrafts_${props.action.childReportID}_${props.action.reportActionID}`], undefined))) {
+                Report.saveReportActionDraft(props.action.childReportID, props.action.reportActionID, trimmedNewDraft);
             }
         } 
 
