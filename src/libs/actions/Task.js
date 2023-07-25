@@ -172,14 +172,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                         isOptimisticReport: false,
                     },
                 },
-                // Once we successfully create the chat, we'll get the accountID back from the server so this removes the optimistic personal details
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [assigneeAccountID]: null,
-                    },
-                },
             );
 
             failureData.push(
