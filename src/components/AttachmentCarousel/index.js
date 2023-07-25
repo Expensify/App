@@ -196,7 +196,8 @@ class AttachmentCarousel extends React.Component {
             attachments.reverse();
         }
 
-        const page = _.findIndex(attachments, (a) => a.source === this.props.source);
+        const source = tryResolveUrlFromApiRoot(this.props.source);
+        const page = _.findIndex(attachments, (a) => a.source === source);
 
         if (page !== -1) {
             // Update the parent modal's state with the source and name from the mapped attachments
