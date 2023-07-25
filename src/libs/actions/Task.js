@@ -161,18 +161,16 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 },
             );
 
-            successData.push(
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
-                    value: {
-                        pendingFields: {
-                            createChat: null,
-                        },
-                        isOptimisticReport: false,
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+                value: {
+                    pendingFields: {
+                        createChat: null,
                     },
+                    isOptimisticReport: false,
                 },
-            );
+            });
 
             failureData.push(
                 {
@@ -250,22 +248,18 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         );
 
         // FOR PARENT REPORT (SHARE DESTINATION)
-        successData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-                value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
-            }
-        );
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        });
 
         // FOR PARENT REPORT (SHARE DESTINATION)
-        failureData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-                value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
-            },
-        );
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        });
     }
 
     API.write(
@@ -595,10 +589,10 @@ function setShareDestinationValue(shareDestination) {
 }
 
 /* Sets the assigneeChatReport details for the task
-* @param {Object} chatReport
-*/
+ * @param {Object} chatReport
+ */
 function setAssigneeChatReport(chatReport) {
-   Onyx.merge(ONYXKEYS.TASK, {assigneeChatReport: chatReport});
+    Onyx.merge(ONYXKEYS.TASK, {assigneeChatReport: chatReport});
 }
 
 /**
