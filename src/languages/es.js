@@ -287,6 +287,8 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' para chatear con compañeros, compartir consejos o hacer una pregunta.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Este es el lugar para que los administradores de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAdminRoomPartTwo: ' para chatear sobre temas como la configuración del espacio de trabajo y mas.',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Utiliza ',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` para enterarte de anuncios importantes relacionados con ${workspaceName}`,
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Este es el lugar para que todos los miembros de ${workspaceName} colaboren! 🎉\nUsa `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` para chatear sobre cualquier cosa relacionada con ${workspaceName}.`,
         beginningOfChatHistoryUserRoomPartOne: 'Este es el lugar para colaborar! 🎉\nUsa este espacio para chatear sobre cualquier cosa relacionada con ',

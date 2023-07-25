@@ -280,8 +280,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         {optimisticData, successData, failureData},
     );
 
-    clearOutTaskInfo();
-
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
 

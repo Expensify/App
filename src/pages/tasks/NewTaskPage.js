@@ -68,6 +68,7 @@ function NewTaskPage(props) {
     const [shareDestination, setShareDestination] = React.useState({});
     const [errorMessage, setErrorMessage] = React.useState('');
     const [parentReport, setParentReport] = React.useState({});
+    const shouldClearOutTaskInfoOnUnmount = React.useRef(false);
 
     const isAllowedToCreateTask = useMemo(() => _.isEmpty(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
@@ -101,6 +102,16 @@ function NewTaskPage(props) {
         }
     }, [props]);
 
+    useEffect(
+        () => () => {
+            if (!shouldClearOutTaskInfoOnUnmount.current) {
+                return;
+            }
+            Task.clearOutTaskInfo();
+        },
+        [],
+    );
+
     // On submit, we want to call the createTask function and wait to validate
     // the response
     function onSubmit() {
@@ -119,7 +130,8 @@ function NewTaskPage(props) {
             return;
         }
 
-        Task.createTaskAndNavigate(props.task.shareDestination, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID, props.task.assigneeChatReport);
+        shouldClearOutTaskInfoOnUnmount.current = true;
+        Task.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID, props.task.assigneeChatReport);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
