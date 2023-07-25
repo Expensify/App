@@ -141,7 +141,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
 
     if (assigneeChatReport) {
         // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
-        if (assigneeChatReport.isOptimisticReport) {
+        if (assigneeChatReport.isOptimisticReport && lodashGet(assigneeChatReport, 'pendingFields.createChat') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             optimisticChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(assigneeChatReportID);
             optimisticData.push(
                 {
