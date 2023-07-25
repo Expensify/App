@@ -505,6 +505,7 @@ function isArchivedRoom(report) {
  * @param {String} report.oldPolicyName
  * @param {String} report.policyName
  * @param {Boolean} [returnEmptyIfNotFound]
+ * @param {Object} policy
  * @returns {Object|String}
  */
 function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined) {

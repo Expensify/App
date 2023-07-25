@@ -539,7 +539,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
                   };
         } else if (result.isTaskReport) {
             result.alternateText =
-                showChatPreviewLine && lastMessageText
+                showChatPreviewLine && hasLastMessageText
                     ? lastMessageTextFromReport
                     : {
                           key: 'report.noActivityYet',
