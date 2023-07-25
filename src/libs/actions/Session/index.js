@@ -632,7 +632,7 @@ function unlinkLogin(accountID, validateCode) {
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                message: Localize.translateLocal('unlinkLoginForm.succesfullyUnlinkedLogin'),
+                message: 'unlinkLoginForm.succesfullyUnlinkedLogin',
             },
         },
         {
