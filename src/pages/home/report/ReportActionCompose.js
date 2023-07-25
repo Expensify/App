@@ -987,17 +987,18 @@ function ReportActionCompose({translate, ...props}) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const prevProps = usePrevious(props);
+    const prevIsModalVisible = usePrevious(props.modal.isVisible);
+    const prevIsFocused = usePrevious(props.isFocused);
     useEffect(() => {
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!willBlurTextInputOnTapOutside || props.modal.isVisible || !props.isFocused || prevProps.modal.isVisible || !prevProps.isFocused) {
+        if (!willBlurTextInputOnTapOutside || props.modal.isVisible || !props.isFocused || prevIsModalVisible || !prevIsFocused) {
             return;
         }
 
         focus();
-    }, [focus, prevProps, props.isFocused, props.modal.isVisible]);
+    }, [focus, prevIsFocused, prevIsModalVisible, props.isFocused, props.modal.isVisible]);
 
     useEffect(() => {
         if (value === props.comment) return;
