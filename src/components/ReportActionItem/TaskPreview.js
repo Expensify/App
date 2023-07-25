@@ -42,8 +42,8 @@ const propTypes = {
         /** Title of the task */
         reportName: PropTypes.string,
 
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** AccountID of the manager in this iou report */
+        managerID: PropTypes.number,
 
         /** AccountID of the creator of this iou report */
         ownerAccountID: PropTypes.number,
@@ -66,7 +66,7 @@ function TaskPreview(props) {
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
-    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport);
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
     const taskAssignee = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], ''));
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 

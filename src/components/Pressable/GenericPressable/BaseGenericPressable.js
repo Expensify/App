@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState, useMemo, forwardRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
 import _ from 'underscore';
 import Accessibility from '../../../libs/Accessibility';
@@ -33,6 +34,7 @@ const GenericPressable = forwardRef((props, ref) => {
         onPress,
         onLongPress,
         onKeyPress,
+        onKeyDown,
         disabled,
         style,
         shouldUseHapticsOnLongPress,
@@ -140,6 +142,7 @@ const GenericPressable = forwardRef((props, ref) => {
             onPress={!isDisabled ? onPressHandler : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyPress={!isDisabled ? onKeyPressHandler : undefined}
+            onKeyDown={!isDisabled ? onKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             style={(state) => [

@@ -146,9 +146,9 @@ class WorkspaceInvitePage extends React.Component {
         indexOffset += this.state.selectedOptions.length;
 
         // Filtering out selected users from the search results
-        const filterText = _.reduce(this.state.selectedOptions, (str, {login}) => `${str} ${login}`, '');
-        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !filterText.includes(login));
-        const hasUnselectedUserToInvite = this.state.userToInvite && !filterText.includes(this.state.userToInvite.login);
+        const selectedLogins = _.map(this.state.selectedOptions, ({login}) => login);
+        const personalDetailsWithoutSelected = _.filter(this.state.personalDetails, ({login}) => !_.contains(selectedLogins, login));
+        const hasUnselectedUserToInvite = this.state.userToInvite && !_.contains(selectedLogins, this.state.userToInvite.login);
 
         sections.push({
             title: this.props.translate('common.contacts'),
@@ -272,7 +272,8 @@ class WorkspaceInvitePage extends React.Component {
                     const sections = didScreenTransitionEnd ? this.getSections() : [];
                     return (
                         <FullPageNotFoundView
-                            shouldShow={_.isEmpty(this.props.policy)}
+                            shouldShow={_.isEmpty(this.props.policy) || !Policy.isPolicyOwner(this.props.policy)}
+                            subtitleKey={_.isEmpty(this.props.policy) ? undefined : 'workspace.common.notAuthorized'}
                             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                         >
                             <HeaderWithBackButton

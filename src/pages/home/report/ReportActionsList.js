@@ -53,6 +53,15 @@ const propTypes = {
     /** Information about the network */
     network: networkPropTypes.isRequired,
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
     ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -116,7 +125,10 @@ function ReportActionsList(props) {
         ({item: reportAction, index}) => {
             // When the new indicator should not be displayed we explicitly set it to null
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
-            const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report);
+            const shouldDisplayParentAction =
+                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                ReportUtils.isChatThread(report) &&
+                !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
             const shouldHideThreadDividerLine =
                 shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
             return shouldDisplayParentAction ? (
@@ -157,7 +169,7 @@ function ReportActionsList(props) {
                 ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
-                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
+                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime ? styles.pt0 : {}]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={calculateInitialNumToRender()}
@@ -180,7 +192,6 @@ function ReportActionsList(props) {
                             />
                         );
                     }
-
                     return null;
                 }}
                 keyboardShouldPersistTaps="handled"

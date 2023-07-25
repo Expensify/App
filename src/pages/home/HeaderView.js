@@ -91,8 +91,8 @@ function HeaderView(props) {
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
     const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
-    const isConcierge = participants.length === 1 && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
-    const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
+    const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
+    const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
@@ -162,7 +162,7 @@ function HeaderView(props) {
                 {Boolean(props.report && title) && (
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <PressableWithoutFeedback
-                            onPress={() => (isTaskReport ? Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID)) : ReportUtils.navigateToDetailsPage(props.report))}
+                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                             disabled={isTaskReport && !ReportUtils.isOpenTaskReport(props.report)}
                             accessibilityLabel={title}
@@ -194,6 +194,7 @@ function HeaderView(props) {
                                         onPress={() => {
                                             Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
                                         }}
+                                        style={[styles.alignSelfStart, styles.mw100]}
                                         accessibilityLabel={parentNavigationSubtitle}
                                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                                     >

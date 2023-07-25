@@ -57,9 +57,6 @@ const propTypes = {
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
-
         /** Account ID of the manager in this iou report */
         managerID: PropTypes.number,
 

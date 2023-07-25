@@ -72,6 +72,7 @@ class ShareCodePage extends React.Component {
 
                     <View style={styles.shareCodePageMenuItemsContainer}>
                         <ContextMenuItem
+                            isAnonymousAction
                             text={this.props.translate('qrCodes.copyUrlToClipboard')}
                             shouldShowRightIcon
                             icon={Expensicons.Copy}
@@ -81,6 +82,7 @@ class ShareCodePage extends React.Component {
                         />
 
                         <MenuItem
+                            isAnonymousAction
                             title={this.props.translate('common.download')}
                             icon={Expensicons.Download}
                             // eslint-disable-next-line es/no-optional-chaining

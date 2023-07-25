@@ -225,11 +225,20 @@ function AttachmentModal(props) {
             }
 
             if (_file instanceof File) {
-                const inputSource = URL.createObjectURL(_file);
-                const inputModalType = getModalType(inputSource, _file);
+                /**
+                 * Cleaning file name, done here so that it covers all cases:
+                 * upload, drag and drop, copy-paste
+                 */
+                let updatedFile = _file;
+                const cleanName = FileUtils.cleanFileName(updatedFile.name);
+                if (updatedFile.name !== cleanName) {
+                    updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+                }
+                const inputSource = URL.createObjectURL(updatedFile);
+                const inputModalType = getModalType(inputSource, updatedFile);
                 setIsModalOpen(true);
                 setSource(inputSource);
-                setFile(_file);
+                setFile(updatedFile);
                 setModalType(inputModalType);
             } else {
                 const inputModalType = getModalType(_file.uri, _file);

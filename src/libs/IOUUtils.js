@@ -25,8 +25,8 @@ function calculateAmount(numberOfParticipants, total, isDefaultUser = false) {
 /**
  * The owner of the IOU report is the account who is owed money and the manager is the one who owes money!
  * In case the owner/manager swap, we need to update the owner of the IOU report and the report total, since it is always positive.
- * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerEmail: user1, total: $10 (a positive amount, owed to user2)}
- * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerEmail: user2, total: $7 (still a positive amount, but now owed to user1)}
+ * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
+ * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param {Object} iouReport
  * @param {Number} actorAccountID

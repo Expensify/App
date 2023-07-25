@@ -37,6 +37,7 @@ import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import withNavigation from '../../../components/withNavigation';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as UserUtils from '../../../libs/UserUtils';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
@@ -48,10 +49,13 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import containerComposeStyles from '../../../styles/containerComposeStyles';
 import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
+import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
+import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
 
 const propTypes = {
     /** Beta features list */
@@ -114,6 +118,9 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
+    /** Unique id for nativeId in DragAndDrop */
+    dragAndDropId: PropTypes.string.isRequired,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -168,7 +175,9 @@ class ReportActionCompose extends React.Component {
         this.setIsFocused = this.setIsFocused.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
         this.focus = this.focus.bind(this);
-        this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
+        this.replaceSelectionWithText = this.replaceSelectionWithText.bind(this);
+        this.focusComposerOnKeyPress = this.focusComposerOnKeyPress.bind(this);
+        this.checkComposerVisibility = this.checkComposerVisibility.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
         this.isEmojiCode = this.isEmojiCode.bind(this);
         this.isMentionCode = this.isMentionCode.bind(this);
@@ -185,6 +194,8 @@ class ReportActionCompose extends React.Component {
         this.debouncedUpdateFrequentlyUsedEmojis = _.debounce(this.debouncedUpdateFrequentlyUsedEmojis.bind(this), 1000, false);
         this.comment = props.comment;
         this.insertedEmojis = [];
+
+        this.attachmentModalRef = React.createRef();
 
         // React Native will retain focus on an input for native devices but web/mWeb behave differently so we have some focus management
         // code that will refocus the compose input after a user closes a modal or some other actions, see usage of ReportActionComposeFocusManager
@@ -204,6 +215,9 @@ class ReportActionCompose extends React.Component {
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
         const isMobileSafari = Browser.isMobileSafari();
+
+        this.unsubscribeNavigationBlur = () => null;
+        this.unsubscribeNavigationFocus = () => null;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible && this.props.shouldShowComposeInput,
@@ -228,23 +242,13 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
-                return;
-            }
-
-            this.focus(false);
+        this.unsubscribeNavigationBlur = this.props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress));
+        this.unsubscribeNavigationFocus = this.props.navigation.addListener('focus', () => {
+            KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+            this.setUpComposeFocusManager();
         });
-
-        // This listener is used for focusing the composer again after going back to a report without remounting it.
-        this.unsubscribeNavFocus = this.props.navigation.addListener('focus', () => {
-            if (!this.willBlurTextInputOnTapOutside || this.props.isFocused || this.props.modal.isVisible) {
-                return;
-            }
-            this.focus();
-        });
+        KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+        this.setUpComposeFocusManager();
 
         this.updateComment(this.comment);
 
@@ -262,10 +266,10 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
+        // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.willBlurTextInputOnTapOutside && this.props.isFocused && prevProps.modal.isVisible && !this.props.modal.isVisible) {
+        if (this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && this.props.isFocused && (prevProps.modal.isVisible || !prevProps.isFocused)) {
             this.focus();
         }
 
@@ -284,10 +288,10 @@ class ReportActionCompose extends React.Component {
 
     componentWillUnmount() {
         ReportActionComposeFocusManager.clear();
-        if (!this.unsubscribeNavFocus) {
-            return;
-        }
-        this.unsubscribeNavFocus();
+
+        KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress);
+        this.unsubscribeNavigationBlur();
+        this.unsubscribeNavigationFocus();
     }
 
     onSelectionChange(e) {
@@ -301,6 +305,18 @@ class ReportActionCompose extends React.Component {
         }
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
+    }
+
+    setUpComposeFocusManager() {
+        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
+                return;
+            }
+
+            this.focus(false);
+        });
     }
 
     getDefaultSuggestionsValues() {
@@ -380,7 +396,7 @@ class ReportActionCompose extends React.Component {
     /**
      * Returns the list of IOU Options
      *
-     * @param {Array} reportParticipants
+     * @param {Array<Number>} reportParticipants
      * @returns {Array<object>}
      */
     getMoneyRequestOptions(reportParticipants) {
@@ -488,7 +504,7 @@ class ReportActionCompose extends React.Component {
                 icons: [
                     {
                         name: detail.login,
-                        source: detail.avatar,
+                        source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                         type: 'avatar',
                     },
                 ],
@@ -496,11 +512,6 @@ class ReportActionCompose extends React.Component {
         });
 
         return suggestions;
-    }
-
-    getNavigationKey() {
-        const navigation = this.props.navigation.getState();
-        return lodashGet(navigation.routes, [navigation.index, 'key']);
     }
 
     /**
@@ -676,18 +687,54 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Callback for the emoji picker to add whatever emoji is chosen into the main input
-     *
-     * @param {String} emoji
+     * Callback to add whatever text is chosen into the main input (used f.e as callback for the emoji picker)
+     * @param {String} text
+     * @param {Boolean} shouldAddTrailSpace
      */
-    addEmojiToTextBox(emoji) {
-        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, `${emoji} `));
+    replaceSelectionWithText(text, shouldAddTrailSpace = true) {
+        const updatedText = shouldAddTrailSpace ? `${text} ` : text;
+        const selectionSpaceLength = shouldAddTrailSpace ? CONST.SPACE_LENGTH : 0;
+        this.updateComment(ComposerUtils.insertText(this.comment, this.state.selection, updatedText));
         this.setState((prevState) => ({
             selection: {
-                start: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
-                end: prevState.selection.start + emoji.length + CONST.SPACE_LENGTH,
+                start: prevState.selection.start + text.length + selectionSpaceLength,
+                end: prevState.selection.start + text.length + selectionSpaceLength,
             },
         }));
+    }
+
+    /**
+     * Check if the composer is visible. Returns true if the composer is not covered up by emoji picker or menu. False otherwise.
+     * @returns {Boolean}
+     */
+    checkComposerVisibility() {
+        const isComposerCoveredUp = EmojiPickerActions.isEmojiPickerVisible() || this.state.isMenuVisible || this.props.modal.isVisible;
+        return !isComposerCoveredUp;
+    }
+
+    focusComposerOnKeyPress(e) {
+        const isComposerVisible = this.checkComposerVisibility();
+        if (!isComposerVisible) {
+            return;
+        }
+
+        // If the key pressed is non-character keys like Enter, Shift, ... do not focus
+        if (e.key.length > 1) {
+            return;
+        }
+
+        // If a key is pressed in combination with Meta, Control or Alt do not focus
+        if (e.metaKey || e.ctrlKey || e.altKey) {
+            return;
+        }
+
+        // if we're typing on another input/text area, do not focus
+        if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
+            return;
+        }
+
+        this.focus();
+        this.replaceSelectionWithText(e.key, false);
     }
 
     /**
@@ -756,13 +803,13 @@ class ReportActionCompose extends React.Component {
             this.debouncedUpdateFrequentlyUsedEmojis();
         }
 
-        this.setState((prevState) => {
+        this.setState(() => {
             const newState = {
                 isCommentEmpty: !!newComment.match(/^(\s)*$/),
                 value: newComment,
             };
             if (comment !== newComment) {
-                const remainder = prevState.value.slice(prevState.selection.end).length;
+                const remainder = ComposerUtils.getCommonSuffixLength(comment, newComment);
                 newState.selection = {
                     start: newComment.length - remainder,
                     end: newComment.length - remainder,
@@ -841,7 +888,7 @@ class ReportActionCompose extends React.Component {
         if (
             e.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey &&
             this.textInput.selectionStart === 0 &&
-            this.state.isCommentEmpty &&
+            this.state.value.length === 0 &&
             !ReportUtils.chatIncludesChronos(this.props.report)
         ) {
             e.preventDefault();
@@ -1070,9 +1117,9 @@ class ReportActionCompose extends React.Component {
                                             </>
                                         )}
                                     </AttachmentPicker>
-                                    <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder]}>
+                                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                                         <DragAndDrop
-                                            dropZoneId={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
+                                            dropZoneId={this.props.dragAndDropId}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + this.props.reportID}
                                             onDragEnter={() => {
                                                 this.setState({isDraggingOver: true});
@@ -1096,6 +1143,7 @@ class ReportActionCompose extends React.Component {
                                             disabled={this.props.disabled}
                                         >
                                             <Composer
+                                                checkComposerVisibility={() => this.checkComposerVisibility()}
                                                 autoFocus={this.shouldAutoFocus}
                                                 multiline
                                                 ref={this.setTextInputRef}
@@ -1148,7 +1196,7 @@ class ReportActionCompose extends React.Component {
                                 onModalHide={() => {
                                     this.focus(true);
                                 }}
-                                onEmojiSelected={this.addEmojiToTextBox}
+                                onEmojiSelected={this.replaceSelectionWithText}
                             />
                         )}
                         <View
