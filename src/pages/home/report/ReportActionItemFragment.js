@@ -83,12 +83,7 @@ const defaultProps = {
     source: '',
     style: [],
     delegateAccountID: 0,
-    actorIcon: {
-        name: '',
-        source: '',
-        type: '',
-        id: 0,
-    },
+    actorIcon: {},
 };
 
 function ReportActionItemFragment(props) {
