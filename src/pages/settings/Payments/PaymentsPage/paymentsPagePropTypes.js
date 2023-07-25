@@ -57,8 +57,8 @@ const defaultProps = {
     shouldListenForResize: false,
     userWallet: {},
     bankAccountList: {},
-    cardList: {},
-    fundList: {},
+    cardList: null,
+    fundList: null,
     walletTerms: {},
     payPalMeData: {},
 };

@@ -76,8 +76,8 @@ const propTypes = {
 const defaultProps = {
     payPalMeData: {},
     bankAccountList: {},
-    cardList: {},
-    fundList: {},
+    cardList: null,
+    fundList: null,
     userWallet: {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',

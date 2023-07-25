@@ -63,8 +63,8 @@ const propTypes = {
 
 const defaultProps = {
     bankAccountList: {},
-    cardList: {},
-    fundList: {},
+    cardList: null,
+    fundList: null,
     userWallet: {},
     walletTransfer: {},
 };
