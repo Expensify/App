@@ -83,8 +83,6 @@ class DatePicker extends React.Component {
                 <TextInput
                     forceActiveLabel
                     label={this.props.label}
-                    accessibilityLabel={this.props.label}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     value={dateAsText}
                     placeholder={this.props.placeholder}
                     errorText={this.props.errorText}

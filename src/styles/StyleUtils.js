@@ -43,7 +43,6 @@ const avatarBorderSizes = {
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
-    [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
 };
 
 const avatarSizes = {
@@ -58,7 +57,6 @@ const avatarSizes = {
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
     [CONST.AVATAR_SIZE.MENTION_ICON]: variables.avatarSizeMentionIcon,
-    [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.avatarSizeSmallNormal,
 };
 
 const emptyAvatarStyles = {
@@ -94,19 +92,6 @@ function getHeightOfMagicCodeInput() {
  */
 function getEmptyAvatarStyle(size) {
     return emptyAvatarStyles[size];
-}
-
-/**
- * Return the width style from an avatar size constant
- *
- * @param {String} size
- * @returns {Object}
- */
-function getAvatarWidthStyle(size) {
-    const avatarSize = getAvatarSize(size);
-    return {
-        width: avatarSize,
-    };
 }
 
 /**
@@ -367,18 +352,6 @@ function getBackgroundAndBorderStyle(backgroundColor) {
 function getBackgroundColorStyle(backgroundColor) {
     return {
         backgroundColor,
-    };
-}
-
-/**
- * Returns a style for text color
- *
- * @param {String} color
- * @returns {Object}
- */
-function getTextColorStyle(color) {
-    return {
-        color,
     };
 }
 
@@ -717,24 +690,6 @@ function convertRGBToUnitValues(red, green, blue) {
 }
 
 /**
- * Matches an RGBA or RGB color value and extracts the color components.
- *
- * @param {string} color - The RGBA or RGB color value to match and extract components from.
- * @returns {Array} An array containing the extracted color components [red, green, blue, alpha].
- * Returns null if the input string does not match the pattern.
- */
-function extractValuesFromRGB(color) {
-    const rgbaPattern = /rgba?\((?<r>[.\d]+)[, ]+(?<g>[.\d]+)[, ]+(?<b>[.\d]+)(?:\s?[,/]\s?(?<a>[.\d]+%?))?\)$/i;
-    const matchRGBA = color.match(rgbaPattern);
-    if (matchRGBA) {
-        const [, red, green, blue, alpha] = matchRGBA;
-        return [parseInt(red, 10), parseInt(green, 10), parseInt(blue, 10), alpha ? parseFloat(alpha) : 1];
-    }
-
-    return null;
-}
-
-/**
  * Determines the theme color for a modal based on the app's background color,
  * the modal's backdrop, and the backdrop's opacity.
  *
@@ -744,7 +699,7 @@ function extractValuesFromRGB(color) {
 function getThemeBackgroundColor(bgColor = themeColors.appBG) {
     const backdropOpacity = variables.modalFullscreenBackdropOpacity;
 
-    const [backgroundRed, backgroundGreen, backgroundBlue] = extractValuesFromRGB(bgColor) || hexadecimalToRGBArray(bgColor);
+    const [backgroundRed, backgroundGreen, backgroundBlue] = hexadecimalToRGBArray(bgColor);
     const [backdropRed, backdropGreen, backdropBlue] = hexadecimalToRGBArray(themeColors.modalBackdrop);
     const normalizedBackdropRGB = convertRGBToUnitValues(backdropRed, backdropGreen, backdropBlue);
     const normalizedBackgroundRGB = convertRGBToUnitValues(backgroundRed, backgroundGreen, backgroundBlue);
@@ -1243,17 +1198,6 @@ function getWrappingStyle(isExtraSmallScreenWidth) {
 }
 
 /**
- * Returns the text container styles for menu items depending on if the menu item container a small avatar
- * @param {Boolean} isSmallAvatarSubscriptMenu
- * @returns {Number}
- */
-function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu) {
-    return {
-        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
-    };
-}
-
-/**
  * Returns link styles based on whether the link is disabled or not
  * @param {Boolean} isDisabled
  * @returns {Object}
@@ -1270,29 +1214,8 @@ function getDisabledLinkStyles(isDisabled = false) {
     };
 }
 
-/**
- * Returns the checkbox container style
- * @param {Number} size
- * @param {Number} borderRadius
- * @returns {Object}
- */
-function getCheckboxContainerStyle(size, borderRadius) {
-    return {
-        backgroundColor: themeColors.componentBG,
-        height: size,
-        width: size,
-        borderColor: themeColors.borderLighter,
-        borderWidth: 2,
-        justifyContent: 'center',
-        alignItems: 'center',
-        // eslint-disable-next-line object-shorthand
-        borderRadius: borderRadius,
-    };
-}
-
 export {
     getAvatarSize,
-    getAvatarWidthStyle,
     getAvatarStyle,
     getAvatarExtraFontSizeStyle,
     getAvatarBorderWidth,
@@ -1307,7 +1230,6 @@ export {
     getAutoGrowHeightInputStyle,
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
-    getTextColorStyle,
     getBorderColorStyle,
     getBackgroundColorWithOpacityStyle,
     getBadgeColorStyle,
@@ -1359,7 +1281,5 @@ export {
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,
-    getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
-    getCheckboxContainerStyle,
 };

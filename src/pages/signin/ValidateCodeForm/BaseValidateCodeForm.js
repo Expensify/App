@@ -46,12 +46,6 @@ const propTypes = {
         login: PropTypes.string,
     }),
 
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        /** Currently logged in user authToken */
-        authToken: PropTypes.string,
-    }),
-
     /** Indicates which locale the user currently has selected */
     preferredLocale: PropTypes.string,
 
@@ -68,9 +62,6 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
-    session: {
-        authToken: null,
-    },
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
@@ -87,15 +78,6 @@ function BaseValidateCodeForm(props) {
     const inputValidateCodeRef = useRef();
     const input2FARef = useRef();
     const timerRef = useRef();
-
-    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
-
-    useEffect(() => {
-        if (!(inputValidateCodeRef.current && hasError && (props.session.autoAuthState === CONST.AUTO_AUTH_STATE.FAILED || props.account.isLoading))) {
-            return;
-        }
-        inputValidateCodeRef.current.blur();
-    }, [props.account.isLoading, props.session.autoAuthState, hasError]);
 
     useEffect(() => {
         if (!inputValidateCodeRef.current || prevIsVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
@@ -237,6 +219,8 @@ function BaseValidateCodeForm(props) {
         }
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
+    const hasError = Boolean(props.account) && !_.isEmpty(props.account.errors);
+
     return (
         <>
             {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
@@ -286,12 +270,10 @@ function BaseValidateCodeForm(props) {
                                 disabled={props.network.isOffline}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityRole="button"
                                 accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
                             >
-                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>
-                                    {hasError ? props.translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : props.translate('validateCodeForm.magicCodeNotReceived')}
-                                </Text>
+                                <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
@@ -327,7 +309,6 @@ export default compose(
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
         preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
-        session: {key: ONYXKEYS.SESSION},
     }),
     withToggleVisibilityView,
     withNetwork(),

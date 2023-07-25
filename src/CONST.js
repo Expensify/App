@@ -269,7 +269,6 @@ const CONST = {
         PASSWORDLESS: 'passwordless',
         TASKS: 'tasks',
         THREADS: 'threads',
-        SCAN_RECEIPTS: 'scanReceipts',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -653,7 +652,6 @@ const CONST = {
         },
     },
     TIMING: {
-        CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION: 'calc_most_recent_last_modified_action',
         SEARCH_RENDER: 'search_render',
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         REPORT_INITIAL_RENDER: 'report_initial_render',
@@ -726,10 +724,13 @@ const CONST = {
         MAX_RETRY_WAIT_TIME_MS: 10 * 1000,
         PROCESS_REQUEST_DELAY_MS: 1000,
         MAX_PENDING_TIME_MS: 10 * 1000,
+        COMMAND: {
+            RECONNECT_APP: 'ReconnectApp',
+        },
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: {}, success: '', isLoading: false},
+    DEFAULT_CLOSE_ACCOUNT_DATA: {error: '', success: '', isLoading: false},
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -751,7 +752,7 @@ const CONST = {
 
     // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
     // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
-    VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
+    VALIDATE_FOR_HTML_TAG_REGEX: /<(.|\n)*?>/g,
 
     PASSWORD_PAGE: {
         ERROR: {
@@ -1110,11 +1111,6 @@ const CONST = {
         LARGE_BORDERED: 'large-bordered',
         HEADER: 'header',
         MENTION_ICON: 'mention-icon',
-        SMALL_NORMAL: 'small-normal',
-    },
-    AVATAR_ROW_SIZE: {
-        DEFAULT: 4,
-        LARGE_SCREEN: 8,
     },
     OPTION_MODE: {
         COMPACT: 'compact',
@@ -1123,11 +1119,12 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
+        ALPHABETIC_CHARS: /[a-zA-Z]+/,
         ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
-        ZIP_CODE: /^[0-9]{5}(?:[- ][0-9]{4})?$/,
+        ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
@@ -2517,17 +2514,9 @@ const CONST = {
         MENUITEM: 'menuitem',
         TEXT: 'text',
         RADIO: 'radio',
-        IMAGEBUTTON: 'imagebutton',
-        CHECKBOX: 'checkbox',
-        SWITCH: 'switch',
-        ADJUSTABLE: 'adjustable',
-        IMAGE: 'image',
     },
     SETTINGS_LOUNGE_ACCESS: {
         HEADER_IMAGE_ASPECT_RATIO: 0.64,
-    },
-    TRANSLATION_KEYS: {
-        ATTACHMENT: 'common.attachment',
     },
 };
 

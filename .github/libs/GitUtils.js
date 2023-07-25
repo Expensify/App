@@ -2,30 +2,29 @@ const _ = require('underscore');
 const {spawn, execSync} = require('child_process');
 const CONST = require('./CONST');
 const sanitizeStringForJSONParse = require('./sanitizeStringForJSONParse');
-const {getPreviousVersion, SEMANTIC_VERSION_LEVELS} = require('../libs/versionUpdater');
 
 /**
  * @param {String} tag
  */
-function fetchTag(tag) {
-    const previousPatchVersion = getPreviousVersion(tag, SEMANTIC_VERSION_LEVELS.PATCH);
+// eslint-disable-next-line no-unused-vars
+function fetchTagIfNeeded(tag) {
     try {
-        let command = `git fetch origin tag ${tag} --no-tags`;
-
-        // Exclude commits reachable from the previous patch version (i.e: previous checklist),
-        // so that we don't have to fetch the full history
-        // Note that this condition would only ever _not_ be true in the 1.0.0-0 edge case
-        if (previousPatchVersion !== tag) {
-            command += ` --shallow-exclude=${previousPatchVersion}`;
-        }
-
+        console.log(`Checking if tag ${tag} exists locally`);
+        const command = `git rev-parse --verify ${tag}`;
         console.log(`Running command: ${command}`);
-        execSync(command);
+        const result = execSync(command).toString();
+        console.log(result);
     } catch (e) {
-        // This can happen if the tag was only created locally but does not exist in the remote. In this case, we'll fetch history of the staging branch instead
-        const command = `git fetch origin staging --no-tags --shallow-exclude=${previousPatchVersion}`;
+        console.log(`Tag ${tag} not found locally, attempting to fetch it.`);
+        let command = `git fetch origin tag ${tag} --no-tags`;
         console.log(`Running command: ${command}`);
-        execSync(command);
+        let result = execSync(command).toString();
+        console.log(result);
+        console.log('Verifying that the tag is now available...');
+        command = `git rev-parse --verify ${tag}`;
+        console.log(`Running command: ${command}`);
+        result = execSync(command).toString();
+        console.log(result);
     }
 }
 
@@ -37,8 +36,10 @@ function fetchTag(tag) {
  * @returns {Promise<Array<Object<{commit: String, subject: String, authorName: String}>>>}
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    fetchTag(fromTag);
-    fetchTag(toTag);
+    // fetchTagIfNeeded(fromTag);
+    // fetchTagIfNeeded(toTag);
+    // Note: this is a temporary measure until we can figure out a faster way to fetch only what's needed
+    execSync('git fetch --all --tags');
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise((resolve, reject) => {

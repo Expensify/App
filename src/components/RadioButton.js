@@ -5,7 +5,6 @@ import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import CONST from '../CONST';
 
 const propTypes = {
     /** Whether radioButton is checked */
@@ -37,7 +36,7 @@ function RadioButton(props) {
             hoverDimmingValue={1}
             pressDimmingValue={1}
             accessibilityLabel={props.accessibilityLabel}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.RADIO}
+            accessibilityRole="radio"
         >
             <View style={[styles.radioButtonContainer, props.isChecked && styles.checkedContainer, props.hasError && styles.borderColorDanger, props.disabled && styles.cursorDisabled]}>
                 <Icon

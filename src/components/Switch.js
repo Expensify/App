@@ -3,7 +3,6 @@ import {Animated} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import * as Pressables from './Pressable';
-import CONST from '../CONST';
 
 const propTypes = {
     /** Whether the switch is toggled to the on position */
@@ -57,7 +56,7 @@ class Switch extends Component {
                 style={[styles.switchTrack, !this.props.isOn && styles.switchInactive]}
                 onPress={this.toggleAction}
                 onLongPress={this.toggleAction}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.SWITCH}
+                accessibilityRole="switch"
                 accessibilityState={{checked: this.props.isOn}}
                 aria-checked={this.props.isOn}
                 accessibilityLabel={this.props.accessibilityLabel}

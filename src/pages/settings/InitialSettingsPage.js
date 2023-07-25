@@ -21,6 +21,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
+import * as App from '../../libs/actions/App';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
@@ -199,7 +200,7 @@ class InitialSettingsPage extends React.Component {
                 translationKey: 'common.profile',
                 icon: Expensicons.Profile,
                 action: () => {
-                    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+                    App.openProfile();
                 },
                 brickRoadIndicator: profileBrickRoadIndicator,
             },
@@ -276,7 +277,7 @@ class InitialSettingsPage extends React.Component {
                 brickRoadIndicator={item.brickRoadIndicator}
                 floatRightAvatars={item.floatRightAvatars}
                 shouldStackHorizontally={item.shouldStackHorizontally}
-                floatRightAvatarSize={item.avatarSize}
+                avatarSize={item.avatarSize}
                 ref={this.popoverAnchor}
                 shouldBlockSelection={Boolean(item.link)}
                 onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, this.popoverAnchor.current) : undefined}
@@ -326,7 +327,7 @@ class InitialSettingsPage extends React.Component {
                                             style={[styles.mb3]}
                                             onPress={this.openProfileSettings}
                                             accessibilityLabel={this.props.translate('common.profile')}
-                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                            accessibilityRole="button"
                                         >
                                             <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                                                 <Avatar
@@ -341,7 +342,7 @@ class InitialSettingsPage extends React.Component {
                                         style={[styles.mt1, styles.mw100]}
                                         onPress={this.openProfileSettings}
                                         accessibilityLabel={this.props.translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                                        accessibilityRole="link"
                                     >
                                         <Tooltip text={this.props.translate('common.profile')}>
                                             <Text

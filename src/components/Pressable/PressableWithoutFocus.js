@@ -3,7 +3,6 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import GenericPressable from './GenericPressable';
 import genericPressablePropTypes from './GenericPressable/PropTypes';
-import StylePropType from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** Element that should be clickable  */
@@ -16,7 +15,8 @@ const propTypes = {
     onLongPress: PropTypes.func,
 
     /** Styles that should be passed to touchable container */
-    style: StylePropType,
+    // eslint-disable-next-line react/forbid-prop-types
+    style: PropTypes.arrayOf(PropTypes.object),
 
     /** Proptypes of pressable component used for implementation */
     ...genericPressablePropTypes.pressablePropTypes,

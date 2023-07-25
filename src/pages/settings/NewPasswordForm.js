@@ -51,8 +51,6 @@ function NewPasswordForm(props) {
             <TextInput
                 autoFocus
                 label={`${props.translate('setPasswordPage.enterPassword')}`}
-                accessibilityLabel={props.translate('setPasswordPage.enterPassword')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 secureTextEntry
                 autoComplete={ComponentUtils.NEW_PASSWORD_AUTOCOMPLETE_TYPE}
                 textContentType="newPassword"

@@ -69,7 +69,7 @@ class KYCWall extends React.Component {
         }
 
         return {
-            anchorPositionVertical: domRect.top - 8,
+            anchorPositionVertical: domRect.top - 150,
             anchorPositionHorizontal: domRect.left,
         };
     }

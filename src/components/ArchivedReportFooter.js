@@ -22,11 +22,11 @@ const propTypes = {
             /** The reason the report was closed */
             reason: PropTypes.string.isRequired,
 
-            /** (For accountMerged reason only), the accountID of the previous owner of this report. */
-            oldAccountID: PropTypes.number,
+            /** (For accountMerged reason only), the email of the previous owner of this report. */
+            oldLogin: PropTypes.string,
 
-            /** (For accountMerged reason only), the accountID of the account the previous owner was merged into */
-            newAccountID: PropTypes.number,
+            /** (For accountMerged reason only), the email of the account the previous owner was merged into */
+            newLogin: PropTypes.string,
         }).isRequired,
     }),
 
@@ -50,7 +50,7 @@ const defaultProps = {
 
 function ArchivedReportFooter(props) {
     const archiveReason = lodashGet(props.reportClosedAction, 'originalMessage.reason', CONST.REPORT.ARCHIVE_REASON.DEFAULT);
-    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [props.report.ownerAccountID, 'displayName']);
+    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetails, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
 
     let oldDisplayName;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {

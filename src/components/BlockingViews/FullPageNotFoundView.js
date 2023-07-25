@@ -28,9 +28,6 @@ const propTypes = {
     /** Whether we should show a link to navigate elsewhere */
     shouldShowLink: PropTypes.bool,
 
-    /** Whether we should show the back button on the header */
-    shouldShowBackButton: PropTypes.bool,
-
     /** The key in the translations file to use for the go back link */
     linkKey: PropTypes.string,
 
@@ -49,7 +46,6 @@ const defaultProps = {
     linkKey: 'notFound.goBackHome',
     onBackButtonPress: Navigation.goBack,
     shouldShowLink: false,
-    shouldShowBackButton: true,
     onLinkPress: () => Navigation.dismissModal(),
 };
 
@@ -58,10 +54,7 @@ function FullPageNotFoundView(props) {
     if (props.shouldShow) {
         return (
             <>
-                <HeaderWithBackButton
-                    onBackButtonPress={props.onBackButtonPress}
-                    shouldShowBackButton={props.shouldShowBackButton}
-                />
+                <HeaderWithBackButton onBackButtonPress={props.onBackButtonPress} />
                 <View style={[styles.flex1, styles.blockingViewContainer]}>
                     <BlockingView
                         icon={Illustrations.ToddBehindCloud}

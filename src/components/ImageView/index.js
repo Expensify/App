@@ -8,7 +8,6 @@ import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import FullscreenLoadingIndicator from '../FullscreenLoadingIndicator';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether source url requires authentication */
@@ -289,7 +288,7 @@ class ImageView extends PureComponent {
                     }}
                     onPressIn={this.onContainerPressIn}
                     onPress={this.onContainerPress}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGE}
+                    accessibilityRole="image"
                     accessibilityLabel={this.props.fileName}
                 >
                     <Image

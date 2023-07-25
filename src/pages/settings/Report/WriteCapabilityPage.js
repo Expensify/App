@@ -14,8 +14,6 @@ import ROUTES from '../../../ROUTES';
 import * as Report from '../../../libs/actions/Report';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import themeColors from '../../../styles/themes/default';
-import * as ReportUtils from '../../../libs/ReportUtils';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -40,26 +38,24 @@ function WriteCapabilityPage(props) {
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-            <FullPageNotFoundView shouldShow={ReportUtils.isAdminRoom(props.report)}>
-                <HeaderWithBackButton
-                    title={props.translate('writeCapabilityPage.label')}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
-                />
-                <OptionsList
-                    sections={[{data: writeCapabilityOptions}]}
-                    onSelectRow={(option) => Report.updateWriteCapabilityAndNavigate(props.report, option.value)}
-                    hideSectionHeaders
-                    optionHoveredStyle={{
-                        ...styles.hoveredComponentBG,
-                        ...styles.mhn5,
-                        ...styles.ph5,
-                    }}
-                    shouldHaveOptionSeparator
-                    shouldDisableRowInnerPadding
-                    contentContainerStyles={[styles.ph5]}
-                />
-            </FullPageNotFoundView>
+            <HeaderWithBackButton
+                title={props.translate('writeCapabilityPage.label')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack(ROUTES.getReportSettingsRoute(props.report.reportID))}
+            />
+            <OptionsList
+                sections={[{data: writeCapabilityOptions}]}
+                onSelectRow={(option) => Report.updateWriteCapabilityAndNavigate(props.report, option.value)}
+                hideSectionHeaders
+                optionHoveredStyle={{
+                    ...styles.hoveredComponentBG,
+                    ...styles.mhn5,
+                    ...styles.ph5,
+                }}
+                shouldHaveOptionSeparator
+                shouldDisableRowInnerPadding
+                contentContainerStyles={[styles.ph5]}
+            />
         </ScreenWrapper>
     );
 }

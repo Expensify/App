@@ -82,8 +82,6 @@ function LegalNamePage(props) {
                         inputID="legalFirstName"
                         name="lfname"
                         label={props.translate('privatePersonalDetails.legalFirstName')}
-                        accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={legalFirstName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                     />
@@ -93,8 +91,6 @@ function LegalNamePage(props) {
                         inputID="legalLastName"
                         name="llname"
                         label={props.translate('privatePersonalDetails.legalLastName')}
-                        accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={legalLastName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                     />

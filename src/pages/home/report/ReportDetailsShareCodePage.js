@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import reportPropTypes from '../../reportPropTypes';
+import ONYXKEYS from '../../../ONYXKEYS';
 import ShareCodePage from '../../ShareCodePage';
-import withReportOrNotFound from './withReportOrNotFound';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -28,4 +29,8 @@ function ReportDetailsShareCodePage(props) {
 ReportDetailsShareCodePage.propTypes = propTypes;
 ReportDetailsShareCodePage.defaultProps = defaultProps;
 
-export default withReportOrNotFound(ReportDetailsShareCodePage);
+export default withOnyx({
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+    },
+})(ReportDetailsShareCodePage);

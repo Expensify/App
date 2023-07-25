@@ -2,7 +2,6 @@ import getPlatform from '../getPlatform';
 import * as Environment from '../Environment/Environment';
 import Firebase from '../Firebase';
 import * as API from '../API';
-import Log from '../Log';
 
 let timestampData = {};
 
@@ -27,9 +26,8 @@ function start(eventName, shouldUseFirebase = false) {
  *
  * @param {String} eventName - event name used as timestamp key
  * @param {String} [secondaryName] - optional secondary event name, passed to grafana
- * @param {number} [maxExecutionTime] - optional amount of time (ms) to wait before logging a warn
  */
-function end(eventName, secondaryName = '', maxExecutionTime = 0) {
+function end(eventName, secondaryName = '') {
     if (!timestampData[eventName]) {
         return;
     }
@@ -51,10 +49,6 @@ function end(eventName, secondaryName = '', maxExecutionTime = 0) {
         if (Environment.isDevelopment()) {
             // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
             return;
-        }
-
-        if (maxExecutionTime && eventTime > maxExecutionTime) {
-            Log.warn(`${eventName} exceeded max execution time of ${maxExecutionTime}.`, {eventTime, eventName});
         }
 
         API.read(

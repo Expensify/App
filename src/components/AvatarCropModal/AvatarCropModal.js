@@ -402,7 +402,7 @@ function AvatarCropModal(props) {
                                 onLayout={initializeSliderContainer}
                                 onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
                                 accessibilityLabel="slider"
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
+                                accessibilityRole="adjustable"
                             >
                                 <Slider
                                     sliderValue={translateSlider}

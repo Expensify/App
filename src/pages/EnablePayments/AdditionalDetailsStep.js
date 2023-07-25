@@ -234,8 +234,6 @@ class AdditionalDetailsStep extends React.Component {
                             inputID={INPUT_IDS.LEGAL_FIRST_NAME}
                             containerStyles={[styles.mt4]}
                             label={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
-                            accessibilityLabel={this.props.translate(this.fieldNameTranslationKeys.legalFirstName)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).firstName}
                             shouldSaveDraft
                         />
@@ -243,8 +241,6 @@ class AdditionalDetailsStep extends React.Component {
                             inputID={INPUT_IDS.LEGAL_LAST_NAME}
                             containerStyles={[styles.mt4]}
                             label={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
-                            accessibilityLabel={this.props.translate(this.fieldNameTranslationKeys.legalLastName)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={PersonalDetails.extractFirstAndLastNameFromAvailableDetails(this.props.currentUserPersonalDetails).lastName}
                             shouldSaveDraft
                         />
@@ -259,8 +255,6 @@ class AdditionalDetailsStep extends React.Component {
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                             label={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                            accessibilityLabel={this.props.translate(this.fieldNameTranslationKeys.phoneNumber)}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={this.props.currentUserPersonalDetails.phoneNumber}
                             placeholder={this.props.translate('common.phoneNumberPlaceholder')}
                             shouldSaveDraft
@@ -278,8 +272,6 @@ class AdditionalDetailsStep extends React.Component {
                             inputID={INPUT_IDS.SSN}
                             containerStyles={[styles.mt4]}
                             label={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                            accessibilityLabel={this.props.translate(this.fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             maxLength={shouldAskForFullSSN ? 9 : 4}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         />

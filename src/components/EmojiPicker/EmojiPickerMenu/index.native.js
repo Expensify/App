@@ -93,7 +93,7 @@ class EmojiPickerMenu extends Component {
 
             return;
         }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.props.preferredLocale, this.emojis.length);
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.emojis.length);
 
         this.setState({
             filteredEmojis: newFilteredEmojiList,
@@ -170,7 +170,7 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <View style={styles.emojiHeaderContainer}>
-                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${code}`)}</Text>
+                    <Text style={styles.textLabelSupporting}>{this.props.translate(`emojiPicker.headers.${item.code}`)}</Text>
                 </View>
             );
         }
@@ -192,8 +192,6 @@ class EmojiPickerMenu extends Component {
                 <View style={[styles.ph4, styles.pb1, styles.pt2]}>
                     <TextInput
                         label={this.props.translate('common.search')}
-                        accessibilityLabel={this.props.translate('common.search')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         onChangeText={this.filterEmojis}
                     />
                 </View>
@@ -222,7 +220,11 @@ class EmojiPickerMenu extends Component {
                     // used because of a bug in RN where stickyHeaderIndices can't be updated after the list is rendered https://github.com/facebook/react-native/issues/25157
                     removeClippedSubviews={false}
                     contentContainerStyle={styles.flexGrow1}
-                    ListEmptyComponent={<Text style={[styles.disabledText]}>{this.props.translate('common.noResultsFound')}</Text>}
+                    ListEmptyComponent={
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
+                            <Text style={[styles.disabledText]}>{this.props.translate('common.noResultsFound')}</Text>
+                        </View>
+                    }
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}

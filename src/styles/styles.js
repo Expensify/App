@@ -245,14 +245,6 @@ const styles = {
         color: themeColors.textMutedReversed,
     },
 
-    highlightBG: {
-        backgroundColor: themeColors.highlightBG,
-    },
-
-    appBG: {
-        backgroundColor: themeColors.appBG,
-    },
-
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
@@ -559,10 +551,6 @@ const styles = {
         marginVertical: 1,
     },
 
-    noBorderRadius: {
-        borderRadius: 0,
-    },
-
     noRightBorderRadius: {
         borderTopRightRadius: 0,
         borderBottomRightRadius: 0,
@@ -835,7 +823,6 @@ const styles = {
         alignItems: 'center',
         paddingHorizontal: 15,
         paddingRight: 5,
-        ...userSelect.userSelectNone,
     },
 
     calendarDayRoot: {
@@ -843,7 +830,6 @@ const styles = {
         height: 45,
         justifyContent: 'center',
         alignItems: 'center',
-        ...userSelect.userSelectNone,
     },
 
     calendarDayContainer: {
@@ -1185,11 +1171,6 @@ const styles = {
         height: '100%',
     },
 
-    sidebarAnimatedWrapperContainer: {
-        height: '100%',
-        position: 'absolute',
-    },
-
     sidebarFooter: {
         alignItems: 'center',
         display: 'flex',
@@ -1446,6 +1427,8 @@ const styles = {
     },
 
     appContentHeader: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
@@ -1597,10 +1580,6 @@ const styles = {
 
     chatItemReactionsDraftRight: {
         marginLeft: 52,
-    },
-    chatFooterAtTheTop: {
-        flexGrow: 1,
-        justifyContent: 'flex-start',
     },
 
     // Be extremely careful when editing the compose styles, as it is easy to introduce regressions.
@@ -1857,12 +1836,6 @@ const styles = {
         right: -1,
     },
 
-    secondAvatarSubscriptSmallNormal: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-    },
-
     leftSideLargeAvatar: {
         left: 15,
     },
@@ -1934,11 +1907,6 @@ const styles = {
     emptyAvatar: {
         height: variables.avatarSizeNormal,
         width: variables.avatarSizeNormal,
-    },
-
-    emptyAvatarSmallNormal: {
-        height: variables.avatarSizeSmallNormal,
-        width: variables.avatarSizeSmallNormal,
     },
 
     emptyAvatarSmall: {
@@ -2197,14 +2165,14 @@ const styles = {
     },
 
     twoFactorAuthCodesBox: ({isExtraSmallScreenWidth, isSmallScreenWidth}) => {
-        let paddingHorizontal = styles.ph9;
+        let paddingHorizontal = styles.ph15;
 
         if (isSmallScreenWidth) {
-            paddingHorizontal = styles.ph4;
+            paddingHorizontal = styles.ph10;
         }
 
         if (isExtraSmallScreenWidth) {
-            paddingHorizontal = styles.ph2;
+            paddingHorizontal = styles.ph4;
         }
 
         return {
@@ -2230,11 +2198,12 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 12,
+        height: 148,
     },
 
     twoFactorAuthCode: {
         fontFamily: fontFamily.MONOSPACE,
-        width: 112,
+        width: 100,
         textAlign: 'center',
     },
 
@@ -2243,52 +2212,37 @@ const styles = {
         justifyContent: 'center',
         gap: 12,
         marginTop: 20,
-        flexWrap: 'wrap',
     },
 
     twoFactorAuthCodesButton: {
-        minWidth: 112,
+        minWidth: 100,
     },
 
-    twoFactorAuthCopyCodeButton: {
-        minWidth: 110,
-    },
-
-    anonymousRoomFooter: (isSmallSizeLayout) => ({
-        flexDirection: isSmallSizeLayout ? 'column' : 'row',
-        ...(!isSmallSizeLayout && {
-            alignItems: 'center',
-            justifyContent: 'space-between',
-        }),
-        padding: 20,
-        backgroundColor: themeColors.sidebar,
-        borderRadius: variables.componentBorderRadiusLarge,
-        overflow: 'hidden',
-    }),
-    anonymousRoomFooterWordmarkAndLogoContainer: (isSmallSizeLayout) => ({
+    anonymousRoomFooter: {
         flexDirection: 'row',
         alignItems: 'center',
-        ...(isSmallSizeLayout && {
-            justifyContent: 'space-between',
-            marginTop: 16,
-        }),
-    }),
+        justifyContent: 'space-between',
+        padding: 20,
+        marginBottom: 20,
+        backgroundColor: themeColors.activeComponentBG,
+        flexWrap: 'wrap',
+        gap: 8,
+        borderRadius: variables.componentBorderRadiusLarge,
+        overflow: 'hidden',
+    },
+
     anonymousRoomFooterLogo: {
         width: 88,
         marginLeft: 0,
         height: 20,
     },
-    anonymousRoomFooterLogoTaglineText: {
-        fontFamily: fontFamily.EXP_NEUE,
-        fontSize: variables.fontSizeMedium,
-        color: themeColors.textLight,
-    },
+
     signInButtonAvatar: {
         width: 80,
     },
 
     anonymousRoomFooterSignInButton: {
-        width: 110,
+        width: 125,
     },
 
     roomHeaderAvatarSize: {
@@ -2508,6 +2462,17 @@ const styles = {
         alignItems: 'center',
     },
 
+    checkboxContainer: {
+        backgroundColor: themeColors.componentBG,
+        borderRadius: 4,
+        height: 20,
+        width: 20,
+        borderColor: themeColors.borderLighter,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+
     checkedContainer: {
         backgroundColor: themeColors.checkBox,
     },
@@ -2526,12 +2491,6 @@ const styles = {
 
     magicCodeInputTransparent: {
         color: 'transparent',
-        caretColor: 'transparent',
-        WebkitTextFillColor: 'transparent',
-        // After setting the input text color to transparent, it acquires the background-color.
-        // However, it is not possible to override the background-color directly as explained in this resource: https://developer.mozilla.org/en-US/docs/Web/CSS/:autofill
-        // Therefore, the transition effect needs to be delayed.
-        transitionDelay: '99999s',
     },
 
     iouAmountText: {
@@ -2567,14 +2526,14 @@ const styles = {
     },
 
     requestPreviewBox: {
-        marginTop: 12,
+        marginTop: 8,
         maxWidth: variables.sideBarWidth,
     },
 
     iouPreviewBox: {
         backgroundColor: themeColors.cardBG,
-        borderRadius: variables.componentBorderRadiusLarge,
-        padding: 16,
+        borderRadius: variables.componentBorderRadiusCard,
+        padding: 20,
         maxWidth: variables.sideBarWidth,
         width: '100%',
     },
@@ -2879,6 +2838,10 @@ const styles = {
         errorDot: {
             marginRight: 12,
         },
+        menuItemErrorPadding: {
+            paddingLeft: 44,
+            paddingRight: 20,
+        },
     },
 
     dotIndicatorMessage: {
@@ -3034,7 +2997,8 @@ const styles = {
 
     keyboardShortcutModalContainer: {
         maxHeight: '100%',
-        flex: 0,
+        flexShrink: 0,
+        flexGrow: 0,
         flexBasis: 'auto',
     },
 
@@ -3152,6 +3116,18 @@ const styles = {
         bottom: 0,
         backgroundColor: themeColors.dropUIBG,
         zIndex: 2,
+    },
+
+    textPill: {
+        backgroundColor: themeColors.border,
+        borderRadius: 10,
+        overflow: 'hidden',
+        paddingVertical: 2,
+        flexShrink: 0,
+        maxWidth: variables.badgeMaxWidth,
+        fontSize: variables.fontSizeSmall,
+        ...whiteSpace.pre,
+        ...spacing.ph2,
     },
 
     dropZoneTopInvisibleOverlay: {
@@ -3420,51 +3396,6 @@ const styles = {
     taskCheckbox: {
         height: 16,
         width: 16,
-    },
-
-    taskTitleMenuItem: {
-        ...writingDirection.ltr,
-        ...headlineFont,
-        ...spacing.flexWrap,
-        ...spacing.flex1,
-        fontSize: variables.fontSizeXLarge,
-        maxWidth: '100%',
-        ...wordBreak.breakWord,
-    },
-
-    taskTitleDescription: {
-        fontFamily: fontFamily.EXP_NEUE,
-        fontSize: variables.fontSizeLabel,
-        color: themeColors.textSupporting,
-        lineHeight: variables.lineHeightNormal,
-        ...spacing.mb1,
-    },
-
-    taskMenuItemCheckbox: {
-        height: 27,
-        ...spacing.mr3,
-    },
-
-    taskHorizontalRule: {
-        borderBottomWidth: 1,
-        borderColor: themeColors.border,
-        ...spacing.mh5,
-        ...spacing.mv2,
-    },
-
-    assigneeTextStyle: {
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        minHeight: variables.avatarSizeSubscript,
-    },
-
-    taskRightIconContainer: {
-        width: variables.componentSizeNormal,
-        marginLeft: 'auto',
-        ...spacing.mt1,
-        ...pointerEventsAuto,
-        ...spacing.dFlex,
-        ...spacing.alignItemsCenter,
     },
 
     shareCodePage: {

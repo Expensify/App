@@ -22,7 +22,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import withNavigation from '../../../../components/withNavigation';
 import * as Welcome from '../../../../libs/actions/Welcome';
 import withNavigationFocus from '../../../../components/withNavigationFocus';
-import * as Task from '../../../../libs/actions/Task';
+import * as TaskUtils from '../../../../libs/actions/Task';
 import * as Session from '../../../../libs/actions/Session';
 import * as IOU from '../../../../libs/actions/IOU';
 
@@ -224,7 +224,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                                   {
                                       icon: Expensicons.Task,
                                       text: this.props.translate('newTaskPage.assignTask'),
-                                      onSelected: () => this.interceptAnonymousUser(() => Task.clearOutTaskInfoAndNavigate()),
+                                      onSelected: () => this.interceptAnonymousUser(() => TaskUtils.clearOutTaskInfoAndNavigate()),
                                   },
                               ]
                             : []),
@@ -244,7 +244,7 @@ class FloatingActionButtonAndPopover extends React.Component {
                 />
                 <FloatingActionButton
                     accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    accessibilityRole="button"
                     isActive={this.state.isCreateMenuActive}
                     onPress={this.showCreateMenu}
                 />

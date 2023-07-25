@@ -4,10 +4,9 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import EmojiReactionBubble from './EmojiReactionBubble';
+import emojis from '../../../assets/emojis';
 import AddReactionBubble from './AddReactionBubble';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
-import withLocalize from '../withLocalize';
-import compose from '../../libs/compose';
 import * as Report from '../../libs/actions/Report';
 import Tooltip from '../Tooltip';
 import ReactionTooltipContent from './ReactionTooltipContent';
@@ -60,7 +59,7 @@ function ReportActionItemReactions(props) {
             {_.map(reactionsWithCount, (reaction) => {
                 const reactionCount = reaction.users.length;
                 const reactionUsers = _.map(reaction.users, (sender) => sender.accountID);
-                const emoji = EmojiUtils.findEmojiByName(reaction.emoji);
+                const emoji = _.find(emojis, (e) => e.name === reaction.emoji);
                 const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, reaction.users);
                 const hasUserReacted = Report.hasAccountIDReacted(props.currentUserPersonalDetails.accountID, reactionUsers);
 
@@ -76,7 +75,7 @@ function ReportActionItemReactions(props) {
                     <Tooltip
                         renderTooltipContent={() => (
                             <ReactionTooltipContent
-                                emojiName={EmojiUtils.getLocalizedEmojiName(reaction.emoji, props.preferredLocale)}
+                                emojiName={reaction.emoji}
                                 emojiCodes={emojiCodes}
                                 accountIDs={reactionUsers}
                                 currentUserPersonalDetails={props.currentUserPersonalDetails}
@@ -112,4 +111,4 @@ function ReportActionItemReactions(props) {
 ReportActionItemReactions.displayName = 'ReportActionItemReactions';
 ReportActionItemReactions.propTypes = propTypes;
 ReportActionItemReactions.defaultProps = defaultProps;
-export default compose(withLocalize, withCurrentUserPersonalDetails)(ReportActionItemReactions);
+export default withCurrentUserPersonalDetails(ReportActionItemReactions);

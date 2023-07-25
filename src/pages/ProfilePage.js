@@ -62,9 +62,6 @@ const propTypes = {
         partnerUserID: PropTypes.string,
     }),
 
-    /** Indicates whether the app is loading initial data */
-    isLoadingReportData: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
@@ -72,7 +69,6 @@ const defaultProps = {
     // When opening someone else's profile (via deep link) before login, this is empty
     personalDetails: {},
     loginList: {},
-    isLoadingReportData: true,
 };
 
 /**
@@ -116,6 +112,7 @@ function ProfilePage(props) {
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
     const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([accountID]) && !_.isEmpty(timezone);
+
     let pronouns = lodashGet(details, 'pronouns', '');
     if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
@@ -128,7 +125,7 @@ function ProfilePage(props) {
 
     const isCurrentUser = _.keys(props.loginList).includes(login);
     const hasMinimumDetails = !_.isEmpty(details.avatar);
-    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details) || props.isLoadingReportData;
+    const isLoading = lodashGet(details, 'isLoading', false) || _.isEmpty(details);
 
     // If the API returns an error for some reason there won't be any details and isLoading will get set to false, so we want to show a blocking screen
     const shouldShowBlockingView = !hasMinimumDetails && !isLoading;
@@ -157,7 +154,7 @@ function ProfilePage(props) {
                                         style={[styles.noOutline]}
                                         onPress={show}
                                         accessibilityLabel={props.translate('common.profile')}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                                        accessibilityRole="imagebutton"
                                     >
                                         <OfflineWithFeedback pendingAction={lodashGet(details, 'pendingFields.avatar', null)}>
                                             <Avatar
@@ -243,9 +240,6 @@ export default compose(
         },
         loginList: {
             key: ONYXKEYS.LOGIN_LIST,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
         },
     }),
 )(ProfilePage);

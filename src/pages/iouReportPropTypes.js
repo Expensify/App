@@ -11,7 +11,7 @@ export default PropTypes.shape({
     total: PropTypes.number,
 
     /** The owner of the IOUReport */
-    ownerAccountID: PropTypes.number,
+    ownerEmail: PropTypes.string,
 
     /** The currency of the IOUReport */
     currency: PropTypes.string,

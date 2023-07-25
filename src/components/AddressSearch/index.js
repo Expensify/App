@@ -120,7 +120,7 @@ function AddressSearch(props) {
             postal_code: zipCode,
             administrative_area_level_1: state,
             administrative_area_level_2: stateFallback,
-            country: countryPrimary,
+            country,
         } = GooglePlacesUtils.getAddressComponents(addressComponents, {
             street_number: 'long_name',
             route: 'long_name',
@@ -142,15 +142,7 @@ function AddressSearch(props) {
 
         // Make sure that the order of keys remains such that the country is always set above the state.
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
-        const {
-            country: countryFallbackLongName = '',
-            state: stateAutoCompleteFallback = '',
-            city: cityAutocompleteFallback = '',
-        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
-
-        const countryFallback = _.findKey(CONST.ALL_COUNTRIES, (country) => country === countryFallbackLongName);
-
-        const country = countryPrimary || countryFallback;
+        const {state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData.terms);
 
         const values = {
             street: `${streetNumber} ${streetName}`.trim(),

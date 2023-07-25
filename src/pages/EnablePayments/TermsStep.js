@@ -62,7 +62,6 @@ function TermsStep(props) {
                 <ShortTermsForm />
                 <LongTermsForm />
                 <CheckboxWithLabel
-                    accessibilityLabel={props.translate('termsStep.haveReadAndAgree')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
                     LabelComponent={() => (
@@ -73,7 +72,6 @@ function TermsStep(props) {
                     )}
                 />
                 <CheckboxWithLabel
-                    accessibilityLabel={props.translate('termsStep.agreeToThe')}
                     onInputChange={togglePrivacyPolicy}
                     LabelComponent={() => (
                         <Text>

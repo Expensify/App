@@ -19,11 +19,11 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import SettlementButton from '../SettlementButton';
-import Button from '../Button';
 import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
+import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -38,10 +38,11 @@ const propTypes = {
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
-    chatReport: PropTypes.shape({
-        /** Whether the chat report has an outstanding IOU */
-        hasOutstandingIOU: PropTypes.bool.isRequired,
-    }),
+    chatReport: reportPropTypes,
+
+    /** Extra styles to pass to View wrapper */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
@@ -79,6 +80,7 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: null,
     chatReport: {},
+    containerStyles: [],
     iouReport: {},
     checkIfContextMenuActive: () => {},
     session: {
@@ -89,21 +91,11 @@ const defaultProps = {
 function ReportPreview(props) {
     const managerID = props.iouReport.managerID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
-    if (props.chatReport.reportID === '1513475931428909') {
-        console.log(props.iouReportID);
-        console.log('iou', props.iouReport);
-    }
     const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
     const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const isControlPolicyExpenseChat = ReportUtils.isControlPolicyExpenseChat(props.chatReport);
-    const isControlPolicyExpenseReport = ReportUtils.isControlPolicyExpenseReport(props.iouReport);
-    const shouldShowSettlementButton =
-        (!isControlPolicyExpenseReport && isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID)) ||
-        (isControlPolicyExpenseReport && ReportUtils.isExpenseReportApproved(props.iouReport));
-    const shouldShowApproveButton = ReportUtils.isControlPolicyExpenseChat(props.chatReport) && isCurrentUserManager && !ReportUtils.isExpenseReportApproved(props.iouReport);
     return (
-        <View style={styles.chatItemMessage}>
+        <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
                 onPress={() => {
                     Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
@@ -136,7 +128,7 @@ function ReportPreview(props) {
                             )}
                         </View>
                     </View>
-                    {shouldShowSettlementButton && (
+                    {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
                         <SettlementButton
                             currency={props.iouReport.currency}
                             policyID={props.iouReport.policyID}

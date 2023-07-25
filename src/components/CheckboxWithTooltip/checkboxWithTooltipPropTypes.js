@@ -25,9 +25,6 @@ const propTypes = {
     /** Wheter the checkbox is disabled */
     disabled: PropTypes.bool,
 
-    /** An accessibility label for the checkbox */
-    accessibilityLabel: PropTypes.string,
-
     /** Props inherited from withWindowDimensions */
     ...windowDimensionsPropTypes,
 };
@@ -37,7 +34,6 @@ const defaultProps = {
     disabled: false,
     toggleTooltip: true,
     growlType: CONST.GROWL.WARNING,
-    accessibilityLabel: undefined,
 };
 
 export {propTypes, defaultProps};

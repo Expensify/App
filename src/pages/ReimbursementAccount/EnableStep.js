@@ -80,6 +80,7 @@ function EnableStep(props) {
                             icon={icon}
                             iconWidth={iconSize}
                             iconHeight={iconSize}
+                            disabled
                             interactive={false}
                             wrapperStyle={[styles.cardMenuItem, styles.mv3]}
                         />

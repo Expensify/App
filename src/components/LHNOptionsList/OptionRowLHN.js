@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {View, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -19,6 +19,7 @@ import SubscriptAvatar from '../SubscriptAvatar';
 import CONST from '../../CONST';
 import themeColors from '../../styles/themes/default';
 import SidebarUtils from '../../libs/SidebarUtils';
+import TextPill from '../TextPill';
 import OfflineWithFeedback from '../OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -64,7 +65,6 @@ const defaultProps = {
 
 function OptionRowLHN(props) {
     const optionItem = SidebarUtils.getOptionData(props.reportID);
-    const [isContextMenuActive, setIsContextMenuActive] = useState(false);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !props.comment || props.comment.length <= 0 || props.isFocused) {
@@ -82,6 +82,7 @@ function OptionRowLHN(props) {
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
     const displayNameStyle = StyleUtils.combineStyles([styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, ...textUnreadStyle], props.style);
+    const textPillStyle = props.isFocused ? [styles.ml1, StyleUtils.getBackgroundColorWithOpacityStyle(themeColors.icon, 0.5)] : [styles.ml1];
     const alternateTextStyle = StyleUtils.combineStyles(
         props.viewMode === CONST.OPTION_MODE.COMPACT
             ? [textStyle, styles.optionAlternateText, styles.pre, styles.textLabelSupporting, styles.optionAlternateTextCompact, styles.ml2]
@@ -99,17 +100,13 @@ function OptionRowLHN(props) {
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
 
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
-    const defaultSubscriptSize = optionItem.isExpenseRequest ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const shouldShowGreenDotIndicator =
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
-            (optionItem.policyType !== CONST.POLICY.TYPE.CORPORATE && optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
-            (optionItem.isControlPolicyExpenseReport && !optionItem.isExpenseReportApproved && optionItem.isExpenseReportManager && optionItem.hasOutstandingIOU) ||
-            (optionItem.isControlPolicyExpenseReport && optionItem.isExpenseReportApproved && optionItem.isAdminOfControlPolicy && optionItem.hasOutstandingIOU) ||
-            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
-    if (optionItem.reportID === '7968441077953408') {
-        console.log(optionItem.isControlPolicyExpenseReport && optionItem.isExpenseReportApproved && !optionItem.isAdminOfControlPolicy);
-    }
+            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
+            (optionItem.policyType === CONST.POLICY.TYPE.CORPORATE && optionItem.isExpenseReportApproved) ||
+            (optionItem.policyType === CONST.POLICY.TYPE.CORPORATE && !optionItem.isExpenseReportApproved && optionItem.isExpenseReportManager) ||
+            (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isTaskCompleted));
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -117,7 +114,6 @@ function OptionRowLHN(props) {
      * @param {Object} [event] - A press event.
      */
     const showPopover = (event) => {
-        setIsContextMenuActive(true);
         ReportActionContextMenu.showContextMenu(
             ContextMenuActions.CONTEXT_MENU_TYPES.REPORT,
             event,
@@ -127,7 +123,7 @@ function OptionRowLHN(props) {
             {},
             '',
             () => {},
-            () => setIsContextMenuActive(false),
+            () => {},
             false,
             false,
             optionItem.isPinned,
@@ -163,7 +159,7 @@ function OptionRowLHN(props) {
                             styles.sidebarLinkInner,
                             StyleUtils.getBackgroundColorStyle(themeColors.sidebar),
                             props.isFocused ? styles.sidebarLinkActive : null,
-                            (hovered || isContextMenuActive) && !props.isFocused ? props.hoverStyle : null,
+                            hovered && !props.isFocused ? props.hoverStyle : null,
                         ]}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         accessibilityLabel={props.translate('accessibilityHints.navigatesToChat')}
@@ -176,7 +172,9 @@ function OptionRowLHN(props) {
                                             backgroundColor={props.isFocused ? themeColors.activeComponentBG : themeColors.sidebar}
                                             mainAvatar={optionItem.icons[0]}
                                             secondaryAvatar={optionItem.icons[1]}
-                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : defaultSubscriptSize}
+                                            mainTooltip={optionItem.ownerEmail}
+                                            secondaryTooltip={optionItem.subtitle}
+                                            size={props.viewMode === CONST.OPTION_MODE.COMPACT ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     ) : (
                                         <MultipleAvatars
@@ -204,6 +202,13 @@ function OptionRowLHN(props) {
                                                 optionItem.isChatRoom || optionItem.isPolicyExpenseChat || optionItem.isTaskReport || optionItem.isThread || optionItem.isMoneyRequestReport
                                             }
                                         />
+                                        {optionItem.isChatRoom && !optionItem.isThread && (
+                                            <TextPill
+                                                style={textPillStyle}
+                                                accessibilityLabel={props.translate('accessibilityHints.workspaceName')}
+                                                text={optionItem.subtitle}
+                                            />
+                                        )}
                                     </View>
                                     {optionItem.alternateText ? (
                                         <Text

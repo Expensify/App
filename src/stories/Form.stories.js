@@ -11,7 +11,6 @@ import styles from '../styles/styles';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
 import Text from '../components/Text';
 import NetworkConnection from '../libs/NetworkConnection';
-import CONST from '../CONST';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -43,17 +42,13 @@ function Template(args) {
         <Form {...args}>
             <View>
                 <TextInput
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                    accessibilityLabel="Routing number"
                     label="Routing number"
                     inputID="routingNumber"
                     shouldSaveDraft
                 />
             </View>
             <TextInput
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 label="Account number"
-                accessibilityLabel="Account number"
                 inputID="accountNumber"
                 containerStyles={[styles.mt4]}
             />
@@ -142,8 +137,6 @@ function WithNativeEventHandler(args) {
         // eslint-disable-next-line react/jsx-props-no-spreading
         <Form {...args}>
             <TextInput
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                accessibilityLabel="Routing number"
                 label="Routing number"
                 inputID="routingNumber"
                 onChangeText={setLog}

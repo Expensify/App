@@ -15,13 +15,11 @@ import * as User from '../../../../../libs/actions/User';
 import Button from '../../../../../components/Button';
 import DotIndicatorMessage from '../../../../../components/DotIndicatorMessage';
 import * as Session from '../../../../../libs/actions/Session';
-import shouldDelayFocus from '../../../../../libs/shouldDelayFocus';
 import Text from '../../../../../components/Text';
 import {withNetwork} from '../../../../../components/OnyxProvider';
 import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
 import themeColors from '../../../../../styles/themes/default';
 import * as StyleUtils from '../../../../../styles/StyleUtils';
-import CONST from '../../../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -136,7 +134,6 @@ function BaseValidateCodeForm(props) {
                 errorText={formError.validateCode ? props.translate(formError.validateCode) : ErrorUtils.getLatestErrorMessage(props.account)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus
-                shouldDelayFocus={shouldDelayFocus}
             />
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}
@@ -152,10 +149,10 @@ function BaseValidateCodeForm(props) {
                         underlayColor={themeColors.componentBG}
                         hoverDimmingValue={1}
                         pressDimmingValue={0.2}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        accessibilityLabel={props.translate('validateCodeForm.magicCodeNotReceived')}
+                        accessibilityRole="button"
+                        accessibilityLabel={props.translate('contacts.resendMagicCode')}
                     >
-                        <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('validateCodeForm.magicCodeNotReceived')}</Text>
+                        <Text style={[StyleUtils.getDisabledLinkStyles(props.network.isOffline)]}>{props.translate('contacts.resendMagicCode')}</Text>
                     </PressableWithFeedback>
                     {props.hasMagicCodeBeenSent && (
                         <DotIndicatorMessage
@@ -168,7 +165,7 @@ function BaseValidateCodeForm(props) {
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
-                errors={ErrorUtils.getEarliestErrorField(loginData, 'validateLogin')}
+                errors={ErrorUtils.getLatestErrorField(loginData, 'validateLogin')}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateLogin')}
             >

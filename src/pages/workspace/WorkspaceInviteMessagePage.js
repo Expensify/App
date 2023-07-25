@@ -81,10 +81,6 @@ class WorkspaceInviteMessagePage extends React.Component {
     }
 
     componentDidMount() {
-        if (_.isEmpty(this.props.invitedEmailsToAccountIDsDraft)) {
-            Navigation.goBack(ROUTES.getWorkspaceInviteRoute(this.props.route.params.policyID), true);
-            return;
-        }
         this.focusWelcomeMessageInput();
     }
 
@@ -180,7 +176,7 @@ class WorkspaceInviteMessagePage extends React.Component {
                         footerContent={
                             <PressableWithoutFeedback
                                 onPress={this.openPrivacyURL}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                                accessibilityRole="link"
                                 accessibilityLabel={this.props.translate('common.privacy')}
                                 href={CONST.PRIVACY_URL}
                                 style={[styles.mv2, styles.alignSelfStart]}
@@ -196,7 +192,6 @@ class WorkspaceInviteMessagePage extends React.Component {
                                 size={CONST.AVATAR_SIZE.LARGE}
                                 icons={OptionsListUtils.getAvatarsForAccountIDs(_.values(this.props.invitedEmailsToAccountIDsDraft), this.props.personalDetails)}
                                 shouldStackHorizontally
-                                shouldDisplayAvatarsInRows
                                 secondAvatarStyle={[styles.secondAvatarInline]}
                             />
                         </View>
@@ -206,10 +201,8 @@ class WorkspaceInviteMessagePage extends React.Component {
                         <View style={[styles.mb3]}>
                             <TextInput
                                 ref={(el) => (this.welcomeMessageInputRef = el)}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 inputID="welcomeMessage"
                                 label={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
-                                accessibilityLabel={this.props.translate('workspace.inviteMessage.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 autoGrowHeight

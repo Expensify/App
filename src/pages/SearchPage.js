@@ -61,6 +61,7 @@ class SearchPage extends Component {
 
         this.state = {
             searchValue: '',
+            headerMessage: '',
             recentReports,
             personalDetails,
             userToInvite,
@@ -128,10 +129,14 @@ class SearchPage extends Component {
             this.state.searchValue.trim(),
             this.props.betas,
         );
-        this.setState({
-            userToInvite,
-            recentReports,
-            personalDetails,
+        this.setState((prevState) => {
+            const headerMessage = OptionsListUtils.getHeaderMessage(recentReports.length + personalDetails.length !== 0, Boolean(userToInvite), prevState.searchValue);
+            return {
+                headerMessage,
+                userToInvite,
+                recentReports,
+                personalDetails,
+            };
         });
     }
 
@@ -162,11 +167,6 @@ class SearchPage extends Component {
     render() {
         const sections = this.getSections();
         const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(this.props.personalDetails);
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            this.state.recentReports.length + this.state.personalDetails.length !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchValue,
-        );
 
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -179,7 +179,7 @@ class SearchPage extends Component {
                                 value={this.state.searchValue}
                                 onSelectRow={this.selectReport}
                                 onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
+                                headerMessage={this.state.headerMessage}
                                 hideSectionHeaders
                                 showTitleTooltip
                                 shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}

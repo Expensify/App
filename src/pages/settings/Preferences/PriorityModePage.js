@@ -5,14 +5,18 @@ import PropTypes from 'prop-types';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import OptionsList from '../../../components/OptionsList';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
+import themeColors from '../../../styles/themes/default';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as User from '../../../libs/actions/User';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import SelectionListRadio from '../../../components/SelectionListRadio';
+
+const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
 
 const propTypes = {
     /** The chat priority mode */
@@ -34,7 +38,12 @@ function PriorityModePage(props) {
         // Set max line to undefined to reset line restriction
         alternateTextMaxLines: undefined,
         keyForList: key,
-        isSelected: props.priorityMode === key,
+
+        // Include the green checkmark icon to indicate the currently selected value
+        customIcon: props.priorityMode === key ? greenCheckmark : undefined,
+
+        // This property will make the currently selected value have bold text
+        boldStyle: props.priorityMode === key,
     }));
 
     return (
@@ -44,10 +53,18 @@ function PriorityModePage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PREFERENCES)}
             />
             <Text style={[styles.mh5, styles.mv4]}>{props.translate('priorityModePage.explainerText')}</Text>
-            <SelectionListRadio
+            <OptionsList
                 sections={[{data: priorityModes}]}
                 onSelectRow={(mode) => User.updateChatPriorityMode(mode.value)}
-                initiallyFocusedOptionKey={_.find(priorityModes, (mode) => mode.isSelected).keyForList}
+                hideSectionHeaders
+                optionHoveredStyle={{
+                    ...styles.hoveredComponentBG,
+                    ...styles.mhn5,
+                    ...styles.ph5,
+                }}
+                shouldHaveOptionSeparator
+                shouldDisableRowInnerPadding
+                contentContainerStyles={[styles.ph5]}
             />
         </ScreenWrapper>
     );

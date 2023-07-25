@@ -96,6 +96,9 @@ const propTypes = {
     /** Whether we should show an avatar */
     shouldShowAvatarWithDisplay: PropTypes.bool,
 
+    /** Parent report, if provided it will override props.report for AvatarWithDisplay */
+    parentReport: iouReportPropTypes,
+
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
     report: iouReportPropTypes,
 
@@ -130,6 +133,7 @@ const defaultProps = {
     shouldShowBackButton: true,
     shouldShowAvatarWithDisplay: false,
     report: null,
+    parentReport: null,
     policies: {},
     personalDetails: {},
     guidesCallTaskID: '',
@@ -179,7 +183,7 @@ class HeaderWithBackButton extends Component {
                                     this.props.onBackButtonPress();
                                 }}
                                 style={[styles.touchableButtonImage]}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityRole="button"
                                 accessibilityLabel={this.props.translate('common.back')}
                             >
                                 <Icon src={Expensicons.BackArrow} />
@@ -188,7 +192,7 @@ class HeaderWithBackButton extends Component {
                     )}
                     {this.props.shouldShowAvatarWithDisplay && (
                         <AvatarWithDisplayName
-                            report={this.props.report}
+                            report={this.props.parentReport || this.props.report}
                             policies={this.props.policies}
                             personalDetails={this.props.personalDetails}
                         />
@@ -210,7 +214,7 @@ class HeaderWithBackButton extends Component {
                                         this.triggerButtonCompleteAndDownload();
                                     }}
                                     style={[styles.touchableButtonImage]}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    accessibilityRole="button"
                                     accessibilityLabel={this.props.translate('common.download')}
                                 >
                                     <Icon
@@ -226,7 +230,7 @@ class HeaderWithBackButton extends Component {
                                 <PressableWithoutFeedback
                                     onPress={() => Navigation.navigate(ROUTES.getGetAssistanceRoute(this.props.guidesCallTaskID))}
                                     style={[styles.touchableButtonImage]}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    accessibilityRole="button"
                                     accessibilityLabel={this.props.translate('getAssistancePage.questionMarkButtonTooltip')}
                                 >
                                     <Icon src={Expensicons.QuestionMark} />
@@ -250,7 +254,7 @@ class HeaderWithBackButton extends Component {
                                 <PressableWithoutFeedback
                                     onPress={this.props.onCloseButtonPress}
                                     style={[styles.touchableButtonImage]}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    accessibilityRole="button"
                                     accessibilityLabel={this.props.translate('common.close')}
                                 >
                                     <Icon src={Expensicons.Close} />

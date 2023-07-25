@@ -273,12 +273,11 @@ class GithubUtils {
         this.internalOctokit = new Octokit(
             getOctokitOptions(token, {
                 throttle: {
-                    retryAfterBaseValue: 2000,
                     onRateLimit: (retryAfter, options) => {
                         console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
 
-                        // Retry five times when hitting a rate limit error, then give up
-                        if (options.request.retryCount <= 5) {
+                        // Retry once after hitting a rate limit error, then give up
+                        if (options.request.retryCount <= 1) {
                             console.log(`Retrying after ${retryAfter} seconds!`);
                             return true;
                         }

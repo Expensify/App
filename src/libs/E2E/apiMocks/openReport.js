@@ -7,7 +7,7 @@ export default () => ({
                 reportID: '98345625',
                 reportName: 'Chat Report',
                 chatType: '',
-                ownerAccountID: 0,
+                ownerEmail: '__fake__',
                 policyID: '_FAKE_',
                 participants: ['fake1@gmail.com', 'fake2@gmail.com', 'fake3@gmail.com', 'fake4@gmail.com', 'fake5@gmail.com', 'fake6@gmail.com', 'fake7@gmail.com', 'fake8@gmail.com'],
                 isPinned: false,
@@ -15,7 +15,7 @@ export default () => ({
                 lastVisibleActionCreated: '2022-08-01 20:49:11',
                 lastMessageTimestamp: 1659386951000,
                 lastMessageText: 'Say hello\ud83d\ude10',
-                lastActorAccountID: 10773236,
+                lastActorEmail: 'fake3@gmail.com',
                 notificationPreference: 'always',
                 stateNum: 0,
                 statusNum: 0,
@@ -67,6 +67,7 @@ export default () => ({
                             text: '123 Ios',
                         },
                     ],
+                    actorEmail: 'fake3@gmail.com',
                     actorAccountID: 10773236,
                     message: [
                         {

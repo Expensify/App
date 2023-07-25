@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -81,13 +81,6 @@ function WorkspaceInitialPage(props) {
         Navigation.goBack();
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
-
-    useEffect(() => {
-        if (!isCurrencyModalOpen || policy.outputCurrency !== CONST.CURRENCY.USD) {
-            return;
-        }
-        setIsCurrencyModalOpen(false);
-    }, [policy.outputCurrency, isCurrencyModalOpen]);
 
     /**
      * Call update workspace currency and hide the modal
@@ -201,7 +194,7 @@ function WorkspaceInitialPage(props) {
                             pendingAction={policy.pendingAction}
                             onClose={() => dismissError(policy.id)}
                             errors={policy.errors}
-                            errorRowStyles={[styles.ph5, styles.pv2]}
+                            errorRowStyles={[styles.ph6, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
                                 <View style={styles.avatarSectionWrapper}>
@@ -212,7 +205,7 @@ function WorkspaceInitialPage(props) {
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={() => openEditor(policy.id)}
                                                 accessibilityLabel={props.translate('workspace.common.settings')}
-                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                accessibilityRole="button"
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
@@ -232,7 +225,7 @@ function WorkspaceInitialPage(props) {
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
                                                     onPress={() => openEditor(policy.id)}
                                                     accessibilityLabel={props.translate('workspace.common.settings')}
-                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                                    accessibilityRole="button"
                                                 >
                                                     <Text
                                                         numberOfLines={1}

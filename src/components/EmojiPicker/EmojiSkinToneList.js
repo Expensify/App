@@ -9,7 +9,6 @@ import Text from '../Text';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Stores user's preferred skin tone */
@@ -48,7 +47,7 @@ function EmojiSkinToneList(props) {
                     onPress={toggleIsSkinToneListVisible}
                     style={[styles.flex1, styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
                     accessibilityLabel={props.translate('emojiPicker.skinTonePickerLabel')}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    accessibilityRole="button"
                 >
                     <View style={[styles.emojiItem, styles.justifyContentCenter]}>
                         <Text style={[styles.emojiText, styles.ph2, styles.textNoWrap]}>{currentSkinTone.code}</Text>

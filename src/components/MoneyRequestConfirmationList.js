@@ -47,7 +47,7 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
-    /** Selected participants from MoneyRequestModal with login / accountID */
+    /** Selected participants from MoneyRequestModal with login */
     participants: PropTypes.arrayOf(optionPropTypes).isRequired,
 
     /** Payee of the money request with login */
@@ -133,8 +133,6 @@ function MoneyRequestConfirmationList(props) {
 
     const selectedParticipants = useMemo(() => _.filter(props.participants, (participant) => participant.selected), [props.participants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
-    const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
-    const shouldDisableWhoPaidSection = canModifyParticipants;
     const isControlPolicy = lodashGet(props.policies, [`${ONYXKEYS.COLLECTION.POLICY}${props.policyID}`, 'type'], '') === CONST.POLICY.TYPE.CORPORATE;
 
     const optionSelectorSections = useMemo(() => {
@@ -156,7 +154,6 @@ function MoneyRequestConfirmationList(props) {
                     data: [formattedPayeeOption],
                     shouldShow: true,
                     indexOffset: 0,
-                    isDisabled: shouldDisableWhoPaidSection,
                 },
                 {
                     title: isControlPolicy ? 'Split with' : translate('moneyRequestConfirmationList.whoWasThere'),
@@ -175,15 +172,14 @@ function MoneyRequestConfirmationList(props) {
         }
         return sections;
     }, [
-        props.participants,
+        selectedParticipants,
+        getParticipantsWithAmount,
         props.hasMultipleParticipants,
         props.iouAmount,
         props.iouCurrencyCode,
-        getParticipantsWithAmount,
-        selectedParticipants,
-        payeePersonalDetails,
+        props.participants,
         translate,
-        shouldDisableWhoPaidSection,
+        payeePersonalDetails,
         isControlPolicy,
     ]);
 
@@ -244,6 +240,7 @@ function MoneyRequestConfirmationList(props) {
         [selectedParticipants, onSendMoney, onConfirm, props.iouType],
     );
 
+    const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const formattedAmount = CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode);
 
     const footerContent = useMemo(() => {

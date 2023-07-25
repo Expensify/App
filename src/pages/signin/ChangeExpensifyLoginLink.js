@@ -9,7 +9,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import PressableWithFeedback from '../../components/Pressable/PressableWithFeedback';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -37,7 +36,7 @@ function ChangeExpensifyLoginLink(props) {
             <PressableWithFeedback
                 style={[styles.link]}
                 onPress={props.onPress}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                accessibilityRole="link"
                 accessibilityLabel={props.translate('common.goBack')}
             >
                 <Text style={[styles.link]}>

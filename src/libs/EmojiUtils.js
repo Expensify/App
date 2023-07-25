@@ -5,63 +5,13 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import emojisTrie from './EmojiTrie';
-import * as Emojis from '../../assets/emojis';
+import FrequentlyUsed from '../../assets/images/history.svg';
 
 let frequentlyUsedEmojis = [];
 Onyx.connect({
     key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
-    callback: (val) => {
-        frequentlyUsedEmojis = _.map(val, (item) => {
-            const emoji = Emojis.emojiCodeTable[item.code];
-            if (emoji) {
-                return {...emoji, count: item.count, lastUpdatedAt: item.lastUpdatedAt};
-            }
-        });
-    },
+    callback: (val) => (frequentlyUsedEmojis = val),
 });
-
-/**
- *
- * @param {String} name
- * @returns {Object}
- */
-const findEmojiByName = (name) => Emojis.emojiNameTable[name];
-
-/**
- *
- * @param {String} code
- * @returns {Object}
- */
-const findEmojiByCode = (code) => Emojis.emojiCodeTable[code];
-
-/**
- *
- * @param {Object} emoji
- * @param {String} lang
- * @returns {String}
- */
-const getEmojiName = (emoji, lang = CONST.LOCALES.DEFAULT) => {
-    if (lang === CONST.LOCALES.DEFAULT) {
-        return emoji.name;
-    }
-
-    return _.get(Emojis.localeEmojis, [lang, emoji.code, 'name'], '');
-};
-
-/**
- * Given an English emoji name, get its localized version
- *
- * @param {String} name
- * @param {String} lang
- * @returns {String}
- */
-const getLocalizedEmojiName = (name, lang) => {
-    if (lang === CONST.LOCALES.DEFAULT) {
-        return name;
-    }
-
-    return _.get(Emojis.localeEmojis, [lang, _.get(Emojis.emojiNameTable, [name, 'code'], ''), 'name'], '');
-};
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -206,8 +156,16 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis) {
         return addSpacesToEmojiCategories(emojis);
     }
 
-    const mergedEmojis = [Emojis.categoryFrequentlyUsed].concat(frequentlyUsedEmojis, emojis);
-    return addSpacesToEmojiCategories(mergedEmojis);
+    let allEmojis = [
+        {
+            header: true,
+            code: 'frequentlyUsed',
+            icon: FrequentlyUsed,
+        },
+    ];
+
+    allEmojis = allEmojis.concat(frequentlyUsedEmojis, emojis);
+    return addSpacesToEmojiCategories(allEmojis);
 }
 
 /**
@@ -227,8 +185,7 @@ function getFrequentlyUsedEmojis(newEmoji) {
             currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
             frequentEmojiList.splice(emojiIndex, 1);
         }
-
-        const updatedEmoji = {...Emojis.emojiCodeTable[emoji.code], count: currentEmojiCount, lastUpdatedAt: currentTimestamp};
+        const updatedEmoji = {...emoji, ...{count: currentEmojiCount, lastUpdatedAt: currentTimestamp}};
 
         // We want to make sure the current emoji is added to the list
         // Hence, we take one less than the current frequent used emojis
@@ -264,15 +221,9 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  *
  * @param {String} text
  * @param {Number} preferredSkinTone
- * @param {String} lang
  * @returns {Object}
  */
-function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, lang = CONST.LOCALES.DEFAULT) {
-    const trie = emojisTrie[lang];
-    if (!trie) {
-        return {text, emojis: []};
-    }
-
+function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE) {
     let newText = text;
     const emojis = [];
     const emojiData = text.match(CONST.REGEX.EMOJI_NAME);
@@ -281,7 +232,7 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
     }
     for (let i = 0; i < emojiData.length; i++) {
         const name = emojiData[i].slice(1, -1);
-        const checkEmoji = trie.search(name);
+        const checkEmoji = emojisTrie.search(name);
         if (checkEmoji && checkEmoji.metaData.code) {
             let emojiReplacement = getEmojiCodeWithSkinColor(checkEmoji.metaData, preferredSkinTone);
             emojis.push({
@@ -306,43 +257,34 @@ function replaceEmojis(text, preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE, 
 /**
  * Suggest emojis when typing emojis prefix after colon
  * @param {String} text
- * @param {String} lang
  * @param {Number} [limit] - matching emojis limit
  * @returns {Array}
  */
-function suggestEmojis(text, lang, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS) {
-    const trie = emojisTrie[lang];
-    if (!trie) {
-        return [];
-    }
-
+function suggestEmojis(text, limit = CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS) {
     const emojiData = text.match(CONST.REGEX.EMOJI_SUGGESTIONS);
-    if (!emojiData) {
-        return [];
-    }
-
-    const matching = [];
-    const nodes = trie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
-    for (let j = 0; j < nodes.length; j++) {
-        if (nodes[j].metaData.code && !_.find(matching, (obj) => obj.name === nodes[j].name)) {
-            if (matching.length === limit) {
-                return matching;
+    if (emojiData) {
+        const matching = [];
+        const nodes = emojisTrie.getAllMatchingWords(emojiData[0].toLowerCase().slice(1), limit);
+        for (let j = 0; j < nodes.length; j++) {
+            if (nodes[j].metaData.code && !_.find(matching, (obj) => obj.name === nodes[j].name)) {
+                if (matching.length === limit) {
+                    return matching;
+                }
+                matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
             }
-            matching.push({code: nodes[j].metaData.code, name: nodes[j].name, types: nodes[j].metaData.types});
-        }
-        const suggestions = nodes[j].metaData.suggestions;
-        for (let i = 0; i < suggestions.length; i++) {
-            if (matching.length === limit) {
-                return matching;
-            }
-
-            const suggestion = suggestions[i];
-            if (!_.find(matching, (obj) => obj.name === suggestion.name)) {
-                matching.push({...suggestion});
+            const suggestions = nodes[j].metaData.suggestions;
+            for (let i = 0; i < suggestions.length; i++) {
+                if (matching.length === limit) {
+                    return matching;
+                }
+                if (!_.find(matching, (obj) => obj.name === suggestions[i].name)) {
+                    matching.push(suggestions[i]);
+                }
             }
         }
+        return matching;
     }
-    return matching;
+    return [];
 }
 
 /**
@@ -401,10 +343,6 @@ const getUniqueEmojiCodes = (emoji, users) => {
 };
 
 export {
-    findEmojiByName,
-    findEmojiByCode,
-    getEmojiName,
-    getLocalizedEmojiName,
     getHeaderEmojis,
     mergeEmojisWithFrequentlyUsedEmojis,
     getFrequentlyUsedEmojis,

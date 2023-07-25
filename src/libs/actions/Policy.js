@@ -825,15 +825,15 @@ function generatePolicyID() {
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
- * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {String} [ownerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
  * @returns {Promise}
  */
-function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
+function createWorkspace(ownerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
     const policyID = generatePolicyID();
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+    const workspaceName = policyName || generateDefaultWorkspaceName(ownerEmail);
 
     const {
         announceChatReportID,
@@ -857,7 +857,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             announceChatReportID,
             adminsChatReportID,
             expenseChatReportID,
-            ownerEmail: policyOwnerEmail,
+            ownerEmail,
             makeMeAdmin,
             policyName: workspaceName,
             type: CONST.POLICY.TYPE.FREE,
@@ -876,7 +876,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         name: workspaceName,
                         role: CONST.POLICY.ROLE.ADMIN,
                         owner: sessionEmail,
-                        outputCurrency: lodashGet(personalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
+                        outputCurrency: 'USD',
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     },
                 },
@@ -1042,8 +1042,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
     return Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
-            // We must call goBack() to remove the /transition route from history
-            Navigation.goBack();
+            Navigation.dismissModal(); // Dismiss /transition route for OldDot to NewDot transitions
         }
 
         // Get the reportID associated with the newly created #admins room and route the user to that chat

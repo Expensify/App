@@ -232,6 +232,7 @@ describe('ReportUtils', () => {
                             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                             policyID: policy.policyID,
                             isOwnPolicyExpenseChat: true,
+                            ownerEmail: 'ragnar@vikings.net',
                             ownerAccountID: 1,
                         }),
                     ).toBe('Vikings Policy');
@@ -243,6 +244,7 @@ describe('ReportUtils', () => {
                             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
                             policyID: policy.policyID,
                             isOwnPolicyExpenseChat: false,
+                            ownerEmail: 'ragnar@vikings.net',
                             ownerAccountID: 1,
                         }),
                     ).toBe('Ragnar Lothbrok');
@@ -252,6 +254,7 @@ describe('ReportUtils', () => {
             describe('Archived', () => {
                 const baseArchivedPolicyExpenseChat = {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    ownerEmail: 'ragnar@vikings.net',
                     ownerAccountID: 1,
                     policyID: policy.policyID,
                     oldPolicyName: policy.name,

@@ -283,6 +283,7 @@ describe('OptionsListUtils', () => {
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: 2, email: 'tonystark@expensify.com'},
                 [`${ONYXKEYS.COLLECTION.REPORT}100`]: {
+                    ownerEmail: 'mistersinister@marauders.com',
                     ownerAccountID: 8,
                     total: '1000',
                 },
@@ -295,7 +296,7 @@ describe('OptionsListUtils', () => {
 
     it('getSearchOptions()', () => {
         // When we filter in the Search view without providing a searchValue
-        let results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '', [CONST.BETAS.ALL]);
+        let results = OptionsListUtils.getSearchOptions(REPORTS, PERSONAL_DETAILS, '');
 
         // Then the 2 personalDetails that don't have reports should be returned
         expect(results.personalDetails.length).toBe(2);
@@ -588,10 +589,10 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
 
         // When we pass a search value that matches the group chat name
-        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'Iron Man, Fantastic');
+        results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'Iron Man, Mr. Fantastic');
 
         // Then we should expect the group chat to show along with the contacts matching the search
-        expect(results.recentReports.length).toBe(1);
+        expect(results.recentReports.length).toBe(4);
 
         // When we also have a policy to return rooms in the results
         results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], '');

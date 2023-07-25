@@ -3,23 +3,11 @@
 const path = require('path');
 const dotenv = require('dotenv');
 const _ = require('underscore');
-
-let envFile;
-switch (process.env.ENV) {
-    case 'production':
-        envFile = '.env.production';
-        break;
-    case 'staging':
-        envFile = '.env.staging';
-        break;
-    default:
-        envFile = '.env';
-}
-
-const env = dotenv.config({path: path.resolve(__dirname, `../${envFile}`)});
 const custom = require('../config/webpack/webpack.common')({
-    envFile,
+    envFile: '.env.production',
 });
+
+const env = dotenv.config({path: path.resolve(__dirname, '../.env.staging')}).parsed;
 
 module.exports = ({config}) => {
     config.resolve.alias = {

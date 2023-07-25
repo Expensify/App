@@ -45,17 +45,6 @@ class Tooltip extends PureComponent {
         this.showTooltip = this.showTooltip.bind(this);
         this.hideTooltip = this.hideTooltip.bind(this);
         this.updateBounds = this.updateBounds.bind(this);
-        this.isAnimationCanceled = React.createRef(false);
-    }
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    componentDidUpdate(prevProps) {
-        // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
-        // we need to show the tooltip again
-        if (this.state.isVisible && this.isAnimationCanceled.current && this.props.text && prevProps.text !== this.props.text) {
-            this.isAnimationCanceled.current = false;
-            this.showTooltip();
-        }
     }
 
     /**
@@ -97,9 +86,7 @@ class Tooltip extends PureComponent {
                 duration: 140,
                 delay: 500,
                 useNativeDriver: false,
-            }).start(({finished}) => {
-                this.isAnimationCanceled.current = !finished;
-            });
+            }).start();
         }
         TooltipSense.activate();
     }

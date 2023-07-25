@@ -14,8 +14,7 @@ import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
-import * as Task from '../../libs/actions/Task';
-import CONST from '../../CONST';
+import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
     /** Beta features list */
@@ -58,8 +57,8 @@ function NewTaskTitlePage(props) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
-        Task.setTitleValue(values.taskTitle);
-        Navigation.navigate(ROUTES.NEW_TASK);
+        TaskUtils.setTitleValue(values.taskTitle);
+        Navigation.navigate(ROUTES.getNewTaskRoute());
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -78,27 +77,25 @@ function NewTaskTitlePage(props) {
             includeSafeAreaPaddingBottom={false}
         >
             <HeaderWithBackButton
-                title={props.translate('task.title')}
-                onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
+                title={props.translate('newTaskPage.title')}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 validate={(values) => validate(values)}
                 onSubmit={(values) => onSubmit(values)}
                 enabledWhenOffline
             >
                 <View style={styles.mb5}>
                     <TextInput
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={props.task.title}
                         ref={(el) => (inputRef.current = el)}
                         inputID="taskTitle"
-                        label={props.translate('task.title')}
-                        accessibilityLabel={props.translate('task.title')}
+                        label={props.translate('newTaskPage.title')}
                     />
                 </View>
             </Form>

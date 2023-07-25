@@ -93,9 +93,7 @@ function ReportParticipantsPage(props) {
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isChatThread(props.report)
-                                ? 'common.members'
-                                : 'common.details',
+                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report) ? 'common.members' : 'common.details',
                         )}
                     />
                     <View
@@ -113,7 +111,7 @@ function ReportParticipantsPage(props) {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
+                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip

@@ -14,8 +14,7 @@ import Form from '../../components/Form';
 import TextInput from '../../components/TextInput';
 import Permissions from '../../libs/Permissions';
 import ROUTES from '../../ROUTES';
-import * as Task from '../../libs/actions/Task';
-import CONST from '../../CONST';
+import * as TaskUtils from '../../libs/actions/Task';
 
 const propTypes = {
     /** Beta features list */
@@ -63,7 +62,7 @@ function NewTaskPage(props) {
     // On submit, we want to call the assignTask function and wait to validate
     // the response
     function onSubmit(values) {
-        Task.setDetailsValue(values.taskTitle, values.taskDescription);
+        TaskUtils.setDetailsValue(values.taskTitle, values.taskDescription);
         Navigation.navigate(ROUTES.NEW_TASK);
     }
 
@@ -78,14 +77,14 @@ function NewTaskPage(props) {
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}
-                onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
+                onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
                 shouldShowBackButton
-                onBackButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
+                onBackButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
             />
             <Form
                 formID={ONYXKEYS.FORMS.NEW_TASK_FORM}
                 submitButtonText={props.translate('common.next')}
-                style={[styles.mh5, styles.flexGrow1]}
+                style={[styles.mh5, styles.mt5, styles.flexGrow1]}
                 validate={(values) => validate(values)}
                 onSubmit={(values) => onSubmit(values)}
                 enabledWhenOffline
@@ -93,20 +92,16 @@ function NewTaskPage(props) {
                 <View style={styles.mb5}>
                     <TextInput
                         ref={(el) => (inputRef.current = el)}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskTitle"
-                        label={props.translate('task.title')}
-                        accessibilityLabel={props.translate('task.title')}
+                        label={props.translate('newTaskPage.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
                     />
                 </View>
                 <View style={styles.mb5}>
                     <TextInput
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="taskDescription"
                         label={props.translate('newTaskPage.descriptionOptional')}
-                        accessibilityLabel={props.translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
                         submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}

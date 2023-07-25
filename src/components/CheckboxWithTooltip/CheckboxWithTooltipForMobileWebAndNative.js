@@ -39,7 +39,6 @@ class CheckboxWithTooltipForMobileWebAndNative extends React.Component {
                     isChecked={this.props.isChecked}
                     onPress={this.showGrowlOrTriggerOnPress}
                     disabled={this.props.disabled}
-                    accessibilityLabel={this.props.accessibilityLabel || this.props.text}
                 />
             </View>
         );

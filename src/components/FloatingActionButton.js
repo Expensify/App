@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {Animated, Easing, View} from 'react-native';
+import {Pressable, Animated, Easing, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
@@ -8,12 +8,11 @@ import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
 
-const AnimatedPressable = Animated.createAnimatedComponent(PressableWithFeedback);
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 AnimatedPressable.displayName = 'AnimatedPressable';
 
 const propTypes = {
@@ -78,7 +77,6 @@ class FloatingActionButton extends PureComponent {
                         ref={(el) => (this.fabPressable = el)}
                         accessibilityLabel={this.props.accessibilityLabel}
                         accessibilityRole={this.props.accessibilityRole}
-                        pressDimmingValue={1}
                         onPress={(e) => {
                             // Drop focus to avoid blue focus ring.
                             this.fabPressable.blur();

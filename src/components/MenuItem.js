@@ -63,15 +63,10 @@ const defaultProps = {
     floatRightAvatars: [],
     shouldStackHorizontally: false,
     avatarSize: undefined,
-    floatRightAvatarSize: undefined,
     shouldBlockSelection: false,
     hoverAndPressStyle: [],
     furtherDetails: '',
     furtherDetailsIcon: undefined,
-    isSmallAvatarSubscriptMenu: false,
-    title: '',
-    numberOfLinesTitle: 1,
-    shouldGreyOutWhenDisabled: true,
 };
 
 function MenuItem(props) {
@@ -81,11 +76,11 @@ function MenuItem(props) {
         [
             styles.flexShrink1,
             styles.popoverMenuText,
-            props.icon && !_.isArray(props.icon) && (props.avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
+            props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
             props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
-            props.numberOfLinesTitle > 1 ? styles.preWrap : styles.pre,
-            props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
+            props.interactive && props.disabled ? {...styles.disabledText, ...styles.userSelectNone} : undefined,
+            styles.pre,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
         ],
@@ -95,7 +90,7 @@ function MenuItem(props) {
         styles.textLabelSupporting,
         props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
         styles.lineHeightNormal,
-        props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
+        props.title ? descriptionVerticalMargin : undefined,
         props.descriptionTextStyle,
         isDeleted ? styles.offlineFeedback.deleted : undefined,
     ]);
@@ -124,7 +119,6 @@ function MenuItem(props) {
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive), true),
                 (hovered || pressed) && props.hoverAndPressStyle,
                 ...(_.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle]),
-                props.shouldGreyOutWhenDisabled && props.disabled && styles.buttonOpacityDisabled,
             ]}
             disabled={props.disabled}
             ref={props.forwardedRef}
@@ -154,7 +148,7 @@ function MenuItem(props) {
                                 />
                             )}
                             {Boolean(props.icon) && !_.isArray(props.icon) && (
-                                <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize || CONST.AVATAR_SIZE.DEFAULT)]}>
+                                <View style={[styles.popoverMenuIcon, ...props.iconStyles]}>
                                     {props.iconType === CONST.ICON_TYPE_ICON && (
                                         <Icon
                                             src={props.icon}
@@ -178,15 +172,14 @@ function MenuItem(props) {
                                     )}
                                     {props.iconType === CONST.ICON_TYPE_AVATAR && (
                                         <Avatar
-                                            imageStyles={[styles.alignSelfCenter]}
+                                            imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
                                             source={props.icon}
                                             fallbackIcon={props.fallbackIcon}
-                                            size={props.avatarSize || CONST.AVATAR_SIZE.DEFAULT}
                                         />
                                     )}
                                 </View>
                             )}
-                            <View style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(props.isSmallAvatarSubscriptMenu)]}>
+                            <View style={[styles.justifyContentCenter, styles.menuItemTextContainer, styles.flex1]}>
                                 {Boolean(props.description) && props.shouldShowDescriptionOnTop && (
                                     <Text
                                         style={descriptionTextStyle}
@@ -199,7 +192,7 @@ function MenuItem(props) {
                                     {Boolean(props.title) && (
                                         <Text
                                             style={titleTextStyle}
-                                            numberOfLines={props.numberOfLinesTitle}
+                                            numberOfLines={1}
                                         >
                                             {convertToLTR(props.title)}
                                         </Text>
@@ -259,7 +252,7 @@ function MenuItem(props) {
                                     isHovered={hovered}
                                     isPressed={pressed}
                                     icons={props.floatRightAvatars}
-                                    size={props.floatRightAvatarSize || fallbackAvatarSize}
+                                    size={props.avatarSize || fallbackAvatarSize}
                                     fallbackIcon={defaultWorkspaceAvatars.WorkspaceBuilding}
                                     shouldStackHorizontally={props.shouldStackHorizontally}
                                 />

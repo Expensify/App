@@ -10,7 +10,6 @@ import navigationRef from '../Navigation/navigationRef';
 import SCREENS from '../../SCREENS';
 import Navigation from '../Navigation/Navigation';
 import * as ErrorUtils from '../ErrorUtils';
-import * as SessionUtils from '../SessionUtils';
 
 let currentIsOffline;
 let currentShouldForceOffline;
@@ -88,7 +87,6 @@ function redirectToSignIn(errorMessage) {
     NetworkConnection.clearReconnectionCallbacks();
     clearStorageAndRedirect(errorMessage);
     resetHomeRouteParams();
-    SessionUtils.resetDidUserLogInDuringSession();
 }
 
 export default redirectToSignIn;

@@ -5,7 +5,6 @@ import styles from '../styles/styles';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import CONST from '../CONST';
 
 const propTypes = {
     /** Currency symbol of selected currency */
@@ -23,7 +22,7 @@ function CurrencySymbolButton(props) {
             <PressableWithoutFeedback
                 onPress={props.onCurrencyButtonPress}
                 accessibilityLabel={props.translate('iOUCurrencySelection.selectCurrency')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                accessibilityRole="button"
             >
                 <Text style={styles.iouAmountText}>{props.currencySymbol}</Text>
             </PressableWithoutFeedback>

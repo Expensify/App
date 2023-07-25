@@ -395,7 +395,7 @@ class EmojiPickerMenu extends Component {
             this.setFirstNonHeaderIndex(this.emojis);
             return;
         }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.props.preferredLocale, this.emojis.length);
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.emojis.length);
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
@@ -495,8 +495,6 @@ class EmojiPickerMenu extends Component {
                 <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                     <TextInput
                         label={this.props.translate('common.search')}
-                        accessibilityLabel={this.props.translate('common.search')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         onChangeText={this.filterEmojis}
                         defaultValue=""
                         ref={(el) => (this.searchInput = el)}
@@ -526,7 +524,11 @@ class EmojiPickerMenu extends Component {
                     onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
                     getItemLayout={this.getItemLayout}
                     contentContainerStyle={styles.flexGrow1}
-                    ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>}
+                    ListEmptyComponent={
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
+                            <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>
+                        </View>
+                    }
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}

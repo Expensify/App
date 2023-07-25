@@ -63,7 +63,7 @@ function ReportDetailsPage(props) {
     const isPolicyAdmin = useMemo(() => PolicyUtils.isPolicyAdmin(policy), [policy]);
     const isPolicyExpenseChat = useMemo(() => ReportUtils.isPolicyExpenseChat(props.report), [props.report]);
     const isChatRoom = useMemo(() => ReportUtils.isChatRoom(props.report), [props.report]);
-    const isThread = useMemo(() => ReportUtils.isChatThread(props.report), [props.report]);
+    const isThread = useMemo(() => ReportUtils.isThread(props.report), [props.report]);
     const isUserCreatedPolicyRoom = useMemo(() => ReportUtils.isUserCreatedPolicyRoom(props.report), [props.report]);
     const isArchivedRoom = useMemo(() => ReportUtils.isArchivedRoom(props.report), [props.report]);
 
@@ -157,7 +157,7 @@ function ReportDetailsPage(props) {
                             </View>
                             {isPolicyAdmin ? (
                                 <PressableWithoutFeedback
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    accessibilityRole="button"
                                     accessibilityLabel={chatRoomSubtitle}
                                     onPress={() => {
                                         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.report.policyID));

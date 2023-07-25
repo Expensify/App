@@ -166,7 +166,6 @@ function ACHContractStep(props) {
                             <Text>{props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                         </Text>
                         <CheckboxWithLabel
-                            accessibilityLabel={props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
                             inputID="ownsMoreThan25Percent"
                             style={[styles.mb2]}
                             LabelComponent={() => (
@@ -187,7 +186,6 @@ function ACHContractStep(props) {
                             shouldSaveDraft
                         />
                         <CheckboxWithLabel
-                            accessibilityLabel={props.translate('beneficialOwnersStep.someoneOwnsMoreThan25Percent')}
                             inputID="hasOtherBeneficialOwners"
                             style={[styles.mb2]}
                             LabelComponent={() => (
@@ -253,7 +251,6 @@ function ACHContractStep(props) {
                         )}
                         <Text style={[styles.mv5]}>{props.translate('beneficialOwnersStep.agreement')}</Text>
                         <CheckboxWithLabel
-                            accessibilityLabel={`${props.translate('common.iAcceptThe')} ${props.translate('beneficialOwnersStep.termsAndConditions')}`}
                             inputID="acceptTermsAndConditions"
                             style={[styles.mt4]}
                             LabelComponent={() => (
@@ -266,7 +263,6 @@ function ACHContractStep(props) {
                             shouldSaveDraft
                         />
                         <CheckboxWithLabel
-                            accessibilityLabel={props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}
                             inputID="certifyTrueInformation"
                             style={[styles.mt4]}
                             LabelComponent={() => <Text>{props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>}

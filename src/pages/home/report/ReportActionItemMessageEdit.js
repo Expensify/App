@@ -29,7 +29,6 @@ import * as ComposerActions from '../../../libs/actions/Composer';
 import * as User from '../../../libs/actions/User';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import getButtonState from '../../../libs/getButtonState';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import useLocalize from '../../../hooks/useLocalize';
 import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
@@ -60,8 +59,6 @@ const propTypes = {
 
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -98,7 +95,6 @@ function ReportActionItemMessageEdit(props) {
 
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
-    const insertedEmojis = useRef([]);
 
     useEffect(() => {
         // required for keeping last state of isFocused variable
@@ -143,30 +139,16 @@ function ReportActionItemMessageEdit(props) {
     );
 
     /**
-     * Update frequently used emojis list. We debounce this method in the constructor so that UpdateFrequentlyUsedEmojis
-     * API is not called too often.
-     */
-    const debouncedUpdateFrequentlyUsedEmojis = useMemo(
-        () =>
-            _.debounce(() => {
-                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(insertedEmojis.current));
-                insertedEmojis.current = [];
-            }, 1000),
-        [],
-    );
-
-    /**
      * Update the value of the draft in Onyx
      *
      * @param {String} newDraftInput
      */
     const updateDraft = useCallback(
         (newDraftInput) => {
-            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone, props.preferredLocale);
+            const {text: newDraft = '', emojis = []} = EmojiUtils.replaceEmojis(newDraftInput, props.preferredSkinTone);
 
             if (!_.isEmpty(emojis)) {
-                insertedEmojis.current = [...insertedEmojis.current, ...emojis];
-                debouncedUpdateFrequentlyUsedEmojis();
+                User.updateFrequentlyUsedEmojis(EmojiUtils.getFrequentlyUsedEmojis(emojis));
             }
             setDraft((prevDraft) => {
                 if (newDraftInput !== newDraft) {
@@ -190,7 +172,7 @@ function ReportActionItemMessageEdit(props) {
                 debouncedSaveDraft(props.action.message[0].html);
             }
         },
-        [props.action.message, debouncedSaveDraft, debouncedUpdateFrequentlyUsedEmojis, props.preferredSkinTone, props.preferredLocale],
+        [props.action.message, debouncedSaveDraft, props.preferredSkinTone],
     );
 
     /**
@@ -277,7 +259,7 @@ function ReportActionItemMessageEdit(props) {
                             onPress={deleteDraft}
                             style={styles.chatItemSubmitButton}
                             nativeID={cancelButtonID}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessibilityRole="button"
                             accessibilityLabel={translate('common.close')}
                             // disable dimming
                             hoverDimmingValue={1}
@@ -336,7 +318,7 @@ function ReportActionItemMessageEdit(props) {
                                 }
                                 openReportActionComposeViewWhenClosingMessageEdit();
                             }}
-                            selection={!isFocused ? undefined : selection}
+                            selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                         />
                     </View>
@@ -356,7 +338,7 @@ function ReportActionItemMessageEdit(props) {
                                 onPress={publishDraft}
                                 nativeID={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                accessibilityRole="button"
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
@@ -382,12 +364,10 @@ ReportActionItemMessageEdit.propTypes = propTypes;
 ReportActionItemMessageEdit.defaultProps = defaultProps;
 ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
-export default withLocalize(
-    React.forwardRef((props, ref) => (
-        <ReportActionItemMessageEdit
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+export default React.forwardRef((props, ref) => (
+    <ReportActionItemMessageEdit
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));

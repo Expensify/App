@@ -9,7 +9,6 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import themeColors from '../../styles/themes/default';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** The emoji code of the category header */
@@ -48,7 +47,7 @@ class CategoryShortcutButton extends PureComponent {
                         this.state.isHighlighted && styles.emojiItemHighlighted,
                     ]}
                     accessibilityLabel={`emojiPicker.headers.${this.props.code}`}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    accessibilityRole="button"
                 >
                     <Icon
                         fill={themeColors.icon}

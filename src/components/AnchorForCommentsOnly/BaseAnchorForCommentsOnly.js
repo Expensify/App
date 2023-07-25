@@ -74,7 +74,7 @@ function BaseAnchorForCommentsOnly(props) {
                 <Text
                     ref={(el) => (linkRef = el)}
                     style={StyleSheet.flatten([props.style, defaultTextStyle])}
-                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+                    accessibilityRole="link"
                     hrefAttrs={{
                         rel: props.rel,
                         target: isEmail ? '_self' : props.target,

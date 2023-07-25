@@ -13,7 +13,6 @@ import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as Session from '../../libs/actions/Session';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
-import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -86,7 +85,7 @@ function AddReactionBubble(props) {
                 // Prevent text input blur when Add reaction is clicked
                 onMouseDown={(e) => e.preventDefault()}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                accessibilityRole="button"
                 // disable dimming
                 pressDimmingValue={1}
             >

@@ -5,7 +5,6 @@ import {Linking} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
-import CONST from '../CONST';
 
 const propTypes = {
     /** Link to open in new tab */
@@ -22,13 +21,9 @@ const propTypes = {
 
     /** Callback that is called when mousedown is triggered */
     onMouseDown: PropTypes.func,
-
-    /** A ref to forward to text */
-    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 };
 
 const defaultProps = {
-    forwardedRef: undefined,
     href: undefined,
     style: [],
     onPress: undefined,
@@ -65,12 +60,11 @@ function TextLink(props) {
     return (
         <Text
             style={[styles.link, ...additionalStyles]}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            accessibilityRole="link"
             href={props.href}
             onPress={openLink}
             onMouseDown={props.onMouseDown}
             onKeyDown={openLinkIfEnterKeyPressed}
-            ref={props.forwardedRef}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
@@ -82,10 +76,4 @@ function TextLink(props) {
 TextLink.defaultProps = defaultProps;
 TextLink.propTypes = propTypes;
 TextLink.displayName = 'TextLink';
-export default React.forwardRef((props, ref) => (
-    <TextLink
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        forwardedRef={ref}
-    />
-));
+export default TextLink;

@@ -1,16 +1,15 @@
-import React, {useRef, useEffect} from 'react';
+import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {NavigationContainer, DefaultTheme, getPathFromState} from '@react-navigation/native';
 import {useFlipper} from '@react-navigation/devtools';
-import {useSharedValue, useAnimatedReaction, interpolateColor, withTiming, withDelay, Easing, runOnJS} from 'react-native-reanimated';
 import Navigation, {navigationRef} from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import themeColors from '../../styles/themes/default';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import Log from '../Log';
-import StatusBar from '../StatusBar';
-import useCurrentReportID from '../../hooks/useCurrentReportID';
-import useWindowDimensions from '../../hooks/useWindowDimensions';
+import withCurrentReportID, {withCurrentReportIDPropTypes} from '../../components/withCurrentReportID';
+import compose from '../compose';
 
 // https://reactnavigation.org/docs/themes
 const navigationTheme = {
@@ -22,11 +21,14 @@ const navigationTheme = {
 };
 
 const propTypes = {
+    ...windowDimensionsPropTypes,
+
     /** Whether the current user is logged in with an authToken */
     authenticated: PropTypes.bool.isRequired,
 
     /** Fired when react-navigation is ready */
     onReady: PropTypes.func.isRequired,
+    ...withCurrentReportIDPropTypes,
 };
 
 /**
@@ -53,71 +55,19 @@ function parseAndLogRoute(state) {
 function NavigationRoot(props) {
     useFlipper(navigationRef);
     const navigationStateRef = useRef(undefined);
-    const firstRenderRef = useRef(true);
-
-    const {updateCurrentReportID} = useCurrentReportID();
-    const {isSmallScreenWidth} = useWindowDimensions();
-
-    useEffect(() => {
-        if (firstRenderRef.current) {
-            // we don't want to make the report back button go back to LHN if the user
-            // started on the small screen so we don't set it on the first render
-            // making it only work on consecutive changes of the screen size
-            firstRenderRef.current = false;
-            return;
-        }
-        if (!isSmallScreenWidth) {
-            return;
-        }
-        Navigation.setShouldPopAllStateOnUP();
-    }, [isSmallScreenWidth]);
-
-    const prevStatusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarBackgroundColor = useRef(themeColors.appBG);
-    const statusBarAnimation = useSharedValue(0);
-
-    const updateStatusBarBackgroundColor = (color) => StatusBar.setBackgroundColor(color);
-    useAnimatedReaction(
-        () => statusBarAnimation.value,
-        () => {
-            const color = interpolateColor(statusBarAnimation.value, [0, 1], [prevStatusBarBackgroundColor.current, statusBarBackgroundColor.current]);
-            runOnJS(updateStatusBarBackgroundColor)(color);
-        },
-    );
-
-    const animateStatusBarBackgroundColor = () => {
-        const currentRoute = navigationRef.getCurrentRoute();
-        const currentScreenBackgroundColor = themeColors.PAGE_BACKGROUND_COLORS[currentRoute.name] || themeColors.appBG;
-
-        prevStatusBarBackgroundColor.current = statusBarBackgroundColor.current;
-        statusBarBackgroundColor.current = currentScreenBackgroundColor;
-        if (prevStatusBarBackgroundColor.current === statusBarBackgroundColor.current) {
-            return;
-        }
-
-        statusBarAnimation.value = 0;
-        statusBarAnimation.value = withDelay(
-            300,
-            withTiming(1, {
-                duration: 300,
-                easing: Easing.in,
-            }),
-        );
-    };
 
     const updateSavedNavigationStateAndLogRoute = (state) => {
         if (!state) {
             return;
         }
         navigationStateRef.current = state;
-        updateCurrentReportID(state);
+        props.updateCurrentReportID(state);
         parseAndLogRoute(state);
-        animateStatusBarBackgroundColor();
     };
 
     return (
         <NavigationContainer
-            key={isSmallScreenWidth ? 'small' : 'big'}
+            key={props.isSmallScreenWidth ? 'small' : 'big'}
             onStateChange={updateSavedNavigationStateAndLogRoute}
             initialState={navigationStateRef.current}
             onReady={props.onReady}
@@ -135,4 +85,4 @@ function NavigationRoot(props) {
 
 NavigationRoot.displayName = 'NavigationRoot';
 NavigationRoot.propTypes = propTypes;
-export default NavigationRoot;
+export default compose(withWindowDimensions, withCurrentReportID)(NavigationRoot);

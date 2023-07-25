@@ -58,7 +58,7 @@ export default [
             };
 
             const onEmojiSelected = (emoji) => {
-                Report.toggleEmojiReaction(reportID, reportAction.reportActionID, emoji);
+                Report.toggleEmojiReaction(reportID, reportAction, emoji);
                 closeContextMenu();
             };
 
@@ -298,7 +298,7 @@ export default [
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, false);
             if (closePopover) {
-                hideContextMenu(false, ReportActionComposeFocusManager.focus);
+                hideContextMenu(false);
             }
         },
         getDescription: () => {},
@@ -311,7 +311,7 @@ export default [
         onPress: (closePopover, {reportID}) => {
             Report.togglePinnedState(reportID, true);
             if (closePopover) {
-                hideContextMenu(false, ReportActionComposeFocusManager.focus);
+                hideContextMenu(false);
             }
         },
         getDescription: () => {},
@@ -325,7 +325,7 @@ export default [
             !isArchivedRoom &&
             !isChronosReport &&
             !ReportUtils.isConciergeChatReport(reportID) &&
-            reportAction.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
+            reportAction.actorEmail !== CONST.EMAIL.CONCIERGE,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 hideContextMenu(false, () => Navigation.navigate(ROUTES.getFlagCommentRoute(reportID, reportAction.reportActionID)));

@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
@@ -30,7 +31,6 @@ import PressableWithoutFeedback from '../../components/Pressable/PressableWithou
 import PinButton from '../../components/PinButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -83,14 +83,13 @@ function HeaderView(props) {
     const participantPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs(participants, props.personalDetails);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant);
-    const isChatThread = ReportUtils.isChatThread(props.report);
+    const isThread = ReportUtils.isThread(props.report);
     const isChatRoom = ReportUtils.isChatRoom(props.report);
     const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(props.report);
     const isTaskReport = ReportUtils.isTaskReport(props.report);
-    const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
+    const reportHeaderData = !isTaskReport && !isThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
-    const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = participants.length === 1 && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -101,19 +100,19 @@ function HeaderView(props) {
     const threeDotMenuItems = [];
     if (isTaskReport) {
         const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID);
-        if (ReportUtils.isOpenTaskReport(props.report) && isTaskAssigneeOrTaskOwner) {
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.OPEN && props.report.statusNum === CONST.REPORT.STATUS.OPEN && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('task.markAsDone'),
+                text: props.translate('newTaskPage.markAsDone'),
                 onSelected: () => Task.completeTask(props.report.reportID, title),
             });
         }
 
         // Task is marked as completed
-        if (ReportUtils.isCompletedTaskReport(props.report) && isTaskAssigneeOrTaskOwner) {
+        if (props.report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.report.statusNum === CONST.REPORT.STATUS.APPROVED && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
                 icon: Expensicons.Checkmark,
-                text: props.translate('task.markAsIncomplete'),
+                text: props.translate('newTaskPage.markAsIncomplete'),
                 onSelected: () => Task.reopenTask(props.report.reportID, title),
             });
         }
@@ -130,14 +129,11 @@ function HeaderView(props) {
     const shouldShowThreeDotsButton = !!threeDotMenuItems.length;
 
     const shouldShowSubscript = ReportUtils.shouldReportShowSubscript(props.report);
-    const defaultSubscriptSize = ReportUtils.isExpenseRequest(props.report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
-
     return (
         <View
-            style={[styles.appContentHeader, shouldShowBorderBottom && styles.borderBottom]}
+            style={[styles.appContentHeader, isTaskReport && {backgroundColor: themeColors.highlightBG, borderBottomWidth: 0}]}
             nativeID="drag-area"
         >
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -147,7 +143,7 @@ function HeaderView(props) {
                         style={[styles.LHNToggle]}
                         accessibilityHint={props.translate('accessibilityHints.navigateToChatsList')}
                         accessibilityLabel={props.translate('common.back')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityRole="button"
                     >
                         <Tooltip
                             text={props.translate('common.back')}
@@ -162,22 +158,23 @@ function HeaderView(props) {
                 {Boolean(props.report && title) && (
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <PressableWithoutFeedback
-                            onPress={() => (isTaskReport ? Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID)) : ReportUtils.navigateToDetailsPage(props.report))}
+                            onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            disabled={isTaskReport && !ReportUtils.isOpenTaskReport(props.report)}
+                            disabled={isTaskReport}
                             accessibilityLabel={title}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                            accessibilityRole="button"
                         >
                             {shouldShowSubscript ? (
                                 <SubscriptAvatar
                                     mainAvatar={icons[0]}
                                     secondaryAvatar={icons[1]}
-                                    size={defaultSubscriptSize}
+                                    mainTooltip={props.report.ownerEmail}
+                                    secondaryTooltip={subtitle}
                                 />
                             ) : (
                                 <MultipleAvatars
                                     icons={icons}
-                                    shouldShowTooltip={!isChatRoom || isChatThread}
+                                    shouldShowTooltip={!isChatRoom || isThread}
                                 />
                             )}
                             <View style={[styles.flex1, styles.flexColumn]}>
@@ -187,31 +184,34 @@ function HeaderView(props) {
                                     tooltipEnabled
                                     numberOfLines={1}
                                     textStyles={[styles.headerText, styles.pre]}
-                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
+                                    shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isThread || isTaskReport}
                                 />
-                                {!_.isEmpty(parentNavigationSubtitle) && (
-                                    <PressableWithoutFeedback
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
-                                        }}
-                                        accessibilityLabel={parentNavigationSubtitle}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                                    >
-                                        <Text
-                                            style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
-                                            numberOfLines={1}
-                                        >
-                                            {parentNavigationSubtitle}
-                                        </Text>
-                                    </PressableWithoutFeedback>
-                                )}
-                                {!_.isEmpty(subtitle) && (
-                                    <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
-                                        numberOfLines={1}
-                                    >
-                                        {subtitle}
-                                    </Text>
+                                {(isChatRoom || isPolicyExpenseChat || isThread) && !_.isEmpty(subtitle) && (
+                                    <>
+                                        {isThread ? (
+                                            <PressableWithoutFeedback
+                                                onPress={() => {
+                                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                                                }}
+                                                accessibilityLabel={subtitle}
+                                                accessibilityRole="link"
+                                            >
+                                                <Text
+                                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {subtitle}
+                                                </Text>
+                                            </PressableWithoutFeedback>
+                                        ) : (
+                                            <Text
+                                                style={[styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting]}
+                                                numberOfLines={1}
+                                            >
+                                                {subtitle}
+                                            </Text>
+                                        )}
+                                    </>
                                 )}
                             </View>
                             {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
@@ -224,7 +224,6 @@ function HeaderView(props) {
                             )}
                         </PressableWithoutFeedback>
                         <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter]}>
-                            {isTaskReport && !props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(props.report) && <TaskHeaderActionButton report={props.report} />}
                             {shouldShowCallButton && (
                                 <VideoChatButtonAndMenu
                                     isConcierge={isConcierge}

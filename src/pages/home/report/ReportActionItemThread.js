@@ -35,7 +35,7 @@ function ReportActionItemThread(props) {
     const numberOfRepliesText = props.numberOfReplies > CONST.MAX_THREAD_REPLIES_PREVIEW ? `${CONST.MAX_THREAD_REPLIES_PREVIEW}+` : `${props.numberOfReplies}`;
     const replyText = props.numberOfReplies === 1 ? props.translate('threads.reply') : props.translate('threads.replies');
 
-    const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply, false);
+    const timeStamp = props.datetimeToCalendarTime(props.mostRecentReply, false, true);
 
     return (
         <View style={[styles.chatItemMessage]}>
@@ -43,7 +43,7 @@ function ReportActionItemThread(props) {
                 onPress={() => {
                     Report.navigateToAndOpenChildReport(props.childReportID);
                 }}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                accessibilityRole="button"
                 accessibilityLabel={`${props.numberOfReplies} ${replyText}`}
             >
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2]}>
@@ -65,9 +65,7 @@ function ReportActionItemThread(props) {
                             selectable={false}
                             numberOfLines={1}
                             style={[styles.ml2, styles.textMicroSupporting, styles.flex1]}
-                        >
-                            {timeStamp}
-                        </Text>
+                        >{`${props.translate('threads.lastReply')} ${timeStamp}`}</Text>
                     </View>
                 </View>
             </PressableWithoutFeedback>

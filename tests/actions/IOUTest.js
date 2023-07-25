@@ -372,6 +372,7 @@ describe('actions/IOU', () => {
             const iouAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorEmail: RORY_EMAIL,
                 actorAccountID: RORY_ACCOUNT_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
@@ -380,6 +381,7 @@ describe('actions/IOU', () => {
                     amount: existingTransaction.amount,
                     currency: CONST.CURRENCY.USD,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    participants: [RORY_EMAIL, CARLOS_EMAIL],
                     participantAccountIDs: [RORY_ACCOUNT_ID, CARLOS_ACCOUNT_ID],
                 },
             };
@@ -833,6 +835,7 @@ describe('actions/IOU', () => {
             const julesExistingIOUAction = {
                 reportActionID: NumberUtils.rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorEmail: RORY_EMAIL,
                 actorAccountID: RORY_ACCOUNT_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
@@ -841,6 +844,7 @@ describe('actions/IOU', () => {
                     amount: julesExistingTransaction.amount,
                     currency: CONST.CURRENCY.USD,
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    participants: [RORY_EMAIL, JULES_EMAIL],
                     participantAccountIDs: [RORY_ACCOUNT_ID, JULES_ACCOUNT_ID],
                 },
             };
@@ -1099,26 +1103,6 @@ describe('actions/IOU', () => {
                                     expect(vitTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                                     expect(groupTransaction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
-                                    resolve();
-                                },
-                            });
-                        }),
-                )
-                .then(
-                    () =>
-                        new Promise((resolve) => {
-                            const connectionID = Onyx.connect({
-                                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                                waitForCollectionCallback: true,
-                                callback: (allPersonalDetails) => {
-                                    Onyx.disconnect(connectionID);
-                                    expect(allPersonalDetails).toMatchObject({
-                                        [VIT_ACCOUNT_ID]: {
-                                            accountID: VIT_ACCOUNT_ID,
-                                            displayName: VIT_EMAIL,
-                                            login: VIT_EMAIL,
-                                        },
-                                    });
                                     resolve();
                                 },
                             });
