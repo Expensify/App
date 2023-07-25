@@ -73,7 +73,8 @@ const defaultProps = {
 
 function MultipleAvatars(props) {
     const [avatarRows, setAvatarRows] = useState([props.icons]);
-    let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
+    const avatarMargin = props.isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin;
+    let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, avatarMargin];
     const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
