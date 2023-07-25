@@ -1009,7 +1009,7 @@ function formatMemberForList(member, isSelected) {
         login: lodashGet(member, 'login', ''),
         isAdmin: false,
         avatar: {
-            source: lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', ''),
+            source: lodashGet(member, 'participantsList[0].avatar', '') || lodashGet(member, 'avatar', '') || UserUtils.getDefaultAvatar(lodashGet(member, 'accountID', '')),
             name: lodashGet(member, 'participantsList[0].login', '') || lodashGet(member, 'displayName', ''),
             type: 'avatar',
         },

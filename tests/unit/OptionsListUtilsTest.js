@@ -621,4 +621,28 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(1);
         expect(results.personalDetails[0].text).toBe('Spider-Man');
     });
+
+    it('formatMemberForList()', () => {
+        const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, key === '1'));
+
+        // We're only formatting a single item, so orders should be the same as the original PERSONAL_DETAILS array
+        expect(formattedMembers[0].text).toBe('Mister Fantastic');
+        expect(formattedMembers[1].text).toBe('Iron Man');
+        expect(formattedMembers[2].text).toBe('Spider-Man');
+
+        // We should expect only the first item to be selected
+        expect(formattedMembers[0].isSelected).toBe(true);
+
+        // And all the others to be unselected
+        expect(_.every(formattedMembers.slice(1), (personalDetail) => !personalDetail.isSelected)).toBe(true);
+
+        // `isDisabled` is always false
+        expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isDisabled)).toBe(true);
+
+        // `isAdmin` is always false
+        expect(_.every(formattedMembers, (personalDetail) => !personalDetail.isAdmin)).toBe(true);
+
+        // The PERSONAL_DETAILS list doesn't specify `participantsList[n].avatar`, so the default one should be used
+        expect(_.every(formattedMembers, (personalDetail) => Boolean(personalDetail.avatar.source))).toBe(true);
+    });
 });
