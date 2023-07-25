@@ -24,6 +24,8 @@ import * as UserUtils from '../../../libs/UserUtils';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
 import MultipleAvatars from '../../../components/MultipleAvatars';
+import * as StyleUtils from '../../../styles/StyleUtils';
+import themeColors from '../../../styles/themes/default';
 
 const propTypes = {
     /** All the data of the action */
@@ -54,6 +56,9 @@ const propTypes = {
     /** If the message has been flagged for moderation */
     hasBeenFlagged: PropTypes.bool,
 
+    /** If the action is being hovered */
+    isHovered: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -65,6 +70,7 @@ const defaultProps = {
     hasBeenFlagged: false,
     report: undefined,
     iouReport: undefined,
+    isHovered: false,
 };
 
 const showUserDetails = (accountID) => {
@@ -142,6 +148,10 @@ function ReportActionItemSingle(props) {
                     icons={[icon, secondaryAvatar]}
                     isInReportAction
                     shouldShowTooltip
+                    secondAvatarStyle={[
+                        StyleUtils.getBackgroundAndBorderStyle(themeColors.appBG),
+                        props.isHovered ? StyleUtils.getBackgroundAndBorderStyle(themeColors.highlightBG) : undefined,
+                    ]}
                 />
             );
         }

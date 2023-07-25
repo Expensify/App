@@ -418,6 +418,7 @@ function ReportActionItem(props) {
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
                     iouReport={props.iouReport}
+                    isHovered={hovered}
                     hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
                 >
                     {content}
