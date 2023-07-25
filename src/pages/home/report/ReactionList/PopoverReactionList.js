@@ -103,8 +103,8 @@ class PopoverReactionList extends React.Component {
         }
         const reactionUsers = _.pick(selectedReaction.users, _.identity);
         const emojiCount = _.map(reactionUsers, (user) => user).length;
-        const userAccountIDs = _.map(reactionUsers, (user, accountID) => parseInt(accountID, 10));
-        const emoji = _.find(emojis, (e) => e.name === selectedReaction.emojiName);
+        const userAccountIDs = _.map(reactionUsers, (user, accountID) => Number(accountID));
+        const emoji = EmojiUtils.findEmojiByName(selectedReaction.emojiName);
         const emojiCodes = EmojiUtils.getUniqueEmojiCodes(emoji, selectedReaction.users);
         const hasUserReacted = Report.hasAccountIDEmojiReacted(this.props.currentUserPersonalDetails.accountID, reactionUsers);
         const users = PersonalDetailsUtils.getPersonalDetailsByIDs(userAccountIDs, this.props.currentUserPersonalDetails.accountID, true);
