@@ -21,10 +21,8 @@ class DeeplinkWrapper extends PureComponent {
         }
 
         const onDenyListRoute = !shouldShowDeeplink();
-        console.log('onDenyListRoute', onDenyListRoute);
 
         if (onDenyListRoute) {
-            console.log('shouldShowDeeplink');
             return;
         }
 
