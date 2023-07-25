@@ -331,6 +331,7 @@ function WorkspaceMembersPage(props) {
                                     participantsList: [item],
                                     icons: [
                                         {
+                                            id: item.accountID,
                                             source: UserUtils.getAvatar(item.avatar, item.accountID),
                                             name: item.login,
                                             type: CONST.ICON_TYPE_AVATAR,
@@ -404,7 +405,8 @@ function WorkspaceMembersPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView
-                    shouldShow={_.isEmpty(props.policy)}
+                    shouldShow={_.isEmpty(props.policy) || !Policy.isPolicyOwner(props.policy)}
+                    subtitleKey={_.isEmpty(props.policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WORKSPACES)}
                 >
                     <HeaderWithBackButton

@@ -625,7 +625,7 @@ function getLoginPagePromoStyle() {
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
         },
         {
-            backgroundColor: colors.floralwhite,
+            backgroundColor: colors.ivory,
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
             redirectUri: `${CONST.USE_EXPENSIFY_URL}/accountants`,
         },
@@ -663,6 +663,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
     return {
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
+        ...styles.cursorDefault,
         position: 'absolute',
         zIndex: 1,
     };
@@ -1115,13 +1116,13 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
     if (isContextMenu) {
         return {
             fontSize: 17,
-            lineHeight: 28,
+            lineHeight: 24,
         };
     }
 
     return {
         fontSize: 15,
-        lineHeight: 24,
+        lineHeight: 22,
     };
 }
 
@@ -1219,6 +1220,22 @@ function getMentionStyle(isOurMention) {
  */
 function getMentionTextColor(isOurMention) {
     return isOurMention ? themeColors.ourMentionText : themeColors.mentionText;
+}
+
+/**
+ * Returns padding vertical based on number of lines
+ * @param {Number} numberOfLines
+ * @returns {Object}
+ */
+function getComposeTextAreaPadding(numberOfLines) {
+    let paddingValue = 5;
+    if (numberOfLines === 1) paddingValue = 9;
+    // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
+    if (numberOfLines === 3) paddingValue = 8;
+    return {
+        paddingTop: paddingValue,
+        paddingBottom: paddingValue,
+    };
 }
 
 /**
@@ -1356,6 +1373,7 @@ export {
     getEmojiPickerListHeight,
     getMentionStyle,
     getMentionTextColor,
+    getComposeTextAreaPadding,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,

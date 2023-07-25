@@ -9,16 +9,14 @@ import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
-import PasswordForm from './PasswordForm';
 import ValidateCodeForm from './ValidateCodeForm';
-import ResendValidationForm from './ResendValidationForm';
 import Performance from '../../libs/Performance';
 import * as App from '../../libs/actions/App';
 import UnlinkLoginForm from './UnlinkLoginForm';
+import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import * as Localize from '../../libs/Localize';
 import * as StyleUtils from '../../styles/StyleUtils';
 import useLocalize from '../../hooks/useLocalize';
-import usePermissions from '../../hooks/usePermissions';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 import Log from '../../libs/Log';
 
@@ -34,17 +32,16 @@ const propTypes = {
         /** The primaryLogin associated with the account */
         primaryLogin: PropTypes.string,
 
-        /** Has the user pressed the forgot password button? */
-        forgotPassword: PropTypes.bool,
-
         /** Does this account require 2FA? */
         requiresTwoFactorAuth: PropTypes.bool,
+
+        /** Is this account having trouble receiving emails */
+        hasEmailDeliveryFailure: PropTypes.bool,
     }),
 
     /** The credentials of the person signing in */
     credentials: PropTypes.shape({
         login: PropTypes.string,
-        password: PropTypes.string,
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
@@ -57,28 +54,24 @@ const defaultProps = {
 
 /**
  * @param {Boolean} hasLogin
- * @param {Boolean} hasPassword
  * @param {Boolean} hasValidateCode
  * @param {Boolean} isPrimaryLogin
  * @param {Boolean} isAccountValidated
- * @param {Boolean} didForgetPassword
- * @param {Boolean} canUsePasswordlessLogins
+ * @param {Boolean} hasEmailDeliveryFailure
  * @returns {Object}
  */
-function getRenderOptions({hasLogin, hasPassword, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, didForgetPassword, canUsePasswordlessLogins}) {
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure}) {
     const shouldShowLoginForm = !hasLogin && !hasValidateCode;
-    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated;
-    const shouldShowPasswordForm = hasLogin && isAccountValidated && !hasPassword && !didForgetPassword && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins;
-    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && canUsePasswordlessLogins;
-    const shouldShowResendValidationForm = hasLogin && (!isAccountValidated || didForgetPassword) && !isUnvalidatedSecondaryLogin && !canUsePasswordlessLogins;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
-    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowPasswordForm || shouldShowValidateCodeForm;
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
+    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm;
     return {
         shouldShowLoginForm,
+        shouldShowEmailDeliveryFailurePage,
         shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
-        shouldShowPasswordForm,
         shouldShowValidateCodeForm,
-        shouldShowResendValidationForm,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
     };
@@ -86,7 +79,6 @@ function getRenderOptions({hasLogin, hasPassword, hasValidateCode, hasAccount, i
 
 function SignInPage({credentials, account}) {
     const {translate, formatPhoneNumber} = useLocalize();
-    const {canUsePasswordlessLogins} = usePermissions();
     const {isSmallScreenWidth} = useWindowDimensions();
     const safeAreaInsets = useSafeAreaInsets();
 
@@ -95,28 +87,23 @@ function SignInPage({credentials, account}) {
         App.setLocale(Localize.getDevicePreferredLocale());
     }, []);
 
-    const {
-        shouldShowLoginForm,
-        shouldShowUnlinkLoginForm,
-        shouldShowPasswordForm,
-        shouldShowValidateCodeForm,
-        shouldShowResendValidationForm,
-        shouldShowWelcomeHeader,
-        shouldShowWelcomeText,
-    } = getRenderOptions({
-        hasLogin: Boolean(credentials.login),
-        hasPassword: Boolean(credentials.password),
-        hasValidateCode: Boolean(credentials.validateCode),
-        hasAccount: !_.isEmpty(account),
-        isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
-        isAccountValidated: Boolean(account.validated),
-        didForgetPassword: Boolean(account.forgotPassword),
-        canUsePasswordlessLogins,
-    });
+    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
+        {
+            hasLogin: Boolean(credentials.login),
+            hasValidateCode: Boolean(credentials.validateCode),
+            hasAccount: !_.isEmpty(account),
+            isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
+            isAccountValidated: Boolean(account.validated),
+            hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
+        },
+    );
 
     let welcomeHeader;
     let welcomeText;
-    if (shouldShowValidateCodeForm) {
+    if (shouldShowLoginForm) {
+        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
+        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+    } else if (shouldShowValidateCodeForm) {
         if (account.requiresTwoFactorAuth) {
             // We will only know this after a user signs in successfully, without their 2FA code
             welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
@@ -138,14 +125,13 @@ function SignInPage({credentials, account}) {
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
         }
-    } else if (shouldShowPasswordForm) {
-        welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-        welcomeText = isSmallScreenWidth ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.enterPassword')}` : translate('welcomeText.enterPassword');
-    } else if (shouldShowUnlinkLoginForm) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
         welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
-    } else if (!shouldShowResendValidationForm) {
-        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
-        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+
+        // Don't show any welcome text if we're showing the user the email delivery failed view
+        if (shouldShowEmailDeliveryFailurePage) {
+            welcomeText = '';
+        }
     } else {
         Log.warn('SignInPage in unexpected state!');
     }
@@ -158,15 +144,15 @@ function SignInPage({credentials, account}) {
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
                 shouldShowWelcomeText={shouldShowWelcomeText}
             >
-                {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
-                    so that password managers can access the values. Conditionally rendering these components will break this feature. */}
+                {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
+                    so that password managers can access the values. Conditionally rendering this component will break this feature. */}
                 <LoginForm
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
                 />
-                {shouldShowValidateCodeForm ? <ValidateCodeForm isVisible={shouldShowValidateCodeForm} /> : <PasswordForm isVisible={shouldShowPasswordForm} />}
-                {shouldShowResendValidationForm && <ResendValidationForm />}
+                {shouldShowValidateCodeForm && <ValidateCodeForm />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
         </View>
     );
