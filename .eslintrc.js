@@ -157,7 +157,7 @@ module.exports = {
                             },
                             {
                                 name: 'underscore',
-                                message: 'Please use corresponding method from lodash instead',
+                                message: 'Please use the corresponding method from lodash instead',
                             },
                         ],
                     },
