@@ -54,7 +54,7 @@ function TaskView(props) {
     return (
         <View>
             <Hoverable>
-                {(hovered) =>
+                {(hovered) => (
                     <PressableWithSecondaryInteraction
                         onPress={Session.checkIfActionIsAllowed((e) => {
                             if (e && e.type === 'click') {
@@ -103,7 +103,7 @@ function TaskView(props) {
                             </>
                         )}
                     </PressableWithSecondaryInteraction>
-                }
+                )}
             </Hoverable>
             <MenuItemWithTopDescription
                 description={props.translate('task.description')}
