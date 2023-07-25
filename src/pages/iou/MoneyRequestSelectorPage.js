@@ -132,7 +132,7 @@ function MoneyRequestSelectorPage(props) {
                                 title={titleForStep}
                                 onBackButtonPress={navigateBack}
                             />
-                            <TabSelector />
+                            <TabSelector moneyRequestID={`${iouType.current}${reportID.current}`} />
                             {selectedTab === CONST.TAB.TAB_MANUAL ? (
                                 <MoneyRequestAmountPage
                                     route={props.route}

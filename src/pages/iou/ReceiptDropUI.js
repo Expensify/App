@@ -38,7 +38,7 @@ function ReceiptDropUI(props) {
     );
 }
 
-ReceiptDropUI.displayName = 'ReportDropUI';
+ReceiptDropUI.displayName = 'ReceiptDropUI';
 ReceiptDropUI.propTypes = propTypes;
 ReceiptDropUI.defaultProps = defaultProps;
 

@@ -21,6 +21,10 @@ import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import * as IOUUtils from '../../../libs/IOUUtils';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -195,6 +199,13 @@ function MoneyRequestAmountPage(props) {
         }
     };
 
+    const title = {
+        [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
+        [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
+        [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
+    };
+    const titleForStep = isEditing.current ? translate('iou.amount') : title[iouType.current];
+
     /**
      * Check and dismiss modal
      */
@@ -343,6 +354,10 @@ function MoneyRequestAmountPage(props) {
         setNewAmount(newAmount);
     };
 
+    const navigateBack = () => {
+        Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
+    };
+
     const navigateToCurrencySelectionPage = () => {
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
@@ -392,53 +407,68 @@ function MoneyRequestAmountPage(props) {
     const buttonText = isEditing.current ? translate('common.save') : translate('common.next');
 
     return (
-        <>
-            <View
-                nativeID={amountViewID}
-                onMouseDown={(event) => onMouseDown(event, [amountViewID])}
-                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                onEntryTransitionEnd={focusTextInput}
             >
-                <TextInputWithCurrencySymbol
-                    formattedAmount={formattedAmount}
-                    onChangeAmount={updateAmount}
-                    onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                    placeholder={numberFormat(0)}
-                    ref={(el) => (textInput.current = el)}
-                    selectedCurrencyCode={selectedCurrencyCode}
-                    selection={selection}
-                    onSelectionChange={(e) => {
-                        if (!shouldUpdateSelection) {
-                            return;
-                        }
-                        setSelection(e.nativeEvent.selection);
-                    }}
-                />
-            </View>
-            <View
-                onMouseDown={(event) => onMouseDown(event, [numPadContainerViewID, numPadViewID])}
-                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
-                nativeID={numPadContainerViewID}
-            >
-                {DeviceCapabilities.canUseTouchScreen() ? (
-                    <BigNumberPad
-                        nativeID={numPadViewID}
-                        numberPressed={updateAmountNumberPad}
-                        longPressHandlerStateChanged={updateLongPressHandlerState}
-                    />
-                ) : (
-                    <View />
-                )}
+                {({safeAreaPaddingBottomStyle}) => (
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        {isEditing.current && (
+                            <HeaderWithBackButton
+                                title={titleForStep}
+                                onBackButtonPress={navigateBack}
+                            />
+                        )}
+                        <View
+                            nativeID={amountViewID}
+                            onMouseDown={(event) => onMouseDown(event, [amountViewID])}
+                            style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                        >
+                            <TextInputWithCurrencySymbol
+                                formattedAmount={formattedAmount}
+                                onChangeAmount={updateAmount}
+                                onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                                placeholder={numberFormat(0)}
+                                ref={(el) => (textInput.current = el)}
+                                selectedCurrencyCode={selectedCurrencyCode}
+                                selection={selection}
+                                onSelectionChange={(e) => {
+                                    if (!shouldUpdateSelection) {
+                                        return;
+                                    }
+                                    setSelection(e.nativeEvent.selection);
+                                }}
+                            />
+                        </View>
+                        <View
+                            onMouseDown={(event) => onMouseDown(event, [numPadContainerViewID, numPadViewID])}
+                            style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                            nativeID={numPadContainerViewID}
+                        >
+                            {DeviceCapabilities.canUseTouchScreen() ? (
+                                <BigNumberPad
+                                    nativeID={numPadViewID}
+                                    numberPressed={updateAmountNumberPad}
+                                    longPressHandlerStateChanged={updateLongPressHandlerState}
+                                />
+                            ) : (
+                                <View />
+                            )}
 
-                <Button
-                    success
-                    style={[styles.w100, styles.mt5]}
-                    onPress={navigateToNextPage}
-                    pressOnEnter
-                    isDisabled={!amount.length || parseFloat(amount) < 0.01}
-                    text={buttonText}
-                />
-            </View>
-        </>
+                            <Button
+                                success
+                                style={[styles.w100, styles.mt5]}
+                                onPress={navigateToNextPage}
+                                pressOnEnter
+                                isDisabled={!amount.length || parseFloat(amount) < 0.01}
+                                text={buttonText}
+                            />
+                        </View>
+                    </View>
+                )}
+            </ScreenWrapper>
+        </FullPageNotFoundView>
     );
 }
 

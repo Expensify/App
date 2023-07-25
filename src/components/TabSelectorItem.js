@@ -33,7 +33,7 @@ function TabSelectorItem(props) {
         ? [styles.textStrong, styles.mt2, styles.textWhite, {fontFamily: fontFamily.EXP_NEUE}]
         : [styles.mt2, styles.colorMuted, {fontFamily: fontFamily.EXP_NEUE}];
     return (
-        <View>
+        <>
             <PressableWithFeedback
                 accessibilityLabel={props.title}
                 style={[styles.tabSelectorButton]}
@@ -45,7 +45,7 @@ function TabSelectorItem(props) {
                 />
                 <Text style={textStyle}>{props.title}</Text>
             </PressableWithFeedback>
-        </View>
+        </>
     );
 }
 

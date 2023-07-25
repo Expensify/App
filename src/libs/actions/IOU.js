@@ -75,6 +75,23 @@ function resetMoneyRequestInfo(id = '') {
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
+        receiptPath: '',
+        receiptSource: '',
+    });
+}
+
+/**
+ * Reset money request info from the store with its initial value
+ * @param {String} id
+ */
+function resetMoneyRequestData() {
+    Onyx.merge(ONYXKEYS.IOU, {
+        amount: 0,
+        currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
+        comment: '',
+        participants: [],
+        receiptPath: '',
+        receiptSource: '',
     });
 }
 
@@ -1411,6 +1428,7 @@ export {
     sendMoneyWithWallet,
     startMoneyRequest,
     resetMoneyRequestInfo,
+    resetMoneyRequestData,
     setMoneyRequestId,
     setMoneyRequestAmount,
     setMoneyRequestCurrency,

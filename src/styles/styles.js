@@ -3631,6 +3631,12 @@ const styles = {
         alignItems: 'center',
     },
 
+    tabSelector: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingHorizontal: 20,
+    },
+
     /**
      * @param {String} backgroundColor
      * @param {Number} height
@@ -3649,8 +3655,7 @@ const styles = {
     moneyRequestImage: {
         height: 200,
         borderRadius: 16,
-        marginHorizontal: 20,
-        marginTop: 20,
+        margin: 20,
     },
 };
 
