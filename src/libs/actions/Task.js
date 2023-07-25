@@ -62,7 +62,7 @@ function clearOutTaskInfo() {
  */
 
 function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0, assigneeChatReport = {}) {
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserEmail, currentUserAccountID, assigneeAccountID, parentReportID, title, description);
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
     const assigneeChatReportID = assigneeChatReport.reportID;
     const taskReportID = optimisticTaskReport.reportID;
@@ -84,8 +84,10 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         lastReadTime: currentTime,
     };
 
+    // We're only setting onyx data for the task report here because it's possible for the parent report to not exist yet (if you're assigning a task to someone you haven't chatted with before)
+    // So we don't want to set the parent report data until we've successfully created that chat report
+    // FOR TASK REPORT
     const optimisticData = [
-        // Task Report
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTaskReport.reportID}`,
@@ -97,26 +99,14 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 isOptimisticReport: true,
             },
         },
-        // Task Report Actions
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
             value: {[optimisticTaskCreatedAction.reportActionID]: optimisticTaskCreatedAction},
         },
-        // Parent Report
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
-            value: optimisticParentReport,
-        },
-        // Parent Report Actions
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction},
-        },
     ];
 
+    // FOR TASK REPORT
     const successData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -133,13 +123,9 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
             value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
-        },
     ];
 
+    // FOR TASK REPORT
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -150,11 +136,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
             value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
-            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
         },
     ];
 
@@ -167,7 +148,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
                     value: {
-                        ...assigneeChatReport,
                         pendingFields: {
                             createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                         },
@@ -192,7 +172,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                         isOptimisticReport: false,
                     },
                 },
-                // Once we successfully create the chat, we'll get the accountID back from the server, this removes the optimistic personal details
+                // Once we successfully create the chat, we'll get the accountID back from the server so this removes the optimistic personal details
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -213,6 +193,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
                     value: {[optimisticChatCreatedReportAction.reportActionID]: {pendingAction: null}},
                 },
+                // If we failed, we want to remove the optimistic personal details as it was likely due to an invalid login
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -234,7 +215,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 parentReportID,
             );
 
-            // We update the lastMessage text of the assignee chat report optimistically as well
             const lastAssigneeCommentText = ReportUtils.formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
             const optimisticAssigneeReport = {
                 lastVisibleActionCreated: currentTime,
@@ -261,6 +241,39 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
             });
         }
+
+        // Now that we've created the optimistic chat report and chat reportActions, we can update the parent report data
+        // FOR PARENT REPORT (SHARE DESTINATION)
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+                value: optimisticParentReport,
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+                value: {[optimisticAddCommentReport.reportAction.reportActionID]: optimisticAddCommentReport.reportAction},
+            },
+        );
+
+        // FOR PARENT REPORT (SHARE DESTINATION)
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+                value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+            }
+        );
+
+        // FOR PARENT REPORT (SHARE DESTINATION)
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+                value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+            },
+        );
     }
 
     API.write(
