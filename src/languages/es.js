@@ -297,7 +297,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' empieza aquí! 🎉 Este es el lugar donde chatear, pedir dinero y pagar.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
-        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para enviar o pedir dinero!',
+        usePlusButton: '\n\n¡También puedes usar el botón + de abajo para pedir dinero o asignar una tarea!',
     },
     reportAction: {
         asCopilot: 'como copiloto de',

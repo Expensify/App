@@ -298,7 +298,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
-        usePlusButton: '\n\nYou can also use the + button below to send or request money!',
+        usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
     },
     reportAction: {
         asCopilot: 'as copilot for',
