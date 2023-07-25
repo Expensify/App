@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -34,6 +34,10 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     const allCountries = translate('allCountries');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState(lodashGet(allCountries, value, ''));
+
+    useEffect(() => {
+        setSearchValue(lodashGet(allCountries, value, ''));
+    }, [value]);
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
