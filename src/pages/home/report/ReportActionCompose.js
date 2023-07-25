@@ -1140,7 +1140,7 @@ class ReportActionCompose extends React.Component {
 
                                                 this.setState({isDraggingOver: false});
                                             }}
-                                            disabled={this.props.disabled}
+                                            isDisabled={this.props.disabled}
                                         >
                                             <Composer
                                                 checkComposerVisibility={() => this.checkComposerVisibility()}

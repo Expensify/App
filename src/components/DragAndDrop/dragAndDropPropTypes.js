@@ -21,4 +21,10 @@ export default {
 
     /** Id of the element which is shown while drag is active */
     activeDropZoneID: PropTypes.string.isRequired,
+
+    /** Whether drag & drop should be disabled */
+    isDisabled: PropTypes.bool,
+
+    /** Rendered child component */
+    children: PropTypes.node.isRequired,
 };

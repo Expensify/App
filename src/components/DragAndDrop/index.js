@@ -17,12 +17,6 @@ const propTypes = {
 
     /** Guard for accepting drops in drop zone. Drag event is passed to this function as first parameter. This prop is necessary to be inlined to satisfy the linter */
     shouldAcceptDrop: PropTypes.func,
-
-    /** Whether drag & drop should be disabled */
-    disabled: PropTypes.bool,
-
-    /** Rendered child component */
-    children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
@@ -37,7 +31,7 @@ const defaultProps = {
         }
         return false;
     },
-    disabled: false,
+    isDisabled: false,
 };
 
 class DragAndDrop extends React.Component {
@@ -57,18 +51,17 @@ class DragAndDrop extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.disabled) {
+        if (this.props.isDisabled) {
             return;
         }
         this.addEventListeners();
     }
 
     componentDidUpdate(prevProps) {
-        const isDisabled = this.props.disabled;
-        if (this.props.isFocused === prevProps.isFocused && isDisabled === prevProps.disabled) {
+        if (this.props.isFocused === prevProps.isFocused && this.props.isDisabled === prevProps.isDisabled) {
             return;
         }
-        if (!this.props.isFocused || isDisabled) {
+        if (!this.props.isFocused || this.props.isDisabled) {
             this.removeEventListeners();
         } else {
             this.addEventListeners();
@@ -76,7 +69,7 @@ class DragAndDrop extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.props.disabled) {
+        if (this.props.isDisabled) {
             return;
         }
         this.removeEventListeners();
