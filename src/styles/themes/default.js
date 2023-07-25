@@ -18,6 +18,7 @@ const darkTheme = {
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.greenSupportingText,
     text: colors.white,
+    textColorfulBackground: colors.ivory,
     link: colors.blueLink,
     linkHover: colors.blueLinkHover,
     buttonDefaultBG: colors.greenDefaultButton,
