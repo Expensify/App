@@ -116,6 +116,10 @@ class ContactMethodDetailsPage extends Component {
         }
     }
 
+    componentWillUnmount() {
+        User.resetContactMethodValidateCodeSentState(this.getContactMethod());
+    }
+
     /**
      * Gets the current contact method from the route params
      * @returns {string}
