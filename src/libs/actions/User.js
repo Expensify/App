@@ -539,8 +539,11 @@ function subscribeToUserEvents() {
         if (_.isArray(pushJSON)) {
             updates = pushJSON;
         } else {
-            // const lastUpdateID = pushJSON.lastUpdateID;
-            // const previousUpdateID = pushJSON.previousUpdateID;
+            // Store these values in Onyx so they can be accessed when calling reconnectApp and only retrieve incremental updates
+            Onyx.multiSet({
+                [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: pushJSON.lastUpdateID,
+                [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: pushJSON.previousUpdateID,
+            });
             updates = pushJSON.updates;
         }
         _.each(updates, (multipleEvent) => {
