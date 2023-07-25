@@ -134,12 +134,6 @@ function InitialSettingsPage(props) {
         Wallet.openInitialSettingsPage();
     }, []);
 
-    /**
-     * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
-     * @returns {Number} the user wallet balance
-     */
-    const getWalletBalance = (isPaymentItem) => (isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined);
-
     const toggleSignoutConfirmModal = (value) => {
         setShouldShowSignoutConfirmModal(value);
     };
@@ -148,16 +142,18 @@ function InitialSettingsPage(props) {
         Navigation.navigate(ROUTES.SETTINGS_PROFILE);
     };
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const signOut = useCallback((shouldForceSignout = false) => {
-        if (props.network.isOffline || shouldForceSignout) {
-            Session.signOutAndRedirectToSignIn();
-            return;
-        }
+    const signOut = useCallback(
+        (shouldForceSignout = false) => {
+            if (props.network.isOffline || shouldForceSignout) {
+                Session.signOutAndRedirectToSignIn();
+                return;
+            }
 
-        // When offline, warn the user that any actions they took while offline will be lost if they sign out
-        toggleSignoutConfirmModal(true);
-    });
+            // When offline, warn the user that any actions they took while offline will be lost if they sign out
+            toggleSignoutConfirmModal(true);
+        },
+        [props.network.isOffline],
+    );
 
     /**
      * Retuns a list of default menu items
@@ -274,32 +270,47 @@ function InitialSettingsPage(props) {
         signOut,
     ]);
 
-    const getMenuItem = (item, index) => {
-        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-        const isPaymentItem = item.translationKey === 'common.payments';
+    const getMenuItems = useMemo(() => {
+        /**
+         * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
+         * @returns {Number} the user wallet balance
+         */
+        const getWalletBalance = (isPaymentItem) =>
+            isPaymentItem && Permissions.canUseWallet(props.betas) ? CurrencyUtils.convertToDisplayString(props.userWallet.currentBalance) : undefined;
 
         return (
-            <MenuItem
-                key={`${keyTitle}_${index}`}
-                title={keyTitle}
-                icon={item.icon}
-                iconType={item.iconType}
-                onPress={item.action}
-                iconStyles={item.iconStyles}
-                shouldShowRightIcon
-                iconRight={item.iconRight}
-                badgeText={getWalletBalance(isPaymentItem)}
-                fallbackIcon={item.fallbackIcon}
-                brickRoadIndicator={item.brickRoadIndicator}
-                floatRightAvatars={item.floatRightAvatars}
-                shouldStackHorizontally={item.shouldStackHorizontally}
-                floatRightAvatarSize={item.avatarSize}
-                ref={popoverAnchor}
-                shouldBlockSelection={Boolean(item.link)}
-                onSecondaryInteraction={!_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined}
-            />
+            <>
+                {_.map(getDefaultMenuItems, (item, index) => {
+                    const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                    const isPaymentItem = item.translationKey === 'common.payments';
+
+                    return (
+                        <MenuItem
+                            key={`${keyTitle}_${index}`}
+                            title={keyTitle}
+                            icon={item.icon}
+                            iconType={item.iconType}
+                            onPress={item.action}
+                            iconStyles={item.iconStyles}
+                            shouldShowRightIcon
+                            iconRight={item.iconRight}
+                            badgeText={getWalletBalance(isPaymentItem)}
+                            fallbackIcon={item.fallbackIcon}
+                            brickRoadIndicator={item.brickRoadIndicator}
+                            floatRightAvatars={item.floatRightAvatars}
+                            shouldStackHorizontally={item.shouldStackHorizontally}
+                            floatRightAvatarSize={item.avatarSize}
+                            ref={popoverAnchor}
+                            shouldBlockSelection={Boolean(item.link)}
+                            onSecondaryInteraction={
+                                !_.isEmpty(item.link) ? (e) => ReportActionContextMenu.showContextMenu(CONTEXT_MENU_TYPES.LINK, e, item.link, popoverAnchor.current) : undefined
+                            }
+                        />
+                    );
+                })}
+            </>
         );
-    };
+    }, [getDefaultMenuItems, props.betas, props.userWallet.currentBalance, translate]);
 
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
@@ -363,7 +374,7 @@ function InitialSettingsPage(props) {
                                     )}
                                 </View>
                             )}
-                            {_.map(getDefaultMenuItems, (item, index) => getMenuItem(item, index))}
+                            {getMenuItems}
 
                             <ConfirmModal
                                 danger
