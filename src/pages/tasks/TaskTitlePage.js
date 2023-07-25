@@ -81,9 +81,6 @@ function TaskTitlePage(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         inputID="title"
                         name="title"
-                        autoGrowHeight
-                        textAlignVertical="top"
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
                         defaultValue={(props.report && props.report.reportName) || ''}
