@@ -224,6 +224,7 @@ function AttachmentModal(props) {
             }
             return true;
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [props.translate],
     );
     /**
@@ -234,6 +235,7 @@ function AttachmentModal(props) {
             if (!isDirectoryCheck(_data)) {
                 return;
             }
+            /* eslint no-underscore-dangle: 0 */
             let _file = _data;
             if (typeof _data.getAsFile === 'function') {
                 _file = _data.getAsFile();
@@ -270,7 +272,7 @@ function AttachmentModal(props) {
                 setModalType(inputModalType);
             }
         },
-        [isValidFile, getModalType],
+        [isValidFile, getModalType,isDirectoryCheck],
     );
 
     /**
