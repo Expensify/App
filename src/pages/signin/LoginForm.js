@@ -213,7 +213,7 @@ function LoginForm(props) {
             )}
             {
                 // We need to unmount the submit button when the component is not visible so that the Enter button
-                // key handler gets unsubscribed and does not conflict with the Password Form
+                // key handler gets unsubscribed
                 props.isVisible && (
                     <View style={[styles.mt5]}>
                         <FormAlertWithSubmitButton

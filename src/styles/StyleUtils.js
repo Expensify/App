@@ -1223,6 +1223,22 @@ function getMentionTextColor(isOurMention) {
 }
 
 /**
+ * Returns padding vertical based on number of lines
+ * @param {Number} numberOfLines
+ * @returns {Object}
+ */
+function getComposeTextAreaPadding(numberOfLines) {
+    let paddingValue = 5;
+    if (numberOfLines === 1) paddingValue = 9;
+    // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
+    if (numberOfLines === 3) paddingValue = 8;
+    return {
+        paddingTop: paddingValue,
+        paddingBottom: paddingValue,
+    };
+}
+
+/**
  * Returns style object for the mobile on WEB
  * @param {Number} windowHeight
  * @param {Number} viewportOffsetTop
@@ -1357,6 +1373,7 @@ export {
     getEmojiPickerListHeight,
     getMentionStyle,
     getMentionTextColor,
+    getComposeTextAreaPadding,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,

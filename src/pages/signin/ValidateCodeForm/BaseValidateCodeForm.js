@@ -226,7 +226,7 @@ function BaseValidateCodeForm(props) {
         if (accountID) {
             Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, twoFactorAuthCode);
         } else {
-            Session.signIn('', validateCode, twoFactorAuthCode, props.preferredLocale);
+            Session.signIn(validateCode, twoFactorAuthCode, props.preferredLocale);
         }
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
@@ -265,7 +265,7 @@ function BaseValidateCodeForm(props) {
                         autoFocus
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
-                    <View>
+                    <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !props.network.isOffline ? (
                             <Text style={[styles.mt2]}>
                                 {props.translate('validateCodeForm.requestNewCode')}

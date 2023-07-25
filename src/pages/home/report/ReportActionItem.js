@@ -263,6 +263,7 @@ function ReportActionItem(props) {
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
+                    containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
                     action={props.action}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}

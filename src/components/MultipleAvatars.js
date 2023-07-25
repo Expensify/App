@@ -71,10 +71,25 @@ const defaultProps = {
     maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
+function getContainerStyles(size, isInReportAction) {
+    let containerStyles;
+
+    switch (size) {
+        case CONST.AVATAR_SIZE.SMALL:
+            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+            break;
+        case CONST.AVATAR_SIZE.SMALLER:
+            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
+            break;
+        default:
+            containerStyles = [styles.emptyAvatar, isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin];
+    }
+
+    return containerStyles;
+}
 function MultipleAvatars(props) {
     const [avatarRows, setAvatarRows] = useState([props.icons]);
-    const avatarMargin = props.isInReportAction ? styles.emptyAvatarMarginChat : styles.emptyAvatarMargin;
-    let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, avatarMargin];
+    let avatarContainerStyles = getContainerStyles(props.size, props.isInReportAction);
     const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
@@ -194,8 +209,8 @@ function MultipleAvatars(props) {
                         ))}
                         {avatars.length > props.maxAvatarsInRow && (
                             <Tooltip
-                                // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                                text={tooltipTexts.slice(3, 10).join(', ')}
+                                // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
+                                text={tooltipTexts.slice(avatarRows.length * props.maxAvatarsInRow - 1, avatarRows.length * props.maxAvatarsInRow + 9).join(', ')}
                             >
                                 <View
                                     style={[

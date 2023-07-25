@@ -174,24 +174,20 @@ function unsubscribeFromReportChannel(reportID) {
     Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.USER_IS_TYPING);
 }
 
-const defaultNewActionSubscriber = {
-    reportID: '',
-    callback: () => {},
-};
-
-let newActionSubscriber = defaultNewActionSubscriber;
+// New action subscriber array for report pages
+let newActionSubscribers = [];
 
 /**
  * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
- *
+ * Add subscriber for report id
  * @param {String} reportID
  * @param {Function} callback
- * @returns {Function}
+ * @returns {Function} Remove subscriber for report id
  */
 function subscribeToNewActionEvent(reportID, callback) {
-    newActionSubscriber = {callback, reportID};
+    newActionSubscribers.push({callback, reportID});
     return () => {
-        newActionSubscriber = defaultNewActionSubscriber;
+        newActionSubscribers = _.filter(newActionSubscribers, (subscriber) => subscriber.reportID !== reportID);
     };
 }
 
@@ -203,11 +199,12 @@ function subscribeToNewActionEvent(reportID, callback) {
  * @param {String} reportActionID
  */
 function notifyNewAction(reportID, accountID, reportActionID) {
-    if (reportID !== newActionSubscriber.reportID) {
+    const actionSubscriber = _.find(newActionSubscribers, (subscriber) => subscriber.reportID === reportID);
+    if (!actionSubscriber) {
         return;
     }
     const isFromCurrentUser = accountID === currentUserAccountID;
-    newActionSubscriber.callback(isFromCurrentUser, reportActionID);
+    actionSubscriber.callback(isFromCurrentUser, reportActionID);
 }
 
 /**
@@ -738,7 +735,7 @@ function readNewestAction(reportID) {
  */
 function markCommentAsUnread(reportID, reportActionCreated) {
     // If no action created date is provided, use the last action's
-    const actionCreationTime = reportActionCreated || lodashGet(allReports, [reportID, 'lastVisibleActionCreated'], '0');
+    const actionCreationTime = reportActionCreated || lodashGet(allReports, [reportID, 'lastVisibleActionCreated'], DateUtils.getDBTime(new Date(0)));
 
     // We subtract 1 millisecond so that the lastReadTime is updated to just before a given reportAction's created date
     // For example, if we want to mark a report action with ID 100 and created date '2014-04-01 16:07:02.999' unread, we set the lastReadTime to '2014-04-01 16:07:02.998'
@@ -841,7 +838,7 @@ function broadcastUserIsTyping(reportID) {
  * @param {Object} report
  */
 function handleReportChanged(report) {
-    if (!report || ReportUtils.isIOUReport(report)) {
+    if (!report) {
         return;
     }
 
@@ -900,7 +897,7 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    if (reportAction.reportActionID && reportAction.childVisibleActionCount > 0) {
+    if (reportAction.childVisibleActionCount === 0) {
         optimisticReport = {
             lastMessageTranslationKey: '',
             lastMessageText: '',
@@ -964,6 +961,16 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, optimisticReport.lastVisibleActionCreated, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
+    }
+
+    // Check to see if the report action we are deleting is the first comment on a thread report. In this case, we need to trigger
+    // an update to let the LHN know that the parentReportAction is now deleted.
+    if (ReportUtils.isThreadFirstChat(reportAction, reportID)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {updateReportInLHN: true},
+        });
     }
 
     const parameters = {
