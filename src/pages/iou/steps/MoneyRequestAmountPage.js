@@ -232,6 +232,24 @@ function MoneyRequestAmountPage(props) {
         });
     };
 
+    /**
+     * Convert amount to whole unit and update selection
+     *
+     * @param {String} currencyCode
+     * @param {Number} amountInCurrencyUnits
+     */
+    const saveAmountToState = (currencyCode, amountInCurrencyUnits) => {
+        if (!currencyCode || !amountInCurrencyUnits) {
+            return;
+        }
+        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currencyCode, amountInCurrencyUnits).toString();
+        setAmount(amountAsStringForState);
+        setSelection({
+            start: amountAsStringForState.length,
+            end: amountAsStringForState.length,
+        });
+    };
+
     useEffect(() => {
         if (isEditing.current) {
             if (prevMoneyRequestID.current !== props.iou.id) {
@@ -270,12 +288,7 @@ function MoneyRequestAmountPage(props) {
     }, [props.iou.currency]);
 
     useEffect(() => {
-        const selectedAmountAsStringForState = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
-        setAmount(selectedAmountAsStringForState);
-        setSelection({
-            start: selectedAmountAsStringForState.length,
-            end: selectedAmountAsStringForState.length,
-        });
+        saveAmountToState(props.iou.currency, props.iou.amount);
     }, [props.iou.amount, props.iou.currency]);
 
     useFocusEffect(
@@ -368,6 +381,8 @@ function MoneyRequestAmountPage(props) {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(selectedCurrencyCode, Number.parseFloat(amount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(selectedCurrencyCode);
+
+        saveAmountToState(selectedCurrencyCode, amountInSmallestCurrencyUnits);
 
         if (isEditing.current) {
             Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));

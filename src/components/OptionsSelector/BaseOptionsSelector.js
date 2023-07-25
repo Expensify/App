@@ -130,7 +130,15 @@ class BaseOptionsSelector extends Component {
         }
 
         const newOptions = this.flattenSections();
+
+        if (prevProps.preferredLocale !== this.props.preferredLocale) {
+            this.setState({
+                allOptions: newOptions,
+            });
+            return;
+        }
         const newFocusedIndex = this.props.selectedOptions.length;
+
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState(
             {
