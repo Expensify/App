@@ -275,6 +275,16 @@ function isAdminRoom(report) {
 }
 
 /**
+ * Whether the provided report is an Admin-only posting room
+ * @param {Object} report
+ * @param {String} report.writeCapability
+ * @returns {Boolean}
+ */
+function isAdminsOnlyPostingRoom(report) {
+    return lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL) === CONST.REPORT.WRITE_CAPABILITIES.ADMINS;
+}
+
+/**
  * Whether the provided report is a Announce room
  * @param {Object} report
  * @param {String} report.chatType
@@ -568,6 +578,18 @@ function isPolicyExpenseChatAdmin(report, policies) {
 }
 
 /**
+ * Checks if the current user is the admin of the policy.
+ * @param {String} policyID
+ * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
+ * @returns {Boolean}
+ */
+function isPolicyAdmin(policyID, policies) {
+    const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'role']);
+
+    return policyRole === CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Returns true if report is a DM/Group DM chat.
  *
  * @param {Object} report
@@ -663,6 +685,9 @@ function getRoomWelcomeMessage(report) {
     } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+    } else if (isAdminsOnlyPostingRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartTwo', {workspaceName});
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
@@ -1730,6 +1755,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
+ * @param {String} writeCapability
  * @param {String} notificationPreference
  * @param {String} parentReportActionID
  * @param {String} parentReportID
@@ -1744,6 +1770,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
+    writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
@@ -1774,6 +1801,7 @@ function buildOptimisticChatReport(
         statusNum: 0,
         visibility,
         welcomeMessage: '',
+        writeCapability,
     };
 }
 
@@ -2653,6 +2681,7 @@ export {
     getPolicyType,
     isArchivedRoom,
     isPolicyExpenseChatAdmin,
+    isPolicyAdmin,
     isPublicRoom,
     isPublicAnnounceRoom,
     isConciergeChatReport,
