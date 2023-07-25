@@ -822,7 +822,7 @@ function generatePolicyID() {
 function buildOptimisticCustomUnits() {
     const customUnitID = '6441b04aa0700';
     const customUnitRateID = '6441b04aa08fd';
-    return {
+    const customUnitData = {
         [customUnitID]: {
             customUnitID,
             name: 'Distance',
@@ -844,6 +844,12 @@ function buildOptimisticCustomUnits() {
             },
         },
     };
+
+    return {
+        customUnitData,
+        customUnitID,
+        customUnitRateID,
+    };
 }
 
 /**
@@ -857,7 +863,12 @@ function buildOptimisticCustomUnits() {
  */
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-    const customUnits = buildOptimisticCustomUnits();
+
+    const {
+        customUnits,
+        customUnitID,
+        customUnitRateID,
+    } = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -888,6 +899,8 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             announceCreatedReportActionID,
             adminsCreatedReportActionID,
             expenseCreatedReportActionID,
+            customUnitID,
+            customUnitRateID,
         },
         {
             optimisticData: [
