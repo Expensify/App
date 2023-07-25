@@ -167,7 +167,7 @@ const replaceAllDigits = (text, convertFn) =>
         .join('')
         .value();
 
-function MoneyRequestAmountPage(props) {
+function MoneyRequestAmount(props) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
@@ -487,9 +487,9 @@ function MoneyRequestAmountPage(props) {
     );
 }
 
-MoneyRequestAmountPage.propTypes = propTypes;
-MoneyRequestAmountPage.defaultProps = defaultProps;
-MoneyRequestAmountPage.displayName = 'MoneyRequestAmountPage';
+MoneyRequestAmount.propTypes = propTypes;
+MoneyRequestAmount.defaultProps = defaultProps;
+MoneyRequestAmount.displayName = 'MoneyRequestAmount';
 
 export default compose(
     withCurrentUserPersonalDetails,
@@ -499,4 +499,4 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
     }),
-)(MoneyRequestAmountPage);
+)(MoneyRequestAmount);

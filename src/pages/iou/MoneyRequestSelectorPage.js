@@ -17,13 +17,13 @@ import * as IOUUtils from '../../libs/IOUUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
-import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
+import MoneyRequestAmountPage from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
 import DragAndDrop from '../../components/DragAndDrop';
 import * as IOU from '../../libs/actions/IOU';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from '../../libs/actions/NavigateToNextIOUPage';
-import AttachmentUtils from '../../libs/AttachmentUtils';
+import ReceiptUtils from '../../libs/ReceiptUtils';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -94,7 +94,6 @@ function MoneyRequestSelectorPage(props) {
         Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
     };
 
-    const selectedTab = props.tabSelected ? props.tabSelected : CONST.TAB.TAB_MANUAL;
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     return (
@@ -115,7 +114,7 @@ function MoneyRequestSelectorPage(props) {
                             setIsDraggingOver(false);
                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
 
-                            if (!AttachmentUtils.isValidFile(file, props)) {
+                            if (!ReceiptUtils.isValidReceipt(file, props)) {
                                 return;
                             }
 
@@ -133,7 +132,7 @@ function MoneyRequestSelectorPage(props) {
                                 onBackButtonPress={navigateBack}
                             />
                             <TabSelector moneyRequestID={`${iouType.current}${reportID.current}`} />
-                            {selectedTab === CONST.TAB.TAB_MANUAL ? (
+                            {props.tabSelected === CONST.TAB.TAB_MANUAL ? (
                                 <MoneyRequestAmountPage
                                     route={props.route}
                                     report={props.report}

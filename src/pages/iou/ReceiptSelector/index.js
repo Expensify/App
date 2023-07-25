@@ -17,11 +17,11 @@ import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
 import NavigateToNextIOUPage from '../../../libs/actions/NavigateToNextIOUPage';
 import ConfirmModal from '../../../components/ConfirmModal';
-import AttachmentUtils from '../../../libs/AttachmentUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
+import ReceiptUtils from '../../../libs/ReceiptUtils';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -142,7 +142,7 @@ function ReceiptSelector(props) {
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
-                                        if (!AttachmentUtils.isValidFile(file, props)) {
+                                        if (!ReceiptUtils.isValidReceipt(file, props)) {
                                             return;
                                         }
 

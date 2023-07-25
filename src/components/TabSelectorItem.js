@@ -1,11 +1,11 @@
-import {Text, View} from 'react-native';
+import {Text} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
 import Colors from '../styles/colors';
+import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import fontFamily from '../styles/fontFamily';
 
 const propTypes = {
     /** Function to call when onPress */
@@ -29,9 +29,7 @@ const defaultProps = {
 };
 
 function TabSelectorItem(props) {
-    const textStyle = props.selected
-        ? [styles.textStrong, styles.mt2, styles.textWhite, {fontFamily: fontFamily.EXP_NEUE}]
-        : [styles.mt2, styles.colorMuted, {fontFamily: fontFamily.EXP_NEUE}];
+    const textStyle = props.selected ? styles.tabSelected : styles.tabDeselected;
     return (
         <>
             <PressableWithFeedback
@@ -41,7 +39,7 @@ function TabSelectorItem(props) {
             >
                 <Icon
                     src={props.icon}
-                    fill={props.selected ? Colors.green : Colors.greenIcons}
+                    fill={props.selected ? themeColors.iconMenu : themeColors.icon}
                 />
                 <Text style={textStyle}>{props.title}</Text>
             </PressableWithFeedback>

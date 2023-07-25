@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 
-function onUploadReceiptError(isAttachmentInvalid, attachmentInvalidReasonTitle, attachmentInvalidReason) {
+function setUploadReceiptError(isAttachmentInvalid, attachmentInvalidReasonTitle, attachmentInvalidReason) {
     Onyx.merge(ONYXKEYS.RECEIPT_MODAL, {
         isAttachmentInvalid,
         attachmentInvalidReasonTitle,
@@ -16,6 +16,6 @@ function clearUploadReceiptError() {
 }
 
 export default {
-    onUploadReceiptError,
+    setUploadReceiptError,
     clearUploadReceiptError,
 };

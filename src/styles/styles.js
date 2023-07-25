@@ -3647,6 +3647,19 @@ const styles = {
         paddingHorizontal: 20,
     },
 
+    tabSelected: {
+        fontFamily: fontFamily.EXP_NEUE_BOLD,
+        fontWeight: fontWeightBold,
+        marginTop: 8,
+        color: themeColors.textLight,
+    },
+
+    tabDeselected: {
+        marginTop: 8,
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.EXP_NEUE,
+    },
+
     /**
      * @param {String} backgroundColor
      * @param {Number} height
