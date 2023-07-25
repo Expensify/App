@@ -37,6 +37,7 @@ runs:
       with:
         app_id: ${{ secrets.OS_BOTIFY_APP_ID }}
         private_key: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+        installation_id: ${{ secrets.OS_BOTIFY_INSTALLATION_ID }}
 
     - name: Use the token
       shell: bash
