@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
-import React, {useEffect} from 'react';
+import React, {useEffect, useCallback} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -134,17 +134,20 @@ function SidebarLinks(props) {
      * @param {Object} option
      * @param {String} option.reportID
      */
-    function showReportPage(option) {
-        // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
-        // or when clicking the active LHN row
-        // or when continuously clicking different LHNs, only apply to small screen
-        // since getTopmostReportId always returns on other devices
-        if (props.isCreateMenuOpen || props.currentReportID === option.reportID || (props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
-            return;
-        }
-        Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-        props.onLinkClick();
-    }
+    const showReportPage = useCallback(
+        (option) => {
+            // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
+            // or when clicking the active LHN row
+            // or when continuously clicking different LHNs, only apply to small screen
+            // since getTopmostReportId always returns on other devices
+            if (props.isCreateMenuOpen || props.currentReportID === option.reportID || (props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
+                return;
+            }
+            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
+            props.onLinkClick();
+        },
+        [props],
+    );
 
     return (
         <View style={[styles.flex1, styles.h100]}>
