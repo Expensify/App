@@ -48,6 +48,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import containerComposeStyles from '../../../styles/containerComposeStyles';
 import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
@@ -479,63 +480,6 @@ function ReportActionCompose({translate, ...props}) {
         [checkComposerVisibility, focus, replaceSelectionWithText],
     );
 
-    useEffect(() => {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!willBlurTextInputOnTapOutside || !props.isFocused) {
-                return;
-            }
-
-            focus(false);
-        });
-
-        const unsubscribeNavigationBlur = props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
-        const unsubscribeNavigationFocus = props.navigation.addListener('focus', () => KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress));
-        KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
-
-        updateComment(comment.current);
-
-        // Shows Popover Menu on Workspace Chat at first sign-in
-        if (!props.disabled) {
-            Welcome.show({
-                routes: lodashGet(props.navigation.getState(), 'routes', []),
-                showPopoverMenu,
-            });
-        }
-
-        if (props.comment.length !== 0) {
-            Report.setReportWithDraft(props.reportID, true);
-        }
-
-        return () => {
-            ReportActionComposeFocusManager.clear();
-
-            KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
-            unsubscribeNavigationBlur();
-            unsubscribeNavigationFocus();
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const prevProps = usePrevious(props);
-    useEffect(() => {
-        // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
-        // We avoid doing this on native platforms since the software keyboard popping
-        // open creates a jarring and broken UX.
-        if (!willBlurTextInputOnTapOutside || props.modal.isVisible || !props.isFocused || prevProps.modal.isVisible || !prevProps.isFocused) {
-            return;
-        }
-
-        focus();
-    }, [focus, prevProps, props.isFocused, props.modal.isVisible]);
-
-    useEffect(() => {
-        if (value === props.comment) return;
-
-        updateComment(comment.current);
-    }, [props.comment, props.report.reportID, updateComment, value]);
-
     /**
      * Clean data related to EmojiSuggestions
      */
@@ -700,6 +644,18 @@ function ReportActionCompose({translate, ...props}) {
         },
         [calculateEmojiSuggestion, calculateMentionSuggestion, resetSuggestions, value],
     );
+
+    const setUpComposeFocusManager = useCallback(() => {
+        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (!willBlurTextInputOnTapOutside || !props.isFocused) {
+                return;
+            }
+
+            focus(false);
+        });
+    }, [focus, props.isFocused]);
 
     /**
      * Set the TextInput Ref
@@ -997,6 +953,58 @@ function ReportActionCompose({translate, ...props}) {
         [isAttachmentPreviewActive],
     );
 
+    useEffect(() => {
+        const unsubscribeNavigationBlur = props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress));
+        const unsubscribeNavigationFocus = props.navigation.addListener('focus', () => {
+            KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
+            setUpComposeFocusManager();
+        });
+        KeyDownListener.addKeyDownPressListner(focusComposerOnKeyPress);
+
+        setUpComposeFocusManager();
+
+        updateComment(comment.current);
+
+        // Shows Popover Menu on Workspace Chat at first sign-in
+        if (!props.disabled) {
+            Welcome.show({
+                routes: lodashGet(props.navigation.getState(), 'routes', []),
+                showPopoverMenu,
+            });
+        }
+
+        if (props.comment.length !== 0) {
+            Report.setReportWithDraft(props.reportID, true);
+        }
+
+        return () => {
+            ReportActionComposeFocusManager.clear();
+
+            KeyDownListener.removeKeyDownPressListner(focusComposerOnKeyPress);
+            unsubscribeNavigationBlur();
+            unsubscribeNavigationFocus();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const prevProps = usePrevious(props);
+    useEffect(() => {
+        // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
+        // We avoid doing this on native platforms since the software keyboard popping
+        // open creates a jarring and broken UX.
+        if (!willBlurTextInputOnTapOutside || props.modal.isVisible || !props.isFocused || prevProps.modal.isVisible || !prevProps.isFocused) {
+            return;
+        }
+
+        focus();
+    }, [focus, prevProps, props.isFocused, props.modal.isVisible]);
+
+    useEffect(() => {
+        if (value === props.comment) return;
+
+        updateComment(comment.current);
+    }, [props.comment, props.report.reportID, updateComment, value]);
+
     // Prevents focusing and showing the keyboard while the drawer is covering the chat.
     const reportRecipient = props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
@@ -1131,7 +1139,7 @@ function ReportActionCompose({translate, ...props}) {
                                         </>
                                     )}
                                 </AttachmentPicker>
-                                <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder]}>
+                                <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                                     <DragAndDrop
                                         dropZoneId={props.dragAndDropId}
                                         activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + props.reportID}
