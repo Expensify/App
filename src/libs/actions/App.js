@@ -42,6 +42,12 @@ Onyx.connect({
     callback: (val) => (preferredLocale = val),
 });
 
+let onyxUpdatesLastUpdateID;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
+    callback: (val) => (onyxUpdatesLastUpdateID = val),
+});
+
 let resolveIsReadyPromise;
 const isReadyToOpenApp = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -141,6 +147,10 @@ function openApp(isReconnecting = false) {
                     Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
                     params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
                     Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+
+                    // Include the last update ID when reconnecting so that the server can send incremental updates if they are available.
+                    // Otherwise, a full set of app data will be returned.
+                    params.updateIDFrom = onyxUpdatesLastUpdateID;
                 }
                 Onyx.disconnect(connectionID);
 
