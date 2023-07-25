@@ -2,13 +2,13 @@ import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
 
 describe('FileUtils', () => {
     describe('splitExtensionFromFileName', () => {
-        it('should return correct file name and extensions', () => {
+        it('should return correct file name and extension', () => {
             const file = FileUtils.splitExtensionFromFileName('image.jpg');
             expect(file.fileName).toEqual('image');
             expect(file.fileExtension).toEqual('jpg');
         }); 
         
-        it('should return correct file name and extensions even with multiple dots on the file name', () => {
+        it('should return correct file name and extension even with multiple dots on the file name', () => {
             const file = FileUtils.splitExtensionFromFileName('image.pdf.jpg');
             expect(file.fileName).toEqual('image.pdf');
             expect(file.fileExtension).toEqual('jpg');
