@@ -1,5 +1,6 @@
 import React from 'react';
 import {Dimensions} from 'react-native';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -10,6 +11,7 @@ import withCurrentUserPersonalDetails from '../../../../components/withCurrentUs
 import emojis from '../../../../../assets/emojis';
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
+import CONST from '../../../../CONST';
 
 class PopoverReactionList extends React.Component {
     constructor(props) {
@@ -47,6 +49,18 @@ class PopoverReactionList extends React.Component {
 
     componentDidMount() {
         this.dimensionsEventListener = Dimensions.addEventListener('change', this.measureReactionListPosition);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        const previousLocale = lodashGet(this.props, 'preferredLocale', CONST.LOCALES.DEFAULT);
+        const nextLocale = lodashGet(nextProps, 'preferredLocale', CONST.LOCALES.DEFAULT);
+
+        return (
+            this.state.isPopoverVisible !== nextState.isPopoverVisible ||
+            this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition ||
+            previousLocale !== nextLocale ||
+            (this.state.isPopoverVisible && (this.state.reportActionID !== nextState.reportActionID || this.state.emojiName !== nextState.emojiName))
+        );
     }
 
     componentWillUnmount() {
