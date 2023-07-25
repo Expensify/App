@@ -8,7 +8,6 @@ import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasur
 import BaseReactionList from './BaseReactionList';
 import compose from '../../../../libs/compose';
 import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
-import emojis from '../../../../../assets/emojis';
 import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
 import * as EmojiUtils from '../../../../libs/EmojiUtils';
 import CONST from '../../../../CONST';
