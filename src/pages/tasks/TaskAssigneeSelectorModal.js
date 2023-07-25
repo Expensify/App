@@ -173,7 +173,7 @@ function TaskAssigneeSelectorModal(props) {
             Task.editTaskAndNavigate(props.task.report, props.session.accountID, {
                 assignee: option.login,
                 assigneeAccountID: option.accountID,
-            });
+            }, props.task.assigneeChatReport);
         }
     };
 
