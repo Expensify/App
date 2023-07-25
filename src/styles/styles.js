@@ -22,9 +22,13 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+
+// touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -130,6 +134,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+            ...touchCalloutNone,
         },
 
         p: {
@@ -1160,8 +1165,8 @@ const styles = {
     },
 
     signInPageLeftContainer: {
-        paddingLeft: 48,
-        paddingRight: 48,
+        paddingLeft: 40,
+        paddingRight: 40,
     },
 
     signInPageLeftContainerWide: {
@@ -1169,11 +1174,11 @@ const styles = {
     },
 
     signInPageWelcomeFormContainer: {
-        maxWidth: CONST.SIGN_IN_FORM_WIDTH,
+        maxWidth: 300,
     },
 
     signInPageWelcomeTextContainer: {
-        width: CONST.SIGN_IN_FORM_WIDTH,
+        width: 300,
     },
 
     changeExpensifyLoginLinkContainer: {
@@ -1770,15 +1775,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationModalCard: (isSmallScreenWidth) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    }),
-
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
         position: 'absolute',
@@ -1949,6 +1945,11 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarSmaller: {
+        height: variables.avatarSizeSmaller,
+        width: variables.avatarSizeSmaller,
+    },
+
     emptyAvatarMedium: {
         height: variables.avatarSizeMedium,
         width: variables.avatarSizeMedium,
@@ -1964,6 +1965,10 @@ const styles = {
     },
 
     emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
+    },
+
+    emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
     },
 
@@ -3441,6 +3446,11 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
+    taskDescriptionMenuItem: {
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
     taskTitleDescription: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
@@ -3524,31 +3534,6 @@ const styles = {
         textAlign: 'center',
     },
 
-    loginButtonRow: {
-        justifyContent: 'center',
-        width: '100%',
-        ...flex.flexRow,
-    },
-
-    loginButtonRowSmallScreen: {
-        justifyContent: 'center',
-        width: '100%',
-        marginBottom: 10,
-        ...flex.flexRow,
-    },
-
-    appleButtonContainer: {
-        width: 40,
-        height: 40,
-        marginRight: 20,
-    },
-
-    signInIconButton: {
-        margin: 10,
-        marginTop: 0,
-        padding: 2,
-    },
-
     /**
      * @param {String} backgroundColor
      * @param {Number} height
@@ -3563,6 +3548,10 @@ const styles = {
         left: 0,
         right: 0,
     }),
+
+    willChangeTransform: {
+        willChange: 'transform',
+    },
 };
 
 export default styles;

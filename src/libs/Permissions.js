@@ -7,7 +7,8 @@ import CONST from '../CONST';
  * @returns {Boolean}
  */
 function canUseAllBetas(betas) {
-    return _.contains(betas, CONST.BETAS.ALL);
+    return true
+    // return _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
@@ -82,14 +83,6 @@ function canUsePolicyExpenseChat(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUsePasswordlessLogins(betas) {
-    return _.contains(betas, CONST.BETAS.PASSWORDLESS) || canUseAllBetas(betas);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
 function canUseTasks(betas) {
     return _.contains(betas, CONST.BETAS.TASKS) || canUseAllBetas(betas);
 }
@@ -111,7 +104,6 @@ export default {
     canUseCommentLinking,
     canUsePolicyRooms,
     canUsePolicyExpenseChat,
-    canUsePasswordlessLogins,
     canUseTasks,
     canUseScanReceipts,
 };
