@@ -22,6 +22,11 @@ import Log from '../../libs/Log';
  * when calculates the page width and height.
  */
 const PAGE_BORDER = 9;
+/**
+ * Pages should be more narrow than the container on large screens. The app should take this size into account
+ * when calculates the page width.
+ */
+const LARGE_SCREEN_SIDE_SPACING = 40;
 
 class PDFView extends Component {
     constructor(props) {
@@ -118,7 +123,7 @@ class PDFView extends Component {
      */
     calculatePageWidth() {
         const pdfContainerWidth = this.state.containerWidth;
-        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth, variables.pdfPageMaxWidth);
+        const pageWidthOnLargeScreen = Math.min(pdfContainerWidth - LARGE_SCREEN_SIDE_SPACING * 2, variables.pdfPageMaxWidth);
         const pageWidth = this.props.isSmallScreenWidth ? this.state.containerWidth : pageWidthOnLargeScreen;
 
         return pageWidth + PAGE_BORDER * 2;
@@ -226,7 +231,7 @@ class PDFView extends Component {
                         {this.state.pageViewports.length > 0 && (
                             <List
                                 style={styles.PDFViewList}
-                                width={pageWidth}
+                                width={this.props.isSmallScreenWidth ? pageWidth : this.state.containerWidth}
                                 height={this.state.containerHeight}
                                 estimatedItemSize={this.calculatePageHeight(0)}
                                 itemCount={this.state.numPages}
