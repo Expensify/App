@@ -480,6 +480,11 @@ const CONST = {
     GOOGLE_SIGN_IN_WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
     GOOGLE_SIGN_IN_IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
 
+    DEEPLINK_PROMPT_DENYLIST: {
+        SIGN_IN_WITH_GOOGLE: 'sign-in-with-google',
+        SIGN_IN_WITH_APPLE: 'sign-in-with-apple',
+    },
+
     SIGN_IN_METHOD: {
         APPLE: 'Apple',
         GOOGLE: 'Google',

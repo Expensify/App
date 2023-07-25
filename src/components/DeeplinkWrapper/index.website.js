@@ -6,6 +6,7 @@ import ROUTES from '../../ROUTES';
 import * as App from '../../libs/actions/App';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
+import shouldShowDeeplink from '../../libs/Navigation/shouldShowDeeplink';
 
 const propTypes = {
     /** Children to render. */
@@ -14,7 +15,16 @@ const propTypes = {
 
 class DeeplinkWrapper extends PureComponent {
     componentDidMount() {
+        CONFIG.ENVIRONMENT = CONST.ENVIRONMENT.STAGING;
         if (!this.isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
+            return;
+        }
+
+        const onDenyListRoute = !shouldShowDeeplink();
+        console.log('onDenyListRoute', onDenyListRoute);
+
+        if (onDenyListRoute) {
+            console.log('shouldShowDeeplink');
             return;
         }
 
