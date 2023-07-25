@@ -69,7 +69,7 @@ function OptionRowLHN(props) {
     if (isMuted && !props.isFocused && !optionItem.isPinned) {
         return null;
     }
-    
+
     let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
