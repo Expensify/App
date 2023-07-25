@@ -409,11 +409,7 @@ function getLastMessageTextForReport(report) {
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
         const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
         if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
-            const latestVisibleAction =
-                _.find(
-                    allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !ReportActionUtils.isWhisperAction(action),
-                ) || {};
+            const latestVisibleAction = _.find(allSortedReportActions[report.reportID], (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action)) || {};
             lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
         }
     }
@@ -801,12 +797,13 @@ function getOptions(
         (noOptions || noOptionsMatchExactly) &&
         !isCurrentUser({login: searchValue}) &&
         _.every(selectedOptions, (option) => option.login !== searchValue) &&
-        ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) || parsedPhoneNumber.possible) &&
+        ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN)) ||
+            (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number.input)))) &&
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // Generates an optimistic account ID for new users not yet saved in Onyx
-        const optimisticAccountID = UserUtils.generateAccountID();
+        const optimisticAccountID = UserUtils.generateAccountID(searchValue);
         const personalDetailsExtended = {
             ...personalDetails,
             [optimisticAccountID]: {
