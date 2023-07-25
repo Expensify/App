@@ -35,7 +35,9 @@ type ReimbursementAccount = {
     errorFields?: OnyxCommon.ErrorFields;
 
     /** Any additional error message to show */
-    errors?: Record<string, string>;
+    errors?: OnyxCommon.Errors;
+
+    pendingAction?: boolean;
 };
 
 export default ReimbursementAccount;

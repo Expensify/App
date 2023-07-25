@@ -1,3 +1,5 @@
+import * as OnyxCommon from './OnyxCommon';
+
 type WalletOnfido = {
     /** Unique identifier returned from openOnfidoFlow then re-sent to ActivateWallet with Onfido response data */
     applicantID: string;
@@ -9,7 +11,7 @@ type WalletOnfido = {
     isLoading?: boolean;
 
     /** Error message to inform the user of any problem that might occur */
-    errors?: Record<string, string>;
+    errors?: OnyxCommon.Errors;
 
     /** A list of Onfido errors that the user can fix in order to attempt the Onfido flow again */
     fixableErrors?: string[];

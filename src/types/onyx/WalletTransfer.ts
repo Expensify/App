@@ -1,4 +1,5 @@
 import CONST from '../../CONST';
+import * as OnyxCommon from './OnyxCommon';
 
 type WalletTransfer = {
     /** Selected accountID for transfer */
@@ -14,7 +15,7 @@ type WalletTransfer = {
     shouldShowSuccess?: boolean;
 
     /** An error message to display to the user */
-    errors?: Record<string, string>;
+    errors?: OnyxCommon.Errors;
 
     /** Whether or not data is loading */
     loading?: boolean;

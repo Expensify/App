@@ -1,5 +1,6 @@
 import {ValueOf} from 'type-fest';
 import CONST from '../../CONST';
+import * as OnyxCommon from './OnyxCommon';
 
 type WalletLinkedAccountType = 'debitCard' | 'bankAccount';
 
@@ -46,7 +47,7 @@ type UserWallet = {
     errorCode?: ErrorCode;
 
     /** An error message to display to the user */
-    errors?: Record<string, string>;
+    errors?: OnyxCommon.Errors;
 };
 
 export default UserWallet;

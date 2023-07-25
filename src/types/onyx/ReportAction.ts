@@ -85,6 +85,7 @@ type ReportActionBase = {
     childCommenterCount?: number;
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
+    pendingAction?: boolean;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;

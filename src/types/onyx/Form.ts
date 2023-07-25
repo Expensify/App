@@ -5,7 +5,7 @@ type Form = {
     isLoading?: boolean;
 
     /** Server side errors keyed by microtime */
-    errors?: Record<string, string>;
+    errors?: OnyxCommon.Errors;
 
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields;

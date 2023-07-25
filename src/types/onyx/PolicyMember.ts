@@ -8,7 +8,7 @@ type PolicyMember = {
      * Errors from api calls on the specific user
      * {<timestamp>: 'error message', <timestamp2>: 'error message 2'}
      */
-    errors?: Record<string, string>;
+    errors?: OnyxCommon.Errors;
 
     /** Is this action pending? */
     pendingAction?: OnyxCommon.PendingAction;
