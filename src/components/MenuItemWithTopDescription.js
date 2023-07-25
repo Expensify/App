@@ -25,6 +25,6 @@ export default React.forwardRef((props, ref) => (
     <MenuItemWithTopDescription
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
-        forwardRef={ref}
+        forwardedRef={ref}
     />
 ));
