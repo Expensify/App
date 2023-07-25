@@ -2,19 +2,22 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../../../../CONST';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import ROUTES from '../../../../ROUTES';
 import Form from '../../../../components/Form';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import NewDatePicker from '../../../../components/NewDatePicker';
-import PersonalDetailsScreenWrapper from '../../../../components/PersonalDetailsScreenWrapper';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import styles from '../../../../styles/styles';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,6 +37,8 @@ const defaultProps = {
 };
 
 function DateOfBirthPage({translate, privatePersonalDetails}) {
+    usePrivatePersonalDetails();
+
     /**
      * @param {Object} values
      * @param {String} values.dob - date of birth
@@ -55,11 +60,12 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
         return errors;
     }, []);
 
+    if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
+        return <FullscreenLoadingIndicator />;
+    }
+
     return (
-        <PersonalDetailsScreenWrapper
-            privatePersonalDetails={privatePersonalDetails}
-            includeSafeAreaPaddingBottom={false}
-        >
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
                 title={translate('common.dob')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
@@ -80,7 +86,7 @@ function DateOfBirthPage({translate, privatePersonalDetails}) {
                     maxDate={moment().subtract(CONST.DATE_BIRTH.MIN_AGE, 'years').toDate()}
                 />
             </Form>
-        </PersonalDetailsScreenWrapper>
+        </ScreenWrapper>
     );
 }
 

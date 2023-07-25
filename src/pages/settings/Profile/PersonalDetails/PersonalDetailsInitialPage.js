@@ -2,7 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PersonalDetailsScreenWrapper from '../../../../components/PersonalDetailsScreenWrapper';
+import lodashGet from 'lodash/get';
+import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
@@ -13,6 +14,8 @@ import compose from '../../../../libs/compose';
 import MenuItemWithTopDescription from '../../../../components/MenuItemWithTopDescription';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import {withNetwork} from '../../../../components/OnyxProvider';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -53,6 +56,7 @@ const defaultProps = {
 };
 
 function PersonalDetailsInitialPage(props) {
+    usePrivatePersonalDetails();
     const privateDetails = props.privatePersonalDetails || {};
     const address = privateDetails.address || {};
     const legalName = `${privateDetails.legalFirstName || ''} ${privateDetails.legalLastName || ''}`.trim();
@@ -79,8 +83,12 @@ function PersonalDetailsInitialPage(props) {
         return formattedAddress.trim().replace(/,$/, '');
     };
 
+    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
+        return <FullscreenLoadingIndicator />;
+    }
+
     return (
-        <PersonalDetailsScreenWrapper privatePersonalDetails={props.privatePersonalDetails}>
+        <ScreenWrapper>
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.personalDetails')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
@@ -111,7 +119,7 @@ function PersonalDetailsInitialPage(props) {
                     />
                 </View>
             </ScrollView>
-        </PersonalDetailsScreenWrapper>
+        </ScreenWrapper>
     );
 }
 
