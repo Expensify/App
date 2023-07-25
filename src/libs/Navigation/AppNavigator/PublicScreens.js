@@ -18,7 +18,7 @@ function PublicScreens() {
                 component={SignInPage}
             />
             <RootStack.Screen
-                name={SCREENS.TRANSITION_FROM_OLD_DOT}
+                name={SCREENS.TRANSITION_BETWEEN_APPS}
                 options={defaultScreenOptions}
                 component={LogInWithShortLivedAuthTokenPage}
             />

@@ -37,6 +37,7 @@ import ExceededCommentLength from '../../../components/ExceededCommentLength';
 import withNavigationFocus from '../../../components/withNavigationFocus';
 import withNavigation from '../../../components/withNavigation';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
+import * as UserUtils from '../../../libs/UserUtils';
 import ReportDropUI from './ReportDropUI';
 import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
@@ -48,6 +49,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import containerComposeStyles from '../../../styles/containerComposeStyles';
 import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
@@ -115,6 +117,9 @@ const propTypes = {
 
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
+    /** Unique id for nativeId in DragAndDrop */
+    dragAndDropId: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -237,19 +242,13 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
-                return;
-            }
-
-            this.focus(false);
-        });
-
         this.unsubscribeNavigationBlur = this.props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress));
-        this.unsubscribeNavigationFocus = this.props.navigation.addListener('focus', () => KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress));
+        this.unsubscribeNavigationFocus = this.props.navigation.addListener('focus', () => {
+            KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+            this.setUpComposeFocusManager();
+        });
         KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+        this.setUpComposeFocusManager();
 
         this.updateComment(this.comment);
 
@@ -306,6 +305,18 @@ class ReportActionCompose extends React.Component {
         }
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
+    }
+
+    setUpComposeFocusManager() {
+        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
+                return;
+            }
+
+            this.focus(false);
+        });
     }
 
     getDefaultSuggestionsValues() {
@@ -493,7 +504,7 @@ class ReportActionCompose extends React.Component {
                 icons: [
                     {
                         name: detail.login,
-                        source: detail.avatar,
+                        source: UserUtils.getAvatar(detail.avatar, detail.accountID),
                         type: 'avatar',
                     },
                 ],
@@ -501,11 +512,6 @@ class ReportActionCompose extends React.Component {
         });
 
         return suggestions;
-    }
-
-    getNavigationKey() {
-        const navigation = this.props.navigation.getState();
-        return lodashGet(navigation.routes, [navigation.index, 'key']);
     }
 
     /**
@@ -1111,9 +1117,9 @@ class ReportActionCompose extends React.Component {
                                             </>
                                         )}
                                     </AttachmentPicker>
-                                    <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder]}>
+                                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                                         <DragAndDrop
-                                            dropZoneId={CONST.REPORT.DROP_NATIVE_ID + this.getNavigationKey()}
+                                            dropZoneId={this.props.dragAndDropId}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + this.props.reportID}
                                             onDragEnter={() => {
                                                 this.setState({isDraggingOver: true});

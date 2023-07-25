@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -13,10 +12,10 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import MenuItem from '../MenuItem';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import * as UserUtils from '../../libs/UserUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as Task from '../../libs/actions/Task';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import CONST from '../../CONST';
 import Checkbox from '../Checkbox';
 import convertToLTR from '../../libs/convertToLTR';
@@ -48,8 +47,9 @@ function TaskView(props) {
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
-    const avatarURL = lodashGet(PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID), [0, 'avatar'], '');
-
+    const policy = ReportUtils.getPolicy(props.report.policyID);
+    const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
+    const disableState = !canEdit || !isOpen;
     return (
         <View>
             <PressableWithSecondaryInteraction
@@ -60,9 +60,9 @@ function TaskView(props) {
 
                     Navigation.navigate(ROUTES.getTaskReportTitleRoute(props.report.reportID));
                 })}
-                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, !isOpen), true)]}
+                style={({hovered, pressed}) => [styles.ph5, styles.pv2, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState), true)]}
                 ref={props.forwardedRef}
-                disabled={!isOpen}
+                disabled={disableState}
                 accessibilityLabel={taskTitle || props.translate('task.task')}
             >
                 {({hovered, pressed}) => (
@@ -77,7 +77,7 @@ function TaskView(props) {
                                 containerBorderRadius={8}
                                 caretSize={16}
                                 accessibilityLabel={taskTitle || props.translate('task.task')}
-                                disabled={isCanceled}
+                                disabled={isCanceled || !canEdit}
                             />
                             <View style={[styles.flexRow, styles.flex1]}>
                                 <Text
@@ -92,7 +92,7 @@ function TaskView(props) {
                                     <Icon
                                         additionalStyles={[styles.alignItemsCenter]}
                                         src={Expensicons.ArrowRight}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, !isOpen))}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
                                     />
                                 </View>
                             )}
@@ -105,22 +105,22 @@ function TaskView(props) {
                 title={props.report.description || ''}
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 shouldShowRightIcon={isOpen}
-                disabled={!isOpen}
-                wrapperStyle={[styles.pv2]}
-                numberOfLinesTitle={3}
+                disabled={disableState}
+                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                 shouldGreyOutWhenDisabled={false}
+                numberOfLinesTitle={0}
             />
             {props.report.managerID ? (
                 <MenuItem
                     label={props.translate('task.assignee')}
                     title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                    icon={UserUtils.getAvatar(avatarURL, props.report.managerID)}
+                    icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], props.personalDetails)}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     avatarSize={CONST.AVATAR_SIZE.SMALLER}
                     titleStyle={styles.assigneeTextStyle}
                     onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                     shouldShowRightIcon={isOpen}
-                    disabled={!isOpen}
+                    disabled={disableState}
                     wrapperStyle={[styles.pv2]}
                     isSmallAvatarSubscriptMenu
                     shouldGreyOutWhenDisabled={false}
@@ -130,7 +130,7 @@ function TaskView(props) {
                     description={props.translate('task.assignee')}
                     onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
                     shouldShowRightIcon={isOpen}
-                    disabled={!isOpen}
+                    disabled={disableState}
                     wrapperStyle={[styles.pv2]}
                     shouldGreyOutWhenDisabled={false}
                 />
