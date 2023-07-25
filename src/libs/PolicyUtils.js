@@ -118,7 +118,7 @@ const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROL
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getIneligibleInvitees(policyMembers, personalDetails) {
+function getMemberAccountIDsForWorkspace(policyMembers, personalDetails) {
     const memberEmailsToAccountIDs = {};
     _.each(policyMembers, (member, accountID) => {
         if (!_.isEmpty(member.errors)) {
@@ -140,7 +140,7 @@ function getIneligibleInvitees(policyMembers, personalDetails) {
  * @param {Object} personalDetails
  * @returns {Array}
  */
-function getExcludedUsers(policyMembers, personalDetails) {
+function getIneligibleInvitees(policyMembers, personalDetails) {
     const memberEmailsToExclude = [...CONST.EXPENSIFY_EMAILS];
     _.each(policyMembers, (policyMember, accountID) => {
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
@@ -167,6 +167,6 @@ export {
     isExpensifyTeam,
     isExpensifyGuideTeam,
     isPolicyAdmin,
+    getMemberAccountIDsForWorkspace,
     getIneligibleInvitees,
-    getExcludedUsers,
 };

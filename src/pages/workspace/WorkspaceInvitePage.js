@@ -68,7 +68,7 @@ function WorkspaceInvitePage(props) {
     const [personalDetails, setPersonalDetails] = useState([]);
     const [userToInvite, setUserToInvite] = useState(null);
     const openWorkspaceInvitePage = () => {
-        const policyMemberEmailsToAccountIDs = PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails);
+        const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(props.policyMembers, props.personalDetails);
         Policy.openWorkspaceInvitePage(props.route.params.policyID, _.keys(policyMemberEmailsToAccountIDs));
     };
 
@@ -85,7 +85,7 @@ function WorkspaceInvitePage(props) {
             props.personalDetails,
             props.betas,
             searchTerm,
-            PolicyUtils.getExcludedUsers(props.policyMembers, props.personalDetails),
+            PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails),
         );
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
