@@ -318,7 +318,7 @@ function updateSelectedTimezone(selectedTimezone) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
+    Navigation.goBack(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**

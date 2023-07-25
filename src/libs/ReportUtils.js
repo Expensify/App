@@ -578,6 +578,16 @@ function isDM(report) {
 }
 
 /**
+ * Returns true if report has a single participant.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function hasSingleParticipant(report) {
+    return report.participants && report.participants.length === 1;
+}
+
+/**
  * If the report is a thread and has a chat type set, it is a workspace chat.
  *
  * @param {Object} report
@@ -2406,6 +2416,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
 
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+    const hasSingleParticipantInReport = participants.length === 1;
     const hasMultipleParticipants = participants.length > 1;
 
     if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) {
@@ -2431,7 +2442,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && participants.length === 1 ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
@@ -2606,7 +2617,7 @@ function shouldDisableSettings(report) {
  * @returns {Boolean}
  */
 function shouldDisableRename(report, policy) {
-    if (isDefaultRoom(report) || isArchivedRoom(report)) {
+    if (isDefaultRoom(report) || isArchivedRoom(report) || isChatThread(report)) {
         return true;
     }
 
@@ -2727,7 +2738,9 @@ export {
     getOriginalReportID,
     canAccessReport,
     getReportOfflinePendingActionAndErrors,
+    isDM,
     getPolicy,
     shouldDisableSettings,
     shouldDisableRename,
+    hasSingleParticipant,
 };
