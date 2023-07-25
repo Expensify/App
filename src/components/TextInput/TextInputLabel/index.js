@@ -1,31 +1,32 @@
-import React, {PureComponent} from 'react';
+import React, {useRef, useEffect} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
 import {propTypes, defaultProps} from './TextInputLabelPropTypes';
 import CONST from '../../../CONST';
 
-class TextInputLabel extends PureComponent {
-    componentDidMount() {
-        if (!this.props.for) {
+function TextInputLabel(props) {
+    const labelRef = useRef(null);
+
+    useEffect(() => {
+        if (!props.for || !labelRef.current) {
             return;
         }
-        this.label.setAttribute('for', this.props.for);
-    }
+        labelRef.current.setAttribute('for', props.for);
+    }, [props.for]);
 
-    render() {
-        return (
-            <Animated.Text
-                ref={(el) => (this.label = el)}
-                pointerEvents="none"
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                style={[styles.textInputLabel, styles.textInputLabelDesktop, styles.textInputLabelTransformation(this.props.labelTranslateY, 0, this.props.labelScale)]}
-            >
-                {this.props.label}
-            </Animated.Text>
-        );
-    }
+    return (
+        <Animated.Text
+            ref={labelRef}
+            pointerEvents="none"
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            style={[styles.textInputLabel, styles.textInputLabelDesktop, styles.textInputLabelTransformation(props.labelTranslateY, 0, props.labelScale)]}
+        >
+            {props.label}
+        </Animated.Text>
+    );
 }
 
+TextInputLabel.displayName = 'TextInputLabel';
 TextInputLabel.propTypes = propTypes;
 TextInputLabel.defaultProps = defaultProps;
 
