@@ -49,7 +49,6 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
 
     const updateCountryInput = (country) => {
         onInputChange(country.value);
-        setSearchValue(lodashGet(allCountries, country.value, ''));
         hidePickerModal();
     };
 

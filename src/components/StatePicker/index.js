@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -35,6 +35,10 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
 
+    useEffect(() => {
+        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
+    }, [value, allStates]);
+
     const showPickerModal = () => {
         setIsPickerVisible(true);
     };
@@ -45,7 +49,6 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
 
     const updateStateInput = (state) => {
         onInputChange(state.value);
-        setSearchValue(lodashGet(allStates, `${state.value}.stateName`, ''));
         hidePickerModal();
     };
 
