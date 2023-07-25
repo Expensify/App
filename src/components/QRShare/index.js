@@ -78,7 +78,7 @@ class QRShare extends Component {
                     <Text
                         family="EXP_NEUE_BOLD"
                         fontSize={variables.fontSizeLabel}
-                        numberOfLines={1}
+                        numberOfLines={2}
                         style={styles.mt1}
                         color={defaultTheme.textSupporting}
                     >
