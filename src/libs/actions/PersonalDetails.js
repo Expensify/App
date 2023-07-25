@@ -516,7 +516,7 @@ function clearAvatarErrors() {
 
 /**
  * Get private personal details value
- * @returns {Boolean}
+ * @returns {Object}
  */
 function getPrivatePersonalDetails() {
     return privatePersonalDetails;
