@@ -129,9 +129,9 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
- * @param {boolean} [isReconnecting]
+ * @param {boolean} [fetchIncrementalUpdates] When the app is reconnecting from a previous session, incremental updates are preferred so that there is less data being transferred
  */
-function openApp(isReconnecting = false) {
+function openApp(fetchIncrementalUpdates = false) {
     isReadyToOpenApp.then(() => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.POLICY,
@@ -143,7 +143,7 @@ function openApp(isReconnecting = false) {
                 // - Look through the local report actions and reports to find the most recently modified report action or report.
                 // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
                 const params = {policyIDList: getNonOptimisticPolicyIDs(policies)};
-                if (isReconnecting) {
+                if (fetchIncrementalUpdates) {
                     Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
                     params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
                     Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
@@ -155,8 +155,8 @@ function openApp(isReconnecting = false) {
                 Onyx.disconnect(connectionID);
 
                 // eslint-disable-next-line rulesdir/no-multiple-api-calls
-                const apiMethod = isReconnecting ? API.write : API.read;
-                apiMethod(isReconnecting ? 'ReconnectApp' : 'OpenApp', params, {
+                const apiMethod = fetchIncrementalUpdates ? API.write : API.read;
+                apiMethod(fetchIncrementalUpdates ? 'ReconnectApp' : 'OpenApp', params, {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
