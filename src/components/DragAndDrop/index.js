@@ -8,6 +8,7 @@ import useWindowDimensions from '../../hooks/useWindowDimensions';
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
 const DRAG_ENTER_EVENT = 'dragenter';
+const DRAG_OVER_EVENT = 'dragover';
 const DRAG_LEAVE_EVENT = 'dragleave';
 const DROP_EVENT = 'drop';
 
@@ -78,6 +79,9 @@ function DragAndDrop({onDragEnter, onDragLeave, onDrop, dropZoneID, activeDropZo
 
             if (dropZone.current.contains(event.target) && shouldAcceptDrop(event)) {
                 switch (event.type) {
+                    case DRAG_OVER_EVENT:
+                        // Nothing needed here, just needed to preventDefault in order for the drop event to fire later
+                        break;
                     case DRAG_ENTER_EVENT:
                         // Avoid reporting onDragEnter for children views -> not performant
                         if (dropZoneDragState.current === DRAG_LEAVE_EVENT) {
@@ -118,10 +122,14 @@ function DragAndDrop({onDragEnter, onDragLeave, onDrop, dropZoneID, activeDropZo
     );
 
     useEffect(() => {
+        // Note that the dragover event needs to be called with `event.preventDefault` in order for the drop event to be fired:
+        // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
+        document.addEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
         document.addEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
         document.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
         document.addEventListener(DROP_EVENT, dropZoneDragHandler);
         return () => {
+            document.removeEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
             document.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
             document.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
             document.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
