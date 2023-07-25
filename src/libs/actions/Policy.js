@@ -819,6 +819,33 @@ function generatePolicyID() {
         .toUpperCase();
 }
 
+function buildOptimisticCustomUnits() {
+    const customUnitID = '6441b04aa0700';
+    const customUnitRateID = '6441b04aa08fd';
+    return {
+        [customUnitID]: {
+            customUnitID,
+            name: 'Distance',
+            // enabled: true,
+            // defaultCategory: 'Car',
+            attributes: {
+                unit: 'mi',
+            },
+            rates: {
+                [customUnitRateID]: {
+                    customUnitRateID,
+                    name: 'Default Rate',
+                    // currency: 'USD',
+                    // enabled: true,
+                    rate: 65.5,
+                    // attributes: [],
+                    // subRates: [],
+                },
+            },
+        },
+    };
+}
+
 /**
  * Optimistically creates a new workspace and default workspace chats
  *
@@ -830,6 +857,7 @@ function generatePolicyID() {
  */
 function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
+    const customUnits = buildOptimisticCustomUnits();
 
     const {
         announceChatReportID,
@@ -874,6 +902,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                         owner: sessionEmail,
                         outputCurrency: lodashGet(allPersonalDetails, [sessionAccountID, 'localCurrencyCode'], CONST.CURRENCY.USD),
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        customUnits,
                     },
                 },
                 {
