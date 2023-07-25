@@ -325,13 +325,13 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            {props.receiptPath && (
+            {!_.isEmpty(props.receiptPath) && (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: getImageURI(props.receiptPath, props.receiptSource)}}
                 />
             )}
-            {!props.receiptPath && (
+            {_.isEmpty(props.receiptPath) && (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!props.isReadOnly}
                     title={formattedAmount}
