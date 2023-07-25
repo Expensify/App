@@ -22,10 +22,14 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
 import Colors from './colors';
+
+// touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -131,6 +135,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+            ...touchCalloutNone,
         },
 
         p: {
@@ -1822,15 +1827,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationModalCard: (isSmallScreenWidth) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    }),
-
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
         position: 'absolute',
@@ -2001,6 +1997,11 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarSmaller: {
+        height: variables.avatarSizeSmaller,
+        width: variables.avatarSizeSmaller,
+    },
+
     emptyAvatarMedium: {
         height: variables.avatarSizeMedium,
         width: variables.avatarSizeMedium,
@@ -2016,6 +2017,10 @@ const styles = {
     },
 
     emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
+    },
+
+    emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
     },
 
@@ -3517,6 +3522,11 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
+    taskDescriptionMenuItem: {
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
     taskTitleDescription: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
@@ -3651,6 +3661,10 @@ const styles = {
         left: 0,
         right: 0,
     }),
+
+    willChangeTransform: {
+        willChange: 'transform',
+    },
 
     moneyRequestImage: {
         height: 200,

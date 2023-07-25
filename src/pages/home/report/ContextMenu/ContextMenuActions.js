@@ -59,7 +59,7 @@ export default [
             };
 
             const toggleEmojiAndCloseMenu = (emoji, existingReactions) => {
-                Report.toggleEmojiReaction(reportID, reportAction.reportActionID, emoji, existingReactions);
+                Report.toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
                 closeContextMenu();
             };
 
