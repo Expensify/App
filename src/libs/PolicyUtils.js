@@ -118,7 +118,7 @@ const isPolicyAdmin = (policy) => lodashGet(policy, 'role') === CONST.POLICY.ROL
  *
  * We only return members without errors. Otherwise, the members with errors would immediately be removed before the user has a chance to read the error.
  */
-function getMemberAccountIDsForWorkspace(policyMembers, personalDetails) {
+function getIneligibleInvitees(policyMembers, personalDetails) {
     const memberEmailsToAccountIDs = {};
     _.each(policyMembers, (member, accountID) => {
         if (!_.isEmpty(member.errors)) {
@@ -167,6 +167,6 @@ export {
     isExpensifyTeam,
     isExpensifyGuideTeam,
     isPolicyAdmin,
-    getMemberAccountIDsForWorkspace,
+    getIneligibleInvitees,
     getExcludedUsers,
 };
