@@ -265,18 +265,30 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * @returns {Object[]} An array of emoji codes.
  */
 function extractEmojis(text) {
+    let str = `${text}`;
     const emojis = [];
-    if (!text) {
+
+    if (!str) {
         return emojis;
     }
 
-    let parseEmojis = text.match(CONST.REGEX.EMOJIS);
+    let sequenceEmojis = str.match(CONST.REGEX.EMOJI_ZWJ_SEQUENCES);
 
-    if (!parseEmojis) {
+    if (sequenceEmojis) {
+        sequenceEmojis = [...new Set(sequenceEmojis)];
+        for (const sequenceEmoji of sequenceEmojis) {
+            const regex = new RegExp(sequenceEmoji, 'gu');
+            str = str.replace(regex, '');
+        }
+    }
+
+    let parseEmojis = str.match(CONST.REGEX.EMOJIS);
+
+    if (!parseEmojis && !sequenceEmojis) {
         return emojis;
     }
 
-    parseEmojis = [...new Set(parseEmojis)];
+    parseEmojis = [...new Set(parseEmojis), ...sequenceEmojis];
 
     for (let i = 0; i < parseEmojis.length; i++) {
         const character = parseEmojis[i];
