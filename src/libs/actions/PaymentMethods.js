@@ -121,7 +121,6 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
 /**
  * Sets the default bank account or debit card for an Expensify Wallet
  *
- * @param {String} password
  * @param {Number} bankAccountID
  * @param {Number} fundID
  * @param {Object} previousPaymentMethod
@@ -129,11 +128,10 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
  * @param {string} paymentCardOnyxKey - pass in the correct ONYX key while renaming cardList -> fundList
  *
  */
-function makeDefaultPaymentMethod(password, bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, paymentCardOnyxKey) {
+function makeDefaultPaymentMethod(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, paymentCardOnyxKey) {
     API.write(
         'MakeDefaultPaymentMethod',
         {
-            password,
             bankAccountID,
             fundID,
         },
@@ -164,7 +162,6 @@ function addPaymentCard(params) {
             addressZip: params.addressZipCode,
             currency: CONST.CURRENCY.USD,
             isP2PDebitCard: true,
-            password: params.password,
         },
         {
             optimisticData: [

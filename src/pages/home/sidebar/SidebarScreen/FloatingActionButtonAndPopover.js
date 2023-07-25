@@ -239,7 +239,7 @@ function FloatingActionButtonAndPopover(props) {
                                   iconHeight: 40,
                                   text: props.translate('workspace.new.newWorkspace'),
                                   description: props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt()),
+                                  onSelected: () => interceptAnonymousUser(() => App.createWorkspaceAndNavigateToIt('', false, '', false, !props.isSmallScreenWidth)),
                               },
                           ]
                         : []),

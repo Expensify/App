@@ -8,7 +8,6 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import ValidateCodeModal from '../../components/ValidateCode/ValidateCodeModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Session from '../../libs/actions/Session';
-import usePermissions from '../../hooks/usePermissions';
 import useLocalize from '../../hooks/useLocalize';
 import ExpiredValidateCodeModal from '../../components/ValidateCode/ExpiredValidateCodeModal';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -52,7 +51,6 @@ const defaultProps = {
 };
 
 function ValidateLoginPage(props) {
-    const {canUsePasswordlessLogins} = usePermissions();
     const {preferredLocale} = useLocalize();
     const login = lodashGet(props, 'credentials.login', null);
     const autoAuthState = lodashGet(props, 'session.autoAuthState', CONST.AUTO_AUTH_STATE.NOT_STARTED);
@@ -63,9 +61,8 @@ function ValidateLoginPage(props) {
     const cachedAccountID = lodashGet(props, 'credentials.accountID', null);
 
     useEffect(() => {
-        // A fresh session will not have credentials.login and user permission betas available.
-        // In that case, we directly allow users to go through password less flow
-        if (login && !canUsePasswordlessLogins) {
+        // A fresh session will not have credentials.login
+        if (login) {
             User.validateLogin(accountID, validateCode);
             return;
         }
