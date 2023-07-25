@@ -18,7 +18,7 @@ import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
 import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import Button from '../../../components/Button';
-import NavigateToNextIOUPage from '../NavigateToNextIOUPage';
+import NavigateToNextIOUPage from '../../../libs/actions/NavigateToNextIOUPage';
 import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
@@ -259,7 +259,7 @@ function ReceiptSelector(props) {
     return (
         <View style={styles.flex1}>
             {getCameraView()}
-            <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <PressableWithFeedback
                     accessibilityRole="button"
                     accessibilityLabel={CONST.RECEIPT.GALLERY}

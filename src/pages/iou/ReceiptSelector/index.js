@@ -15,7 +15,7 @@ import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import NavigateToNextIOUPage from '../NavigateToNextIOUPage';
+import NavigateToNextIOUPage from '../../../libs/actions/NavigateToNextIOUPage';
 import ConfirmModal from '../../../components/ConfirmModal';
 import AttachmentUtils from '../../../libs/AttachmentUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -105,30 +105,6 @@ function ReceiptSelector(props) {
         Receipt.clearUploadReceiptError();
     }, []);
 
-    const uploadText = () =>
-        isSmallScreenWidth ? (
-            <Text style={[styles.subTextReceiptUpload]}>
-                {translate('receipt.chooseReceiptBeforeEmail')}
-                <View style={{flexDirection: 'row'}}>
-                    <CopyTextToClipboard
-                        text="receipts@expensify.com"
-                        textStyles={[styles.textBlue]}
-                    />
-                </View>
-            </Text>
-        ) : (
-            <Text style={[styles.subTextReceiptUpload]}>
-                {translate('receipt.dragReceiptBeforeEmail')}
-                <View style={{flexDirection: 'row'}}>
-                    <CopyTextToClipboard
-                        text="receipts@expensify.com"
-                        textStyles={[styles.textBlue]}
-                    />
-                </View>
-                {translate('receipt.dragReceiptAfterEmail')}
-            </Text>
-        );
-
     const defaultView = () => (
         <>
             <View
@@ -142,7 +118,16 @@ function ReceiptSelector(props) {
                 />
             </View>
             <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-            {uploadText()}
+            <Text style={[styles.subTextReceiptUpload]}>
+                {isSmallScreenWidth ? translate('receipt.chooseReceiptBeforeEmail') : translate('receipt.dragReceiptBeforeEmail')}
+                <View style={{flexDirection: 'row'}}>
+                    <CopyTextToClipboard
+                        text="receipts@expensify.com"
+                        textStyles={[styles.textBlue]}
+                    />
+                </View>
+                {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+            </Text>
             <AttachmentPicker>
                 {({openPicker}) => (
                     <PressableWithFeedback

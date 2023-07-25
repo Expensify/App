@@ -1,7 +1,7 @@
 import _ from 'underscore';
-import * as IOU from '../../libs/actions/IOU';
-import * as ReportUtils from '../../libs/ReportUtils';
-import Navigation from '../../libs/Navigation/Navigation';
+import * as IOU from './IOU';
+import * as ReportUtils from '../ReportUtils';
+import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
 const navigateToNextPage = (iou, iouType, reportID, report, currentUserPersonalDetails) => {
@@ -10,10 +10,7 @@ const navigateToNextPage = (iou, iouType, reportID, report, currentUserPersonalD
     // If the money request ID in Onyx does not match the ID from params, we want to start a new request
     // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
     if (shouldReset) {
-        IOU.setMoneyRequestId(moneyRequestID);
-        IOU.setMoneyRequestDescription('');
-        IOU.setMoneyRequestParticipants([]);
-        IOU.setMoneyRequestReceipt({});
+        IOU.resetMoneyRequestData(moneyRequestID);
     }
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.

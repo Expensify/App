@@ -22,7 +22,7 @@ import ReceiptSelector from './ReceiptSelector';
 import DragAndDrop from '../../components/DragAndDrop';
 import * as IOU from '../../libs/actions/IOU';
 import reportPropTypes from '../reportPropTypes';
-import NavigateToNextIOUPage from './NavigateToNextIOUPage';
+import NavigateToNextIOUPage from '../../libs/actions/NavigateToNextIOUPage';
 import AttachmentUtils from '../../libs/AttachmentUtils';
 
 const propTypes = {
