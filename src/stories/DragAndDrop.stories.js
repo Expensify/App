@@ -27,8 +27,8 @@ function Default() {
             {/* DragAndDrop does not need to render drop area as children since it is connected to it via id, which gives us flexibility to bring DragAndDrop where your
             draggingOver state is located */}
             <DragAndDrop
-                dropZoneId="dropId"
-                activeDropZoneId="activeDropZoneId"
+                dropZoneID="dropId"
+                activeDropZoneID="activeDropZoneID"
                 onDragEnter={() => {
                     setDraggingOver(true);
                 }}
@@ -75,7 +75,7 @@ function Default() {
             {draggingOver && (
                 <DropZone
                     dropZoneViewHolderName="portalHost"
-                    dropZoneId="activeDropZoneId"
+                    dropZoneID="activeDropZoneID"
                 />
             )}
         </PortalProvider>

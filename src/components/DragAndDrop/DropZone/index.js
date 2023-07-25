@@ -12,7 +12,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 
     /** Required for drag and drop to properly detect dropzone */
-    dropZoneId: PropTypes.string.isRequired,
+    dropZoneID: PropTypes.string.isRequired,
 };
 
 function DropZone(props) {
@@ -21,7 +21,7 @@ function DropZone(props) {
             <View style={[styles.fullScreenTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}>{props.children}</View>
             {/* Necessary for blocking events on content which can publish unwanted dragleave even if we are inside dropzone  */}
             <View
-                nativeID={props.dropZoneId}
+                nativeID={props.dropZoneID}
                 style={styles.dropZoneTopInvisibleOverlay}
             />
         </Portal>

@@ -83,7 +83,7 @@ class DragAndDrop extends React.Component {
     }
 
     addEventListeners() {
-        this.dropZone = document.getElementById(this.props.dropZoneId);
+        this.dropZone = document.getElementById(this.props.dropZoneID);
         this.dropZoneRect = this.calculateDropZoneClientReact();
         document.addEventListener('dragover', this.dropZoneDragListener);
         document.addEventListener('dragenter', this.dropZoneDragListener);
@@ -154,7 +154,7 @@ class DragAndDrop extends React.Component {
                         event.clientX <= this.dropZoneRect.left ||
                         event.clientX >= this.dropZoneRect.right ||
                         // Cancel drag when file manager is on top of the drop zone area - works only on chromium
-                        (event.target.getAttribute('id') === this.props.activeDropZoneId && !event.relatedTarget)
+                        (event.target.getAttribute('id') === this.props.activeDropZoneID && !event.relatedTarget)
                     ) {
                         this.dropZoneDragState = 'dragleave';
                         this.props.onDragLeave(event);

@@ -16,7 +16,7 @@ function ReportDropUI(props) {
     return (
         <DropZone
             dropZoneViewHolderName={CONST.REPORT.DROP_HOST_NAME}
-            dropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
+            dropZoneID={CONST.REPORT.ACTIVE_DROP_NATIVE_ID}
         >
             <View style={styles.mb3}>
                 <Icon
