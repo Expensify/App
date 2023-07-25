@@ -70,7 +70,7 @@ function ReportActionItemEmojiReactions(props) {
     return (
         <View
             ref={popoverReactionListAnchor}
-            style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
+            style={[styles.flexRow, styles.flexWrap, styles.gap1]}
         >
             {_.map(sortedReactions, (reaction) => {
                 const reactionEmojiName = reaction.emojiName;
@@ -112,7 +112,7 @@ function ReportActionItemEmojiReactions(props) {
                         renderTooltipContentKey={[..._.map(reactionUsers, (user) => user.toString()), ...emojiCodes]}
                         key={reactionEmojiName}
                     >
-                        <View>
+                        <View style={styles.mt2}>
                             <EmojiReactionBubble
                                 ref={props.forwardedRef}
                                 count={reactionCount}
@@ -127,10 +127,12 @@ function ReportActionItemEmojiReactions(props) {
                 );
             })}
             {totalReactionCount > 0 && (
-                <AddReactionBubble
-                    onSelectEmoji={props.toggleReaction}
-                    reportAction={{reportActionID: props.reportActionID}}
-                />
+                <View style={styles.mt2}>
+                    <AddReactionBubble
+                        onSelectEmoji={props.toggleReaction}
+                        reportAction={{reportActionID: props.reportActionID}}
+                    />
+                </View>
             )}
         </View>
     );
