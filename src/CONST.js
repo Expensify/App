@@ -494,6 +494,7 @@ const CONST = {
                 TASKEDITED: 'TASKEDITED',
                 TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 TASKCOMPLETED: 'TASKCOMPLETED',
