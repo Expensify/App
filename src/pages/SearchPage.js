@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -9,17 +9,16 @@ import * as ReportUtils from '../libs/ReportUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import * as Report from '../libs/actions/Report';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
 import reportPropTypes from './reportPropTypes';
 import Performance from '../libs/Performance';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -32,41 +31,33 @@ const propTypes = {
 
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
-
-    /** Window Dimensions Props */
-    ...windowDimensionsPropTypes,
-
-    ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    betas: [],
-    personalDetails: {},
-    reports: {},
-};
-
-function SearchPage(props) {
-    const {recentReports: initialRecentReports, personalDetails: initialPersonalDetails, userToInvite: initialUserToInvite} = OptionsListUtils.getSearchOptions(props.reports, props.personalDetails, '', props.betas);
+function SearchPage({betas = [], personalDetails = {}, reports= {}}) {
+    //Data for initialization (runs only on the first render)
+    const {recentReports: initialRecentReports, personalDetails: initialPersonalDetails, userToInvite: initialUserToInvite} = useMemo(() => OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas), []);
 
     const [searchValue, setSearchValue] = useState('')
-    const [recentReports, setRecentReports] = useState(initialRecentReports)
-    const [personalDetails, setPersonalDetails] = useState(initialPersonalDetails)
-    const [userToInvite, setUserToInvite] = useState(initialUserToInvite)
+    const [activeRecentReports, setActiveRecentReports] = useState(initialRecentReports)
+    const [activePersonalDetails, setActivePersonalDetails] = useState(initialPersonalDetails)
+    const [activeUserToInvite, setActiveUserToInvite] = useState(initialUserToInvite)
+
+    const {translate} = useLocalize();
 
     const updateOptions = useCallback(() => {
         const {recentReports: localRecentReports, personalDetails: localPersonalDetails, userToInvite: localUserToInvite} = OptionsListUtils.getSearchOptions(
-            props.reports,
-            props.personalDetails,
+            reports,
+            personalDetails,
             searchValue.trim(),
-            props.betas,
+            betas,
         );
 
-        setUserToInvite(localUserToInvite)
-        setRecentReports(localRecentReports)
-        setPersonalDetails(localPersonalDetails)
-    }, [props.reports, props.personalDetails, searchValue, props.betas])
+        setActiveUserToInvite(localUserToInvite)
+        setActiveRecentReports(localRecentReports)
+        setActivePersonalDetails(localPersonalDetails)
+    }, [reports, personalDetails, searchValue, betas])
 
-    const debouncedUpdateOptions =_.debounce(updateOptions, 75);
+    const debouncedUpdateOptions = useCallback(() => _.debounce(updateOptions, 75), [updateOptions]);
 
     useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
@@ -74,8 +65,8 @@ function SearchPage(props) {
     },[])
 
     useEffect(() => {
-        updateOptions();
-    },[props.reports, props.personalDetails])
+        debouncedUpdateOptions()
+    }, [searchValue, debouncedUpdateOptions])
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -86,27 +77,27 @@ function SearchPage(props) {
         const sections = [];
         let indexOffset = 0;
 
-        if (recentReports.length > 0) {
+        if (activeRecentReports.length > 0) {
             sections.push({
-                data: recentReports,
+                data: activeRecentReports,
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += recentReports.length;
+            indexOffset += activeRecentReports.length;
         }
 
-        if (personalDetails.length > 0) {
+        if (activePersonalDetails.length > 0) {
             sections.push({
-                data: personalDetails,
+                data: activePersonalDetails,
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += recentReports.length;
+            indexOffset += activeRecentReports.length;
         }
 
-        if (userToInvite) {
+        if (activeUserToInvite) {
             sections.push({
-                data: [userToInvite],
+                data: [activeUserToInvite],
                 shouldShow: true,
                 indexOffset,
             });
@@ -119,10 +110,6 @@ function SearchPage(props) {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
         Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
     }
-
-    useEffect(() => {
-        debouncedUpdateOptions()
-    }, [searchValue])
 
     const onChangeText = (value = '') => {
         setSearchValue(value)
@@ -145,17 +132,17 @@ function SearchPage(props) {
         }
     }
 
-    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(props.personalDetails);
+    const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
-        recentReports.length + personalDetails.length !== 0,
-        Boolean(userToInvite),
+        activeRecentReports.length + activePersonalDetails.length !== 0,
+        Boolean(activeUserToInvite),
         searchValue,
     );
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={props.translate('common.search')} />
+                    <HeaderWithBackButton title={translate('common.search')} />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
                             sections={getSections()}
@@ -166,7 +153,7 @@ function SearchPage(props) {
                             hideSectionHeaders
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd && isOptionsDataReady}
-                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                             onLayout={searchRendered}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
@@ -178,11 +165,8 @@ function SearchPage(props) {
 }
 
 SearchPage.propTypes = propTypes;
-SearchPage.defaultProps = defaultProps;
 SearchPage.displayName = 'SearchPage';
 export default compose(
-    withLocalize,
-    withWindowDimensions,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
