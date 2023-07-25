@@ -60,7 +60,7 @@ index 0000000..668d198
 +export const resetExpectingTouchendWithDelay = () => {};
 +export const maybeInitializeEdgeDragGestureMonitor = () => {};
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
-index 548ba79..4bedb81 100644
+index 548ba79..155d87f 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
 +++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/Card.js
 @@ -4,6 +4,7 @@ import * as React from 'react';
@@ -76,7 +76,7 @@ index 548ba79..4bedb81 100644
      animation(gesture, {
        ...spec.config,
 +      // Detecting if the user used swipe gesture on iOS safari to trigger navigation in the browser history.
-+      duration: getIsEdgeDragGesture() ? 0 : undefined,
++      duration: getIsEdgeDragGesture() ? 0 : spec.config.duration,
        velocity,
        toValue,
        useNativeDriver,
@@ -90,7 +90,7 @@ index 548ba79..4bedb81 100644
          if (closing) {
            onClose();
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
-index 95e6871..7558eb3 100644
+index 95e6871..b7bb75e 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 +++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 @@ -4,6 +4,7 @@ import * as React from 'react';
@@ -110,3 +110,31 @@ index 95e6871..7558eb3 100644
      this.state = {
        routes: [],
        scenes: [],
+@@ -353,6 +356,9 @@ export default class CardStack extends React.Component {
+           extrapolate: 'clamp'
+         }) : STATE_TRANSITIONING_OR_BELOW_TOP;
+       }
++      
++      const isHomeScreenAndNotOnTop = route.name === 'Home' && isScreenActive !== STATE_ON_TOP;
++
+       const {
+         headerShown = true,
+         headerTransparent,
+@@ -386,7 +392,7 @@ export default class CardStack extends React.Component {
+         key: route.key,
+         style: StyleSheet.absoluteFill,
+         enabled: detachInactiveScreens,
+-        active: isScreenActive,
++        active: isHomeScreenAndNotOnTop ? STATE_TRANSITIONING_OR_BELOW_TOP : isScreenActive,
+         freezeOnBlur: freezeOnBlur,
+         pointerEvents: "box-none"
+       }, /*#__PURE__*/React.createElement(CardContainer, {
+@@ -420,7 +426,7 @@ export default class CardStack extends React.Component {
+         onTransitionStart: onTransitionStart,
+         onTransitionEnd: onTransitionEnd,
+         isNextScreenTransparent: isNextScreenTransparent,
+-        detachCurrentScreen: detachCurrentScreen
++        detachCurrentScreen: isHomeScreenAndNotOnTop ? false : detachCurrentScreen,
+       }));
+     })), isFloatHeaderAbsolute ? floatingHeader : null);
+   }
