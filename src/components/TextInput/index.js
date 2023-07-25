@@ -18,7 +18,7 @@ class TextInput extends React.Component {
         }
 
         // Forcefully activate the soft keyboard when the user switches between tabs while input was focused.
-        this.unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
+        this.removeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!Visibility.isVisible() || !this.textInput || DomUtils.getActiveElement() !== this.textInput) {
                 return;
             }
@@ -28,10 +28,10 @@ class TextInput extends React.Component {
     }
 
     componentWillUnmount() {
-        if (!this.unsubscribeVisibilityListener) {
+        if (!this.removeVisibilityListener) {
             return;
         }
-        this.unsubscribeVisibilityListener();
+        this.removeVisibilityListener();
     }
 
     render() {
