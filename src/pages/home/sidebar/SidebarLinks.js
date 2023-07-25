@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/onyx-props-must-have-default */
 import lodashGet from 'lodash/get';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -67,27 +67,17 @@ const defaultProps = {
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
-
-class SidebarLinks extends React.PureComponent {
-    constructor(props) {
-        super(props);
-
-        this.showSearchPage = this.showSearchPage.bind(this);
-        this.showSettingsPage = this.showSettingsPage.bind(this);
-        this.showReportPage = this.showReportPage.bind(this);
-
-        if (this.props.isSmallScreenWidth) {
-            App.confirmReadyToOpenApp();
-        }
+function SidebarLinks(props) {
+    if (props.isSmallScreenWidth) {
+        App.confirmReadyToOpenApp();
     }
 
-    componentDidMount() {
+    useEffect(() => {
         App.setSidebarLoaded();
         SidebarUtils.setIsSidebarLoadedReady();
-        this.isSidebarLoaded = true;
 
         let modal = {};
-        this.unsubscribeOnyxModal = onyxSubscribe({
+        const unsubscribeOnyxModal = onyxSubscribe({
             key: ONYXKEYS.MODAL,
             callback: (modalArg) => {
                 modal = modalArg;
@@ -95,7 +85,7 @@ class SidebarLinks extends React.PureComponent {
         });
 
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
+        const unsubscribeEscapeKey = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
                 if (modal.willAlertModalBecomeVisible) {
@@ -109,20 +99,19 @@ class SidebarLinks extends React.PureComponent {
             true,
             true,
         );
-    }
+        return () => {
+            SidebarUtils.resetIsSidebarLoadedReadyPromise();
+            if (unsubscribeEscapeKey) {
+                unsubscribeEscapeKey();
+            }
+            if (unsubscribeOnyxModal) {
+                unsubscribeOnyxModal();
+            }
+        };
+    }, []);
 
-    componentWillUnmount() {
-        SidebarUtils.resetIsSidebarLoadedReadyPromise();
-        if (this.unsubscribeEscapeKey) {
-            this.unsubscribeEscapeKey();
-        }
-        if (this.unsubscribeOnyxModal) {
-            this.unsubscribeOnyxModal();
-        }
-    }
-
-    showSearchPage() {
-        if (this.props.isCreateMenuOpen) {
+    function showSearchPage() {
+        if (props.isCreateMenuOpen) {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
@@ -130,8 +119,8 @@ class SidebarLinks extends React.PureComponent {
         Navigation.navigate(ROUTES.SEARCH);
     }
 
-    showSettingsPage() {
-        if (this.props.isCreateMenuOpen) {
+    function showSettingsPage() {
+        if (props.isCreateMenuOpen) {
             // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
             return;
         }
@@ -145,84 +134,82 @@ class SidebarLinks extends React.PureComponent {
      * @param {Object} option
      * @param {String} option.reportID
      */
-    showReportPage(option) {
+    function showReportPage(option) {
         // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
         // or when clicking the active LHN row
         // or when continuously clicking different LHNs, only apply to small screen
         // since getTopmostReportId always returns on other devices
-        if (this.props.isCreateMenuOpen || this.props.currentReportID === option.reportID || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
+        if (props.isCreateMenuOpen || props.currentReportID === option.reportID || (props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-        this.props.onLinkClick();
+        props.onLinkClick();
     }
 
-    render() {
-        return (
-            <View style={[styles.flex1, styles.h100]}>
-                <View
-                    style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
-                    nativeID="drag-area"
-                >
-                    <Header
-                        title={
-                            <LogoComponent
-                                fill={defaultTheme.textLight}
-                                width={variables.lhnLogoWidth}
-                                height={variables.lhnLogoHeight}
-                            />
-                        }
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        shouldShowEnvironmentBadge
-                    />
-                    <Tooltip text={this.props.translate('common.search')}>
-                        <PressableWithoutFeedback
-                            accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            style={[styles.flexRow, styles.ph5]}
-                            onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
-                        >
-                            <Icon src={Expensicons.MagnifyingGlass} />
-                        </PressableWithoutFeedback>
-                    </Tooltip>
+    return (
+        <View style={[styles.flex1, styles.h100]}>
+            <View
+                style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
+                nativeID="drag-area"
+            >
+                <Header
+                    title={
+                        <LogoComponent
+                            fill={defaultTheme.textLight}
+                            width={variables.lhnLogoWidth}
+                            height={variables.lhnLogoHeight}
+                        />
+                    }
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    shouldShowEnvironmentBadge
+                />
+                <Tooltip text={props.translate('common.search')}>
                     <PressableWithoutFeedback
-                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                        accessibilityLabel={props.translate('sidebarScreen.buttonSearch')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                        onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
+                        style={[styles.flexRow, styles.ph5]}
+                        onPress={Session.checkIfActionIsAllowed(showSearchPage)}
                     >
-                        {Session.isAnonymousUser() ? (
-                            <View style={styles.signInButtonAvatar}>
-                                <Button
-                                    medium
-                                    success
-                                    text={this.props.translate('common.signIn')}
-                                    onPress={() => Session.signOutAndRedirectToSignIn()}
-                                />
-                            </View>
-                        ) : (
-                            <OfflineWithFeedback pendingAction={lodashGet(this.props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
-                                <AvatarWithIndicator
-                                    source={UserUtils.getAvatar(this.props.currentUserPersonalDetails.avatar, this.props.currentUserPersonalDetails.accountID)}
-                                    tooltipText={this.props.translate('common.settings')}
-                                />
-                            </OfflineWithFeedback>
-                        )}
+                        <Icon src={Expensicons.MagnifyingGlass} />
                     </PressableWithoutFeedback>
-                </View>
-                {this.props.isLoading ? (
-                    <OptionsListSkeletonView shouldAnimate />
-                ) : (
-                    <LHNOptionsList
-                        contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
-                        data={this.props.optionListItems}
-                        onSelectRow={this.showReportPage}
-                        shouldDisableFocusOptions={this.props.isSmallScreenWidth}
-                        optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
-                    />
-                )}
+                </Tooltip>
+                <PressableWithoutFeedback
+                    accessibilityLabel={props.translate('sidebarScreen.buttonMySettings')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    onPress={Session.checkIfActionIsAllowed(showSettingsPage)}
+                >
+                    {Session.isAnonymousUser() ? (
+                        <View style={styles.signInButtonAvatar}>
+                            <Button
+                                medium
+                                success
+                                text={props.translate('common.signIn')}
+                                onPress={() => Session.signOutAndRedirectToSignIn()}
+                            />
+                        </View>
+                    ) : (
+                        <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                            <AvatarWithIndicator
+                                source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.currentUserPersonalDetails.accountID)}
+                                tooltipText={props.translate('common.settings')}
+                            />
+                        </OfflineWithFeedback>
+                    )}
+                </PressableWithoutFeedback>
             </View>
-        );
-    }
+            {props.isLoading ? (
+                <OptionsListSkeletonView shouldAnimate />
+            ) : (
+                <LHNOptionsList
+                    contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(props.insets).marginBottom}]}
+                    data={props.optionListItems}
+                    onSelectRow={showReportPage}
+                    shouldDisableFocusOptions={props.isSmallScreenWidth}
+                    optionMode={props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                />
+            )}
+        </View>
+    );
 }
 
 SidebarLinks.propTypes = propTypes;
