@@ -625,7 +625,7 @@ describe('OptionsListUtils', () => {
     it('formatMemberForList()', () => {
         const formattedMembers = _.map(PERSONAL_DETAILS, (personalDetail, key) => OptionsListUtils.formatMemberForList(personalDetail, key === '1'));
 
-        // We're only formatting a single item, so orders should be the same as the original PERSONAL_DETAILS array
+        // We're only formatting items inside the array, so the order should be the same as the original PERSONAL_DETAILS array
         expect(formattedMembers[0].text).toBe('Mister Fantastic');
         expect(formattedMembers[1].text).toBe('Iron Man');
         expect(formattedMembers[2].text).toBe('Spider-Man');
