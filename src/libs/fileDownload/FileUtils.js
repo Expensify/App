@@ -104,7 +104,7 @@ function getFileType(fileUrl) {
 function splitExtensionFromFileName(fullFileName) {
     const fileName = fullFileName.trim();
     const splitFileName = fileName.split('.');
-    const fileExtension = splitFileName.pop();
+    const fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
     return {fileName: splitFileName.join('.'), fileExtension};
 }
 
@@ -118,4 +118,13 @@ function cleanFileName(fileName) {
     return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
-export {showGeneralErrorAlert, showSuccessAlert, showPermissionErrorAlert, splitExtensionFromFileName, getAttachmentName, getFileType, cleanFileName};
+function appendTimeToFileName(fileName) {
+    const file = splitExtensionFromFileName(fileName);
+    let newFileName = `${file.fileName} - ${new Date().toISOString()}`;
+    if (file.fileExtension) {
+        newFileName += `.${file.fileExtension}`;
+    }
+    return newFileName;
+}
+
+export {showGeneralErrorAlert, showSuccessAlert, showPermissionErrorAlert, splitExtensionFromFileName, getAttachmentName, getFileType, cleanFileName, appendTimeToFileName};
