@@ -475,7 +475,7 @@ class BasePaymentsPage extends React.Component {
                                 this.deletePaymentMethod();
                             }}
                             onCancel={this.hideDefaultDeleteMenu}
-                            contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover] : undefined}
+                            contentStyles={!this.props.isSmallScreenWidth ? [styles.sidebarPopover, styles.willChangeTransform] : undefined}
                             title={this.props.translate('paymentsPage.deleteAccount')}
                             prompt={this.props.translate('paymentsPage.deleteConfirmation')}
                             confirmText={this.props.translate('common.delete')}
