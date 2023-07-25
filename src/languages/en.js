@@ -168,7 +168,7 @@ export default {
         sizeNotMet: 'Attachment size must be greater than 240 bytes.',
         wrongFileType: 'Attachment is the wrong type',
         notAllowedExtension: 'This filetype is not allowed',
-        folderNotAllowedMessage: 'Uploading folder is not allowed.'
+        folderNotAllowedMessage: 'Uploading folder is not allowed.',
     },
     avatarCropModal: {
         title: 'Edit photo',

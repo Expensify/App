@@ -1127,8 +1127,8 @@ class ReportActionCompose extends React.Component {
                                                     return;
                                                 }
 
-                                                const data = lodashGet(e, ['dataTransfer', 'items', 0]);                                                
-                                                
+                                                const data = lodashGet(e, ['dataTransfer', 'items', 0]);
+
                                                 displayFileInModal(data);
 
                                                 this.setState({isDraggingOver: false});

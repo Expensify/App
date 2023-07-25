@@ -167,8 +167,7 @@ export default {
         sizeNotMet: 'El archivo adjunto debe ser mas grande que 240 bytes.',
         wrongFileType: 'El tipo del archivo adjunto es incorrecto',
         notAllowedExtension: 'Este tipo de archivo no está permitido',
-        folderNotAllowedMessage: 'No se permite subir carpetas.'
-
+        folderNotAllowedMessage: 'No se permite subir carpetas.',
     },
     avatarCropModal: {
         title: 'Editar foto',

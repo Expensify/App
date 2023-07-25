@@ -214,26 +214,28 @@ function AttachmentModal(props) {
      * @param {Object} _data
      * @returns {Boolean}
      */
-    const isDirectoryCheck = useCallback((_data) => {
-        if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
-            setIsAttachmentInvalid(true);
-            setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentError'));
-            setAttachmentInvalidReason(props.translate('attachmentPicker.folderNotAllowedMessage'));
-            return false;
-        }
-        return true
-
-    },[props.translate])
+    const isDirectoryCheck = useCallback(
+        (_data) => {
+            if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
+                setIsAttachmentInvalid(true);
+                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentError'));
+                setAttachmentInvalidReason(props.translate('attachmentPicker.folderNotAllowedMessage'));
+                return false;
+            }
+            return true;
+        },
+        [props.translate],
+    );
     /**
      * @param {Object} _data
      */
     const validateAndDisplayFileToUpload = useCallback(
         (_data) => {
-            if(!isDirectoryCheck(_data)) {
+            if (!isDirectoryCheck(_data)) {
                 return;
             }
-            let _file = _data
-            if (typeof _data.getAsFile === 'function' ){
+            let _file = _data;
+            if (typeof _data.getAsFile === 'function') {
                 _file = _data.getAsFile();
             }
             if (!_file) {
