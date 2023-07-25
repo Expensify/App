@@ -35,9 +35,9 @@ const defaultProps = {
 
 function EmojiPickerButton(props) {
     const emojiPopoverAnchor = useRef(null);
-    
+
     useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
-    
+
     return (
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback
