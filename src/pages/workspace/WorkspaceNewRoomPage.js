@@ -18,6 +18,7 @@ import Permissions from '../../libs/Permissions';
 import Log from '../../libs/Log';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import * as ValidationUtils from '../../libs/ValidationUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import Form from '../../components/Form';
 import shouldDelayFocus from '../../libs/shouldDelayFocus';
@@ -66,14 +67,22 @@ const defaultProps = {
 function WorkspaceNewRoomPage(props) {
     const {translate} = useLocalize();
     const [visibility, setVisibility] = useState(CONST.REPORT.VISIBILITY.RESTRICTED);
+    const [policyID, setPolicyID] = useState(null);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
+    const isPolicyAdmin = useMemo(() => {
+        if (!policyID) {
+            return false;
+        }
+
+        return ReportUtils.isPolicyAdmin(policyID, props.policies);
+    }, [policyID, props.policies]);
 
     /**
      * @param {Object} values - form input values passed by the Form component
      */
     const submit = (values) => {
         const policyMembers = _.map(_.keys(props.allPolicyMembers[`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${values.policyID}`]), (accountID) => Number(accountID));
-        Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers);
+        Report.addPolicyReport(values.policyID, values.roomName, values.visibility, policyMembers, values.writeCapability);
     };
 
     /**
@@ -108,6 +117,15 @@ function WorkspaceNewRoomPage(props) {
     );
 
     const workspaceOptions = useMemo(() => _.map(PolicyUtils.getActivePolicies(props.policies), (policy) => ({label: policy.name, key: policy.id, value: policy.id})), [props.policies]);
+
+    const writeCapabilityOptions = useMemo(
+        () =>
+            _.map(CONST.REPORT.WRITE_CAPABILITIES, (value) => ({
+                value,
+                label: translate(`writeCapabilityPage.writeCapability.${value}`),
+            })),
+        [translate],
+    );
 
     const visibilityOptions = useMemo(
         () =>
@@ -156,14 +174,25 @@ function WorkspaceNewRoomPage(props) {
                         shouldDelayFocus={shouldDelayFocus}
                     />
                 </View>
-                <View style={styles.mb5}>
+                <View style={styles.mb2}>
                     <Picker
                         inputID="policyID"
                         label={translate('workspace.common.workspace')}
                         placeholder={{value: '', label: translate('newRoomPage.selectAWorkspace')}}
                         items={workspaceOptions}
+                        onValueChange={setPolicyID}
                     />
                 </View>
+                {isPolicyAdmin && (
+                    <View style={styles.mb2}>
+                        <Picker
+                            inputID="writeCapability"
+                            label={translate('writeCapabilityPage.label')}
+                            items={writeCapabilityOptions}
+                            defaultValue={CONST.REPORT.WRITE_CAPABILITIES.ALL}
+                        />
+                    </View>
+                )}
                 <View style={styles.mb2}>
                     <Picker
                         inputID="visibility"
