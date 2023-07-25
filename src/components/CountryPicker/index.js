@@ -37,7 +37,7 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
 
     useEffect(() => {
         setSearchValue(lodashGet(allCountries, value, ''));
-    }, [value]);
+    }, [value, allCountries]);
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
