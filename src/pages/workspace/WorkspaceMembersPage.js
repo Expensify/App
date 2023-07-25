@@ -421,7 +421,6 @@ function WorkspaceMembersPage(props) {
                     />
                     <ConfirmModal
                         danger
-                        shouldCancelBtnHaveHoverEffect
                         title={props.translate('workspace.people.removeMembersTitle')}
                         isVisible={removeMembersConfirmModalVisible}
                         onConfirm={removeUsers}

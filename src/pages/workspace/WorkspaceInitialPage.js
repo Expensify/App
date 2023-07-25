@@ -270,7 +270,6 @@ function WorkspaceInitialPage(props) {
                         confirmText={props.translate('workspace.bankAccount.updateToUSD')}
                         cancelText={props.translate('common.cancel')}
                         danger
-                        shouldCancelBtnHaveHoverEffect
                     />
                     <ConfirmModal
                         title={props.translate('workspace.common.delete')}
@@ -281,7 +280,6 @@ function WorkspaceInitialPage(props) {
                         confirmText={props.translate('common.delete')}
                         cancelText={props.translate('common.cancel')}
                         danger
-                        shouldCancelBtnHaveHoverEffect
                     />
                 </FullPageNotFoundView>
             )}
