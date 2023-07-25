@@ -275,6 +275,16 @@ function isAdminRoom(report) {
 }
 
 /**
+ * Whether the provided report is an Admin-only posting room
+ * @param {Object} report
+ * @param {String} report.writeCapability
+ * @returns {Boolean}
+ */
+function isAdminsOnlyPostingRoom(report) {
+    return lodashGet(report, 'writeCapability', CONST.REPORT.WRITE_CAPABILITIES.ALL) === CONST.REPORT.WRITE_CAPABILITIES.ADMINS;
+}
+
+/**
  * Whether the provided report is a Announce room
  * @param {Object} report
  * @param {String} report.chatType
@@ -568,6 +578,18 @@ function isPolicyExpenseChatAdmin(report, policies) {
 }
 
 /**
+ * Checks if the current user is the admin of the policy.
+ * @param {String} policyID
+ * @param {Object} policies must have OnyxKey prefix (i.e 'policy_') for keys
+ * @returns {Boolean}
+ */
+function isPolicyAdmin(policyID, policies) {
+    const policyRole = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, 'role']);
+
+    return policyRole === CONST.POLICY.ROLE.ADMIN;
+}
+
+/**
  * Returns true if report is a DM/Group DM chat.
  *
  * @param {Object} report
@@ -575,6 +597,16 @@ function isPolicyExpenseChatAdmin(report, policies) {
  */
 function isDM(report) {
     return !getChatType(report);
+}
+
+/**
+ * Returns true if report has a single participant.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function hasSingleParticipant(report) {
+    return report.participants && report.participants.length === 1;
 }
 
 /**
@@ -653,6 +685,9 @@ function getRoomWelcomeMessage(report) {
     } else if (isAdminRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
+    } else if (isAdminsOnlyPostingRoom(report)) {
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartOne');
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartTwo', {workspaceName});
     } else if (isAnnounceRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
@@ -1720,6 +1755,7 @@ function buildOptimisticTaskReportAction(taskReportID, actionName, message = '')
  * @param {Boolean} isOwnPolicyExpenseChat
  * @param {String} oldPolicyName
  * @param {String} visibility
+ * @param {String} writeCapability
  * @param {String} notificationPreference
  * @param {String} parentReportActionID
  * @param {String} parentReportID
@@ -1734,6 +1770,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
+    writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
@@ -1764,6 +1801,7 @@ function buildOptimisticChatReport(
         statusNum: 0,
         visibility,
         welcomeMessage: '',
+        writeCapability,
     };
 }
 
@@ -2406,6 +2444,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     const participants = _.filter(reportParticipants, (accountID) => currentUserPersonalDetails.accountID !== accountID);
 
     const hasExcludedIOUAccountIDs = lodashIntersection(reportParticipants, CONST.EXPENSIFY_ACCOUNT_IDS).length > 0;
+    const hasSingleParticipantInReport = participants.length === 1;
     const hasMultipleParticipants = participants.length > 1;
 
     if (hasExcludedIOUAccountIDs || (participants.length === 0 && !report.isOwnPolicyExpenseChat)) {
@@ -2431,7 +2470,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
         ...(canRequestMoney(report) ? [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST] : []),
 
         // Send money option should be visible only in DMs
-        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && participants.length === 1 ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
+        ...(Permissions.canUseIOUSend(betas) && isChatReport(report) && !isPolicyExpenseChat(report) && hasSingleParticipantInReport ? [CONST.IOU.MONEY_REQUEST_TYPE.SEND] : []),
     ];
 }
 
@@ -2606,7 +2645,7 @@ function shouldDisableSettings(report) {
  * @returns {Boolean}
  */
 function shouldDisableRename(report, policy) {
-    if (isDefaultRoom(report) || isArchivedRoom(report)) {
+    if (isDefaultRoom(report) || isArchivedRoom(report) || isChatThread(report)) {
         return true;
     }
 
@@ -2642,6 +2681,7 @@ export {
     getPolicyType,
     isArchivedRoom,
     isPolicyExpenseChatAdmin,
+    isPolicyAdmin,
     isPublicRoom,
     isPublicAnnounceRoom,
     isConciergeChatReport,
@@ -2727,7 +2767,9 @@ export {
     getOriginalReportID,
     canAccessReport,
     getReportOfflinePendingActionAndErrors,
+    isDM,
     getPolicy,
     shouldDisableSettings,
     shouldDisableRename,
+    hasSingleParticipant,
 };
