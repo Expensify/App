@@ -154,12 +154,6 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'Waiting for the bank account'}],
                 },
                 {
-                    created: '2022-11-07 22:27:07.825',
-                    reportActionID: '1661970171066218',
-                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                    message: [{html: 'Check your bank account!'}],
-                },
-                {
                     created: '2022-11-06 22:27:08.825',
                     reportActionID: '1661970171066220',
                     actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
