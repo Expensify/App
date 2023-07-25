@@ -61,11 +61,6 @@ function ValidateLoginPage(props) {
     const cachedAccountID = lodashGet(props, 'credentials.accountID', null);
 
     useEffect(() => {
-        // A fresh session will not have credentials.login
-        if (login) {
-            User.validateLogin(accountID, validateCode);
-            return;
-        }
 
         if (!login && isSignedIn && (autoAuthState === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthState === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN)) {
             // The user clicked the option to sign in the current tab
