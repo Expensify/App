@@ -513,7 +513,6 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[newAssigneeAccountID]: optimisticPersonalDetailsListAction});
         }
 
-        console.log('Setting assignee chat report');
         setAssigneeChatReport(chatReport);
 
         // If there is no share destination set, automatically set it to the assignee chat report
