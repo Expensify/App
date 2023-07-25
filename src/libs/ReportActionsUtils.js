@@ -545,6 +545,7 @@ export {
     getLastVisibleMessage,
     getMostRecentIOURequestActionID,
     extractLinksFromMessageHtml,
+    isCreatedAction,
     isDeletedAction,
     shouldReportActionBeVisible,
     isReportActionDeprecated,
