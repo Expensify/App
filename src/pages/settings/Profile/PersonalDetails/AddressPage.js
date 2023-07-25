@@ -169,6 +169,7 @@ function AddressPage({privatePersonalDetails}) {
                         onValueChange={handleAddressChange}
                     />
                 </View>
+                <View style={styles.formSpaceVertical} />
                 {isUSAForm ? (
                     <View style={styles.mhn5}>
                         <StatePicker
