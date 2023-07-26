@@ -146,11 +146,12 @@ function MoneyRequestParticipantsSplitSelector({betas, participants, personalDet
     );
 
     const headerMessage = OptionsListUtils.getHeaderMessage(
-        newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
-        Boolean(newChatOptions.userToInvite),
-        searchTerm,
-        maxParticipantsReached,
-    );
+            newChatOptions.personalDetails.length + newChatOptions.recentReports.length !== 0,
+            Boolean(newChatOptions.userToInvite),
+            searchTerm,
+            maxParticipantsReached,
+            participants.length > 0
+        );
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
 
     useEffect(() => {
