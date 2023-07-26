@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import CodesStep from './Steps/CodesStep';
-import DisableStep from './Steps/DisableStep';
-import IsEnabledStep from './Steps/IsEnabledStep';
+import DisabledStep from './Steps/DisabledStep';
+import EnabledStep from './Steps/EnabledStep';
 import VerifyStep from './Steps/VerifyStep';
 import SuccessStep from './Steps/SuccessStep';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -44,9 +44,9 @@ function TwoFactorAuthPage({account = defaultAccount}) {
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
                 return <SuccessStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
-                return <IsEnabledStep />;
+                return <EnabledStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
-                return <DisableStep />;
+                return <DisabledStep />;
             default:
                 return <CodesStep />;
         }

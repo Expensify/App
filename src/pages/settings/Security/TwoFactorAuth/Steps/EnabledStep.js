@@ -12,7 +12,7 @@ import CONST from '../../../../../CONST';
 import useLocalize from '../../../../../hooks/useLocalize';
 import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
 
-function IsEnabledStep() {
+function EnabledStep() {
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
 
     const {setStep} = useTwoFactorAuthContext();
@@ -63,4 +63,4 @@ function IsEnabledStep() {
     );
 }
 
-export default IsEnabledStep;
+export default EnabledStep;

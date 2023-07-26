@@ -9,7 +9,7 @@ import StepWrapper from '../StepWrapper/StepWrapper';
 import useLocalize from '../../../../../hooks/useLocalize';
 import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 
-function DisableStep() {
+function DisabledStep() {
     const {translate} = useLocalize();
 
     return (
@@ -32,4 +32,4 @@ function DisableStep() {
     );
 }
 
-export default DisableStep;
+export default DisabledStep;
