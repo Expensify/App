@@ -116,32 +116,32 @@ function ReportActionItemEmojiReactions(props) {
                     if (reaction === null) {
                         return;
                     }
-                        return (
-                            <Tooltip
-                                renderTooltipContent={() => (
-                                    <ReactionTooltipContent
-                                        emojiName={EmojiUtils.getLocalizedEmojiName(reaction.reactionEmojiName, props.preferredLocale)}
-                                        emojiCodes={reaction.emojiCodes}
-                                        accountIDs={reaction.reactionUserAccountIDs}
-                                        currentUserPersonalDetails={props.currentUserPersonalDetails}
-                                    />
-                                )}
-                                renderTooltipContentKey={[..._.map(reaction.reactionUsers, (user) => user.toString()), ...reaction.emojiCodes]}
-                                key={reaction.reactionEmojiName}
-                            >
-                                <View>
-                                    <EmojiReactionBubble
-                                        ref={props.forwardedRef}
-                                        count={reaction.reactionCount}
-                                        emojiCodes={reaction.emojiCodes}
-                                        onPress={reaction.onPress}
-                                        reactionUsers={reaction.reactionUsers}
-                                        hasUserReacted={reaction.hasUserReacted}
-                                        onReactionListOpen={reaction.onReactionListOpen}
-                                    />
-                                </View>
-                            </Tooltip>
-                        );
+                    return (
+                        <Tooltip
+                            renderTooltipContent={() => (
+                                <ReactionTooltipContent
+                                    emojiName={EmojiUtils.getLocalizedEmojiName(reaction.reactionEmojiName, props.preferredLocale)}
+                                    emojiCodes={reaction.emojiCodes}
+                                    accountIDs={reaction.reactionUserAccountIDs}
+                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                                />
+                            )}
+                            renderTooltipContentKey={[..._.map(reaction.reactionUsers, (user) => user.toString()), ...reaction.emojiCodes]}
+                            key={reaction.reactionEmojiName}
+                        >
+                            <View>
+                                <EmojiReactionBubble
+                                    ref={props.forwardedRef}
+                                    count={reaction.reactionCount}
+                                    emojiCodes={reaction.emojiCodes}
+                                    onPress={reaction.onPress}
+                                    reactionUsers={reaction.reactionUsers}
+                                    hasUserReacted={reaction.hasUserReacted}
+                                    onReactionListOpen={reaction.onReactionListOpen}
+                                />
+                            </View>
+                        </Tooltip>
+                    );
                 })}
                 <AddReactionBubble
                     onSelectEmoji={props.toggleReaction}
