@@ -236,7 +236,7 @@ function canEditReportAction(reportAction) {
  */
 function isSettled(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    return !_.isEmpty(report) && !report.hasOutstandingIOU && !report.isWaitingOnBankAccount;
+    return !_.isEmpty(report) && !report.isWaitingOnBankAccount && report.stateNum > CONST.REPORT.STATE_NUM.PROCESSING;
 }
 
 /**
