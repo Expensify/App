@@ -35,7 +35,7 @@ function SaveTheWorldPage() {
             shouldShowBackButton
             onBackButtonPress={() => Navigation.goBack()}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
-            illustration={LottieAnimations.PreferencesDJ}
+            illustration={LottieAnimations.SaveTheWorld}
         >
             <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
                 <Text style={[styles.textHeadline, styles.mb3]}>{translate('teachersUnitePage.teachersUnite')}</Text>
