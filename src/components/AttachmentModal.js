@@ -235,25 +235,24 @@ function AttachmentModal(props) {
             if (!isDirectoryCheck(_data)) {
                 return;
             }
-            /* eslint no-underscore-dangle: 0 */
-            let _file = _data;
+            let fileObject = _data;
             if (typeof _data.getAsFile === 'function') {
-                _file = _data.getAsFile();
+                fileObject = _data.getAsFile();
             }
-            if (!_file) {
+            if (!fileObject) {
                 return;
             }
 
-            if (!isValidFile(_file)) {
+            if (!isValidFile(fileObject)) {
                 return;
             }
 
-            if (_file instanceof File) {
+            if (fileObject instanceof File) {
                 /**
                  * Cleaning file name, done here so that it covers all cases:
                  * upload, drag and drop, copy-paste
                  */
-                let updatedFile = _file;
+                let updatedFile = fileObject;
                 const cleanName = FileUtils.cleanFileName(updatedFile.name);
                 if (updatedFile.name !== cleanName) {
                     updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
@@ -265,14 +264,14 @@ function AttachmentModal(props) {
                 setFile(updatedFile);
                 setModalType(inputModalType);
             } else {
-                const inputModalType = getModalType(_file.uri, _file);
+                const inputModalType = getModalType(fileObject.uri, fileObject);
                 setIsModalOpen(true);
-                setSource(_file.uri);
-                setFile(_file);
+                setSource(fileObject.uri);
+                setFile(fileObject);
                 setModalType(inputModalType);
             }
         },
-        [isValidFile, getModalType,isDirectoryCheck],
+        [isValidFile, getModalType, isDirectoryCheck],
     );
 
     /**
