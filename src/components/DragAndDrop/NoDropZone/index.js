@@ -7,17 +7,19 @@ const propTypes = {
 };
 
 function NoDropZone(props) {
-    function handleDragOver(event) {
+    function handleDrag(event) {
         event.preventDefault();
         // eslint-disable-next-line no-param-reassign
         event.dataTransfer.dropEffect = 'none';
     }
 
     useEffect(() => {
-        document.addEventListener('dragover', handleDragOver);
+        document.addEventListener('dragenter', handleDrag);
+        document.addEventListener('dragover', handleDrag);
 
         return () => {
-            document.removeEventListener('dragover', handleDragOver);
+            document.removeEventListener('dragenter', handleDrag);
+            document.removeEventListener('dragover', handleDrag);
         };
     }, []);
 
