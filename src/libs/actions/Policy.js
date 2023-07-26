@@ -65,12 +65,6 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
-let loginList;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (val) => (loginList = val),
-});
-
 /**
  * Stores in Onyx the policy ID of the last workspace that was accessed by the user
  * @param {String|null} policyID
