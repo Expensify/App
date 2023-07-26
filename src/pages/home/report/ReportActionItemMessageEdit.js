@@ -128,7 +128,9 @@ function ReportActionItemMessageEdit(props) {
 
             // Show the main composer when the focused message is deleted from another client
             // to prevent the main composer stays hidden until we swtich to another chat.
-            ComposerActions.setShouldShowComposeInput(true);
+            if (isFocusedRef.current) {
+                ComposerActions.setShouldShowComposeInput(true);
+            }
         };
     }, [props.action.reportActionID]);
 
@@ -202,8 +204,10 @@ function ReportActionItemMessageEdit(props) {
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
-        ComposerActions.setShouldShowComposeInput(true);
-        ReportActionComposeFocusManager.focus();
+        if (isFocusedRef.current) {
+            ComposerActions.setShouldShowComposeInput(true);
+            ReportActionComposeFocusManager.focus();
+        }
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (props.index === 0) {
@@ -288,6 +292,7 @@ function ReportActionItemMessageEdit(props) {
                             hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
                             pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
                             onMouseDown={(e) => e.preventDefault()}
+                            onMouseUp={(e) => e.preventDefault()}
                         >
                             {({hovered, pressed}) => (
                                 <Icon
