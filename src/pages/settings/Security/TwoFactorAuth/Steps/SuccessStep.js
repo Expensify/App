@@ -28,7 +28,7 @@ function SuccessStep() {
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={() => {
                     TwoFactorAuthActions.clearTwoFactorAuthData();
-                    setStep(CONST.TWO_FACTOR_AUTH_STEPS.IS_ENABLED);
+                    setStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
                 }}
             />
         </StepWrapper>

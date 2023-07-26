@@ -46,7 +46,7 @@ function IsEnabledStep() {
                     title={translate('twoFactorAuth.disableTwoFactorAuth')}
                     onConfirm={() => {
                         setIsConfirmModalVisible(false);
-                        setStep(CONST.TWO_FACTOR_AUTH_STEPS.DISABLE);
+                        setStep(CONST.TWO_FACTOR_AUTH_STEPS.DISABLED);
                         Session.toggleTwoFactorAuth(false);
                     }}
                     onCancel={() => setIsConfirmModalVisible(false)}

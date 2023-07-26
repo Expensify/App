@@ -20,7 +20,7 @@ function TwoFactorAuthPage({account = defaultAccount}) {
             return;
         }
         if (account.requiresTwoFactorAuth) {
-            setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.IS_ENABLED);
+            setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.ENABLED);
         } else {
             setCurrentStep(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
         }
@@ -41,9 +41,9 @@ function TwoFactorAuthPage({account = defaultAccount}) {
                 return <VerifyStep />;
             case CONST.TWO_FACTOR_AUTH_STEPS.SUCCESS:
                 return <SuccessStep />;
-            case CONST.TWO_FACTOR_AUTH_STEPS.IS_ENABLED:
+            case CONST.TWO_FACTOR_AUTH_STEPS.ENABLED:
                 return <IsEnabledStep />;
-            case CONST.TWO_FACTOR_AUTH_STEPS.DISABLE:
+            case CONST.TWO_FACTOR_AUTH_STEPS.DISABLED:
                 return <DisableStep />;
             default:
                 return <CodesStep />;

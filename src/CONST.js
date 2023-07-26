@@ -2549,8 +2549,8 @@ const CONST = {
         CODES: 'CODES',
         VERIFY: 'VERIFY',
         SUCCESS: 'SUCCESS',
-        IS_ENABLED: 'IS_ENABLED',
-        DISABLE: 'DISABLE',
+        ENABLED: 'ENABLED',
+        DISABLED: 'DISABLED',
     },
 };
 
