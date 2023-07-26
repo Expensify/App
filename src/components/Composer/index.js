@@ -340,7 +340,7 @@ function Composer({onKeyPress, style, ...props}) {
         if (textInput.current === null) {
             return;
         }
-        updateNumberOfLines();
+        updateIsFullComposerAvailable(props, props.numberOfLines);
 
         setTimeout(() => {
             setNumberOfLines(1);
