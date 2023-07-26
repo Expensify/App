@@ -3635,18 +3635,6 @@ const styles = {
         padding: 2,
     },
 
-    tabSelectorButton: {
-        paddingBottom: 16,
-        marginHorizontal: 8,
-        alignItems: 'center',
-    },
-
-    tabSelector: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        paddingHorizontal: 20,
-    },
-
     tabSelected: {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,

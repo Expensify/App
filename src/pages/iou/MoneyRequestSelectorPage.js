@@ -11,7 +11,6 @@ import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import TabSelector from '../../components/TabSelector';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import * as IOUUtils from '../../libs/IOUUtils';
