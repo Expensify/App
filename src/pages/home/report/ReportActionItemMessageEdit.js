@@ -12,7 +12,7 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
-import setShouldShowMainComposeInputKeyboardAware from '../../../libs/setShouldShowMainComposeInputKeyboardAware';
+import setShouldShowComposeInputKeyboardAware from '../../../libs/setShouldShowComposeInputKeyboardAware';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import Icon from '../../../components/Icon';
@@ -323,7 +323,7 @@ function ReportActionItemMessageEdit(props) {
                             onFocus={() => {
                                 setIsFocused(true);
                                 reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
-                                setShouldShowMainComposeInputKeyboardAware(false);
+                                setShouldShowComposeInputKeyboardAware(false);
                             }}
                             onBlur={(event) => {
                                 setIsFocused(false);
@@ -331,7 +331,7 @@ function ReportActionItemMessageEdit(props) {
                                 if (messageEditInput === relatedTargetId) {
                                     return;
                                 }
-                                setShouldShowMainComposeInputKeyboardAware(true);
+                                setShouldShowComposeInputKeyboardAware(true);
                             }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
@@ -343,7 +343,7 @@ function ReportActionItemMessageEdit(props) {
                             onModalHide={() => InteractionManager.runAfterInteractions(() => textInputRef.current.focus())}
                             onEmojiSelected={addEmojiToTextBox}
                             reportAction={props.action}
-                            // Keep focus on the composer when save button is clicked.
+                            // Keep focus on the composer when emoji picker button is clicked.
                             onMouseDown={(e) => e.preventDefault()}
                         />
                     </View>

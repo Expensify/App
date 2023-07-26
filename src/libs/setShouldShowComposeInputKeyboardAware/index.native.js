@@ -9,7 +9,7 @@ export default (shouldShow) => {
     }
 
     if (!shouldShow) {
-        Composer.setShouldShowComposeInput(shouldShow);
+        Composer.setShouldShowComposeInput(false);
         return;
     }
 
