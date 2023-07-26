@@ -259,6 +259,19 @@ function clearContactMethodErrors(contactMethod, fieldName) {
 }
 
 /**
+ * Reset validate code sent state on a contact method
+ *
+ * @param {String} contactMethod
+ */
+function resetContactMethodValidateCodeSentState(contactMethod) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: {
+            validateCodeSent: false,
+        },
+    });
+}
+
+/**
  * Adds a secondary login to a user's account
  *
  * @param {String} contactMethod
@@ -827,4 +840,5 @@ export {
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
+    resetContactMethodValidateCodeSentState,
 };
