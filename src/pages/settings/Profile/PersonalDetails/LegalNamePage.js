@@ -17,6 +17,8 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -42,6 +44,7 @@ const updateLegalName = (values) => {
 };
 
 function LegalNamePage(props) {
+    usePrivatePersonalDetails();
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
 
@@ -62,6 +65,10 @@ function LegalNamePage(props) {
 
         return errors;
     }, []);
+
+    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper

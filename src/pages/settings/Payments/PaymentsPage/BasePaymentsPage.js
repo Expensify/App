@@ -455,6 +455,7 @@ class BasePaymentsPage extends React.Component {
                                     onPress={this.navigateToAddPaypalRoute}
                                     style={[styles.mb4]}
                                     text={this.props.translate('common.edit')}
+                                    shouldUseDefaultHover
                                 />
                             )}
                             <Button
