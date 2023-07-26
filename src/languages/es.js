@@ -1973,6 +1973,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        deletedRequest: '[Pedido eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
