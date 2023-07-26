@@ -22,12 +22,11 @@ import useLocalize from '../../../../../hooks/useLocalize';
 import useWindowDimensions from '../../../../../hooks/useWindowDimensions';
 import StepWrapper from '../StepWrapper/StepWrapper';
 import {defaultAccount, TwoFactorAuthPropTypes} from '../TwoFactorAuthPropTypes';
+import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
 
 function CodesStep({account = defaultAccount}) {
     const {translate} = useLocalize();
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useWindowDimensions();
-
-    const [isNextButtonDisabled, setIsNextButtonDisabled] = useState(true);
 
     const {setStep} = useTwoFactorAuthContext();
 
@@ -83,7 +82,7 @@ function CodesStep({account = defaultAccount}) {
                                         inline={false}
                                         onPress={() => {
                                             Clipboard.setString(account.recoveryCodes);
-                                            setIsNextButtonDisabled(false);
+                                            TwoFactorAuthActions.setCodesAreCopied();
                                         }}
                                         styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                         textStyles={[styles.buttonMediumText]}
@@ -93,7 +92,7 @@ function CodesStep({account = defaultAccount}) {
                                         icon={Expensicons.Download}
                                         onPress={() => {
                                             localFileDownload('two-factor-auth-codes', account.recoveryCodes);
-                                            setIsNextButtonDisabled(false);
+                                            TwoFactorAuthActions.setCodesAreCopied();
                                         }}
                                         inline={false}
                                         styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
@@ -110,7 +109,7 @@ function CodesStep({account = defaultAccount}) {
                     success
                     text={translate('common.next')}
                     onPress={() => setStep(CONST.TWO_FACTOR_AUTH_STEPS.VERIFY)}
-                    isDisabled={isNextButtonDisabled}
+                    isDisabled={!account.codesAreCopied}
                 />
             </FixedFooter>
         </StepWrapper>

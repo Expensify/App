@@ -14,6 +14,8 @@ import {defaultAccount, TwoFactorAuthPropTypes} from './TwoFactorAuthPropTypes';
 function TwoFactorAuthPage({account = defaultAccount}) {
     const [currentStep, setCurrentStep] = useState(CONST.TWO_FACTOR_AUTH_STEPS.CODES);
 
+    useEffect(() => () => TwoFactorAuthActions.clearTwoFactorAuthData(), []);
+
     useEffect(() => {
         if (account.twoFactorAuthStep) {
             setCurrentStep(account.twoFactorAuthStep);
