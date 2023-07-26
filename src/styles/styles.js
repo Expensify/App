@@ -2349,7 +2349,8 @@ const styles = {
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
-        padding: 20,
+        paddingHorizontal: 20,
+        paddingBottom: 20,
     },
 
     pageWrapperNotCentered: {
