@@ -54,8 +54,6 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
-import TaskView from '../../../components/ReportActionItem/TaskView';
-import MoneyReportView from '../../../components/ReportActionItem/MoneyReportView';
 import * as Session from '../../../libs/actions/Session';
 import MoneyRequestView from '../../../components/ReportActionItem/MoneyRequestView';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
@@ -99,9 +97,6 @@ const propTypes = {
 
     /** Is this the only report action on the report? */
     isOnlyReportAction: PropTypes.bool,
-
-    /** Flag to show, hide the thread divider line */
-    shouldHideThreadDividerLine: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -111,7 +106,6 @@ const defaultProps = {
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
     isOnlyReportAction: false,
-    shouldHideThreadDividerLine: false,
 };
 
 function ReportActionItem(props) {
@@ -425,22 +419,6 @@ function ReportActionItem(props) {
         if (ReportActionsUtils.isTransactionThread(parentReport)) {
             return (
                 <MoneyRequestView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
-                />
-            );
-        }
-        if (ReportUtils.isTaskReport(props.report)) {
-            return (
-                <TaskView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
-                />
-            );
-        }
-        if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
-            return (
-                <MoneyReportView
                     report={props.report}
                     shouldShowHorizontalRule={!props.isOnlyReportAction}
                 />

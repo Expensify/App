@@ -126,9 +126,7 @@ function ReportActionsList(props) {
             // When the new indicator should not be displayed we explicitly set it to null
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
             const shouldDisplayParentAction =
-                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
-                ReportUtils.isChatThread(report) &&
-                !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
+                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
             const shouldHideThreadDividerLine = sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction

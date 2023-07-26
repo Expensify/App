@@ -15,6 +15,9 @@ import withLocalize from '../../../components/withLocalize';
 import ReportActionItem from './ReportActionItem';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import * as ReportUtils from '../../../libs/ReportUtils';
+import TaskView from '../../../components/ReportActionItem/TaskView';
+import MoneyReportView from '../../../components/ReportActionItem/MoneyReportView';
 
 const propTypes = {
     /** Flag to show, hide the thread divider line */
@@ -50,6 +53,22 @@ function ReportActionItemParentAction(props) {
     // In case of transaction threads, we do not want to render the parent report action.
     if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
         return null;
+    }
+    if (ReportUtils.isTaskReport(props.report)) {
+        return (
+            <TaskView
+                report={props.report}
+                shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
+            />
+        );
+    }
+    if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
+        return (
+            <MoneyReportView
+                report={props.report}
+                shouldShowHorizontalRule={!props.isOnlyReportAction}
+            />
+        );
     }
     return (
         <OfflineWithFeedback
