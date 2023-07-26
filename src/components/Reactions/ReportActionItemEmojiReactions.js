@@ -109,44 +109,45 @@ function ReportActionItemEmojiReactions(props) {
     return (
         totalReactionCount > 0 && (
             <View
-            ref={popoverReactionListAnchor}
-            style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
-        >
-            {_.map(formattedReactions, (reaction) => {
-                if (reaction !== null) {
-                    return (
-                        <Tooltip
-                            renderTooltipContent={() => (
-                                <ReactionTooltipContent
-                                    emojiName={EmojiUtils.getLocalizedEmojiName(reaction.reactionEmojiName, props.preferredLocale)}
-                                    emojiCodes={reaction.emojiCodes}
-                                    accountIDs={reaction.reactionUserAccountIDs}
-                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
-                                />
-                            )}
-                            renderTooltipContentKey={[..._.map(reaction.reactionUsers, (user) => user.toString()), ...reaction.emojiCodes]}
-                            key={reaction.reactionEmojiName}
-                        >
-                            <View>
-                                <EmojiReactionBubble
-                                    ref={props.forwardedRef}
-                                    count={reaction.reactionCount}
-                                    emojiCodes={reaction.emojiCodes}
-                                    onPress={reaction.onPress}
-                                    reactionUsers={reaction.reactionUsers}
-                                    hasUserReacted={reaction.hasUserReacted}
-                                    onReactionListOpen={reaction.onReactionListOpen}
-                                />
-                            </View>
-                        </Tooltip>
-                    );
-                }
-            })}
+                ref={popoverReactionListAnchor}
+                style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
+            >
+                {_.map(formattedReactions, (reaction) => {
+                    if (reaction !== null) {
+                        return (
+                            <Tooltip
+                                renderTooltipContent={() => (
+                                    <ReactionTooltipContent
+                                        emojiName={EmojiUtils.getLocalizedEmojiName(reaction.reactionEmojiName, props.preferredLocale)}
+                                        emojiCodes={reaction.emojiCodes}
+                                        accountIDs={reaction.reactionUserAccountIDs}
+                                        currentUserPersonalDetails={props.currentUserPersonalDetails}
+                                    />
+                                )}
+                                renderTooltipContentKey={[..._.map(reaction.reactionUsers, (user) => user.toString()), ...reaction.emojiCodes]}
+                                key={reaction.reactionEmojiName}
+                            >
+                                <View>
+                                    <EmojiReactionBubble
+                                        ref={props.forwardedRef}
+                                        count={reaction.reactionCount}
+                                        emojiCodes={reaction.emojiCodes}
+                                        onPress={reaction.onPress}
+                                        reactionUsers={reaction.reactionUsers}
+                                        hasUserReacted={reaction.hasUserReacted}
+                                        onReactionListOpen={reaction.onReactionListOpen}
+                                    />
+                                </View>
+                            </Tooltip>
+                        );
+                    }
+                })}
                 <AddReactionBubble
                     onSelectEmoji={props.toggleReaction}
                     reportAction={{reportActionID: props.reportActionID}}
                 />
-        </View>)
+            </View>
+        )
     );
 }
 
