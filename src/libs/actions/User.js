@@ -259,7 +259,7 @@ function clearContactMethodErrors(contactMethod, fieldName) {
 }
 
 /**
- * Reset validate code sent state on a contact method
+ * Resets the state indicating whether a validation code has been sent to a specific contact method.
  *
  * @param {String} contactMethod
  */
