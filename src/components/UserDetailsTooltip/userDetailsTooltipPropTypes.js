@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
 import avatarPropTypes from '../avatarPropTypes';
-import {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** User's Account ID */
@@ -27,8 +26,9 @@ const propTypes = {
     /** The accountID of the copilot who took this action on behalf of the user */
     delegateAccountID: PropTypes.number,
 
-    /** Localization props */
-    ...withLocalizePropTypes,
+    /** Any additional amount to manually adjust the horizontal position of the tooltip.
+     A positive value shifts the tooltip to the right, and a negative value shifts it to the left. */
+    shiftHorizontal: PropTypes.oneOfType([PropTypes.number, PropTypes.func]),
 };
 
 const defaultProps = {
@@ -37,6 +37,7 @@ const defaultProps = {
     personalDetailsList: {},
     delegateAccountID: 0,
     icon: undefined,
+    shiftHorizontal: 0,
 };
 
 export {propTypes, defaultProps};

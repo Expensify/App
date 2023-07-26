@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -23,6 +24,7 @@ import * as IOU from '../../libs/actions/IOU';
 import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
+import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -37,18 +39,19 @@ const propTypes = {
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
-    chatReport: PropTypes.shape({
-        /** Whether the chat report has an outstanding IOU */
-        hasOutstandingIOU: PropTypes.bool.isRequired,
-    }),
+    chatReport: reportPropTypes,
+
+    /** Extra styles to pass to View wrapper */
+    // eslint-disable-next-line react/forbid-prop-types
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** AccountID of the manager in this iou report */
+        managerID: PropTypes.number,
 
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
+        /** AccountID of the creator of this iou report */
+        ownerAccountID: PropTypes.number,
 
         /** Outstanding amount in cents of this transaction */
         total: PropTypes.number,
@@ -58,12 +61,15 @@ const propTypes = {
 
         /** Does the iouReport have an outstanding IOU? */
         hasOutstandingIOU: PropTypes.bool,
+
+        /** Is the iouReport waiting for the submitter to add a credit bank account? */
+        isWaitingOnBankAccount: PropTypes.bool,
     }),
 
     /** Session info for the currently logged in user. */
     session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
+        /** Currently logged in user accountID */
+        accountID: PropTypes.number,
     }),
 
     /** Popover context menu anchor, used for showing context menu */
@@ -78,23 +84,38 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: null,
     chatReport: {},
+    containerStyles: [],
     iouReport: {},
     checkIfContextMenuActive: () => {},
     session: {
-        email: null,
+        accountID: null,
     },
 };
 
 function ReportPreview(props) {
-    const reportAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.iouReport), props.iouReport.currency);
-    const managerEmail = props.iouReport.managerEmail || '';
-    const managerAccountID = props.iouReport.managerID || 0;
-    const managerName =
-        (ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerAccountID, true)) || managerEmail;
-    const isCurrentUserManager = managerEmail === lodashGet(props.session, 'email', null);
+    const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
+    const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
+    let reportAmount = ReportUtils.getMoneyRequestTotal(props.iouReport);
+    if (reportAmount) {
+        reportAmount = CurrencyUtils.convertToDisplayString(reportAmount, props.iouReport.currency);
+    } else {
+        // If iouReport is not available, get amount from the action message (Ex: "Domain20821's Workspace owes $33.00" or "paid ₫60" or "paid -₫60 elsewhere")
+        reportAmount = '';
+        const actionMessage = lodashGet(props.action, ['message', 0, 'text'], '');
+        const splits = actionMessage.split(' ');
+        for (let i = 0; i < splits.length; i++) {
+            if (/\d/.test(splits[i])) {
+                reportAmount = splits[i];
+            }
+        }
+    }
+
+    const managerName = ReportUtils.isPolicyExpenseChat(props.chatReport) ? ReportUtils.getPolicyName(props.chatReport) : ReportUtils.getDisplayNameForParticipant(managerID, true);
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
+    const previewMessage = props.translate(ReportUtils.isSettled(props.iouReportID) || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
+
     return (
-        <View style={styles.chatItemMessage}>
+        <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
                 onPress={() => {
                     Navigation.navigate(ROUTES.getReportRoute(props.iouReportID));
@@ -106,12 +127,10 @@ function ReportPreview(props) {
                 accessibilityRole="button"
                 accessibilityLabel={props.translate('iou.viewDetails')}
             >
-                <View style={styles.iouPreviewBox}>
+                <View style={[styles.iouPreviewBox, props.isHovered ? styles.iouPreviewBoxHover : undefined]}>
                     <View style={styles.flexRow}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>
-                                {props.translate(ReportUtils.isSettled(props.iouReportID) ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName})}
-                            </Text>
+                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{previewMessage}</Text>
                         </View>
                     </View>
                     <View style={styles.flexRow}>
@@ -127,7 +146,7 @@ function ReportPreview(props) {
                             )}
                         </View>
                     </View>
-                    {isCurrentUserManager && !ReportUtils.isSettled(props.iouReport.reportID) && (
+                    {!_.isEmpty(props.iouReport) && isCurrentUserManager && !ReportUtils.isSettled(props.iouReportID) && !props.iouReport.isWaitingOnBankAccount && (
                         <SettlementButton
                             currency={props.iouReport.currency}
                             policyID={props.iouReport.policyID}

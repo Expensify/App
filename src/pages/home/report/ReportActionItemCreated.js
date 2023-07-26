@@ -73,7 +73,7 @@ function ReportActionItemCreated(props) {
                 >
                     <PressableWithoutFeedback
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                        style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
+                        style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
                         accessibilityLabel={props.translate('common.details')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >

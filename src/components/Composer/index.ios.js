@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef, useMemo, useCallback} from 'react';
 import {StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -63,59 +63,68 @@ const defaultProps = {
     style: null,
 };
 
-class Composer extends React.Component {
-    constructor(props) {
-        super(props);
+function Composer({shouldClear, onClear, isDisabled, maxLines, forwardedRef, isComposerFullSize, setIsFullComposerAvailable, ...props}) {
+    const textInput = useRef(null);
 
-        this.state = {
-            propStyles: StyleSheet.flatten(this.props.style),
-        };
-    }
+    /**
+     * Set the TextInput Ref
+     * @param {Element} el
+     */
+    const setTextInputRef = useCallback((el) => {
+        textInput.current = el;
+        if (!_.isFunction(forwardedRef) || textInput.current === null) {
+            return;
+        }
 
-    componentDidMount() {
         // This callback prop is used by the parent component using the constructor to
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (!this.props.forwardedRef || !_.isFunction(this.props.forwardedRef)) {
+        forwardedRef(textInput.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (!shouldClear) {
             return;
         }
+        textInput.current.clear();
+        onClear();
+    }, [shouldClear, onClear]);
 
-        this.props.forwardedRef(this.textInput);
-    }
+    /**
+     * Set maximum number of lines
+     * @return {Number}
+     */
+    const maximumNumberOfLines = useMemo(() => {
+        if (isComposerFullSize) return undefined;
+        return maxLines;
+    }, [isComposerFullSize, maxLines]);
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.shouldClear || !this.props.shouldClear) {
-            return;
-        }
+    const styles = useMemo(() => {
+        StyleSheet.flatten(props.style);
+    }, [props.style]);
 
-        this.textInput.clear();
-        this.props.onClear();
-    }
-
-    render() {
-        // On native layers we like to have the Text Input not focused so the
-        // user can read new chats without the keyboard in the way of the view.
-        // On Android, the selection prop is required on the TextInput but this prop has issues on IOS
-        // https://github.com/facebook/react-native/issues/29063
-        const propsToPass = _.omit(this.props, 'selection');
-        return (
-            <RNTextInput
-                autoComplete="off"
-                placeholderTextColor={themeColors.placeholderText}
-                ref={(el) => (this.textInput = el)}
-                onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines(this.props, e)}
-                rejectResponderTermination={false}
-                textAlignVertical="center"
-                smartInsertDelete={false}
-                maximumNumberOfLines={this.props.isComposerFullSize ? undefined : this.props.maxLines}
-                style={this.state.propStyles}
-                /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...propsToPass}
-                editable={!this.props.isDisabled}
-            />
-        );
-    }
+    // On native layers we like to have the Text Input not focused so the
+    // user can read new chats without the keyboard in the way of the view.
+    // On Android the selection prop is required on the TextInput but this prop has issues on IOS
+    const propsToPass = _.omit(props, 'selection');
+    return (
+        <RNTextInput
+            autoComplete="off"
+            placeholderTextColor={themeColors.placeholderText}
+            ref={setTextInputRef}
+            onContentSizeChange={(e) => ComposerUtils.updateNumberOfLines({maxLines, isComposerFullSize, isDisabled, setIsFullComposerAvailable}, e)}
+            rejectResponderTermination={false}
+            textAlignVertical="center"
+            smartInsertDelete={false}
+            maximumNumberOfLines={maximumNumberOfLines}
+            style={styles}
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...propsToPass}
+            editable={!isDisabled}
+        />
+    );
 }
 
 Composer.propTypes = propTypes;

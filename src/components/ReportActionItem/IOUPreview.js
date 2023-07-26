@@ -57,14 +57,8 @@ const propTypes = {
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
-
         /** Account ID of the manager in this iou report */
         managerID: PropTypes.number,
-
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
 
         /** Account ID of the creator of this iou report */
         ownerAccountID: PropTypes.number,
@@ -171,7 +165,13 @@ function IOUPreview(props) {
             return props.translate('iou.split');
         }
 
-        return `${props.translate('iou.cash')}${!props.iouReport.hasOutstandingIOU ? ` • ${props.translate('iou.settledExpensify')}` : ''}`;
+        let message = props.translate('iou.cash');
+        if (props.iouReport.isWaitingOnBankAccount) {
+            message += ` • ${props.translate('iou.pending')}`;
+        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
+            message += ` • ${props.translate('iou.settledExpensify')}`;
+        }
+        return message;
     };
 
     const childContainer = (
@@ -206,7 +206,7 @@ function IOUPreview(props) {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
-                            {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
+                            {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                 <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
                                         src={Expensicons.Checkmark}

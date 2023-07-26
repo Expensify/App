@@ -8,7 +8,7 @@ function DisplayNames(props) {
         <Text
             accessibilityLabel={props.accessibilityLabel}
             style={props.textStyles}
-            numberOfLines={props.numberOfLines}
+            numberOfLines={props.numberOfLines || undefined}
         >
             {props.fullTitle}
         </Text>

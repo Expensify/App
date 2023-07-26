@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useCallback} from 'react';
+import _ from 'underscore';
 import {Image} from 'react-native';
 import lodashGet from 'lodash/get';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
@@ -9,7 +10,8 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
-import withLocalize from '../../components/withLocalize';
+import useLocalize from '../../hooks/useLocalize';
+import {withLocalizePropTypes} from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import exampleCheckImage from './exampleCheckImage';
@@ -19,115 +21,120 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import StepPropTypes from './StepPropTypes';
 
 const propTypes = {
-    ...StepPropTypes,
+    ..._.omit(StepPropTypes, _.keys(withLocalizePropTypes)),
 };
 
-class BankAccountManualStep extends React.Component {
-    constructor(props) {
-        super(props);
-        this.submit = this.submit.bind(this);
-        this.validate = this.validate.bind(this);
-    }
-
+function BankAccountManualStep(props) {
+    const {translate, preferredLocale} = useLocalize();
+    const {reimbursementAccount, reimbursementAccountDraft} = props;
     /**
      * @param {Object} values - form input values passed by the Form component
      * @returns {Object}
      */
-    validate(values) {
-        const errorFields = {};
-        const routingNumber = values.routingNumber && values.routingNumber.trim();
+    const validate = useCallback(
+        (values) => {
+            const errorFields = {};
+            const routingNumber = values.routingNumber && values.routingNumber.trim();
 
-        if (
-            !values.accountNumber ||
-            (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
-        ) {
-            errorFields.accountNumber = 'bankAccount.error.accountNumber';
-        } else if (values.accountNumber === routingNumber) {
-            errorFields.accountNumber = this.props.translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
-        }
-        if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
-            errorFields.routingNumber = 'bankAccount.error.routingNumber';
-        }
-        if (!values.acceptTerms) {
-            errorFields.acceptTerms = 'common.error.acceptTerms';
-        }
+            if (
+                !values.accountNumber ||
+                (!CONST.BANK_ACCOUNT.REGEX.US_ACCOUNT_NUMBER.test(values.accountNumber.trim()) && !CONST.BANK_ACCOUNT.REGEX.MASKED_US_ACCOUNT_NUMBER.test(values.accountNumber.trim()))
+            ) {
+                errorFields.accountNumber = 'bankAccount.error.accountNumber';
+            } else if (values.accountNumber === routingNumber) {
+                errorFields.accountNumber = translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
+            }
+            if (!routingNumber || !CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber)) {
+                errorFields.routingNumber = 'bankAccount.error.routingNumber';
+            }
+            if (!values.acceptTerms) {
+                errorFields.acceptTerms = 'common.error.acceptTerms';
+            }
 
-        return errorFields;
-    }
+            return errorFields;
+        },
+        [translate],
+    );
 
-    submit(values) {
-        BankAccounts.connectBankAccountManually(
-            lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') || 0,
-            values.accountNumber,
-            values.routingNumber,
-            lodashGet(this.props, ['reimbursementAccountDraft', 'plaidMask']),
-        );
-    }
+    const submit = useCallback(
+        (values) => {
+            BankAccounts.connectBankAccountManually(
+                lodashGet(reimbursementAccount, ['achData.bankAccountID']) || 0,
+                values.accountNumber,
+                values.routingNumber,
+                lodashGet(reimbursementAccountDraft, ['plaidMask']),
+            );
+        },
+        [reimbursementAccount, reimbursementAccountDraft],
+    );
 
-    render() {
-        const shouldDisableInputs = Boolean(lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID'));
+    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, ['achData.bankAccountID']));
 
-        return (
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                <HeaderWithBackButton
-                    title={this.props.translate('workspace.common.connectBankAccount')}
-                    stepCounter={{step: 1, total: 5}}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
-                    onBackButtonPress={this.props.onBackButtonPress}
+    return (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            <HeaderWithBackButton
+                title={translate('workspace.common.connectBankAccount')}
+                stepCounter={{step: 1, total: 5}}
+                shouldShowGetAssistanceButton
+                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_BANK_ACCOUNT}
+                onBackButtonPress={props.onBackButtonPress}
+            />
+            <Form
+                formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+                onSubmit={submit}
+                validate={validate}
+                submitButtonText={translate('common.continue')}
+                style={[styles.mh5, styles.flexGrow1]}
+            >
+                <Text style={[styles.mb5]}>{translate('bankAccount.checkHelpLine')}</Text>
+                <Image
+                    resizeMode="contain"
+                    style={[styles.exampleCheckImage, styles.mb5]}
+                    source={exampleCheckImage(preferredLocale)}
                 />
-                <Form
-                    formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-                    onSubmit={this.submit}
-                    validate={this.validate}
-                    submitButtonText={this.props.translate('common.continue')}
-                    style={[styles.mh5, styles.flexGrow1]}
-                >
-                    <Text style={[styles.mb5]}>{this.props.translate('bankAccount.checkHelpLine')}</Text>
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.exampleCheckImage, styles.mb5]}
-                        source={exampleCheckImage(this.props.preferredLocale)}
-                    />
-                    <TextInput
-                        autoFocus
-                        shouldDelayFocus={shouldDelayFocus}
-                        inputID="routingNumber"
-                        label={this.props.translate('bankAccount.routingNumber')}
-                        defaultValue={this.props.getDefaultStateForField('routingNumber', '')}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        disabled={shouldDisableInputs}
-                        shouldSaveDraft
-                        shouldUseDefaultValue={shouldDisableInputs}
-                    />
-                    <TextInput
-                        inputID="accountNumber"
-                        containerStyles={[styles.mt4]}
-                        label={this.props.translate('bankAccount.accountNumber')}
-                        defaultValue={this.props.getDefaultStateForField('accountNumber', '')}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
-                        disabled={shouldDisableInputs}
-                        shouldSaveDraft
-                        shouldUseDefaultValue={shouldDisableInputs}
-                    />
-                    <CheckboxWithLabel
-                        accessibilityLabel={`${this.props.translate('common.iAcceptThe')} ${this.props.translate('common.expensifyTermsOfService')}`}
-                        style={styles.mt4}
-                        inputID="acceptTerms"
-                        LabelComponent={() => (
-                            <Text>
-                                {this.props.translate('common.iAcceptThe')}
-                                <TextLink href={CONST.TERMS_URL}>{this.props.translate('common.expensifyTermsOfService')}</TextLink>
-                            </Text>
-                        )}
-                        defaultValue={this.props.getDefaultStateForField('acceptTerms', false)}
-                        shouldSaveDraft
-                    />
-                </Form>
-            </ScreenWrapper>
-        );
-    }
+                <TextInput
+                    autoFocus
+                    shouldDelayFocus={shouldDelayFocus}
+                    inputID="routingNumber"
+                    label={translate('bankAccount.routingNumber')}
+                    accessibilityLabel={translate('bankAccount.routingNumber')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    defaultValue={props.getDefaultStateForField('routingNumber', '')}
+                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    disabled={shouldDisableInputs}
+                    shouldSaveDraft
+                    shouldUseDefaultValue={shouldDisableInputs}
+                />
+                <TextInput
+                    inputID="accountNumber"
+                    containerStyles={[styles.mt4]}
+                    label={translate('bankAccount.accountNumber')}
+                    accessibilityLabel={translate('bankAccount.accountNumber')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    defaultValue={props.getDefaultStateForField('accountNumber', '')}
+                    keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
+                    disabled={shouldDisableInputs}
+                    shouldSaveDraft
+                    shouldUseDefaultValue={shouldDisableInputs}
+                />
+                <CheckboxWithLabel
+                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.expensifyTermsOfService')}`}
+                    style={styles.mt4}
+                    inputID="acceptTerms"
+                    LabelComponent={() => (
+                        <Text>
+                            {translate('common.iAcceptThe')}
+                            <TextLink href={CONST.TERMS_URL}>{translate('common.expensifyTermsOfService')}</TextLink>
+                        </Text>
+                    )}
+                    defaultValue={props.getDefaultStateForField('acceptTerms', false)}
+                    shouldSaveDraft
+                />
+            </Form>
+        </ScreenWrapper>
+    );
 }
 
 BankAccountManualStep.propTypes = propTypes;
-export default withLocalize(BankAccountManualStep);
+BankAccountManualStep.displayName = 'BankAccountManualStep';
+export default BankAccountManualStep;

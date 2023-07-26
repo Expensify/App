@@ -11,7 +11,7 @@ import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
-import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
+import useNetwork from '../hooks/useNetwork';
 import * as Browser from '../libs/Browser';
 
 const propTypes = {
@@ -142,14 +142,16 @@ function MagicCodeInput(props) {
         props.onFulfill(props.value);
     };
 
-    useOnNetworkReconnect(validateAndSubmit);
+    useNetwork({onReconnect: validateAndSubmit});
 
     useEffect(() => {
         validateAndSubmit();
 
-        // We have not added the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
+        // We have not added:
+        // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
+        // + the props.onFulfill as the dependency because props.onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.value, props.shouldSubmitOnComplete, props.onFulfill]);
+    }, [props.value, props.shouldSubmitOnComplete]);
 
     useEffect(() => {
         if (!props.autoFocus) {
@@ -348,6 +350,7 @@ function MagicCodeInput(props) {
                                 onFocus={onFocus}
                                 caretHidden={isMobileSafari}
                                 inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                     </View>

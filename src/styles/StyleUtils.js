@@ -97,6 +97,19 @@ function getEmptyAvatarStyle(size) {
 }
 
 /**
+ * Return the width style from an avatar size constant
+ *
+ * @param {String} size
+ * @returns {Object}
+ */
+function getAvatarWidthStyle(size) {
+    const avatarSize = getAvatarSize(size);
+    return {
+        width: avatarSize,
+    };
+}
+
+/**
  * Return the style from an avatar size constant
  *
  * @param {String} size
@@ -612,7 +625,7 @@ function getLoginPagePromoStyle() {
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
         },
         {
-            backgroundColor: colors.floralwhite,
+            backgroundColor: colors.ivory,
             backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/cpa-card.svg`,
             redirectUri: `${CONST.USE_EXPENSIFY_URL}/accountants`,
         },
@@ -650,6 +663,7 @@ function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
     return {
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
+        ...styles.cursorDefault,
         position: 'absolute',
         zIndex: 1,
     };
@@ -1102,13 +1116,13 @@ function getEmojiReactionBubbleTextStyle(isContextMenu = false) {
     if (isContextMenu) {
         return {
             fontSize: 17,
-            lineHeight: 28,
+            lineHeight: 24,
         };
     }
 
     return {
         fontSize: 15,
-        lineHeight: 24,
+        lineHeight: 22,
     };
 }
 
@@ -1209,6 +1223,22 @@ function getMentionTextColor(isOurMention) {
 }
 
 /**
+ * Returns padding vertical based on number of lines
+ * @param {Number} numberOfLines
+ * @returns {Object}
+ */
+function getComposeTextAreaPadding(numberOfLines) {
+    let paddingValue = 5;
+    if (numberOfLines === 1) paddingValue = 9;
+    // In case numberOfLines = 3, there will be a Expand Icon appearing at the top left, so it has to be recalculated so that the textArea can be full height
+    if (numberOfLines === 3) paddingValue = 8;
+    return {
+        paddingTop: paddingValue,
+        paddingBottom: paddingValue,
+    };
+}
+
+/**
  * Returns style object for the mobile on WEB
  * @param {Number} windowHeight
  * @param {Number} viewportOffsetTop
@@ -1230,6 +1260,17 @@ function getWrappingStyle(isExtraSmallScreenWidth) {
 }
 
 /**
+ * Returns the text container styles for menu items depending on if the menu item container a small avatar
+ * @param {Boolean} isSmallAvatarSubscriptMenu
+ * @returns {Number}
+ */
+function getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu) {
+    return {
+        minHeight: isSmallAvatarSubscriptMenu ? variables.avatarSizeSubscript : variables.componentSizeNormal,
+    };
+}
+
+/**
  * Returns link styles based on whether the link is disabled or not
  * @param {Boolean} isDisabled
  * @returns {Object}
@@ -1246,8 +1287,29 @@ function getDisabledLinkStyles(isDisabled = false) {
     };
 }
 
+/**
+ * Returns the checkbox container style
+ * @param {Number} size
+ * @param {Number} borderRadius
+ * @returns {Object}
+ */
+function getCheckboxContainerStyle(size, borderRadius) {
+    return {
+        backgroundColor: themeColors.componentBG,
+        height: size,
+        width: size,
+        borderColor: themeColors.borderLighter,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // eslint-disable-next-line object-shorthand
+        borderRadius: borderRadius,
+    };
+}
+
 export {
     getAvatarSize,
+    getAvatarWidthStyle,
     getAvatarStyle,
     getAvatarExtraFontSizeStyle,
     getAvatarBorderWidth,
@@ -1311,8 +1373,11 @@ export {
     getEmojiPickerListHeight,
     getMentionStyle,
     getMentionTextColor,
+    getComposeTextAreaPadding,
     getHeightOfMagicCodeInput,
     getOuterModalStyle,
     getWrappingStyle,
+    getMenuItemTextContainerStyle,
     getDisabledLinkStyles,
+    getCheckboxContainerStyle,
 };

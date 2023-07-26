@@ -10,6 +10,7 @@ import Timing from '../../../libs/actions/Timing';
 import CONST from '../../../CONST';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import useCopySelectionHelper from '../../../hooks/useCopySelectionHelper';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Performance from '../../../libs/Performance';
@@ -17,7 +18,6 @@ import {withNetwork} from '../../../components/OnyxProvider';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import networkPropTypes from '../../../components/networkPropTypes';
 import ReportActionsList from './ReportActionsList';
-import CopySelectionHelper from '../../../components/CopySelectionHelper';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
@@ -60,6 +60,8 @@ const defaultProps = {
 
 function ReportActionsView(props) {
     const context = useContext(ReportScreenContext);
+
+    useCopySelectionHelper();
 
     const reportScrollManager = useReportScrollManager();
 
@@ -240,7 +242,7 @@ function ReportActionsView(props) {
         // any `pendingFields.createChat` or `pendingFields.addWorkspaceRoom` fields are set to null.
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !props.report.pendingFields || (!props.report.pendingFields.addWorkspaceRoom && !props.report.pendingFields.createChat);
-        if (!didSubscribeToReportTypingEvents && didCreateReportSuccessfully) {
+        if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
             Report.subscribeToReportTypingEvents(props.report.reportID);
             didSubscribeToReportTypingEvents.current = true;
         }
@@ -334,12 +336,9 @@ function ReportActionsView(props) {
                 isLoadingMoreReportActions={props.report.isLoadingMoreReportActions}
                 loadMoreChats={loadMoreChats}
                 newMarkerReportActionID={newMarkerReportActionID}
+                policy={props.policy}
             />
-            <PopoverReactionList
-                ref={context.reactionListRef}
-                report={props.report}
-            />
-            <CopySelectionHelper />
+            <PopoverReactionList ref={context.reactionListRef} />
         </>
     );
 }
@@ -390,6 +389,22 @@ function arePropsEqual(oldProps, newProps) {
     }
 
     if (lodashGet(newProps, 'policy.name') !== lodashGet(oldProps, 'policy.name')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.reportName') !== lodashGet(oldProps, 'report.reportName')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.description') !== lodashGet(oldProps, 'report.description')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.managerID') !== lodashGet(oldProps, 'report.managerID')) {
+        return false;
+    }
+
+    if (lodashGet(newProps, 'report.managerEmail') !== lodashGet(oldProps, 'report.managerEmail')) {
         return false;
     }
 
