@@ -1,39 +1,37 @@
 import React, {useMemo} from 'react';
-import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import OfflineWithFeedback from '../../components/OfflineWithFeedback';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import themeColors from '../../styles/themes/default';
 import * as PolicyUtils from '../../libs/PolicyUtils';
 import MenuItem from '../../components/MenuItem';
 import * as Policy from '../../libs/actions/Policy';
 import policyMemberPropType from '../policyMemberPropType';
-import Permissions from '../../libs/Permissions';
 import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
-import BlockingView from '../../components/BlockingViews/BlockingView';
-import {withNetwork} from '../../components/OnyxProvider';
 import * as ReimbursementAccountProps from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import withWindowDimensions from '../../components/withWindowDimensions';
 import * as App from '../../libs/actions/App';
+import useLocalize from '../../hooks/useLocalize';
+import useNetwork from '../../hooks/useNetwork';
+import usePermissions from '../../hooks/usePermissions';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
+import SCREENS from '../../SCREENS';
+import * as LottieAnimations from '../../components/LottieAnimations';
+import * as Illustrations from '../../components/Icon/Illustrations';
+import FeatureList from '../../components/FeatureList';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The list of this user's policies */
     policies: PropTypes.objectOf(
         PropTypes.shape({
@@ -65,11 +63,6 @@ const propTypes = {
         /** The user's current wallet balance */
         currentBalance: PropTypes.number,
     }),
-
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -79,8 +72,22 @@ const defaultProps = {
     userWallet: {
         currentBalance: 0,
     },
-    betas: [],
 };
+
+const workspaceFeatures = [
+    {
+        icon: Illustrations.MoneyReceipts,
+        translationKey: 'workspace.emptyWorkspace.features.trackAndCollect',
+    },
+    {
+        icon: Illustrations.CreditCardsNew,
+        translationKey: 'workspace.emptyWorkspace.features.companyCards',
+    },
+    {
+        icon: Illustrations.MoneyWings,
+        translationKey: 'workspace.emptyWorkspace.features.reimbursements',
+    },
+];
 
 /**
  * Dismisses the errors on one item
@@ -101,13 +108,18 @@ function dismissWorkspaceError(policyID, pendingAction) {
     throw new Error('Not implemented');
 }
 
-function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet, betas, network, translate, isSmallScreenWidth}) {
+function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, userWallet}) {
+    const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {canUseWallet} = usePermissions();
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     /**
      * @param {Boolean} isPaymentItem whether the item being rendered is the payments menu item
      * @returns {Number} the user wallet balance
      */
     function getWalletBalance(isPaymentItem) {
-        return isPaymentItem && Permissions.canUseWallet(betas) ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
+        return isPaymentItem && canUseWallet ? CurrencyUtils.convertToDisplayString(userWallet.currentBalance) : undefined;
     }
 
     /**
@@ -153,7 +165,7 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
     const workspaces = useMemo(() => {
         const reimbursementAccountBrickRoadIndicator = !_.isEmpty(reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
         return _.chain(policies)
-            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, network.isOffline))
+            .filter((policy) => PolicyUtils.shouldShowPolicy(policy, isOffline))
             .map((policy) => ({
                 title: policy.name,
                 icon: policy.avatar ? policy.avatar : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
@@ -169,32 +181,33 @@ function WorkspacesListPage({policies, allPolicyMembers, reimbursementAccount, u
             }))
             .sortBy((policy) => policy.title.toLowerCase())
             .value();
-    }, [reimbursementAccount.errors, policies, network.isOffline, allPolicyMembers]);
+    }, [reimbursementAccount.errors, policies, isOffline, allPolicyMembers]);
 
     return (
-        <ScreenWrapper>
-            <HeaderWithBackButton
-                title={translate('common.workspaces')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-            />
-            {_.isEmpty(workspaces) ? (
-                <BlockingView
-                    icon={Expensicons.Building}
-                    title={translate('workspace.emptyWorkspace.title')}
-                    subtitle={translate('workspace.emptyWorkspace.subtitle')}
-                />
-            ) : (
-                <ScrollView style={styles.flex1}>{_.map(workspaces, (item, index) => getMenuItem(item, index))}</ScrollView>
-            )}
-            <FixedFooter style={[styles.flexGrow0]}>
+        <IllustratedHeaderPageLayout
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.WORKSPACES]}
+            illustration={LottieAnimations.WorkspacePlanet}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+            title={translate('common.workspaces')}
+            footer={
                 <Button
                     accessibilityLabel={translate('workspace.new.newWorkspace')}
                     success
                     text={translate('workspace.new.newWorkspace')}
                     onPress={() => App.createWorkspaceAndNavigateToIt('', false, '', false, !isSmallScreenWidth)}
                 />
-            </FixedFooter>
-        </ScreenWrapper>
+            }
+        >
+            {_.isEmpty(workspaces) ? (
+                <FeatureList
+                    menuItems={workspaceFeatures}
+                    headline="workspace.emptyWorkspace.title"
+                    description="workspace.emptyWorkspace.subtitle"
+                />
+            ) : (
+                _.map(workspaces, (item, index) => getMenuItem(item, index))
+            )}
+        </IllustratedHeaderPageLayout>
     );
 }
 
@@ -202,10 +215,7 @@ WorkspacesListPage.propTypes = propTypes;
 WorkspacesListPage.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
     withPolicyAndFullscreenLoading,
-    withNetwork(),
     withOnyx({
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
@@ -218,9 +228,6 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(WorkspacesListPage);

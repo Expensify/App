@@ -338,10 +338,7 @@ function ReportActionsView(props) {
                 newMarkerReportActionID={newMarkerReportActionID}
                 policy={props.policy}
             />
-            <PopoverReactionList
-                ref={context.reactionListRef}
-                report={props.report}
-            />
+            <PopoverReactionList ref={context.reactionListRef} />
         </>
     );
 }
