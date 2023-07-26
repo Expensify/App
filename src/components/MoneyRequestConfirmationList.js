@@ -69,8 +69,6 @@ const propTypes = {
 
     ...withCurrentUserPersonalDetailsPropTypes,
 
-    /* Onyx Props */
-
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
@@ -81,6 +79,12 @@ const propTypes = {
 
     /** The reportID of the request */
     reportID: PropTypes.string,
+
+    /** File path of the receipt */
+    receiptPath: PropTypes.string,
+
+    /** File source of the receipt */
+    receiptSource: PropTypes.string,
 };
 
 const defaultProps = {
@@ -98,6 +102,8 @@ const defaultProps = {
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
+    receiptPath: '',
+    receiptSource: '',
 };
 
 function MoneyRequestConfirmationList(props) {
@@ -122,11 +128,13 @@ function MoneyRequestConfirmationList(props) {
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
-        const text = props.receiptPath
-            ? translate('iou.request')
-            : translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-                  amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode),
-              });
+        let text;
+        if (props.receiptPath) {
+            text = translate('iou.request');
+        } else {
+            const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
+            text = translate(translationKey, {amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode)});
+        }
         return [
             {
                 text: text[0].toUpperCase() + text.slice(1),

@@ -10,7 +10,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import TabSelector from '../../components/TabSelector';
+import TabSelector from '../../components/TabSelector/TabSelector';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import * as IOUUtils from '../../libs/IOUUtils';
@@ -53,7 +53,7 @@ const propTypes = {
     }),
 
     /** Which tab has been selected */
-    tabSelected: PropTypes.string,
+    selectedTab: PropTypes.string,
 
     ...withCurrentUserPersonalDetailsPropTypes,
 };
@@ -72,7 +72,7 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    tabSelected: CONST.TAB.TAB_MANUAL,
+    selectedTab: CONST.TAB.TAB_MANUAL,
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
@@ -132,7 +132,7 @@ function MoneyRequestSelectorPage(props) {
                                 onBackButtonPress={navigateBack}
                             />
                             <TabSelector moneyRequestID={`${iouType.current}${reportID.current}`} />
-                            {props.tabSelected === CONST.TAB.TAB_MANUAL ? (
+                            {props.selectedTab === CONST.TAB.TAB_MANUAL ? (
                                 <MoneyRequestAmountPage
                                     route={props.route}
                                     report={props.report}
@@ -168,6 +168,6 @@ export default compose(
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
-        tabSelected: {key: ONYXKEYS.TAB_SELECTOR},
+        selectedTab: {key: ONYXKEYS.SELECTED_TAB},
     }),
 )(MoneyRequestSelectorPage);

@@ -1,10 +1,10 @@
 import {Text} from 'react-native';
 import React from 'react';
 import PropTypes from 'prop-types';
-import Icon from './Icon';
-import themeColors from '../styles/themes/default';
-import styles from '../styles/styles';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import Icon from '../Icon';
+import themeColors from '../../styles/themes/default';
+import styles from '../../styles/styles';
+import PressableWithFeedback from '../Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Function to call when onPress */
@@ -14,7 +14,7 @@ const propTypes = {
     icon: PropTypes.func,
 
     /** True if tab is the selected item */
-    selected: PropTypes.bool,
+    isSelected: PropTypes.bool,
 
     /** Title of the tab */
     title: PropTypes.string,
@@ -23,12 +23,12 @@ const propTypes = {
 const defaultProps = {
     onPress: () => {},
     icon: () => {},
-    selected: false,
+    isSelected: false,
     title: '',
 };
 
 function TabSelectorItem(props) {
-    const textStyle = props.selected ? styles.tabSelected : styles.tabDeselected;
+    const textStyle = props.isSelected ? styles.tabSelected : styles.tabDeselected;
     return (
         <>
             <PressableWithFeedback
@@ -38,7 +38,7 @@ function TabSelectorItem(props) {
             >
                 <Icon
                     src={props.icon}
-                    fill={props.selected ? themeColors.iconMenu : themeColors.icon}
+                    fill={props.isSelected ? themeColors.iconMenu : themeColors.icon}
                 />
                 <Text style={textStyle}>{props.title}</Text>
             </PressableWithFeedback>

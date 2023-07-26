@@ -237,7 +237,7 @@ export default {
     IS_USING_MEMORY_ONLY_KEYS: 'isUsingMemoryOnlyKeys',
 
     // Manual request tab selector
-    TAB_SELECTOR: 'tabSelector',
+    SELECTED_TAB: 'selectedTab',
 
     // Receipt upload modal
     RECEIPT_MODAL: 'receiptModal',

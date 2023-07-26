@@ -98,13 +98,6 @@ function ReceiptSelector(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
-    /**
-     * Close the confirm modal.
-     */
-    const closeConfirmModal = useCallback(() => {
-        Receipt.clearUploadReceiptError();
-    }, []);
-
     const defaultView = () => (
         <>
             <View
@@ -165,8 +158,8 @@ function ReceiptSelector(props) {
             {props.isDraggingOver && <ReceiptDropUI receiptImageTopPosition={receiptImageTopPosition} />}
             <ConfirmModal
                 title={attachmentInvalidReasonTitle}
-                onConfirm={closeConfirmModal}
-                onCancel={closeConfirmModal}
+                onConfirm={() => Receipt.clearUploadReceiptError()}
+                onCancel={() => Receipt.clearUploadReceiptError()}
                 isVisible={isAttachmentInvalid}
                 prompt={attachmentInvalidReason}
                 confirmText={translate('common.close')}
