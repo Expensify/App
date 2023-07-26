@@ -1,4 +1,4 @@
-import React, {useRef, useState, useEffect, useContext, useMemo} from 'react';
+import React, {useRef, useState, useEffect, useContext, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -64,6 +64,10 @@ function ReportActionsView(props) {
     useCopySelectionHelper();
 
     const reportScrollManager = useReportScrollManager();
+
+    const scrollToBottom = useCallback(() => {
+        reportScrollManager.scrollToBottom();
+    }, [reportScrollManager]);
 
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
@@ -132,7 +136,7 @@ function ReportActionsView(props) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
-                reportScrollManager.scrollToBottom();
+                scrollToBottom();
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 setNewMarkerReportActionID('');
             } else if (isReportFullyVisible) {
@@ -159,8 +163,7 @@ function ReportActionsView(props) {
 
             Report.unsubscribeFromReportChannel(props.report.reportID);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.report.reportID]);
+    }, [isReportFullyVisible, newMarkerReportActionID, props.report.reportID, scrollToBottom]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
@@ -270,7 +273,7 @@ function ReportActionsView(props) {
     };
 
     const scrollToBottomAndMarkReportAsRead = () => {
-        reportScrollManager.scrollToBottom();
+        scrollToBottom();
         Report.readNewestAction(props.report.reportID);
     };
 
