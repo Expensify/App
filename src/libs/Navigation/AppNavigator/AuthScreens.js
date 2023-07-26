@@ -95,6 +95,9 @@ const propTypes = {
     /** Opt-in experimental mode that prevents certain Onyx keys from persisting to disk */
     isUsingMemoryOnlyKeys: PropTypes.bool,
 
+    /** The last Onyx update ID that is stored in Onyx (used for getting incremental updates when reconnecting) */
+    onyxUpdatesLastUpdateID: PropTypes.number,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -104,6 +107,7 @@ const defaultProps = {
         email: null,
     },
     lastOpenedPublicRoomID: null,
+    onyxUpdatesLastUpdateID: 0,
 };
 
 class AuthScreens extends React.Component {
@@ -115,7 +119,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.openApp(true));
+        NetworkConnection.onReconnect(() => App.openApp(true, this.props.onyxUpdatesLastUpdateID));
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -316,8 +320,8 @@ export default compose(
         lastOpenedPublicRoomID: {
             key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
         },
-        isUsingMemoryOnlyKeys: {
-            key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
+        onyxUpdatesLastUpdateID: {
+            key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
         },
     }),
 )(AuthScreens);

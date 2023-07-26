@@ -42,12 +42,6 @@ Onyx.connect({
     callback: (val) => (preferredLocale = val),
 });
 
-let onyxUpdatesLastUpdateID;
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
-    callback: (val) => (onyxUpdatesLastUpdateID = val),
-});
-
 let resolveIsReadyPromise;
 const isReadyToOpenApp = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
@@ -130,8 +124,10 @@ AppState.addEventListener('change', (nextAppState) => {
 /**
  * Fetches data needed for app initialization
  * @param {boolean} [fetchIncrementalUpdates] When the app is reconnecting from a previous session, incremental updates are preferred so that there is less data being transferred
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function openApp(fetchIncrementalUpdates = false) {
+function openApp(fetchIncrementalUpdates = false, updateIDFrom = 0, updateIDTo = 0) {
     isReadyToOpenApp.then(() => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.POLICY,
@@ -148,9 +144,15 @@ function openApp(fetchIncrementalUpdates = false) {
                     params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
                     Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
-                    // Include the last update ID when reconnecting so that the server can send incremental updates if they are available.
+                    // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
                     // Otherwise, a full set of app data will be returned.
-                    params.updateIDTo = onyxUpdatesLastUpdateID;
+                    if (updateIDFrom) {
+                        params.updateIDFrom = updateIDFrom;
+                    }
+
+                    if (updateIDTo) {
+                        params.updateIDTo = updateIDTo;
+                    }
                 }
                 Onyx.disconnect(connectionID);
 
