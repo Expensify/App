@@ -460,10 +460,6 @@ function getReportAction(reportID, reportActionID) {
     return lodashGet(allReportActions, [reportID, reportActionID], {});
 }
 
-function getFirstReportAction(reportID) {
-    return _.find(allReportActions[reportID], (reportAction) => reportAction.actionName === 'CREATED');
-}
-
 /**
  * @returns {string}
  */
@@ -572,5 +568,4 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getFirstReportAction,
 };
