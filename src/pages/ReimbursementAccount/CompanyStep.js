@@ -63,10 +63,6 @@ class CompanyStep extends React.Component {
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
     }
 
-    componentWillUnmount() {
-        BankAccounts.resetReimbursementAccount();
-    }
-
     /**
      * @param {Array} fieldNames
      *

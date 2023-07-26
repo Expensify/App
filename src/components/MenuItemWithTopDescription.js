@@ -2,9 +2,7 @@ import React from 'react';
 import menuItemPropTypes from './menuItemPropTypes';
 import MenuItem from './MenuItem';
 
-const propTypes = {
-    ...menuItemPropTypes,
-};
+const propTypes = menuItemPropTypes;
 
 function MenuItemWithTopDescription(props) {
     return (

@@ -213,6 +213,7 @@ export default {
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         I_KNOW_A_TEACHER: 'iKnowTeacherForm',
         INTRO_SCHOOL_PRINCIPAL: 'introSchoolPrincipal',
+        PAYPAL_FORM: 'payPalForm',
     },
 
     // Whether we should show the compose input or not
