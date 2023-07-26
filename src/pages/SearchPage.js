@@ -33,8 +33,8 @@ const propTypes = {
     reports: PropTypes.objectOf(reportPropTypes),
 };
 
-function SearchPage({betas = [], personalDetails = {}, reports= {}}) {
-    //Data for initialization (runs only on the first render)
+function SearchPage({betas = [], personalDetails = {}, reports = {}}) {
+    // Data for initialization (runs only on the first render)
     const {recentReports: initialRecentReports, personalDetails: initialPersonalDetails, userToInvite: initialUserToInvite} = useMemo(() => OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas), []);
 
     const [searchValue, setSearchValue] = useState('')
