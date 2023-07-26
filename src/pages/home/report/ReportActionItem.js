@@ -600,7 +600,6 @@ export default compose(
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
-            prevProps.isOnlyReportAction === nextProps.isOnlyReportAction &&
-            prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
+            prevProps.isOnlyReportAction === nextProps.isOnlyReportAction,
     ),
 );

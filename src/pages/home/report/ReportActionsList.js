@@ -138,7 +138,6 @@ function ReportActionsList(props) {
                 />
             ) : (
                 <ReportActionItem
-                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     report={report}
                     action={reportAction}
                     displayAsGroup={ReportActionsUtils.isConsecutiveActionMadeByPreviousActor(sortedReportActions, index)}
