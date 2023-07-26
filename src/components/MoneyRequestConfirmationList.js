@@ -23,6 +23,7 @@ import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import Button from './Button';
 import * as Expensicons from './Icon/Expensicons';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -328,6 +329,7 @@ function MoneyRequestConfirmationList(props) {
                         text={translate('common.showMore')}
                         shouldShowRightIcon
                         iconRight={Expensicons.DownArrow}
+                        iconFill={themeColors.icon}
                         style={styles.mh0}
                     />
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
