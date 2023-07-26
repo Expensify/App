@@ -124,6 +124,7 @@ const chatReportSelector = (report) =>
         iouReportID: report.iouReportID,
         total: report.total,
         hasOutstandingIOU: report.hasOutstandingIOU,
+        isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
         stateNum: report.stateNum,
         chatType: report.chatType,
