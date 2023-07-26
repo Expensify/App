@@ -12,6 +12,7 @@ import withCurrentReportID, {withCurrentReportIDPropTypes, withCurrentReportIDDe
 import OptionRowLHN, {propTypes as basePropTypes, defaultProps as baseDefaultProps} from './OptionRowLHN';
 import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
 
@@ -80,6 +81,12 @@ function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullRepor
         return item;
     }, [fullReport, personalDetails, preferredLocale, policy]);
 
+    const isAllowedToComment = useMemo(() => {
+        const {addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(fullReport);
+        // if composer is hidden then user is not allowed to comment therefore draft icon should be hidden
+        return !ReportUtils.shouldHideComposer(fullReport, addWorkspaceRoomOrChatErrors);
+    }, [fullReport]);
+
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
             return;
@@ -94,6 +101,7 @@ function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullRepor
             {...propsToForward}
             isFocused={isFocused}
             optionItem={optionItem}
+            isAllowedToComment={isAllowedToComment}
         />
     );
 }

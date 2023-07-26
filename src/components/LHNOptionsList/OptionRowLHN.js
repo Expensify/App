@@ -45,6 +45,9 @@ const propTypes = {
     /** The item that should be rendered */
     // eslint-disable-next-line react/forbid-prop-types
     optionItem: PropTypes.object,
+
+    /** Whether user is allowed to comment so that we can hide the draft icon if user is not allowed to comment */
+    isAllowedToComment: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -54,6 +57,7 @@ const defaultProps = {
     style: null,
     optionItem: null,
     isFocused: false,
+    isAllowedToComment: false,
 };
 
 function OptionRowLHN(props) {
@@ -231,7 +235,7 @@ function OptionRowLHN(props) {
                                     fill={themeColors.success}
                                 />
                             )}
-                            {optionItem.hasDraftComment && (
+                            {optionItem.hasDraftComment && props.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
