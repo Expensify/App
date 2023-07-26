@@ -21,7 +21,7 @@ import MoneyRequestAmountPage from './steps/MoneyRequestAmountPage';
 import ReceiptSelector from './ReceiptSelector';
 import DragAndDrop from '../../components/DragAndDrop';
 import * as IOU from '../../libs/actions/IOU';
-import DistanceRequest from '../../components/DistanceRequest';
+import DistanceRequestPage from './DistanceRequestPage';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from './NavigateToNextIOUPage';
 import AttachmentUtils from '../../libs/AttachmentUtils';
@@ -152,7 +152,7 @@ function MoneyRequestSelectorPage({route, report, tabSelected, iou, currentUserP
                                 />
                             )}
                             {selectedTab === CONST.TAB.TAB_DISTANCE && (
-                                <DistanceRequest
+                                <DistanceRequestPage
                                     route={route}
                                     report={report}
                                     iou={iou}
