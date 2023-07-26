@@ -38,9 +38,11 @@ function SearchPage({betas = [], personalDetails = {}, reports= {}}) {
     const {recentReports: initialRecentReports, personalDetails: initialPersonalDetails, userToInvite: initialUserToInvite} = useMemo(() => OptionsListUtils.getSearchOptions(reports, personalDetails, '', betas), []);
 
     const [searchValue, setSearchValue] = useState('')
-    const [activeRecentReports, setActiveRecentReports] = useState(initialRecentReports)
-    const [activePersonalDetails, setActivePersonalDetails] = useState(initialPersonalDetails)
-    const [activeUserToInvite, setActiveUserToInvite] = useState(initialUserToInvite)
+    const [searchOptions, setSearchOptions] = useState({
+        recentReports: initialRecentReports,
+        personalDetails: initialPersonalDetails,
+        userToInvite: initialUserToInvite
+    });
 
     const {translate} = useLocalize();
 
@@ -52,9 +54,7 @@ function SearchPage({betas = [], personalDetails = {}, reports= {}}) {
             betas,
         );
 
-        setActiveUserToInvite(localUserToInvite)
-        setActiveRecentReports(localRecentReports)
-        setActivePersonalDetails(localPersonalDetails)
+        setSearchOptions({recentReports: localRecentReports, personalDetails: localPersonalDetails, userToInvite: localUserToInvite})
     }, [reports, personalDetails, searchValue, betas])
 
     const debouncedUpdateOptions = useCallback(() => _.debounce(updateOptions, 75), [updateOptions]);
@@ -77,27 +77,27 @@ function SearchPage({betas = [], personalDetails = {}, reports= {}}) {
         const sections = [];
         let indexOffset = 0;
 
-        if (activeRecentReports.length > 0) {
+        if (searchOptions.recentReports.length > 0) {
             sections.push({
-                data: activeRecentReports,
+                data: searchOptions.recentReports,
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += activeRecentReports.length;
+            indexOffset += searchOptions.recentReports.length;
         }
 
-        if (activePersonalDetails.length > 0) {
+        if (searchOptions.personalDetails.length > 0) {
             sections.push({
-                data: activePersonalDetails,
+                data: searchOptions.personalDetails,
                 shouldShow: true,
                 indexOffset,
             });
-            indexOffset += activeRecentReports.length;
+            indexOffset += searchOptions.recentReports.length;
         }
 
-        if (activeUserToInvite) {
+        if (searchOptions.userToInvite) {
             sections.push({
-                data: [activeUserToInvite],
+                data: [searchOptions.userToInvite],
                 shouldShow: true,
                 indexOffset,
             });
@@ -134,8 +134,8 @@ function SearchPage({betas = [], personalDetails = {}, reports= {}}) {
 
     const isOptionsDataReady = ReportUtils.isReportDataReady() && OptionsListUtils.isPersonalDetailsReady(personalDetails);
     const headerMessage = OptionsListUtils.getHeaderMessage(
-        activeRecentReports.length + activePersonalDetails.length !== 0,
-        Boolean(activeUserToInvite),
+        searchOptions.recentReports.length + searchOptions.personalDetails.length !== 0,
+        Boolean(searchOptions.userToInvite),
         searchValue,
     );
     return (
