@@ -57,7 +57,7 @@ function SearchPage({betas = [], personalDetails = {}, reports = {}}) {
         setSearchOptions({recentReports: localRecentReports, personalDetails: localPersonalDetails, userToInvite: localUserToInvite})
     }, [reports, personalDetails, searchValue, betas])
 
-    const debouncedUpdateOptions = useCallback(() => _.debounce(updateOptions, 75), [updateOptions]);
+    const debouncedUpdateOptions = useCallback(_.debounce(updateOptions, 75), [updateOptions]);
 
     useEffect(() => {
         Timing.start(CONST.TIMING.SEARCH_RENDER);
