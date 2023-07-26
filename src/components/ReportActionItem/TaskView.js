@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -13,8 +12,7 @@ import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import MenuItem from '../MenuItem';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
-import * as UserUtils from '../../libs/UserUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as StyleUtils from '../../styles/StyleUtils';
 import * as Task from '../../libs/actions/Task';
 import * as PolicyUtils from '../../libs/PolicyUtils';
@@ -49,7 +47,6 @@ function TaskView(props) {
     const isCompleted = ReportUtils.isCompletedTaskReport(props.report);
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
-    const avatarURL = lodashGet(PersonalDetailsUtils.getPersonalDetailsByIDs([props.report.managerID], props.currentUserPersonalDetails.accountID), [0, 'avatar'], '');
     const policy = ReportUtils.getPolicy(props.report.policyID);
     const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
     const disableState = !canEdit || !isOpen;
@@ -109,7 +106,7 @@ function TaskView(props) {
                 onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                 shouldShowRightIcon={isOpen}
                 disabled={disableState}
-                wrapperStyle={[styles.pv2]}
+                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                 shouldGreyOutWhenDisabled={false}
                 numberOfLinesTitle={0}
             />
@@ -117,7 +114,7 @@ function TaskView(props) {
                 <MenuItem
                     label={props.translate('task.assignee')}
                     title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                    icon={UserUtils.getAvatar(avatarURL, props.report.managerID)}
+                    icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], props.personalDetails)}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     avatarSize={CONST.AVATAR_SIZE.SMALLER}
                     titleStyle={styles.assigneeTextStyle}

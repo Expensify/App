@@ -63,7 +63,7 @@ const defaultProps = {
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
-    avatarSize: undefined,
+    avatarSize: CONST.AVATAR_SIZE.DEFAULT,
     floatRightAvatarSize: undefined,
     shouldBlockSelection: false,
     hoverAndPressStyle: [],
@@ -150,7 +150,7 @@ function MenuItem(props) {
                                             isHovered={isHovered}
                                             isPressed={pressed}
                                             icons={props.icon}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
+                                            size={props.avatarSize}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
                                                 pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
@@ -159,7 +159,7 @@ function MenuItem(props) {
                                         />
                                     )}
                                     {Boolean(props.icon) && !_.isArray(props.icon) && (
-                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize || CONST.AVATAR_SIZE.DEFAULT)]}>
+                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]}>
                                             {props.iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
                                                     src={props.icon}
@@ -189,7 +189,7 @@ function MenuItem(props) {
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     source={props.icon}
                                                     fallbackIcon={props.fallbackIcon}
-                                                    size={props.avatarSize || CONST.AVATAR_SIZE.DEFAULT}
+                                                    size={props.avatarSize}
                                                 />
                                             )}
                                         </View>
