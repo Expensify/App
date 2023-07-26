@@ -105,6 +105,10 @@ class ContactMethodDetailsPage extends Component {
         };
     }
 
+    componentDidMount() {
+        User.resetContactMethodValidateCodeSentState(this.getContactMethod());
+    }
+
     componentDidUpdate(prevProps) {
         const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
         const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
@@ -114,10 +118,6 @@ class ContactMethodDetailsPage extends Component {
         if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
             Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
         }
-    }
-
-    componentWillUnmount() {
-        User.resetContactMethodValidateCodeSentState(this.getContactMethod());
     }
 
     /**
