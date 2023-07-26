@@ -34,9 +34,6 @@ export default {
         view: 'View',
         not: 'Not',
         signIn: 'Sign in',
-        signInWithGoogle: 'Sign in with Google',
-        signInWithApple: 'Sign in with Apple',
-        signInWith: 'Sign in with',
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',
@@ -243,15 +240,6 @@ export default {
             body: 'Welcome to the future of Expensify, your new go-to place for financial collaboration with friends and teammates alike.',
         },
     },
-    thirdPartySignIn: {
-        alreadySignedIn: ({email}) => `You are already signed in as ${email}.`,
-        goBackMessage: ({provider}) => `Don't want to sign in with ${provider}?`,
-        continueWithMyCurrentSession: 'Continue with my current session',
-        redirectToDesktopMessage: "We'll redirect you to the desktop app once you finish signing in.",
-        signInAgreementMessage: 'By logging in, you agree to the',
-        termsOfService: 'Terms of Service',
-        privacy: 'Privacy',
-    },
     reportActionCompose: {
         addAction: 'Actions',
         dropToUpload: 'Drop to upload',
@@ -302,6 +290,8 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Use ',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` to hear about important announcements related to ${workspaceName}`,
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
@@ -312,7 +302,7 @@ export default {
         beginningOfChatHistoryPolicyExpenseChatPartThree: ' starts here! 🎉 This is the place to chat, request money and settle up.',
         chatWithAccountManager: 'Chat with your account manager here',
         sayHello: 'Say hello!',
-        usePlusButton: '\n\nYou can also use the + button below to send or request money!',
+        usePlusButton: '\n\nYou can also use the + button below to request money or assign a task!',
     },
     reportAction: {
         asCopilot: 'as copilot for',
@@ -365,6 +355,7 @@ export default {
         sendMoney: 'Send money',
         pay: 'Pay',
         viewDetails: 'View details',
+        pending: 'Pending',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
@@ -379,6 +370,8 @@ export default {
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerPaid: ({payer}) => `${payer} paid: `,
         payerSettled: ({amount}) => `paid ${amount}`,
+        waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
+        settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({amount}) => `paid ${amount} elsewhere`,
         paidUsingPaypalWithAmount: ({amount}) => `paid ${amount} using Paypal.me`,
         paidUsingExpensifyWithAmount: ({amount}) => `paid ${amount} using Expensify`,
@@ -1139,6 +1132,11 @@ export default {
         emptyWorkspace: {
             title: 'Create a new workspace',
             subtitle: "Workspaces are where you'll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.",
+            features: {
+                trackAndCollect: 'Track and collect receipts',
+                companyCards: 'Company credit cards',
+                reimbursements: 'Easy reimbursements',
+            },
         },
         new: {
             newWorkspace: 'New workspace',
@@ -1538,5 +1536,11 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Search to see options',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Search to see options',
     },
 };
