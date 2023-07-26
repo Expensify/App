@@ -897,7 +897,7 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    if (reportAction.reportActionID && reportAction.childVisibleActionCount > 0) {
+    if (reportAction.childVisibleActionCount === 0) {
         optimisticReport = {
             lastMessageTranslationKey: '',
             lastMessageText: '',
@@ -906,11 +906,14 @@ function deleteReportComment(reportID, reportAction) {
     } else {
         const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
         if (lastMessageText || lastMessageTranslationKey) {
-            const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions).created;
+            const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
+            const lastVisibleActionCreated = lastVisibleAction.created;
+            const lastActorAccountID = lastVisibleAction.actorAccountID;
             optimisticReport = {
                 lastMessageTranslationKey,
                 lastMessageText,
                 lastVisibleActionCreated,
+                lastActorAccountID,
             };
         }
     }
@@ -961,6 +964,16 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, optimisticReport.lastVisibleActionCreated, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
+    }
+
+    // Check to see if the report action we are deleting is the first comment on a thread report. In this case, we need to trigger
+    // an update to let the LHN know that the parentReportAction is now deleted.
+    if (ReportUtils.isThreadFirstChat(reportAction, reportID)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {updateReportInLHN: true},
+        });
     }
 
     const parameters = {
@@ -1254,8 +1267,9 @@ function navigateToConciergeChat() {
  * @param {String} reportName
  * @param {String} visibility
  * @param {Array<Number>} policyMembersAccountIDs
+ * @param {String} writeCapability
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs) {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
     const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
@@ -1268,6 +1282,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
         false,
         '',
         visibility,
+        writeCapability,
 
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
@@ -1334,6 +1349,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
             visibility,
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
+            writeCapability,
         },
         {optimisticData, successData, failureData},
     );

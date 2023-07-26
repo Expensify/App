@@ -14,24 +14,6 @@ import * as LocalePhoneNumber from './LocalePhoneNumber';
 import * as UserUtils from './UserUtils';
 import * as PersonalDetailsUtils from './PersonalDetailsUtils';
 
-// Note: Earlier SidebarUtils.getOrderedReportIDs() used to have no parameters. All the needed data was loaded here directly
-// using Onyx.connect. We then had to connect SidebarLinks additionally to all the keys that were used in SidebarUtils.getOrderedReportIDs().
-// That's because we wanted to cause a re-render in SidebarLinks to run SidebarUtils.getOrderedReportIDs() again.
-// This caused bugs in the past as we were forgetting to include e.g. very nested data.
-// Now we pass all the data from SidebarLinks props to SidebarUtils.getOrderedReportIDs().
-// This makes the code easier to understand and less error prone.
-
-// However, in getOptionData() we still use Onyx.connect() to get some of the data.
-// That's because we can't connect to specific nested data. Once we added dependent
-// selectors to Onyx, we can remove this as well.
-
-let allReports;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (val) => (allReports = val),
-});
-
 const visibleReportActionItems = {};
 const lastReportActions = {};
 const reportActions = {};
@@ -110,6 +92,7 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     const reportsToDisplay = _.filter(allReportsDict, (report) =>
         ReportUtils.shouldReportBeInOptionList(report, currentReportId, isInGSDMode, allReportsDict, betas, policies, allReportActions),
     );
+
     if (_.isEmpty(reportsToDisplay)) {
         // Display Concierge chat report when there is no report to be displayed
         const conciergeChatReport = _.find(allReportsDict, ReportUtils.isConciergeChatReport);
@@ -145,14 +128,13 @@ function getOrderedReportIDs(currentReportId, allReportsDict, betas, policies, p
     let draftReports = [];
     let nonArchivedReports = [];
     let archivedReports = [];
-
     _.each(reportsToDisplay, (report) => {
         if (report.isPinned) {
             pinnedReports.push(report);
             return;
         }
 
-        if (report.hasOutstandingIOU && !ReportUtils.isIOUOwnedByCurrentUser(report, allReportsDict)) {
+        if (ReportUtils.isWaitingForIOUActionFromCurrentUser(report, allReportsDict)) {
             outstandingIOUReports.push(report);
             return;
         }
@@ -223,6 +205,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         participantsList: null,
         login: null,
         accountID: null,
+        managerID: null,
         reportID: null,
         phoneNumber: null,
         payPalMeAddress: null,
@@ -242,6 +225,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         isPolicyExpenseChat: false,
         isMoneyRequestReport: false,
         isExpenseRequest: false,
+        isWaitingOnBankAccount: false,
         isLastMessageDeletedParentAction: false,
     };
 
@@ -264,6 +248,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.allReportErrors = OptionsListUtils.getAllReportErrors(report, reportActions);
     result.brickRoadIndicator = !_.isEmpty(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     result.ownerAccountID = report.ownerAccountID;
+    result.managerID = report.managerID;
     result.reportID = report.reportID;
     result.isUnread = ReportUtils.isUnread(report);
     result.isUnreadWithMention = ReportUtils.isUnreadWithMention(report);
@@ -274,6 +259,8 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
     result.hasOutstandingIOU = report.hasOutstandingIOU;
     result.parentReportID = report.parentReportID || null;
+    result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
+    result.notificationPreference = report.notificationPreference || null;
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
     const subtitle = ReportUtils.getChatRoomSubtitle(report);
 
@@ -347,8 +334,8 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         result.alternateText = lastMessageText || formattedLogin;
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, allReports);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, allReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
 
     if (!hasMultipleParticipants) {
         result.accountID = personalDetail.accountID;

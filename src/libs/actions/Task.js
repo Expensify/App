@@ -13,6 +13,7 @@ import * as UserUtils from '../UserUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -202,8 +203,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         },
         {optimisticData, successData, failureData},
     );
-
-    clearOutTaskInfo();
 
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
@@ -597,10 +596,16 @@ function getAssignee(details) {
  * */
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
+    let subtitle = '';
+    if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
+        subtitle = LocalePhoneNumber.formatPhoneNumber(report.participants[0]);
+    } else {
+        subtitle = ReportUtils.getChatRoomSubtitle(report);
+    }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
-        subtitle: ReportUtils.getChatRoomSubtitle(report),
+        subtitle,
     };
 }
 
