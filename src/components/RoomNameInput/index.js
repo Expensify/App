@@ -76,6 +76,7 @@ class RoomNameInput extends Component {
                 onBlur={this.props.onBlur}
                 autoFocus={this.props.autoFocus}
                 maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
+                spellCheck={false}
             />
         );
     }

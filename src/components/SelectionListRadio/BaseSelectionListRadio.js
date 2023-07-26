@@ -230,6 +230,7 @@ function BaseSelectionListRadio(props) {
                                     onChangeText={props.onChangeText}
                                     keyboardType={props.keyboardType}
                                     selectTextOnFocus
+                                    spellCheck={false}
                                 />
                             </View>
                         )}
