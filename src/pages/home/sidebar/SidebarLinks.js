@@ -35,7 +35,7 @@ import * as UserUtils from '../../../libs/UserUtils';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import personalDetailsPropType from '../../personalDetailsPropType';
-import * as ReportActionContextMenu from "../report/ContextMenu/ReportActionContextMenu";
+import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
