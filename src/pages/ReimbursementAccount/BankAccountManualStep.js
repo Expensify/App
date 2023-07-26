@@ -68,7 +68,7 @@ function BankAccountManualStep(props) {
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, ['achData.bankAccountID']));
+    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
