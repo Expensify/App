@@ -118,6 +118,10 @@ function cleanFileName(fileName) {
     return fileName.replace(/[^a-zA-Z0-9\-._]/g, '_');
 }
 
+/**
+ * @param {String} fileName
+ * @returns {String}
+ */
 function appendTimeToFileName(fileName) {
     const file = splitExtensionFromFileName(fileName);
     let newFileName = `${file.fileName} - ${new Date().toISOString()}`;
