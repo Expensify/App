@@ -10,6 +10,11 @@
     position: relative;
 }
 
+#onfido-mount button:hover {
+    box-shadow: none !important;
+    border-color: transparent !important;
+}
+
 /* This is needed to dsiable the blue outline that shows up once the payment page is opened through keyboard */
 #onfido-mount [tabindex="-1"]:focus-visible,
 #onfido-mount [tabindex="-1"]:focus[data-focusvisible-polyfill] {
