@@ -12,7 +12,7 @@ import themeColors from '../../../styles/themes/default';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
-import { withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
@@ -37,7 +37,6 @@ import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
-import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** All the data of the action */
@@ -77,7 +76,7 @@ const defaultProps = {
     report: {},
     shouldDisableEmojiPicker: false,
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
-    drafts: {}
+    drafts: {},
 };
 
 // native ids
@@ -238,16 +237,19 @@ function ReportActionItemMessageEdit(props) {
         const trimmedNewDraft = draft.trim();
 
         const report = ReportUtils.getReport(props.reportID);
-        if (report && report.parentReportActionID && ReportActionsUtils.hasCommentThread(props.action)) {
-            if ((lodashGet(props.drafts, [`reportActionsDrafts_${report.parentReportID}_${props.action.reportActionID}`], undefined))) {
+
+        // updating in child message cause parent draft message to change
+        if (report.parentReportActionID && lodashGet(props.action, 'childType', '') === CONST.REPORT.TYPE.CHAT) {
+            if (lodashGet(props.drafts, [`reportActionsDrafts_${report.parentReportID}_${props.action.reportActionID}`], undefined)) {
                 Report.saveReportActionDraft(report.parentReportID, props.action.reportActionID, trimmedNewDraft);
             }
-        } 
-        if (!report.parentReportActionID && props.action.childReportID) {
-            if ((lodashGet(props.drafts, [`reportActionsDrafts_${props.action.childReportID}_${props.action.reportActionID}`], undefined))) {
+        }
+        // updating in parent message cause child draft message to change
+        if (props.action.childReportID) {
+            if (lodashGet(props.drafts, [`reportActionsDrafts_${props.action.childReportID}_${props.action.reportActionID}`], undefined)) {
                 Report.saveReportActionDraft(props.action.childReportID, props.action.reportActionID, trimmedNewDraft);
             }
-        } 
+        }
 
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {

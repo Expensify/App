@@ -461,10 +461,7 @@ function getReportAction(reportID, reportActionID) {
 }
 
 function getFirstReportAction(reportID) {
-    return _.find(
-        allReportActions[reportID],
-        (reportAction) => reportAction.actionName === 'CREATED',
-    );
+    return _.find(allReportActions[reportID], (reportAction) => reportAction.actionName === 'CREATED');
 }
 
 /**
@@ -575,5 +572,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    getFirstReportAction
+    getFirstReportAction,
 };
