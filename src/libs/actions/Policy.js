@@ -774,13 +774,9 @@ function clearAddMemberError(policyID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
         [accountID]: null,
     });
-
-    // Remove draft accountID
-    if (lodashGet(allPersonalDetails, [accountID, 'isOptimisticData'])) {
-        Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
-            [accountID]: null,
-        });
-    }
+    Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+        [accountID]: null,
+    });
 }
 
 /**
