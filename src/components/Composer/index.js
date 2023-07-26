@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
+import { flushSync } from 'react-dom';
 import RNTextInput from '../RNTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Growl from '../../libs/Growl';
@@ -10,6 +11,7 @@ import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
+import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -196,8 +198,8 @@ function Composer({onKeyPress, style, ...props}) {
         try {
             document.execCommand('insertText', false, text);
             // Pointer will go out of sight when a large paragraph is pasted on the web. Refocusing the input keeps the cursor in view.
-            textInput.blur();
-            textInput.focus();
+            textInput.current.blur();
+            textInput.current.focus();
             // eslint-disable-next-line no-empty
         } catch (e) {}
     }, []);
@@ -223,72 +225,82 @@ function Composer({onKeyPress, style, ...props}) {
  */
     const handlePaste = useCallback(
         (event) => {
-            event.preventDefault();
-            if (!props.checkComposerVisibility()) {
-                return;
-            }
-
-            const {files, types} = event.clipboardData;
-            const TEXT_HTML = 'text/html';
-
-            // If paste contains files, then trigger file management
-            if (files.length > 0) {
-                // Prevent the default so we do not post the file name into the text box
-                props.onPasteFile(event.clipboardData.files[0]);
-                return;
-            }
-            // If paste contains HTML
-            if (types.includes(TEXT_HTML)) {
-                const pastedHTML = event.clipboardData.getData(TEXT_HTML);
-
-                const domparser = new DOMParser();
-                const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
-
-                // If HTML has img tag, then fetch images from it.
-                if (embeddedImages.length > 0 && embeddedImages[0].src) {
-                    // If HTML has emoji, then treat this as plain text.
-                    if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
-                        const plainText = event.clipboardData.getData('text/plain');
-                        paste(plainText);
-                        return;
-                    }
-                    fetch(embeddedImages[0].src)
-                        .then((response) => {
-                            if (!response.ok) {
-                                throw Error(response.statusText);
-                            }
-                            return response.blob();
-                        })
-                        .then((x) => {
-                            const extension = IMAGE_EXTENSIONS[x.type];
-                            if (!extension) {
-                                throw new Error(props.translate('composer.noExtensionFoundForMimeType'));
-                            }
-
-                            return new File([x], `pasted_image.${extension}`, {});
-                        })
-                        .then(props.onPasteFile)
-                        .catch(() => {
-                            const errorDesc = props.translate('composer.problemGettingImageYouPasted');
-                            Growl.error(errorDesc);
-
-                            /*
-                             * Since we intercepted the user-triggered paste event to check for attachments,
-                             * we need to manually set the value and call the `onChangeText` handler.
-                             * Synthetically-triggered paste events do not affect the document's contents.
-                             * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                             */
-                            handlePastedHTML(pastedHTML);
-                        });
-                    return;
-                }
-
-                handlePastedHTML(pastedHTML);
-                return;
-            }
-            const plainText = event.clipboardData.getData('text/plain');
-
-            paste(plainText);
+          const isVisible = props.checkComposerVisibility();
+          const isFocused = textInput.current.isFocused();
+  
+          if (!(isVisible || isFocused)) {
+              return;
+          }
+  
+          if (textInput.current !== event.target) {
+              return;
+          }
+  
+          event.preventDefault();
+  
+          const {files, types} = event.clipboardData;
+          const TEXT_HTML = 'text/html';
+  
+          // If paste contains files, then trigger file management
+          if (files.length > 0) {
+              // Prevent the default so we do not post the file name into the text box
+              props.onPasteFile(event.clipboardData.files[0]);
+              return;
+          }
+  
+          // If paste contains HTML
+          if (types.includes(TEXT_HTML)) {
+              const pastedHTML = event.clipboardData.getData(TEXT_HTML);
+  
+              const domparser = new DOMParser();
+              const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
+  
+              // If HTML has img tag, then fetch images from it.
+              if (embeddedImages.length > 0 && embeddedImages[0].src) {
+                  // If HTML has emoji, then treat this as plain text.
+                  if (embeddedImages[0].dataset && embeddedImages[0].dataset.stringifyType === 'emoji') {
+                      const plainText = event.clipboardData.getData('text/plain');
+                      paste(plainText);
+                      return;
+                  }
+                  fetch(embeddedImages[0].src)
+                      .then((response) => {
+                          if (!response.ok) {
+                              throw Error(response.statusText);
+                          }
+                          return response.blob();
+                      })
+                      .then((x) => {
+                          const extension = IMAGE_EXTENSIONS[x.type];
+                          if (!extension) {
+                              throw new Error(props.translate('composer.noExtensionFoundForMimeType'));
+                          }
+  
+                          return new File([x], `pasted_image.${extension}`, {});
+                      })
+                      .then(props.onPasteFile)
+                      .catch(() => {
+                          const errorDesc = props.translate('composer.problemGettingImageYouPasted');
+                          Growl.error(errorDesc);
+  
+                          /*
+                           * Since we intercepted the user-triggered paste event to check for attachments,
+                           * we need to manually set the value and call the `onChangeText` handler.
+                           * Synthetically-triggered paste events do not affect the document's contents.
+                           * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
+                           */
+                          handlePastedHTML(pastedHTML);
+                      });
+                  return;
+              }
+  
+              handlePastedHTML(pastedHTML);
+              return;
+          }
+  
+          const plainText = event.clipboardData.getData('text/plain');
+  
+          paste(plainText);
         },
         [props.onPasteFile, props.translate, paste, handlePastedHTML],
     );
@@ -379,7 +391,7 @@ function Composer({onKeyPress, style, ...props}) {
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
-            textInput.removeEventListener('wheel', handleWheel);
+            textInput.current?.removeEventListener('wheel', handleWheel);
         };
     }, []);
 
@@ -422,6 +434,7 @@ function Composer({onKeyPress, style, ...props}) {
                     // We are hiding the scrollbar to prevent it from reducing the text input width,
                     // so we can get the correct scroll height while calculating the number of lines.
                     numberOfLines < props.maxLines ? styles.overflowHidden : {},
+                    StyleUtils.getComposeTextAreaPadding(props.numberOfLines),
                 ]}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
