@@ -1144,6 +1144,10 @@ function clearErrors(policyID) {
     hideWorkspaceAlertMessage(policyID);
 }
 
+function dismissAddedWithPrimaryMessages(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1173,4 +1177,5 @@ export {
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
     clearErrors,
+    dismissAddedWithPrimaryMessages,
 };

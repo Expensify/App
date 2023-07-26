@@ -460,6 +460,7 @@ function WorkspaceMembersPage(props) {
                                 type="success"
                                 messages={_.isEmpty(primaryLoginsInvited) ? null : {0: props.translate('workspace.people.addedWithPrimary')}}
                                 containerStyles={[styles.pt3]}
+                                onClose={() => Policy.dismissAddedWithPrimaryMessages(props.route.params.policyID)}
                             />
                         </View>
                         {data.length > 0 ? (
