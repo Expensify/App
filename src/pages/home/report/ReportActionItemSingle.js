@@ -106,10 +106,11 @@ function ReportActionItemSingle(props) {
     // If this is a report preview, display names and avatars of both people involved
     let secondaryAvatar = {};
     const displayAllActors = props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORTPREVIEW && props.iouReport;
+    const primaryDisplayName = displayName;
     if (displayAllActors) {
         const secondaryUserDetails = props.personalDetailsList[props.iouReport.ownerAccountID] || {};
         const secondaryDisplayName = lodashGet(secondaryUserDetails, 'displayName', '');
-        displayName = `${displayName} & ${secondaryDisplayName}`;
+        displayName = `${primaryDisplayName} & ${secondaryDisplayName}`;
         secondaryAvatar = {
             source: UserUtils.getAvatar(secondaryUserDetails.avatar, props.iouReport.ownerAccountID),
             type: CONST.ICON_TYPE_AVATAR,
@@ -119,7 +120,7 @@ function ReportActionItemSingle(props) {
     } else if (!isWorkspaceActor) {
         secondaryAvatar = ReportUtils.getIcons(props.report, {})[props.report.isOwnPolicyExpenseChat ? 0 : 1];
     }
-    const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: displayName, id: actorAccountID};
+    const icon = {source: avatarSource, type: isWorkspaceActor ? CONST.ICON_TYPE_WORKSPACE : CONST.ICON_TYPE_AVATAR, name: primaryDisplayName, id: actorAccountID};
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
