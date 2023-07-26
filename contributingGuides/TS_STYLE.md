@@ -489,7 +489,23 @@ declare module "external-library-name" {
 
 - If you're migrating a module that doesn't have a default implementation (i.e. `index.ts`, e.g. `getPlatform`), convert `index.website.js` to `index.ts`. Without `index.ts`, TypeScript cannot get type information where the module is imported.
 
-- Deprecate the usage of `underscore`. Use the corresponding methods from `lodash`. eslint: [`no-restricted-imports`](https://eslint.org/docs/latest/rules/no-restricted-imports)
+- Deprecate the usage of `underscore`. Use vanilla methods from JS instead. Only use `lodash` when there is no easy vanilla alternative (eg. `lodashMerge`). eslint: [`no-restricted-imports`](https://eslint.org/docs/latest/rules/no-restricted-imports)
+
+```ts
+// BAD
+var arr = [];
+_.each(arr, () => {});
+
+// GOOD
+var arr = [];
+arr.forEach(() => {});
+
+// BAD
+lodashGet(object, ['foo'], 'bar');
+
+// GOOD
+object?.foo ?? 'bar';
+```
 
 - Found type bugs. Now what?
 
