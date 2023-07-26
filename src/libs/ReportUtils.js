@@ -1752,7 +1752,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
-function buildOptimisticReportPreview(chatReport, iouReport) {
+function buildOptimisticReportPreview(chatReport, iouReport, comment) {
     const message = getReportPreviewMessage(iouReport);
     return {
         reportActionID: NumberUtils.rand64(),
@@ -1773,6 +1773,8 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
         actorAccountID: iouReport.managerID || 0,
+        childMoneyRequestCount: 1,
+        moneyRequestComment: comment,
     };
 }
 

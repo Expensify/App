@@ -389,7 +389,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         reportPreviewAction.message[0].html = message;
         reportPreviewAction.message[0].text = message;
     } else {
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
+        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment);
     }
 
     // STEP 5: Build Onyx Data
