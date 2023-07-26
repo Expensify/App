@@ -191,7 +191,7 @@ function MoneyRequestConfirmPage(props) {
                     />
                     <MoneyRequestConfirmationList
                         hasMultipleParticipants={iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT}
-                        participants={participants}
+                        selectedParticipants={participants}
                         iouAmount={props.iou.amount}
                         iouComment={props.iou.comment}
                         iouCurrencyCode={props.iou.currency}

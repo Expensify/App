@@ -51,15 +51,16 @@ const defaultProps = {
  *
  * @param {Object} report The active report object
  * @param {Object} personalDetails The personal details of the users
+ * @param {Object} translate The localize
  * @return {Array}
  */
-const getAllParticipants = (report, personalDetails) => {
+const getAllParticipants = (report, personalDetails, translate) => {
     const {participantAccountIDs} = report;
 
     return _.chain(participantAccountIDs)
         .map((accountID, index) => {
-            const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || 'Hidden', avatar: ''});
-            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || 'Hidden';
+            const userPersonalDetail = lodashGet(personalDetails, accountID, {displayName: personalDetails.displayName || translate('common.hidden'), avatar: ''});
+            const userLogin = Str.removeSMSDomain(userPersonalDetail.login || '') || translate('common.hidden');
 
             return {
                 alternateText: userLogin,
@@ -85,7 +86,7 @@ const getAllParticipants = (report, personalDetails) => {
 };
 
 function ReportParticipantsPage(props) {
-    const participants = getAllParticipants(props.report, props.personalDetails);
+    const participants = getAllParticipants(props.report, props.personalDetails, props.translate);
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -93,7 +94,9 @@ function ReportParticipantsPage(props) {
                 <FullPageNotFoundView shouldShow={_.isEmpty(props.report)}>
                     <HeaderWithBackButton
                         title={props.translate(
-                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isThread(props.report) ? 'common.members' : 'common.details',
+                            ReportUtils.isChatRoom(props.report) || ReportUtils.isPolicyExpenseChat(props.report) || ReportUtils.isChatThread(props.report)
+                                ? 'common.members'
+                                : 'common.details',
                         )}
                     />
                     <View
@@ -111,7 +114,7 @@ function ReportParticipantsPage(props) {
                                     },
                                 ]}
                                 onSelectRow={(option) => {
-                                    Navigation.navigate(ROUTES.getReportParticipantRoute(props.route.params.reportID, option.accountID));
+                                    Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
                                 }}
                                 hideSectionHeaders
                                 showTitleTooltip

@@ -5,6 +5,7 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import getButtonState from '../../libs/getButtonState';
 import Text from '../Text';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** The unicode that is used to display the emoji */
@@ -62,6 +63,7 @@ class EmojiPickerMenuItem extends PureComponent {
     render() {
         return (
             <PressableWithoutFeedback
+                shouldUseAutoHitSlop={false}
                 onPress={() => this.props.onPress(this.props.emoji)}
                 onHoverIn={this.props.onHoverIn}
                 onHoverOut={this.props.onHoverOut}
@@ -75,7 +77,7 @@ class EmojiPickerMenuItem extends PureComponent {
                     styles.emojiItem,
                 ]}
                 accessibilityLabel={this.props.emoji}
-                accessibilityRole="button"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Text style={[styles.emojiText]}>{this.props.emoji}</Text>
             </PressableWithoutFeedback>

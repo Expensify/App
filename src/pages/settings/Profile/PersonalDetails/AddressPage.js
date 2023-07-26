@@ -21,6 +21,8 @@ import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -61,6 +63,7 @@ function updateAddress(values) {
 }
 
 function AddressPage(props) {
+    usePrivatePersonalDetails();
     const {translate} = props;
     const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(props.privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
     const isUSAForm = countryISO === CONST.COUNTRY.US;
@@ -77,48 +80,49 @@ function AddressPage(props) {
      * @param {Object} values - form input values
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values) => {
-            const errors = {};
+    const validate = useCallback((values) => {
+        const errors = {};
 
-            const requiredFields = ['addressLine1', 'city', 'country', 'state'];
+        const requiredFields = ['addressLine1', 'city', 'country', 'state'];
 
-            // Check "State" dropdown is a valid state if selected Country is USA.
-            if (isUSAForm && !COMMON_CONST.STATES[values.state]) {
-                errors.state = 'common.error.fieldRequired';
+        // Check "State" dropdown is a valid state if selected Country is USA
+        if (values.country === CONST.COUNTRY.US && !COMMON_CONST.STATES[values.state]) {
+            errors.state = 'common.error.fieldRequired';
+        }
+
+        // Add "Field required" errors if any required field is empty
+        _.each(requiredFields, (fieldKey) => {
+            if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
+                return;
             }
+            errors[fieldKey] = 'common.error.fieldRequired';
+        });
 
-            // Add "Field required" errors if any required field is empty
-            _.each(requiredFields, (fieldKey) => {
-                if (ValidationUtils.isRequiredFulfilled(values[fieldKey])) {
-                    return;
+        // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
+        const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
+
+        // The postal code system might not exist for a country, so no regex either for them.
+        const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
+        const countryZipFormat = lodashGet(countryRegexDetails, 'samples');
+
+        if (countrySpecificZipRegex) {
+            if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
+                if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
+                    errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat}];
+                } else {
+                    errors.zipPostCode = 'common.error.fieldRequired';
                 }
-                errors[fieldKey] = 'common.error.fieldRequired';
-            });
-
-            // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-            const countryRegexDetails = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, values.country, {});
-
-            // The postal code system might not exist for a country, so no regex either for them.
-            const countrySpecificZipRegex = lodashGet(countryRegexDetails, 'regex');
-            const countryZipFormat = lodashGet(countryRegexDetails, 'samples');
-
-            if (countrySpecificZipRegex) {
-                if (!countrySpecificZipRegex.test(values.zipPostCode.trim().toUpperCase())) {
-                    if (ValidationUtils.isRequiredFulfilled(values.zipPostCode.trim())) {
-                        errors.zipPostCode = ['privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat}];
-                    } else {
-                        errors.zipPostCode = 'common.error.fieldRequired';
-                    }
-                }
-            } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim().toUpperCase())) {
-                errors.zipPostCode = 'privatePersonalDetails.error.incorrectZipFormat';
             }
+        } else if (!CONST.GENERIC_ZIP_CODE_REGEX.test(values.zipPostCode.trim().toUpperCase())) {
+            errors.zipPostCode = 'privatePersonalDetails.error.incorrectZipFormat';
+        }
 
-            return errors;
-        },
-        [isUSAForm],
-    );
+        return errors;
+    }, []);
+
+    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -156,6 +160,8 @@ function AddressPage(props) {
                     <TextInput
                         inputID="addressLine2"
                         label={props.translate('common.addressLine', {lineNumber: 2})}
+                        accessibilityLabel={props.translate('common.addressLine')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={street2 || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                     />
@@ -164,6 +170,8 @@ function AddressPage(props) {
                     <TextInput
                         inputID="city"
                         label={props.translate('common.city')}
+                        accessibilityLabel={props.translate('common.city')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={address.city || ''}
                         maxLength={CONST.FORM_CHARACTER_LIMIT}
                     />
@@ -178,6 +186,8 @@ function AddressPage(props) {
                         <TextInput
                             inputID="state"
                             label={props.translate('common.stateOrProvince')}
+                            accessibilityLabel={props.translate('common.stateOrProvince')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             defaultValue={address.state || ''}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
                         />
@@ -187,6 +197,8 @@ function AddressPage(props) {
                     <TextInput
                         inputID="zipPostCode"
                         label={props.translate('common.zipPostCode')}
+                        accessibilityLabel={props.translate('common.zipPostCode')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         autoCapitalize="characters"
                         defaultValue={address.zip || ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}

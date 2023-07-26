@@ -11,7 +11,7 @@ import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
-import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
+import useNetwork from '../hooks/useNetwork';
 import * as Browser from '../libs/Browser';
 
 const propTypes = {
@@ -142,14 +142,16 @@ function MagicCodeInput(props) {
         props.onFulfill(props.value);
     };
 
-    useOnNetworkReconnect(validateAndSubmit);
+    useNetwork({onReconnect: validateAndSubmit});
 
     useEffect(() => {
         validateAndSubmit();
 
-        // We have not added the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
+        // We have not added:
+        // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
+        // + the props.onFulfill as the dependency because props.onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.value, props.shouldSubmitOnComplete, props.onFulfill]);
+    }, [props.value, props.shouldSubmitOnComplete]);
 
     useEffect(() => {
         if (!props.autoFocus) {
@@ -159,9 +161,9 @@ function MagicCodeInput(props) {
         let focusTimeout = null;
         if (props.shouldDelayFocus) {
             focusTimeout = setTimeout(() => inputRefs.current[0].focus(), CONST.ANIMATED_TRANSITION);
+        } else {
+            inputRefs.current[0].focus();
         }
-
-        inputRefs.current[0].focus();
 
         return () => {
             if (!focusTimeout) {
@@ -169,7 +171,9 @@ function MagicCodeInput(props) {
             }
             clearTimeout(focusTimeout);
         };
-    }, [props.autoFocus, props.shouldDelayFocus]);
+        // We only want this to run on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
      * Focuses on the input when it is pressed.
@@ -322,7 +326,7 @@ function MagicCodeInput(props) {
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
-                                autoFocus={index === 0 && props.autoFocus}
+                                autoFocus={index === 0 && props.autoFocus && !props.shouldDelayFocus}
                                 inputMode="numeric"
                                 textContentType="oneTimeCode"
                                 name={props.name}
@@ -346,6 +350,7 @@ function MagicCodeInput(props) {
                                 onFocus={onFocus}
                                 caretHidden={isMobileSafari}
                                 inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                     </View>

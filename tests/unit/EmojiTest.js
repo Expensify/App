@@ -113,18 +113,39 @@ describe('EmojiTest', () => {
 
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '⚰️', name: 'coffin'}]);
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin'}]);
     });
 
     it('suggests a limited number of matching emojis', () => {
         const text = 'Hi :face';
         const limit = 3;
-        expect(EmojiUtils.suggestEmojis(text, limit).length).toBe(limit);
+        expect(EmojiUtils.suggestEmojis(text, 'en', limit).length).toBe(limit);
     });
 
     it('correct suggests emojis accounting for keywords', () => {
-        const text = ':thumb';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([
+        const thumbEmojis = [
+            {
+                code: '👍',
+                name: '+1',
+                types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
+            },
+            {
+                code: '👎',
+                name: '-1',
+                types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+        ];
+
+        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual(thumbEmojis);
+
+        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojis);
+
+        expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
+            {
+                code: '🤙',
+                name: 'mano_llámame',
+                types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
+            },
             {
                 code: '👍',
                 name: '+1',
@@ -161,6 +182,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {
                     code: '💤',
@@ -192,6 +214,7 @@ describe('EmojiTest', () => {
 
                 // Then the new emoji should be at the last item of the list
                 const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
+
                 const expectedFrequentlyEmojisList = [...frequentlyEmojisList, expectedSmileEmoji];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
@@ -212,6 +235,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {
                     code: '💤',
@@ -258,6 +282,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {...zzzEmoji, count: 2, lastUpdatedAt: 3},
                 {
@@ -307,6 +332,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 3,
                     lastUpdatedAt: 23,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {
                     code: '😡',
@@ -367,6 +393,7 @@ describe('EmojiTest', () => {
                     name: 'baby',
                     count: 3,
                     lastUpdatedAt: 13,
+                    types: ['👶🏿', '👶🏾', '👶🏽', '👶🏼', '👶🏻'],
                 },
                 {
                     code: '👄',

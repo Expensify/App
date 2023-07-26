@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Animated, {useSharedValue, useAnimatedStyle, useAnimatedSensor, SensorType, withSpring} from 'react-native-reanimated';
 import ONYXKEYS from '../../../ONYXKEYS';
-import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -20,8 +19,9 @@ import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
-
 import useLocalize from '../../../hooks/useLocalize';
+import MultipleAvatars from '../../../components/MultipleAvatars';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The id of the report */
@@ -104,11 +104,17 @@ function ReportActionItemCreated(props) {
                 >
                     <PressableWithoutFeedback
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                        style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
+                        style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
                         accessibilityLabel={props.translate('common.details')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >
-                        <RoomHeaderAvatars icons={icons} />
+                        <MultipleAvatars
+                            icons={icons}
+                            size={props.isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
+                            shouldStackHorizontally
+                            shouldDisplayAvatarsInRows={props.isSmallScreenWidth}
+                            maxAvatarsInRow={props.isSmallScreenWidth ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
+                        />
                     </PressableWithoutFeedback>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText report={props.report} />

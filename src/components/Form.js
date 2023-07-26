@@ -15,6 +15,8 @@ import FormSubmit from './FormSubmit';
 import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollViewWithContext from './ScrollViewWithContext';
 import stylePropTypes from '../styles/stylePropTypes';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -70,6 +72,9 @@ const propTypes = {
     /** Custom content to display in the footer after submit button */
     footerContent: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -96,6 +101,7 @@ function Form(props) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const isFirstRender = useRef(true);
+    const lastValidatedValues = useRef({...props.draftValues});
 
     const {validate, onSubmit, children} = props;
 
@@ -140,6 +146,8 @@ function Form(props) {
             if (!_.isEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
             }
+
+            lastValidatedValues.current = values;
 
             return touchedInputErrors;
         },
@@ -188,9 +196,14 @@ function Form(props) {
             return;
         }
 
+        // Do not submit form if network is offline and the form is not enabled when offline
+        if (props.network.isOffline && !props.enabledWhenOffline) {
+            return;
+        }
+
         // Call submit handler
         onSubmit(inputValues);
-    }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs]);
+    }, [props.formState, onSubmit, inputRefs, inputValues, onValidate, touchedInputs, props.network.isOffline, props.enabledWhenOffline]);
 
     /**
      * Loops over Form's children and automatically supplies Form props to them
@@ -199,8 +212,8 @@ function Form(props) {
      * @returns {React.Component}
      */
     const childrenWrapperWithProps = useCallback(
-        (childNodes) =>
-            React.Children.map(childNodes, (child) => {
+        (childNodes) => {
+            const childrenElements = React.Children.map(childNodes, (child) => {
                 // Just render the child if it is not a valid React element, e.g. text within a <Text> component
                 if (!React.isValidElement(child)) {
                     return child;
@@ -290,7 +303,12 @@ function Form(props) {
                         // web and mobile web platforms.
                         setTimeout(() => {
                             setTouchedInput(inputID);
-                            onValidate(inputValues);
+
+                            // To prevent server errors from being cleared inadvertently, we only run validation on blur if any form values have changed since the last validation/submit
+                            const shouldValidate = !_.isEqual(inputValues, lastValidatedValues.current);
+                            if (shouldValidate) {
+                                onValidate(inputValues);
+                            }
                         }, 200);
 
                         if (_.isFunction(child.props.onBlur)) {
@@ -320,7 +338,28 @@ function Form(props) {
                         }
                     },
                 });
-            }),
+            });
+
+            // We need to verify that all references and values are still actual.
+            // We should not store it when e.g. some input has been unmounted
+            _.each(inputRefs.current, (inputRef, inputID) => {
+                if (inputRef) {
+                    return;
+                }
+
+                delete inputRefs.current[inputID];
+
+                setInputValues((prevState) => {
+                    const copyPrevState = _.clone(prevState);
+
+                    delete copyPrevState[inputID];
+
+                    return copyPrevState;
+                });
+            });
+
+            return childrenElements;
+        },
         [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput],
     );
 
@@ -423,6 +462,7 @@ Form.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withNetwork(),
     withOnyx({
         formState: {
             key: (props) => props.formID,
