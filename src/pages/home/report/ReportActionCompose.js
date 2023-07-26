@@ -49,6 +49,7 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import containerComposeStyles from '../../../styles/containerComposeStyles';
 import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
@@ -241,19 +242,13 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
-                return;
-            }
-
-            this.focus(false);
-        });
-
         this.unsubscribeNavigationBlur = this.props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress));
-        this.unsubscribeNavigationFocus = this.props.navigation.addListener('focus', () => KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress));
+        this.unsubscribeNavigationFocus = this.props.navigation.addListener('focus', () => {
+            KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+            this.setUpComposeFocusManager();
+        });
         KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+        this.setUpComposeFocusManager();
 
         this.updateComment(this.comment);
 
@@ -310,6 +305,18 @@ class ReportActionCompose extends React.Component {
         }
         this.calculateEmojiSuggestion();
         this.calculateMentionSuggestion();
+    }
+
+    setUpComposeFocusManager() {
+        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
+                return;
+            }
+
+            this.focus(false);
+        });
     }
 
     getDefaultSuggestionsValues() {
@@ -1110,7 +1117,7 @@ class ReportActionCompose extends React.Component {
                                             </>
                                         )}
                                     </AttachmentPicker>
-                                    <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder]}>
+                                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                                         <DragAndDrop
                                             dropZoneId={this.props.dragAndDropId}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + this.props.reportID}

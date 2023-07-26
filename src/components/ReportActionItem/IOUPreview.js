@@ -165,7 +165,13 @@ function IOUPreview(props) {
             return props.translate('iou.split');
         }
 
-        return `${props.translate('iou.cash')}${!props.iouReport.hasOutstandingIOU ? ` • ${props.translate('iou.settledExpensify')}` : ''}`;
+        let message = props.translate('iou.cash');
+        if (props.iouReport.isWaitingOnBankAccount) {
+            message += ` • ${props.translate('iou.pending')}`;
+        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
+            message += ` • ${props.translate('iou.settledExpensify')}`;
+        }
+        return message;
     };
 
     const childContainer = (
@@ -200,7 +206,7 @@ function IOUPreview(props) {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
-                            {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
+                            {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
                                 <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
                                         src={Expensicons.Checkmark}

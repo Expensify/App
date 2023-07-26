@@ -42,7 +42,7 @@ import * as ReportActions from '../../../libs/actions/ReportActions';
 import reportPropTypes from '../../reportPropTypes';
 import {ShowContextMenuContext} from '../../../components/ShowContextMenuContext';
 import ChronosOOOListActions from '../../../components/ReportActionItem/ChronosOOOListActions';
-import ReportActionItemReactions from '../../../components/Reactions/ReportActionItemReactions';
+import ReportActionItemEmojiReactions from '../../../components/Reactions/ReportActionItemEmojiReactions';
 import * as Report from '../../../libs/actions/Report';
 import withLocalize from '../../../components/withLocalize';
 import Icon from '../../../components/Icon';
@@ -54,9 +54,14 @@ import ReportPreview from '../../../components/ReportActionItem/ReportPreview';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import TaskPreview from '../../../components/ReportActionItem/TaskPreview';
 import TaskAction from '../../../components/ReportActionItem/TaskAction';
+import EmojiReactionsPropTypes from '../../../components/Reactions/EmojiReactionsPropTypes';
 import * as Session from '../../../libs/actions/Session';
 import MoneyRequestView from '../../../components/ReportActionItem/MoneyRequestView';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
+import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
+import * as store from '../../../libs/actions/ReimbursementAccount/store';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -92,7 +97,8 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** All of the personalDetails */
+    ...windowDimensionsPropTypes,
+    emojiReactions: EmojiReactionsPropTypes,
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** Is this the only report action on the report? */
@@ -102,6 +108,7 @@ const propTypes = {
 const defaultProps = {
     draftMessage: '',
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    emojiReactions: {},
     personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
@@ -156,7 +163,14 @@ function ReportActionItem(props) {
     const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
     const latestDecision = lodashGet(_.last(decisions), 'decision', '');
     useEffect(() => {
-        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || _.isEmpty(latestDecision)) {
+        if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
+            return;
+        }
+
+        // Hide reveal message button and show the message if latestDecision is changed to empty
+        if (_.isEmpty(latestDecision)) {
+            setModerationDecision(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
+            setIsHidden(false);
             return;
         }
 
@@ -204,9 +218,9 @@ function ReportActionItem(props) {
 
     const toggleReaction = useCallback(
         (emoji) => {
-            Report.toggleEmojiReaction(props.report.reportID, props.action.reportActionID, emoji);
+            Report.toggleEmojiReaction(props.report.reportID, props.action, emoji, props.emojiReactions);
         },
-        [props.report, props.action],
+        [props.report, props.action, props.emojiReactions],
     );
 
     /**
@@ -247,6 +261,7 @@ function ReportActionItem(props) {
                 <ReportPreview
                     iouReportID={ReportActionsUtils.getIOUReportIDFromReportActionPreview(props.action)}
                     chatReportID={props.report.reportID}
+                    containerStyles={props.displayAsGroup ? [] : [styles.mt2]}
                     action={props.action}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef}
@@ -271,6 +286,24 @@ function ReportActionItem(props) {
                     action={props.action}
                     isHovered={hovered}
                 />
+            );
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const shouldShowAddCreditBankAccountButton =
+                ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
+
+            children = (
+                <ReportActionItemBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}>
+                    {shouldShowAddCreditBankAccountButton ? (
+                        <Button
+                            success
+                            style={[styles.w100, styles.requestPreviewBox]}
+                            text={props.translate('bankAccount.addBankAccount')}
+                            onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
+                            pressOnEnter
+                        />
+                    ) : null}
+                </ReportActionItemBasicMessage>
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
@@ -330,9 +363,6 @@ function ReportActionItem(props) {
                 </ShowContextMenuContext.Provider>
             );
         }
-
-        const reactions = _.get(props, ['action', 'message', 0, 'reactions'], []);
-        const hasReactions = reactions.length > 0;
         const numberOfThreadReplies = _.get(props, ['action', 'childVisibleActionCount'], 0);
         const hasReplies = numberOfThreadReplies > 0;
 
@@ -348,25 +378,24 @@ function ReportActionItem(props) {
                         <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
                     </View>
                 )}
-                {hasReactions && (
-                    <View style={draftMessageRightAlign}>
-                        <ReportActionItemReactions
-                            reportActionID={props.action.reportActionID}
-                            reactions={reactions}
-                            toggleReaction={(emoji) => {
-                                if (Session.isAnonymousUser()) {
-                                    hideContextMenu(false);
+                <View style={draftMessageRightAlign}>
+                    <ReportActionItemEmojiReactions
+                        reportActionID={props.action.reportActionID}
+                        emojiReactions={props.emojiReactions}
+                        toggleReaction={(emoji) => {
+                            if (Session.isAnonymousUser()) {
+                                hideContextMenu(false);
 
-                                    InteractionManager.runAfterInteractions(() => {
-                                        Session.signOutAndRedirectToSignIn();
-                                    });
-                                } else {
-                                    toggleReaction(emoji);
-                                }
-                            }}
-                        />
-                    </View>
-                )}
+                                InteractionManager.runAfterInteractions(() => {
+                                    Session.signOutAndRedirectToSignIn();
+                                });
+                            } else {
+                                toggleReaction(emoji);
+                            }
+                        }}
+                    />
+                </View>
+
                 {shouldDisplayThreadReplies && (
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemThread
@@ -543,6 +572,9 @@ export default compose(
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
+        emojiReactions: {
+            key: ({action}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${action.reportActionID}`,
+        },
     }),
 )(
     memo(
@@ -553,6 +585,7 @@ export default compose(
             prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
             prevProps.hasOutstandingIOU === nextProps.hasOutstandingIOU &&
             prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
+            _.isEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
             _.isEqual(prevProps.action, nextProps.action) &&
             lodashGet(prevProps.report, 'statusNum') === lodashGet(nextProps.report, 'statusNum') &&
             lodashGet(prevProps.report, 'stateNum') === lodashGet(nextProps.report, 'stateNum') &&
