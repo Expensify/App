@@ -1,9 +1,8 @@
 import {View} from 'react-native';
 import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
-import ONYXKEYS from '../../ONYXKEYS';
 import TabSelectorItem from './TabSelectorItem';
 import Tab from '../../libs/actions/Tab';
 import CONST from '../../CONST';
@@ -12,50 +11,54 @@ import styles from '../../styles/styles';
 import * as IOU from '../../libs/actions/IOU';
 
 const propTypes = {
-    /** Which tab has been selected */
-    selectedTab: PropTypes.string,
+    // eslint-disable-next-line react/forbid-prop-types
+    state: PropTypes.object.isRequired,
 
-    /** The current money request ID */
-    moneyRequestID: PropTypes.string,
+    navigation: PropTypes.shape({
+        navigate: PropTypes.func.isRequired,
+        emit: PropTypes.func.isRequired,
+    }).isRequired,
 };
 
-const defaultProps = {
-    selectedTab: CONST.TAB.TAB_MANUAL,
-    moneyRequestID: '',
-};
+const getIcon = (route) => (route === CONST.TAB.TAB_MANUAL ? Expensicons.Pencil : Expensicons.Receipt);
 
-function TabSelector(props) {
+function TabSelector({state, navigation}) {
     const {translate} = useLocalize();
     return (
         <View style={styles.tabSelector}>
-            <TabSelectorItem
-                title={translate('tabSelector.manual')}
-                isSelected={props.selectedTab === CONST.TAB.TAB_MANUAL}
-                icon={Expensicons.Pencil}
-                onPress={() => {
-                    IOU.resetMoneyRequestInfo(props.moneyRequestID);
-                    Tab.onTabPress(CONST.TAB.TAB_MANUAL);
-                }}
-            />
-            <TabSelectorItem
-                title={translate('tabSelector.scan')}
-                isSelected={props.selectedTab === CONST.TAB.TAB_SCAN}
-                icon={Expensicons.Receipt}
-                onPress={() => {
-                    IOU.resetMoneyRequestInfo(props.moneyRequestID);
-                    Tab.onTabPress(CONST.TAB.TAB_SCAN);
-                }}
-            />
+            {_.map(state.routes, (route, index) => {
+                const isFocused = state.index === index;
+
+                const onPress = () => {
+                    const event = navigation.emit({
+                        type: 'tabPress',
+                        target: route.key,
+                        canPreventDefault: true,
+                    });
+
+                    if (!isFocused && !event.defaultPrevented) {
+                        // The `merge: true` option makes sure that the params inside the tab screen are preserved
+                        navigation.navigate({name: route.name, merge: true});
+                    }
+
+                    IOU.resetMoneyRequestInfo();
+                    Tab.onTabPress(route.name);
+                };
+
+                return (
+                    <TabSelectorItem
+                        isSelected={isFocused}
+                        title={translate(`tabSelector.${route.name}`)}
+                        icon={getIcon(route.name)}
+                        onPress={onPress}
+                    />
+                );
+            })}
         </View>
     );
 }
 
 TabSelector.propTypes = propTypes;
-TabSelector.defaultProps = defaultProps;
 TabSelector.displayName = 'TabSelector';
 
-export default withOnyx({
-    selectedTab: {
-        key: ONYXKEYS.SELECTED_TAB,
-    },
-})(TabSelector);
+export default TabSelector;

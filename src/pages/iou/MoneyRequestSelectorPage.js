@@ -1,10 +1,11 @@
 import {withOnyx} from 'react-native-onyx';
-import {View} from 'react-native';
-import React, {useRef, useState} from 'react';
+import {Animated, TouchableOpacity, View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import {compose} from 'underscore';
 import {PortalHost} from '@gorhom/portal';
 import PropTypes from 'prop-types';
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -24,6 +25,8 @@ import * as IOU from '../../libs/actions/IOU';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from '../../libs/actions/NavigateToNextIOUPage';
 import ReceiptUtils from '../../libs/ReceiptUtils';
+
+const TopTab = createMaterialTopTabNavigator();
 
 const propTypes = {
     route: PropTypes.shape({
@@ -96,6 +99,31 @@ function MoneyRequestSelectorPage(props) {
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
+    const RenderMoneyRequestAmountPage = useCallback(
+        () => (
+            <MoneyRequestAmount
+                route={props.route}
+                report={props.report}
+                iou={props.iou}
+                currentUserPersonalDetails={props.currentUserPersonalDetails}
+            />
+        ),
+        [props.route, props.report, props.iou, props.currentUserPersonalDetails],
+    );
+
+    const RenderReceiptSelectorPage = useCallback(
+        () => (
+            <ReceiptSelector
+                route={props.route}
+                report={props.report}
+                iou={props.iou}
+                isDraggingOver={isDraggingOver}
+                currentUserPersonalDetails={props.currentUserPersonalDetails}
+            />
+        ),
+        [isDraggingOver, props.currentUserPersonalDetails, props.iou, props.report, props.route],
+    );
+
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -131,21 +159,19 @@ function MoneyRequestSelectorPage(props) {
                                 title={titleForStep}
                                 onBackButtonPress={navigateBack}
                             />
-                            <TabSelector moneyRequestID={`${iouType.current}${reportID.current}`} />
-                            {props.selectedTab === CONST.TAB.TAB_MANUAL ? (
-                                <MoneyRequestAmount
-                                    route={props.route}
-                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                            <TopTab.Navigator
+                                initialRouteName={props.selectedTab}
+                                tabBar={(materialTopBarProps) => <TabSelector {...materialTopBarProps} />}
+                            >
+                                <TopTab.Screen
+                                    name={CONST.TAB.TAB_MANUAL}
+                                    component={RenderMoneyRequestAmountPage}
                                 />
-                            ) : (
-                                <ReceiptSelector
-                                    route={props.route}
-                                    report={props.report}
-                                    iou={props.iou}
-                                    isDraggingOver={isDraggingOver}
-                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                                <TopTab.Screen
+                                    name={CONST.TAB.TAB_SCAN}
+                                    component={RenderReceiptSelectorPage}
                                 />
-                            )}
+                            </TopTab.Navigator>
                             <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
                         </View>
                     </DragAndDrop>

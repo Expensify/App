@@ -33,7 +33,7 @@ function TabSelectorItem(props) {
         <>
             <PressableWithFeedback
                 accessibilityLabel={props.title}
-                style={[styles.tabSelectorButton]}
+                style={[styles.tabSelectorButton(props.isSelected)]}
                 onPress={props.onPress}
             >
                 <Icon

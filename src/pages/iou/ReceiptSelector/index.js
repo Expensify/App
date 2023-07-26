@@ -94,7 +94,7 @@ function ReceiptSelector(props) {
     const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
     const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
-    const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
+    const [receiptImageTopPosition, setReceiptImageTopPosition] = useState();
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -151,6 +151,8 @@ function ReceiptSelector(props) {
             </AttachmentPicker>
         </>
     );
+
+    console.log(`receiptImageTopPosition: ${receiptImageTopPosition}`);
 
     return (
         <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
