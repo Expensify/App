@@ -96,7 +96,7 @@ function ReportActionItemEmojiReactions(props) {
                 };
 
                 const onReactionListOpen = (event) => {
-                    reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reaction.emoji, props.reportActionID);
+                    reactionListRef.current.showReactionList(event, popoverReactionListAnchor.current, reaction);
                 };
 
                 return (
