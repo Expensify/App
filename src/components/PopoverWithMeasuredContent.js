@@ -1,11 +1,11 @@
 import _ from 'underscore';
-import React, {Component} from 'react';
+import React, {useState, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import Popover from './Popover';
 import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import useWindowDimensions from '../hooks/useWindowDimensions';
+import {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopoverWithMeasuredContentStyles';
@@ -13,7 +13,8 @@ import {computeHorizontalShift, computeVerticalShift} from '../styles/getPopover
 const propTypes = {
     // All popover props except:
     // 1) anchorPosition (which is overridden for this component)
-    ..._.omit(popoverPropTypes, ['anchorPosition']),
+    // 2) windowDimensionsPropTypes - we exclude them because we use useWindowDimensions hook instead
+    ..._.omit(popoverPropTypes, ['anchorPosition', ..._.keys(windowDimensionsPropTypes)]),
 
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: PropTypes.shape({
@@ -35,8 +36,6 @@ const propTypes = {
         height: PropTypes.number,
         width: PropTypes.number,
     }),
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -59,49 +58,24 @@ const defaultProps = {
  * This way, we can shift the position of popover so that the content is anchored where we want it relative to the
  * anchor position.
  */
-class PopoverWithMeasuredContent extends Component {
-    constructor(props) {
-        super(props);
 
-        this.popoverWidth = lodashGet(this.props, 'popoverDimensions.width', 0);
-        this.popoverHeight = lodashGet(this.props, 'popoverDimensions.height', 0);
-
-        this.state = {
-            isContentMeasured: this.popoverWidth > 0 && this.popoverHeight > 0,
-            isVisible: false,
-        };
-
-        this.measurePopover = this.measurePopover.bind(this);
-    }
+function PopoverWithMeasuredContent(props) {
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const [popoverWidth, setPopoverWidth] = useState(props.popoverDimensions.width);
+    const [popoverHeight, setPopoverHeight] = useState(props.popoverDimensions.height);
+    const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
+    const [isVisible, setIsVisible] = useState(false);
 
     /**
      * When Popover becomes visible, we need to recalculate the Dimensions.
      * Skip render on Popover until recalculations have done by setting isContentMeasured false as early as possible.
-     *
-     * @static
-     * @param {Object} props
-     * @param {Object} state
-     * @return {Object|null}
      */
-    static getDerivedStateFromProps(props, state) {
+    if (!isVisible && props.isVisible) {
         // When Popover is shown recalculate
-        if (!state.isVisible && props.isVisible) {
-            return {isContentMeasured: lodashGet(props, 'popoverDimensions.width', 0) > 0 && lodashGet(props, 'popoverDimensions.height', 0) > 0, isVisible: true};
-        }
-        if (!props.isVisible) {
-            return {isVisible: false};
-        }
-        return null;
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        if (this.props.isVisible && (nextProps.windowWidth !== this.props.windowWidth || nextProps.windowHeight !== this.props.windowHeight)) {
-            return true;
-        }
-
-        // This component does not require re-render until any prop or state changes as we get the necessary info
-        // at first render. This component is attached to each message on the Chat list thus we prevent its re-renders
-        return !_.isEqual(_.omit(this.props, ['windowWidth', 'windowHeight']), _.omit(nextProps, ['windowWidth', 'windowHeight'])) || !_.isEqual(this.state, nextState);
+        setIsContentMeasured(props.popoverDimensions.width > 0 && props.popoverDimensions.height > 0);
+        setIsVisible(true);
+    } else if (isVisible && !props.isVisible) {
+        setIsVisible(false);
     }
 
     /**
@@ -109,88 +83,86 @@ class PopoverWithMeasuredContent extends Component {
      *
      * @param {Object} nativeEvent
      */
-    measurePopover({nativeEvent}) {
-        this.popoverWidth = nativeEvent.layout.width;
-        this.popoverHeight = nativeEvent.layout.height;
-        this.setState({isContentMeasured: true});
-    }
+    const measurePopover = ({nativeEvent}) => {
+        setPopoverWidth(nativeEvent.layout.width);
+        setPopoverHeight(nativeEvent.layout.height);
+        setIsContentMeasured(true);
+    };
 
-    /**
-     * Calculate the adjusted position of the popover.
-     *
-     * @returns {Object}
-     */
-    calculateAdjustedAnchorPosition() {
+    const adjustedAnchorPosition = useMemo(() => {
         let horizontalConstraint;
-        switch (this.props.anchorAlignment.horizontal) {
+        switch (props.anchorAlignment.horizontal) {
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT:
-                horizontalConstraint = {left: this.props.anchorPosition.horizontal - this.popoverWidth};
+                horizontalConstraint = {left: props.anchorPosition.horizontal - popoverWidth};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER:
                 horizontalConstraint = {
-                    left: Math.floor(this.props.anchorPosition.horizontal - this.popoverWidth / 2),
+                    left: Math.floor(props.anchorPosition.horizontal - popoverWidth / 2),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT:
             default:
-                horizontalConstraint = {left: this.props.anchorPosition.horizontal};
+                horizontalConstraint = {left: props.anchorPosition.horizontal};
         }
 
         let verticalConstraint;
-        switch (this.props.anchorAlignment.vertical) {
+        switch (props.anchorAlignment.vertical) {
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM:
-                verticalConstraint = {top: this.props.anchorPosition.vertical - this.popoverHeight};
+                verticalConstraint = {top: props.anchorPosition.vertical - popoverHeight};
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.CENTER:
                 verticalConstraint = {
-                    top: Math.floor(this.props.anchorPosition.vertical - this.popoverHeight / 2),
+                    top: Math.floor(props.anchorPosition.vertical - popoverHeight / 2),
                 };
                 break;
             case CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP:
             default:
-                verticalConstraint = {top: this.props.anchorPosition.vertical};
+                verticalConstraint = {top: props.anchorPosition.vertical};
         }
 
         return {
             ...horizontalConstraint,
             ...verticalConstraint,
         };
-    }
+    }, [props.anchorPosition, props.anchorAlignment, popoverWidth, popoverHeight]);
 
-    render() {
-        const adjustedAnchorPosition = this.calculateAdjustedAnchorPosition();
-        const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, this.popoverWidth, this.props.windowWidth);
-        const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, this.popoverHeight, this.props.windowHeight);
-        const shiftedAnchorPosition = {
-            left: adjustedAnchorPosition.left + horizontalShift,
-            top: adjustedAnchorPosition.top + verticalShift,
-        };
-        return this.state.isContentMeasured ? (
-            <Popover
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                anchorPosition={shiftedAnchorPosition}
-            >
-                {this.props.children}
-            </Popover>
-        ) : (
-            /*
-                This is an invisible view used to measure the size of the popover,
-                before it ever needs to be displayed.
-                We do this because we need to know its dimensions in order to correctly animate the popover,
-                but we can't measure its dimensions without first rendering it.
-            */
-            <View
-                style={styles.invisible}
-                onLayout={this.measurePopover}
-            >
-                {this.props.children}
-            </View>
-        );
-    }
+    const horizontalShift = computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
+    const verticalShift = computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
+    const shiftedAnchorPosition = {
+        left: adjustedAnchorPosition.left + horizontalShift,
+        top: adjustedAnchorPosition.top + verticalShift,
+    };
+    return isContentMeasured ? (
+        <Popover
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            anchorPosition={shiftedAnchorPosition}
+        >
+            {props.children}
+        </Popover>
+    ) : (
+        /*
+            This is an invisible view used to measure the size of the popover,
+            before it ever needs to be displayed.
+            We do this because we need to know its dimensions in order to correctly animate the popover,
+            but we can't measure its dimensions without first rendering it.
+        */
+        <View
+            style={styles.invisible}
+            onLayout={measurePopover}
+        >
+            {props.children}
+        </View>
+    );
 }
 
 PopoverWithMeasuredContent.propTypes = propTypes;
 PopoverWithMeasuredContent.defaultProps = defaultProps;
+PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
 
-export default withWindowDimensions(PopoverWithMeasuredContent);
+export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => {
+    if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
+        return true;
+    }
+    return _.isEqual(prevProps, nextProps);
+});

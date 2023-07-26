@@ -104,7 +104,8 @@ function translateIfNeeded(translation) {
     const variables = {};
     if (params) {
         _.keys(params).forEach((k) => {
-            // The value can be an object that need to translate
+            //  The value in params can be translatable. I.e in getReportPreviewMessage we return { key: 'iou.payerOwesAmount', params: { payer: payerName, amount: formattedAmount}}
+            //   payerName can be { key: 'workspace.common.unavailable'}
             variables[k] = translateIfNeeded(params[k]);
         });
     }
