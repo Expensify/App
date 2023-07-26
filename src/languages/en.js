@@ -1130,6 +1130,11 @@ export default {
         emptyWorkspace: {
             title: 'Create a new workspace',
             subtitle: "Workspaces are where you'll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.",
+            features: {
+                trackAndCollect: 'Track and collect receipts',
+                companyCards: 'Company credit cards',
+                reimbursements: 'Easy reimbursements',
+            },
         },
         new: {
             newWorkspace: 'New workspace',
