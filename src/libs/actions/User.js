@@ -18,6 +18,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
+import * as App from './App';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -39,6 +40,12 @@ Onyx.connect({
 
         myPersonalDetails = val[currentUserAccountID];
     },
+});
+
+let onyxUpdatesLastUpdateID;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
+    callback: (val) => (onyxUpdatesLastUpdateID = val),
 });
 
 /**
@@ -545,6 +552,10 @@ function subscribeToUserEvents() {
                 [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: pushJSON.previousUpdateID,
             });
             updates = pushJSON.updates;
+
+            if (pushJSON.lastUpdateID !== onyxUpdatesLastUpdateID) {
+                App.openApp(true);
+            }
         }
         _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);

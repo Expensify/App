@@ -151,34 +151,43 @@ function openApp(fetchIncrementalUpdates = false) {
                     // Include the last update ID when reconnecting so that the server can send incremental updates if they are available.
                     // Otherwise, a full set of app data will be returned.
                     params.updateIDTo = onyxUpdatesLastUpdateID;
+                    // @TODO: figure out what this value is supposed to be
+                    params.updateIDFrom = 'TBD';
                 }
                 Onyx.disconnect(connectionID);
 
                 // eslint-disable-next-line rulesdir/no-multiple-api-calls
                 const apiMethod = fetchIncrementalUpdates ? API.write : API.read;
-                apiMethod(fetchIncrementalUpdates ? 'ReconnectApp' : 'OpenApp', params, {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: true,
-                        },
-                    ],
-                    successData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                    failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                });
+                apiMethod(
+                    fetchIncrementalUpdates ? 'ReconnectApp' : 'OpenApp',
+                    params,
+                    {
+                        optimisticData: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                                value: true,
+                            },
+                        ],
+                        successData: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                                value: false,
+                            },
+                        ],
+                        failureData: [
+                            {
+                                onyxMethod: Onyx.METHOD.MERGE,
+                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                                value: false,
+                            },
+                        ],
+                    },
+
+                    // For write requests, when this is true, the request is prioritized and put into the front of the sequential queue instead of the back.
+                    fetchIncrementalUpdates,
+                );
             },
         });
     });
