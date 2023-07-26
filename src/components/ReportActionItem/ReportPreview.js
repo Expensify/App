@@ -25,6 +25,7 @@ import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
+import * as IOUUtils from "../../libs/IOUUtils";
 
 const propTypes = {
     /** All the data of the action */
@@ -93,8 +94,12 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
+    console.log(props.action);
     const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
+    const moneyRequestCount = lodashGet(props.action, 'childMoneyRequestCount', 0);
+    const moneyRequestComment = lodashGet(props.action, 'childLastMoneyRequestComment');
+    const showComment = moneyRequestComment || moneyRequestCount > 1;
     let reportAmount = ReportUtils.getMoneyRequestTotal(props.iouReport);
     if (reportAmount) {
         reportAmount = CurrencyUtils.convertToDisplayString(reportAmount, props.iouReport.currency);
@@ -146,6 +151,13 @@ function ReportPreview(props) {
                             )}
                         </View>
                     </View>
+                    {showComment && (
+                        <View style={[styles.flexRow]}>
+                            <View style={[styles.flex1]}>
+                                <Text style={[styles.mt1, styles.colorMuted]}>{moneyRequestCount > 1 ? `${moneyRequestCount} requests` : moneyRequestComment}</Text>
+                            </View>
+                        </View>
+                    )}
                     {!_.isEmpty(props.iouReport) && isCurrentUserManager && !ReportUtils.isSettled(props.iouReportID) && !props.iouReport.isWaitingOnBankAccount && (
                         <SettlementButton
                             currency={props.iouReport.currency}
