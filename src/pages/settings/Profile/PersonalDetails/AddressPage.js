@@ -21,6 +21,8 @@ import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -61,6 +63,7 @@ function updateAddress(values) {
 }
 
 function AddressPage(props) {
+    usePrivatePersonalDetails();
     const {translate} = props;
     const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(props.privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
     const isUSAForm = countryISO === CONST.COUNTRY.US;
@@ -116,6 +119,10 @@ function AddressPage(props) {
 
         return errors;
     }, []);
+
+    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
+        return <FullscreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
