@@ -11,7 +11,6 @@ import Text from '../../components/Text';
 import MenuItem from '../../components/MenuItem';
 import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../components/LottieAnimations';
-import SCREENS from '../../SCREENS';
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
