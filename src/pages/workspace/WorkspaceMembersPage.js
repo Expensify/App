@@ -430,7 +430,7 @@ function WorkspaceMembersPage(props) {
                         cancelText={props.translate('common.cancel')}
                     />
                     <View style={[styles.w100, styles.flex1]}>
-                        <View style={[styles.w100, styles.flexRow, styles.pt3, styles.ph5]}>
+                        <View style={[styles.w100, styles.flexRow, styles.ph5]}>
                             <Button
                                 medium
                                 success
