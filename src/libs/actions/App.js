@@ -10,7 +10,7 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import Performance from '../Performance';
 import * as Policy from './Policy';
-import Navigation, {navigationRef} from '../Navigation/Navigation';
+import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
@@ -205,8 +205,9 @@ function endSignOnTransition() {
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
  * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ * @param {Boolean} [shouldNavigateToAdminChat] Optional, navigate to the #admin room after creation
  */
-function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
+function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false, shouldNavigateToAdminChat = true) {
     const policyID = Policy.generatePolicyID();
     const adminsChatReportID = Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
     Navigation.isNavigationReady()
@@ -216,9 +217,9 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
                 Navigation.goBack();
             }
 
-            // Get the reportID associated with the newly created #admins room and route the user to that chat
-            const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
-            Navigation.setParams({reportID: adminsChatReportID}, routeKey);
+            if (shouldNavigateToAdminChat) {
+                Navigation.navigate(ROUTES.getReportRoute(adminsChatReportID));
+            }
 
             Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
         })
@@ -244,8 +245,9 @@ function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = fal
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
+ * @param {Boolean} shouldNavigateToAdminChat Should we navigate to admin chat after creating workspace
  */
-function setUpPoliciesAndNavigate(session) {
+function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
@@ -269,7 +271,7 @@ function setUpPoliciesAndNavigate(session) {
 
     const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        createWorkspaceAndNavigateToIt(policyOwnerEmail, makeMeAdmin, policyName, true);
+        createWorkspaceAndNavigateToIt(policyOwnerEmail, makeMeAdmin, policyName, true, shouldNavigateToAdminChat);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
