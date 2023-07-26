@@ -113,7 +113,9 @@ function ReportActionItemEmojiReactions(props) {
                 style={[styles.flexRow, styles.flexWrap, styles.gap1, styles.mt2]}
             >
                 {_.map(formattedReactions, (reaction) => {
-                    if (reaction !== null) {
+                    if (reaction === null) {
+                        return;
+                    }
                         return (
                             <Tooltip
                                 renderTooltipContent={() => (
@@ -140,7 +142,6 @@ function ReportActionItemEmojiReactions(props) {
                                 </View>
                             </Tooltip>
                         );
-                    }
                 })}
                 <AddReactionBubble
                     onSelectEmoji={props.toggleReaction}
