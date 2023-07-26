@@ -160,7 +160,7 @@ function ReportActionsView(props) {
             Report.unsubscribeFromReportChannel(props.report.reportID);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [props.report.reportID]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
