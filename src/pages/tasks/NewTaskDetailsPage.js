@@ -100,9 +100,6 @@ function NewTaskPage(props) {
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
-                        autoGrowHeight
-                        textAlignVertical="top"
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
                     />
                 </View>
                 <View style={styles.mb5}>
