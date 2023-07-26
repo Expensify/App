@@ -38,6 +38,7 @@ import PressableWithFeedback from '../../components/Pressable/PressableWithFeedb
 import usePrevious from '../../hooks/usePrevious';
 import Log from '../../libs/Log';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import DotIndicatorMessageWithClose from '../../components/DotIndicatorMessageWithClose';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -397,6 +398,7 @@ function WorkspaceMembersPage(props) {
     });
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
+    const primaryLoginsInvited = props.policy.primaryLoginsInvited || {};
 
     return (
         <ScreenWrapper
@@ -453,6 +455,11 @@ function WorkspaceMembersPage(props) {
                                 onChangeText={setSearchValue}
                                 label={props.translate('optionsSelector.findMember')}
                                 accessibilityLabel={props.translate('optionsSelector.findMember')}
+                            />
+                            <DotIndicatorMessageWithClose
+                                type="success"
+                                messages={_.isEmpty(primaryLoginsInvited) ? null : {0: props.translate('workspace.people.addedWithPrimary')}}
+                                containerStyles={[styles.pt3]}
                             />
                         </View>
                         {data.length > 0 ? (
