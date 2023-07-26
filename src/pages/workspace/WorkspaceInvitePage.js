@@ -182,11 +182,22 @@ function WorkspaceInvitePage(props) {
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(props.route.params.policyID));
     };
 
-    const headerMessage = OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchTerm);
     const [policyName, shouldShowAlertPrompt] = useMemo(
         () => [lodashGet(props.policy, 'name'), _.size(lodashGet(props.policy, 'errors', {})) > 0 || lodashGet(props.policy, 'alertMessage', '').length > 0],
         [props.policy],
     );
+
+    const getHeaderMessage = () => {
+        const excludedUsers = PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails);
+        const searchValue = searchTerm.trim();
+        if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        if (!userToInvite && excludedUsers.includes(searchValue)) {
+            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+        }
+        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
+    }
 
     return (
         <ScreenWrapper shouldEnableMaxHeight>
@@ -220,7 +231,7 @@ function WorkspaceInvitePage(props) {
                                 onSelectRow={toggleOption}
                                 onChangeText={setSearchTerm}
                                 onConfirmSelection={inviteUser}
-                                headerMessage={headerMessage}
+                                headerMessage={getHeaderMessage()}
                                 hideSectionHeaders
                                 boldStyle
                                 shouldDelayFocus
