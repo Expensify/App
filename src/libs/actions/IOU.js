@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 import CONST from '../../CONST';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -77,6 +78,7 @@ Onyx.connect({
  * @param {String} id
  */
 function resetMoneyRequestInfo(id = '') {
+    const date = currentDate || moment().format('YYYY-MM-DD');
     Onyx.merge(ONYXKEYS.IOU, {
         id,
         amount: 0,
@@ -84,7 +86,7 @@ function resetMoneyRequestInfo(id = '') {
         comment: '',
         participants: [],
         merchant: '',
-        date: currentDate,
+        date,
     });
 }
 
@@ -1442,7 +1444,9 @@ function setMoneyRequestDescription(comment) {
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
-    Onyx.merge(ONYXKEYS.IOU, {participants});
+    Onyx.merge(ONYXKEYS.IOU, {
+        participants,
+    });
 }
 
 export {
