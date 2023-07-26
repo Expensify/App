@@ -6,6 +6,7 @@ export default {
     common: {
         cancel: 'Cancelar',
         yes: 'Sí',
+        test test
         no: 'No',
         ok: 'OK',
         buttonConfirm: 'Ok, entendido',
