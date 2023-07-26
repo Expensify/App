@@ -231,13 +231,13 @@ class ContactMethodDetailsPage extends Component {
                     />
                     {isFailedAddContactMethod && (
                         <DotIndicatorMessage
-                            style={[styles.mh5, styles.mv3]}
+                            style={[styles.mh5, styles.mb3]}
                             messages={ErrorUtils.getLatestErrorField(loginData, 'addedLogin')}
                             type="error"
                         />
                     )}
                     {!loginData.validatedDate && !isFailedAddContactMethod && (
-                        <View style={[styles.ph5, styles.mt3, styles.mb7]}>
+                        <View style={[styles.ph5, styles.mb7]}>
                             <DotIndicatorMessage
                                 type="success"
                                 style={[styles.mb3]}
@@ -270,7 +270,7 @@ class ContactMethodDetailsPage extends Component {
                             errorRowStyles={[styles.ml8, styles.mr5]}
                             onClose={() => User.clearContactMethodErrors(contactMethod, 'defaultLogin')}
                         >
-                            <Text style={[styles.ph5, styles.mv3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
+                            <Text style={[styles.ph5, styles.mb3]}>{this.props.translate('contacts.yourDefaultContactMethod')}</Text>
                         </OfflineWithFeedback>
                     ) : (
                         <OfflineWithFeedback
