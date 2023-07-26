@@ -1,10 +1,11 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useCallback} from 'react';
 import lodashGet from 'lodash/get';
 import {compose} from 'underscore';
 import {PortalHost} from '@gorhom/portal';
 import PropTypes from 'prop-types';
+import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
@@ -24,6 +25,9 @@ import * as IOU from '../../libs/actions/IOU';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from '../../libs/actions/NavigateToNextIOUPage';
 import ReceiptUtils from '../../libs/ReceiptUtils';
+import Icon from '../../components/Icon';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -76,6 +80,8 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
+const Tab = createMaterialTopTabNavigator();
+
 function MoneyRequestSelectorPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const {translate} = useLocalize();
@@ -95,6 +101,31 @@ function MoneyRequestSelectorPage(props) {
     };
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+
+    const RenderMoneyRequestAmountPage = useCallback(
+        () => (
+            <MoneyRequestAmountPage
+                route={props.route}
+                report={props.report}
+                iou={props.iou}
+                currentUserPersonalDetails={props.currentUserPersonalDetails}
+            />
+        ),
+        [props.route, props.report, props.iou, props.currentUserPersonalDetails],
+    );
+
+    const RenderReceiptSelectorPage = useCallback(
+        () => (
+            <ReceiptSelector
+                route={props.route}
+                report={props.report}
+                iou={props.iou}
+                isDraggingOver={isDraggingOver}
+                currentUserPersonalDetails={props.currentUserPersonalDetails}
+            />
+        ),
+        [isDraggingOver, props.currentUserPersonalDetails, props.iou, props.report, props.route],
+    );
 
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
@@ -131,23 +162,41 @@ function MoneyRequestSelectorPage(props) {
                                 title={titleForStep}
                                 onBackButtonPress={navigateBack}
                             />
-                            <TabSelector moneyRequestID={`${iouType.current}${reportID.current}`} />
-                            {props.tabSelected === CONST.TAB.TAB_MANUAL ? (
-                                <MoneyRequestAmountPage
-                                    route={props.route}
-                                    report={props.report}
-                                    iou={props.iou}
-                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                            <Tab.Navigator
+                                screenOptions={({route}) => ({
+                                    tabBarIcon: ({color}) => {
+                                        if (route.name === 'Manual') {
+                                            return (
+                                                <Icon
+                                                    src={Expensicons.Pencil}
+                                                    fill={color}
+                                                />
+                                            );
+                                        }
+                                        return (
+                                            <Icon
+                                                src={Expensicons.Receipt}
+                                                fill={color}
+                                            />
+                                        );
+                                    },
+                                    tabBarActiveTintColor: themeColors.iconMenu,
+                                    tabBarInactiveTintColor: themeColors.icon,
+                                    tabBarIndicator: () => <></>,
+                                    tabBarStyle: {
+                                        backgroundColor: themeColors.appBG,
+                                    },
+                                })}
+                            >
+                                <Tab.Screen
+                                    name="Manual"
+                                    component={RenderMoneyRequestAmountPage}
                                 />
-                            ) : (
-                                <ReceiptSelector
-                                    route={props.route}
-                                    report={props.report}
-                                    iou={props.iou}
-                                    isDraggingOver={isDraggingOver}
-                                    currentUserPersonalDetails={props.currentUserPersonalDetails}
+                                <Tab.Screen
+                                    name="Scan"
+                                    component={RenderReceiptSelectorPage}
                                 />
-                            )}
+                            </Tab.Navigator>
                             <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
                         </View>
                     </DragAndDrop>
