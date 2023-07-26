@@ -152,7 +152,7 @@ const chatReportSelector = (report) =>
 const reportActionsSelector = (reportActions) =>
     reportActions &&
     _.map(reportActions, (reportAction) => ({
-        errors: reportAction.errors,
+        errors: lodashGet(reportAction, 'errors', []),
         message: [
             {
                 moderationDecisions: [{decision: lodashGet(reportAction, 'message[0].moderationDecisions[0].decision')}],
