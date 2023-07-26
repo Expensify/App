@@ -135,7 +135,7 @@ function ReceiptSelector(props) {
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
-                                        if (!ReceiptUtils.isValidReceipt(file, props)) {
+                                        if (!ReceiptUtils.isValidReceipt(file)) {
                                             return;
                                         }
 

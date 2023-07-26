@@ -3,21 +3,22 @@ import _ from 'underscore';
 import * as FileUtils from './fileDownload/FileUtils';
 import CONST from '../CONST';
 import Receipt from './actions/Receipt';
+import * as Localize from './Localize';
 
-const isValidReceipt = (file, props) => {
+const isValidReceipt = (file) => {
     const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(file, 'name', ''));
     if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-        Receipt.setUploadReceiptError(true, props.translate('attachmentPicker.wrongFileType'), props.translate('attachmentPicker.notAllowedExtension'));
+        Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.wrongFileType'), Localize.translateLocal('attachmentPicker.notAllowedExtension'));
         return false;
     }
 
     if (lodashGet(file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-        Receipt.setUploadReceiptError(true, props.translate('attachmentPicker.attachmentTooLarge'), props.translate('attachmentPicker.sizeExceeded'));
+        Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.attachmentTooLarge'), Localize.translateLocal('attachmentPicker.sizeExceeded'));
         return false;
     }
 
     if (lodashGet(file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        Receipt.setUploadReceiptError(true, props.translate('attachmentPicker.attachmentTooSmall'), props.translate('attachmentPicker.sizeNotMet'));
+        Receipt.setUploadReceiptError(true, Localize.translateLocal('attachmentPicker.attachmentTooSmall'), Localize.translateLocal('attachmentPicker.sizeNotMet'));
         return false;
     }
 

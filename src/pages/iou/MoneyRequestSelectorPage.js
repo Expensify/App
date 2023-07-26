@@ -114,7 +114,7 @@ function MoneyRequestSelectorPage(props) {
                             setIsDraggingOver(false);
                             const file = lodashGet(e, ['dataTransfer', 'files', 0]);
 
-                            if (!ReceiptUtils.isValidReceipt(file, props)) {
+                            if (!ReceiptUtils.isValidReceipt(file)) {
                                 return;
                             }
 
