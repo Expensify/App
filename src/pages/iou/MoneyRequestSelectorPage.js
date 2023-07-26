@@ -17,7 +17,7 @@ import * as IOUUtils from '../../libs/IOUUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
-import MoneyRequestAmountPage from './steps/MoneyRequestAmount';
+import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
 import DragAndDrop from '../../components/DragAndDrop';
 import * as IOU from '../../libs/actions/IOU';
@@ -133,10 +133,8 @@ function MoneyRequestSelectorPage(props) {
                             />
                             <TabSelector moneyRequestID={`${iouType.current}${reportID.current}`} />
                             {props.selectedTab === CONST.TAB.TAB_MANUAL ? (
-                                <MoneyRequestAmountPage
+                                <MoneyRequestAmount
                                     route={props.route}
-                                    report={props.report}
-                                    iou={props.iou}
                                     currentUserPersonalDetails={props.currentUserPersonalDetails}
                                 />
                             ) : (
