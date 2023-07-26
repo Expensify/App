@@ -319,18 +319,20 @@ function MoneyRequestConfirmationList(props) {
                 style={[styles.moneyRequestMenuItem, styles.mb2]}
                 disabled={didConfirm || props.isReadOnly}
             />
-            <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
-                <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
-                <Button
-                    small
-                    onPress={toggleShowAllFields}
-                    text={showAllFields ? translate('common.showLess') : translate('common.showMore')}
-                    shouldShowRightIcon
-                    iconRight={showAllFields ? Expensicons.UpArrow : Expensicons.DownArrow}
-                    style={styles.mh0}
-                />
-                <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
-            </View>
+            {!showAllFields && (
+                <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.alignItemsCenter]}>
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.mr0]} />
+                    <Button
+                        small
+                        onPress={toggleShowAllFields}
+                        text={showAllFields ? translate('common.showLess') : translate('common.showMore')}
+                        shouldShowRightIcon
+                        iconRight={showAllFields ? Expensicons.UpArrow : Expensicons.DownArrow}
+                        style={styles.mh0}
+                    />
+                    <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
+                </View>
+            )}
             {showAllFields && (
                 <>
                     <MenuItemWithTopDescription
