@@ -39,12 +39,16 @@ const propTypes = {
     // TO DO: Replace with HOC https://github.com/Expensify/App/issues/18769.
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
+    /** Is this the only report action on the report? */
+    isOnlyReportAction: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 };
 const defaultProps = {
     report: {},
     parentReportActions: {},
     shouldHideThreadDividerLine: false,
+    isOnlyReportAction: false,
 };
 
 function ReportActionItemParentAction(props) {

@@ -135,6 +135,7 @@ function ReportActionsList(props) {
                     reportID={report.reportID}
                     parentReportID={`${report.parentReportID}`}
                     shouldDisplayNewMarker={shouldDisplayNewMarker}
+                    isOnlyReportAction={sortedReportActions.length === 1}
                 />
             ) : (
                 <ReportActionItem
