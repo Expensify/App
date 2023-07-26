@@ -677,7 +677,7 @@ function isExpenseRequest(report) {
 function isIOURequest(report) {
     if (isThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
+        const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
         return isIOUReport(parentReport) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
     return false;
