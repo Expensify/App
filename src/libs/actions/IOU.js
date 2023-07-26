@@ -388,6 +388,8 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         const message = ReportUtils.getReportPreviewMessage(iouReport, reportPreviewAction);
         reportPreviewAction.message[0].html = message;
         reportPreviewAction.message[0].text = message;
+        reportPreviewAction.childLastMoneyRequestComment = comment;
+        reportPreviewAction.childMoneyRequestCount += 1;
     } else {
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment);
     }

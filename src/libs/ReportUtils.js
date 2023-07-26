@@ -1774,7 +1774,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment) {
         accountID: iouReport.managerID || 0,
         actorAccountID: iouReport.managerID || 0,
         childMoneyRequestCount: 1,
-        moneyRequestComment: comment,
+        childLastMoneyRequestComment: comment,
     };
 }
 
