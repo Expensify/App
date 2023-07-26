@@ -56,7 +56,7 @@ function SaveTheWorldPage() {
 
             <MenuItem
                 shouldShowRightIcon
-                title={'Email (Depricate on final release)'}
+                title="Email (Depricate on final release)"
                 onPress={() => Navigation.navigate(ROUTES.I_Am_A_Teacher)}
             />
         </IllustratedHeaderPageLayout>
