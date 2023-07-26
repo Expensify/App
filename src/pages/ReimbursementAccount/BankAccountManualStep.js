@@ -59,7 +59,7 @@ function BankAccountManualStep(props) {
     const submit = useCallback(
         (values) => {
             BankAccounts.connectBankAccountManually(
-                lodashGet(reimbursementAccount, ['achData.bankAccountID']) || 0,
+                lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0,
                 values.accountNumber,
                 values.routingNumber,
                 lodashGet(reimbursementAccountDraft, ['plaidMask']),
