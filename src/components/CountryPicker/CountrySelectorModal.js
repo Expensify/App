@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionListRadio from '../SelectionListRadio';
+import SelectionList from '../SelectionList';
 import Modal from '../Modal';
 
 const propTypes = {
@@ -72,7 +72,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 title={translate('common.country')}
                 onBackButtonPress={onClose}
             />
-            <SelectionListRadio
+            <SelectionList
                 headerMessage={headerMessage}
                 textInputLabel={translate('common.country')}
                 textInputPlaceholder={translate('countrySelectorModal.placeholderText')}
@@ -80,8 +80,6 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 sections={[{data: filteredData, indexOffset: 0}]}
                 onSelectRow={onCountrySelected}
                 onChangeText={setSearchValue}
-                shouldFocusOnSelectRow
-                shouldHaveOptionSeparator
                 shouldDelayFocus
                 initiallyFocusedOptionKey={currentCountry}
             />

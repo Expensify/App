@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import HeaderWithBackButton from '../HeaderWithBackButton';
-import SelectionListRadio from '../SelectionListRadio';
+import SelectionList from '../SelectionList';
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
@@ -73,7 +73,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 shouldShowBackButton
                 onBackButtonPress={onClose}
             />
-            <SelectionListRadio
+            <SelectionList
                 headerMessage={headerMessage}
                 textInputLabel={translate('common.state')}
                 textInputPlaceholder={translate('stateSelectorModal.placeholderText')}
@@ -81,8 +81,6 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 sections={[{data: filteredData, indexOffset: 0}]}
                 onSelectRow={onStateSelected}
                 onChangeText={setSearchValue}
-                shouldFocusOnSelectRow
-                shouldHaveOptionSeparator
                 shouldDelayFocus
                 initiallyFocusedOptionKey={currentState}
             />
