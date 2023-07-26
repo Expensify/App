@@ -10,7 +10,6 @@ import CONST from '../../CONST';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
-import * as UserUtils from '../UserUtils';
 import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
@@ -261,27 +260,14 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
         reportCreationData: {},
     };
 
-    const optimisticPersonalDetails = {};
-    const successPersonalDetails = {};
+    // If the user is not in the beta, we don't want to create any chats
+    if (!Permissions.canUsePolicyExpenseChat(betas)) {
+        return workspaceMembersChats;
+    }
 
     _.each(invitedEmailsToAccountIDs, (accountID, email) => {
         const cleanAccountID = Number(accountID);
         const login = OptionsListUtils.addSMSDomainIfPhoneNumber(email);
-
-        if (_.isEmpty(allPersonalDetails[accountID])) {
-            optimisticPersonalDetails[accountID] = {
-                login,
-                accountID,
-                avatar: UserUtils.getDefaultAvatarURL(accountID),
-                displayName: login,
-            };
-            successPersonalDetails[accountID] = null;
-        }
-
-        // If the user is not in the beta, we don't want to create any chats
-        if (!Permissions.canUsePolicyExpenseChat(betas)) {
-            return;
-        }
 
         const oldChat = ReportUtils.getChatByParticipantsAndPolicy([sessionAccountID, cleanAccountID], policyID);
 
@@ -352,18 +338,6 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
             },
         });
     });
-
-    workspaceMembersChats.onyxOptimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        value: optimisticPersonalDetails,
-    });
-    workspaceMembersChats.onyxSuccessData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        value: successPersonalDetails,
-    });
-
     return workspaceMembersChats;
 }
 
