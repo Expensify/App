@@ -33,17 +33,10 @@ class ScreenWrapper extends React.Component {
         this.keyboardDissmissPanResponder = PanResponder.create({
             onMoveShouldSetPanResponderCapture: (e, gestureState) => {
                 const isHorizontalSwipe = Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
-                if (isHorizontalSwipe && this.props.shouldDismissKeyboardBeforeClose) {
-                    return true;
-                }
-                return false;
+                const shouldDismissKeyboard = this.props.shouldDismissKeyboardBeforeClose && this.props.isKeyboardShown && Browser.isMobile();
+                return isHorizontalSwipe && shouldDismissKeyboard;
             },
-            onPanResponderGrant: () => {
-                if (!Keyboard.isVisible() || !Browser.isMobile()) {
-                    return;
-                }
-                Keyboard.dismiss();
-            },
+            onPanResponderGrant: Keyboard.dismiss,
         });
 
         this.state = {
@@ -112,36 +105,39 @@ class ScreenWrapper extends React.Component {
                     }
 
                     return (
-                        <View
-                            style={[...this.props.style, styles.flex1, paddingStyle]}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
-                        >
-                            <KeyboardAvoidingView
-                                style={[styles.w100, styles.h100, {maxHeight}]}
-                                behavior={this.props.keyboardAvoidingViewBehavior}
-                                enabled={this.props.shouldEnableKeyboardAvoidingView}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        <View {...this.keyboardDissmissPanResponder.panHandlers}>
+                            <View
+                                style={[...this.props.style, styles.flex1, paddingStyle]}
+                                // eslint-disable-next-line react/jsx-props-no-spreading
+                                {...(this.props.environment === CONST.ENVIRONMENT.DEV ? this.panResponder.panHandlers : {})}
                             >
-                                <PickerAvoidingView
-                                    style={styles.flex1}
-                                    enabled={this.props.shouldEnablePickerAvoiding}
+                                <KeyboardAvoidingView
+                                    style={[styles.w100, styles.h100, {maxHeight}]}
+                                    behavior={this.props.keyboardAvoidingViewBehavior}
+                                    enabled={this.props.shouldEnableKeyboardAvoidingView}
                                 >
-                                    <HeaderGap />
-                                    {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
-                                    {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
-                                    {
-                                        // If props.children is a function, call it to provide the insets to the children.
-                                        _.isFunction(this.props.children)
-                                            ? this.props.children({
-                                                  insets,
-                                                  safeAreaPaddingBottomStyle,
-                                                  didScreenTransitionEnd: this.state.didScreenTransitionEnd,
-                                              })
-                                            : this.props.children
-                                    }
-                                    {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
-                                </PickerAvoidingView>
-                            </KeyboardAvoidingView>
+                                    <PickerAvoidingView
+                                        style={styles.flex1}
+                                        enabled={this.props.shouldEnablePickerAvoiding}
+                                    >
+                                        <HeaderGap />
+                                        {this.props.environment === CONST.ENVIRONMENT.DEV && <TestToolsModal />}
+                                        {this.props.environment === CONST.ENVIRONMENT.DEV && <CustomDevMenu />}
+                                        {
+                                            // If props.children is a function, call it to provide the insets to the children.
+                                            _.isFunction(this.props.children)
+                                                ? this.props.children({
+                                                      insets,
+                                                      safeAreaPaddingBottomStyle,
+                                                      didScreenTransitionEnd: this.state.didScreenTransitionEnd,
+                                                  })
+                                                : this.props.children
+                                        }
+                                        {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
+                                    </PickerAvoidingView>
+                                </KeyboardAvoidingView>
+                            </View>
                         </View>
                     );
                 }}
