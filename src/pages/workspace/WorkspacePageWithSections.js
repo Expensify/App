@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../../styles/styles';
+import * as PolicyUtils from '../../libs/PolicyUtils';
 import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
 import ROUTES from '../../ROUTES';
