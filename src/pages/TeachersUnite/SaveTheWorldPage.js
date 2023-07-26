@@ -50,8 +50,15 @@ function SaveTheWorldPage() {
             <MenuItem
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iAmATeacher')}
-                // onPress={() => Navigation.navigate(ROUTES.I_Am_A_Teacher)}
                 onPress={() => Navigation.navigate(ROUTES.Intro_School_Principal)}
+            />
+
+            {/* Remove Below option */}
+
+            <MenuItem
+                shouldShowRightIcon
+                title={'Email'}
+                onPress={() => Navigation.navigate(ROUTES.I_Am_A_Teacher)}
             />
         </IllustratedHeaderPageLayout>
     );

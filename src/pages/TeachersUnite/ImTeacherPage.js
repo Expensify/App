@@ -29,7 +29,7 @@ function ImTeacherPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SAVE_THE_WORLD)}
             />
             <BlockingView
-                icon={Illustrations.PinkBill}
+                icon={Illustrations.EmailAddress}
                 title={props.translate('teachersUnitePage.updateYourEmail')}
                 subtitle={props.translate('teachersUnitePage.schoolMailAsDefault')}
                 shouldShowLink
