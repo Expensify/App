@@ -8,8 +8,14 @@ export default (shouldShow) => {
         keyboardDidHideListener = null;
     }
 
-    if (!shouldShow || !Keyboard.isVisible()) {
+    if (!shouldShow) {
         Composer.setShouldShowComposeInput(shouldShow);
+        return;
+    }
+
+    // If keyboard is already hidden, we should show composer immediately because keyboardDidHide event won't be called
+    if (!Keyboard.isVisible()) {
+        Composer.setShouldShowComposeInput(true);
         return;
     }
 

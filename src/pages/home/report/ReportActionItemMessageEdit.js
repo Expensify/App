@@ -12,7 +12,7 @@ import * as StyleUtils from '../../../styles/StyleUtils';
 import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
-import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
+import setShouldShowMainComposeInputKeyboardAware from '../../../libs/setShouldShowMainComposeInputKeyboardAware';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import Icon from '../../../components/Icon';
@@ -74,9 +74,6 @@ const defaultProps = {
 };
 
 // native ids
-const saveButtonID = 'saveButton';
-const cancelButtonID = 'cancelButton';
-const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 function ReportActionItemMessageEdit(props) {
@@ -128,9 +125,7 @@ function ReportActionItemMessageEdit(props) {
 
             // Show the main composer when the focused message is deleted from another client
             // to prevent the main composer stays hidden until we swtich to another chat.
-            if (isFocusedRef.current) {
-                ComposerActions.setShouldShowComposeInput(true);
-            }
+            ComposerActions.setShouldShowComposeInput(true);
         };
     }, [props.action.reportActionID]);
 
@@ -283,7 +278,6 @@ function ReportActionItemMessageEdit(props) {
                         <PressableWithFeedback
                             onPress={deleteDraft}
                             style={styles.chatItemSubmitButton}
-                            nativeID={cancelButtonID}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={translate('common.close')}
                             // disable dimming
@@ -291,8 +285,8 @@ function ReportActionItemMessageEdit(props) {
                             pressDimmingValue={1}
                             hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
                             pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
+                            // Keep focus on the composer when cancel button is clicked.
                             onMouseDown={(e) => e.preventDefault()}
-                            onMouseUp={(e) => e.preventDefault()}
                         >
                             {({hovered, pressed}) => (
                                 <Icon
@@ -329,7 +323,7 @@ function ReportActionItemMessageEdit(props) {
                             onFocus={() => {
                                 setIsFocused(true);
                                 reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
-                                openReportActionComposeViewWhenClosingMessageEdit(false);
+                                setShouldShowMainComposeInputKeyboardAware(false);
                             }}
                             onBlur={(event) => {
                                 setIsFocused(false);
@@ -337,7 +331,7 @@ function ReportActionItemMessageEdit(props) {
                                 if (messageEditInput === relatedTargetId) {
                                     return;
                                 }
-                                openReportActionComposeViewWhenClosingMessageEdit(true);
+                                setShouldShowMainComposeInputKeyboardAware(true);
                             }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
@@ -348,8 +342,9 @@ function ReportActionItemMessageEdit(props) {
                             isDisabled={props.shouldDisableEmojiPicker}
                             onModalHide={() => InteractionManager.runAfterInteractions(() => textInputRef.current.focus())}
                             onEmojiSelected={addEmojiToTextBox}
-                            nativeID={emojiButtonID}
                             reportAction={props.action}
+                            // Keep focus on the composer when save button is clicked.
+                            onMouseDown={(e) => e.preventDefault()}
                         />
                     </View>
 
@@ -358,12 +353,12 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
-                                nativeID={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
+                                // Keep focus on the composer when save button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
                             >
                                 <Icon

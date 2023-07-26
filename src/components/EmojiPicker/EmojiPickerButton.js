@@ -17,6 +17,9 @@ const propTypes = {
     /** Id to use for the emoji picker button */
     nativeID: PropTypes.string,
 
+    /** Mouse event handler */
+    onMouseDown: PropTypes.func,
+
     /**
      * ReportAction for EmojiPicker.
      */
@@ -31,6 +34,7 @@ const defaultProps = {
     isDisabled: false,
     nativeID: '',
     reportAction: {},
+    onMouseDown: undefined,
 };
 
 function EmojiPickerButton(props) {
@@ -45,6 +49,7 @@ function EmojiPickerButton(props) {
                 onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor, undefined, () => {}, props.reportAction)}
                 nativeID={props.nativeID}
                 accessibilityLabel={props.translate('reportActionCompose.emoji')}
+                onMouseDown={props.onMouseDown}
             >
                 {({hovered, pressed}) => (
                     <Icon
