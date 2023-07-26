@@ -15,7 +15,6 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import CONST from '../../CONST';
-import * as Link from '../../libs/actions/Link';
 import withPolicy, {policyPropTypes, policyDefaultProps} from './withPolicy';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ROUTES from '../../ROUTES';
