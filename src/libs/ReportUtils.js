@@ -550,12 +550,7 @@ function getPolicyName(report, returnEmptyIfNotFound = false, policy = undefined
     // Public rooms send back the policy name with the reportSummary,
     // since they can also be accessed by people who aren't in the workspace
 
-    const policyName = lodashGet(finalPolicy, 'name') || report.policyName || report.oldPolicyName;
-
-    if (policyName) {
-        return policyName;
-    }
-    return noPolicyFound;
+    return lodashGet(policy, 'name') || report.policyName || report.oldPolicyName || noPolicyFound;
 }
 
 /**

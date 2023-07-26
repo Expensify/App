@@ -97,7 +97,7 @@ function translateLocal(phrase, variables) {
  * @returns {String}
  */
 function translateIfNeeded(translation) {
-    if (_.isString(translation)) {
+    if (!_.isObject(translation)) {
         return translation;
     }
     const {key, params, transformer} = translation;
