@@ -276,16 +276,12 @@ function MoneyRequestAmountPage(props) {
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
     useEffect(() => {
-        if (!props.route.params.currency) {
+        if (props.route.params.currency) {
+            setSelectedCurrencyCode(props.route.params.currency);
             return;
         }
-
-        setSelectedCurrencyCode(props.route.params.currency);
-    }, [props.route.params.currency]);
-
-    useEffect(() => {
         setSelectedCurrencyCode(props.iou.currency);
-    }, [props.iou.currency]);
+    }, [props.route.params.currency, props.iou.currency]);
 
     useEffect(() => {
         saveAmountToState(props.iou.currency, props.iou.amount);
