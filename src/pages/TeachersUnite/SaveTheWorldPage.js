@@ -34,7 +34,7 @@ function SaveTheWorldPage() {
             title={translate('sidebarScreen.saveTheWorld')}
             shouldShowBackButton
             onBackButtonPress={() => Navigation.goBack()}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[SCREENS.SETTINGS.PREFERENCES]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.I_Know_A_TEACHER]}
             illustration={LottieAnimations.SaveTheWorld}
         >
             <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
@@ -57,7 +57,7 @@ function SaveTheWorldPage() {
 
             <MenuItem
                 shouldShowRightIcon
-                title={'Email'}
+                title={'Email (Depricate on final release)'}
                 onPress={() => Navigation.navigate(ROUTES.I_Am_A_Teacher)}
             />
         </IllustratedHeaderPageLayout>
