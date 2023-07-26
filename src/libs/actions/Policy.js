@@ -368,7 +368,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
                         avatar: UserUtils.getDefaultAvatarURL(accountID),
                         displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
                         login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
-                        isOptimisticData: true,
                     },
                 ],
         )
