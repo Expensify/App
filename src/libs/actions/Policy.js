@@ -1145,6 +1145,14 @@ function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
+/**
+ * @param {String} policyID
+ */
+function clearErrors(policyID) {
+    setWorkspaceErrors(policyID, {});
+    hideWorkspaceAlertMessage(policyID);
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1173,4 +1181,5 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
+    clearErrors,
 };
