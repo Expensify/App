@@ -14,8 +14,8 @@ const propTypes = {
     /** Flag to disable the emoji picker button */
     isDisabled: PropTypes.bool,
 
-    /** Mouse event handler */
-    onMouseDown: PropTypes.func,
+    /** Id to use for the emoji picker button */
+    nativeID: PropTypes.string,
 
     /**
      * ReportAction for EmojiPicker.
@@ -29,8 +29,8 @@ const propTypes = {
 
 const defaultProps = {
     isDisabled: false,
+    nativeID: '',
     reportAction: {},
-    onMouseDown: undefined,
 };
 
 function EmojiPickerButton(props) {
@@ -43,8 +43,8 @@ function EmojiPickerButton(props) {
                 style={({hovered, pressed}) => [styles.chatItemEmojiButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))]}
                 disabled={props.isDisabled}
                 onPress={() => EmojiPickerAction.showEmojiPicker(props.onModalHide, props.onEmojiSelected, emojiPopoverAnchor, undefined, () => {}, props.reportAction)}
+                nativeID={props.nativeID}
                 accessibilityLabel={props.translate('reportActionCompose.emoji')}
-                onMouseDown={props.onMouseDown}
             >
                 {({hovered, pressed}) => (
                     <Icon

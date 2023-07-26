@@ -74,6 +74,7 @@ const defaultProps = {
 };
 
 // native ids
+const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
 function ReportActionItemMessageEdit(props) {
@@ -328,7 +329,7 @@ function ReportActionItemMessageEdit(props) {
                             onBlur={(event) => {
                                 setIsFocused(false);
                                 const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
-                                if (messageEditInput === relatedTargetId) {
+                                if (_.contains([messageEditInput, emojiButtonID], relatedTargetId)) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
@@ -343,8 +344,7 @@ function ReportActionItemMessageEdit(props) {
                             onModalHide={() => InteractionManager.runAfterInteractions(() => textInputRef.current.focus())}
                             onEmojiSelected={addEmojiToTextBox}
                             reportAction={props.action}
-                            // Keep focus on the composer when emoji picker button is clicked.
-                            onMouseDown={(e) => e.preventDefault()}
+                            nativeID={emojiButtonID}
                         />
                     </View>
 
