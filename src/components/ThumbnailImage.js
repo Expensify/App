@@ -63,8 +63,8 @@ class ThumbnailImage extends PureComponent {
         // Note: Clamp minimum width 40px to support touch device
         let thumbnailScreenWidth = lodashClamp(width, 40, 250);
         const imageHeight = height / (width / thumbnailScreenWidth);
-        const upperHeight = DeviceCapabilities.canUseTouchScreen() ? Dimensions.get('screen').height : this.props.windowHeight;
-        let thumbnailScreenHeight = lodashClamp(imageHeight, 40, upperHeight * 0.4);
+        const screenHeight = DeviceCapabilities.canUseTouchScreen() ? Dimensions.get('screen').height : this.props.windowHeight;
+        let thumbnailScreenHeight = lodashClamp(imageHeight, 40, screenHeight * 0.4);
         const aspectRatio = height / width;
 
         // If thumbnail height is greater than its width, then the image is portrait otherwise landscape.
