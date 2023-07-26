@@ -368,7 +368,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
                         avatar: UserUtils.getDefaultAvatarURL(accountID),
                         displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
                         login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
-                        isDummy: true,
+                        isOptimisticData: true,
                     },
                 ],
         )
@@ -776,7 +776,7 @@ function clearAddMemberError(policyID, accountID) {
     });
 
     // Remove draft accountID
-    if (lodashGet(allPersonalDetails, [accountID, 'isDummy'])) {
+    if (lodashGet(allPersonalDetails, [accountID, 'isOptimisticData'])) {
         Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
             [accountID]: null,
         });
