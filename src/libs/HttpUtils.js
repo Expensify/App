@@ -33,11 +33,7 @@ let cancellationController = new AbortController();
  * @returns {Promise}
  */
 function processHTTPRequest(url, method = 'get', body = null, command = '') {
-    let signal;
-    // We don't want to cancel/abort any log requests so we leave the signal undefined if this is a Log command
-    if (command !== CONST.NETWORK.COMMAND.LOG) {
-        signal = undefined;
-    }
+    const signal = command === CONST.NETWORK.COMMAND.LOG ? undefined : cancellationController.signal;
 
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
