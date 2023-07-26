@@ -29,7 +29,7 @@ const propTypes = {
     /** A function to run when the X button next to the message is clicked */
     onClose: PropTypes.func,
 
-    /** Additional style object for the container*/
+    /** Additional style object for the container */
     containerStyles: stylePropTypes,
 
     ...withLocalizePropTypes,
@@ -47,7 +47,7 @@ function DotIndicatorMessageWithClose(props) {
     }
 
     return (
-       <View style={StyleUtils.combineStyles(styles.flexRow, styles.alignItemsCenter, props.containerStyles)}>
+        <View style={StyleUtils.combineStyles(styles.flexRow, styles.alignItemsCenter, props.containerStyles)}>
             <DotIndicatorMessage
                 style={[styles.flex1]}
                 messages={props.messages}
