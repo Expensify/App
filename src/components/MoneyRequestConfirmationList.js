@@ -325,9 +325,9 @@ function MoneyRequestConfirmationList(props) {
                     <Button
                         small
                         onPress={toggleShowAllFields}
-                        text={showAllFields ? translate('common.showLess') : translate('common.showMore')}
+                        text={translate('common.showMore')}
                         shouldShowRightIcon
-                        iconRight={showAllFields ? Expensicons.UpArrow : Expensicons.DownArrow}
+                        iconRight={Expensicons.DownArrow}
                         style={styles.mh0}
                     />
                     <View style={[styles.shortTermsHorizontalRule, styles.flex1, styles.ml0]} />
