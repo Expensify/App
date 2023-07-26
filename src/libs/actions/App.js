@@ -150,7 +150,7 @@ function openApp(fetchIncrementalUpdates = false) {
 
                     // Include the last update ID when reconnecting so that the server can send incremental updates if they are available.
                     // Otherwise, a full set of app data will be returned.
-                    params.updateIDFrom = onyxUpdatesLastUpdateID;
+                    params.updateIDTo = onyxUpdatesLastUpdateID;
                 }
                 Onyx.disconnect(connectionID);
 
