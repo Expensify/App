@@ -25,7 +25,6 @@ import refPropTypes from '../refPropTypes';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import themeColors from '../../styles/themes/default';
 import reportPropTypes from '../../pages/reportPropTypes';
-import * as IOUUtils from "../../libs/IOUUtils";
 
 const propTypes = {
     /** All the data of the action */
@@ -94,7 +93,6 @@ const defaultProps = {
 };
 
 function ReportPreview(props) {
-    console.log(props.action);
     const managerID = props.iouReport.managerID || props.action.actorAccountID || 0;
     const isCurrentUserManager = managerID === lodashGet(props.session, 'accountID');
     const moneyRequestCount = lodashGet(props.action, 'childMoneyRequestCount', 0);
