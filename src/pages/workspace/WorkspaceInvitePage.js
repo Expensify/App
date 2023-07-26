@@ -21,7 +21,7 @@ import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoun
 import ROUTES from '../../ROUTES';
 import * as Browser from '../../libs/Browser';
 import * as PolicyUtils from '../../libs/PolicyUtils';
-import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
+import useNetwork from '../../hooks/useNetwork';
 import useLocalize from '../../hooks/useLocalize';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -78,7 +78,7 @@ function WorkspaceInvitePage(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps -- policyID changes remount the component
     }, []);
 
-    useOnNetworkReconnect(openWorkspaceInvitePage);
+    useNetwork({onReconnect: openWorkspaceInvitePage});
 
     useEffect(() => {
         const inviteOptions = OptionsListUtils.getMemberInviteOptions(

@@ -19,7 +19,7 @@ import userPropTypes from '../settings/userPropTypes';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScrollViewWithContext from '../../components/ScrollViewWithContext';
-import useOnNetworkReconnect from '../../hooks/useOnNetworkReconnect';
+import useNetwork from '../../hooks/useNetwork';
 
 const propTypes = {
     shouldSkipVBBACall: PropTypes.bool,
@@ -84,7 +84,7 @@ function fetchData(skipVBBACal) {
 }
 
 function WorkspacePageWithSections({backButtonRoute, children, footer, guidesCallTaskID, headerText, policy, reimbursementAccount, route, shouldUseScrollView, shouldSkipVBBACall, user}) {
-    useOnNetworkReconnect(() => fetchData(shouldSkipVBBACall));
+    useNetwork({onReconnect: () => fetchData(shouldSkipVBBACall)});
 
     const achState = lodashGet(reimbursementAccount, 'achData.state', '');
     const hasVBA = achState === BankAccount.STATE.OPEN;
