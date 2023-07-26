@@ -261,7 +261,7 @@ function clearContactMethodErrors(contactMethod, fieldName) {
 /**
  * Resets the state indicating whether a validation code has been sent to a specific contact method.
  *
- * @param {String} contactMethod
+ * @param {String} contactMethod - The identifier of the contact method to reset.
  */
 function resetContactMethodValidateCodeSentState(contactMethod) {
     Onyx.merge(ONYXKEYS.LOGIN_LIST, {
