@@ -1973,6 +1973,8 @@ export default {
     threads: {
         replies: 'Respuestas',
         reply: 'Respuesta',
+        from: 'De',
+        in: 'en',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `De ${rootReportName}${workspaceName ? ` en ${workspaceName}` : ''}`,
     },
     qrCodes: {

@@ -28,9 +28,8 @@ import * as Task from '../../libs/actions/Task';
 import reportActionPropTypes from './report/reportActionPropTypes';
 import PressableWithoutFeedback from '../../components/Pressable/PressableWithoutFeedback';
 import PinButton from '../../components/PinButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
+import ParentNavigationSubtitle from '../../components/ParentNavigationSubtitle';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -90,7 +89,8 @@ function HeaderView(props) {
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
-    const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
+    const hasParentNavigationSubtitle = ReportUtils.hasParentNavigationSubtitle(reportHeaderData);
+    const parentNavigationSubtitleData = hasParentNavigationSubtitle ? ReportUtils.getParentNavigationSubtitleData(reportHeaderData) : {};
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -189,22 +189,11 @@ function HeaderView(props) {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
-                                {!_.isEmpty(parentNavigationSubtitle) && (
-                                    <PressableWithoutFeedback
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
-                                        }}
-                                        style={[styles.alignSelfStart, styles.mw100]}
-                                        accessibilityLabel={parentNavigationSubtitle}
-                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                                    >
-                                        <Text
-                                            style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
-                                            numberOfLines={1}
-                                        >
-                                            {parentNavigationSubtitle}
-                                        </Text>
-                                    </PressableWithoutFeedback>
+                                {hasParentNavigationSubtitle && (
+                                    <ParentNavigationSubtitle
+                                        parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                        report={props.report}
+                                    />
                                 )}
                                 {!_.isEmpty(subtitle) && (
                                     <Text

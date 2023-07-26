@@ -17,9 +17,7 @@ import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import Text from './Text';
 import * as StyleUtils from '../styles/StyleUtils';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -55,7 +53,8 @@ const defaultProps = {
 function AvatarWithDisplayName(props) {
     const title = props.isAnonymous ? ReportUtils.getReportName(props.report) : ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
-    const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(props.report);
+    const hasParentNavigationSubtitle = ReportUtils.hasParentNavigationSubtitle(props.report);
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitleData(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
     const icons = ReportUtils.getIcons(props.report, props.personalDetails, props.policies);
     const ownerPersonalDetails = OptionsListUtils.getPersonalDetailsForAccountIDs([props.report.ownerAccountID], props.personalDetails);
@@ -90,21 +89,11 @@ function AvatarWithDisplayName(props) {
                             textStyles={[props.isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
                             shouldUseFullTitle={isExpenseReport || props.isAnonymous}
                         />
-                        {!_.isEmpty(parentNavigationSubtitle) && (
-                            <PressableWithoutFeedback
-                                onPress={() => {
-                                    Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
-                                }}
-                                accessibilityLabel={subtitle}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
-                            >
-                                <Text
-                                    style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}
-                                    numberOfLines={1}
-                                >
-                                    {parentNavigationSubtitle}
-                                </Text>
-                            </PressableWithoutFeedback>
+                        {hasParentNavigationSubtitle && (
+                            <ParentNavigationSubtitle
+                                parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                report={props.report}
+                            />
                         )}
                         {!_.isEmpty(subtitle) && (
                             <Text
