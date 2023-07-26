@@ -276,6 +276,7 @@ function extractEmojis(text) {
 
     if (sequenceEmojis) {
         sequenceEmojis = [...new Set(sequenceEmojis)];
+        // eslint-disable-next-line no-restricted-syntax
         for (const sequenceEmoji of sequenceEmojis) {
             const regex = new RegExp(sequenceEmoji, 'gu');
             str = str.replace(regex, '');
