@@ -71,7 +71,7 @@ function AddPayPalMePage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PAYMENTS)}
             />
             <Form
-                style={[styles.flex1, styles.p5]}
+                style={[styles.flex1, styles.pb5, styles.ph5]}
                 formID={ONYXKEYS.FORMS.PAYPAL_FORM}
                 validate={validate}
                 onSubmit={setPayPalMeData}
