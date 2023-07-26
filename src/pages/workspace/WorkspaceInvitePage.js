@@ -197,7 +197,7 @@ function WorkspaceInvitePage(props) {
             return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    }
+    };
 
     return (
         <ScreenWrapper shouldEnableMaxHeight>
