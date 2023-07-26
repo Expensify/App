@@ -12,7 +12,8 @@ function TextInputLabel(props) {
             return;
         }
         labelRef.current.setAttribute('for', props.for);
-    }, [props.for]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <Animated.Text
@@ -30,4 +31,4 @@ TextInputLabel.displayName = 'TextInputLabel';
 TextInputLabel.propTypes = propTypes;
 TextInputLabel.defaultProps = defaultProps;
 
-export default TextInputLabel;
+export default React.memo(TextInputLabel);
