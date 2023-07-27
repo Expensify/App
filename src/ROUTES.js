@@ -190,5 +190,5 @@ export default {
 
     ROUTES_REGEX: {
         UNLINK_LOGIN: /\/u($|(\/\/*))/,
-    }
+    },
 };
