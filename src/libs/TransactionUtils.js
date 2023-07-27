@@ -37,9 +37,29 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
         merchant,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        receipt,
     };
+}
+
+/**
+ * Optimistically generate a receipt.
+ *
+ * @param {Object} receipt 
+ * @returns {Object}
+ */
+function buildOptimisticReceipt(receipt) {
+    if (!receipt) {
+        return;
+    }
+
+    return ({
+        receiptID: NumberUtils.rand64(),
+        source: receipt.source,
+        state: CONST.IOU.RECEIPT_STATE.SCANREADY,
+    });
 }
 
 export default {
     buildOptimisticTransaction,
+    buildOptimisticReceipt,
 };

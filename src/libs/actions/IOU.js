@@ -19,6 +19,7 @@ import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
+import * as NumberUtils from '../NumberUtils';
 
 let allReports;
 Onyx.connect({
@@ -296,10 +297,10 @@ function buildOnyxDataForMoneyRequest(
  * @param {Number} payeeAccountID
  * @param {Object} participant
  * @param {String} comment
- * @param {Object} receipt
+ * @param {Object} [receipt]
  *
  */
-function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt) {
+function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
