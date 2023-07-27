@@ -44,7 +44,7 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
 /**
  * Optimistically generate a receipt.
  *
- * @param {Object} receipt 
+ * @param {Object} receipt
  * @returns {Object}
  */
 function buildOptimisticReceipt(receipt) {
@@ -52,11 +52,11 @@ function buildOptimisticReceipt(receipt) {
         return {};
     }
 
-    return ({
+    return {
         receiptID: NumberUtils.rand64(),
         source: receipt.source,
         state: CONST.IOU.RECEIPT_STATE.SCANREADY,
-    });
+    };
 }
 
 export default {
