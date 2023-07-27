@@ -56,7 +56,6 @@ function ThreePaneView(props) {
                     return (
                         <NoDropZone key={route.key}>
                             <View
-                                // pointerEvents="none"
                                 style={[
                                     styles.flexRow,
                                     styles.pAbsolute,
@@ -74,7 +73,6 @@ function ThreePaneView(props) {
                                 />
                                 <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
                             </View>
-                            <View style={styles.noDropZoneTopInvisibleOverlay} />
                         </NoDropZone>
                     );
                 }
