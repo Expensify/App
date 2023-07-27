@@ -167,15 +167,13 @@ const replaceAllDigits = (text, convertFn) =>
         .join('')
         .value();
 
-function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectionPage, navigateToNextPage, ...props}) {
+function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectionPage, navigateToNextPage, reportID, iouType, isEditing, ...props}) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
     const prevMoneyRequestID = useRef(props.iou.id);
     const textInput = useRef(null);
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
-    const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
+
 
     const [amount, setAmount] = useState(selectedAmountAsString);
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
@@ -202,7 +200,7 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
         }
     };
 
-    const titleForStep = isEditing.current ? translate('iou.amount') : title[iouType.current];
+    const titleForStep = isEditing ? translate('iou.amount') : title[iouType];
 
     /**
      * Check and dismiss modal
@@ -211,7 +209,7 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
         if (!ReportUtils.shouldHideComposer(props.report, props.errors)) {
             return;
         }
-        Navigation.dismissModal(reportID.current);
+        Navigation.dismissModal(reportID);
     }, [props.errors, props.report]);
 
     /**
@@ -249,22 +247,22 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
     };
 
     useEffect(() => {
-        if (isEditing.current) {
+        if (isEditing) {
             if (prevMoneyRequestID.current !== props.iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
                 if (props.iou.id) {
-                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
                 }
                 return;
             }
-            const moneyRequestID = `${iouType.current}${reportID.current}`;
+            const moneyRequestID = `${iouType}${reportID}`;
             const shouldReset = props.iou.id !== moneyRequestID;
             if (shouldReset) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
             if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
             }
         }
 
@@ -366,10 +364,10 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
     };
 
     const formattedAmount = replaceAllDigits(amount, toLocaleDigit);
-    const buttonText = isEditing.current ? translate('common.save') : translate('common.next');
+    const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
     return (
-        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
+        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 onEntryTransitionEnd={focusTextInput}

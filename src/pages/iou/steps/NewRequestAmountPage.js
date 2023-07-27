@@ -251,6 +251,8 @@ function MoneyRequestAmountPage(props) {
         <MoneyRequestAmountForm
             report={props.report}
             iou={props.iou}
+            reportID={reportID.current}
+            iouType={iouType.current}
             title={title}
             navigateBack={navigateBack}
             navigateToCurrencySelectionPage={navigateToCurrencySelectionPage}
