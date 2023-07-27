@@ -352,7 +352,7 @@ function getAllReportErrors(report, reportActions) {
     const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
     const reportActionErrors = _.reduce(
         reportsActions,
-        (prevReportActionErrors, action) => (_.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
+        (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
         {},
     );
 

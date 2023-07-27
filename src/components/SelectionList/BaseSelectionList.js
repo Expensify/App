@@ -287,7 +287,7 @@ function BaseSelectionList({
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle]}>
                         {shouldShowTextInput && (
-                            <View style={[styles.ph5, styles.pv5]}>
+                            <View style={[styles.ph5, styles.pb3]}>
                                 <TextInput
                                     ref={textInputRef}
                                     label={textInputLabel}
