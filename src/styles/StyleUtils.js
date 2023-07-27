@@ -878,20 +878,17 @@ function getKeyboardShortcutsModalWidth(isSmallScreenWidth) {
  * @returns {Object}
  */
 function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReportAction = false, shouldUseCardBackground = false}) {
-    let backgroundColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
+    let borderColor = shouldUseCardBackground ? themeColors.cardBG : themeColors.appBG;
 
     if (isHovered) {
-        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
+        borderColor = isInReportAction ? themeColors.highlightBG : themeColors.border;
     }
 
     if (isPressed) {
-        backgroundColor = isInReportAction ? themeColors.highlightBG : themeColors.buttonPressedBG;
+        borderColor = isInReportAction ? themeColors.highlightBG : themeColors.buttonPressedBG;
     }
 
-    return {
-        backgroundColor,
-        borderColor: backgroundColor,
-    };
+    return {borderColor};
 }
 
 /**
@@ -902,11 +899,9 @@ function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReport
  * @param {Number} borderRadius
  * @returns {Object}
  */
-function getHorizontalStackedAvatarStyle(index, overlapSize, borderWidth, borderRadius) {
+function getHorizontalStackedAvatarStyle(index, overlapSize) {
     return {
         left: -(overlapSize * index),
-        borderRadius,
-        borderWidth,
         zIndex: index + 2,
     };
 }
