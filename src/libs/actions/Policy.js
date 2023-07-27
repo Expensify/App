@@ -820,8 +820,8 @@ function generatePolicyID() {
 }
 
 function buildOptimisticCustomUnits() {
-    const customUnitID = '6441b04aa0700';
-    const customUnitRateID = '6441b04aa08fd';
+    const customUnitID = ReportUtils.generateReportID();
+    const customUnitRateID = ReportUtils.generateReportID();
     const customUnitData = {
         [customUnitID]: {
             customUnitID,
