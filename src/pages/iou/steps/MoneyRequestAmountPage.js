@@ -149,6 +149,13 @@ const validateAmount = (newAmount) => {
 };
 
 /**
+ * Check if amount is invalid
+ * @param {String} amount 
+ * @returns {Boolean}
+ */
+const checkAmount = (amount) => !amount.length || parseFloat(amount) < 0.01;
+
+/**
  * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
  * the original character will be preserved.
  *
@@ -179,7 +186,7 @@ function MoneyRequestAmountPage(props) {
     const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
-    const [isInvaidAmount, setIsInvalidAmount] = useState(!selectedAmountAsString.length || parseFloat(selectedAmountAsString) < 0.01);
+    const [isInvaidAmount, setIsInvalidAmount] = useState(checkAmount(selectedAmountAsString));
     const [error, setError] = useState('');
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -342,7 +349,7 @@ function MoneyRequestAmountPage(props) {
                 return;
             }
             const newAmount = addLeadingZero(`${amount.substring(0, selection.start)}${key}${amount.substring(selection.end)}`);
-            setIsInvalidAmount(!newAmount.length || parseFloat(newAmount) < 0.01);
+            setIsInvalidAmount(checkAmount(newAmount));
             setError('');
             setNewAmount(newAmount);
         },
@@ -369,7 +376,7 @@ function MoneyRequestAmountPage(props) {
      */
     const updateAmount = (text) => {
         const newAmount = addLeadingZero(replaceAllDigits(text, fromLocaleDigit));
-        setIsInvalidAmount(!newAmount.length || parseFloat(newAmount) < 0.01);
+        setIsInvalidAmount(checkAmount(newAmount));
         setError('');
         setNewAmount(newAmount);
     };
