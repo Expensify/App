@@ -97,7 +97,7 @@ function WorkspaceInvitePage(props) {
         setPersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [props.personalDetails, props.policyMembers, props.betas, searchTerm]);
+    }, [props.personalDetails, props.policyMembers, props.betas, searchTerm, excludedUsers]);
 
     const getSections = () => {
         const sections = [];
