@@ -24,6 +24,7 @@ import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
+import FormHelpMessage from '../../../components/FormHelpMessage';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
@@ -178,6 +179,8 @@ function MoneyRequestAmountPage(props) {
     const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
+    const [isInvaidAmount, setIsInvalidAmount] = useState(!selectedAmountAsString.length || parseFloat(selectedAmountAsString) < 0.01);
+    const [error, setError] = useState('');
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
     const [selection, setSelection] = useState({start: selectedAmountAsString.length, end: selectedAmountAsString.length});
@@ -339,6 +342,8 @@ function MoneyRequestAmountPage(props) {
                 return;
             }
             const newAmount = addLeadingZero(`${amount.substring(0, selection.start)}${key}${amount.substring(selection.end)}`);
+            setIsInvalidAmount(!newAmount.length || parseFloat(newAmount) < 0.01);
+            setError('');
             setNewAmount(newAmount);
         },
         [amount, selection, shouldUpdateSelection],
@@ -364,6 +369,8 @@ function MoneyRequestAmountPage(props) {
      */
     const updateAmount = (text) => {
         const newAmount = addLeadingZero(replaceAllDigits(text, fromLocaleDigit));
+        setIsInvalidAmount(!newAmount.length || parseFloat(newAmount) < 0.01);
+        setError('');
         setNewAmount(newAmount);
     };
 
@@ -378,6 +385,11 @@ function MoneyRequestAmountPage(props) {
     };
 
     const navigateToNextPage = () => {
+        if (isInvaidAmount) {
+            setError(translate('iou.error.invalidAmount'));
+            return;
+        }
+
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(selectedCurrencyCode, Number.parseFloat(amount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(selectedCurrencyCode);
@@ -468,15 +480,20 @@ function MoneyRequestAmountPage(props) {
                             ) : (
                                 <View />
                             )}
-
-                            <Button
-                                success
-                                style={[styles.w100, styles.mt5]}
-                                onPress={navigateToNextPage}
-                                pressOnEnter
-                                isDisabled={!amount.length || parseFloat(amount) < 0.01}
-                                text={buttonText}
-                            />
+                            <View style={[styles.w100, styles.mt5]}>
+                                {error && (
+                                    <FormHelpMessage
+                                        isError
+                                        message={error}
+                                    />
+                                )}
+                                <Button
+                                    success
+                                    onPress={navigateToNextPage}
+                                    pressOnEnter
+                                    text={buttonText}
+                                />
+                            </View>
                         </View>
                     </View>
                 )}

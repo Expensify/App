@@ -25,6 +25,7 @@ import Clipboard from '../../../../libs/Clipboard';
 import themeColors from '../../../../styles/themes/default';
 import localFileDownload from '../../../../libs/localFileDownload';
 import * as TwoFactorAuthActions from '../../../../libs/actions/TwoFactorAuthActions';
+import FormHelpMessage from '../../../../components/FormHelpMessage';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -46,6 +47,7 @@ const defaultProps = {
 
 function CodesPage(props) {
     const [isNextButtonDisabled, setIsNextButtonDisabled] = useState(true);
+    const [error, setError] = useState('');
 
     // Here, this eslint rule will make the unmount effect unreadable, possibly confusing with mount
     // eslint-disable-next-line arrow-body-style
@@ -103,6 +105,7 @@ function CodesPage(props) {
                                             onPress={() => {
                                                 Clipboard.setString(props.account.recoveryCodes);
                                                 setIsNextButtonDisabled(false);
+                                                setError('');
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
@@ -113,6 +116,7 @@ function CodesPage(props) {
                                             onPress={() => {
                                                 localFileDownload('two-factor-auth-codes', props.account.recoveryCodes);
                                                 setIsNextButtonDisabled(false);
+                                                setError('');
                                             }}
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
@@ -125,11 +129,22 @@ function CodesPage(props) {
                     </Section>
                 </ScrollView>
                 <FixedFooter style={[styles.mtAuto, styles.pt2]}>
+                    {error && (
+                        <FormHelpMessage
+                            isError
+                            message={error}
+                        />
+                    )}
                     <Button
                         success
                         text={props.translate('common.next')}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY)}
-                        isDisabled={isNextButtonDisabled}
+                        onPress={() => {
+                            if (isNextButtonDisabled) {
+                                setError(props.translate('twoFactorAuth.errorStepCodes'));
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY);
+                        }}
                     />
                 </FixedFooter>
             </FullPageOfflineBlockingView>
