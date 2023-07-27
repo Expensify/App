@@ -342,6 +342,7 @@ function WorkspaceMembersPage(props) {
                                 }}
                                 onSelectRow={() => toggleUser(item.accountID, item.pendingAction)}
                             />
+                            {Boolean(item.invitedSecondaryLogin) && <Text style={[styles.textLabelSupporting, styles.ph5]}>{props.translate('workspace.people.invitedBySecondaryLogin', {secondaryLogin: item.invitedSecondaryLogin})}</Text>}
                         </View>
                         {(props.session.accountID === item.accountID || item.role === 'admin') && (
                             <View style={[styles.badge, styles.peopleBadge]}>
@@ -362,6 +363,7 @@ function WorkspaceMembersPage(props) {
         [selectedEmployees, errors, props.session.accountID, dismissError, toggleUser],
     );
 
+    const invitedSecondaryToPrimaryLogins = _.invert(props.policy.primaryLoginsInvited);
     const policyOwner = lodashGet(props.policy, 'owner');
     const currentUserLogin = lodashGet(props.currentUserPersonalDetails, 'login');
     const removableMembers = {};
@@ -378,6 +380,7 @@ function WorkspaceMembersPage(props) {
         data.push({
             ...policyMember,
             ...details,
+            invitedSecondaryLogin: invitedSecondaryToPrimaryLogins[details.login] || '',
         });
     });
     data = _.sortBy(data, (value) => value.displayName.toLowerCase());
@@ -398,7 +401,6 @@ function WorkspaceMembersPage(props) {
     });
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
-    const primaryLoginsInvited = props.policy.primaryLoginsInvited || {};
 
     return (
         <ScreenWrapper
@@ -458,7 +460,7 @@ function WorkspaceMembersPage(props) {
                             />
                             <DotIndicatorMessageWithClose
                                 type="success"
-                                messages={_.isEmpty(primaryLoginsInvited) ? null : {0: props.translate('workspace.people.addedWithPrimary')}}
+                                messages={_.isEmpty(invitedSecondaryToPrimaryLogins) ? null : {0: props.translate('workspace.people.addedWithPrimary')}}
                                 containerStyles={[styles.pt3]}
                                 onClose={() => Policy.dismissAddedWithPrimaryMessages(props.route.params.policyID)}
                             />
