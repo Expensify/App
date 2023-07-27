@@ -9,6 +9,14 @@ const DRAG_OVER_EVENT = 'dragover';
 const DRAG_LEAVE_EVENT = 'dragleave';
 const DROP_EVENT = 'drop';
 
+/**
+ * @param {Element} dropZoneElement
+ * @param {Function} [onDrop]
+ * @param {Boolean} [shouldAllowDrop]
+ * @param {Boolean} [isDisabled]
+ * @param {Function} [shouldAcceptDrop]
+ * @returns {{isDraggingOver: Boolean}}
+ */
 export default function useDragAndDrop({dropZoneElement, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}) {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
