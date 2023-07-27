@@ -826,8 +826,6 @@ function buildOptimisticCustomUnits() {
         [customUnitID]: {
             customUnitID,
             name: 'Distance',
-            // enabled: true,
-            // defaultCategory: 'Car',
             attributes: {
                 unit: 'mi',
             },
@@ -835,11 +833,7 @@ function buildOptimisticCustomUnits() {
                 [customUnitRateID]: {
                     customUnitRateID,
                     name: 'Default Rate',
-                    // currency: 'USD',
-                    // enabled: true,
                     rate: 65.5,
-                    // attributes: [],
-                    // subRates: [],
                 },
             },
         },
