@@ -38,7 +38,8 @@ function clamp(value, lowerBound, upperBound) {
 const imageTransformerPropTypes = {
     imageWidth: PropTypes.number,
     imageHeight: PropTypes.number,
-    imageScale: PropTypes.number,
+    imageScaleX: PropTypes.number,
+    imageScaleY: PropTypes.number,
     scaledImageWidth: PropTypes.number,
     scaledImageHeight: PropTypes.number,
     isActive: PropTypes.bool.isRequired,
@@ -48,21 +49,25 @@ const imageTransformerPropTypes = {
 const imageTransformerDefaultProps = {
     imageWidth: 0,
     imageHeight: 0,
-    imageScale: 1,
+    imageScaleX: 1,
+    imageScaleY: 1,
     scaledImageWidth: 0,
     scaledImageHeight: 0,
 };
 
-function ImageTransformer({imageWidth, imageHeight, imageScale, scaledImageWidth, scaledImageHeight, isActive, children}) {
+function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, scaledImageWidth, scaledImageHeight, isActive, children}) {
     const {canvasWidth, canvasHeight, onTap, onSwipe, onSwipeSuccess, pagerRef, shouldPagerScroll, isScrolling, onPinchGestureChange} = useContext(AttachmentCarouselPagerContext);
 
-    const minScale = useMemo(() => MIN_SCALE * imageScale, [imageScale]);
-    const maxScale = useMemo(() => MAX_SCALE * imageScale, [imageScale]);
-    const doubleTapScale = useMemo(() => DOUBLE_TAP_SCALE * imageScale, [imageScale]);
+    const minImageScale = useMemo(() => Math.min(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
+    const maxImageScale = useMemo(() => Math.max(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
+
+    const minScale = useMemo(() => MIN_SCALE * minImageScale, [minImageScale]);
+    const maxScale = useMemo(() => MAX_SCALE * maxImageScale, [maxImageScale]);
+    const doubleTapScale = useMemo(() => DOUBLE_TAP_SCALE * minImageScale, [minImageScale]);
 
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
-    const totalScale = useDerivedValue(() => clamp(zoomScale.value * imageScale, minScale, maxScale), [imageScale]);
+    const totalScale = useDerivedValue(() => clamp(zoomScale.value * minImageScale, minScale, maxScale), [minImageScale]);
 
     const zoomScaledImageWidth = useDerivedValue(() => imageWidth * totalScale.value, [imageWidth]);
     const zoomScaledImageHeight = useDerivedValue(() => imageHeight * totalScale.value, [imageHeight]);
