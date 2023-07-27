@@ -525,6 +525,11 @@ const styles = {
         textAlign: 'center',
     },
 
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
+    },
+
     buttonSuccess: {
         backgroundColor: themeColors.success,
         borderWidth: 0,
@@ -2352,11 +2357,6 @@ const styles = {
         padding: 20,
     },
 
-    pageWrapperNotCentered: {
-        width: '100%',
-        padding: 20,
-    },
-
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -3429,6 +3429,11 @@ const styles = {
 
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+
+    formSpaceVertical: {
+        height: 20,
+        width: 1,
     },
 
     taskCheckbox: {

@@ -402,9 +402,9 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                 managerID: assigneeAccountID || report.managerID,
                 managerEmail: assignee || report.managerEmail,
                 pendingFields: {
-                    ...title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    ...description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    ...assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
             },
         },
@@ -415,9 +415,9 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
             value: {
                 pendingFields: {
-                    ...title && {reportName: null},
-                    ...description && {description: null},
-                    ...assigneeAccountID && {managerID: null},
+                    ...(title && {reportName: null}),
+                    ...(description && {description: null}),
+                    ...(assigneeAccountID && {managerID: null}),
                 },
             },
         },
