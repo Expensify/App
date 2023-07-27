@@ -141,19 +141,6 @@ function isValidDebitCard(string) {
 }
 
 /**
- *
- * @param {String} nameOnCard
- * @returns {Boolean}
- */
-function isValidCardName(nameOnCard) {
-    if (!CONST.REGEX.ALPHABETIC_CHARS.test(nameOnCard)) {
-        return false;
-    }
-
-    return !_.isEmpty(nameOnCard.trim());
-}
-
-/**
  * @param {String} code
  * @returns {Boolean}
  */
@@ -305,14 +292,6 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional) {
 }
 
 /**
- * @param {String} password
- * @returns {Boolean}
- */
-function isValidPassword(password) {
-    return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
-}
-
-/**
  * @param {string} validateCode
  * @returns {Boolean}
  */
@@ -432,7 +411,7 @@ function isValidRoomName(roomName) {
  * @returns {Boolean}
  */
 function isValidTaxID(taxID) {
-    return taxID && CONST.REGEX.TAX_ID.test(taxID.replace(CONST.REGEX.NON_NUMERIC, ''));
+    return taxID && CONST.REGEX.TAX_ID.test(taxID);
 }
 
 /**
@@ -464,7 +443,6 @@ export {
     getAgeRequirementError,
     isValidAddress,
     isValidDate,
-    isValidCardName,
     isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
@@ -475,7 +453,6 @@ export {
     isValidUSPhone,
     isValidWebsite,
     validateIdentity,
-    isValidPassword,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidPaypalUsername,

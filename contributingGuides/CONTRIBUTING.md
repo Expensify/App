@@ -16,7 +16,11 @@ You can create as many accounts as needed in order to test your changes directly
 You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple New Expensify accounts connected to the same email address by using test+123@test.com, test+456@test.com, etc.
 
 ##### High Traffic Accounts
-All internal engineers, contributors, and C+ members are **required** to test with a "high traffic" account against the staging or production web servers. Ask in [#expensify-open-source](https://expensify.slack.com/archives/C01GTK53T8Q) if someone can turn your account into a High Traffic account. These accounts more closely mirror the accounts used in production by real people. Internal team members can follow [this Stack Overflow](https://stackoverflow.com/c/expensify/questions/14504) to upgrade an account.
+
+All internal engineers, contributors, and C+ members are required to test with a “high traffic” account against the staging or production web servers. Use these Google forms to manage your high-traffic accounts. You'll need to authenticate via Google first. 
+1. [Make an account high-traffic](https://docs.google.com/forms/d/e/1FAIpQLScpiS0Mo-HA5xHPsvDow79yTsMBgF0wjuqc0K37lTK5fheB8Q/viewform)
+2. [Remove a high-traffic account](https://docs.google.com/forms/d/e/1FAIpQLSd9_FDav83pnhhtu1KGAKIpf2yttQ_0Bvq1b9nuFM1-wbL11Q/viewform)
+
 
 #### Working on beta features
 Some features are locked behind beta flags while development is ongoing. As a contributor you can work on these beta features locally by overriding the [`Permissions.canUseAllBetas` function](https://github.com/Expensify/App/blob/5e268df7f2989ed04bc64c0c86ed77faf134554d/src/libs/Permissions.js#L10-L12) to return `true`.
@@ -45,7 +49,7 @@ If you've found a vulnerability, please email security@expensify.com with the su
 ## Payment for Contributions
 We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing or reporting a bug, please create an Upwork account, apply for an available job in [GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22), and finally apply for the job in Upwork once your proposal gets selected in GitHub. If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
 
-Payment for your contributions and bug reports will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed. If you have not received payment after 8 days of the PR being deployed to production and there being no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
+Payment for your contributions and bug reports will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed (ie: deployed to production). A 50% penalty will be applied to the Contributor and Contributor+ for each regression on an issue. If you have not received payment after 8 days of the PR being deployed to production, and there are no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
 
 New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously.
 
@@ -53,13 +57,15 @@ Please be aware that compensation for any support in solving an issue is provide
 
 **Important:** Payment amounts are variable, dependent on when your PR is merged. Your PR will be reviewed by a Contributor+ (C+) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
 
-**Payment timeline** all based on the day the contributor has an accepted proposal and is assigned to the Github issue
-- Merged PR within 3 business days - 50% **bonus**
-- Merged PR within 6 business days - 0% bonus 
-- Merged PR within 9 business days - 50% **penalty**  
+**Payment timeline** all based on the day and timestamp the contributor has an accepted proposal and is assigned to the Github issue
+- Merged PR within 3 business days (72 hours) - 50% **bonus**
+- Merged PR within 6 business days (144 hours) - 0% bonus 
+- Merged PR within 9 business days (216 hours) - 50% **penalty**  
 - No PR within 12 business days - **Contract terminated**  
 
-If the PR causes a regression at any point within the regression period (starting when the code is merged and ending 7 days after being deployed to production), contributors are not eligible for the 50% bonus. 
+If the PR causes a regression at any point within the regression period (starting when the code is merged and ending 7 days after being deployed to production), contributors are not eligible for the 50% bonus.
+
+We specify exact hours to make sure we can clearly decide what is eligible for the bonus given our team is global and contributors span across all the timezones.
 
 ## Finding Jobs
 A job could be fixing a bug or working on a new feature. There are two ways you can find a job that you can contribute to:
@@ -176,23 +182,24 @@ Additionally if you want to discuss an idea with the open source community witho
 Follow all the above above steps and processes. When you find a job you'd like to work on:
 - Post “I’m from [agency], I’d like to work on this job”
   - If no proposals have been submitted by other contributors, BugZero (BZ) team member or an internal engineer will assign the issue to you. 
-  - If there are existing proposals, BZ will put the issue on hold. Contributor+ (C+) will review the existing proposals.  If a contributor’s proposal is accepted then contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
+  - If there are existing proposals, BZ will put the issue on hold. Contributor+ (C+) will review the existing proposals.  If a contributor’s proposal is accepted then the contributor will be assigned to the issue.  If not the issue will be assigned to the agency-employee. 
 - Once assigned follow the steps [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#propose-a-solution-for-the-job) to submit your proposal 
 
 #### Guide on Acronyms used within Expensify Communication
-During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in slack or the GH issue if there are any that are not understood/known!
+During communication with Expensify, you will come across a variety of acronyms used by our team. While acronyms can be useful, they cease to be the moment they are not known to the receiver. As such, we wanted to create a list here of our most commonly used acronyms and what they're referring to. Lastly, please never hesitate to ask in Slack or the GH issue if there are any that are not understood/known!
 - **ND/NewDot:** new.expensify.com
 - **OD/OldDot:** expensify.com
 - **BZ:** Bug Zero (Expensify internal team in charge of managing the GH issues related to our open-source project)
-- **LHN:** Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left hand side)
+- **LHN:** Left Hand Navigation (Primary navigation modal in Expensify Chat, docked on the left-hand side)
 - **OP:** Original Post (Most commonly the post in E/App GH issues that reports the bug)
-- **GBR:** Green Brick Road (UX Design Principle that utlizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
-- **RBR:** Red Brick Road (UX Design Principle that utlizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors) 
+- **FAB** Floating Action Button (the + Button that is used to launch flows like 'New Chat', 'Request Money')
+- **GBR:** Green Brick Road (UX Design Principle that utilizes green indicators on action items to encourage the user down the optimal path for a given process or task) 
+- **RBR:** Red Brick Road (UX Design Principle that utilizes red indicators on action items to encourage the user down the optimal path for handling and discovering errors) 
 - **VBA:** Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
 - **NAB:** Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
 - **LHN:** Left Hand Navigation
 - **IOU:** I owe you (used to describe payment requests between users)
-- **OTP:** One time password, or magic sign-in
+- **OTP:** One-time password, or magic sign-in
 - **RHP:** Right Hand Panel (on larger screens, pages are often displayed docked to the right side of the screen)
 - **QA:** Quality Assurance
 - **GH:** GitHub

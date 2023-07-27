@@ -37,17 +37,23 @@ const propTypes = {
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm: PropTypes.func,
 
+    /** Whether the modal should be open by default */
+    defaultOpen: PropTypes.bool,
+
     /** Optional callback to fire when we want to do something after modal show. */
     onModalShow: PropTypes.func,
 
     /** Optional callback to fire when we want to do something after modal hide. */
     onModalHide: PropTypes.func,
 
+    /** Optional callback to fire when we want to do something after attachment carousel changes. */
+    onCarouselAttachmentChange: PropTypes.func,
+
     /** Optional original filename when uploading */
     originalFileName: PropTypes.string,
 
     /** A function as a child to pass modal launching methods to */
-    children: PropTypes.func.isRequired,
+    children: PropTypes.func,
 
     /** Whether source url requires authentication */
     isAuthTokenRequired: PropTypes.bool,
@@ -69,21 +75,24 @@ const propTypes = {
 const defaultProps = {
     source: '',
     onConfirm: null,
+    defaultOpen: false,
     originalFileName: '',
+    children: null,
     isAuthTokenRequired: false,
     allowDownload: false,
     headerTitle: null,
     report: {},
     onModalShow: () => {},
     onModalHide: () => {},
+    onCarouselAttachmentChange: () => {},
 };
 
 function AttachmentModal(props) {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(props.defaultOpen);
     const [shouldLoadAttachment, setShouldLoadAttachment] = useState(false);
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
-    const [isAuthTokenRequired] = useState(props.isAuthTokenRequired);
-    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState(null);
+    const [isAuthTokenRequired, setIsAuthTokenRequired] = useState(props.isAuthTokenRequired);
+    const [attachmentInvalidReasonTitle, setAttachmentInvalidReasonTitle] = useState('');
     const [attachmentInvalidReason, setAttachmentInvalidReason] = useState(null);
     const [source, setSource] = useState(props.source);
     const [modalType, setModalType] = useState(CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE);
@@ -97,14 +106,21 @@ function AttachmentModal(props) {
             : undefined,
     );
 
+    const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
+
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
      * @param {{ source: String, isAuthTokenRequired: Boolean, file: { name: string } }} attachment
      */
-    const onNavigate = useCallback((attachment) => {
-        setSource(attachment.source);
-        setFile(attachment.file);
-    }, []);
+    const onNavigate = useCallback(
+        (attachment) => {
+            setSource(attachment.source);
+            setFile(attachment.file);
+            setIsAuthTokenRequired(attachment.isAuthTokenRequired);
+            onCarouselAttachmentChange(attachment);
+        },
+        [onCarouselAttachmentChange],
+    );
 
     /**
      * If our attachment is a PDF, return the unswipeable Modal type.
@@ -209,11 +225,20 @@ function AttachmentModal(props) {
             }
 
             if (_file instanceof File) {
-                const inputSource = URL.createObjectURL(_file);
-                const inputModalType = getModalType(inputSource, _file);
+                /**
+                 * Cleaning file name, done here so that it covers all cases:
+                 * upload, drag and drop, copy-paste
+                 */
+                let updatedFile = _file;
+                const cleanName = FileUtils.cleanFileName(updatedFile.name);
+                if (updatedFile.name !== cleanName) {
+                    updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+                }
+                const inputSource = URL.createObjectURL(updatedFile);
+                const inputModalType = getModalType(inputSource, updatedFile);
                 setIsModalOpen(true);
                 setSource(inputSource);
-                setFile(_file);
+                setFile(updatedFile);
                 setModalType(inputModalType);
             } else {
                 const inputModalType = getModalType(_file.uri, _file);
@@ -343,10 +368,11 @@ function AttachmentModal(props) {
                 shouldShowCancelButton={false}
             />
 
-            {props.children({
-                displayFileInModal: validateAndDisplayFileToUpload,
-                show: openModal,
-            })}
+            {props.children &&
+                props.children({
+                    displayFileInModal: validateAndDisplayFileToUpload,
+                    show: openModal,
+                })}
         </>
     );
 }

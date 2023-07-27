@@ -1,8 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
-import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import HttpUtils from '../HttpUtils';
 
 let persistedRequests = [];
 
@@ -19,12 +17,7 @@ function clear() {
  * @param {Array} requestsToPersist
  */
 function save(requestsToPersist) {
-    HttpUtils.cancelPendingReconnectAppRequest();
-    persistedRequests = _.chain(persistedRequests)
-        .concat(requestsToPersist)
-        .partition((request) => request.command !== CONST.NETWORK.COMMAND.RECONNECT_APP)
-        .flatten()
-        .value();
+    persistedRequests = persistedRequests.concat(requestsToPersist);
     Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
 }
 
@@ -32,8 +25,18 @@ function save(requestsToPersist) {
  * @param {Object} requestToRemove
  */
 function remove(requestToRemove) {
-    persistedRequests = _.reject(persistedRequests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests);
+    /**
+     * We only remove the first matching request because the order of requests matters.
+     * If we were to remove all matching requests, we can end up with a final state that is different than what the user intended.
+     */
+    const requests = [...persistedRequests];
+    const index = _.findIndex(requests, (persistedRequest) => _.isEqual(persistedRequest, requestToRemove));
+    if (index !== -1) {
+        requests.splice(index, 1);
+    }
+
+    persistedRequests = requests;
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests);
 }
 
 /**

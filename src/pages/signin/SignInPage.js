@@ -1,30 +1,26 @@
-import React, {Component} from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
-import {withSafeAreaInsets} from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import compose from '../../libs/compose';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
-import PasswordForm from './PasswordForm';
 import ValidateCodeForm from './ValidateCodeForm';
-import ResendValidationForm from './ResendValidationForm';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Performance from '../../libs/Performance';
 import * as App from '../../libs/actions/App';
-import Permissions from '../../libs/Permissions';
 import UnlinkLoginForm from './UnlinkLoginForm';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
+import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import * as Localize from '../../libs/Localize';
 import * as StyleUtils from '../../styles/StyleUtils';
+import useLocalize from '../../hooks/useLocalize';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
+import Log from '../../libs/Log';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
         /** Error to display when there is an account error returned */
@@ -35,153 +31,138 @@ const propTypes = {
 
         /** The primaryLogin associated with the account */
         primaryLogin: PropTypes.string,
-    }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
+        /** Does this account require 2FA? */
+        requiresTwoFactorAuth: PropTypes.bool,
+
+        /** Is this account having trouble receiving emails */
+        hasEmailDeliveryFailure: PropTypes.bool,
+    }),
 
     /** The credentials of the person signing in */
     credentials: PropTypes.shape({
         login: PropTypes.string,
-        password: PropTypes.string,
         twoFactorAuthCode: PropTypes.string,
+        validateCode: PropTypes.string,
     }),
-
-    ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     account: {},
-    betas: [],
     credentials: {},
 };
 
-class SignInPage extends Component {
-    componentDidMount() {
-        Performance.measureTTI();
+/**
+ * @param {Boolean} hasLogin
+ * @param {Boolean} hasValidateCode
+ * @param {Boolean} isPrimaryLogin
+ * @param {Boolean} isAccountValidated
+ * @param {Boolean} hasEmailDeliveryFailure
+ * @returns {Object}
+ */
+function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin, isAccountValidated, hasEmailDeliveryFailure}) {
+    const shouldShowLoginForm = !hasLogin && !hasValidateCode;
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure;
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure;
+    const shouldShowValidateCodeForm = hasAccount && (hasLogin || hasValidateCode) && !isUnvalidatedSecondaryLogin && !hasEmailDeliveryFailure;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || isUnvalidatedSecondaryLogin;
+    const shouldShowWelcomeText = shouldShowLoginForm || shouldShowValidateCodeForm;
+    return {
+        shouldShowLoginForm,
+        shouldShowEmailDeliveryFailurePage,
+        shouldShowUnlinkLoginForm: isUnvalidatedSecondaryLogin,
+        shouldShowValidateCodeForm,
+        shouldShowWelcomeHeader,
+        shouldShowWelcomeText,
+    };
+}
 
+function SignInPage({credentials, account}) {
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const safeAreaInsets = useSafeAreaInsets();
+
+    useEffect(() => Performance.measureTTI(), []);
+    useEffect(() => {
         App.setLocale(Localize.getDevicePreferredLocale());
-    }
+    }, []);
 
-    render() {
-        // Show the login form if
-        // - A login has not been entered yet
-        // - AND a validateCode has not been cached with sign in link
-        const showLoginForm = !this.props.credentials.login && !this.props.credentials.validateCode;
+    const {shouldShowLoginForm, shouldShowEmailDeliveryFailurePage, shouldShowUnlinkLoginForm, shouldShowValidateCodeForm, shouldShowWelcomeHeader, shouldShowWelcomeText} = getRenderOptions(
+        {
+            hasLogin: Boolean(credentials.login),
+            hasValidateCode: Boolean(credentials.validateCode),
+            hasAccount: !_.isEmpty(account),
+            isPrimaryLogin: !account.primaryLogin || account.primaryLogin === credentials.login,
+            isAccountValidated: Boolean(account.validated),
+            hasEmailDeliveryFailure: Boolean(account.hasEmailDeliveryFailure),
+        },
+    );
 
-        // Show the unlink form if
-        // - A login has been entered
-        // - AND the login is not the primary login
-        // - AND the login is not validated
-        const showUnlinkLoginForm =
-            Boolean(this.props.credentials.login && this.props.account.primaryLogin) && this.props.account.primaryLogin !== this.props.credentials.login && !this.props.account.validated;
+    let welcomeHeader;
+    let welcomeText;
+    if (shouldShowLoginForm) {
+        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.getStarted');
+        welcomeText = isSmallScreenWidth ? translate('welcomeText.getStarted') : '';
+    } else if (shouldShowValidateCodeForm) {
+        if (account.requiresTwoFactorAuth) {
+            // We will only know this after a user signs in successfully, without their 2FA code
+            welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+            welcomeText = translate('validateCodeForm.enterAuthenticatorCode');
+        } else {
+            const userLogin = Str.removeSMSDomain(credentials.login || '');
 
-        // Show the old password form if
-        // - A login has been entered
-        // - AND an account exists and is validated for this login
-        // - AND a password hasn't been entered yet
-        // - AND haven't forgotten password
-        // - AND the login isn't an unvalidated secondary login
-        // - AND the user is NOT on the passwordless beta
-        const showPasswordForm =
-            Boolean(this.props.credentials.login) &&
-            this.props.account.validated &&
-            !this.props.credentials.password &&
-            !this.props.account.forgotPassword &&
-            !showUnlinkLoginForm &&
-            !Permissions.canUsePasswordlessLogins(this.props.betas);
-
-        // Show the new magic code / validate code form if
-        // - A login has been entered or a validateCode has been cached from sign in link
-        // - AND the login isn't an unvalidated secondary login
-        // - AND the user is on the 'passwordless' beta
-        const showValidateCodeForm =
-            Boolean(this.props.credentials.login || this.props.credentials.validateCode) && !showUnlinkLoginForm && Permissions.canUsePasswordlessLogins(this.props.betas);
-
-        // Show the resend validation link form if
-        // - A login has been entered
-        // - AND is not validated or password is forgotten
-        // - AND the login isn't an unvalidated secondary login
-        // - AND user is not on 'passwordless' beta
-        const showResendValidationForm =
-            Boolean(this.props.credentials.login) &&
-            (!this.props.account.validated || this.props.account.forgotPassword) &&
-            !showUnlinkLoginForm &&
-            !Permissions.canUsePasswordlessLogins(this.props.betas);
-
-        let welcomeHeader = '';
-        let welcomeText = '';
-        if (showValidateCodeForm) {
-            if (this.props.account.requiresTwoFactorAuth) {
-                // We will only know this after a user signs in successfully, without their 2FA code
-                welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
-                welcomeText = this.props.translate('validateCodeForm.enterAuthenticatorCode');
+            // replacing spaces with "hard spaces" to prevent breaking the number
+            const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
+            if (account.validated) {
+                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
+                welcomeText = isSmallScreenWidth
+                    ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
+                    : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             } else {
-                const userLogin = Str.removeSMSDomain(lodashGet(this.props, 'credentials.login', ''));
-
-                // replacing spaces with "hard spaces" to prevent breaking the number
-                const userLoginToDisplay = Str.isSMSLogin(userLogin) ? this.props.formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
-                if (this.props.account.validated) {
-                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
-                    welcomeText = this.props.isSmallScreenWidth
-                        ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
-                        : this.props.translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
-                } else {
-                    welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcome');
-                    welcomeText = this.props.isSmallScreenWidth
-                        ? `${this.props.translate('welcomeText.welcome')} ${this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
-                        : this.props.translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
-                }
+                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcome');
+                welcomeText = isSmallScreenWidth
+                    ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
+                    : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
-        } else if (showPasswordForm) {
-            welcomeHeader = this.props.isSmallScreenWidth ? '' : this.props.translate('welcomeText.welcomeBack');
-            welcomeText = this.props.isSmallScreenWidth
-                ? `${this.props.translate('welcomeText.welcomeBack')} ${this.props.translate('welcomeText.enterPassword')}`
-                : this.props.translate('welcomeText.enterPassword');
-        } else if (showUnlinkLoginForm) {
-            welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.welcomeBack');
-        } else if (!showResendValidationForm) {
-            welcomeHeader = this.props.isSmallScreenWidth ? this.props.translate('login.hero.header') : this.props.translate('welcomeText.getStarted');
-            welcomeText = this.props.isSmallScreenWidth ? this.props.translate('welcomeText.getStarted') : '';
         }
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
+        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
 
-        return (
-            // There is an issue SafeAreaView on Android where wrong insets flicker on app start.
-            // Can be removed once https://github.com/th3rdwave/react-native-safe-area-context/issues/364 is resolved.
-            <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(this.props.insets, 1)]}>
-                <SignInPageLayout
-                    welcomeHeader={welcomeHeader}
-                    welcomeText={welcomeText}
-                    shouldShowWelcomeHeader={showLoginForm || showPasswordForm || showValidateCodeForm || showUnlinkLoginForm || !this.props.isSmallScreenWidth}
-                    shouldShowWelcomeText={showLoginForm || showPasswordForm || showValidateCodeForm}
-                >
-                    {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
-                    so that password managers can access the values. Conditionally rendering these components will break this feature. */}
-                    <LoginForm
-                        isVisible={showLoginForm}
-                        blurOnSubmit={this.props.account.validated === false}
-                    />
-                    {showValidateCodeForm ? <ValidateCodeForm isVisible={showValidateCodeForm} /> : <PasswordForm isVisible={showPasswordForm} />}
-                    {showResendValidationForm && <ResendValidationForm />}
-                    {showUnlinkLoginForm && <UnlinkLoginForm />}
-                </SignInPageLayout>
-            </View>
-        );
+        // Don't show any welcome text if we're showing the user the email delivery failed view
+        if (shouldShowEmailDeliveryFailurePage) {
+            welcomeText = '';
+        }
+    } else {
+        Log.warn('SignInPage in unexpected state!');
     }
+
+    return (
+        <View style={[styles.signInPage, StyleUtils.getSafeAreaPadding(safeAreaInsets, 1)]}>
+            <SignInPageLayout
+                welcomeHeader={welcomeHeader}
+                welcomeText={welcomeText}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
+                shouldShowWelcomeText={shouldShowWelcomeText}
+            >
+                {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
+                    so that password managers can access the values. Conditionally rendering this component will break this feature. */}
+                <LoginForm
+                    isVisible={shouldShowLoginForm}
+                    blurOnSubmit={account.validated === false}
+                />
+                {shouldShowValidateCodeForm && <ValidateCodeForm />}
+                {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+            </SignInPageLayout>
+        </View>
+    );
 }
 
 SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
+SignInPage.displayName = 'SignInPage';
 
-export default compose(
-    withSafeAreaInsets,
-    withLocalize,
-    withWindowDimensions,
-    withOnyx({
-        account: {key: ONYXKEYS.ACCOUNT},
-        betas: {key: ONYXKEYS.BETAS},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
-    }),
-)(SignInPage);
+export default withOnyx({
+    account: {key: ONYXKEYS.ACCOUNT},
+    credentials: {key: ONYXKEYS.CREDENTIALS},
+})(SignInPage);
