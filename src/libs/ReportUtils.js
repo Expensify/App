@@ -20,7 +20,6 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
-import TransactionUtils from './TransactionUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
