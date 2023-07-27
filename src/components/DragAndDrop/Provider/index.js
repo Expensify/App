@@ -36,6 +36,7 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
     const {windowWidth, windowHeight} = useWindowDimensions();
 
     const dropZone = useRef(null);
+    const dragCounter = useRef(0);
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
     const [dropZoneRect, setDropZoneRect] = useState({});
@@ -45,6 +46,7 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
         if (isFocused && !isDisabled) {
             return;
         }
+        dragCounter.current = 0;
         setIsDraggingOver(false);
     }, [isFocused, isDisabled]);
 
@@ -82,12 +84,13 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
 
             event.preventDefault();
 
-            if (dropZone.current.contains(event.target) && shouldAcceptDrop(event)) {
+            if (shouldAcceptDrop(event)) {
                 switch (event.type) {
                     case DRAG_OVER_EVENT:
                         // Nothing needed here, just needed to preventDefault in order for the drop event to fire later
                         break;
                     case DRAG_ENTER_EVENT:
+                        dragCounter.current++;
                         if (isDraggingOver) {
                             return;
                         }
@@ -96,17 +99,15 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
                         setIsDraggingOver(true);
                         break;
                     case DRAG_LEAVE_EVENT:
-                        console.log('RORY_DEBUG drag leave');
-                        if (
-                            !isDraggingOver ||
-                            !(event.clientY <= dropZoneRect.top || event.clientY >= dropZoneRect.bottom || event.clientX <= dropZoneRect.left || event.clientX >= dropZoneRect.right)
-                        ) {
+                        dragCounter.current--;
+                        if (!isDraggingOver || dragCounter.current > 0) {
                             return;
                         }
 
                         setIsDraggingOver(false);
                         break;
                     case DROP_EVENT:
+                        dragCounter.current = 0;
                         setIsDraggingOver(false);
                         DNDUtils.executeOnDropCallbacks(event, dropZoneID);
                         break;
@@ -118,25 +119,31 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
                 event.dataTransfer.dropEffect = NONE_DROP_EFFECT;
             }
         },
-        [isFocused, isDisabled, isDraggingOver, dropZoneRect.top, dropZoneRect.bottom, dropZoneRect.left, dropZoneRect.right, dropZoneID],
+        [isFocused, isDisabled, isDraggingOver, dropZoneID],
     );
 
     useEffect(() => {
+        if (!dropZone.current) {
+            return;
+        }
+
         // Note that the dragover event needs to be called with `event.preventDefault` in order for the drop event to be fired:
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
-        document.addEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
-        document.addEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
-        document.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
-        document.addEventListener(DROP_EVENT, dropZoneDragHandler);
+        dropZone.current.addEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
+        dropZone.current.addEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
+        dropZone.current.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
+        dropZone.current.addEventListener(DROP_EVENT, dropZoneDragHandler);
         return () => {
-            document.removeEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
-            document.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
-            document.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
-            document.removeEventListener(DROP_EVENT, dropZoneDragHandler);
+            if (!dropZone.current) {
+                return;
+            }
+
+            dropZone.current.removeEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
+            dropZone.current.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
+            dropZone.current.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
+            dropZone.current.removeEventListener(DROP_EVENT, dropZoneDragHandler);
         };
     }, [dropZoneDragHandler]);
-
-    console.log('RORY_DEBUG DragAndDropProvider rendering w/ context:', {dropZoneID, isDraggingOver, dropZoneRect});
 
     return (
         <DragAndDropContext.Provider value={{isDraggingOver, dropZoneRect}}>
@@ -145,9 +152,11 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
                 onLayout={measureDropZone}
                 style={styles.flex1}
             >
+                <View style={[styles.fullScreen, styles.invisibleOverlay]}>
+                    <PortalHost name={dropZoneHostName} />
+                </View>
                 {children}
             </View>
-            <PortalHost name={dropZoneHostName} />
         </DragAndDropContext.Provider>
     );
 }
