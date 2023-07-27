@@ -47,8 +47,11 @@ export default function useDragAndDrop({dropZoneElement, onDrop = () => {}, shou
 
     const setDropEffect = useCallback(
         (event) => {
+            const effect = shouldAllowDrop && shouldAcceptDrop(event) ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
             // eslint-disable-next-line no-param-reassign
-            event.dataTransfer.dropEffect = shouldAllowDrop && shouldAcceptDrop(event) ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
+            event.dataTransfer.dropEffect = effect;
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.effectAllowed = effect;
         },
         [shouldAllowDrop, shouldAcceptDrop],
     );
