@@ -66,7 +66,6 @@ const newActionUnsubscribeMap = {};
 
 function ReportActionsView(props) {
     const context = useContext(ReportScreenContext);
-    const componentInstanceId = useRef(_.uniqueId('reportActionsView_')).current;
 
     useCopySelectionHelper();
 
@@ -190,7 +189,7 @@ function ReportActionsView(props) {
         return () => {
             cleanup();
         };
-    }, [componentInstanceId, isReportFullyVisible, reportID, scrollToBottom, setNewMarkerReportActionID]);
+    }, [isReportFullyVisible, reportID, scrollToBottom, setNewMarkerReportActionID]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
