@@ -339,7 +339,7 @@ function ReportActionItemMessageEdit(props) {
                                 }
                                 openReportActionComposeViewWhenClosingMessageEdit();
                             }}
-                            selection={!isFocused ? undefined : selection}
+                            selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                         />
                     </View>

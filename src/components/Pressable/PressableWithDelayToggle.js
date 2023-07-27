@@ -123,6 +123,7 @@ function PressableWithDelayToggle(props) {
                                         style={props.iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
+                                        inline={props.inline}
                                     />
                                 )}
                             </>

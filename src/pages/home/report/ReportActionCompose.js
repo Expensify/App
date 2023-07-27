@@ -1,6 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {runOnJS} from 'react-native-reanimated';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -57,6 +59,8 @@ import PressableWithFeedback from '../../../components/Pressable/PressableWithFe
 import usePrevious from '../../../hooks/usePrevious';
 import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
 import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
+import withAnimatedRef from '../../../components/withAnimatedRef';
+import updatePropsPaperWorklet from '../../../libs/updatePropsPaperWorklet';
 
 const {RNTextInputReset} = NativeModules;
 
@@ -120,6 +124,9 @@ const propTypes = {
 
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
+    /** animated ref from react-native-reanimated */
+    animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
 
     /** Unique id for nativeId in DragAndDrop */
     dragAndDropId: PropTypes.string.isRequired,
@@ -229,7 +236,7 @@ const trimLeadingSpace = (str) => (str.slice(0, 1) === ' ' ? str.slice(1) : str)
 // so we need to ensure that it is only updated after focus.
 const isMobileSafari = Browser.isMobileSafari();
 
-function ReportActionCompose({translate, ...props}) {
+function ReportActionCompose({translate, animatedRef, ...props}) {
     /**
      * Updates the Highlight state of the composer
      */
@@ -663,10 +670,16 @@ function ReportActionCompose({translate, ...props}) {
      * @param {Element} el
      * @memberof ReportActionCompose
      */
-    const setTextInputRef = useCallback((el) => {
-        ReportActionComposeFocusManager.composerRef.current = el;
-        textInput.current = el;
-    }, []);
+    const setTextInputRef = useCallback(
+        (el) => {
+            ReportActionComposeFocusManager.composerRef.current = el;
+            textInput.current = el;
+            if (_.isFunction(animatedRef)) {
+                animatedRef(el);
+            }
+        },
+        [animatedRef],
+    );
 
     /**
      * Returns the list of IOU Options
@@ -798,9 +811,10 @@ function ReportActionCompose({translate, ...props}) {
      */
     const prepareCommentAndResetComposer = useCallback(() => {
         const trimmedComment = comment.current.trim();
+        const commentLength = ReportUtils.getCommentLength(trimmedComment);
 
         // Don't submit empty comments or comments that exceed the character limit
-        if (isCommentEmpty || ReportUtils.getCommentLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
+        if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
 
@@ -811,7 +825,7 @@ function ReportActionCompose({translate, ...props}) {
         }
         setIsFullComposerAvailable(false);
         return trimmedComment;
-    }, [isCommentEmpty, props.reportID, updateComment, props.isComposerFullSize]);
+    }, [props.reportID, updateComment, props.isComposerFullSize]);
 
     /**
      * Add a new comment to this chat
@@ -1010,8 +1024,22 @@ function ReportActionCompose({translate, ...props}) {
     const reportRecipient = props.personalDetails[participantsWithoutExpensifyAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && !props.disabled && (isFocused || isDraggingOver);
     const isFullSizeComposerAvailable = isFullComposerAvailable && !_.isEmpty(value);
-    const maxComposerLines = props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
     const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
+    const maxComposerLines = props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+
+    const Tap = Gesture.Tap()
+        .enabled(!(isCommentEmpty || isBlockedFromConcierge || props.disabled || hasExceededMaxCommentLength))
+        .onEnd(() => {
+            'worklet';
+
+            const viewTag = animatedRef();
+            const viewName = 'RCTMultilineTextInputView';
+            const updates = {text: ''};
+            // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
+            runOnJS(setIsCommentEmpty)(true);
+            updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+            runOnJS(submitForm)();
+        });
 
     return (
         <View
@@ -1209,20 +1237,22 @@ function ReportActionCompose({translate, ...props}) {
                         // Keep focus on the composer when Send message is clicked.
                         onMouseDown={(e) => e.preventDefault()}
                     >
-                        <Tooltip text={translate('common.send')}>
-                            <PressableWithFeedback
-                                style={[styles.chatItemSubmitButton, isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
-                                onPress={submitForm}
-                                disabled={isCommentEmpty || isBlockedFromConcierge || props.disabled || hasExceededMaxCommentLength}
-                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                accessibilityLabel={translate('common.send')}
-                            >
-                                <Icon
-                                    src={Expensicons.Send}
-                                    fill={isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
-                                />
-                            </PressableWithFeedback>
-                        </Tooltip>
+                        <GestureDetector gesture={Tap}>
+                            <Tooltip text={translate('common.send')}>
+                                <PressableWithFeedback
+                                    style={[styles.chatItemSubmitButton, isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
+                                    onPress={submitForm}
+                                    disabled={isCommentEmpty || isBlockedFromConcierge || props.disabled || hasExceededMaxCommentLength}
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                    accessibilityLabel={translate('common.send')}
+                                >
+                                    <Icon
+                                        src={Expensicons.Send}
+                                        fill={isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
+                                    />
+                                </PressableWithFeedback>
+                            </Tooltip>
+                        </GestureDetector>
                     </View>
                 </View>
                 <View
@@ -1290,6 +1320,7 @@ export default compose(
     withNetwork(),
     withCurrentUserPersonalDetails,
     withKeyboardState,
+    withAnimatedRef,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
