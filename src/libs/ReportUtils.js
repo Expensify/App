@@ -1713,7 +1713,7 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
  * @param {Object} [receipt]
  * @returns {Object}
  */
-function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false, receipt = undefined) {
+function buildOptimisticIOUReportAction(type, amount, currency, comment, participants, transactionID, paymentType = '', iouReportID = '', isSettlingUp = false, isSendMoneyFlow = false, receipt = {}) {
     const IOUReportID = iouReportID || generateReportID();
 
     const originalMessage = {
@@ -1759,7 +1759,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        ...(receipt ? {receipt: TransactionUtils.buildOptimisticReceipt(receipt)} : {}),
+        receipt,
     };
 }
 
