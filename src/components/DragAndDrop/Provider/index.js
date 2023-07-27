@@ -40,12 +40,14 @@ function DragAndDropProvider({children, dropZoneID, isDisabled = false}) {
                 ref={(e) => (dropZone.current = e)}
                 style={[styles.flex1, styles.w100, styles.h100]}
             >
-                <View
-                    style={[styles.fullScreen, styles.invisibleOverlay]}
-                    nativeID={dropZoneID}
-                >
-                    <PortalHost name={dropZoneID} />
-                </View>
+                {isDraggingOver && (
+                    <View
+                        style={[styles.fullScreen, styles.invisibleOverlay]}
+                        nativeID={dropZoneID}
+                    >
+                        <PortalHost name={dropZoneID} />
+                    </View>
+                )}
                 {children}
             </View>
         </DragAndDropContext.Provider>
