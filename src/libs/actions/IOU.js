@@ -343,7 +343,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     }
 
-    // STEP 3: Build optimistic receipt (if available) and transaction
+    // STEP 3: Build optimistic receipt and transaction
     const optimisticReceipt = TransactionUtils.buildOptimisticReceipt(receipt);
     const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, optimisticReceipt);
 
