@@ -18,9 +18,6 @@ on:
       LARGE_SECRET_PASSPHRASE:
         description: Passphrase used to decrypt GPG key
         required: true
-      OS_BOTIFY_TOKEN:
-        description: Token for the OSBotify user
-        required: true
       SLACK_WEBHOOK:
         description: Webhook used to comment in slack
         required: true
@@ -31,11 +28,18 @@ jobs:
     outputs:
       HAS_WRITE_ACCESS: ${{ contains(fromJSON('["write", "admin"]'), steps.getUserPermissions.outputs.PERMISSION) }}
     steps:
+      - name: Generate a token
+        id: generate_token
+        uses: tibdex/github-app-token@c2055a00597a80f713b78b1650e8d3418f4d9a65
+        with:
+          app_id: ${{ secrets.OS_BOTIFY_APP_ID }}
+          private_key: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
+          installation_id: ${{ secrets.OS_BOTIFY_INSTALLATION_ID }}
       - name: Get user permissions
         id: getUserPermissions
         run: echo "PERMISSION=$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')" >> "$GITHUB_OUTPUT"
         env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
 
   createNewVersion:
     runs-on: macos-latest
@@ -50,12 +54,12 @@ jobs:
         with:
           poll-interval-seconds: 10
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ ${{ needs.validatorActor.steps.generate_token.outputs.token }} }}
 
       - uses: actions/checkout@v3
         with:
           ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          token: ${{ steps.generate_token.outputs.token }}
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         with:
@@ -65,7 +69,7 @@ jobs:
         id: bumpVersion
         uses: Expensify/App/.github/actions/javascript/bumpVersion@main
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
       - name: Commit new version
