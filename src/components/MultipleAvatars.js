@@ -183,12 +183,7 @@ function MultipleAvatars(props) {
                                     avatar: icon.avatar,
                                 }}
                             >
-                                <View
-                                    style={[
-                                        StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize),
-                                        StyleUtils.getAvatarBorderRadius(props.size, icon.type),
-                                    ]}
-                                >
+                                <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(props.size, icon.type)]}>
                                     <Avatar
                                         iconAdditionalStyles={[
                                             StyleUtils.getHorizontalStackedAvatarBorderStyle({
