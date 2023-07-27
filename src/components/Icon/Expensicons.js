@@ -49,6 +49,7 @@ import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Globe from '../../../assets/images/globe.svg';
 import Hashtag from '../../../assets/images/hashtag.svg';
+import Heart from '../../../assets/images/emojiCategoryIcons/heart.svg';
 import History from '../../../assets/images/history.svg';
 import Hourglass from '../../../assets/images/hourglass.svg';
 import ImageCropCircleMask from '../../../assets/images/image-crop-circle-mask.svg';
@@ -175,6 +176,7 @@ export {
     Gear,
     Globe,
     Hashtag,
+    Heart,
     History,
     Hourglass,
     ImageCropCircleMask,
