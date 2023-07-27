@@ -1,90 +1,102 @@
+import React from 'react';
 import moment from 'moment';
-import React, {forwardRef, useEffect, useRef} from 'react';
 import _ from 'underscore';
+import TextInput from '../TextInput';
 import CONST from '../../CONST';
 import * as Browser from '../../libs/Browser';
-import TextInput from '../TextInput';
-import {defaultProps, propTypes} from './datepickerPropTypes';
+import {propTypes, defaultProps} from './datepickerPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import './styles.css';
 
 const datePickerPropTypes = {
     ...propTypes,
+    ...windowDimensionsPropTypes,
 };
 
-function DatePicker({defaultValue, maxDate, minDate, onInputChange, innerRef, label, value, placeholder, errorText, containerStyles, disabled, onBlur}) {
-    const inputRef = useRef(null);
-    const defaultDateValue = defaultValue ? moment(defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+class DatePicker extends React.Component {
+    constructor(props) {
+        super(props);
 
-    useEffect(() => {
-        inputRef.current.setAttribute('type', 'date');
-        inputRef.current.setAttribute('max', moment(maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-        inputRef.current.setAttribute('min', moment(minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
-        inputRef.current.classList.add('expensify-datepicker');
-    }, [maxDate, minDate]);
+        this.setDate = this.setDate.bind(this);
+        this.showDatepicker = this.showDatepicker.bind(this);
+
+        this.defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
+    }
+
+    componentDidMount() {
+        // Adds nice native datepicker on web/desktop. Not possible to set this through props
+        this.inputRef.setAttribute('type', 'date');
+        this.inputRef.setAttribute('max', moment(this.props.maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        this.inputRef.setAttribute('min', moment(this.props.minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        this.inputRef.classList.add('expensify-datepicker');
+    }
 
     /**
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
      * @param {String} text
      */
-    const setDate = (text) => {
+    setDate(text) {
         if (!text) {
-            onInputChange('');
+            this.props.onInputChange('');
             return;
         }
 
         const asMoment = moment(text, true);
         if (asMoment.isValid()) {
-            onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
+            this.props.onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
-    };
+    }
 
     /**
      * Pops the datepicker up when we focus this field. This only works on mWeb chrome
      * On mWeb chrome the user needs to tap on the field again in order to bring the datepicker. But our current styles
      * don't make this very obvious. To avoid confusion we open the datepicker when the user focuses the field
      */
-    const showDatepicker = () => {
-        if (!inputRef.current || !Browser.isMobileChrome()) {
+    showDatepicker() {
+        if (!this.inputRef || !Browser.isMobileChrome()) {
             return;
         }
 
-        inputRef.current.click();
-    };
+        this.inputRef.click();
+    }
 
-    return (
-        <TextInput
-            forceActiveLabel
-            ref={(el) => {
-                inputRef.current = el;
+    render() {
+        return (
+            <TextInput
+                forceActiveLabel
+                ref={(el) => {
+                    this.inputRef = el;
 
-                if (_.isFunction(innerRef)) {
-                    innerRef(el);
-                }
-            }}
-            onFocus={showDatepicker}
-            label={label}
-            accessibilityLabel={label}
-            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-            onInputChange={setDate}
-            value={value}
-            defaultValue={defaultDateValue}
-            placeholder={placeholder}
-            errorText={errorText}
-            containerStyles={containerStyles}
-            disabled={disabled}
-            onBlur={onBlur}
-        />
-    );
+                    if (_.isFunction(this.props.innerRef)) {
+                        this.props.innerRef(el);
+                    }
+                }}
+                onFocus={this.showDatepicker}
+                label={this.props.label}
+                accessibilityLabel={this.props.label}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                onInputChange={this.setDate}
+                value={this.props.value}
+                defaultValue={this.defaultValue}
+                placeholder={this.props.placeholder}
+                errorText={this.props.errorText}
+                containerStyles={this.props.containerStyles}
+                disabled={this.props.disabled}
+                onBlur={this.props.onBlur}
+            />
+        );
+    }
 }
 
 DatePicker.propTypes = datePickerPropTypes;
 DatePicker.defaultProps = defaultProps;
-DatePicker.displayName = 'DatePicker';
 
-export default forwardRef((props, ref) => (
-    <DatePicker
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+export default withWindowDimensions(
+    React.forwardRef((props, ref) => (
+        <DatePicker
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

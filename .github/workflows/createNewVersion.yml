@@ -1,6 +1,14 @@
 name: Create new version
 
 on:
+  workflow_dispatch:
+    inputs:
+      SEMVER_LEVEL:
+        description: One of {BUILD, PATCH, MINOR, MAJOR}
+        required: true
+        default: BUILD
+        type: string
+
   workflow_call:
     inputs:
       SEMVER_LEVEL:
