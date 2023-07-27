@@ -119,7 +119,7 @@ type OriginalMessagePolicyChangeLog = {
 type OriginalMessagePolicyTask = {
     actionName:
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKEDITED
-        | typeof CONST.REPORT.ACTIONS.TYPE.TASKCANCELED
+        | typeof CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED
         | typeof CONST.REPORT.ACTIONS.TYPE.TASKREOPENED;
     originalMessage: unknown;
