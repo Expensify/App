@@ -9,6 +9,7 @@ function MenuItemWithTopDescription(props) {
         <MenuItem
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
+            ref={props.forwardedRef}
             shouldShowBasicTitle
             shouldShowDescriptionOnTop
         />
@@ -18,4 +19,10 @@ function MenuItemWithTopDescription(props) {
 MenuItemWithTopDescription.propTypes = propTypes;
 MenuItemWithTopDescription.displayName = 'MenuItemWithTopDescription';
 
-export default MenuItemWithTopDescription;
+export default React.forwardRef((props, ref) => (
+    <MenuItemWithTopDescription
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
