@@ -31,7 +31,7 @@ function DragAndDropConsumer({children, dropZoneID, dropZoneHostName, onDrop}) {
 
     return (
         <Portal hostName={dropZoneHostName}>
-            <View style={[styles.fullScreen]}>{_.isFunction(children) ? children(dropZoneRect) : children}</View>
+            <View style={styles.fullScreen}>{_.isFunction(children) ? children(dropZoneRect) : children}</View>
         </Portal>
     );
 }

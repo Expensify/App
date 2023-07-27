@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
 import {PortalHost} from '@gorhom/portal';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import useThrottledEffect from '../../../hooks/useThrottledEffect';
 import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
 import DNDUtils from '../Utils';
 import styles from '../../../styles/styles';
@@ -49,9 +48,9 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
         setIsDraggingOver(false);
     }, [isFocused, isDisabled]);
 
-    // Measure the position of the drop zone
-    useThrottledEffect(
-        () => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const measureDropZone = useCallback(
+        _.throttle(() => {
             if (!dropZone.current) {
                 return;
             }
@@ -63,10 +62,12 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
                     bottom: y + height,
                 });
             });
-        },
-        100,
-        [windowWidth, windowHeight],
+        }, 100),
+        [],
     );
+
+    // Remeasure the position of the drop zone when the window resizes
+    useEffect(measureDropZone, [windowWidth, windowHeight, measureDropZone]);
 
     /**
      * Handles all types of drag-N-drop events on the drop zone associated with composer
@@ -87,7 +88,6 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
                         // Nothing needed here, just needed to preventDefault in order for the drop event to fire later
                         break;
                     case DRAG_ENTER_EVENT:
-                        console.log('RORY_DEBUG drag enter');
                         if (isDraggingOver) {
                             return;
                         }
@@ -142,6 +142,7 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
         <DragAndDropContext.Provider value={{isDraggingOver, dropZoneRect}}>
             <View
                 ref={(e) => (dropZone.current = e)}
+                onLayout={measureDropZone}
                 style={styles.flex1}
             >
                 {children}
