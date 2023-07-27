@@ -101,7 +101,7 @@ jobs:
       - name: Update main branch
         run: git push origin main
 
-      - if: ${{ failure() }}
-        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      # - if: ${{ failure() }}
+      #   uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+      #   with:
+      #     SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
