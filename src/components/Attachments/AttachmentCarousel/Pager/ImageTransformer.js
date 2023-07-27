@@ -207,31 +207,26 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
 
             stopAnimation();
 
-            const usableImage = {
-                x: scaledImageWidth,
-                y: scaledImageHeight,
-            };
-
             const targetImageSize = {
-                x: usableImage.x * doubleTapScale,
-                y: usableImage.y * doubleTapScale,
+                width: scaledImageWidth * doubleTapScale,
+                height: scaledImageHeight * doubleTapScale,
             };
 
-            const CENTER = {
+            const canvasCenter = {
                 x: canvasWidth / 2,
                 y: canvasHeight / 2,
             };
 
             const imageCenter = {
-                x: usableImage.x / 2,
-                y: usableImage.y / 2,
+                x: scaledImageWidth / 2,
+                y: scaledImageHeight / 2,
             };
 
             const focal = {x, y};
 
             const currentOrigin = {
-                x: (targetImageSize.x / 2 - CENTER.x) * -1,
-                y: (targetImageSize.y / 2 - CENTER.y) * -1,
+                x: (targetImageSize.width / 2 - canvasCenter.x) * -1,
+                y: (targetImageSize.height / 2 - canvasCenter.y) * -1,
             };
 
             const koef = {
@@ -244,7 +239,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                 y: currentOrigin.y * koef.y,
             };
 
-            if (targetImageSize.y < canvasHeight) {
+            if (targetImageSize.height < canvasHeight) {
                 target.y = 0;
             }
 
