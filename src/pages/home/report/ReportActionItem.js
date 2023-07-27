@@ -60,6 +60,10 @@ import MoneyReportView from '../../../components/ReportActionItem/MoneyReportVie
 import * as Session from '../../../libs/actions/Session';
 import MoneyRequestView from '../../../components/ReportActionItem/MoneyRequestView';
 import {hideContextMenu} from './ContextMenu/ReportActionContextMenu';
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
+import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
+import * as store from '../../../libs/actions/ReimbursementAccount/store';
+import * as BankAccounts from '../../../libs/actions/BankAccounts';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -172,10 +176,12 @@ function ReportActionItem(props) {
             return;
         }
 
-        if (_.contains([CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE, CONST.MODERATION.MODERATOR_DECISION_HIDDEN], latestDecision)) {
-            setIsHidden(true);
-        }
         setModerationDecision(latestDecision);
+        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision)) {
+            setIsHidden(true);
+            return;
+        }
+        setIsHidden(false);
     }, [latestDecision, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {
@@ -284,6 +290,24 @@ function ReportActionItem(props) {
                     action={props.action}
                     isHovered={hovered}
                 />
+            );
+        } else if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED) {
+            const submitterDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(props.personalDetailsList, [props.report.ownerAccountID, 'displayName'], props.report.ownerEmail);
+            const shouldShowAddCreditBankAccountButton =
+                ReportUtils.isCurrentUserSubmitter(props.report.reportID) && !store.hasCreditBankAccount() && !ReportUtils.isSettled(props.report.reportID);
+
+            children = (
+                <ReportActionItemBasicMessage message={props.translate('iou.waitingOnBankAccount', {submitterDisplayName})}>
+                    {shouldShowAddCreditBankAccountButton ? (
+                        <Button
+                            success
+                            style={[styles.w100, styles.requestPreviewBox]}
+                            text={props.translate('bankAccount.addBankAccount')}
+                            onPress={() => BankAccounts.openPersonalBankAccountSetupView(props.report.reportID)}
+                            pressOnEnter
+                        />
+                    ) : null}
+                </ReportActionItemBasicMessage>
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
