@@ -484,6 +484,7 @@ function setAssigneeChatReport(chatReport) {
 
 function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurrentUser = false) {
     let newAssigneeAccountID = Number(assigneeAccountID);
+    let chatReport;
 
     // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
     if (!newAssigneeAccountID) {
@@ -491,7 +492,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
     }
 
     if (!isCurrentUser) {
-        let chatReport = ReportUtils.getChatByParticipants([newAssigneeAccountID]);
+        chatReport = ReportUtils.getChatByParticipants([newAssigneeAccountID]);
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([newAssigneeAccountID]);
             chatReport.isOptimisticReport = true;
@@ -524,6 +525,11 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
 
     // This is only needed for creation of a new task and so it should only be stored locally
     Onyx.merge(ONYXKEYS.TASK, {assignee, assigneeAccountID: newAssigneeAccountID});
+
+    // When we're editing the assignee, we immediately call EditTaskAndNavigate. Since setting the assignee is async,
+    // the chatReport is not yet set when EditTaskAndNavigate is called. So we return the chatReport here so that
+    // EditTaskAndNavigate can use it.
+    return chatReport;
 }
 
 /**

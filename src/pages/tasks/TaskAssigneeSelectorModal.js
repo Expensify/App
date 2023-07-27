@@ -167,13 +167,13 @@ function TaskAssigneeSelectorModal(props) {
         if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
             // There was an issue where sometimes a new assignee didn't have a DM thread
             // This would cause the app to crash, so we need to make sure we have a DM thread
-            Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+            const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
 
             // Pass through the selected assignee
             Task.editTaskAndNavigate(props.task.report, props.session.accountID, {
                 assignee: option.login,
                 assigneeAccountID: option.accountID,
-            }, props.task.assigneeChatReport);
+            }, assigneeChatReport);
         }
     };
 
