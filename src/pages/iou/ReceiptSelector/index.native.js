@@ -4,6 +4,8 @@ import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
+import {compose} from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Colors from '../../../styles/colors';
 import Icon from '../../../components/Icon';
@@ -20,6 +22,8 @@ import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/wi
 import Button from '../../../components/Button';
 import NavigateToNextIOUPage from '../../../libs/actions/NavigateToNextIOUPage';
 import useLocalize from '../../../hooks/useLocalize';
+import withCurrentReportID from '../../../components/withCurrentReportID';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** Route params */
@@ -106,8 +110,8 @@ function ReceiptSelector(props) {
 
     const [permissions, setPermissions] = useState('authorized');
 
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const iouType = useRef(lodashGet(props, 'iou.iouType', ''));
+    const reportID = useRef(lodashGet(props, 'currentReportID', ''));
 
     const {translate} = useLocalize();
     /**
@@ -311,4 +315,9 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default ReceiptSelector;
+export default compose(
+    withCurrentReportID,
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+    }),
+)(ReceiptSelector);

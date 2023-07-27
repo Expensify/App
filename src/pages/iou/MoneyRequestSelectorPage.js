@@ -99,31 +99,6 @@ function MoneyRequestSelectorPage(props) {
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
-    const RenderMoneyRequestAmountPage = useCallback(
-        () => (
-            <MoneyRequestAmount
-                route={props.route}
-                report={props.report}
-                iou={props.iou}
-                currentUserPersonalDetails={props.currentUserPersonalDetails}
-            />
-        ),
-        [props.route, props.report, props.iou, props.currentUserPersonalDetails],
-    );
-
-    const RenderReceiptSelectorPage = useCallback(
-        () => (
-            <ReceiptSelector
-                route={props.route}
-                report={props.report}
-                iou={props.iou}
-                isDraggingOver={isDraggingOver}
-                currentUserPersonalDetails={props.currentUserPersonalDetails}
-            />
-        ),
-        [isDraggingOver, props.currentUserPersonalDetails, props.iou, props.report, props.route],
-    );
-
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -165,11 +140,11 @@ function MoneyRequestSelectorPage(props) {
                             >
                                 <TopTab.Screen
                                     name={CONST.TAB.TAB_MANUAL}
-                                    component={RenderMoneyRequestAmountPage}
+                                    component={MoneyRequestAmount}
                                 />
                                 <TopTab.Screen
                                     name={CONST.TAB.TAB_SCAN}
-                                    component={RenderReceiptSelectorPage}
+                                    component={ReceiptSelector}
                                 />
                             </TopTab.Navigator>
                             <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />

@@ -1,8 +1,9 @@
 import {View, Text, PixelRatio} from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {compose} from 'underscore';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
@@ -22,6 +23,7 @@ import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import ReceiptUtils from '../../../libs/ReceiptUtils';
+import withCurrentReportID from '../../../components/withCurrentReportID';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -29,14 +31,6 @@ const propTypes = {
         isAttachmentInvalid: PropTypes.bool,
         attachmentInvalidReasonTitle: PropTypes.string,
         attachmentInvalidReason: PropTypes.string,
-    }),
-
-    /** Route params */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            iouType: PropTypes.string,
-            reportID: PropTypes.string,
-        }),
     }),
 
     /** The report on which the request is initiated on */
@@ -89,12 +83,12 @@ const defaultProps = {
 };
 
 function ReceiptSelector(props) {
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const iouType = useRef(lodashGet(props, 'iou.iouType', ''));
+    const reportID = useRef(lodashGet(props, 'currentReportID', ''));
     const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
     const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
-    const [receiptImageTopPosition, setReceiptImageTopPosition] = useState();
+    const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
@@ -152,12 +146,12 @@ function ReceiptSelector(props) {
         </>
     );
 
-    console.log(`receiptImageTopPosition: ${receiptImageTopPosition}`);
+    console.log(`receiptImageTopPosition: ${receiptImageTopPosition.current}`);
 
     return (
         <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
             {!props.isDraggingOver ? defaultView() : null}
-            {props.isDraggingOver && <ReceiptDropUI receiptImageTopPosition={receiptImageTopPosition} />}
+            {props.isDraggingOver && <ReceiptDropUI receiptImageTopPosition={receiptImageTopPosition.current} />}
             <ConfirmModal
                 title={attachmentInvalidReasonTitle}
                 onConfirm={() => Receipt.clearUploadReceiptError()}
@@ -175,6 +169,10 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default withOnyx({
-    receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
-})(ReceiptSelector);
+export default compose(
+    withCurrentReportID,
+    withOnyx({
+        iou: {key: ONYXKEYS.IOU},
+        receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
+    }),
+)(ReceiptSelector);

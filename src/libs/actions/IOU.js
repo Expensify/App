@@ -71,6 +71,7 @@ Onyx.connect({
 function resetMoneyRequestInfo(id = '') {
     Onyx.merge(ONYXKEYS.IOU, {
         id,
+        iouType: '',
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
@@ -1356,6 +1357,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
  */
 function startMoneyRequest(iouType, reportID = '') {
     resetMoneyRequestInfo(`${iouType}${reportID}`);
+    setMoneyRequestType(iouType);
     Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
 }
 
@@ -1364,6 +1366,13 @@ function startMoneyRequest(iouType, reportID = '') {
  */
 function setMoneyRequestId(id) {
     Onyx.merge(ONYXKEYS.IOU, {id});
+}
+
+/**
+ * @param {String} iouType
+ */
+function setMoneyRequestType(iouType) {
+    Onyx.merge(ONYXKEYS.IOU, {iouType});
 }
 
 /**
@@ -1414,6 +1423,7 @@ export {
     startMoneyRequest,
     resetMoneyRequestInfo,
     setMoneyRequestId,
+    setMoneyRequestType,
     setMoneyRequestAmount,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
