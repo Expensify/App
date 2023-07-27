@@ -7,6 +7,7 @@ import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useThrottledEffect from '../../../hooks/useThrottledEffect';
 import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
 import DNDUtils from '../Utils';
+import styles from '../../../styles/styles';
 
 const COPY_DROP_EFFECT = 'copy';
 const NONE_DROP_EFFECT = 'none';
@@ -135,7 +136,12 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
 
     return (
         <DragAndDropContext.Provider value={{isDraggingOver, dropZoneRect}}>
-            <View ref={(e) => (dropZone.current = e)}>{children}</View>
+            <View
+                ref={(e) => (dropZone.current = e)}
+                style={styles.flex1}
+            >
+                {children}
+            </View>
             <PortalHost name={dropZoneHostName} />
         </DragAndDropContext.Provider>
     );

@@ -7,7 +7,12 @@ export default function useThrottledEffect(effect, rateLimit, dependencies) {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const throttledEffect = useCallback(
-        _.throttle(() => effect.current(), rateLimit),
+        _.throttle(() => {
+            if (!_.isFunction(effect.current)) {
+                return;
+            }
+            return effect.current();
+        }, rateLimit),
         [rateLimit],
     );
 
