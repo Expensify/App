@@ -26,7 +26,7 @@ function DragAndDropProvider({children, dropZoneID, isDisabled = false}) {
 
     const dropZone = useRef(null);
     const {isDraggingOver} = useDragAndDrop({
-        dropZoneElement: dropZone.current,
+        dropZone,
         onDrop: (event) => {
             DNDUtils.executeOnDropCallbacks(event, dropZoneID);
         },

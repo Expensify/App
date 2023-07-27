@@ -10,14 +10,14 @@ const DRAG_LEAVE_EVENT = 'dragleave';
 const DROP_EVENT = 'drop';
 
 /**
- * @param {Element} dropZoneElement
+ * @param {Object} dropZone – ref to the dropZone component
  * @param {Function} [onDrop]
  * @param {Boolean} [shouldAllowDrop]
  * @param {Boolean} [isDisabled]
  * @param {Function} [shouldAcceptDrop]
  * @returns {{isDraggingOver: Boolean}}
  */
-export default function useDragAndDrop({dropZoneElement, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}) {
+export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}) {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
@@ -102,27 +102,27 @@ export default function useDragAndDrop({dropZoneElement, onDrop = () => {}, shou
     );
 
     useEffect(() => {
-        if (!dropZoneElement) {
+        if (!dropZone.current) {
             return;
         }
 
         // Note that the dragover event needs to be called with `event.preventDefault` in order for the drop event to be fired:
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
-        dropZoneElement.addEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
-        dropZoneElement.addEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
-        dropZoneElement.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
-        dropZoneElement.addEventListener(DROP_EVENT, dropZoneDragHandler);
+        dropZone.current.addEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
+        dropZone.current.addEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
+        dropZone.current.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
+        dropZone.current.addEventListener(DROP_EVENT, dropZoneDragHandler);
         return () => {
-            if (!dropZoneElement) {
+            if (!dropZone.current) {
                 return;
             }
 
-            dropZoneElement.removeEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
-            dropZoneElement.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
-            dropZoneElement.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
-            dropZoneElement.removeEventListener(DROP_EVENT, dropZoneDragHandler);
+            dropZone.current.removeEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
+            dropZone.current.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
+            dropZone.current.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
+            dropZone.current.removeEventListener(DROP_EVENT, dropZoneDragHandler);
         };
-    }, [dropZoneElement, dropZoneDragHandler]);
+    }, [dropZone, dropZoneDragHandler]);
 
     return {isDraggingOver};
 }

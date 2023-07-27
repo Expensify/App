@@ -12,7 +12,7 @@ const propTypes = {
 function NoDropZone({children}) {
     const noDropZone = useRef(null);
     useDragAndDrop({
-        dropZoneElement: noDropZone.current,
+        dropZone: noDropZone,
         shouldAllowDrop: false,
     });
     return (
