@@ -3640,6 +3640,7 @@ const styles = {
         padding: 12,
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
         borderRadius: variables.buttonBorderRadius,
         backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
     }),
