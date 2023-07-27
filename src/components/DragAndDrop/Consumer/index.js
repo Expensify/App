@@ -1,10 +1,10 @@
 import React, {useContext, useEffect, useRef} from 'react';
 import {Portal} from '@gorhom/portal';
 import dragAndDropConsumerPropTypes from './dragAndDropConsumerPropTypes';
-import DNDUtils from '../Utils';
+import DragAndDropUtils from '../Utils';
 
 function DragAndDropConsumer({children, dropZoneID, onDrop}) {
-    const DragAndDropContext = DNDUtils.getDragAndDropContext(dropZoneID);
+    const DragAndDropContext = DragAndDropUtils.getDragAndDropContext(dropZoneID);
     const {isDraggingOver} = useContext(DragAndDropContext);
 
     const onDropRef = useRef(onDrop);
@@ -18,8 +18,8 @@ function DragAndDropConsumer({children, dropZoneID, onDrop}) {
             }
             onDropRef.current(e);
         };
-        DNDUtils.registerOnDropCallback(dropZoneID, onDropCallback);
-        return () => DNDUtils.deregisterOnDropCallback(dropZoneID, onDropCallback);
+        DragAndDropUtils.registerOnDropCallback(dropZoneID, onDropCallback);
+        return () => DragAndDropUtils.deregisterOnDropCallback(dropZoneID, onDropCallback);
     }, [dropZoneID]);
 
     if (!isDraggingOver) {

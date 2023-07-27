@@ -3,7 +3,7 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {PortalHost} from '@gorhom/portal';
 import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
-import DNDUtils from '../Utils';
+import DragAndDropUtils from '../Utils';
 import styles from '../../../styles/styles';
 import useDragAndDrop from '../../../hooks/useDragAndDrop';
 
@@ -16,10 +16,10 @@ function shouldAcceptDrop(event) {
 }
 
 function DragAndDropProvider({children, dropZoneID, isDisabled = false}) {
-    const DragAndDropContext = DNDUtils.getDragAndDropContext(dropZoneID, true);
+    const DragAndDropContext = DragAndDropUtils.getDragAndDropContext(dropZoneID, true);
     useEffect(
         () => () => {
-            DNDUtils.deleteDragAndDropContext(dropZoneID);
+            DragAndDropUtils.deleteDragAndDropContext(dropZoneID);
         },
         [dropZoneID],
     );
@@ -28,7 +28,7 @@ function DragAndDropProvider({children, dropZoneID, isDisabled = false}) {
     const {isDraggingOver} = useDragAndDrop({
         dropZone,
         onDrop: (event) => {
-            DNDUtils.executeOnDropCallbacks(event, dropZoneID);
+            DragAndDropUtils.executeOnDropCallbacks(event, dropZoneID);
         },
         shouldAcceptDrop,
         isDisabled,
