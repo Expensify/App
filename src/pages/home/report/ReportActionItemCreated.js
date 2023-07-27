@@ -1,5 +1,5 @@
 import React, {memo} from 'react';
-import {View, Image} from 'react-native';
+import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
