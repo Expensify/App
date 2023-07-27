@@ -22,7 +22,7 @@ function shouldAcceptDrop(event) {
     return _.some(event.dataTransfer.types, (type) => type === 'Files');
 }
 
-function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled = false}) {
+function DragAndDropProvider({children, dropZoneID, isDisabled = false}) {
     const DragAndDropContext = DNDUtils.getDragAndDropContext(dropZoneID, true);
     useEffect(
         () => () => {
@@ -129,9 +129,9 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
             >
                 <View
                     style={[styles.fullScreen, styles.invisibleOverlay]}
-                    nativeID={dropZoneHostName}
+                    nativeID={dropZoneID}
                 >
-                    <PortalHost name={dropZoneHostName} />
+                    <PortalHost name={dropZoneID} />
                 </View>
                 {children}
             </View>

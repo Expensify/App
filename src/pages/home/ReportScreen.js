@@ -137,9 +137,6 @@ class ReportScreen extends React.Component {
 
         this.flatListRef = React.createRef();
         this.reactionListRef = React.createRef();
-
-        // We need unique ID for drag and drop to work properly with stack navigator.
-        this.dragAndDropID = CONST.REPORT.DROP_NATIVE_ID + ReportUtils.generateReportID();
     }
 
     componentDidMount() {
@@ -350,8 +347,7 @@ class ReportScreen extends React.Component {
                             />
                         )}
                         <DragAndDropProvider
-                            dropZoneID={this.dragAndDropID}
-                            dropZoneHostName={CONST.REPORT.DROP_HOST_NAME}
+                            dropZoneID={CONST.REPORT.DROP_ZONE_ID}
                             isDisabled={!this.isReportReadyForDisplay()}
                         >
                             <View
@@ -399,7 +395,6 @@ class ReportScreen extends React.Component {
                                             isComposerFullSize={this.props.isComposerFullSize}
                                             onSubmitComment={this.onSubmitComment}
                                             policies={this.props.policies}
-                                            dragAndDropID={this.dragAndDropID}
                                         />
                                     </>
                                 )}
@@ -408,7 +403,6 @@ class ReportScreen extends React.Component {
                                     <ReportFooter
                                         shouldDisableCompose
                                         isOffline={this.props.network.isOffline}
-                                        dragAndDropID={this.dragAndDropID}
                                     />
                                 )}
                             </View>

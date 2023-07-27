@@ -117,9 +117,6 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
-    /** Unique id for nativeId in DragAndDrop */
-    dragAndDropID: PropTypes.string.isRequired,
-
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -1161,7 +1158,6 @@ class ReportActionCompose extends React.Component {
                                         />
                                     </View>
                                     <ReportDropUI
-                                        dropZoneID={this.props.dragAndDropID}
                                         onDrop={(e) => {
                                             if (this.state.isAttachmentPreviewActive) {
                                                 return;

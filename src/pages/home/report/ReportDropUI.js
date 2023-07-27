@@ -10,19 +10,15 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import useLocalize from '../../../hooks/useLocalize';
 
 const propTypes = {
-    /** DropZoneID for the current report. */
-    dropZoneID: PropTypes.string.isRequired,
-
     /** Callback to execute when a file is dropped. */
     onDrop: PropTypes.func.isRequired,
 };
 
-function ReportDropUI({dropZoneID, onDrop}) {
+function ReportDropUI({onDrop}) {
     const {translate} = useLocalize();
     return (
         <DragAndDropConsumer
-            dropZoneID={dropZoneID}
-            dropZoneHostName={CONST.REPORT.DROP_HOST_NAME}
+            dropZoneID={CONST.REPORT.DROP_ZONE_ID}
             onDrop={onDrop}
         >
             <View style={[styles.reportDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>

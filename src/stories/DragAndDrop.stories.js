@@ -17,7 +17,6 @@ const story = {
 };
 
 const DROP_ZONE_ID = 'dropID';
-const DROP_ZONE_HOST_NAME = 'dropZoneHostName';
 
 function Default() {
     const [fileURL, setFileURL] = useState('');
@@ -33,10 +32,7 @@ function Default() {
                 styles.justifyContentCenter,
             ]}
         >
-            <DragAndDropProvider
-                dropZoneID={DROP_ZONE_ID}
-                dropZoneHostName={DROP_ZONE_HOST_NAME}
-            >
+            <DragAndDropProvider dropZoneID={DROP_ZONE_ID}>
                 <View style={[styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     {fileURL ? (
                         <Image
@@ -52,7 +48,6 @@ function Default() {
                 </View>
                 <DragAndDropConsumer
                     dropZoneID={DROP_ZONE_ID}
-                    dropZoneHostName={DROP_ZONE_HOST_NAME}
                     onDrop={(e) => {
                         const file = lodashGet(e, ['dataTransfer', 'files', 0]);
                         if (file && file.type.includes('image')) {

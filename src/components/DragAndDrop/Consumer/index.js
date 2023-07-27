@@ -3,7 +3,7 @@ import {Portal} from '@gorhom/portal';
 import dragAndDropConsumerPropTypes from './dragAndDropConsumerPropTypes';
 import DNDUtils from '../Utils';
 
-function DragAndDropConsumer({children, dropZoneID, dropZoneHostName, onDrop}) {
+function DragAndDropConsumer({children, dropZoneID, onDrop}) {
     const DragAndDropContext = DNDUtils.getDragAndDropContext(dropZoneID);
     const {isDraggingOver} = useContext(DragAndDropContext);
 
@@ -26,7 +26,7 @@ function DragAndDropConsumer({children, dropZoneID, dropZoneHostName, onDrop}) {
         return null;
     }
 
-    return <Portal hostName={dropZoneHostName}>{children}</Portal>;
+    return <Portal hostName={dropZoneID}>{children}</Portal>;
 }
 
 DragAndDropConsumer.propTypes = dragAndDropConsumerPropTypes;
