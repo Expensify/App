@@ -106,21 +106,23 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
             return;
         }
 
+        const dropZoneRef = dropZone.current;
+
         // Note that the dragover event needs to be called with `event.preventDefault` in order for the drop event to be fired:
         // https://stackoverflow.com/questions/21339924/drop-event-not-firing-in-chrome
-        dropZone.current.addEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
-        dropZone.current.addEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
-        dropZone.current.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
-        dropZone.current.addEventListener(DROP_EVENT, dropZoneDragHandler);
+        dropZoneRef.addEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
+        dropZoneRef.addEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
+        dropZoneRef.addEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
+        dropZoneRef.addEventListener(DROP_EVENT, dropZoneDragHandler);
         return () => {
-            if (!dropZone.current) {
+            if (!dropZoneRef) {
                 return;
             }
 
-            dropZone.current.removeEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
-            dropZone.current.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
-            dropZone.current.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
-            dropZone.current.removeEventListener(DROP_EVENT, dropZoneDragHandler);
+            dropZoneRef.removeEventListener(DRAG_OVER_EVENT, dropZoneDragHandler);
+            dropZoneRef.removeEventListener(DRAG_ENTER_EVENT, dropZoneDragHandler);
+            dropZoneRef.removeEventListener(DRAG_LEAVE_EVENT, dropZoneDragHandler);
+            dropZoneRef.removeEventListener(DROP_EVENT, dropZoneDragHandler);
         };
     }, [dropZone, dropZoneDragHandler]);
 
