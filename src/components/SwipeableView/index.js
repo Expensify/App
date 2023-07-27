@@ -34,6 +34,7 @@ const isTextSelection = () => {
 
 function SwipeableView(props) {
     const ref = useRef();
+    const scrollableChildRef = useRef();
     const startY = useRef(0);
 
     useEffect(() => {
@@ -45,23 +46,38 @@ function SwipeableView(props) {
 
         const handleTouchEnd = (event) => {
             const deltaY = event.changedTouches[0].clientY - startY.current;
+            const isSelecting = isTextSelection();
+            let canSwipeDown = true;
+            let canSwipeUp = true;
+            if (scrollableChildRef.current) {
+                canSwipeUp = scrollableChildRef.current.scrollHeight - scrollableChildRef.current.scrollTop === scrollableChildRef.current.clientHeight;
+                canSwipeDown = scrollableChildRef.current.scrollTop === 0;
+            }
 
-            if (deltaY > MIN_DELTA_Y && props.onSwipeDown && !isTextSelection()) {
+            if (deltaY > MIN_DELTA_Y && props.onSwipeDown && !isSelecting && canSwipeDown) {
                 props.onSwipeDown();
             }
 
-            if (deltaY < -MIN_DELTA_Y && props.onSwipeUp && !isTextSelection()) {
+            if (deltaY < -MIN_DELTA_Y && props.onSwipeUp && !isSelecting && canSwipeUp) {
                 props.onSwipeUp();
             }
         };
 
-        element.addEventListener('touchstart', handleTouchStart);
+        const handleScroll = (event) => {
+            if (!event.target) return;
+            scrollableChildRef.current = event.target;
 
+            element.removeEventListener('scroll', handleScroll);
+        };
+
+        element.addEventListener('touchstart', handleTouchStart);
         element.addEventListener('touchend', handleTouchEnd);
+        element.addEventListener('scroll', handleScroll, true);
 
         return () => {
             element.removeEventListener('touchstart', handleTouchStart);
             element.removeEventListener('touchend', handleTouchEnd);
+            element.removeEventListener('scroll', handleScroll);
         };
     }, [props]);
 
