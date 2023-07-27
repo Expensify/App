@@ -75,6 +75,7 @@ function NewTaskPage(props) {
         <ScreenWrapper
             onEntryTransitionEnd={() => inputRef.current && inputRef.current.focus()}
             includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={props.translate('newTaskPage.assignTask')}
@@ -99,9 +100,6 @@ function NewTaskPage(props) {
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
-                        autoGrowHeight
-                        textAlignVertical="top"
-                        containerStyles={[styles.autoGrowHeightMultilineInput]}
                     />
                 </View>
                 <View style={styles.mb5}>
