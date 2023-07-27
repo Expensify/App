@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import {PureComponent} from 'react';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import * as Browser from '../../libs/Browser';
 import ROUTES from '../../ROUTES';
 import * as App from '../../libs/actions/App';
@@ -18,6 +19,10 @@ class DeeplinkWrapper extends PureComponent {
             return;
         }
 
+        if (this.isUnsupportedDeeplinkRoute()) {
+            return;
+        }
+
         // If the current url path is /transition..., meaning it was opened from oldDot, during this transition period:
         // 1. The user session may not exist, because sign-in has not been completed yet.
         // 2. There may be non-idempotent operations (e.g. create a new workspace), which obviously should not be executed again in the desktop app.
@@ -31,6 +36,14 @@ class DeeplinkWrapper extends PureComponent {
 
     isMacOSWeb() {
         return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
+    }
+
+    // Function to detect if current route should open in Web only.
+    isUnsupportedDeeplinkRoute() {
+        return _.some([ROUTES.ROUTES_REGEX.UNLINK_LOGIN], (unsupportRouteRegex) => {
+            const routeRegex = new RegExp(unsupportRouteRegex);
+            return routeRegex.test(window.location.pathname);
+        });
     }
 
     render() {

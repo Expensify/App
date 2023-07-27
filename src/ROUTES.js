@@ -187,4 +187,8 @@ export default {
             isSubReportPageRoute: Boolean(lodashGet(pathSegments, 2)),
         };
     },
+
+    ROUTES_REGEX: {
+        UNLINK_LOGIN: /\/u($|(\/\/*))/,
+    }
 };
