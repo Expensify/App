@@ -1505,6 +1505,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        deletedRequest: '[Deleted request]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
@@ -1560,5 +1561,11 @@ export default {
             enterEmail: 'Enter an email',
             enterValidEmail: 'Enter a valid email',
         },
+    },
+    countrySelectorModal: {
+        placeholderText: 'Search to see options',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Search to see options',
     },
 };

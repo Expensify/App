@@ -1976,6 +1976,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        deletedRequest: '[Pedido eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
@@ -2032,5 +2033,11 @@ export default {
             enterEmail: 'Introduce un correo electrónico',
             enterValidEmail: 'Introduzca un correo electrónico válido',
         },
+    },
+    countrySelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
     },
 };

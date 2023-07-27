@@ -878,7 +878,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
-            isDeletedParentAction: true,
+            isDeletedParentAction: ReportActionsUtils.hasCommentThread(reportAction),
         },
     ];
     const optimisticReportActions = {
@@ -887,6 +887,7 @@ function deleteReportComment(reportID, reportAction) {
             previousMessage: reportAction.message,
             message: deletedMessage,
             errors: null,
+            linkMetadata: [],
         },
     };
 
