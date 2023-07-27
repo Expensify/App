@@ -54,10 +54,15 @@ function ReportActionItemCreated(props) {
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
+    const IMAGE_OFFSET_X = windowWidth / 2;
+    const IMAGE_OFFSET_Y = 75;
+    const ANIMATION_BOOST = 1.3;
+
     // Get data from phone rotation sensor and prep other variables for animation
-    const animatedSensor = useAnimatedSensor(SensorType.ROTATION);
-    const backgroundImageOffsetX = useSharedValue(-windowWidth / 2);
-    const backgroundImageOffsetY = useSharedValue(50);
+    const animatedSensor = useAnimatedSensor(SensorType.GYROSCOPE);
+    const moveXoffset = useSharedValue(0);
+    const moveYoffset= useSharedValue(0);
+    const backgroundImageOffsetX = useSharedValue(-IMAGE_OFFSET_X);
 
     // Apply data to create style object
     const animatedStyles = useAnimatedStyle(() => {
@@ -66,13 +71,15 @@ function ReportActionItemCreated(props) {
          * For a visualization of what these values mean: https://howthingsfly.si.edu/flight-dynamics/roll-pitch-and-yaw
          * These values are in radians
          */
-        const {pitch, roll} = animatedSensor.sensor.value;
+        const {x, y} = animatedSensor.sensor.value;
+        // The x vs y here seems wrong but is the way to make it feel right to the user
+        moveXoffset.value = Math.min(IMAGE_OFFSET_X, Math.max(-IMAGE_OFFSET_X, moveXoffset.value - (y * ANIMATION_BOOST)));
+        moveYoffset.value = Math.min(IMAGE_OFFSET_Y, Math.max(-IMAGE_OFFSET_Y, moveYoffset.value - (x * ANIMATION_BOOST)));
         if (isSmallScreenWidth) {
             return {
                 transform: [
-                    // The x vs y here seems wrong but is the way to make it feel right to the user
-                    {translateX: withSpring(backgroundImageOffsetX.value - roll * 65)},
-                    {translateY: withSpring(backgroundImageOffsetY.value - pitch * 65)},
+                    {translateX: withSpring(backgroundImageOffsetX.value - moveXoffset.value)},
+                    {translateY: withSpring(moveYoffset.value)},
                 ],
             };
         }
