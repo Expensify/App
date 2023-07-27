@@ -352,6 +352,7 @@ export default {
         sendMoney: 'Enviar dinero',
         pay: 'Pagar',
         viewDetails: 'Ver detalles',
+        pending: 'Pendiente',
         settledExpensify: 'Pagado',
         settledElsewhere: 'Pagado de otra forma',
         settledPaypalMe: 'Pagado con PayPal.me',
@@ -366,6 +367,8 @@ export default {
         payerPaidAmount: ({payer, amount}) => `${payer} pagó ${amount}`,
         payerPaid: ({payer}) => `${payer} pagó: `,
         payerSettled: ({amount}) => `pagó ${amount}`,
+        waitingOnBankAccount: ({submitterDisplayName}) => `inicio el pago, pero no se procesará hasta que ${submitterDisplayName} agregue una Cuenta bancaria`,
+        settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} agregó una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhereWithAmount: ({amount}) => `pagó ${amount} de otra forma`,
         paidUsingPaypalWithAmount: ({amount}) => `pagó ${amount} con PayPal.me`,
         paidUsingExpensifyWithAmount: ({amount}) => `pagó ${amount} con Expensify`,
@@ -1136,6 +1139,11 @@ export default {
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
             subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
+            features: {
+                trackAndCollect: 'Organiza recibos',
+                companyCards: 'Tarjetas de crédito corporativas',
+                reimbursements: 'Reembolsos fáciles',
+            },
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -1464,7 +1472,7 @@ export default {
         expenseManagement: 'Gestión de Gastos',
         spendManagement: 'Control de Gastos',
         expenseReports: 'Informes de Gastos',
-        companyCreditCard: 'Tarjeta de Crédito de Empresa',
+        companyCreditCard: 'Tarjeta de Crédito Corporativa',
         receiptScanningApp: 'Aplicación de Escaneado de Recibos',
         billPay: 'Pago de Facturas',
         invoicing: 'Facturación',
@@ -1965,6 +1973,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        deletedRequest: '[Pedido eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
@@ -1997,5 +2006,11 @@ export default {
         levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
     },
 };
