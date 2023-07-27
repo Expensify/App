@@ -3,6 +3,20 @@ import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
 
 /**
+ * Optimistically generate a receipt.
+ *
+ * @param {Object} receipt 
+ * @returns {Object}
+ */
+function buildOptimisticReceipt(receipt) {
+    return ({
+        receiptID: NumberUtils.rand64(),
+        source: receipt.source,
+        state: CONST.IOU.RECEIPT_STATE.SCANREADY,
+    });
+}
+
+/**
  * Optimistically generate a transaction.
  *
  * @param {Number} amount – in cents
@@ -37,26 +51,8 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
         merchant,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt,
+        ...(receipt ? {receipt: buildOptimisticReceipt(receipt)} : {}),
     };
-}
-
-/**
- * Optimistically generate a receipt.
- *
- * @param {Object} receipt 
- * @returns {Object}
- */
-function buildOptimisticReceipt(receipt) {
-    if (!receipt) {
-        return;
-    }
-
-    return ({
-        receiptID: NumberUtils.rand64(),
-        source: receipt.source,
-        state: CONST.IOU.RECEIPT_STATE.SCANREADY,
-    });
 }
 
 export default {

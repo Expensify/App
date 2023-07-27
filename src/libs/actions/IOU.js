@@ -19,7 +19,6 @@ import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
-import * as NumberUtils from '../NumberUtils';
 
 let allReports;
 Onyx.connect({
