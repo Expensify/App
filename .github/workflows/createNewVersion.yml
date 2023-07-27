@@ -38,7 +38,7 @@ jobs:
     steps:
       - name: Generate a token
         id: generate_token
-        uses: tibdex/github-app-token@c2055a00597a80f713b78b1650e8d3418f4d9a65
+        uses: tibdex/github-app-token@021a2405c7f990db57f5eae5397423dcc554159c
         with:
           app_id: ${{ secrets.OS_BOTIFY_APP_ID }}
           private_key: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
