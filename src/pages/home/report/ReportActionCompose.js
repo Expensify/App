@@ -1160,16 +1160,16 @@ class ReportActionCompose extends React.Component {
                                             onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
                                         />
                                     </View>
-                                    {/* <ReportDropUI */}
-                                    {/*    dropZoneID={this.props.dragAndDropID} */}
-                                    {/*    onDrop={(e) => { */}
-                                    {/*        if (this.state.isAttachmentPreviewActive) { */}
-                                    {/*            return; */}
-                                    {/*        } */}
-                                    {/*        const file = lodashGet(e, ['dataTransfer', 'files', 0]); */}
-                                    {/*        displayFileInModal(file); */}
-                                    {/*    }} */}
-                                    {/* /> */}
+                                    <ReportDropUI
+                                        dropZoneID={this.props.dragAndDropID}
+                                        onDrop={(e) => {
+                                            if (this.state.isAttachmentPreviewActive) {
+                                                return;
+                                            }
+                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                            displayFileInModal(file);
+                                        }}
+                                    />
                                 </>
                             )}
                         </AttachmentModal>
