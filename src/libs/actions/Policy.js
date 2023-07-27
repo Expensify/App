@@ -822,7 +822,7 @@ function generatePolicyID() {
 function buildOptimisticCustomUnits() {
     const customUnitID = ReportUtils.generateReportID();
     const customUnitRateID = ReportUtils.generateReportID();
-    const customUnitData = {
+    const customUnits = {
         [customUnitID]: {
             customUnitID,
             name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
@@ -840,7 +840,7 @@ function buildOptimisticCustomUnits() {
     };
 
     return {
-        customUnitData,
+        customUnits,
         customUnitID,
         customUnitRateID,
     };
