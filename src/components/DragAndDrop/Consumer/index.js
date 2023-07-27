@@ -12,11 +12,11 @@ function DragAndDropConsumer({children, dropZoneID, dropZoneHostName, onDrop}) {
     useEffect(() => {
         // Internal function ensures that we only register the onDrop listener once for this consumer,
         // even if the onDrop function passed in changes
-        const onDropCallback = () => {
+        const onDropCallback = (e) => {
             if (!onDropRef.current) {
                 return;
             }
-            onDropRef.current();
+            onDropRef.current(e);
         };
         DNDUtils.registerOnDropCallback(dropZoneID, onDropCallback);
         return () => DNDUtils.deregisterOnDropCallback(dropZoneID, onDropCallback);
