@@ -100,7 +100,7 @@ Form inputs will NOT store draft values by default. This is to avoid accidentall
 
 ### Validate on Blur, on Change and Submit
 
-Each individual form field that requires validation will have its own validate test defined. When the form field loses focus (blur) we will run that validate test and show feedback. A blur on one field will not cause other fields to validate or show errors unless they have already been blurred.
+Each individual form field that requires validation will have its own validate test defined. When the form field loses focus (blur) we will run that validate test and show feedback. A blur on one field will not cause other fields to validate or show errors unless they have already been blurred. To prevent server errors from being cleared inadvertently, we only run validation on blur if any form data has changed since the last validation/submit.
 
 Once a user has “touched” an input, i.e. blurred the input, we will also start validating that input on change when the user goes back to editing it.
 

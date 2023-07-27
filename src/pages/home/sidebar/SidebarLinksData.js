@@ -124,6 +124,7 @@ const chatReportSelector = (report) =>
         iouReportID: report.iouReportID,
         total: report.total,
         hasOutstandingIOU: report.hasOutstandingIOU,
+        isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         statusNum: report.statusNum,
         stateNum: report.stateNum,
         chatType: report.chatType,
@@ -151,7 +152,7 @@ const chatReportSelector = (report) =>
 const reportActionsSelector = (reportActions) =>
     reportActions &&
     _.map(reportActions, (reportAction) => ({
-        errors: reportAction.errors,
+        errors: lodashGet(reportAction, 'errors', []),
         message: [
             {
                 moderationDecisions: [{decision: lodashGet(reportAction, 'message[0].moderationDecisions[0].decision')}],
