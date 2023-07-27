@@ -57,17 +57,17 @@ jobs:
         with:
           poll-interval-seconds: 10
         env:
-          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.token }}
-
-      - uses: actions/checkout@v3
-        with:
-          ref: main
-          token: ${{ steps.setupGitForOSBotify.outputs.token }}
+          GITHUB_TOKEN: ${{ github.token }}
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+          token: ${{ steps.setupGitForOSBotify.outputs.token }}
 
       - name: Generate version
         id: bumpVersion
