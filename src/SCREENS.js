@@ -13,5 +13,6 @@ export default {
     CONCIERGE: 'Concierge',
     SETTINGS: {
         PREFERENCES: 'Settings_Preferences',
+        WORKSPACES: 'Settings_Workspaces',
     },
 };

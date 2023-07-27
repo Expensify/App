@@ -34,7 +34,7 @@ export default {
                             Settings_Root: {
                                 path: ROUTES.SETTINGS,
                             },
-                            Settings_Workspaces: {
+                            [SCREENS.SETTINGS.WORKSPACES]: {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
