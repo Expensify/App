@@ -123,6 +123,7 @@ function ReportActionsView(props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const scrollToBottom = reportScrollManager.scrollToBottom;
     useEffect(() => {
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
@@ -132,7 +133,7 @@ function ReportActionsView(props) {
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
-                reportScrollManager.scrollToBottom();
+                scrollToBottom();
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 setNewMarkerReportActionID('');
             } else if (isReportFullyVisible) {
@@ -159,8 +160,7 @@ function ReportActionsView(props) {
 
             Report.unsubscribeFromReportChannel(props.report.reportID);
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isReportFullyVisible, newMarkerReportActionID, props.report.reportID, scrollToBottom]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
