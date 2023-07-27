@@ -329,7 +329,7 @@ class AvatarWithImagePicker extends React.Component {
                 </PressableWithoutFeedback>
                 {this.state.shoudShowValidationError && (
                     <DotIndicatorMessage
-                        style={[styles.mt4]}
+                        style={[styles.mt6]}
                         messages={{0: this.state.validationError}}
                         type="error"
                     />
