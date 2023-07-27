@@ -58,8 +58,15 @@ const defaultProps = {
     policy: null,
 };
 
+// In the component we are subscribing to the arrvical of new actions.
+// As there is the possibility that there are multiple instances of a ReportScreen
+// for the same report, we only ever want one subscription to be active, as
+// the subscriptions could otherwise be conflicting.
+const newActionUnsubscribeMap = {};
+
 function ReportActionsView(props) {
     const context = useContext(ReportScreenContext);
+    const componentInstanceId = useRef(_.uniqueId('reportActionsView_')).current;
 
     useCopySelectionHelper();
 
@@ -90,6 +97,7 @@ function ReportActionsView(props) {
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
     const isFocused = useIsFocused();
+    const reportID = props.report.reportID;
 
     /**
      * @returns {Boolean}
@@ -102,11 +110,10 @@ function ReportActionsView(props) {
             return;
         }
 
-        Report.openReport(props.report.reportID);
+        Report.openReport(reportID);
     };
 
     useEffect(() => {
-        console.debug('[Hanno] ReportActionsView: ', props.report.reportID, {isReportFullyVisible, isFocused});
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!isReportFullyVisible) {
                 return;
@@ -124,7 +131,7 @@ function ReportActionsView(props) {
             }
             unsubscribeVisibilityListener();
         };
-    }, [isReportFullyVisible, isFocused, props.report, props.report.reportID, setNewMarkerReportActionID]);
+    }, [isReportFullyVisible, isFocused, props.report, reportID, setNewMarkerReportActionID]);
 
     useEffect(() => {
         openReportIfNecessary();
@@ -132,10 +139,19 @@ function ReportActionsView(props) {
     }, []);
 
     useEffect(() => {
+        // Why ware we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
+        // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
+        //         meaning that the cleanup might not get called. When we then open a report we had open again, a new
+        //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
+        //         because the two subscriptions could conflict!
+        const previousSubUnsubscribe = newActionUnsubscribeMap[reportID];
+        if (previousSubUnsubscribe) {
+            previousSubUnsubscribe();
+        }
+
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        console.debug('[Hanno] ReportActionsView: subscribe to id', props.report.reportID, {isReportFullyVisible});
-        const unsubscribeFromNewActionEvent = Report.subscribeToNewActionEvent(props.report.reportID, (isFromCurrentUser, newActionID) => {
+        const unsubscribe = Report.subscribeToNewActionEvent(reportID, (isFromCurrentUser, newActionID) => {
             const isNewMarkerReportActionIDSet = !_.isEmpty(newMarkerReportActionIDRef.current);
 
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
@@ -149,7 +165,7 @@ function ReportActionsView(props) {
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
                 // stays in it's previous position.
                 if (currentScrollOffset.current === 0) {
-                    Report.readNewestAction(props.report.reportID);
+                    Report.readNewestAction(reportID);
                     setNewMarkerReportActionID('');
                 } else if (!isNewMarkerReportActionIDSet) {
                     // The report is not in view and we received a comment from another user while the new marker is not set
@@ -160,17 +176,19 @@ function ReportActionsView(props) {
                 setNewMarkerReportActionID(newActionID);
             }
         });
+        const cleanup = () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+            Report.unsubscribeFromReportChannel(reportID);
+        };
+
+        newActionUnsubscribeMap[reportID] = cleanup;
 
         return () => {
-            console.debug('[Hanno] ReportActionsView unmount with id', props.report.reportID);
-            if (unsubscribeFromNewActionEvent) {
-                console.debug('[Hanno] ReportActionsView: unsubscribe from id', props.report.reportID);
-                unsubscribeFromNewActionEvent();
-            }
-
-            Report.unsubscribeFromReportChannel(props.report.reportID);
+            cleanup();
         };
-    }, [isReportFullyVisible, props.report.reportID, scrollToBottom, setNewMarkerReportActionID]);
+    }, [componentInstanceId, isReportFullyVisible, reportID, scrollToBottom, setNewMarkerReportActionID]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
@@ -182,7 +200,7 @@ function ReportActionsView(props) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
             } else {
-                Report.reconnect(props.report.reportID);
+                Report.reconnect(reportID);
             }
         }
         // update ref with current network state
@@ -253,10 +271,10 @@ function ReportActionsView(props) {
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !props.report.pendingFields || (!props.report.pendingFields.addWorkspaceRoom && !props.report.pendingFields.createChat);
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            Report.subscribeToReportTypingEvents(props.report.reportID);
+            Report.subscribeToReportTypingEvents(reportID);
             didSubscribeToReportTypingEvents.current = true;
         }
-    }, [props.report, didSubscribeToReportTypingEvents]);
+    }, [props.report, didSubscribeToReportTypingEvents, reportID]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -276,12 +294,12 @@ function ReportActionsView(props) {
         }
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.readOldestAction(props.report.reportID, oldestReportAction.reportActionID);
+        Report.readOldestAction(reportID, oldestReportAction.reportActionID);
     };
 
     const scrollToBottomAndMarkReportAsRead = () => {
         scrollToBottom();
-        Report.readNewestAction(props.report.reportID);
+        Report.readNewestAction(reportID);
     };
 
     /**
