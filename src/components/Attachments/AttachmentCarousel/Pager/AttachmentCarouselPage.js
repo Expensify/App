@@ -9,10 +9,10 @@ import ImageWrapper from './ImageWrapper';
 import * as AttachmentsPropTypes from '../../propTypes';
 
 function getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight}) {
-    const scaleFactorX = canvasWidth / imageWidth;
-    const scaleFactorY = canvasHeight / imageHeight;
+    const imageScaleX = canvasWidth / imageWidth;
+    const imageScaleY = canvasHeight / imageHeight;
 
-    return scaleFactorY > scaleFactorX ? scaleFactorX : scaleFactorY;
+    return {imageScaleX, imageScaleY};
 }
 
 const cachedDimensions = new Map();
@@ -71,7 +71,9 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                         imageHeight={dimensions?.imageHeight}
                         scaledImageWidth={dimensions?.scaledImageWidth}
                         scaledImageHeight={dimensions?.scaledImageHeight}
-                        imageScale={dimensions?.imageScale}
+                        minImageScale={dimensions?.minImageScale}
+                        imageScaleX={dimensions?.imageScaleX}
+                        imageScaleY={dimensions?.imageScaleY}
                     >
                         <Image
                             source={{uri: source}}
@@ -81,15 +83,21 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                                 const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
                                 const imageHeight = (evt.nativeEvent?.height || 0) / PixelRatio.get();
 
-                                const imageScale = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+                                const {imageScaleX, imageScaleY} = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
 
                                 // Don't update the dimensions if they are already set
-                                if (dimensions?.imageWidth !== imageWidth || dimensions?.imageHeight !== imageHeight || dimensions?.imageScale !== imageScale) {
+                                if (
+                                    dimensions?.imageWidth !== imageWidth ||
+                                    dimensions?.imageHeight !== imageHeight ||
+                                    dimensions?.imageScaleX !== imageScaleX ||
+                                    dimensions?.imageScaleY !== imageScaleY
+                                ) {
                                     cachedDimensions.set(source, {
                                         ...dimensions,
                                         imageWidth,
                                         imageHeight,
-                                        imageScale,
+                                        imageScaleX,
+                                        imageScaleY,
                                     });
                                 }
 
@@ -111,10 +119,11 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                             const imageWidth = evt.nativeEvent.width;
                             const imageHeight = evt.nativeEvent.height;
 
-                            const scale = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+                            const {imageScaleX, imageScaleY} = getCanvasFitScale({canvasWidth, canvasHeight, imageWidth, imageHeight});
+                            const minImageScale = Math.min(imageScaleX, imageScaleY);
 
-                            const scaledImageWidth = imageWidth * scale;
-                            const scaledImageHeight = imageHeight * scale;
+                            const scaledImageWidth = imageWidth * minImageScale;
+                            const scaledImageHeight = imageHeight * minImageScale;
 
                             // Don't update the dimensions if they are already set
                             if (dimensions?.scaledImageWidth === scaledImageWidth && dimensions?.scaledImageHeight === scaledImageHeight) return;
