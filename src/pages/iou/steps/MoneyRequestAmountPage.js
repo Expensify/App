@@ -150,7 +150,7 @@ const validateAmount = (newAmount) => {
 
 /**
  * Check if amount is invalid
- * @param {String} amount 
+ * @param {String} amount
  * @returns {Boolean}
  */
 const checkAmount = (amount) => !amount.length || parseFloat(amount) < 0.01;
