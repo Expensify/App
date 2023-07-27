@@ -202,7 +202,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     });
 
     const zoomToCoordinates = useWorkletCallback(
-        (x, y) => {
+        (focalX, focalY) => {
             'worklet';
 
             stopAnimation();
@@ -222,16 +222,14 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                 y: scaledImageHeight / 2,
             };
 
-            const focal = {x, y};
-
             const currentOrigin = {
                 x: (targetImageSize.width / 2 - canvasCenter.x) * -1,
                 y: (targetImageSize.height / 2 - canvasCenter.y) * -1,
             };
 
             const koef = {
-                x: (1 / imageCenter.x) * focal.x - 1,
-                y: (1 / imageCenter.y) * focal.y - 1,
+                x: (1 / imageCenter.x) * focalX - 1,
+                y: (1 / imageCenter.y) * focalY - 1,
             };
 
             const target = {
