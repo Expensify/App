@@ -31,12 +31,10 @@ on:
         required: true
 
 jobs:
-  validateActor:
+  generateInstallationToken:
     runs-on: ubuntu-latest
     outputs:
-      # TODO: fix this so we check if admin is true, as well as push
-      # https://docs.github.com/en/rest/apps/installations?apiVersion=2022-11-28#list-repositories-accessible-to-the-user-access-token
-      HAS_WRITE_ACCESS: ${{ contains(fromJSON('["write", "admin"]'), steps.getUserPermissions.outputs.PERMISSION) }}
+      OS_BOTIFY_TOKEN: ${{ steps.generate_token.outputs.token }}
     steps:
       - name: Generate a token
         id: generate_token
@@ -45,11 +43,19 @@ jobs:
           app_id: ${{ secrets.OS_BOTIFY_APP_ID }}
           private_key: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
           installation_id: ${{ secrets.OS_BOTIFY_INSTALLATION_ID }}
+
+  validateActor:
+    runs-on: ubuntu-latest
+    outputs:
+      # TODO: fix this so we check if admin is true, as well as push
+      # https://docs.github.com/en/rest/apps/installations?apiVersion=2022-11-28#list-repositories-accessible-to-the-user-access-token
+      HAS_WRITE_ACCESS: ${{ contains(fromJSON('["write", "admin"]'), steps.getUserPermissions.outputs.PERMISSION) }}
+    steps:
       - name: Get user permissions
         id: getUserPermissions
         run: echo "PERMISSION=$(gh api /users/installations/${{ secrets.OS_BOTIFY_INSTALLATION_ID }}/repositories | jq -r '.repositories[].permissions')" >> "$GITHUB_OUTPUT"
         env:
-          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GITHUB_TOKEN: ${{ needs.generateInstallationToken.outputs.OS_BOTIFY_TOKEN }}
 
   createNewVersion:
     runs-on: macos-latest
@@ -64,12 +70,12 @@ jobs:
         with:
           poll-interval-seconds: 10
         env:
-          GITHUB_TOKEN: ${{ needs.validatorActor.steps.generate_token.outputs.token }}
+          GITHUB_TOKEN: ${{ needs.generateInstallationToken.outputs.OS_BOTIFY_TOKEN }}
 
       - uses: actions/checkout@v3
         with:
           ref: main
-          token: ${{ needs.validatorActor.steps.generate_token.outputs.token }}
+          token: ${{ needs.generateInstallationToken.outputs.OS_BOTIFY_TOKEN }}
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
         with:
@@ -79,7 +85,7 @@ jobs:
         id: bumpVersion
         uses: Expensify/App/.github/actions/javascript/bumpVersion@main
         with:
-          GITHUB_TOKEN: ${{ needs.validatorActor.steps.generate_token.outputs.token }}
+          GITHUB_TOKEN: ${{ needs.generateInstallationToken.outputs.OS_BOTIFY_TOKEN }}
           SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
       - name: Commit new version
