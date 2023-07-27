@@ -296,8 +296,10 @@ function buildOnyxDataForMoneyRequest(
  * @param {Number} payeeAccountID
  * @param {Object} participant
  * @param {String} comment
+ * @param {Object} receipt
+ *
  */
-function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment) {
+function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt) {
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -342,7 +344,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     }
 
     // STEP 3: Build optimistic transaction
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, receipt);
 
     // STEP 4: Build optimistic reportActions. We need:
     // 1. CREATED action for the chatReport
@@ -361,6 +363,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         optimisticTransaction.transactionID,
         '',
         iouReport.reportID,
+        receipt,
     );
 
     // Add optimistic personal details for participant
@@ -414,6 +417,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
             createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : 0,
             createdIOUReportActionID: isNewIOUReport ? optimisticCreatedActionForIOU.reportActionID : 0,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            receipt,
         },
         {optimisticData, successData, failureData},
     );
