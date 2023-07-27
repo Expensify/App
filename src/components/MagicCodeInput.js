@@ -107,7 +107,6 @@ function MagicCodeInput(props) {
     };
 
     const focusMagicCodeInput = () => {
-        setFocusedIndex(0);
         inputRefs.current[0].focus();
     };
 
