@@ -120,9 +120,6 @@ function MagicCodeInput(props) {
             focusMagicCodeInput();
         },
         clear() {
-            setInput('');
-            setFocusedIndex(0);
-            setEditIndex(0);
             inputRefs.current[0].focus();
             props.onChangeText('');
         },
@@ -176,23 +173,13 @@ function MagicCodeInput(props) {
     }, []);
 
     /**
-     * Focuses on the input when it is pressed.
-     *
-     * @param {Object} event
-     * @param {Number} index
-     */
-    const onFocus = (event) => {
-        event.preventDefault();
-    };
-
-    /**
-     * Callback for the onPress event, updates the indexes
+     * Callback for the onFocus event, updates the indexes
      * of the currently focused input.
      *
      * @param {Object} event
      * @param {Number} index
      */
-    const onPress = (event, index) => {
+    const onFocus = (event, index) => {
         event.preventDefault();
         setInput('');
         setFocusedIndex(index);
@@ -265,13 +252,6 @@ function MagicCodeInput(props) {
             }
 
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
-
-            // Saves the input string so that it can compare to the change text
-            // event that will be triggered, this is a workaround for mobile that
-            // triggers the change text on the event after the key press.
-            setInput('');
-            setFocusedIndex(newFocusedIndex);
-            setEditIndex(newFocusedIndex);
             props.onChangeText(composeToString(numbers));
 
             if (!_.isUndefined(newFocusedIndex)) {
@@ -280,15 +260,9 @@ function MagicCodeInput(props) {
         }
         if (keyValue === 'ArrowLeft' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
-            setInput('');
-            setFocusedIndex(newFocusedIndex);
-            setEditIndex(newFocusedIndex);
             inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'ArrowRight' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.min(focusedIndex + 1, props.maxLength - 1);
-            setInput('');
-            setFocusedIndex(newFocusedIndex);
-            setEditIndex(newFocusedIndex);
             inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'Enter') {
             // We should prevent users from submitting when it's offline.
@@ -346,8 +320,7 @@ function MagicCodeInput(props) {
                                     onChangeText(value);
                                 }}
                                 onKeyPress={onKeyPress}
-                                onPress={(event) => onPress(event, index)}
-                                onFocus={onFocus}
+                                onFocus={(event) => onFocus(event, index)}
                                 caretHidden={isMobileSafari}
                                 inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
