@@ -827,7 +827,7 @@ function buildOptimisticCustomUnits() {
             customUnitID,
             name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
             attributes: {
-                unit: 'mi',
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
             },
             rates: {
                 [customUnitRateID]: {

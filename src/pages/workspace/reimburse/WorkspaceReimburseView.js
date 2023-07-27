@@ -99,7 +99,7 @@ function WorkspaceReimburseView(props) {
 
     const getCurrentRatePerUnitLabel = useCallback(() => {
         const customUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', '{}'), (rate) => rate && rate.name === 'Default Rate');
-        const currentUnit = getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', 'mi'));
+        const currentUnit = getUnitLabel(lodashGet(distanceCustomUnit, 'attributes.unit', CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES));
         const currentRate = getRateLabel(customUnitRate);
         const perWord = translate('common.per');
         return `${currentRate} ${perWord} ${currentUnit}`;
