@@ -31,11 +31,6 @@ on:
         required: true
 
 jobs:
-  generateInstallationToken:
-    runs-on: ubuntu-latest
-    outputs:
-      OS_BOTIFY_TOKEN: ${{ steps.generate_token.outputs.token }}
-
   validateActor:
     runs-on: ubuntu-latest
     outputs:
@@ -51,7 +46,7 @@ jobs:
 
   createNewVersion:
     runs-on: macos-latest
-    needs: [validateActor, generateInstallationToken]
+    needs: validateActor
     # if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
 
     outputs:
