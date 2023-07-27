@@ -11,7 +11,7 @@ import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
-import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
+import useNetwork from '../hooks/useNetwork';
 import * as Browser from '../libs/Browser';
 
 const propTypes = {
@@ -142,7 +142,7 @@ function MagicCodeInput(props) {
         props.onFulfill(props.value);
     };
 
-    useOnNetworkReconnect(validateAndSubmit);
+    useNetwork({onReconnect: validateAndSubmit});
 
     useEffect(() => {
         validateAndSubmit();

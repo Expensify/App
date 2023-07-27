@@ -10,6 +10,7 @@ import themeColors from '../../styles/themes/default';
 import updateIsFullComposerAvailable from '../../libs/ComposerUtils/updateIsFullComposerAvailable';
 import * as ComposerUtils from '../../libs/ComposerUtils';
 import * as Browser from '../../libs/Browser';
+import * as StyleUtils from '../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -306,8 +307,6 @@ class Composer extends React.Component {
      * @param {ClipboardEvent} event
      */
     handlePaste(event) {
-        event.preventDefault();
-
         const isVisible = this.props.checkComposerVisibility();
         const isFocused = this.textInput.isFocused();
 
@@ -315,9 +314,11 @@ class Composer extends React.Component {
             return;
         }
 
-        if (this.textInput.id !== event.target.id) {
+        if (this.textInput !== event.target) {
             return;
         }
+
+        event.preventDefault();
 
         const {files, types} = event.clipboardData;
         const TEXT_HTML = 'text/html';
@@ -482,6 +483,7 @@ class Composer extends React.Component {
                         // We are hiding the scrollbar to prevent it from reducing the text input width,
                         // so we can get the correct scroll height while calculating the number of lines.
                         this.state.numberOfLines < this.props.maxLines ? styles.overflowHidden : {},
+                        StyleUtils.getComposeTextAreaPadding(this.props.numberOfLines),
                     ]}
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
                     {...propsWithoutStyles}

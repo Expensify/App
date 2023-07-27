@@ -1509,7 +1509,7 @@ PODS:
     - React-Codegen
     - React-Core
     - ReactCommon/turbomodule/core
-  - RNReanimated (3.3.0):
+  - RNReanimated (3.4.0):
     - DoubleConversion
     - FBLazyVector
     - glog
@@ -2018,7 +2018,7 @@ SPEC CHECKSUMS:
   RNLocalize: d4b8af4e442d4bcca54e68fc687a2129b4d71a81
   RNPermissions: efc847cd6dc46e89f3ecd7d30ed7de3432a8d4bd
   RNReactNativeHapticFeedback: b4a73cb674ecae432b5b09a4a10f91f16dff3da6
-  RNReanimated: 3ce2aec600ad2ef47a5927abf2742329d7a190e9
+  RNReanimated: b9a31453864b779276b56aea770815c4ccd4f0df
   RNScreens: 8e13360d58411c3f6ef6ee6592f19a89655dfc57
   RNSVG: 724693428496ff2c462e1854053e200ce166681b
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
