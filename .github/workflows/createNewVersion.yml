@@ -59,7 +59,7 @@ jobs:
 
   createNewVersion:
     runs-on: macos-latest
-    needs: validateActor
+    needs: [validateActor, generateInstallationToken]
     # if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
 
     outputs:
