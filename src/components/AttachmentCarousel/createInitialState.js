@@ -48,13 +48,16 @@ function createInitialState(props) {
         attachments.reverse();
     }
 
-    const page = _.findIndex(attachments, (a) => a.source === props.source);
-    if (page === -1) {
-        throw new Error('Attachment not found');
+    const source = tryResolveUrlFromApiRoot(props.source);
+    const page = _.findIndex(attachments, (a) => a.source === source);
+
+    if (page !== -1) {
+        // Update the parent modal's state with the source and name from the mapped attachments
+        props.onNavigate(attachments[page]);
     }
 
-    // Update the parent modal's state with the source and name from the mapped attachments
-    props.onNavigate(attachments[page]);
+    // Update the download button visibility in the parent modal
+    props.setDownloadButtonVisibility(page !== -1);
 
     return {
         page,

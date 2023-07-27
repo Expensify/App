@@ -9,6 +9,9 @@ const propTypes = {
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate: PropTypes.func,
 
+    /** Function to change the download button Visibility */
+    setDownloadButtonVisibility: PropTypes.func,
+
     /** Object of report actions for this report */
     reportActions: PropTypes.shape(reportActionPropTypes),
 
@@ -20,6 +23,7 @@ const defaultProps = {
     source: '',
     reportActions: {},
     onNavigate: () => {},
+    setDownloadButtonVisibility: () => {},
 };
 
 export {propTypes, defaultProps};

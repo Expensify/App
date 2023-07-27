@@ -16,6 +16,9 @@ import Tooltip from '../Tooltip';
 import useLocalize from '../../hooks/useLocalize';
 import createInitialState from './createInitialState';
 import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
+import BlockingView from '../BlockingViews/BlockingView';
+import * as Illustrations from '../Icon/Illustrations';
+import variables from '../../styles/variables';
 
 const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
@@ -232,81 +235,92 @@ function AttachmentCarousel(props) {
             onMouseEnter={() => !canUseTouchScreen && toggleArrowsVisibility(true)}
             onMouseLeave={() => !canUseTouchScreen && toggleArrowsVisibility(false)}
         >
-            {shouldShowArrow && (
+            {page === -1 ? (
+                <BlockingView
+                    icon={Illustrations.ToddBehindCloud}
+                    iconWidth={variables.modalTopIconWidth}
+                    iconHeight={variables.modalTopIconHeight}
+                    title={translate('notFound.notHere')}
+                />
+            ) : (
                 <>
-                    {!isBackDisabled && (
-                        <Tooltip text={translate('common.previous')}>
-                            <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.l2 : styles.l8]}>
-                                <Button
-                                    small
-                                    innerStyles={[styles.arrowIcon]}
-                                    icon={Expensicons.BackArrow}
-                                    iconFill={themeColors.text}
-                                    iconStyles={[styles.mr0]}
-                                    onPress={() => {
-                                        cycleThroughAttachments(-1);
-                                        autoHideArrow();
-                                    }}
-                                    onPressIn={cancelAutoHideArrow}
-                                    onPressOut={autoHideArrow}
-                                />
-                            </View>
-                        </Tooltip>
+                    {shouldShowArrow && (
+                        <>
+                            {!isBackDisabled && (
+                                <Tooltip text={translate('common.previous')}>
+                                    <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.l2 : styles.l8]}>
+                                        <Button
+                                            small
+                                            innerStyles={[styles.arrowIcon]}
+                                            icon={Expensicons.BackArrow}
+                                            iconFill={themeColors.text}
+                                            iconStyles={[styles.mr0]}
+                                            onPress={() => {
+                                                cycleThroughAttachments(-1);
+                                                autoHideArrow();
+                                            }}
+                                            onPressIn={cancelAutoHideArrow}
+                                            onPressOut={autoHideArrow}
+                                        />
+                                    </View>
+                                </Tooltip>
+                            )}
+                            {!isForwardDisabled && (
+                                <Tooltip text={translate('common.next')}>
+                                    <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.r2 : styles.r8]}>
+                                        <Button
+                                            small
+                                            innerStyles={[styles.arrowIcon]}
+                                            icon={Expensicons.ArrowRight}
+                                            iconFill={themeColors.text}
+                                            iconStyles={[styles.mr0]}
+                                            onPress={() => {
+                                                cycleThroughAttachments(1);
+                                                autoHideArrow();
+                                            }}
+                                            onPressIn={cancelAutoHideArrow}
+                                            onPressOut={autoHideArrow}
+                                        />
+                                    </View>
+                                </Tooltip>
+                            )}
+                        </>
                     )}
-                    {!isForwardDisabled && (
-                        <Tooltip text={translate('common.next')}>
-                            <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.r2 : styles.r8]}>
-                                <Button
-                                    small
-                                    innerStyles={[styles.arrowIcon]}
-                                    icon={Expensicons.ArrowRight}
-                                    iconFill={themeColors.text}
-                                    iconStyles={[styles.mr0]}
-                                    onPress={() => {
-                                        cycleThroughAttachments(1);
-                                        autoHideArrow();
-                                    }}
-                                    onPressIn={cancelAutoHideArrow}
-                                    onPressOut={autoHideArrow}
-                                />
-                            </View>
-                        </Tooltip>
+
+                    {containerWidth > 0 && (
+                        <FlatList
+                            keyboardShouldPersistTaps="handled"
+                            listKey="AttachmentCarousel"
+                            horizontal
+                            decelerationRate="fast"
+                            showsHorizontalScrollIndicator={false}
+                            bounces={false}
+                            // Scroll only one image at a time no matter how fast the user swipes
+                            disableIntervalMomentum
+                            pagingEnabled
+                            snapToAlignment="start"
+                            snapToInterval={containerWidth}
+                            // Enable scrolling by swiping on mobile (touch) devices only
+                            // disable scroll for desktop/browsers because they add their scrollbars
+                            // Enable scrolling FlatList only when PDF is not in a zoomed state
+                            scrollEnabled={canUseTouchScreen && !isZoomed}
+                            ref={scrollRef}
+                            initialScrollIndex={page}
+                            initialNumToRender={3}
+                            windowSize={5}
+                            maxToRenderPerBatch={3}
+                            data={attachments}
+                            CellRendererComponent={renderCell}
+                            renderItem={renderItem}
+                            getItemLayout={getItemLayout}
+                            keyExtractor={(item) => item.source}
+                            viewabilityConfig={viewabilityConfig}
+                            onViewableItemsChanged={updatePage}
+                        />
                     )}
+                    <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
                 </>
             )}
-
-            {containerWidth > 0 && (
-                <FlatList
-                    keyboardShouldPersistTaps="handled"
-                    listKey="AttachmentCarousel"
-                    horizontal
-                    decelerationRate="fast"
-                    showsHorizontalScrollIndicator={false}
-                    bounces={false}
-                    // Scroll only one image at a time no matter how fast the user swipes
-                    disableIntervalMomentum
-                    pagingEnabled
-                    snapToAlignment="start"
-                    snapToInterval={containerWidth}
-                    // Enable scrolling by swiping on mobile (touch) devices only
-                    // disable scroll for desktop/browsers because they add their scrollbars
-                    // Enable scrolling FlatList only when PDF is not in a zoomed state
-                    scrollEnabled={canUseTouchScreen && !isZoomed}
-                    ref={scrollRef}
-                    initialScrollIndex={page}
-                    initialNumToRender={3}
-                    windowSize={5}
-                    maxToRenderPerBatch={3}
-                    data={attachments}
-                    CellRendererComponent={renderCell}
-                    renderItem={renderItem}
-                    getItemLayout={getItemLayout}
-                    keyExtractor={(item) => item.source}
-                    viewabilityConfig={viewabilityConfig}
-                    onViewableItemsChanged={updatePage}
-                />
-            )}
-            <CarouselActions onCycleThroughAttachments={cycleThroughAttachments} />
         </View>
     );
 }
