@@ -77,9 +77,9 @@ function BaseAnchorForCommentsOnly(props) {
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     hrefAttrs={{
                         rel: props.rel,
-                        target: isEmail ? '_self' : props.target,
+                        target: isEmail || !linkProps.href ? '_self' : props.target,
                     }}
-                    href={linkProps.href}
+                    href={linkProps.href || props.href}
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
                     // eslint-disable-next-line react/jsx-props-no-spreading
