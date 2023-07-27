@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../libs/Log';
@@ -40,6 +40,7 @@ const defaultProps = {
 function ImageWithSizeCalculation(props) {
     const [isLoading, setIsLoading] = useState(false);
     const isLoadedRef = useRef(null);
+    const [tempLoaderVisible, setTempLoaderVisible] = useState(false);
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
@@ -52,6 +53,16 @@ function ImageWithSizeCalculation(props) {
             height: event.nativeEvent.height,
         });
     };
+
+    useEffect(() => {
+        let tempLoaderTimeout;
+        if (isLoading) {
+            tempLoaderTimeout = setTimeout(() => {
+                setTempLoaderVisible(true);
+            }, 100); // Adjust the delay time as needed
+        }
+        return () => clearTimeout(tempLoaderTimeout);
+    }, [isLoading]);
 
     return (
         <View style={[styles.w100, styles.h100, props.style]}>
@@ -66,11 +77,14 @@ function ImageWithSizeCalculation(props) {
                     }
                     setIsLoading(true);
                 }}
-                onLoadEnd={() => setIsLoading(false)}
+                onLoadEnd={() => {
+                    setIsLoading(false);
+                    setTempLoaderVisible(false);
+                }}
                 onError={onError}
                 onLoad={imageLoadedSuccessfully}
             />
-            {isLoading && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+            {isLoading && tempLoaderVisible && <FullscreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
         </View>
     );
 }
