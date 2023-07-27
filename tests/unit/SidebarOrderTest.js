@@ -296,8 +296,7 @@ describe('Sidebar', () => {
                     })
 
                     // When the draft is removed
-                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {hasDraft: null}))
-
+                    .then(() => Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {hasDraft: false}))
                     // Then the pencil icon goes away
                     .then(() => {
                         expect(screen.queryAllByTestId('Pencil Icon')).toHaveLength(0);
