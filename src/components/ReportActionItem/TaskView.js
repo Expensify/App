@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import reportPropTypes from '../../pages/reportPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import withWindowDimensions from '../withWindowDimensions';
@@ -10,6 +11,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
 import MenuItem from '../MenuItem';
+import OfflineWithFeedback from '../OfflineWithFeedback';
 import styles from '../../styles/styles';
 import * as ReportUtils from '../../libs/ReportUtils';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
@@ -66,7 +68,9 @@ function TaskView(props) {
                 accessibilityLabel={taskTitle || props.translate('task.task')}
             >
                 {({hovered, pressed}) => (
-                    <>
+                    <OfflineWithFeedback
+                        pendingAction={lodashGet(props, 'report.pendingFields.reportName', null)}
+                    >
                         <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
                         <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
                             <Checkbox
@@ -97,34 +101,42 @@ function TaskView(props) {
                                 </View>
                             )}
                         </View>
-                    </>
+                    </OfflineWithFeedback>
                 )}
             </PressableWithSecondaryInteraction>
-            <MenuItemWithTopDescription
-                description={props.translate('task.description')}
-                title={props.report.description || ''}
-                onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
-                shouldShowRightIcon={isOpen}
-                disabled={disableState}
-                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                shouldGreyOutWhenDisabled={false}
-                numberOfLinesTitle={0}
-            />
-            {props.report.managerID ? (
-                <MenuItem
-                    label={props.translate('task.assignee')}
-                    title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
-                    icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], props.personalDetails)}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    avatarSize={CONST.AVATAR_SIZE.SMALLER}
-                    titleStyle={styles.assigneeTextStyle}
-                    onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+            <OfflineWithFeedback
+                pendingAction={lodashGet(props, 'report.pendingFields.description', null)}
+            >
+                <MenuItemWithTopDescription
+                    description={props.translate('task.description')}
+                    title={props.report.description || ''}
+                    onPress={() => Navigation.navigate(ROUTES.getTaskReportDescriptionRoute(props.report.reportID))}
                     shouldShowRightIcon={isOpen}
                     disabled={disableState}
-                    wrapperStyle={[styles.pv2]}
-                    isSmallAvatarSubscriptMenu
+                    wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                     shouldGreyOutWhenDisabled={false}
+                    numberOfLinesTitle={0}
                 />
+            </OfflineWithFeedback>
+            {props.report.managerID ? (
+                <OfflineWithFeedback
+                    pendingAction={lodashGet(props, 'report.pendingFields.managerID', null)}
+                >
+                    <MenuItem
+                        label={props.translate('task.assignee')}
+                        title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
+                        icon={OptionsListUtils.getAvatarsForAccountIDs([props.report.managerID], props.personalDetails)}
+                        iconType={CONST.ICON_TYPE_AVATAR}
+                        avatarSize={CONST.AVATAR_SIZE.SMALLER}
+                        titleStyle={styles.assigneeTextStyle}
+                        onPress={() => Navigation.navigate(ROUTES.getTaskReportAssigneeRoute(props.report.reportID))}
+                        shouldShowRightIcon={isOpen}
+                        disabled={disableState}
+                        wrapperStyle={[styles.pv2]}
+                        isSmallAvatarSubscriptMenu
+                        shouldGreyOutWhenDisabled={false}
+                    />
+                </OfflineWithFeedback>
             ) : (
                 <MenuItemWithTopDescription
                     description={props.translate('task.assignee')}
