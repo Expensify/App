@@ -168,8 +168,6 @@ const replaceAllDigits = (text, convertFn) =>
         .value();
 
 function MoneyRequestAmountPage(props) {
-
-    console.log('oldshit');
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
@@ -409,9 +407,9 @@ function MoneyRequestAmountPage(props) {
                 const participants = ReportUtils.isPolicyExpenseChat(props.report)
                     ? [{reportID: props.report.reportID, isPolicyExpenseChat: true, selected: true}]
                     : _.chain(props.report.participantAccountIDs)
-                          .filter((accountID) => currentUserAccountID !== accountID)
-                          .map((accountID) => ({accountID, selected: true}))
-                          .value();
+                        .filter((accountID) => currentUserAccountID !== accountID)
+                        .map((accountID) => ({accountID, selected: true}))
+                        .value();
                 IOU.setMoneyRequestParticipants(participants);
             }
             Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));

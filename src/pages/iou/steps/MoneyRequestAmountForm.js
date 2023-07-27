@@ -167,9 +167,7 @@ const replaceAllDigits = (text, convertFn) =>
         .join('')
         .value();
 
-function MoneyRequestAmountPage(props) {
-
-    console.log('oldshit');
+function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectionPage, navigateToNextPage, ...props}) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
@@ -182,7 +180,10 @@ function MoneyRequestAmountPage(props) {
     const [amount, setAmount] = useState(selectedAmountAsString);
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
-    const [selection, setSelection] = useState({start: selectedAmountAsString.length, end: selectedAmountAsString.length});
+    const [selection, setSelection] = useState({
+        start: selectedAmountAsString.length,
+        end: selectedAmountAsString.length,
+    });
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -201,11 +202,6 @@ function MoneyRequestAmountPage(props) {
         }
     };
 
-    const title = {
-        [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
-        [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
-    };
     const titleForStep = isEditing.current ? translate('iou.amount') : title[iouType.current];
 
     /**
@@ -369,57 +365,6 @@ function MoneyRequestAmountPage(props) {
         setNewAmount(newAmount);
     };
 
-    const navigateBack = () => {
-        Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
-    };
-
-    const navigateToCurrencySelectionPage = () => {
-        // Remove query from the route and encode it.
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType.current, reportID.current, selectedCurrencyCode, activeRoute));
-    };
-
-    const navigateToNextPage = () => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(selectedCurrencyCode, Number.parseFloat(amount));
-        IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
-        IOU.setMoneyRequestCurrency(selectedCurrencyCode);
-
-        saveAmountToState(selectedCurrencyCode, amountInSmallestCurrencyUnits);
-
-        if (isEditing.current) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
-            return;
-        }
-
-        const moneyRequestID = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestID;
-        // If the money request ID in Onyx does not match the ID from params, we want to start a new request
-        // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
-        if (shouldReset) {
-            IOU.setMoneyRequestId(moneyRequestID);
-            IOU.setMoneyRequestDescription('');
-            IOU.setMoneyRequestParticipants([]);
-        }
-
-        // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-        if (props.report.reportID) {
-            // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
-            if (_.isEmpty(props.iou.participants) || shouldReset) {
-                const currentUserAccountID = props.currentUserPersonalDetails.accountID;
-                const participants = ReportUtils.isPolicyExpenseChat(props.report)
-                    ? [{reportID: props.report.reportID, isPolicyExpenseChat: true, selected: true}]
-                    : _.chain(props.report.participantAccountIDs)
-                          .filter((accountID) => currentUserAccountID !== accountID)
-                          .map((accountID) => ({accountID, selected: true}))
-                          .value();
-                IOU.setMoneyRequestParticipants(participants);
-            }
-            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
-            return;
-        }
-        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
-    };
-
     const formattedAmount = replaceAllDigits(amount, toLocaleDigit);
     const buttonText = isEditing.current ? translate('common.save') : translate('common.next');
 
@@ -487,16 +432,8 @@ function MoneyRequestAmountPage(props) {
     );
 }
 
-MoneyRequestAmountPage.propTypes = propTypes;
-MoneyRequestAmountPage.defaultProps = defaultProps;
-MoneyRequestAmountPage.displayName = 'MoneyRequestAmountPage';
+MoneyRequestAmountForm.propTypes = propTypes;
+MoneyRequestAmountForm.defaultProps = defaultProps;
+MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
-        },
-    }),
-)(MoneyRequestAmountPage);
+export default MoneyRequestAmountForm;
