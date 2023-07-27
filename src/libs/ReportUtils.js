@@ -20,6 +20,7 @@ import isReportMessageAttachment from './isReportMessageAttachment';
 import * as defaultWorkspaceAvatars from '../components/Icon/WorkspaceDefaultAvatars';
 import * as CurrencyUtils from './CurrencyUtils';
 import * as UserUtils from './UserUtils';
+import TransactionUtils from './TransactionUtils';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -1758,7 +1759,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         shouldShow: true,
         created: DateUtils.getDBTime(),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        receipt,
+        ...(receipt ? {receipt: TransactionUtils.buildOptimisticReceipt(receipt)} : {}),
     };
 }
 
