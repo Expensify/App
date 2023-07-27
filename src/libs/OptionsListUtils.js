@@ -64,26 +64,6 @@ Onyx.connect({
     },
 });
 
-const expenseReports = {};
-const iouReports = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!report || !key || !_.isNumber(report.ownerAccountID)) {
-            return;
-        }
-
-        if (ReportUtils.isExpenseReport(report)) {
-            expenseReports[key] = report;
-            return;
-        }
-
-        if (ReportUtils.isIOUReport(report)) {
-            iouReports[key] = report;
-        }
-    },
-});
-
 const lastReportActions = {};
 const allSortedReportActions = {};
 Onyx.connect({
@@ -372,7 +352,7 @@ function getAllReportErrors(report, reportActions) {
     const reportsActions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] || {};
     const reportActionErrors = _.reduce(
         reportsActions,
-        (prevReportActionErrors, action) => (_.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
+        (prevReportActionErrors, action) => (!action || _.isEmpty(action.errors) ? prevReportActionErrors : _.extend(prevReportActionErrors, action.errors)),
         {},
     );
 
@@ -409,11 +389,7 @@ function getLastMessageTextForReport(report) {
         // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
         const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
         if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
-            const latestVisibleAction =
-                _.find(
-                    allSortedReportActions[report.reportID],
-                    (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID) && !ReportActionUtils.isWhisperAction(action),
-                ) || {};
+            const latestVisibleAction = _.find(allSortedReportActions[report.reportID], (action) => ReportActionUtils.shouldReportActionBeVisibleAsLastAction(action)) || {};
             lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
         }
     }
@@ -455,6 +431,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         isDefaultRoom: false,
         isPinned: false,
         hasOutstandingIOU: false,
+        isWaitingOnBankAccount: false,
         iouReportID: null,
         isIOUReportOwner: null,
         iouReportAmount: 0,
@@ -496,6 +473,7 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.keyForList = String(report.reportID);
         result.tooltipText = ReportUtils.getReportParticipantsTitle(report.participantAccountIDs || []);
         result.hasOutstandingIOU = report.hasOutstandingIOU;
+        result.isWaitingOnBankAccount = report.isWaitingOnBankAccount;
 
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
         subtitle = ReportUtils.getChatRoomSubtitle(report);
@@ -531,8 +509,8 @@ function createOption(accountIDs, personalDetails, report, reportActions = {}, {
         result.alternateText = LocalePhoneNumber.formatPhoneNumber(lodashGet(personalDetails, [accountIDs[0], 'login'], ''));
     }
 
-    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result, iouReports);
-    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result, iouReports);
+    result.isIOUReportOwner = ReportUtils.isIOUOwnedByCurrentUser(result);
+    result.iouReportAmount = ReportUtils.getMoneyRequestTotal(result);
 
     if (!hasMultipleParticipants) {
         result.login = personalDetail.login;
@@ -652,7 +630,7 @@ function getOptions(
     const searchValue = parsedPhoneNumber.possible ? parsedPhoneNumber.number.e164 : searchInputValue.toLowerCase();
 
     // Filter out all the reports that shouldn't be displayed
-    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, iouReports, betas, policies));
+    const filteredReports = _.filter(reports, (report) => ReportUtils.shouldReportBeInOptionList(report, Navigation.getTopmostReportId(), false, null, betas, policies));
 
     // Sorting the reports works like this:
     // - Order everything by the last message timestamp (descending)
@@ -692,6 +670,11 @@ function getOptions(
         }
 
         if (isMoneyRequestReport && !includeMoneyRequests) {
+            return;
+        }
+
+        // In case user needs to add credit bank account, don't allow them to request more money from the workspace.
+        if (includeOwnedWorkspaceChats && ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(report)) {
             return;
         }
 
