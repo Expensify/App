@@ -1,19 +1,17 @@
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {View, InteractionManager} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {useFocusEffect} from '@react-navigation/native';
-import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as IOUUtils from '../../../libs/IOUUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
@@ -24,7 +22,7 @@ import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -77,103 +75,12 @@ const amountViewID = 'amountView';
 const numPadContainerViewID = 'numPadContainerView';
 const numPadViewID = 'numPadView';
 
-/**
- * Returns the new selection object based on the updated amount's length
- *
- * @param {Object} oldSelection
- * @param {Number} prevLength
- * @param {Number} newLength
- * @returns {Object}
- */
-const getNewSelection = (oldSelection, prevLength, newLength) => {
-    const cursorPosition = oldSelection.end + (newLength - prevLength);
-    return {start: cursorPosition, end: cursorPosition};
-};
-
-/**
- * Strip comma from the amount
- *
- * @param {String} newAmount
- * @returns {String}
- */
-const stripCommaFromAmount = (newAmount) => newAmount.replace(/,/g, '');
-
-/**
- * Strip spaces from the amount
- *
- * @param {String} newAmount
- * @returns {String}
- */
-const stripSpacesFromAmount = (newAmount) => newAmount.replace(/\s+/g, '');
-
-/**
- * Adds a leading zero to the amount if user entered just the decimal separator
- *
- * @param {String} newAmount - Changed amount from user input
- * @returns {String}
- */
-const addLeadingZero = (newAmount) => (newAmount === '.' ? '0.' : newAmount);
-
-/**
- * @param {String} newAmount
- * @returns {Number}
- */
-const calculateAmountLength = (newAmount) => {
-    const leadingZeroes = newAmount.match(/^0+/);
-    const leadingZeroesLength = lodashGet(leadingZeroes, '[0].length', 0);
-    const absAmount = parseFloat((stripCommaFromAmount(newAmount) * 100).toFixed(2)).toString();
-
-    // The following logic will prevent users from pasting an amount that is excessively long in length,
-    // which would result in the 'absAmount' value being expressed in scientific notation or becoming infinity.
-    if (/\D/.test(absAmount)) {
-        return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
-    }
-
-    /*
-      Return the sum of leading zeroes length and absolute amount length(including fraction digits).
-      When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
-    */
-    return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
-};
-
-/**
- * Check if amount is a decimal up to 3 digits
- *
- * @param {String} newAmount
- * @returns {Boolean}
- */
-const validateAmount = (newAmount) => {
-    const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
-    return newAmount === '' || (decimalNumberRegex.test(newAmount) && calculateAmountLength(newAmount) <= CONST.IOU.AMOUNT_MAX_LENGTH);
-};
-
-/**
- * Replaces each character by calling `convertFn`. If `convertFn` throws an error, then
- * the original character will be preserved.
- *
- * @param {String} text
- * @param {Function} convertFn - `fromLocaleDigit` or `toLocaleDigit`
- * @returns {String}
- */
-const replaceAllDigits = (text, convertFn) =>
-    _.chain([...text])
-        .map((char) => {
-            try {
-                return convertFn(char);
-            } catch {
-                return char;
-            }
-        })
-        .join('')
-        .value();
-
 function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectionPage, navigateToNextPage, reportID, iouType, isEditing, ...props}) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
     const prevMoneyRequestID = useRef(props.iou.id);
     const textInput = useRef(null);
-
 
     const [amount, setAmount] = useState(selectedAmountAsString);
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
@@ -300,17 +207,17 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
     const setNewAmount = (newAmount) => {
         // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
         // More info: https://github.com/Expensify/App/issues/16974
-        const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
+        const newAmountWithoutSpaces = MoneyRequestUtils.stripSpacesFromAmount(newAmount);
         // Use a shallow copy of selection to trigger setSelection
         // More info: https://github.com/Expensify/App/issues/16385
-        if (!validateAmount(newAmountWithoutSpaces)) {
+        if (!MoneyRequestUtils.validateAmount(newAmountWithoutSpaces)) {
             setAmount((prevAmount) => prevAmount);
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
         setAmount((prevAmount) => {
-            setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
-            return stripCommaFromAmount(newAmountWithoutSpaces);
+            setSelection((prevSelection) => MoneyRequestUtils.getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
+            return MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
         });
     };
 
@@ -334,7 +241,7 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
                 }
                 return;
             }
-            const newAmount = addLeadingZero(`${amount.substring(0, selection.start)}${key}${amount.substring(selection.end)}`);
+            const newAmount = MoneyRequestUtils.addLeadingZero(`${amount.substring(0, selection.start)}${key}${amount.substring(selection.end)}`);
             setNewAmount(newAmount);
         },
         [amount, selection, shouldUpdateSelection],
@@ -359,11 +266,11 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
      * @param {String} text - Changed text from user input
      */
     const updateAmount = (text) => {
-        const newAmount = addLeadingZero(replaceAllDigits(text, fromLocaleDigit));
+        const newAmount = MoneyRequestUtils.addLeadingZero(MoneyRequestUtils.replaceAllDigits(text, fromLocaleDigit));
         setNewAmount(newAmount);
     };
 
-    const formattedAmount = replaceAllDigits(amount, toLocaleDigit);
+    const formattedAmount = MoneyRequestUtils.replaceAllDigits(amount, toLocaleDigit);
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
     return (
@@ -410,10 +317,7 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
                                     numberPressed={updateAmountNumberPad}
                                     longPressHandlerStateChanged={updateLongPressHandlerState}
                                 />
-                            ) : (
-                                <View />
-                            )}
-
+                            ) : null}
                             <Button
                                 success
                                 style={[styles.w100, styles.mt5]}
