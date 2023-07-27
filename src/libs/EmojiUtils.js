@@ -282,6 +282,8 @@ function extractEmojis(text) {
             const regex = new RegExp(sequenceEmoji, 'gu');
             str = str.replace(regex, '');
         }
+    } else {
+        sequenceEmojis = [];
     }
 
     let parseEmojis = str.match(CONST.REGEX.EMOJIS);
