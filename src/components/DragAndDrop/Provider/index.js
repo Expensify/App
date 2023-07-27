@@ -125,9 +125,12 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
         <DragAndDropContext.Provider value={{isDraggingOver}}>
             <View
                 ref={(e) => (dropZone.current = e)}
-                style={styles.flex1}
+                style={[styles.flex1, styles.w100, styles.h100]}
             >
-                <View style={[styles.fullScreen, styles.invisibleOverlay]}>
+                <View
+                    style={[styles.fullScreen, styles.invisibleOverlay]}
+                    nativeID={dropZoneHostName}
+                >
                     <PortalHost name={dropZoneHostName} />
                 </View>
                 {children}
