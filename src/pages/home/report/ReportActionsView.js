@@ -131,7 +131,7 @@ function ReportActionsView(props) {
             }
             unsubscribeVisibilityListener();
         };
-    }, [isReportFullyVisible, isFocused, props.report, reportID, setNewMarkerReportActionID]);
+    }, [isReportFullyVisible, isFocused, props.report, setNewMarkerReportActionID]);
 
     useEffect(() => {
         openReportIfNecessary();
