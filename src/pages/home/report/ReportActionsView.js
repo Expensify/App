@@ -58,7 +58,7 @@ const defaultProps = {
     policy: null,
 };
 
-// In the component we are subscribing to the arrvical of new actions.
+// In the component we are subscribing to the arrival of new actions.
 // As there is the possibility that there are multiple instances of a ReportScreen
 // for the same report, we only ever want one subscription to be active, as
 // the subscriptions could otherwise be conflicting.
