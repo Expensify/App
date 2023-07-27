@@ -131,8 +131,20 @@ function IOUPreview(props) {
     const sessionAccountID = lodashGet(props.session, 'accountID', null);
     const managerID = props.iouReport.managerID || '';
     const ownerAccountID = props.iouReport.ownerAccountID || '';
-    const participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
-    const participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
+
+    let participantAvatars;
+    let participantAccountIDs;
+    if (ReportUtils.isPolicyExpenseChat(props.chatReport) && props.isBillSplit) {
+        console.log('yess');
+        participantAccountIDs = [props.action.originalMessage.participantAccountIDs[0]];
+        participantAvatars = [
+            ...OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs),
+            {source: ReportUtils.getWorkspaceAvatar(props.chatReport), type: CONST.ICON_TYPE_WORKSPACE, name: ReportUtils.getReportName(props.chatReport), id: 0},
+        ];
+    } else {
+        participantAccountIDs = props.isBillSplit ? lodashGet(props.action, 'originalMessage.participantAccountIDs', []) : [managerID, ownerAccountID];
+        participantAvatars = OptionsListUtils.getAvatarsForAccountIDs(participantAccountIDs, props.personalDetails);
+    }
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerID === sessionAccountID;
@@ -231,7 +243,10 @@ function IOUPreview(props) {
                         {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>
                                 {props.translate('iou.amountEach', {
-                                    amount: CurrencyUtils.convertToDisplayString(IOUUtils.calculateAmount(participantAccountIDs.length - 1, requestAmount), requestCurrency),
+                                    amount: CurrencyUtils.convertToDisplayString(
+                                        IOUUtils.calculateAmount(ReportUtils.isPolicyExpenseChat(props.chatReport) ? 1 : participantAccountIDs.length - 1, requestAmount),
+                                        requestCurrency,
+                                    ),
                                 })}
                             </Text>
                         )}

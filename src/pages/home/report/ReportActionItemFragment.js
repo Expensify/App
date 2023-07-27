@@ -82,6 +82,7 @@ const defaultProps = {
 };
 
 function ReportActionItemFragment(props) {
+    console.log(props.fragment);
     switch (props.fragment.type) {
         case 'COMMENT': {
             // If this is an attachment placeholder, return the placeholder component

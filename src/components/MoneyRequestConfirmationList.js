@@ -131,6 +131,7 @@ function MoneyRequestConfirmationList(props) {
     }, [props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
+    console.log(selectedParticipants);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
     const canModifyParticipants = !props.isReadOnly && props.canModifyParticipants && props.hasMultipleParticipants;
     const shouldDisablePaidBySection = canModifyParticipants;

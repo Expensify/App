@@ -160,6 +160,10 @@ function isAdminOfFreePolicy(policies) {
     return _.some(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
 }
 
+function isAdminOfControlPolicy(policies) {
+    return _.some(policies, (policy) => policy && policy.type === CONST.POLICY.TYPE.CORPORATE && policy.role === CONST.POLICY.ROLE.ADMIN);
+}
+
 /**
  * Is the user the owner of the given policy?
  *
@@ -1107,6 +1111,7 @@ export {
     removeMembers,
     addMembersToWorkspace,
     isAdminOfFreePolicy,
+    isAdminOfControlPolicy,
     hasActiveFreePolicy,
     setWorkspaceErrors,
     clearCustomUnitErrors,

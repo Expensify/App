@@ -141,6 +141,7 @@ function MoneyRequestAction(props) {
         <IOUPreview
             iouReportID={props.requestReportID}
             chatReportID={props.chatReportID}
+            chatReport={props.chatReport}
             isBillSplit={isSplitBillAction}
             action={props.action}
             contextMenuAnchor={props.contextMenuAnchor}

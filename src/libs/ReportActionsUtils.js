@@ -190,6 +190,12 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder = fal
         .value();
 }
 
+function getReportMostRecentIOUTransactionID(reportID) {
+    const reportActions = _.filter(allReportActions[reportID], (action) => lodashGet(action, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.CREATE);
+    const sortedReportActions = getSortedReportActions(reportActions);
+    return _.last(sortedReportActions).originalMessage.IOUTransactionID;
+}
+
 /**
  * Finds most recent IOU request action ID.
  *
@@ -568,4 +574,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getReportMostRecentIOUTransactionID,
 };

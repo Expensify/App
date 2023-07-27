@@ -182,6 +182,14 @@ function isTaskAssignee(report) {
     return lodashGet(report, 'managerID') === currentUserAccountID;
 }
 
+function isReportManager(report) {
+    return lodashGet(report, 'managerID') === currentUserAccountID;
+}
+
+function isReportApproved(report) {
+    return lodashGet(report, 'stateNum') === CONST.REPORT.STATE_NUM.SUBMITTED && lodashGet(report, 'statusNum') === CONST.REPORT.STATUS.APPROVED;
+}
+
 /**
  * Checks if a report is an IOU or expense report.
  *
@@ -373,8 +381,12 @@ function isPublicAnnounceRoom(report) {
  * @param {Object} policies must have Onyxkey prefix (i.e 'policy_') for keys
  * @returns {String}
  */
-function getPolicyType(report, policies) {
-    return lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+function getPolicyType(report) {
+    return lodashGet(allPolicies, [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'type'], '');
+}
+
+function isControlPolicyExpenseChat(report) {
+    return getPolicyType(report) === CONST.POLICY.TYPE.CORPORATE && isPolicyExpenseChat(report);
 }
 
 /**
@@ -1594,6 +1606,9 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
 
     let iouMessage;
     switch (type) {
+        case CONST.IOU.REPORT_ACTION_TYPE.APPROVE:
+            iouMessage = `approved ${amount}`;
+            break;
         case CONST.IOU.REPORT_ACTION_TYPE.CREATE:
             iouMessage = `requested ${amount}${comment && ` for ${comment}`}`;
             break;
@@ -1618,6 +1633,48 @@ function getIOUReportActionMessage(type, total, comment, currency, paymentType =
             type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
         },
     ];
+}
+
+function buildOptimisticApprovedReportAction(amount, currency, expenseReportID, IOUTransactionID) {
+    const originalMessage = {
+        amount,
+        currency,
+        expenseReportID,
+        IOUTransactionID,
+    };
+
+    const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
+    const formattedAmount = NumberFormatUtils.format(preferredLocale, Math.abs(amount) / currencyUnit, {style: 'currency', currency});
+    const iouMessage = `approved ${formattedAmount}`;
+    const message = [
+        {
+            html: _.escape(iouMessage),
+            text: iouMessage,
+            isEdited: false,
+            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        isAttachment: false,
+        originalMessage,
+        message,
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserEmail),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: NumberUtils.rand64(),
+        shouldShow: true,
+        created: DateUtils.getDBTime(),
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
 }
 
 /**
@@ -2460,7 +2517,7 @@ function getMoneyRequestOptions(report, reportParticipants, betas) {
     // unless there are no participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Bill option only when there are at least 3 people in the chat.
     // There is no Split Bill option for Workspace chats
-    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report))) {
+    if (isChatRoom(report) || (hasMultipleParticipants && !isPolicyExpenseChat(report)) || getPolicyType(report) === CONST.POLICY.TYPE.CORPORATE) {
         return [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT];
     }
 
@@ -2721,6 +2778,7 @@ export {
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
+    buildOptimisticApprovedReportAction,
     updateOptimisticParentReportAction,
     getOptimisticDataForParentReportAction,
     shouldReportBeInOptionList,
@@ -2772,4 +2830,7 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    isControlPolicyExpenseChat,
+    isReportManager,
+    isReportApproved,
 };

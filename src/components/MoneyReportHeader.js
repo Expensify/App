@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -14,8 +14,10 @@ import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import SettlementButton from './SettlementButton';
+import Button from './Button';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import reportPropTypes from '../pages/reportPropTypes';
@@ -55,11 +57,32 @@ const defaultProps = {
 
 function MoneyReportHeader(props) {
     const moneyRequestReport = props.report;
-    const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
-    const isPayer =
-        Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = !isSettled && isPayer;
+
+    const shouldShowSettlementButton = useMemo(() => {
+        if (ReportUtils.getPolicyType(moneyRequestReport, props.policies) === CONST.POLICY.TYPE.CORPORATE) {
+            return Policy.isAdminOfControlPolicy([policy]) && ReportUtils.isReportApproved(moneyRequestReport) && !ReportUtils.isSettled(moneyRequestReport.reportID);
+        }
+
+        return (
+            (Policy.isAdminOfFreePolicy([policy]) ||
+                (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID)) &&
+            !ReportUtils.isSettled(moneyRequestReport)
+        );
+    }, [moneyRequestReport, policy, props.policies, props.session]);
+
+    const shouldShowApprovedButton = useMemo(() => {
+        if (ReportUtils.getPolicyType(moneyRequestReport) !== CONST.POLICY.TYPE.CORPORATE) {
+            return false;
+        }
+
+        return (
+            ReportUtils.isReportManager(moneyRequestReport) &&
+            lodashGet(moneyRequestReport, 'stateNum') === CONST.REPORT.STATE_NUM.PROCESSING &&
+            lodashGet(moneyRequestReport, 'statusNum') === CONST.REPORT.STATUS.SUBMITTED
+        );
+    }, [moneyRequestReport]);
+
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
@@ -103,6 +126,15 @@ function MoneyReportHeader(props) {
                         />
                     </View>
                 )}
+                {shouldShowApprovedButton && !props.isSmallScreenWidth && (
+                    <View style={[styles.pv2]}>
+                        <Button
+                            success
+                            text="Approve"
+                            onPress={() => IOU.approveMoneyRequest(props.report)}
+                        />
+                    </View>
+                )}
             </HeaderWithBackButton>
             {shouldShowSettlementButton && props.isSmallScreenWidth && (
                 <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
@@ -117,6 +149,15 @@ function MoneyReportHeader(props) {
                         addBankAccountRoute={bankAccountRoute}
                         shouldShowPaymentOptions
                         formattedAmount={formattedAmount}
+                    />
+                </View>
+            )}
+            {shouldShowApprovedButton && props.isSmallScreenWidth && (
+                <View style={[styles.ph5, styles.pb2, props.isSmallScreenWidth && styles.borderBottom]}>
+                    <Button
+                        success
+                        text="Approve"
+                        onPress={() => IOU.approveMoneyRequest(props.report)}
                     />
                 </View>
             )}
