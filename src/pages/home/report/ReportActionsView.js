@@ -139,7 +139,7 @@ function ReportActionsView(props) {
     }, []);
 
     useEffect(() => {
-        // Why ware we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
+        // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
         // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
         //         meaning that the cleanup might not get called. When we then open a report we had open again, a new
         //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
