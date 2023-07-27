@@ -176,10 +176,12 @@ function ReportActionItem(props) {
             return;
         }
 
-        if (_.contains([CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE, CONST.MODERATION.MODERATOR_DECISION_HIDDEN], latestDecision)) {
-            setIsHidden(true);
-        }
         setModerationDecision(latestDecision);
+        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision)) {
+            setIsHidden(true);
+            return;
+        }
+        setIsHidden(false);
     }, [latestDecision, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {

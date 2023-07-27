@@ -1,39 +1,33 @@
 import React from 'react';
+import {useAnimatedRef} from 'react-native-reanimated';
 import PropTypes from 'prop-types';
-import {useNavigation} from '@react-navigation/native';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
-const withNavigationPropTypes = {
-    navigation: PropTypes.object.isRequired,
-};
-
-export default function withNavigation(WrappedComponent) {
-    function WithNavigation(props) {
-        const navigation = useNavigation();
+export default function withAnimatedRef(WrappedComponent) {
+    function WithAnimatedRef(props) {
+        const animatedRef = useAnimatedRef();
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={props.forwardedRef}
-                navigation={navigation}
+                animatedRef={animatedRef}
             />
         );
     }
-
-    WithNavigation.displayName = `withNavigation(${getComponentDisplayName(WrappedComponent)})`;
-    WithNavigation.propTypes = {
+    WithAnimatedRef.displayName = `withAnimatedRef(${getComponentDisplayName(WrappedComponent)})`;
+    WithAnimatedRef.propTypes = {
         forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
     };
-    WithNavigation.defaultProps = {
-        forwardedRef: () => {},
+    WithAnimatedRef.defaultProps = {
+        forwardedRef: undefined,
     };
+
     return React.forwardRef((props, ref) => (
-        <WithNavigation
+        <WithAnimatedRef
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             forwardedRef={ref}
         />
     ));
 }
-
-export {withNavigationPropTypes};
