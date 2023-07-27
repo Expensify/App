@@ -775,7 +775,7 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
  * @param {String} transactionID
  * @param {String} transactionThreadReportID
  */
-function editTransaction(transactionID, transactionThreadReportID) {
+function editIOUTransaction(transactionID, transactionThreadReportID) {
     // STEP 1: Get all collections we're updating
     let transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -783,10 +783,14 @@ function editTransaction(transactionID, transactionThreadReportID) {
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
     const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
     API.write(
-        'DeleteMoneyRequest',
+        'EditIOUTransaction',
         {
             transactionID,
             reportActionID: reportAction.reportActionID,
+            created: transaction.created,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            comment: transaction.comment,
         },
         {optimisticData, successData, failureData},
     );
