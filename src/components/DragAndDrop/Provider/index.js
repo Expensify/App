@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
 import {PortalHost} from '@gorhom/portal';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
+import useThrottledEffect from '../../../hooks/useThrottledEffect';
 import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
 import DNDUtils from '../Utils';
 
@@ -48,8 +49,8 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
     }, [isFocused, isDisabled]);
 
     // Measure the position of the drop zone
-    useEffect(
-        _.throttle(() => {
+    useThrottledEffect(
+        () => {
             if (!dropZone.current) {
                 return;
             }
@@ -61,7 +62,8 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
                     bottom: y + height,
                 });
             });
-        }, 100),
+        },
+        100,
         [windowWidth, windowHeight],
     );
 
