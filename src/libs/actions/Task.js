@@ -136,7 +136,16 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     ];
 
     if (assigneeChatReport) {
-        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(currentUserAccountID, assignee, assigneeAccountID, taskReportID, assigneeChatReportID, parentReportID, title, assigneeChatReport);
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
+            currentUserAccountID,
+            assignee,
+            assigneeAccountID,
+            taskReportID,
+            assigneeChatReportID,
+            parentReportID,
+            title,
+            assigneeChatReport,
+        );
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
         successData.push(...assigneeChatReportOnyxData.successData);
         failureData.push(...assigneeChatReportOnyxData.failureData);
@@ -171,7 +180,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
     });
 
-
     API.write(
         'CreateTask',
         {
@@ -184,8 +192,12 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             assignee,
             assigneeAccountID,
             assigneeChatReportID,
-            assigneeChatReportActionID: assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID : 0,
-            assigneeChatCreatedReportActionID: assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
+            assigneeChatReportActionID:
+                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment
+                    ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID
+                    : 0,
+            assigneeChatCreatedReportActionID:
+                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );
@@ -394,12 +406,20 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
     // If we make a change to the assignee, we want to add a comment to the assignee's chat
     // Check if the assignee actually changed
     if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
-        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(currentUserAccountID, assignee, assigneeAccountID, report.reportID, assigneeChatReportID, report.parentReportID, reportName, assigneeChatReport);
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
+            currentUserAccountID,
+            assignee,
+            assigneeAccountID,
+            report.reportID,
+            assigneeChatReportID,
+            report.parentReportID,
+            reportName,
+            assigneeChatReport,
+        );
         optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
         successData.push(...assigneeChatReportOnyxData.successData);
         failureData.push(...assigneeChatReportOnyxData.failureData);
     }
-    
 
     API.write(
         'EditTask',
@@ -411,9 +431,12 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
             assigneeAccountID: assigneeAccountID || report.managerID,
             editedTaskReportActionID: editTaskReportAction.reportActionID,
             assigneeChatReportID,
-            assigneeChatReportActionID: assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID : 0,
-            assigneeChatCreatedReportActionID: assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
-            
+            assigneeChatReportActionID:
+                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment
+                    ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID
+                    : 0,
+            assigneeChatCreatedReportActionID:
+                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
         },
         {optimisticData, successData, failureData},
     );

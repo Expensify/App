@@ -2741,13 +2741,13 @@ function shouldDisableRename(report, policy) {
 
 /**
  * Returns the onyx data needed for the task assignee chat
- * @param {Number} accountID 
+ * @param {Number} accountID
  * @param {String} assignee - Assignee email
  * @param {Number} assigneeAccountID
- * @param {String} taskReportID 
- * @param {String} assigneeChatReportID 
- * @param {String} parentReportID 
- * @param {String} title 
+ * @param {String} taskReportID
+ * @param {String} assigneeChatReportID
+ * @param {String} parentReportID
+ * @param {String} title
  * @param {Object} assigneeChatReport
  * @returns {Object}
  */
@@ -2765,7 +2765,7 @@ function getTaskAssigneeChatOnyxData(accountID, assignee, assigneeAccountID, tas
     // Only add the assignee chat report to onyx if we haven't already set it optimistically
     if (assigneeChatReport.isOptimisticReport && lodashGet(assigneeChatReport, 'pendingFields.createChat') !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         optimisticChatCreatedReportAction = buildOptimisticCreatedReportAction(assigneeChatReportID);
-         optimisticData.push(
+        optimisticData.push(
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
@@ -2783,18 +2783,16 @@ function getTaskAssigneeChatOnyxData(accountID, assignee, assigneeAccountID, tas
             },
         );
 
-        successData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
-                value: {
-                    pendingFields: {
-                        createChat: null,
-                    },
-                    isOptimisticReport: false,
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${assigneeChatReportID}`,
+            value: {
+                pendingFields: {
+                    createChat: null,
                 },
+                isOptimisticReport: false,
             },
-        );
+        });
 
         failureData.push(
             {
@@ -2820,14 +2818,7 @@ function getTaskAssigneeChatOnyxData(accountID, assignee, assigneeAccountID, tas
 
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(
-            taskReportID,
-            title,
-            assignee,
-            assigneeAccountID,
-            `Assigned a task to you: ${title}`,
-            parentReportID,
-        );
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
 
         const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
         const optimisticAssigneeReport = {
@@ -2861,7 +2852,7 @@ function getTaskAssigneeChatOnyxData(accountID, assignee, assigneeAccountID, tas
         successData,
         failureData,
         optimisticAssigneeAddComment,
-        optimisticChatCreatedReportAction
+        optimisticChatCreatedReportAction,
     };
 }
 
