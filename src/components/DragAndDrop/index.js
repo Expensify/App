@@ -64,19 +64,11 @@ class DragAndDrop extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.isFocused !== prevProps.isFocused) {
-            if (!this.props.isFocused) {
-                this.removeEventListeners();
-            } else {
-                this.addEventListeners();
-            }
-        }
-
         const isDisabled = this.props.disabled;
-        if (isDisabled === prevProps.disabled) {
+        if (this.props.isFocused === prevProps.isFocused && isDisabled === prevProps.disabled) {
             return;
         }
-        if (isDisabled) {
+        if (!this.props.isFocused || isDisabled) {
             this.removeEventListeners();
         } else {
             this.addEventListeners();

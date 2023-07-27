@@ -152,6 +152,8 @@ function resetReadyCheck() {
     isReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
+    isFirstTimeNewExpensifyUser = undefined;
+    isLoadingReportData = true;
 }
 
 function serverDataIsReadyPromise() {

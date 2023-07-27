@@ -38,13 +38,6 @@ function SecuritySettingsPage(props) {
             action: () => Navigation.navigate(ROUTES.SETTINGS_2FA),
         },
         {
-            translationKey: 'passwordPage.changePassword',
-            icon: Expensicons.Key,
-            action: () => {
-                Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
-            },
-        },
-        {
             translationKey: 'closeAccountPage.closeAccount',
             icon: Expensicons.ClosedSign,
             action: () => {

@@ -38,7 +38,7 @@ export default {
                             Settings_Root: {
                                 path: ROUTES.SETTINGS,
                             },
-                            Settings_Workspaces: {
+                            [SCREENS.SETTINGS.WORKSPACES]: {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
@@ -60,10 +60,6 @@ export default {
                             },
                             Settings_Close: {
                                 path: ROUTES.SETTINGS_CLOSE,
-                                exact: true,
-                            },
-                            Settings_Password: {
-                                path: ROUTES.SETTINGS_PASSWORD,
                                 exact: true,
                             },
                             Settings_Security: {

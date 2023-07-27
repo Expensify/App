@@ -105,6 +105,10 @@ class ContactMethodDetailsPage extends Component {
         };
     }
 
+    componentDidMount() {
+        User.resetContactMethodValidateCodeSentState(this.getContactMethod());
+    }
+
     componentDidUpdate(prevProps) {
         const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
         const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
