@@ -62,7 +62,7 @@ jobs:
         with:
           poll-interval-seconds: 10
         env:
-          GITHUB_TOKEN: ${{ ${{ needs.validatorActor.steps.generate_token.outputs.token }} }}
+          GITHUB_TOKEN: ${{ needs.validatorActor.steps.generate_token.outputs.token }}
 
       - uses: actions/checkout@v3
         with:
