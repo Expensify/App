@@ -1,3 +1,4 @@
+import DateUtils from '../../src/libs/DateUtils';
 import * as FileUtils from '../../src/libs/fileDownload/FileUtils';
 
 describe('FileUtils', () => {
@@ -24,13 +25,13 @@ describe('FileUtils', () => {
     describe('appendTimeToFileName', () => {
         it('should append current time to the end of the file name', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image.jpg');
-            const expectedFileName = `image - ${new Date().toISOString()}.jpg`;
+            const expectedFileName = `image - ${DateUtils.getDBTime()}.jpg`;
             expect(actualFileName).toEqual(expectedFileName);
         });
 
         it('should append current time to the end of the file name without extension', () => {
             const actualFileName = FileUtils.appendTimeToFileName('image');
-            const expectedFileName = `image - ${new Date().toISOString()}`;
+            const expectedFileName = `image - ${DateUtils.getDBTime()}`;
             expect(actualFileName).toEqual(expectedFileName);
         });
     });
