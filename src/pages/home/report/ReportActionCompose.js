@@ -738,6 +738,11 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
+        // If space bar is pressed 
+        if (e.key === " ") {
+            return;
+        }
+
         // if we're typing on another input/text area, do not focus
         if (['INPUT', 'TEXTAREA'].includes(e.target.nodeName)) {
             return;
