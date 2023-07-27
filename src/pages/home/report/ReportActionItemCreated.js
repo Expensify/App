@@ -61,7 +61,7 @@ function ReportActionItemCreated(props) {
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.GYROSCOPE);
     const moveXoffset = useSharedValue(0);
-    const moveYoffset= useSharedValue(0);
+    const moveYoffset = useSharedValue(0);
     const backgroundImageOffsetX = useSharedValue(-IMAGE_OFFSET_X);
 
     // Apply data to create style object
@@ -73,14 +73,11 @@ function ReportActionItemCreated(props) {
          */
         const {x, y} = animatedSensor.sensor.value;
         // The x vs y here seems wrong but is the way to make it feel right to the user
-        moveXoffset.value = Math.min(IMAGE_OFFSET_X, Math.max(-IMAGE_OFFSET_X, moveXoffset.value - (y * ANIMATION_BOOST)));
-        moveYoffset.value = Math.min(IMAGE_OFFSET_Y, Math.max(-IMAGE_OFFSET_Y, moveYoffset.value - (x * ANIMATION_BOOST)));
+        moveXoffset.value = Math.min(IMAGE_OFFSET_X, Math.max(-IMAGE_OFFSET_X, moveXoffset.value - y * ANIMATION_BOOST));
+        moveYoffset.value = Math.min(IMAGE_OFFSET_Y, Math.max(-IMAGE_OFFSET_Y, moveYoffset.value - x * ANIMATION_BOOST));
         if (isSmallScreenWidth) {
             return {
-                transform: [
-                    {translateX: withSpring(backgroundImageOffsetX.value - moveXoffset.value)},
-                    {translateY: withSpring(moveYoffset.value)},
-                ],
+                transform: [{translateX: withSpring(backgroundImageOffsetX.value - moveXoffset.value)}, {translateY: withSpring(moveYoffset.value)}],
             };
         }
         return {};
