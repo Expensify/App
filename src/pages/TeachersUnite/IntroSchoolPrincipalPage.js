@@ -26,11 +26,9 @@ const defaultProps = {
 };
 
 /**
- * Submit form to update user's first and last name (and display name)
  * @param {Object} values
- * @param {String} values.firstName
- * @param {String} values.lastName
- * @param {String} values.phoneOrEmail
+ * @param {String} values.principalFirstName
+ * @param {String} values.principalEmail
  */
 const updateDisplayName = () => {
     // PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());

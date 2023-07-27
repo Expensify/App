@@ -35,7 +35,7 @@ const defaultProps = {
  * @param {String} values.phoneOrEmail
  */
 const submit = () => {
-    // PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
+    Navigation.navigate(ROUTES.getReportRoute(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID));
 };
 
 const getPhoneLogin = (phoneOrEmail) => {
