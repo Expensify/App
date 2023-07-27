@@ -152,7 +152,9 @@ function ReportPreview(props) {
                     {showComment && (
                         <View style={[styles.flexRow]}>
                             <View style={[styles.flex1]}>
-                                <Text style={[styles.mt1, styles.colorMuted]}>{moneyRequestCount > 1 ? props.translate('iou.requestCount', {count: moneyRequestCount}) : moneyRequestComment}</Text>
+                                <Text style={[styles.mt1, styles.colorMuted]}>
+                                    {moneyRequestCount > 1 ? props.translate('iou.requestCount', {count: moneyRequestCount}) : moneyRequestComment}
+                                </Text>
                             </View>
                         </View>
                     )}
