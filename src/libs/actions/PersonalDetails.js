@@ -26,6 +26,12 @@ Onyx.connect({
     callback: (val) => (allPersonalDetails = val),
 });
 
+let privatePersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    callback: (val) => (privatePersonalDetails = val),
+});
+
 /**
  * Returns the displayName for a user
  *
@@ -325,7 +331,37 @@ function updateSelectedTimezone(selectedTimezone) {
  * Fetches additional personal data like legal name, date of birth, address
  */
 function openPersonalDetailsPage() {
-    API.read('OpenPersonalDetailsPage');
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read('OpenPersonalDetailsPage', {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -478,6 +514,14 @@ function clearAvatarErrors() {
     });
 }
 
+/**
+ * Get private personal details value
+ * @returns {Object}
+ */
+function getPrivatePersonalDetails() {
+    return privatePersonalDetails;
+}
+
 export {
     getDisplayName,
     getDisplayNameForTypingIndicator,
@@ -495,4 +539,5 @@ export {
     updateAutomaticTimezone,
     updateSelectedTimezone,
     getCountryISO,
+    getPrivatePersonalDetails,
 };
