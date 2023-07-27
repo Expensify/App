@@ -80,8 +80,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     const isSwiping = useSharedValue(false);
 
     // used for moving fingers when pinching
-    const scaleTranslateX = useSharedValue(0);
-    const scaleTranslateY = useSharedValue(0);
+    const pinchTranslateX = useSharedValue(0);
+    const pinchTranslateY = useSharedValue(0);
 
     // storage for the the origin of the gesture
     const origin = {
@@ -94,7 +94,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     const panVelocityY = useSharedValue(0);
 
     // store scale in between gestures
-    const scaleOffset = useSharedValue(1);
+    const pinchScaleOffset = useSharedValue(1);
 
     // disable pan vertically when image is smaller than screen
     const canPanVertically = useDerivedValue(() => canvasHeight < zoomScaledImageHeight.value, [canvasHeight]);
@@ -146,8 +146,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             offsetY.value === 0 &&
             translateX.value === 0 &&
             translateY.value === 0 &&
-            scaleTranslateX.value === 0 &&
-            scaleTranslateY.value === 0
+            pinchTranslateX.value === 0 &&
+            pinchTranslateY.value === 0
         ) {
             // we don't need to run any animations
             return;
@@ -155,7 +155,6 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
 
         if (zoomScale.value <= 1) {
             // just center it
-            // reset(true);
             offsetX.value = withSpring(0, SPRING_CONFIG);
             offsetY.value = withSpring(0, SPRING_CONFIG);
             return;
@@ -252,13 +251,13 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             offsetX.value = withSpring(target.x, SPRING_CONFIG);
             offsetY.value = withSpring(target.y, SPRING_CONFIG);
             zoomScale.value = withSpring(doubleTapScale, SPRING_CONFIG);
-            scaleOffset.value = doubleTapScale;
+            pinchScaleOffset.value = doubleTapScale;
         },
         [scaledImageWidth, scaledImageHeight, canvasWidth, canvasHeight],
     );
 
     const reset = useWorkletCallback((animated) => {
-        scaleOffset.value = 1;
+        pinchScaleOffset.value = 1;
 
         stopAnimation();
 
@@ -272,8 +271,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             translateY.value = 0;
             offsetX.value = 0;
             offsetY.value = 0;
-            scaleTranslateX.value = 0;
-            scaleTranslateY.value = 0;
+            pinchTranslateX.value = 0;
+            pinchTranslateY.value = 0;
         }
     });
 
@@ -420,8 +419,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     );
 
     // used to store event scale value when we limit scale
-    const gestureScale = useSharedValue(1);
-
+    const pinchGestureScale = useSharedValue(1);
     const pinchGestureRunning = useSharedValue(false);
     const pinchGesture = Gesture.Pinch()
         .onTouchesDown((evt, state) => {
@@ -442,33 +440,33 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             origin.y.value = adjustFocal.y;
         })
         .onChange((evt) => {
-            zoomScale.value = clamp(scaleOffset.value * evt.scale, minScale, maxScale);
+            zoomScale.value = clamp(pinchScaleOffset.value * evt.scale, minScale, maxScale);
 
             if (zoomScale.value > minScale && zoomScale.value < maxScale) {
-                gestureScale.value = evt.scale;
+                pinchGestureScale.value = evt.scale;
             }
 
             const adjustFocal = getAdjustedFocal(evt.focalX, evt.focalY);
 
-            scaleTranslateX.value = adjustFocal.x + gestureScale.value * origin.x.value * -1;
-            scaleTranslateY.value = adjustFocal.y + gestureScale.value * origin.y.value * -1;
+            pinchTranslateX.value = adjustFocal.x + pinchGestureScale.value * origin.x.value * -1;
+            pinchTranslateY.value = adjustFocal.y + pinchGestureScale.value * origin.y.value * -1;
         })
         .onEnd(() => {
-            offsetX.value += scaleTranslateX.value;
-            offsetY.value += scaleTranslateY.value;
-            scaleTranslateX.value = 0;
-            scaleTranslateY.value = 0;
-            scaleOffset.value = zoomScale.value;
-            gestureScale.value = 1;
+            offsetX.value += pinchTranslateX.value;
+            offsetY.value += pinchTranslateY.value;
+            pinchTranslateX.value = 0;
+            pinchTranslateY.value = 0;
+            pinchScaleOffset.value = zoomScale.value;
+            pinchGestureScale.value = 1;
 
-            if (scaleOffset.value < 1) {
+            if (pinchScaleOffset.value < 1) {
                 // make sure we don't add stuff below the 1
-                scaleOffset.value = 1;
+                pinchScaleOffset.value = 1;
 
                 // this runs the timing animation
                 zoomScale.value = withSpring(1, SPRING_CONFIG);
-            } else if (scaleOffset.value > maxScale) {
-                scaleOffset.value = maxScale;
+            } else if (pinchScaleOffset.value > maxScale) {
+                pinchScaleOffset.value = maxScale;
                 zoomScale.value = withSpring(maxScale, SPRING_CONFIG);
             }
 
@@ -491,8 +489,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     useEffect(() => onPinchGestureChange(isPinchGestureInUse), [isPinchGestureInUse]);
 
     const animatedStyles = useAnimatedStyle(() => {
-        const x = scaleTranslateX.value + translateX.value + offsetX.value;
-        const y = scaleTranslateY.value + translateY.value + offsetY.value;
+        const x = pinchTranslateX.value + translateX.value + offsetX.value;
+        const y = pinchTranslateY.value + translateY.value + offsetY.value;
 
         if (isSwiping.value) {
             onSwipe(y);
