@@ -687,9 +687,9 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat.dev;
+				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev;
 				PRODUCT_NAME = "New Expensify Dev";
-				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
+				PROVISIONING_PROFILE_SPECIFIER = expensify_chat_dev;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -718,9 +718,9 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat.dev;
+				PRODUCT_BUNDLE_IDENTIFIER = com.expensify.chat.dev;
 				PRODUCT_NAME = "New Expensify Dev";
-				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
+				PROVISIONING_PROFILE_SPECIFIER = expensify_chat_dev;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
