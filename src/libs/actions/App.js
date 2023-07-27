@@ -69,7 +69,7 @@ function getNonOptimisticPolicyIDs(policies) {
  */
 function getNonOptimisticPolicyIDToLastModifiedMap(policies) {
     return _.chain(policies)
-        .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .reject((policy) => lodashGet(policy, 'pendingAction', '') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
         .map((policy) => [policy.id, policy.lastModified || 0])
         .object()
         .value();
