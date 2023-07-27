@@ -833,7 +833,7 @@ function buildOptimisticCustomUnits() {
                 [customUnitRateID]: {
                     customUnitRateID,
                     name: 'Default Rate',
-                    rate: 65.5,
+                    rate: CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
                 },
             },
         },
