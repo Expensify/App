@@ -1,7 +1,7 @@
 import {Alert, Linking} from 'react-native';
-import moment from 'moment';
 import CONST from '../../CONST';
 import * as Localize from '../Localize';
+import DateUtils from '../DateUtils';
 
 /**
  * Show alert on successful attachment download
@@ -57,7 +57,7 @@ function getAttachmentName(url) {
     if (!url) {
         return '';
     }
-    return `${moment().format('DDMMYYYYHHmmss')}.${url.split(/[#?]/)[0].split('.').pop().trim()}`;
+    return `${DateUtils.getDBTime()}.${url.split(/[#?]/)[0].split('.').pop().trim()}`;
 }
 
 /**
@@ -124,7 +124,7 @@ function cleanFileName(fileName) {
  */
 function appendTimeToFileName(fileName) {
     const file = splitExtensionFromFileName(fileName);
-    let newFileName = `${file.fileName} - ${new Date().toISOString()}`;
+    let newFileName = `${file.fileName} - ${DateUtils.getDBTime()}`;
     if (file.fileExtension) {
         newFileName += `.${file.fileExtension}`;
     }
