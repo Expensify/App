@@ -80,13 +80,10 @@ function WorkspaceInvitePage(props) {
 
     useOnNetworkReconnect(openWorkspaceInvitePage);
 
+    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
+
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(
-            props.personalDetails,
-            props.betas,
-            searchTerm,
-            PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails),
-        );
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
@@ -188,7 +185,6 @@ function WorkspaceInvitePage(props) {
     );
 
     const headerMessage = useMemo(() => {
-        const excludedUsers = PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails);
         const searchValue = searchTerm.trim();
         if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
             return translate('messages.errorMessageInvalidEmail');
@@ -197,7 +193,7 @@ function WorkspaceInvitePage(props) {
             return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
         }
         return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
-    }, [props.policyMembers, props.personalDetails, translate, searchTerm, policyName, userToInvite, personalDetails]);
+    }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
 
     return (
         <ScreenWrapper shouldEnableMaxHeight>
