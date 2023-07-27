@@ -63,7 +63,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     saveUnitAndRate(unit, rate) {
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (u) => u.name === 'Distance');
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (u) => u.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         if (!distanceCustomUnit) {
             return;
         }
@@ -101,7 +101,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
     }
 
     render() {
-        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === 'Distance');
+        const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
         return (
             <WorkspacePageWithSections

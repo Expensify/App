@@ -825,7 +825,7 @@ function buildOptimisticCustomUnits() {
     const customUnitData = {
         [customUnitID]: {
             customUnitID,
-            name: 'Distance',
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
             attributes: {
                 unit: 'mi',
             },
