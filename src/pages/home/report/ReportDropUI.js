@@ -25,14 +25,16 @@ function ReportDropUI({dropZoneID, onDrop}) {
             dropZoneHostName={CONST.REPORT.DROP_HOST_NAME}
             onDrop={onDrop}
         >
-            <View style={styles.mb3}>
-                <Icon
-                    src={Expensicons.DragAndDrop}
-                    width={100}
-                    height={100}
-                />
+            <View style={[styles.reportDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View style={styles.mb3}>
+                    <Icon
+                        src={Expensicons.DragAndDrop}
+                        width={100}
+                        height={100}
+                    />
+                </View>
+                <Text style={[styles.textHeadline]}>{translate('reportActionCompose.dropToUpload')}</Text>
             </View>
-            <Text style={[styles.textHeadline]}>{translate('reportActionCompose.dropToUpload')}</Text>
         </DragAndDropConsumer>
     );
 }

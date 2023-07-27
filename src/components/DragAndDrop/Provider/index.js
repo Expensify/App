@@ -87,6 +87,7 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
                         // Nothing needed here, just needed to preventDefault in order for the drop event to fire later
                         break;
                     case DRAG_ENTER_EVENT:
+                        console.log('RORY_DEBUG drag enter');
                         if (isDraggingOver) {
                             return;
                         }
@@ -95,6 +96,7 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
                         setIsDraggingOver(true);
                         break;
                     case DRAG_LEAVE_EVENT:
+                        console.log('RORY_DEBUG drag leave');
                         if (
                             !isDraggingOver ||
                             !(event.clientY <= dropZoneRect.top || event.clientY >= dropZoneRect.bottom || event.clientX <= dropZoneRect.left || event.clientX >= dropZoneRect.right)
@@ -133,6 +135,8 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
             document.removeEventListener(DROP_EVENT, dropZoneDragHandler);
         };
     }, [dropZoneDragHandler]);
+
+    console.log('RORY_DEBUG DragAndDropProvider rendering w/ context:', {dropZoneID, isDraggingOver, dropZoneRect});
 
     return (
         <DragAndDropContext.Provider value={{isDraggingOver, dropZoneRect}}>

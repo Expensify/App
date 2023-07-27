@@ -1,8 +1,10 @@
 import _ from 'underscore';
 import React, {useContext, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 import {Portal} from '@gorhom/portal';
 import dragAndDropConsumerPropTypes from './dragAndDropConsumerPropTypes';
 import DNDUtils from '../Utils';
+import styles from '../../../styles/styles';
 
 function DragAndDropConsumer({children, dropZoneID, dropZoneHostName, onDrop}) {
     const DragAndDropContext = DNDUtils.getDragAndDropContext(dropZoneID);
@@ -27,7 +29,11 @@ function DragAndDropConsumer({children, dropZoneID, dropZoneHostName, onDrop}) {
         return null;
     }
 
-    return <Portal hostName={dropZoneHostName}>{_.isFunction(children) ? children(dropZoneRect) : children}</Portal>;
+    return (
+        <Portal hostName={dropZoneHostName}>
+            <View style={[styles.fullScreen]}>{_.isFunction(children) ? children(dropZoneRect) : children}</View>
+        </Portal>
+    );
 }
 
 DragAndDropConsumer.propTypes = dragAndDropConsumerPropTypes;
