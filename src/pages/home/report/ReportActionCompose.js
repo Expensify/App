@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {runOnJS} from 'react-native-reanimated';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -49,12 +51,15 @@ import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
 import * as ComposerUtils from '../../../libs/ComposerUtils';
 import * as Welcome from '../../../libs/actions/Welcome';
 import Permissions from '../../../libs/Permissions';
+import containerComposeStyles from '../../../styles/containerComposeStyles';
 import * as Task from '../../../libs/actions/Task';
 import * as Browser from '../../../libs/Browser';
 import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
 import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
+import withAnimatedRef from '../../../components/withAnimatedRef';
+import updatePropsPaperWorklet from '../../../libs/updatePropsPaperWorklet';
 
 const propTypes = {
     /** Beta features list */
@@ -116,6 +121,9 @@ const propTypes = {
 
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
+
+    /** animated ref from react-native-reanimated */
+    animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
 
     /** Unique id for nativeId in DragAndDrop */
     dragAndDropId: PropTypes.string.isRequired,
@@ -241,19 +249,13 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidMount() {
-        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
-        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
-        ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
-                return;
-            }
-
-            this.focus(false);
-        });
-
         this.unsubscribeNavigationBlur = this.props.navigation.addListener('blur', () => KeyDownListener.removeKeyDownPressListner(this.focusComposerOnKeyPress));
-        this.unsubscribeNavigationFocus = this.props.navigation.addListener('focus', () => KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress));
+        this.unsubscribeNavigationFocus = this.props.navigation.addListener('focus', () => {
+            KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+            this.setUpComposeFocusManager();
+        });
         KeyDownListener.addKeyDownPressListner(this.focusComposerOnKeyPress);
+        this.setUpComposeFocusManager();
 
         this.updateComment(this.comment);
 
@@ -312,6 +314,18 @@ class ReportActionCompose extends React.Component {
         this.calculateMentionSuggestion();
     }
 
+    setUpComposeFocusManager() {
+        // This callback is used in the contextMenuActions to manage giving focus back to the compose input.
+        // TODO: we should clean up this convoluted code and instead move focus management to something like ReportFooter.js or another higher up component
+        ReportActionComposeFocusManager.onComposerFocus(() => {
+            if (!this.willBlurTextInputOnTapOutside || !this.props.isFocused) {
+                return;
+            }
+
+            this.focus(false);
+        });
+    }
+
     getDefaultSuggestionsValues() {
         return {
             suggestedEmojis: [],
@@ -367,6 +381,9 @@ class ReportActionCompose extends React.Component {
     setTextInputRef(el) {
         ReportActionComposeFocusManager.composerRef.current = el;
         this.textInput = el;
+        if (_.isFunction(this.props.animatedRef)) {
+            this.props.animatedRef(el);
+        }
     }
 
     /**
@@ -901,9 +918,9 @@ class ReportActionCompose extends React.Component {
      */
     prepareCommentAndResetComposer() {
         const trimmedComment = this.comment.trim();
-
+        const commentLength = ReportUtils.getCommentLength(trimmedComment);
         // Don't submit empty comments or comments that exceed the character limit
-        if (this.state.isCommentEmpty || ReportUtils.getCommentLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
+        if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
 
@@ -977,6 +994,22 @@ class ReportActionCompose extends React.Component {
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
         const maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+        const submit = this.submitForm;
+        const animatedRef = this.props.animatedRef;
+        const setCommentEmpty = () => this.setState({isCommentEmpty: true});
+        const Tap = Gesture.Tap()
+            .enabled(!(this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength))
+            .onEnd(() => {
+                'worklet';
+
+                const viewTag = animatedRef();
+                const viewName = 'RCTMultilineTextInputView';
+                const updates = {text: ''};
+                // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
+                runOnJS(setCommentEmpty)();
+                updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+                runOnJS(submit)();
+            });
 
         return (
             <View
@@ -1110,7 +1143,7 @@ class ReportActionCompose extends React.Component {
                                             </>
                                         )}
                                     </AttachmentPicker>
-                                    <View style={[styles.textInputComposeSpacing, styles.textInputComposeBorder]}>
+                                    <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
                                         <DragAndDrop
                                             dropZoneId={this.props.dragAndDropId}
                                             activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + this.props.reportID}
@@ -1197,20 +1230,25 @@ class ReportActionCompose extends React.Component {
                             // Keep focus on the composer when Send message is clicked.
                             onMouseDown={(e) => e.preventDefault()}
                         >
-                            <Tooltip text={this.props.translate('common.send')}>
-                                <PressableWithFeedback
-                                    style={[styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
-                                    onPress={this.submitForm}
-                                    disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                    accessibilityLabel={this.props.translate('common.send')}
-                                >
-                                    <Icon
-                                        src={Expensicons.Send}
-                                        fill={this.state.isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
-                                    />
-                                </PressableWithFeedback>
-                            </Tooltip>
+                            <GestureDetector gesture={Tap}>
+                                <Tooltip text={this.props.translate('common.send')}>
+                                    <PressableWithFeedback
+                                        style={({pressed, isDisabled}) => [
+                                            styles.chatItemSubmitButton,
+                                            this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                        ]}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        accessibilityLabel={this.props.translate('common.send')}
+                                    >
+                                        {({pressed}) => (
+                                            <Icon
+                                                src={Expensicons.Send}
+                                                fill={this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed ? themeColors.icon : themeColors.textLight}
+                                            />
+                                        )}
+                                    </PressableWithFeedback>
+                                </Tooltip>
+                            </GestureDetector>
                         </View>
                     </View>
                     <View
@@ -1293,6 +1331,7 @@ export default compose(
     withNetwork(),
     withCurrentUserPersonalDetails,
     withKeyboardState,
+    withAnimatedRef,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,

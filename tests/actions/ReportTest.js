@@ -561,6 +561,8 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
+                reportAction = _.first(_.values(reportActions));
+
                 // Expect the reaction to exist in the reportActionsReactions collection
                 expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
 
@@ -583,15 +585,21 @@ describe('actions/Report', () => {
                 expect(reportActionReaction[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeNull();
             })
             .then(() => {
+                reportAction = _.first(_.values(reportActions));
+
                 // Add the same reaction to the same report action with a different skintone
                 Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI);
                 return waitForPromisesToResolve()
                     .then(() => {
+                        reportAction = _.first(_.values(reportActions));
+
                         const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`];
                         Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, EMOJI_SKIN_TONE);
                         return waitForPromisesToResolve();
                     })
                     .then(() => {
+                        reportAction = _.first(_.values(reportActions));
+
                         // Expect the reaction to exist in the reportActionsReactions collection
                         expect(reportActionsReactions).toHaveProperty(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
 
@@ -670,6 +678,8 @@ describe('actions/Report', () => {
                 return waitForPromisesToResolve();
             })
             .then(() => {
+                resultAction = _.first(_.values(reportActions));
+
                 // Now we toggle the reaction while the skin tone has changed.
                 // As the emoji doesn't support skin tones, the emoji
                 // should get removed instead of added again.
