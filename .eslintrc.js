@@ -31,6 +31,7 @@ module.exports = {
         {
             files: ['*.js', '*.jsx', '*.ts', '*.tsx'],
             rules: {
+                'rulesdir/onyx-props-must-have-default': 'off',
                 'react-native-a11y/has-accessibility-hint': ['off'],
                 'react-native-a11y/has-valid-accessibility-descriptors': [
                     'error',
@@ -130,7 +131,6 @@ module.exports = {
                 'valid-jsdoc': 'off',
                 'jsdoc/no-types': 'error',
                 'import/no-extraneous-dependencies': 'off',
-                'rulesdir/onyx-props-must-have-default': 'off',
                 'rulesdir/prefer-underscore-method': 'off',
                 'rulesdir/prefer-import-module-contents': 'off',
                 'react/require-default-props': 'off',
