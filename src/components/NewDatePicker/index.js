@@ -56,6 +56,13 @@ class NewDatePicker extends React.Component {
         this.defaultValue = props.defaultValue ? moment(props.defaultValue).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.value === this.props.value) {
+            return;
+        }
+        this.setDate(this.props.value);
+    }
+
     /**
      * Trigger the `onInputChange` handler when the user input has a complete date or is cleared
      * @param {string} selectedDate
