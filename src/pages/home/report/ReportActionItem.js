@@ -442,7 +442,7 @@ function ReportActionItem(props) {
             return (
                 <MoneyReportView
                     report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                 />
             );
         }
