@@ -10,6 +10,7 @@ import styles from '../../../styles/styles';
 import compose from '../../../libs/compose';
 import themeColors from '../../../styles/themes/default';
 import * as StyleUtils from '../../../styles/StyleUtils';
+import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
@@ -327,7 +328,7 @@ function ReportActionItemMessageEdit(props) {
                         hasExceededMaxCommentLength && styles.borderColorDanger,
                     ]}
                 >
-                    <View style={styles.textInputComposeSpacing}>
+                    <View style={containerComposeStyles}>
                         <Composer
                             multiline
                             ref={(el) => {
@@ -360,7 +361,7 @@ function ReportActionItemMessageEdit(props) {
                                 }
                                 openReportActionComposeViewWhenClosingMessageEdit();
                             }}
-                            selection={!isFocused ? undefined : selection}
+                            selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                         />
                     </View>

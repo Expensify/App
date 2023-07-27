@@ -4,7 +4,7 @@
  * @returns {Boolean}
  */
 function hasHoverSupport() {
-    return !window.matchMedia('(hover: none)').matches;
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 }
 
 export default hasHoverSupport;
