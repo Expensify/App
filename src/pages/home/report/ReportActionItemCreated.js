@@ -19,7 +19,6 @@ import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
-import useLocalize from '../../../hooks/useLocalize';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import CONST from '../../../CONST';
 
@@ -52,7 +51,6 @@ const defaultProps = {
 
 function ReportActionItemCreated(props) {
     const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
-    const {translate} = useLocalize();
 
     const IMAGE_OFFSET_X = windowWidth / 2;
     const IMAGE_OFFSET_Y = 75;
@@ -96,15 +94,15 @@ function ReportActionItemCreated(props) {
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
         >
-            <View style={StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth)}>
+            <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <Animated.Image
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
                     style={[StyleUtils.getReportWelcomeBackgroundImageStyle(props.isSmallScreenWidth), animatedStyles]}
                 />
                 <View
-                    accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
-                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(isSmallScreenWidth)]}
+                    accessibilityLabel={props.translate('accessibilityHints.chatWelcomeMessage')}
+                    style={[styles.p5, StyleUtils.getReportWelcomeTopMarginStyle(props.isSmallScreenWidth)]}
                 >
                     <PressableWithoutFeedback
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
