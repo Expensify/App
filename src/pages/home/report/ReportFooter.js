@@ -45,7 +45,7 @@ const propTypes = {
     shouldDisableCompose: PropTypes.bool,
 
     /** Unique id for nativeId in DragAndDrop */
-    dragAndDropId: PropTypes.string.isRequired,
+    dragAndDropID: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,
 };
@@ -95,7 +95,7 @@ function ReportFooter(props) {
                             pendingAction={props.pendingAction}
                             isComposerFullSize={props.isComposerFullSize}
                             disabled={props.shouldDisableCompose}
-                            dragAndDropId={props.dragAndDropId}
+                            dragAndDropID={props.dragAndDropID}
                         />
                     </SwipeableView>
                 </View>

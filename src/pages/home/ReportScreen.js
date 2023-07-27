@@ -38,6 +38,7 @@ import MoneyReportHeader from '../../components/MoneyReportHeader';
 import * as ComposerActions from '../../libs/actions/Composer';
 import ReportScreenContext from './ReportScreenContext';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
+import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -139,7 +140,7 @@ class ReportScreen extends React.Component {
         this.reactionListRef = React.createRef();
 
         // We need unique ID for drag and drop to work properly with stack navigator.
-        this.dragAndDropId = CONST.REPORT.DROP_NATIVE_ID + ReportUtils.generateReportID();
+        this.dragAndDropID = CONST.REPORT.DROP_NATIVE_ID + ReportUtils.generateReportID();
     }
 
     componentDidMount() {
@@ -349,67 +350,70 @@ class ReportScreen extends React.Component {
                                 shouldShowCloseButton
                             />
                         )}
-                        <View
-                            nativeID={this.dragAndDropId}
-                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                            onLayout={(event) => {
-                                // Rounding this value for comparison because they can look like this: 411.9999694824219
-                                const skeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
-
-                                // Only set state when the height changes to avoid unnecessary renders
-                                if (reportActionsListViewHeight === skeletonViewContainerHeight) return;
-
-                                // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
-                                // takes up so we can set the skeleton view container height.
-                                if (skeletonViewContainerHeight === 0) {
-                                    return;
-                                }
-                                reportActionsListViewHeight = skeletonViewContainerHeight;
-                                this.setState({skeletonViewContainerHeight});
-                            }}
+                        <DragAndDropProvider
+                            dropZoneID={this.dragAndDropID}
+                            dropZoneHostName={CONST.REPORT.DROP_HOST_NAME}
+                            isDisabled={!this.isReportReadyForDisplay()}
                         >
-                            {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading && (
-                                <ReportActionsView
-                                    reportActions={this.props.reportActions}
-                                    report={this.props.report}
-                                    isComposerFullSize={this.props.isComposerFullSize}
-                                    parentViewHeight={this.state.skeletonViewContainerHeight}
-                                    policy={policy}
-                                />
-                            )}
+                            <View
+                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                onLayout={(event) => {
+                                    // Rounding this value for comparison because they can look like this: 411.9999694824219
+                                    const skeletonViewContainerHeight = Math.round(event.nativeEvent.layout.height);
 
-                            {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
-                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
-                            {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
-                                <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
-                            )}
+                                    // Only set state when the height changes to avoid unnecessary renders
+                                    if (reportActionsListViewHeight === skeletonViewContainerHeight) return;
 
-                            {this.isReportReadyForDisplay() && (
-                                <>
-                                    <ReportFooter
-                                        errors={addWorkspaceRoomOrChatErrors}
-                                        pendingAction={addWorkspaceRoomOrChatPendingAction}
-                                        isOffline={this.props.network.isOffline}
+                                    // The height can be 0 if the component unmounts - we are not interested in this value and want to know how much space it
+                                    // takes up so we can set the skeleton view container height.
+                                    if (skeletonViewContainerHeight === 0) {
+                                        return;
+                                    }
+                                    reportActionsListViewHeight = skeletonViewContainerHeight;
+                                    this.setState({skeletonViewContainerHeight});
+                                }}
+                            >
+                                {this.isReportReadyForDisplay() && !isLoadingInitialReportActions && !isLoading && (
+                                    <ReportActionsView
                                         reportActions={this.props.reportActions}
                                         report={this.props.report}
                                         isComposerFullSize={this.props.isComposerFullSize}
-                                        onSubmitComment={this.onSubmitComment}
-                                        policies={this.props.policies}
-                                        dragAndDropId={this.dragAndDropId}
+                                        parentViewHeight={this.state.skeletonViewContainerHeight}
+                                        policy={policy}
                                     />
-                                </>
-                            )}
+                                )}
 
-                            {!this.isReportReadyForDisplay() && (
-                                <ReportFooter
-                                    shouldDisableCompose
-                                    isOffline={this.props.network.isOffline}
-                                    dragAndDropId={this.dragAndDropId}
-                                />
-                            )}
+                                {/* Note: The report should be allowed to mount even if the initial report actions are not loaded. If we prevent rendering the report while they are loading then
+                            we'll unnecessarily unmount the ReportActionsView which will clear the new marker lines initial state. */}
+                                {(!this.isReportReadyForDisplay() || isLoadingInitialReportActions || isLoading) && (
+                                    <ReportActionsSkeletonView containerHeight={this.state.skeletonViewContainerHeight} />
+                                )}
 
-                            <PortalHost name={CONST.REPORT.DROP_HOST_NAME} />
-                        </View>
+                                {this.isReportReadyForDisplay() && (
+                                    <>
+                                        <ReportFooter
+                                            errors={addWorkspaceRoomOrChatErrors}
+                                            pendingAction={addWorkspaceRoomOrChatPendingAction}
+                                            isOffline={this.props.network.isOffline}
+                                            reportActions={this.props.reportActions}
+                                            report={this.props.report}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                            onSubmitComment={this.onSubmitComment}
+                                            policies={this.props.policies}
+                                            dragAndDropID={this.dragAndDropID}
+                                        />
+                                    </>
+                                )}
+
+                                {!this.isReportReadyForDisplay() && (
+                                    <ReportFooter
+                                        shouldDisableCompose
+                                        isOffline={this.props.network.isOffline}
+                                        dragAndDropID={this.dragAndDropID}
+                                    />
+                                )}
+                            </View>
+                        </DragAndDropProvider>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
             </ReportScreenContext.Provider>
