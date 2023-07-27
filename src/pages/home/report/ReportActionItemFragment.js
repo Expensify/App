@@ -157,11 +157,7 @@ function ReportActionItemFragment(props) {
                 <UserDetailsTooltip
                     accountID={props.accountID}
                     delegateAccountID={props.delegateAccountID}
-                    fallbackUserDetails={{
-                        type: props.actorIcon.type,
-                        avatar: props.actorIcon.source,
-                        displayName: props.actorIcon.name,
-                    }}
+                    icon={props.actorIcon}
                 >
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
