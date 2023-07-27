@@ -436,9 +436,11 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                 description: report.description,
                 assignee: report.managerEmail,
                 assigneeAccountID: report.managerID,
-                ...(title && {reportName: null}),
-                ...(description && {description: null}),
-                ...(assigneeAccountID && {managerID: null}),
+                pendingFields: {
+                    ...(title && {reportName: null}),
+                    ...(description && {description: null}),
+                    ...(assigneeAccountID && {managerID: null}),
+                },
             },
         },
     ];
