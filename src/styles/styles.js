@@ -525,6 +525,11 @@ const styles = {
         textAlign: 'center',
     },
 
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
+    },
+
     buttonSuccess: {
         backgroundColor: themeColors.success,
         borderWidth: 0,
@@ -3424,6 +3429,11 @@ const styles = {
 
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+
+    formSpaceVertical: {
+        height: 20,
+        width: 1,
     },
 
     taskCheckbox: {

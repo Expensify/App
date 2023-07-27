@@ -1502,6 +1502,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        deletedRequest: '[Deleted request]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
@@ -1534,5 +1535,11 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Search to see options',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Search to see options',
     },
 };

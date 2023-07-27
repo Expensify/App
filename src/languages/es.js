@@ -1973,6 +1973,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        deletedRequest: '[Pedido eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
@@ -2005,5 +2006,11 @@ export default {
         levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
     },
 };
