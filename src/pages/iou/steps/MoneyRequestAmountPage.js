@@ -280,7 +280,6 @@ function MoneyRequestAmountPage(props) {
             setSelectedCurrencyCode(props.route.params.currency);
             return;
         }
-
         setSelectedCurrencyCode(props.iou.currency);
     }, [props.route.params.currency, props.iou.currency]);
 
