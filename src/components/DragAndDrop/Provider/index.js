@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
 import {PortalHost} from '@gorhom/portal';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
 import DNDUtils from '../Utils';
 import styles from '../../../styles/styles';
@@ -33,13 +32,11 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
     );
 
     const isFocused = useIsFocused();
-    const {windowWidth, windowHeight} = useWindowDimensions();
 
     const dropZone = useRef(null);
     const dragCounter = useRef(0);
 
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const [dropZoneRect, setDropZoneRect] = useState({});
 
     // If this component is out of focus or disabled, reset the drag state back to the default
     useEffect(() => {
@@ -49,27 +46,6 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
         dragCounter.current = 0;
         setIsDraggingOver(false);
     }, [isFocused, isDisabled]);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const measureDropZone = useCallback(
-        _.throttle(() => {
-            if (!dropZone.current) {
-                return;
-            }
-            dropZone.current.measureInWindow((x, y, width, height) => {
-                setDropZoneRect({
-                    left: x,
-                    top: y,
-                    right: x + width,
-                    bottom: y + height,
-                });
-            });
-        }, 100),
-        [],
-    );
-
-    // Remeasure the position of the drop zone when the window resizes
-    useEffect(measureDropZone, [windowWidth, windowHeight, measureDropZone]);
 
     /**
      * Handles all types of drag-N-drop events on the drop zone associated with composer
@@ -146,10 +122,9 @@ function DragAndDropProvider({children, dropZoneID, dropZoneHostName, isDisabled
     }, [dropZoneDragHandler]);
 
     return (
-        <DragAndDropContext.Provider value={{isDraggingOver, dropZoneRect}}>
+        <DragAndDropContext.Provider value={{isDraggingOver}}>
             <View
                 ref={(e) => (dropZone.current = e)}
-                onLayout={measureDropZone}
                 style={styles.flex1}
             >
                 <View style={[styles.fullScreen, styles.invisibleOverlay]}>
