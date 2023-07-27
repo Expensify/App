@@ -97,8 +97,6 @@ function MoneyRequestSelectorPage(props) {
         Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
     };
 
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
-
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>

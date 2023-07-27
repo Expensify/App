@@ -3636,28 +3636,29 @@ const styles = {
     },
 
     tabSelectorButton: (isSelected) => ({
+        height: 40,
         padding: 12,
         flexDirection: 'row',
+        alignItems: 'center',
         borderRadius: variables.buttonBorderRadius,
         backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
     }),
 
     tabSelector: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
         paddingHorizontal: 20,
         paddingBottom: 12,
     },
 
     tabSelected: {
-        marginHorizontal: 12,
+        marginHorizontal: 8,
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.textLight,
     },
 
     tabDeselected: {
-        marginHorizontal: 12,
+        marginHorizontal: 8,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.EXP_NEUE,
     },
