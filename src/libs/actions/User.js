@@ -18,6 +18,7 @@ import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as Session from './Session';
 import * as PersonalDetails from './PersonalDetails';
+import * as MemoryOnlyKeys from './MemoryOnlyKeys/MemoryOnlyKeys';
 
 let currentUserAccountID = '';
 let currentEmail = '';
@@ -568,6 +569,19 @@ function subscribeToUserEvents() {
             if (!currentUserAccountID) {
                 return;
             }
+
+            // If there is an OnyxUpdate for using memory only keys, enable or disable the memory only keys according to the value.
+            _.each(pushJSON, ({key, val}) => {
+                if (key !== ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS) {
+                    return;
+                }
+                if (val) {
+                    MemoryOnlyKeys.enable();
+                } else {
+                    MemoryOnlyKeys.disable();
+                }
+            });
+
             Onyx.update(pushJSON);
             triggerNotifications(pushJSON);
         });
