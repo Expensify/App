@@ -819,9 +819,19 @@ function generatePolicyID() {
         .toUpperCase();
 }
 
+/**
+ * Returns a client generated 13 character hexadecimal value for a custom unit ID
+ * @returns {String}
+ */
+function generateCustomUnitID() {
+    return _.times(13, () => Math.floor(Math.random() * 13).toString(13))
+        .join('')
+        .toUpperCase();
+}
+
 function buildOptimisticCustomUnits() {
-    const customUnitID = ReportUtils.generateReportID();
-    const customUnitRateID = ReportUtils.generateReportID();
+    const customUnitID = generateCustomUnitID();
+    const customUnitRateID = generateCustomUnitID();
     const customUnits = {
         [customUnitID]: {
             customUnitID,
