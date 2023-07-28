@@ -110,7 +110,6 @@ function ReceiptSelector(props) {
 
     const [permissions, setPermissions] = useState('authorized');
 
-    const iouType = useRef(lodashGet(props, 'iou.iouType', ''));
     const reportID = useRef(lodashGet(props, 'currentReportID', ''));
 
     const {translate} = useLocalize();
