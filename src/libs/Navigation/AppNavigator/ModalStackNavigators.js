@@ -471,21 +471,21 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsWalletPage = require('../../../pages/settings/Wallet/WalletPage').default;
             return SettingsWalletPage;
         },
-        name: 'Settings_Payments',
+        name: 'Settings_Wallet',
     },
     {
         getComponent: () => {
             const TransferBalancePage = require('../../../pages/settings/Wallet/TransferBalancePage').default;
             return TransferBalancePage;
         },
-        name: 'Settings_Payments_Transfer_Balance',
+        name: 'Settings_Wallet_Transfer_Balance',
     },
     {
         getComponent: () => {
             const ChooseTransferAccountPage = require('../../../pages/settings/Wallet/ChooseTransferAccountPage').default;
             return ChooseTransferAccountPage;
         },
-        name: 'Settings_Payments_Choose_Transfer_Account',
+        name: 'Settings_Wallet_Choose_Transfer_Account',
     },
     {
         getComponent: () => {
@@ -499,7 +499,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const EnablePaymentsPage = require('../../../pages/EnablePayments/EnablePaymentsPage').default;
             return EnablePaymentsPage;
         },
-        name: 'Settings_Payments_EnablePayments',
+        name: 'Settings_Wallet_EnablePayments',
     },
     {
         getComponent: () => {

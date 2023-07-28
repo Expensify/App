@@ -37,7 +37,7 @@ function ChooseTransferAccountPage(props) {
      */
     const selectAccountAndNavigateBack = (event, accountType, account) => {
         PaymentMethods.saveWalletTransferAccountTypeAndID(accountType, accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? account.bankAccountID : account.fundID);
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
+        Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
     /**

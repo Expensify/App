@@ -66,19 +66,19 @@ export default {
                                 path: ROUTES.SETTINGS_SECURITY,
                                 exact: true,
                             },
-                            Settings_Payments: {
+                            Settings_Wallet: {
                                 path: ROUTES.SETTINGS_WALLET,
                                 exact: true,
                             },
-                            Settings_Payments_EnablePayments: {
+                            Settings_Wallet_EnablePayments: {
                                 path: ROUTES.SETTINGS_ENABLE_PAYMENTS,
                                 exact: true,
                             },
-                            Settings_Payments_Transfer_Balance: {
+                            Settings_Wallet_Transfer_Balance: {
                                 path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                                 exact: true,
                             },
-                            Settings_Payments_Choose_Transfer_Account: {
+                            Settings_Wallet_Choose_Transfer_Account: {
                                 path: ROUTES.SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT,
                                 exact: true,
                             },
