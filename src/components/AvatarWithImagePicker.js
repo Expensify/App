@@ -103,7 +103,7 @@ class AvatarWithImagePicker extends React.Component {
     constructor(props) {
         super(props);
         this.animation = new SpinningIndicatorAnimation();
-        this.setErrorName = this.setErrorName.bind(this);
+        this.setError = this.setError.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
         this.showAvatarCropModal = this.showAvatarCropModal.bind(this);
         this.hideAvatarCropModal = this.hideAvatarCropModal.bind(this);
@@ -139,10 +139,10 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
-     * @param {String} prompt
+     * @param {String} error
      */
-    setErrorName(prompt) {
-        this.setState({shoudShowValidationError: true, validationError: prompt});
+    setError(error) {
+        this.setState({shoudShowValidationError: true, validationError: error});
     }
 
     /**
@@ -189,17 +189,17 @@ class AvatarWithImagePicker extends React.Component {
      */
     showAvatarCropModal(image) {
         if (!this.isValidExtension(image)) {
-            this.setErrorName(this.props.translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}));
+            this.setError(this.props.translate('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS}));
             return;
         }
         if (!this.isValidSize(image)) {
-            this.setErrorName(this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}));
+            this.setError(this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)}));
             return;
         }
 
         this.isValidResolution(image).then((isValidResolution) => {
             if (!isValidResolution) {
-                this.setErrorName(
+                this.setError(
                     this.props.translate('avatarWithImagePicker.resolutionConstraints', {
                         minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
                         minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
