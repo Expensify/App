@@ -4,11 +4,11 @@ import dragAndDropConsumerPropTypes from './dragAndDropConsumerPropTypes';
 import {DragAndDropContext} from '../Provider';
 
 function DragAndDropConsumer({children, onDrop}) {
-    const {isDraggingOver, setOnDropListener, dropZoneID} = useContext(DragAndDropContext);
+    const {isDraggingOver, setOnDropHandler, dropZoneID} = useContext(DragAndDropContext);
 
     useEffect(() => {
-        setOnDropListener(onDrop);
-    }, [onDrop, setOnDropListener]);
+        setOnDropHandler(onDrop);
+    }, [onDrop, setOnDropHandler]);
 
     if (!isDraggingOver) {
         return null;

@@ -21,20 +21,20 @@ function DragAndDropProvider({children, isDisabled = false}) {
     const dropZone = useRef(null);
     const dropZoneID = useRef(Str.guid('drag-n-drop'));
 
-    const onDropListener = useRef(() => {});
-    const setOnDropListener = useCallback((callback) => {
-        onDropListener.current = callback;
+    const onDropHandler = useRef(() => {});
+    const setOnDropHandler = useCallback((callback) => {
+        onDropHandler.current = callback;
     }, []);
 
     const {isDraggingOver} = useDragAndDrop({
         dropZone,
-        onDrop: onDropListener.current,
+        onDrop: onDropHandler.current,
         shouldAcceptDrop,
         isDisabled,
     });
 
     return (
-        <DragAndDropContext.Provider value={{isDraggingOver, setOnDropListener, dropZoneID: dropZoneID.current}}>
+        <DragAndDropContext.Provider value={{isDraggingOver, setOnDropHandler, dropZoneID: dropZoneID.current}}>
             <View
                 ref={(e) => (dropZone.current = e)}
                 style={[styles.flex1, styles.w100, styles.h100]}
