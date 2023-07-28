@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import * as Report from '../../libs/actions/Report';
 import useLocalize from '../../hooks/useLocalize';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import ButtonToggleNewChat from '../../components/ButtonToggle/ButtonToggleNewChat';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import styles from '../../styles/styles';
 import RoomNameInput from '../../components/RoomNameInput';
@@ -146,6 +147,7 @@ function WorkspaceNewRoomPage(props) {
         >
             <FullPageNotFoundView shouldShow={!Permissions.canUsePolicyRooms(props.betas) || !workspaceOptions.length}>
                 <HeaderWithBackButton title={translate('newRoomPage.newRoom')} />
+                <ButtonToggleNewChat activeToggle="room" />
                 <Form
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                     submitButtonText={translate('newRoomPage.createRoom')}
