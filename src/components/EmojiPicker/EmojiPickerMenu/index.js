@@ -21,6 +21,7 @@ import * as EmojiUtils from '../../../libs/EmojiUtils';
 import CategoryShortcutBar from '../CategoryShortcutBar';
 import TextInput from '../../TextInput';
 import isEnterWhileComposition from '../../../libs/KeyboardShortcut/isEnterWhileComposition';
+import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -70,6 +71,10 @@ class EmojiPickerMenu extends Component {
         // This is because each row of 8 emojis counts as one index to the flatlist
         this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
 
+        // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
+        // prevent auto focus when open picker for mobile device
+        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
@@ -105,7 +110,7 @@ class EmojiPickerMenu extends Component {
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
+        if (this.shouldFocusInputOnScreenFocus && this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
             this.props.forwardedRef(this.searchInput);
         }
         this.setupEventHandlers();
@@ -395,7 +400,7 @@ class EmojiPickerMenu extends Component {
             this.setFirstNonHeaderIndex(this.emojis);
             return;
         }
-        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.emojis.length);
+        const newFilteredEmojiList = EmojiUtils.suggestEmojis(`:${normalizedSearchTerm}`, this.props.preferredLocale, this.emojis.length);
 
         // Remove sticky header indices. There are no headers while searching and we don't want to make emojis sticky
         this.setState({filteredEmojis: newFilteredEmojiList, headerIndices: [], highlightedIndex: 0});
@@ -426,10 +431,11 @@ class EmojiPickerMenu extends Component {
      * Return a unique key for each emoji item
      *
      * @param {Object} item
+     * @param {Number} index
      * @returns {String}
      */
-    keyExtractor(item) {
-        return `emoji_picker_${item.code}`;
+    keyExtractor(item, index) {
+        return `emoji_picker_${item.code}_${index}`;
     }
 
     /**
@@ -495,10 +501,12 @@ class EmojiPickerMenu extends Component {
                 <View style={[styles.ph4, styles.pb3, styles.pt2]}>
                     <TextInput
                         label={this.props.translate('common.search')}
+                        accessibilityLabel={this.props.translate('common.search')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         onChangeText={this.filterEmojis}
                         defaultValue=""
                         ref={(el) => (this.searchInput = el)}
-                        autoFocus={!this.props.isSmallScreenWidth}
+                        autoFocus={this.shouldFocusInputOnScreenFocus}
                         selectTextOnFocus={this.state.selectTextOnFocus}
                         onSelectionChange={this.onSelectionChange}
                         onFocus={() => this.setState({isFocused: true, highlightedIndex: -1, isUsingKeyboardMovement: false})}
@@ -524,11 +532,7 @@ class EmojiPickerMenu extends Component {
                     onScroll={(e) => (this.currentScrollOffset = e.nativeEvent.contentOffset.y)}
                     getItemLayout={this.getItemLayout}
                     contentContainerStyle={styles.flexGrow1}
-                    ListEmptyComponent={
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.flex1]}>
-                            <Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>
-                        </View>
-                    }
+                    ListEmptyComponent={<Text style={[styles.textLabel, styles.colorMuted]}>{this.props.translate('common.noResultsFound')}</Text>}
                 />
                 <EmojiSkinToneList
                     updatePreferredSkinTone={this.updatePreferredSkinTone}

@@ -60,7 +60,7 @@ function WorkspaceSettingsPage(props) {
             const outputCurrency = values.currency;
             Policy.updateGeneralSettings(props.policy.id, values.name.trim(), outputCurrency);
             Keyboard.dismiss();
-            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.policy.id));
+            Navigation.goBack(ROUTES.getWorkspaceInitialRoute(props.policy.id));
         },
         [props.policy.id, props.policy.isPolicyUpdating],
     );
@@ -128,8 +128,10 @@ function WorkspaceSettingsPage(props) {
                     />
                     <OfflineWithFeedback pendingAction={lodashGet(props.policy, 'pendingFields.generalSettings')}>
                         <TextInput
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             inputID="name"
                             label={props.translate('workspace.editor.nameInputLabel')}
+                            accessibilityLabel={props.translate('workspace.editor.nameInputLabel')}
                             containerStyles={[styles.mt4]}
                             defaultValue={props.policy.name}
                             maxLength={CONST.WORKSPACE_NAME_CHARACTER_LIMIT}

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import AttachmentModal from '../../../components/AttachmentModal';
 import Navigation from '../../../libs/Navigation/Navigation';
 import * as ReportUtils from '../../../libs/ReportUtils';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -30,6 +31,10 @@ function ReportAttachments(props) {
             report={report}
             source={source}
             onModalHide={() => Navigation.dismissModal(reportID)}
+            onCarouselAttachmentChange={(attachment) => {
+                const route = ROUTES.getReportAttachmentRoute(reportID, attachment.source);
+                Navigation.navigate(route);
+            }}
         />
     );
 }

@@ -16,11 +16,12 @@ import ROUTES from '../../ROUTES';
 import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescription';
 import MenuItem from '../../components/MenuItem';
 import reportPropTypes from '../reportPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
+import * as LocalePhoneNumber from '../../libs/LocalePhoneNumber';
 
 const propTypes = {
     /** Task Creation Data */
@@ -49,11 +50,6 @@ const propTypes = {
         }),
     ),
 
-    /** Current user session */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }),
-
     /** All reports shared with the user */
     reports: PropTypes.objectOf(reportPropTypes),
 
@@ -65,7 +61,6 @@ const defaultProps = {
     task: {},
     personalDetails: {},
     reports: {},
-    session: {},
 };
 
 function NewTaskPage(props) {
@@ -73,6 +68,7 @@ function NewTaskPage(props) {
     const [shareDestination, setShareDestination] = React.useState({});
     const [errorMessage, setErrorMessage] = React.useState('');
     const [parentReport, setParentReport] = React.useState({});
+    const shouldClearOutTaskInfoOnUnmount = React.useRef(false);
 
     const isAllowedToCreateTask = useMemo(() => _.isEmpty(parentReport) || ReportUtils.isAllowedToComment(parentReport), [parentReport]);
 
@@ -84,9 +80,9 @@ function NewTaskPage(props) {
         if (props.task.assignee) {
             const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), props.task.assigneeAccountID);
             if (!assigneeDetails) {
-                return setErrorMessage(props.translate('newTaskPage.assigneeError'));
+                return setErrorMessage(props.translate('task.assigneeError'));
             }
-            const displayDetails = TaskUtils.getAssignee(assigneeDetails);
+            const displayDetails = Task.getAssignee(assigneeDetails);
             setAssignee(displayDetails);
         }
 
@@ -94,17 +90,27 @@ function NewTaskPage(props) {
         // this allows us to go ahead and set that report as the share destination
         // and disable the share destination selector
         if (props.task.parentReportID) {
-            TaskUtils.setShareDestinationValue(props.task.parentReportID);
+            Task.setShareDestinationValue(props.task.parentReportID);
         }
 
         // If we have a share destination, we want to set the parent report and
         // the share destination data
         if (props.task.shareDestination) {
             setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
-            const displayDetails = TaskUtils.getShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
+            const displayDetails = Task.getShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
             setShareDestination(displayDetails);
         }
     }, [props]);
+
+    useEffect(
+        () => () => {
+            if (!shouldClearOutTaskInfoOnUnmount.current) {
+                return;
+            }
+            Task.clearOutTaskInfo();
+        },
+        [],
+    );
 
     // On submit, we want to call the createTask function and wait to validate
     // the response
@@ -124,15 +130,8 @@ function NewTaskPage(props) {
             return;
         }
 
-        TaskUtils.createTaskAndNavigate(
-            props.session.email,
-            props.session.accountID,
-            parentReport.reportID,
-            props.task.title,
-            props.task.description,
-            props.task.assignee,
-            props.task.assigneeAccountID,
-        );
+        shouldClearOutTaskInfoOnUnmount.current = true;
+        Task.createTaskAndNavigate(parentReport.reportID, props.task.title, props.task.description, props.task.assignee, props.task.assigneeAccountID);
     }
 
     if (!Permissions.canUseTasks(props.betas)) {
@@ -144,11 +143,11 @@ function NewTaskPage(props) {
         <ScreenWrapper>
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
-                onBackButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                onBackButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
             >
                 <HeaderWithBackButton
                     title={props.translate('newTaskPage.confirmTask')}
-                    onCloseButtonPress={() => TaskUtils.dismissModalAndClearOutTaskInfo()}
+                    onCloseButtonPress={() => Task.dismissModalAndClearOutTaskInfo()}
                     shouldShowBackButton
                     onBackButtonPress={() => {
                         Navigation.goBack(ROUTES.NEW_TASK_DETAILS);
@@ -157,21 +156,23 @@ function NewTaskPage(props) {
                 <View style={[styles.containerWithSpaceBetween]}>
                     <View style={styles.mb5}>
                         <MenuItemWithTopDescription
-                            description={props.translate('newTaskPage.title')}
+                            description={props.translate('task.title')}
                             title={props.task.title || ''}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_TITLE)}
                             shouldShowRightIcon
                         />
                         <MenuItemWithTopDescription
-                            description={props.translate('newTaskPage.description')}
+                            description={props.translate('task.description')}
                             title={props.task.description || ''}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_DESCRIPTION)}
                             shouldShowRightIcon
+                            numberOfLinesTitle={2}
+                            titleStyle={styles.flex1}
                         />
                         <MenuItem
-                            label={assignee.displayName ? props.translate('newTaskPage.assignee') : ''}
+                            label={assignee.displayName ? props.translate('task.assignee') : ''}
                             title={assignee.displayName || ''}
-                            description={assignee.displayName ? assignee.subtitle : props.translate('newTaskPage.assignee')}
+                            description={assignee.displayName ? LocalePhoneNumber.formatPhoneNumber(assignee.subtitle) : props.translate('task.assignee')}
                             icon={assignee.icons}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_ASSIGNEE)}
                             shouldShowRightIcon
@@ -182,7 +183,8 @@ function NewTaskPage(props) {
                             description={shareDestination.displayName ? shareDestination.subtitle : props.translate('newTaskPage.shareSomewhere')}
                             icon={shareDestination.icons}
                             onPress={() => Navigation.navigate(ROUTES.NEW_TASK_SHARE_DESTINATION)}
-                            shouldShowRightIcon
+                            interactive={!props.task.parentReportID}
+                            shouldShowRightIcon={!props.task.parentReportID}
                         />
                     </View>
                     <FormAlertWithSubmitButton
@@ -216,9 +218,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
     withLocalize,

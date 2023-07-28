@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
-index 2f48f9e..6418c76 100644
+index 2f48f9e..ac7a416 100644
 --- a/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
 +++ b/node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js
 @@ -65,6 +65,7 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
@@ -33,13 +33,13 @@ index 2f48f9e..6418c76 100644
        await this._updateBottomIfNecessary();
      }
  
-@@ -127,20 +130,31 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+@@ -127,20 +130,32 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
      }
    };
  
 +  // Avoid unnecessary renders if the KeyboardAvoidingView is disabled.
 +  _setBottom = (value: number) => {
-+    const {enabled = true} = this.props;
++    const enabled = this.props.enabled ?? true;
 +    this._bottom = value;
 +    if (enabled) {
 +      this.setState({bottom: value});
@@ -64,11 +64,12 @@ index 2f48f9e..6418c76 100644
 -    if (duration && easing) {
 +    this._setBottom(height);
 +
++    const enabled = this.props.enabled ?? true;
 +    if (enabled && duration && easing) {
        LayoutAnimation.configureNext({
          // We have to pass the duration equal to minimal accepted duration defined here: RCTLayoutAnimation.m
          duration: duration > 10 ? duration : 10,
-@@ -150,9 +164,15 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
+@@ -150,9 +165,15 @@ class KeyboardAvoidingView extends React.Component<Props, State> {
          },
        });
      }
@@ -76,7 +77,7 @@ index 2f48f9e..6418c76 100644
    };
  
 +  componentDidUpdate(_: Props, prevState: State): void {
-+    const {enabled = true} = this.props;
++    const enabled = this.props.enabled ?? true;
 +    if (enabled && this._bottom !== prevState.bottom) {
 +      this.setState({bottom: this._bottom});
 +    }

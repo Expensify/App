@@ -22,14 +22,6 @@ function canUseChronos(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseIOU(betas) {
-    return _.contains(betas, CONST.BETAS.IOU) || canUseAllBetas(betas);
-}
-
-/**
- * @param {Array<String>} betas
- * @returns {Boolean}
- */
 function canUsePayWithExpensify(betas) {
     return _.contains(betas, CONST.BETAS.PAY_WITH_EXPENSIFY) || canUseAllBetas(betas);
 }
@@ -90,21 +82,20 @@ function canUsePolicyExpenseChat(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUsePasswordlessLogins(betas) {
-    return _.contains(betas, CONST.BETAS.PASSWORDLESS) || canUseAllBetas(betas);
+function canUseTasks(betas) {
+    return _.contains(betas, CONST.BETAS.TASKS) || canUseAllBetas(betas);
 }
 
 /**
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseTasks(betas) {
-    return _.contains(betas, CONST.BETAS.TASKS) || canUseAllBetas(betas);
+function canUseScanReceipts(betas) {
+    return _.contains(betas, CONST.BETAS.SCAN_RECEIPTS) || canUseAllBetas(betas);
 }
 
 export default {
     canUseChronos,
-    canUseIOU,
     canUsePayWithExpensify,
     canUseDefaultRooms,
     canUseIOUSend,
@@ -112,6 +103,6 @@ export default {
     canUseCommentLinking,
     canUsePolicyRooms,
     canUsePolicyExpenseChat,
-    canUsePasswordlessLogins,
     canUseTasks,
+    canUseScanReceipts,
 };

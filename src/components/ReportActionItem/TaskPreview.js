@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -16,11 +17,16 @@ import getButtonState from '../../libs/getButtonState';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
+import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
+import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 const propTypes = {
+    /** All personal details asssociated with user */
+    personalDetailsList: personalDetailsPropType,
+
     /** The ID of the associated taskReport */
     taskReportID: PropTypes.string.isRequired,
 
@@ -36,17 +42,18 @@ const propTypes = {
         /** Title of the task */
         reportName: PropTypes.string,
 
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
+        /** AccountID of the manager in this iou report */
+        managerID: PropTypes.number,
 
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
+        /** AccountID of the creator of this iou report */
+        ownerAccountID: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    personalDetailsList: {},
     taskReport: {},
     isHovered: false,
 };
@@ -59,7 +66,10 @@ function TaskPreview(props) {
         ? props.taskReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.taskReport.statusNum === CONST.REPORT.STATUS.APPROVED
         : props.action.childStateNum === CONST.REPORT.STATE_NUM.SUBMITTED && props.action.childStatusNum === CONST.REPORT.STATUS.APPROVED;
     const taskTitle = props.taskReport.reportName || props.action.childReportName;
-    const taskAssignee = props.taskReport.managerEmail || props.action.childManagerEmail;
+    const taskAssigneeAccountID = Task.getTaskAssigneeAccountID(props.taskReport) || props.action.childManagerAccountID;
+    const assigneeLogin = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'login'], '');
+    const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
+    const taskAssignee = assigneeLogin || assigneeDisplayName;
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
 
     return (
@@ -68,22 +78,22 @@ function TaskPreview(props) {
                 onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
                 style={[styles.flexRow, styles.justifyContentBetween]}
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                accessibilityLabel={props.translate('newTaskPage.task')}
+                accessibilityLabel={props.translate('task.task')}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
                     <Checkbox
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
                         isChecked={isTaskCompleted}
-                        disabled={TaskUtils.isTaskCanceled(props.taskReport)}
+                        disabled={ReportUtils.isCanceledTaskReport(props.taskReport)}
                         onPress={() => {
                             if (isTaskCompleted) {
-                                TaskUtils.reopenTask(props.taskReportID, taskTitle);
+                                Task.reopenTask(props.taskReportID, taskTitle);
                             } else {
-                                TaskUtils.completeTask(props.taskReportID, taskTitle);
+                                Task.completeTask(props.taskReportID, taskTitle);
                             }
                         }}
-                        accessibilityLabel={props.translate('newTaskPage.task')}
+                        accessibilityLabel={props.translate('task.task')}
                     />
                     <RenderHTML html={htmlForTaskPreview} />
                 </View>
@@ -105,6 +115,9 @@ export default compose(
     withOnyx({
         taskReport: {
             key: ({taskReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
+        },
+        personalDetailsList: {
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
         },
     }),
 )(TaskPreview);
