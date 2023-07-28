@@ -101,6 +101,7 @@ function Form(props) {
     const inputRefs = useRef({});
     const touchedInputs = useRef({});
     const isFirstRender = useRef(true);
+    const lastValidatedValues = useRef({...props.draftValues});
 
     const {validate, onSubmit, children} = props;
 
@@ -145,6 +146,8 @@ function Form(props) {
             if (!_.isEqual(errors, touchedInputErrors)) {
                 setErrors(touchedInputErrors);
             }
+
+            lastValidatedValues.current = values;
 
             return touchedInputErrors;
         },
@@ -261,7 +264,7 @@ function Form(props) {
 
                 // We want to initialize the input value if it's undefined
                 if (_.isUndefined(inputValues[inputID])) {
-                    inputValues[inputID] = defaultValue;
+                    inputValues[inputID] = defaultValue || '';
                 }
 
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
@@ -293,6 +296,9 @@ function Form(props) {
                         }
                     },
                     value: inputValues[inputID],
+                    // As the text input is controlled, we never set the defaultValue prop
+                    // as this is already happening by the value prop.
+                    defaultValue: undefined,
                     errorText: errors[inputID] || fieldErrorMessage,
                     onBlur: (event) => {
                         // We delay the validation in order to prevent Checkbox loss of focus when
@@ -300,7 +306,12 @@ function Form(props) {
                         // web and mobile web platforms.
                         setTimeout(() => {
                             setTouchedInput(inputID);
-                            onValidate(inputValues);
+
+                            // To prevent server errors from being cleared inadvertently, we only run validation on blur if any form values have changed since the last validation/submit
+                            const shouldValidate = !_.isEqual(inputValues, lastValidatedValues.current);
+                            if (shouldValidate) {
+                                onValidate(inputValues);
+                            }
                         }, 200);
 
                         if (_.isFunction(child.props.onBlur)) {
@@ -326,7 +337,7 @@ function Form(props) {
                         }
 
                         if (child.props.onValueChange) {
-                            child.props.onValueChange(value);
+                            child.props.onValueChange(value, inputKey);
                         }
                     },
                 });

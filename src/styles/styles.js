@@ -526,6 +526,11 @@ const styles = {
         textAlign: 'center',
     },
 
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
+    },
+
     buttonSuccess: {
         backgroundColor: themeColors.success,
         borderWidth: 0,
@@ -2404,11 +2409,6 @@ const styles = {
         padding: 20,
     },
 
-    pageWrapperNotCentered: {
-        width: '100%',
-        padding: 20,
-    },
-
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -3208,52 +3208,22 @@ const styles = {
         marginLeft: 6,
     },
 
-    fullScreenTransparentOverlay: {
+    fullScreen: {
         position: 'absolute',
-        width: '100%',
-        height: '100%',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
+    },
+
+    invisibleOverlay: {
+        backgroundColor: themeColors.transparent,
+        zIndex: 1000,
+    },
+
+    reportDropOverlay: {
         backgroundColor: themeColors.dropUIBG,
         zIndex: 2,
-    },
-
-    dropZoneTopInvisibleOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.dropTransparentOverlay,
-        zIndex: 1000,
-    },
-
-    receiptTransparentOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.receiptDropUIBG,
-        zIndex: 2,
-    },
-
-    receiptDropZoneTopInvisibleOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.dropTransparentOverlay,
-        zIndex: 1000,
     },
 
     cardSection: {
@@ -3505,6 +3475,11 @@ const styles = {
 
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+
+    formSpaceVertical: {
+        height: 20,
+        width: 1,
     },
 
     taskCheckbox: {

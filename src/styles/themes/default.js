@@ -18,6 +18,7 @@ const darkTheme = {
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.greenSupportingText,
     text: colors.white,
+    textColorfulBackground: colors.ivory,
     link: colors.blueLink,
     linkHover: colors.blueLinkHover,
     buttonDefaultBG: colors.greenDefaultButton,
@@ -83,6 +84,7 @@ const darkTheme = {
 darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+    [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
 };
 
 const oldTheme = {
@@ -122,7 +124,6 @@ const oldTheme = {
     heroCard: colors.blue,
     uploadPreviewActivityIndicator: colors.gray1,
     dropUIBG: 'rgba(6,27,9,0.92)',
-    dropTransparentOverlay: 'rgba(255,255,255,0)',
     cardBG: colors.gray1,
     cardBorder: colors.gray1,
     checkBox: colors.blue,
