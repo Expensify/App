@@ -238,6 +238,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         // Store the new notification ID so we can replace the notification if this conversation
         // receives more messages
         notificationData.prevNotificationID = notificationID;
+
+        NotificationCache.setNotificationData(reportID, notificationData);
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.expensify.chat.customairshipextender;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -8,7 +9,13 @@ import android.util.Base64;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
+import com.expensify.chat.MainApplication;
+
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,9 +44,23 @@ public class NotificationCache {
      */
     public static void setNotificationData(long reportID, NotificationData data) {
         cache.put(Long.toString(reportID), data);
+        writeToInternalStorage();
     }
 
     private static void writeToInternalStorage() {
+        Context context = MainApplication.getContext();
+        try {
+            File outputFile = new File(context.getFilesDir(), "notification-cache");
+            FileOutputStream fos = new FileOutputStream(outputFile);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+            oos.writeObject(cache);
+
+            oos.close();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static class NotificationData implements Serializable {
