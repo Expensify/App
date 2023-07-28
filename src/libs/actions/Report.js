@@ -587,6 +587,7 @@ function navigateToAndOpenChildReport(childReportID = '0', parentReportAction = 
             false,
             '',
             undefined,
+            undefined,
             CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
             parentReportAction.reportActionID,
             parentReportID,
