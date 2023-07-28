@@ -1,6 +1,5 @@
 import React, {forwardRef} from 'react';
 import BaseOptionsSelector from './BaseOptionsSelector';
-import withWindowDimensions from '../withWindowDimensions';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const OptionsSelector = forwardRef((props, ref) => {
