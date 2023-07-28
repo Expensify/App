@@ -17,10 +17,7 @@ const propTypes = {
 function ReportDropUI({onDrop}) {
     const {translate} = useLocalize();
     return (
-        <DragAndDropConsumer
-            dropZoneID={CONST.REPORT.DROP_ZONE_ID}
-            onDrop={onDrop}
-        >
+        <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.reportDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <View style={styles.mb3}>
                     <Icon

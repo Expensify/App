@@ -347,10 +347,7 @@ class ReportScreen extends React.Component {
                                 shouldShowCloseButton
                             />
                         )}
-                        <DragAndDropProvider
-                            dropZoneID={CONST.REPORT.DROP_ZONE_ID}
-                            isDisabled={!this.isReportReadyForDisplay()}
-                        >
+                        <DragAndDropProvider isDisabled={!this.isReportReadyForDisplay()}>
                             <View
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 onLayout={(event) => {
