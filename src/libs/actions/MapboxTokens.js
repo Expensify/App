@@ -78,7 +78,7 @@ const init = () => {
 
     // When the app becomes active (eg. after being in the background), check if the token has expired.
     AppState.addEventListener('change', (nextAppState) => {
-        if (nextAppState !== CONST.APP_STATE.ACTIVE || !hasTokenExpired()) {
+        if (nextAppState !== CONST.APP_STATE.ACTIVE || !currentToken || !hasTokenExpired()) {
             return;
         }
         console.debug('[MapboxTokens] Token is expired after app became active');
