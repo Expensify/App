@@ -73,7 +73,9 @@ function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullRepor
     const isFocused = !shouldDisableFocusOptions && currentReportID === reportID;
 
     const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
-    const parentReportAction = parentReportActions[fullReport.parentReportActionID];
+
+    const parentReportAction = useMemo(() => parentReportActions[fullReport.parentReportActionID], [parentReportActions, fullReport.parentReportActionID]);
+
     const optionItemRef = useRef();
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
