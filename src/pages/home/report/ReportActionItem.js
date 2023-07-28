@@ -162,8 +162,7 @@ function ReportActionItem(props) {
 
     // Hide the message if it is being moderated for a higher offense, or is hidden by a moderator
     // Removed messages should not be shown anyway and should not need this flow
-    const decisions = lodashGet(props, ['action', 'message', 0, 'moderationDecisions'], []);
-    const latestDecision = lodashGet(_.last(decisions), 'decision', '');
+    const latestDecision = lodashGet(props, ['action', 'message', 0, 'moderationDecision', 'decision'], '');
     useEffect(() => {
         if (props.action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT) {
             return;
@@ -176,10 +175,12 @@ function ReportActionItem(props) {
             return;
         }
 
-        if (_.contains([CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE, CONST.MODERATION.MODERATOR_DECISION_HIDDEN], latestDecision)) {
-            setIsHidden(true);
-        }
         setModerationDecision(latestDecision);
+        if (!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], latestDecision)) {
+            setIsHidden(true);
+            return;
+        }
+        setIsHidden(false);
     }, [latestDecision, props.action.actionName]);
 
     const toggleContextMenuFromActiveReportAction = useCallback(() => {

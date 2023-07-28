@@ -1502,6 +1502,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        deletedRequest: '[Deleted request]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {

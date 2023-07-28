@@ -259,6 +259,10 @@ function isCurrentUserSubmitter(reportID) {
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction, reportID) {
+    const isActionOwner = reportAction.actorAccountID === currentUserAccountID;
+    if (isActionOwner && ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID)) {
+        return true;
+    }
     if (
         reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT ||
         reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
@@ -268,7 +272,7 @@ function canDeleteReportAction(reportAction, reportID) {
     ) {
         return false;
     }
-    if (reportAction.actorAccountID === currentUserAccountID) {
+    if (isActionOwner) {
         return true;
     }
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
@@ -1184,6 +1188,10 @@ function getMoneyRequestReportName(report, policy = undefined) {
  * @returns {String}
  */
 function getTransactionReportName(reportAction) {
+    if (ReportActionsUtils.isDeletedParentAction(reportAction)) {
+        return Localize.translateLocal('parentReportAction.deletedRequest');
+    }
+
     return Localize.translateLocal(ReportActionsUtils.isSentMoneyReportAction(reportAction) ? 'iou.threadSentMoneyReportName' : 'iou.threadRequestReportName', {
         formattedAmount: ReportActionsUtils.getFormattedAmount(reportAction),
         comment: lodashGet(reportAction, 'originalMessage.comment'),
@@ -1258,8 +1266,8 @@ function getReportName(report, policy = undefined) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
         if (
-            lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
-            lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
+            lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
+            lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
         ) {
             return Localize.translateLocal('parentReportAction.hiddenMessage');
         }
