@@ -1,16 +1,14 @@
 import React, {useContext, useEffect} from 'react';
 import {Portal} from '@gorhom/portal';
 import dragAndDropConsumerPropTypes from './dragAndDropConsumerPropTypes';
-import DragAndDropUtils from '../Utils';
+import {DragAndDropContext} from '../Provider';
 
-function DragAndDropConsumer({children, dropZoneID, onDrop}) {
-    const DragAndDropContext = DragAndDropUtils.getDragAndDropContext(dropZoneID);
-    const {isDraggingOver} = useContext(DragAndDropContext);
+function DragAndDropConsumer({children, onDrop}) {
+    const {isDraggingOver, setOnDropListener, dropZoneID} = useContext(DragAndDropContext);
 
     useEffect(() => {
-        DragAndDropUtils.registerOnDropCallback(dropZoneID, onDrop);
-        return () => DragAndDropUtils.deregisterOnDropCallback(dropZoneID, onDrop);
-    }, [dropZoneID, onDrop]);
+        setOnDropListener(onDrop);
+    }, [onDrop, setOnDropListener]);
 
     if (!isDraggingOver) {
         return null;

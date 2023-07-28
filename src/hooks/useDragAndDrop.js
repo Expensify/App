@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import {useEffect, useRef, useState, useCallback} from 'react';
 import {useIsFocused} from '@react-navigation/native';
 
@@ -35,15 +34,6 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
         dragCounter.current = 0;
         setIsDraggingOver(false);
     }, [isFocused, isDisabled]);
-
-    const onDropRef = useRef(onDrop);
-    onDropRef.current = onDrop;
-    const onDropCallback = useCallback((event) => {
-        if (!_.isFunction(onDropRef.current)) {
-            return;
-        }
-        onDropRef.current(event);
-    }, []);
 
     const setDropEffect = useCallback(
         (event) => {
@@ -92,13 +82,13 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
                 case DROP_EVENT:
                     dragCounter.current = 0;
                     setIsDraggingOver(false);
-                    onDropCallback(event);
+                    onDrop(event);
                     break;
                 default:
                     break;
             }
         },
-        [isFocused, isDisabled, setDropEffect, isDraggingOver, onDropCallback],
+        [isFocused, isDisabled, setDropEffect, isDraggingOver, onDrop],
     );
 
     useEffect(() => {

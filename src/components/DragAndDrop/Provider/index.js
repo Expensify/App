@@ -1,11 +1,13 @@
 import _ from 'underscore';
-import React, {useEffect, useRef} from 'react';
+import React, {useRef, useCallback} from 'react';
 import {View} from 'react-native';
 import {PortalHost} from '@gorhom/portal';
+import Str from 'expensify-common/lib/str';
 import dragAndDropProviderPropTypes from './dragAndDropProviderPropTypes';
-import DragAndDropUtils from '../Utils';
 import styles from '../../../styles/styles';
 import useDragAndDrop from '../../../hooks/useDragAndDrop';
+
+const DragAndDropContext = React.createContext({});
 
 /**
  * @param {Event} event – drag event
@@ -15,37 +17,31 @@ function shouldAcceptDrop(event) {
     return _.some(event.dataTransfer.types, (type) => type === 'Files');
 }
 
-function DragAndDropProvider({children, dropZoneID, isDisabled = false}) {
-    const DragAndDropContext = DragAndDropUtils.getDragAndDropContext(dropZoneID, true);
-    useEffect(
-        () => () => {
-            DragAndDropUtils.deleteDragAndDropContext(dropZoneID);
-        },
-        [dropZoneID],
-    );
-
+function DragAndDropProvider({children, isDisabled = false}) {
     const dropZone = useRef(null);
+    const dropZoneID = useRef(Str.guid('drag-n-drop'));
+
+    const onDropListener = useRef(() => {});
+    const setOnDropListener = useCallback((callback) => {
+        onDropListener.current = callback;
+    }, []);
+
     const {isDraggingOver} = useDragAndDrop({
         dropZone,
-        onDrop: (event) => {
-            DragAndDropUtils.executeOnDropCallbacks(event, dropZoneID);
-        },
+        onDrop: onDropListener.current,
         shouldAcceptDrop,
         isDisabled,
     });
 
     return (
-        <DragAndDropContext.Provider value={{isDraggingOver}}>
+        <DragAndDropContext.Provider value={{isDraggingOver, setOnDropListener, dropZoneID: dropZoneID.current}}>
             <View
                 ref={(e) => (dropZone.current = e)}
                 style={[styles.flex1, styles.w100, styles.h100]}
             >
                 {isDraggingOver && (
-                    <View
-                        style={[styles.fullScreen, styles.invisibleOverlay]}
-                        nativeID={dropZoneID}
-                    >
-                        <PortalHost name={dropZoneID} />
+                    <View style={[styles.fullScreen, styles.invisibleOverlay]}>
+                        <PortalHost name={dropZoneID.current} />
                     </View>
                 )}
                 {children}
@@ -58,3 +54,4 @@ DragAndDropProvider.propTypes = dragAndDropProviderPropTypes;
 DragAndDropProvider.displayName = 'DragAndDropProvider';
 
 export default DragAndDropProvider;
+export {DragAndDropContext};
