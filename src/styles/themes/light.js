@@ -78,7 +78,7 @@ const lightTheme = {
     tooltipPrimaryText: colors.darkPrimaryText,
     skeletonLHNIn: colors.lightBorders,
     skeletonLHNOut: colors.lightDefaultButtonPressed,
-    QRLogo: colors.green500,
+    QRLogo: colors.green400,
 };
 
 lightTheme.PAGE_BACKGROUND_COLORS = {
