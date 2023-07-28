@@ -103,10 +103,6 @@ const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
-    /** Is this the only report action on the report? */
-    // eslint-disable-next-line react/no-unused-prop-types
-    isOnlyReportAction: PropTypes.bool,
-
     /** Flag to show, hide the thread divider line */
     shouldHideThreadDividerLine: PropTypes.bool,
 };
@@ -118,7 +114,6 @@ const defaultProps = {
     personalDetailsList: {},
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
-    isOnlyReportAction: false,
     shouldHideThreadDividerLine: false,
 };
 
@@ -624,7 +619,6 @@ export default compose(
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
             prevProps.report.managerID === nextProps.report.managerID &&
             prevProps.report.managerEmail === nextProps.report.managerEmail &&
-            prevProps.isOnlyReportAction === nextProps.isOnlyReportAction &&
             prevProps.shouldHideThreadDividerLine === nextProps.shouldHideThreadDividerLine,
     ),
 );
