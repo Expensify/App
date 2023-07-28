@@ -94,11 +94,11 @@ public class NotificationCache {
     }
 
     public static class NotificationData implements Serializable {
-        private HashMap<String, String> names = new HashMap();
+        private final HashMap<String, String> names = new HashMap<>();
 
         // A map of accountID => base64 encoded Bitmap
         // In order to make Bitmaps serializable, we encode them as base64 strings
-        private HashMap<String, String> icons = new HashMap();
+        private final HashMap<String, String> icons = new HashMap<>();
         public ArrayList<NotificationMessage> messages = new ArrayList<>();
 
         public int prevNotificationID = -1;
@@ -110,7 +110,7 @@ public class NotificationCache {
         }
 
         public void putIcon(String accountID, Bitmap bitmap) {
-            icons.put(accountID, encodeTobase64(bitmap));
+            icons.put(accountID, encodeToBase64(bitmap));
         }
 
         public Person getPerson(String accountID) {
@@ -130,10 +130,10 @@ public class NotificationCache {
 
         public void putPerson(String accountID, String name, Bitmap icon) {
             names.put(accountID, name);
-            icons.put(accountID, encodeTobase64(icon));
+            putIcon(accountID, icon);
         }
 
-        public static String encodeTobase64(Bitmap bitmap) {
+        public static String encodeToBase64(Bitmap bitmap) {
             if (bitmap == null) {
                 return "";
             }
