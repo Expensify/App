@@ -165,14 +165,4 @@ public class NotificationCache {
             this.time = time;
         }
     }
-
-    public static class NotificationPerson implements Serializable {
-        public String accountID;
-        public String name;
-
-        public NotificationPerson(String accountID, String name) {
-            this.accountID = accountID;
-            this.name = name;
-        }
-    }
 }
