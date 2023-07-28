@@ -150,7 +150,7 @@ export default {
         total: 'Total',
         edit: 'Edit',
         showMore: 'Show more',
-        merchant: 'Merchant'
+        merchant: 'Merchant',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
