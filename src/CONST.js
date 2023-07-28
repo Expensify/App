@@ -174,6 +174,7 @@ const CONST = {
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
+        SQL_DATE_TIME: 'YYYY-MM-DD HH:mm:ss',
         UNIX_EPOCH: '1970-01-01 00:00:00.000',
         MAX_DATE: '9999-12-31',
         MIN_DATE: '0001-01-01',
@@ -493,6 +494,7 @@ const CONST = {
                 TASKEDITED: 'TASKEDITED',
                 TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 TASKCOMPLETED: 'TASKCOMPLETED',
@@ -593,6 +595,7 @@ const CONST = {
             OPEN: 0,
             PROCESSING: 1,
             SUBMITTED: 2,
+            BILLING: 3,
         },
         STATUS: {
             OPEN: 0,
@@ -1248,6 +1251,7 @@ const CONST = {
 
     FORM_CHARACTER_LIMIT: 50,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
+    LOGIN_CHARACTER_LIMIT: 254,
     WORKSPACE_NAME_CHARACTER_LIMIT: 80,
     AVATAR_CROP_MODAL: {
         // The next two constants control what is min and max value of the image crop scale.
@@ -2537,9 +2541,6 @@ const CONST = {
         SWITCH: 'switch',
         ADJUSTABLE: 'adjustable',
         IMAGE: 'image',
-    },
-    SETTINGS_LOUNGE_ACCESS: {
-        HEADER_IMAGE_ASPECT_RATIO: 0.64,
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
