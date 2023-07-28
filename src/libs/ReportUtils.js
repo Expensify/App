@@ -236,7 +236,7 @@ function canEditReportAction(reportAction) {
  */
 function isSettled(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    return !_.isEmpty(report) && !report.hasOutstandingIOU && !report.isWaitingOnBankAccount;
+    return !_.isEmpty(report) && !report.isWaitingOnBankAccount && report.stateNum > CONST.REPORT.STATE_NUM.PROCESSING;
 }
 
 /**
@@ -1223,14 +1223,12 @@ function getReportPreviewMessage(report, reportAction = {}) {
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
     }
 
-    if (report.hasOutstandingIOU) {
-        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
-    }
-
     if (report.isWaitingOnBankAccount) {
         const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID, true);
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
+
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
 
 /**
