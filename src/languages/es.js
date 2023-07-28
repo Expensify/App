@@ -149,7 +149,6 @@ export default {
         total: 'Total',
         edit: 'Editar',
         showMore: 'Mostrar más',
-        showLess: 'Mostrar menos',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',

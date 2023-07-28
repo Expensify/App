@@ -339,15 +339,15 @@ function MoneyRequestConfirmationList(props) {
                 <>
                     <MenuItemWithTopDescription
                         title={props.iouDate}
-                        description="Date"
+                        description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        disabled={didConfirm || props.isReadOnly}
+                        disabled
                     />
                     <MenuItemWithTopDescription
                         title={props.iouMerchant}
-                        description="Merchant"
+                        description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
-                        disabled={didConfirm || props.isReadOnly}
+                        disabled
                     />
                 </>
             )}
