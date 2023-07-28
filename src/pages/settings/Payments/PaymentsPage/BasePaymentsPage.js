@@ -264,7 +264,7 @@ function BasePaymentsPage(props) {
     }, [paymentMethod.selectedPaymentMethod.bankAccountID, paymentMethod.selectedPaymentMethod.fundID, paymentMethod.selectedPaymentMethodType, resetSelectedPaymentMethodData]);
 
     const navigateToTransferBalancePage = () => {
-        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_TRANSFER_BALANCE);
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE);
     };
 
     const navigateToAddPaypalRoute = () => {
@@ -392,7 +392,7 @@ function BasePaymentsPage(props) {
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
-                title={translate('common.payments')}
+                title={translate('common.wallet')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <View style={[styles.flex1, styles.mb4]}>
