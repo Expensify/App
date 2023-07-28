@@ -41,6 +41,10 @@ const propTypes = {
         }),
     ),
 
+    /** The list of parent report action of the report */
+    // eslint-disable-next-line react/forbid-prop-types
+    parentReportActions: PropTypes.object,
+
     ...withCurrentReportIDPropTypes,
     ...basePropTypes,
 };
@@ -50,6 +54,7 @@ const defaultProps = {
     personalDetails: {},
     fullReport: {},
     policies: {},
+    parentReportActions: {},
     preferredLocale: CONST.LOCALES.DEFAULT,
     ...withCurrentReportIDDefaultProps,
     ...baseDefaultProps,
@@ -61,7 +66,7 @@ const defaultProps = {
  * The OptionRowLHN component is memoized, so it will only
  * re-render if the data really changed.
  */
-function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullReport, personalDetails, preferredLocale, comment, policies, ...propsToForward}) {
+function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullReport, personalDetails, preferredLocale, comment, policies, parentReportActions, ...propsToForward}) {
     const reportID = propsToForward.reportID;
     // We only want to pass a boolean to the memoized component,
     // instead of a changing number (so we prevent unnecessary re-renders).
@@ -69,6 +74,7 @@ function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullRepor
 
     const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
 
+    const parentReportAction = parentReportActions[fullReport.parentReportActionID];
     const optionItemRef = useRef();
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
@@ -78,7 +84,8 @@ function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullRepor
         }
         optionItemRef.current = item;
         return item;
-    }, [fullReport, personalDetails, preferredLocale, policy]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fullReport, personalDetails, preferredLocale, policy, parentReportAction]);
 
     useEffect(() => {
         if (!optionItem || optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
@@ -154,6 +161,12 @@ export default React.memo(
             },
             policies: {
                 key: ONYXKEYS.COLLECTION.POLICY,
+            },
+        }),
+        withOnyx({
+            parentReportActions: {
+                key: (props) => ONYXKEYS.COLLECTION.REPORT_ACTIONS + props.fullReport.parentReportID,
+                canEvict: false,
             },
         }),
     )(OptionRowLHNData),
