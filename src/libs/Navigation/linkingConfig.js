@@ -209,9 +209,6 @@ export default {
                             Workspace_Invite_Message: {
                                 path: ROUTES.WORKSPACE_INVITE_MESSAGE,
                             },
-                            Workspace_NewRoom: {
-                                path: ROUTES.WORKSPACE_NEW_ROOM,
-                            },
                             ReimbursementAccount: {
                                 path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                                 exact: true,
@@ -248,14 +245,10 @@ export default {
                             Report_WelcomeMessage_Root: ROUTES.REPORT_WELCOME_MESSAGE,
                         },
                     },
-                    NewGroup: {
-                        screens: {
-                            NewGroup_Root: ROUTES.NEW_GROUP,
-                        },
-                    },
                     NewChat: {
                         screens: {
                             NewChat_Root: ROUTES.NEW_CHAT,
+                            Workspace_NewRoom: ROUTES.WORKSPACE_NEW_ROOM,
                         },
                     },
                     NewTask: {

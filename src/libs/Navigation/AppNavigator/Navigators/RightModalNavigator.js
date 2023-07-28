@@ -2,6 +2,7 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 
 import * as ModalStackNavigators from '../ModalStackNavigators';
+import * as ModalTabNavigators from '../ModalTabNavigators';
 import RHPScreenOptions from '../RHPScreenOptions';
 
 const Stack = createStackNavigator();
@@ -15,15 +16,7 @@ function RigthModalNavigator() {
             />
             <Stack.Screen
                 name="NewChat"
-                component={ModalStackNavigators.NewChatModalStackNavigator}
-            />
-            <Stack.Screen
-                name="NewGroup"
-                component={ModalStackNavigators.NewGroupModalStackNavigator}
-                options={{
-                    // Disable animation for this screen because it causes an animation glitch when using shortcuts
-                    animationEnabled: false,
-                }}
+                component={ModalTabNavigators.NewChatModalTabNavigator}
             />
             <Stack.Screen
                 name="Search"
