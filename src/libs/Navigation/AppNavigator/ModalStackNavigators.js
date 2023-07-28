@@ -316,7 +316,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
             return SettingsWorkspacesPage;
         },
-        name: 'Settings_Workspaces',
+        name: SCREENS.SETTINGS.WORKSPACES,
     },
     {
         getComponent: () => {
