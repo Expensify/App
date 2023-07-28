@@ -95,6 +95,9 @@ public class NotificationCache {
 
     public static class NotificationData implements Serializable {
         private HashMap<String, String> names = new HashMap();
+
+        // A map of accountID => base64 encoded Bitmap
+        // In order to make Bitmaps serializable, we encode them as base64 strings
         private HashMap<String, String> icons = new HashMap();
         public ArrayList<NotificationMessage> messages = new ArrayList<>();
 
