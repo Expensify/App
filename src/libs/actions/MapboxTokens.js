@@ -9,6 +9,7 @@ import CONST from '../../CONST';
 let connectionID;
 let currentToken;
 let refreshTimeoutID;
+let refreshInterval = 1000 * 60 * 25;
 
 const refreshToken = () => {
     console.debug('[MapboxTokens] refreshing token');
@@ -19,7 +20,7 @@ const refreshToken = () => {
     API.read('GetMapboxAccessToken');
 
     // Refresh the token every 25 minutes
-    refreshTimeoutID = setTimeout(refreshToken, 1000 * 60 * 25);
+    refreshTimeoutID = setTimeout(refreshToken, refreshInterval);
 };
 
 const hasTokenExpired = () => {
