@@ -349,6 +349,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     if (iouReport) {
         if (isPolicyExpenseChat) {
             iouReport = {...iouReport};
+
             // Because of the Expense reports are stored as negative values, we substract the total from the amount
             iouReport.total -= amount;
         } else {
@@ -1326,11 +1327,6 @@ function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipi
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerID, recipient);
 
     API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
-    API.write('SendMoneyViaPaypal', params, {
-        optimisticData,
-        successData,
-        failureData,
-    });
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
