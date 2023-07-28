@@ -2,18 +2,23 @@ package com.expensify.chat.customairshipextender;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class NotificationCache {
 
@@ -65,29 +70,13 @@ public class NotificationCache {
     }
 
     public static class NotificationData implements Serializable {
-        private Bundle people = new Bundle();
-        private Bundle icons = new Bundle();
+        public HashMap<String, Person> people = new HashMap();
+        public HashMap<String, Bitmap> icons = new HashMap();
         public ArrayList<NotificationMessage> messages = new ArrayList<>();
 
         public int prevNotificationID = -1;
 
         public NotificationData() {
-        }
-
-        public Person getPerson(String accountID) {
-            return convertToPerson(people.getParcelable(accountID));
-        }
-
-        public void putPerson(String accountID, Person person) {
-            people.putParcelable(accountID, convertToBundle(person));
-        }
-
-        public Bitmap getIcon(String accountID) {
-            return decodeToBitmap(icons.getString(accountID));
-        }
-
-        public void putIcon(String accountID, Bitmap bitmap) {
-            icons.putString(accountID, encodeTobase64(bitmap));
         }
 
         public static String encodeTobase64(Bitmap bitmap) {
