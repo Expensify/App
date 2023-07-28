@@ -465,7 +465,7 @@ function BasePaymentsPage(props) {
                         )}
                         {isPayPalMeSelected && (
                             <Button
-                                onPress={navigateToAddPaypalRoute()}
+                                onPress={navigateToAddPaypalRoute}
                                 style={[styles.mb4]}
                                 text={translate('common.edit')}
                                 shouldUseDefaultHover
