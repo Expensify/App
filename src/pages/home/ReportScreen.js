@@ -328,6 +328,7 @@ class ReportScreen extends React.Component {
                             pendingAction={addWorkspaceRoomOrChatPendingAction}
                             errors={addWorkspaceRoomOrChatErrors}
                             shouldShowErrorMessages={false}
+                            needsOffscreenAlphaCompositing
                         >
                             {headerView}
                             {ReportUtils.isTaskReport(this.props.report) && this.props.isSmallScreenWidth && ReportUtils.isOpenTaskReport(this.props.report) && (
