@@ -1,5 +1,5 @@
 import {View, Text, PixelRatio} from 'react-native';
-import React, {useLayoutEffect, useRef, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -24,6 +24,7 @@ import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import ReceiptUtils from '../../../libs/ReceiptUtils';
 import withCurrentReportID from '../../../components/withCurrentReportID';
+import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -54,9 +55,6 @@ const propTypes = {
 
     /** Current user personal details */
     currentUserPersonalDetails: personalDetailsPropType,
-
-    /** Used by drag and drop to determine if we have a file dragged over the view */
-    isDraggingOver: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -79,11 +77,9 @@ const defaultProps = {
         participants: [],
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
-    isDraggingOver: false,
 };
 
 function ReceiptSelector(props) {
-    const iouType = useRef(lodashGet(props, 'iou.iouType', ''));
     const reportID = useRef(lodashGet(props, 'currentReportID', ''));
     const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
@@ -91,6 +87,7 @@ function ReceiptSelector(props) {
     const [receiptImageTopPosition, setReceiptImageTopPosition] = useState(0);
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    const {isDraggingOver} = useContext(DragAndDropContext);
 
     const defaultView = () => (
         <>
@@ -134,9 +131,6 @@ function ReceiptSelector(props) {
                                         }
 
                                         const filePath = URL.createObjectURL(file);
-
-                                        console.log(`File: ${filePath} ${file.name}`);
-
                                         IOU.setMoneyRequestReceipt(filePath, file.name);
                                         NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
                                     },
@@ -149,12 +143,23 @@ function ReceiptSelector(props) {
         </>
     );
 
-    console.log(`receiptImageTopPosition: ${receiptImageTopPosition.current}`);
-
     return (
         <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
-            {!props.isDraggingOver ? defaultView() : null}
-            {props.isDraggingOver && <ReceiptDropUI receiptImageTopPosition={receiptImageTopPosition.current} />}
+            {!isDraggingOver ? defaultView() : null}
+            <ReceiptDropUI
+                onDrop={(e) => {
+                    console.log(`On Drop!!`);
+                    const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                    if (!ReceiptUtils.isValidReceipt(file)) {
+                        return;
+                    }
+
+                    const filePath = URL.createObjectURL(file);
+                    IOU.setMoneyRequestReceipt(filePath, file.name);
+                    NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
+                }}
+                receiptImageTopPosition={receiptImageTopPosition}
+            />
             <ConfirmModal
                 title={attachmentInvalidReasonTitle}
                 onConfirm={() => Receipt.clearUploadReceiptError()}

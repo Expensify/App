@@ -6,8 +6,14 @@ import DropZone from '../../components/DragAndDrop/DropZone';
 import styles from '../../styles/styles';
 import ReceiptUpload from '../../../assets/images/receipt-upload.svg';
 import useLocalize from '../../hooks/useLocalize';
+import DragAndDropConsumer from '../../components/DragAndDrop/Consumer';
+import Icon from '../../components/Icon';
+import * as Expensicons from '../../components/Icon/Expensicons';
 
 const propTypes = {
+    /** Callback to execute when a file is dropped. */
+    onDrop: PropTypes.func.isRequired,
+
     receiptImageTopPosition: PropTypes.number,
 };
 
@@ -15,26 +21,21 @@ const defaultProps = {
     receiptImageTopPosition: 0,
 };
 
-function ReceiptDropUI(props) {
+function ReceiptDropUI({onDrop, receiptImageTopPosition}) {
     const {translate} = useLocalize();
     return (
-        <DropZone
-            dropZoneViewHolderName={CONST.RECEIPT.DROP_HOST_NAME}
-            dropZoneId={CONST.RECEIPT.ACTIVE_DROP_NATIVE_ID}
-            dropZoneViewHolderStyle={[styles.receiptTransparentOverlay, styles.alignItemsCenter, styles.justifyContentCenter]}
-            dropZoneViewStyle={styles.receiptDropZoneTopInvisibleOverlay}
-        >
-            <View style={{position: 'absolute', top: props.receiptImageTopPosition}}>
-                <ReceiptUpload
-                    width={CONST.RECEIPT.ICON_SIZE}
-                    height={CONST.RECEIPT.ICON_SIZE}
-                />
+        <DragAndDropConsumer onDrop={onDrop}>
+            <View style={[styles.receiptDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View style={{position: 'absolute', top: receiptImageTopPosition}}>
+                    <ReceiptUpload
+                        width={CONST.RECEIPT.ICON_SIZE}
+                        height={CONST.RECEIPT.ICON_SIZE}
+                    />
+                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.dropTitle')}</Text>
+                    <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.dropMessage')}</Text>
+                </View>
             </View>
-            <View style={{position: 'absolute', top: props.receiptImageTopPosition + CONST.RECEIPT.ICON_SIZE}}>
-                <Text style={[styles.textReceiptUpload]}>{translate('receipt.dropTitle')}</Text>
-                <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.dropMessage')}</Text>
-            </View>
-        </DropZone>
+        </DragAndDropConsumer>
     );
 }
 

@@ -28,6 +28,7 @@ import ReceiptUtils from '../../libs/ReceiptUtils';
 import withCurrentReportID from '../../components/withCurrentReportID';
 import {resetMoneyRequestAmount, resetMoneyRequestInfo} from '../../libs/actions/IOU';
 import Tab from '../../libs/actions/Tab';
+import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 
 const TopTab = createMaterialTopTabNavigator();
 
@@ -110,29 +111,7 @@ function MoneyRequestSelectorPage(props) {
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <DragAndDrop
-                        dropZoneId={CONST.RECEIPT.DROP_NATIVE_ID}
-                        activeDropZoneId={CONST.RECEIPT.ACTIVE_DROP_NATIVE_ID}
-                        onDragEnter={() => {
-                            setIsDraggingOver(true);
-                        }}
-                        onDragLeave={() => {
-                            setIsDraggingOver(false);
-                        }}
-                        onDrop={(e) => {
-                            e.preventDefault();
-                            setIsDraggingOver(false);
-                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-
-                            if (!ReceiptUtils.isValidReceipt(file)) {
-                                return;
-                            }
-
-                            const filePath = URL.createObjectURL(file);
-                            IOU.setMoneyRequestReceipt(filePath, file.name);
-                            NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
-                        }}
-                    >
+                    <DragAndDropProvider>
                         <View
                             nativeID={CONST.RECEIPT.DROP_NATIVE_ID}
                             style={[styles.flex1, safeAreaPaddingBottomStyle]}
@@ -161,9 +140,8 @@ function MoneyRequestSelectorPage(props) {
                                     component={ReceiptSelector}
                                 />
                             </TopTab.Navigator>
-                            <PortalHost name={CONST.RECEIPT.DROP_HOST_NAME} />
                         </View>
-                    </DragAndDrop>
+                    </DragAndDropProvider>
                 )}
             </ScreenWrapper>
         </FullPageNotFoundView>

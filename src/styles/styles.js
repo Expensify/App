@@ -3226,6 +3226,11 @@ const styles = {
         zIndex: 2,
     },
 
+    receiptDropOverlay: {
+        backgroundColor: themeColors.receiptDropUIBG,
+        zIndex: 2,
+    },
+
     cardSection: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
