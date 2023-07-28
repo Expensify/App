@@ -106,17 +106,9 @@ function MagicCodeInput(props) {
         setFocusedIndex(undefined);
     };
 
-    const focusMagicCodeInput = () => {
-        inputRefs.current[0].focus();
-    };
-
     useImperativeHandle(props.innerRef, () => ({
         focus() {
-            focusMagicCodeInput();
-        },
-        resetFocus() {
-            setInput('');
-            focusMagicCodeInput();
+            inputRefs.current[0].focus();
         },
         clear() {
             inputRefs.current[0].focus();
