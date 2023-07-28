@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import Text from './Text';
@@ -7,10 +8,15 @@ import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import useLocalize from '../hooks/useLocalize';
-import parentNavigationPropTypes from './parentNavigationPropTypes';
 
 const propTypes = {
-    parentNavigationSubtitleData: parentNavigationPropTypes.isRequired,
+    parentNavigationSubtitleData: PropTypes.shape({
+        // Title of root report room
+        rootReportName: PropTypes.string,
+
+        // Name of workspace, if any
+        workspaceName: PropTypes.string,
+    }).isRequired,
 
     /** report */
     report: reportPropTypes,
