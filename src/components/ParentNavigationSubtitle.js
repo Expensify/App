@@ -20,10 +20,15 @@ const propTypes = {
 
     /** report */
     report: reportPropTypes,
+
+    /** PressableWithoutFeedack additional styles */
+    // eslint-disable-next-line react/forbid-prop-types
+    pressableStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
 const defaultProps = {
     report: {},
+    pressableStyles: [],
 };
 
 function ParentNavigationSubtitle(props) {
@@ -38,6 +43,7 @@ function ParentNavigationSubtitle(props) {
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {rootReportName, workspaceName})}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
+            style={[...props.pressableStyles]}
         >
             <Text
                 style={[styles.optionAlternateText]}
@@ -45,7 +51,7 @@ function ParentNavigationSubtitle(props) {
             >
                 <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{`${translate('threads.from')} `}</Text>
                 <Text style={[styles.optionAlternateText, styles.textLabelSupporting, styles.link]}>{rootReportName}</Text>
-                {workspaceName ? <Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text> : null}
+                {Boolean(workspaceName) && (<Text style={[styles.optionAlternateText, styles.textLabelSupporting]}>{` ${translate('threads.in')} ${workspaceName}`}</Text>)}
             </Text>
         </PressableWithoutFeedback>
     );

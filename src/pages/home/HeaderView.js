@@ -89,8 +89,7 @@ function HeaderView(props) {
     const reportHeaderData = !isTaskReport && !isChatThread && props.report.parentReportID ? props.parentReport : props.report;
     const title = ReportUtils.getReportName(reportHeaderData);
     const subtitle = ReportUtils.getChatRoomSubtitle(reportHeaderData);
-    const hasParentNavigationSubtitle = ReportUtils.hasParentNavigationSubtitle(reportHeaderData);
-    const parentNavigationSubtitleData = hasParentNavigationSubtitle ? ReportUtils.getParentNavigationSubtitleData(reportHeaderData) : {};
+    const parentNavigationSubtitleData = ReportUtils.getParentNavigationSubtitle(reportHeaderData);
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
@@ -189,10 +188,11 @@ function HeaderView(props) {
                                     textStyles={[styles.headerText, styles.pre]}
                                     shouldUseFullTitle={isChatRoom || isPolicyExpenseChat || isChatThread || isTaskReport}
                                 />
-                                {hasParentNavigationSubtitle && (
+                                {!_.isEmpty(parentNavigationSubtitleData) && (
                                     <ParentNavigationSubtitle
                                         parentNavigationSubtitleData={parentNavigationSubtitleData}
                                         report={props.report}
+                                        pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                     />
                                 )}
                                 {!_.isEmpty(subtitle) && (
