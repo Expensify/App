@@ -141,11 +141,33 @@ const getNextChars = (str, cursorPos) => {
 
 // Enable Markdown parsing.
 // On web we like to have the Text Input field always focused so the user can easily type a new chat
-function Composer({onKeyPress, style, ...props}) {
+function Composer({
+    onKeyPress,
+    style,
+    shouldClear,
+    onClear,
+    checkComposerVisibility,
+    onPasteFile,
+    translate,
+    isComposerFullSize,
+    maxLines,
+    value,
+    onNumberOfLinesChange,
+    isFullComposerAvailable,
+    setIsFullComposerAvailable,
+    shouldCalculateCaretPosition,
+    numberOfLines: numberOfLinesProp,
+    isDisabled,
+    forwardedRef,
+    navigation,
+    defaultValue,
+    onSelectionChange: onSelectionChangeProp,
+    ...props
+}) {
     const textRef = useRef(null);
     const textInput = useRef(null);
-    const initialValue = props.defaultValue ? `${props.defaultValue}` : `${props.value || ''}`;
-    const [numberOfLines, setNumberOfLines] = useState(props.numberOfLines);
+    const initialValue = defaultValue ? `${defaultValue}` : `${value || ''}`;
+    const [numberOfLines, setNumberOfLines] = useState(numberOfLinesProp);
     const [selection, setSelection] = useState({
         start: initialValue.length,
         end: initialValue.length,
@@ -155,13 +177,13 @@ function Composer({onKeyPress, style, ...props}) {
     const [textInputWidth, setTextInputWidth] = useState('');
 
     useEffect(() => {
-        if (!props.shouldClear) {
+        if (!shouldClear) {
             return;
         }
         textInput.current.clear();
         setNumberOfLines(1);
-        props.onClear();
-    }, [props.shouldClear]);
+        onClear();
+    }, [shouldClear, onClear]);
 
     useEffect(() => {
         setSelection(props.selection);
@@ -175,10 +197,10 @@ function Composer({onKeyPress, style, ...props}) {
     const addCursorPositionToSelectionChange = (event) => {
         flushSync(() => {
             setValueBeforeCaret(event.target.value.slice(0, event.nativeEvent.selection.start));
-            setCaretContent(getNextChars(props.value, event.nativeEvent.selection.start));
+            setCaretContent(getNextChars(value, event.nativeEvent.selection.start));
         });
 
-        props.onSelectionChange({
+        onSelectionChangeProp({
             nativeEvent: {
                 selection: {
                     start: event.nativeEvent.selection.start,
@@ -225,7 +247,7 @@ function Composer({onKeyPress, style, ...props}) {
      */
     const handlePaste = useCallback(
         (event) => {
-            const isVisible = props.checkComposerVisibility();
+            const isVisible = checkComposerVisibility();
             const isFocused = textInput.current.isFocused();
 
             if (!(isVisible || isFocused)) {
@@ -244,7 +266,7 @@ function Composer({onKeyPress, style, ...props}) {
             // If paste contains files, then trigger file management
             if (files.length > 0) {
                 // Prevent the default so we do not post the file name into the text box
-                props.onPasteFile(event.clipboardData.files[0]);
+                onPasteFile(event.clipboardData.files[0]);
                 return;
             }
 
@@ -273,14 +295,14 @@ function Composer({onKeyPress, style, ...props}) {
                         .then((x) => {
                             const extension = IMAGE_EXTENSIONS[x.type];
                             if (!extension) {
-                                throw new Error(props.translate('composer.noExtensionFoundForMimeType'));
+                                throw new Error(translate('composer.noExtensionFoundForMimeType'));
                             }
 
                             return new File([x], `pasted_image.${extension}`, {});
                         })
-                        .then(props.onPasteFile)
+                        .then(onPasteFile)
                         .catch(() => {
-                            const errorDesc = props.translate('composer.problemGettingImageYouPasted');
+                            const errorDesc = translate('composer.problemGettingImageYouPasted');
                             Growl.error(errorDesc);
 
                             /*
@@ -302,7 +324,7 @@ function Composer({onKeyPress, style, ...props}) {
 
             paste(plainText);
         },
-        [props.onPasteFile, props.translate, paste, handlePastedHTML],
+        [onPasteFile, translate, paste, handlePastedHTML, checkComposerVisibility],
     );
 
     /**
@@ -323,7 +345,7 @@ function Composer({onKeyPress, style, ...props}) {
         if (textInput.current === null) {
             return;
         }
-        updateIsFullComposerAvailable(props, props.numberOfLines);
+        updateIsFullComposerAvailable({isFullComposerAvailable, setIsFullComposerAvailable}, numberOfLinesProp);
 
         // we reset the height to 0 to get the correct scrollHeight
         textInput.current.style.height = 0;
@@ -332,14 +354,14 @@ function Composer({onKeyPress, style, ...props}) {
         const paddingTopAndBottom = parseInt(computedStyle.paddingBottom, 10) + parseInt(computedStyle.paddingTop, 10);
         setTextInputWidth(computedStyle.width);
 
-        const computedNumberOfLines = ComposerUtils.getNumberOfLines(props.maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
-        const generalNumberOfLines = computedNumberOfLines === 0 ? props.numberOfLines : computedNumberOfLines;
+        const computedNumberOfLines = ComposerUtils.getNumberOfLines(maxLines, lineHeight, paddingTopAndBottom, textInput.current.scrollHeight);
+        const generalNumberOfLines = computedNumberOfLines === 0 ? numberOfLinesProp : computedNumberOfLines;
 
-        props.onNumberOfLinesChange(generalNumberOfLines);
-        updateIsFullComposerAvailable(props, generalNumberOfLines);
+        onNumberOfLinesChange(generalNumberOfLines);
+        updateIsFullComposerAvailable({isFullComposerAvailable, setIsFullComposerAvailable}, generalNumberOfLines);
         setNumberOfLines(generalNumberOfLines);
         textInput.current.style.height = 'auto';
-    }, [props.value, props.maxLines, props.numberOfLines, props.isComposerFullSize]);
+    }, [value, maxLines, numberOfLinesProp, isComposerFullSize, onNumberOfLinesChange, isFullComposerAvailable, setIsFullComposerAvailable]);
 
     const handleKeyPress = useCallback(
         (e) => {
@@ -360,8 +382,8 @@ function Composer({onKeyPress, style, ...props}) {
     const setTextInputRef = useCallback((el) => {
         textInput.current = el;
 
-        if (_.isFunction(props.forwardedRef)) {
-            props.forwardedRef(textInput.current);
+        if (_.isFunction(forwardedRef)) {
+            forwardedRef(textInput.current);
         }
 
         if (textInput.current) {
@@ -373,8 +395,8 @@ function Composer({onKeyPress, style, ...props}) {
     useEffect(() => {
         // we need to handle listeners on navigation focus/blur as Composer is not unmounting
         // when navigating away to different report
-        const unsubscribeFocus = props.navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
-        const unsubscribeBlur = props.navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
+        const unsubscribeFocus = navigation.addListener('focus', () => document.addEventListener('paste', handlePaste));
+        const unsubscribeBlur = navigation.addListener('blur', () => document.removeEventListener('paste', handlePaste));
 
         return () => {
             unsubscribeFocus();
@@ -396,7 +418,7 @@ function Composer({onKeyPress, style, ...props}) {
         >
             <Text
                 multiline
-                style={[StyleSheet.flatten([style, styles.noSelect]), numberOfLines < props.maxLines ? styles.overflowHidden : {}, {maxWidth: textInputWidth}]}
+                style={[StyleSheet.flatten([style, styles.noSelect]), numberOfLines < maxLines ? styles.overflowHidden : {}, {maxWidth: textInputWidth}]}
             >
                 {`${valueBeforeCaret} `}
                 <Text
@@ -409,14 +431,17 @@ function Composer({onKeyPress, style, ...props}) {
         </View>
     );
 
-    const inputStyle = useMemo(() => [
-        // We are hiding the scrollbar to prevent it from reducing the text input width,
-        // so we can get the correct scroll height while calculating the number of lines.
-        numberOfLines < props.maxLines ? styles.overflowHidden : {},
-        StyleUtils.getComposeTextAreaPadding(props.numberOfLines),
-  
-        StyleSheet.flatten([style, {outline: 'none'}])
-    ], [props.style, props.maxLines, props.numberOfLines, props.isComposerFullSize]);
+    const inputStyleMemo = useMemo(
+        () => [
+            // We are hiding the scrollbar to prevent it from reducing the text input width,
+            // so we can get the correct scroll height while calculating the number of lines.
+            numberOfLines < maxLines ? styles.overflowHidden : {},
+            StyleUtils.getComposeTextAreaPadding(numberOfLinesProp),
+
+            StyleSheet.flatten([style, {outline: 'none'}]),
+          ],
+        [style, maxLines, numberOfLinesProp, numberOfLines],
+    );
 
     return (
         <>
@@ -426,15 +451,18 @@ function Composer({onKeyPress, style, ...props}) {
                 placeholderTextColor={themeColors.placeholderText}
                 ref={setTextInputRef}
                 selection={selection}
-                style={inputStyle}
+                style={inputStyleMemo}
+                value={value}
+                forwardedRef={forwardedRef}
+                defaultValue={defaultValue}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
                 numberOfLines={numberOfLines}
-                disabled={props.isDisabled}
+                disabled={isDisabled}
                 onKeyPress={handleKeyPress}
             />
-            {props.shouldCalculateCaretPosition && renderElementForCaretPosition}
+            {shouldCalculateCaretPosition && renderElementForCaretPosition}
         </>
     );
 }
