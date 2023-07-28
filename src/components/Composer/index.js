@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -380,7 +380,7 @@ function Composer({onKeyPress, style, ...props}) {
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
-            textInput.current?.removeEventListener('wheel', handleWheel);
+            textInput.current.removeEventListener('wheel', handleWheel);
         };
     }, []);
 
