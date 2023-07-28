@@ -316,7 +316,7 @@ function BaseWalletPage(props) {
                     )}
                 </>
             )}
-            <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('paymentsPage.paymentMethodsTitle')}</Text>
+            <Text style={[styles.ph5, styles.textLabelSupporting, styles.mb1]}>{translate('walletPage.paymentMethodsTitle')}</Text>
         </>
     );
 
@@ -455,12 +455,12 @@ function BaseWalletPage(props) {
                                         } else {
                                             setShowPassword({
                                                 shouldShowPasswordPrompt: true,
-                                                passwordButtonText: translate('paymentsPage.setDefaultConfirmation'),
+                                                passwordButtonText: translate('walletPage.setDefaultConfirmation'),
                                             });
                                         }
                                     });
                                 }}
-                                text={translate('paymentsPage.setDefaultConfirmation')}
+                                text={translate('walletPage.setDefaultConfirmation')}
                             />
                         )}
                         {isPayPalMeSelected && (
@@ -488,8 +488,8 @@ function BaseWalletPage(props) {
                         }}
                         onCancel={hideDefaultDeleteMenu}
                         contentStyles={!isSmallScreenWidth ? [styles.sidebarPopover, styles.willChangeTransform] : undefined}
-                        title={translate('paymentsPage.deleteAccount')}
-                        prompt={translate('paymentsPage.deleteConfirmation')}
+                        title={translate('walletPage.deleteAccount')}
+                        prompt={translate('walletPage.deleteConfirmation')}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         anchorPosition={{

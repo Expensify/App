@@ -618,7 +618,7 @@ export default {
             password: 'Please enter your Expensify password',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Payment methods',
         setDefaultConfirmation: 'Make default payment method',
         setDefaultSuccess: 'Default payment method set!',

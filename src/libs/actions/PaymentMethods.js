@@ -13,7 +13,7 @@ import ROUTES from '../../ROUTES';
 
 function deletePayPalMe() {
     User.deletePaypalMeAddress();
-    Growl.show(Localize.translateLocal('paymentsPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
+    Growl.show(Localize.translateLocal('walletPage.deletePayPalSuccess'), CONST.GROWL.SUCCESS, 3000);
 }
 
 /**

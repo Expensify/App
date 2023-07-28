@@ -619,7 +619,7 @@ export default {
             password: 'Por favor, introduce tu contraseña de Expensify',
         },
     },
-    paymentsPage: {
+    walletPage: {
         paymentMethodsTitle: 'Métodos de pago',
         setDefaultConfirmation: 'Marcar como método de pago predeterminado',
         setDefaultSuccess: 'Método de pago configurado',
