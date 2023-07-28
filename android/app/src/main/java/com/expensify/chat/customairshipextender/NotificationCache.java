@@ -48,6 +48,10 @@ public class NotificationCache {
      * Set and persist NotificationData in the cache
      */
     public static void setNotificationData(long reportID, NotificationData data) {
+        if (cache == null) {
+            cache = readFromInternalStorage();
+        }
+
         cache.put(Long.toString(reportID), data);
         writeToInternalStorage();
     }
