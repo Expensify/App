@@ -377,7 +377,7 @@ function getAllReportErrors(report, reportActions) {
 function getLastMessageTextForReport(report) {
     const lastReportAction = _.find(
         allSortedReportActions[report.reportID],
-        (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== 'delete',
+        (reportAction, key) => ReportActionUtils.shouldReportActionBeVisible(reportAction, key) && reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     let lastMessageTextFromReport = '';
 
