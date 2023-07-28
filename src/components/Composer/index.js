@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect, useCallback} from 'react';
+import React, {useState, useRef, useEffect, useCallback, useMemo} from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -190,10 +190,10 @@ function Composer({onKeyPress, style, ...props}) {
         });
     };
 
-    // /**
-    //  * Set pasted text to clipboard
-    //  * @param {String} text
-    //  */
+    /**
+     * Set pasted text to clipboard
+     * @param {String} text
+     */
     const paste = useCallback((text) => {
         try {
             document.execCommand('insertText', false, text);
@@ -380,7 +380,8 @@ function Composer({onKeyPress, style, ...props}) {
             unsubscribeFocus();
             unsubscribeBlur();
             document.removeEventListener('paste', handlePaste);
-            textInput.current.removeEventListener('wheel', handleWheel);
+            // eslint-disable-next-line es/no-optional-chaining
+            textInput.current?.removeEventListener('wheel', handleWheel);
         };
     }, []);
 
@@ -408,6 +409,15 @@ function Composer({onKeyPress, style, ...props}) {
         </View>
     );
 
+    const inputStyle = useMemo(() => [
+        // We are hiding the scrollbar to prevent it from reducing the text input width,
+        // so we can get the correct scroll height while calculating the number of lines.
+        numberOfLines < props.maxLines ? styles.overflowHidden : {},
+        StyleUtils.getComposeTextAreaPadding(props.numberOfLines),
+  
+        StyleSheet.flatten([style, {outline: 'none'}])
+    ], [props.style, props.maxLines, props.numberOfLines, props.isComposerFullSize]);
+
     return (
         <>
             <RNTextInput
@@ -416,14 +426,7 @@ function Composer({onKeyPress, style, ...props}) {
                 placeholderTextColor={themeColors.placeholderText}
                 ref={setTextInputRef}
                 selection={selection}
-                style={[
-                    StyleSheet.flatten([style, {outline: 'none'}]),
-
-                    // We are hiding the scrollbar to prevent it from reducing the text input width,
-                    // so we can get the correct scroll height while calculating the number of lines.
-                    numberOfLines < props.maxLines ? styles.overflowHidden : {},
-                    StyleUtils.getComposeTextAreaPadding(props.numberOfLines),
-                ]}
+                style={inputStyle}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
                 {...props}
                 onSelectionChange={addCursorPositionToSelectionChange}
