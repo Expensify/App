@@ -1,9 +1,8 @@
 import {withOnyx} from 'react-native-onyx';
-import {Animated, TouchableOpacity, View} from 'react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import React, {useRef} from 'react';
 import lodashGet from 'lodash/get';
 import {compose} from 'underscore';
-import {PortalHost} from '@gorhom/portal';
 import PropTypes from 'prop-types';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
@@ -20,13 +19,7 @@ import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
-import DragAndDrop from '../../components/DragAndDrop';
 import * as IOU from '../../libs/actions/IOU';
-import reportPropTypes from '../reportPropTypes';
-import NavigateToNextIOUPage from '../../libs/actions/NavigateToNextIOUPage';
-import ReceiptUtils from '../../libs/ReceiptUtils';
-import withCurrentReportID from '../../components/withCurrentReportID';
-import {resetMoneyRequestAmount, resetMoneyRequestInfo} from '../../libs/actions/IOU';
 import Tab from '../../libs/actions/Tab';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 
@@ -39,9 +32,6 @@ const propTypes = {
             reportID: PropTypes.string,
         }),
     }),
-
-    /** The report on which the request is initiated on */
-    report: reportPropTypes,
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
@@ -72,7 +62,6 @@ const defaultProps = {
             reportID: '',
         },
     },
-    report: {},
     iou: {
         id: '',
         amount: 0,
@@ -111,11 +100,8 @@ function MoneyRequestSelectorPage(props) {
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <DragAndDropProvider>
-                        <View
-                            nativeID={CONST.RECEIPT.DROP_NATIVE_ID}
-                            style={[styles.flex1, safeAreaPaddingBottomStyle]}
-                        >
+                    <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.TAB_MANUAL}>
+                        <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={titleForStep}
                                 onBackButtonPress={navigateBack}
@@ -154,12 +140,8 @@ MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default compose(
     withCurrentUserPersonalDetails,
-    withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
-        report: {
-            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-        },
         selectedTab: {key: ONYXKEYS.SELECTED_TAB},
     }),
 )(MoneyRequestSelectorPage);

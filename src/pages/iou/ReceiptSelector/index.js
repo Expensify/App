@@ -148,7 +148,6 @@ function ReceiptSelector(props) {
             {!isDraggingOver ? defaultView() : null}
             <ReceiptDropUI
                 onDrop={(e) => {
-                    console.log(`On Drop!!`);
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
                     if (!ReceiptUtils.isValidReceipt(file)) {
                         return;

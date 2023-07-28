@@ -13,8 +13,6 @@ const navigateToNextPage = (iou, reportID, report, currentUserPersonalDetails) =
         IOU.resetMoneyRequestInfo(moneyRequestID, iou.iouType);
     }
 
-    console.log(`Navigating: ${JSON.stringify(iou)} ${iou.iouType} ${JSON.stringify(reportID)} ${JSON.stringify(report)}`);
-
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
     if (report.reportID) {
         // Reinitialize the participants when the money request ID in Onyx does not match the ID from params

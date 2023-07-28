@@ -1438,6 +1438,13 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 }
 
 /**
+ * @param {String} iouType
+ */
+function setMoneyRequestType(iouType) {
+    Onyx.merge(ONYXKEYS.IOU, {iouType});
+}
+
+/**
  * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} reportID
@@ -1453,13 +1460,6 @@ function startMoneyRequest(iouType, reportID = '') {
  */
 function setMoneyRequestId(id) {
     Onyx.merge(ONYXKEYS.IOU, {id});
-}
-
-/**
- * @param {String} iouType
- */
-function setMoneyRequestType(iouType) {
-    Onyx.merge(ONYXKEYS.IOU, {iouType});
 }
 
 /**
