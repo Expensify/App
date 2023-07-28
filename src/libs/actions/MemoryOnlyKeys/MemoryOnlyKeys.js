@@ -1,4 +1,4 @@
-import * as Onyx from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const memoryOnlyKeys = [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.COLLECTION.POLICY, ONYXKEYS.PERSONAL_DETAILS_LIST];
