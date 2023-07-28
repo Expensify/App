@@ -142,7 +142,7 @@ public class NotificationCache {
         }
     }
 
-    public static class NotificationMessage implements Parcelable {
+    public static class NotificationMessage implements Serializable {
         public String accountID;
         public String text;
         public long time;
@@ -152,35 +152,6 @@ public class NotificationCache {
             this.text = text;
             this.time = time;
         }
-
-        NotificationMessage(Parcel parcel) {
-            this.accountID = parcel.readString();
-            this.text = parcel.readString();
-            this.time = parcel.readLong();
-        }
-
-        @Override
-        public void writeToParcel(@NonNull Parcel parcel, int i) {
-            parcel.writeString(accountID);
-            parcel.writeString(text);
-            parcel.writeLong(time);
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        public static final Parcelable.Creator<NotificationMessage> CREATOR = new Parcelable.Creator<NotificationMessage>() {
-            public NotificationMessage createFromParcel(Parcel in) {
-                return new NotificationMessage(in);
-            }
-
-            @Override
-            public NotificationMessage[] newArray(int size) {
-                return new NotificationMessage[size];
-            }
-        };
     }
 
     private static Bundle convertToBundle(Person p) {
