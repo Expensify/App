@@ -77,6 +77,6 @@ export default PropTypes.shape({
     /** Which user role is capable of posting messages on the report */
     writeCapability: PropTypes.oneOf(_.values(CONST.REPORT.WRITE_CAPABILITIES)),
 
-    /** Field-specific pending states for offline UI status */ 
-    pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)), 
+    /** Field-specific pending states for offline UI status */
+    pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
 });

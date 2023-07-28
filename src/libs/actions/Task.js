@@ -405,7 +405,7 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                     ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                }
+                },
             },
         },
     ];
@@ -418,7 +418,7 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                     ...(title && {reportName: null}),
                     ...(description && {description: null}),
                     ...(assigneeAccountID && {managerID: null}),
-                }
+                },
             },
         },
     ];
@@ -437,7 +437,7 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                 assignee: report.managerEmail,
                 assigneeAccountID: report.managerID,
             },
-        }
+        },
     ];
 
     if (optimisticAssigneeAddComment) {
@@ -782,5 +782,5 @@ export {
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,
-    clearEditTaskErrors
+    clearEditTaskErrors,
 };

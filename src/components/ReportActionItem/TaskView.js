@@ -54,9 +54,9 @@ function TaskView(props) {
     const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
     const disableState = !canEdit || !isOpen;
     return (
-        <OfflineWithFeedback 
-            shouldShowErrorMessages 
-            errors={lodashGet(props, 'report.errorFields')} 
+        <OfflineWithFeedback
+            shouldShowErrorMessages
+            errors={lodashGet(props, 'report.errorFields')}
             onClose={() => Task.clearEditTaskErrors(props.report)}
             errorRowStyles={styles.ph5}
         >
@@ -151,8 +151,8 @@ function TaskView(props) {
                     shouldGreyOutWhenDisabled={false}
                 />
             )}
-        {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
-    </OfflineWithFeedback>
+            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
+        </OfflineWithFeedback>
     );
 }
 
