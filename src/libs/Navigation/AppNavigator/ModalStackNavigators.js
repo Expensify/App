@@ -468,7 +468,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const SettingsWalletPage = require('../../../pages/settings/Wallet/PaymentsPage').default;
+            const SettingsWalletPage = require('../../../pages/settings/Wallet/WalletPage').default;
             return SettingsWalletPage;
         },
         name: 'Settings_Wallet',

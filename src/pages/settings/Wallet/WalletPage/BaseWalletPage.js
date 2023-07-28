@@ -33,7 +33,7 @@ import variables from '../../../../styles/variables';
 import useLocalize from '../../../../hooks/useLocalize';
 import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 
-function BasePaymentsPage(props) {
+function BaseWalletPage(props) {
     const {translate} = useLocalize();
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
@@ -505,9 +505,9 @@ function BasePaymentsPage(props) {
     );
 }
 
-BasePaymentsPage.propTypes = propTypes;
-BasePaymentsPage.defaultProps = defaultProps;
-BasePaymentsPage.displayName = BasePaymentsPage;
+BaseWalletPage.propTypes = propTypes;
+BaseWalletPage.defaultProps = defaultProps;
+BaseWalletPage.displayName = BaseWalletPage;
 
 export default compose(
     withNetwork(),
@@ -537,4 +537,4 @@ export default compose(
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         },
     }),
-)(BasePaymentsPage);
+)(BaseWalletPage);
