@@ -76,6 +76,8 @@
     "awesome-phonenumber": "^5.4.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "babel-polyfill": "^6.26.0",
+    "date-fns": "^2.30.0",
+    "date-fns-tz": "^2.0.0",
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
     "expensify-common": "git+ssh://git@github.com/Expensify/expensify-common.git#98d8fea356f114f8b5b0cea889a41b355e5daf58",
