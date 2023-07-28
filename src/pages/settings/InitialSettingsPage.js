@@ -267,6 +267,7 @@ function InitialSettingsPage(props) {
         props.allPolicyMembers,
         props.bankAccountList,
         props.cardList,
+        props.fundList,
         props.loginList,
         props.network.isOffline,
         props.policies,
