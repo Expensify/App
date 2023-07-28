@@ -1,35 +1,28 @@
 package com.expensify.chat.customairshipextender;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 import android.util.Base64;
 
-import androidx.annotation.NonNull;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class NotificationCache {
 
-    private static final Bundle cache = new Bundle();
+    private static final HashMap<String, NotificationData> cache = new HashMap();
 
     /*
      * Get NotificationData for an existing notification or create a new instance
      * if it doesn't exist
      */
     public static NotificationData getNotificationData(long reportID) {
-        NotificationData notificationData = cache.getParcelable(Long.toString(reportID));
+        NotificationData notificationData = cache.get(Long.toString(reportID));
 
         if (notificationData == null) {
             notificationData = new NotificationData();
@@ -43,30 +36,10 @@ public class NotificationCache {
      * Set and persist NotificationData in the cache
      */
     public static void setNotificationData(long reportID, NotificationData data) {
-        cache.putParcelable(Long.toString(reportID), data);
+        cache.put(Long.toString(reportID), data);
     }
 
-    private static void writeToInternalStorage(Context context) {
-        Parcel parcel = Parcel.obtain();
-        parcel.writeBundle(cache);
-
-        FileOutputStream output = null;
-        try {
-            File file = new File(context.getFilesDir(), "notification-cache");
-            output = new FileOutputStream(file);
-            output.write(parcel.marshall());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (output != null) {
-                    output.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            parcel.recycle();
-        }
+    private static void writeToInternalStorage() {
     }
 
     public static class NotificationData implements Serializable {
