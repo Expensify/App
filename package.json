@@ -117,7 +117,7 @@
     "react-native-key-command": "^1.0.1",
     "react-native-localize": "^2.2.6",
     "react-native-modal": "^13.0.0",
-    "react-native-onyx": "1.0.52",
+    "react-native-onyx": "1.0.56",
     "react-native-pdf": "^6.6.2",
     "react-native-performance": "^4.0.0",
     "react-native-permissions": "^3.0.1",
