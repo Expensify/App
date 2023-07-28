@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
@@ -164,9 +165,13 @@ function MoneyRequestConfirmationList(props) {
                 },
             );
         } else {
+            const formattedSelectedParticipants = _.map(props.selectedParticipants, (participant) => ({
+                    ...participant,
+                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                }));
             sections.push({
                 title: translate('common.to'),
-                data: props.selectedParticipants,
+                data: formattedSelectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });

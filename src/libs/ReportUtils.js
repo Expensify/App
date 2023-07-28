@@ -404,6 +404,15 @@ function getBankAccountRoute(report) {
 }
 
 /**
+ * Check if personal detail of accountID is empty or optimistic data
+ * @param {String} accountID user accountID
+ * @returns {Boolean}
+ */
+function isOptimisticPersonalDetail(accountID) {
+    return _.isEmpty(allPersonalDetails[accountID]) || !!allPersonalDetails[accountID].isOptimisticPersonalDetail;
+}
+
+/**
  * Checks if a report is a task report from a policy expense chat.
  *
  * @param {Object} report
@@ -2841,6 +2850,7 @@ export {
     getAllPolicyReports,
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
+    isOptimisticPersonalDetail,
     isChatReport,
     isCurrentUserSubmitter,
     isExpenseReport,

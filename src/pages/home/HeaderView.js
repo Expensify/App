@@ -134,6 +134,7 @@ function HeaderView(props) {
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
     const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
+    const isOptimisticDetail = !isMultipleParticipant && ReportUtils.isOptimisticPersonalDetail(participants[0]) && !props.report.parentReportID;
 
     return (
         <View
@@ -164,7 +165,7 @@ function HeaderView(props) {
                         <PressableWithoutFeedback
                             onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
                             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-                            disabled={isTaskReport && !ReportUtils.isOpenTaskReport(props.report)}
+                            disabled={(isTaskReport && !ReportUtils.isOpenTaskReport(props.report)) || isOptimisticDetail}
                             accessibilityLabel={title}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         >
