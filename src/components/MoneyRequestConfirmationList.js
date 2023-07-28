@@ -341,12 +341,14 @@ function MoneyRequestConfirmationList(props) {
                         title={props.iouDate}
                         description={translate('common.date')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        // Note: These options are temporarily disabled while we figure out the required API changes 
                         disabled
                     />
                     <MenuItemWithTopDescription
                         title={props.iouMerchant}
                         description={translate('common.merchant')}
                         style={[styles.moneyRequestMenuItem, styles.mb2]}
+                        // Note: These options are temporarily disabled while we figure out the required API changes 
                         disabled
                     />
                 </>
