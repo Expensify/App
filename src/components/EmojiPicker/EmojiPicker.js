@@ -74,7 +74,6 @@ const EmojiPicker = forwardRef((props, ref) => {
         }
         emojiPopoverAnchor.current = null;
         setIsEmojiPickerVisible(false);
-        setReportAction({});
     };
 
     /**
