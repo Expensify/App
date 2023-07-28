@@ -1,35 +1,28 @@
-import React, {Component} from 'react';
+import React, {useState} from 'react';
 import _ from 'underscore';
 import CONST from '../../CONST';
-import withLocalize from '../withLocalize';
 import TextInput from '../TextInput';
+import useLocalize from '../../hooks/useLocalize';
 import * as roomNameInputPropTypes from './roomNameInputPropTypes';
 import * as RoomNameInputUtils from '../../libs/RoomNameInputUtils';
 
-class RoomNameInput extends Component {
-    constructor(props) {
-        super(props);
+function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onBlur, onChangeText, onInputChange}) {
+    const {translate} = useLocalize();
 
-        this.setModifiedRoomName = this.setModifiedRoomName.bind(this);
-        this.setSelection = this.setSelection.bind(this);
-
-        this.state = {
-            selection: undefined,
-        };
-    }
+    const [selection, setSelection] = useState();
 
     /**
      * Calls the onChangeText callback with a modified room name
      * @param {Event} event
      */
-    setModifiedRoomName(event) {
+    const setModifiedRoomName = (event) => {
         const roomName = event.nativeEvent.text;
         const modifiedRoomName = RoomNameInputUtils.modifyRoomName(roomName);
-        this.props.onChangeText(modifiedRoomName);
+        onChangeText(modifiedRoomName);
 
         // if custom component has onInputChange, use it to trigger changes (Form input)
-        if (_.isFunction(this.props.onInputChange)) {
-            this.props.onInputChange(modifiedRoomName);
+        if (_.isFunction(onInputChange)) {
+            onInputChange(modifiedRoomName);
         }
 
         // Prevent cursor jump behaviour:
@@ -37,59 +30,48 @@ class RoomNameInput extends Component {
         // If it is then the room name is valid (does not contain unallowed characters); no action required
         // If not then the room name contains unvalid characters and we must adjust the cursor position manually
         // Read more: https://github.com/Expensify/App/issues/12741
-        const oldRoomNameWithHash = this.props.value || '';
+        const oldRoomNameWithHash = value || '';
         const newRoomNameWithHash = `${CONST.POLICY.ROOM_PREFIX}${roomName}`;
         if (modifiedRoomName !== newRoomNameWithHash) {
             const offset = modifiedRoomName.length - oldRoomNameWithHash.length;
-            const selection = {
-                start: this.state.selection.start + offset,
-                end: this.state.selection.end + offset,
+            const newSelection = {
+                start: selection.start + offset,
+                end: selection.end + offset,
             };
-            this.setSelection(selection);
+            setSelection(newSelection);
         }
-    }
+    };
 
-    /**
-     * Set the selection
-     * @param {Object} selection
-     */
-    setSelection(selection) {
-        this.setState({selection});
-    }
-
-    render() {
-        return (
-            <TextInput
-                ref={this.props.forwardedRef}
-                disabled={this.props.disabled}
-                label={this.props.translate('newRoomPage.roomName')}
-                accessibilityLabel={this.props.translate('newRoomPage.roomName')}
-                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                prefixCharacter={CONST.POLICY.ROOM_PREFIX}
-                placeholder={this.props.translate('newRoomPage.social')}
-                onChange={this.setModifiedRoomName}
-                value={this.props.value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
-                selection={this.state.selection}
-                onSelectionChange={(event) => this.setSelection(event.nativeEvent.selection)}
-                errorText={this.props.errorText}
-                autoCapitalize="none"
-                onBlur={this.props.onBlur}
-                autoFocus={this.props.autoFocus}
-                maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
-            />
-        );
-    }
+    return (
+        <TextInput
+            ref={forwardedRef}
+            disabled={disabled}
+            label={translate('newRoomPage.roomName')}
+            accessibilityLabel={translate('newRoomPage.roomName')}
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+            prefixCharacter={CONST.POLICY.ROOM_PREFIX}
+            placeholder={translate('newRoomPage.social')}
+            onChange={setModifiedRoomName}
+            value={value.substring(1)} // Since the room name always starts with a prefix, we omit the first character to avoid displaying it twice.
+            selection={selection}
+            onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
+            errorText={errorText}
+            autoCapitalize="none"
+            onBlur={onBlur}
+            autoFocus={autoFocus}
+            maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
+        />
+    );
 }
 
 RoomNameInput.propTypes = roomNameInputPropTypes.propTypes;
 RoomNameInput.defaultProps = roomNameInputPropTypes.defaultProps;
+RoomNameInput.displayName = 'RoomNameInput';
 
-export default withLocalize(
-    React.forwardRef((props, ref) => (
-        <RoomNameInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
+export default React.forwardRef((props, ref) => (
+    <RoomNameInput
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));
