@@ -82,7 +82,7 @@ function NewTaskPage(props) {
             if (!assigneeDetails) {
                 return setErrorMessage(props.translate('task.assigneeError'));
             }
-            const displayDetails = Task.getAssignee(assigneeDetails);
+            const displayDetails = Task.getAssignee(assigneeDetails, props.personalDetails);
             setAssignee(displayDetails);
         }
 

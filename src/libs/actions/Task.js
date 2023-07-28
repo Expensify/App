@@ -571,7 +571,7 @@ function clearOutTaskInfoAndNavigate(reportID) {
  * @param {Object} details
  * @returns {Object}
  */
-function getAssignee(details) {
+function getAssignee(details, personalDetails) {
     if (!details) {
         return {
             icons: [],
@@ -579,9 +579,8 @@ function getAssignee(details) {
             subtitle: '',
         };
     }
-    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'accountID', -1));
     return {
-        icons: [{source, type: 'avatar', name: details.login}],
+        icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
         displayName: details.displayName,
         subtitle: details.login,
     };
