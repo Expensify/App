@@ -11,5 +11,6 @@ export default {
     TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
     SETTINGS: {
         PREFERENCES: 'Settings_Preferences',
+        WORKSPACES: 'Settings_Workspaces',
     },
 };

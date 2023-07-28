@@ -89,9 +89,16 @@ function MoneyRequestDetails(props) {
         : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
     const isPayer =
         Policy.isAdminOfFreePolicy([props.policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = !isSettled && !props.isSingleTransactionView && isPayer;
+    const shouldShowSettlementButton = moneyRequestReport.reportID && !isSettled && !props.isSingleTransactionView && isPayer && !moneyRequestReport.isWaitingOnBankAccount;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
+    let description = `${props.translate('iou.amount')} • ${props.translate('iou.cash')}`;
+    if (isSettled) {
+        description += ` • ${props.translate('iou.settledExpensify')}`;
+    } else if (props.report.isWaitingOnBankAccount) {
+        description += ` • ${props.translate('iou.pending')}`;
+    }
+
     const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(props.report);
     return (
         <OfflineWithFeedback
@@ -174,7 +181,7 @@ function MoneyRequestDetails(props) {
                             title={formattedTransactionAmount}
                             shouldShowTitleIcon={isSettled}
                             titleIcon={Expensicons.Checkmark}
-                            description={`${props.translate('iou.amount')} • ${props.translate('iou.cash')}${isSettled ? ` • ${props.translate('iou.settledExpensify')}` : ''}`}
+                            description={description}
                             titleStyle={styles.newKansasLarge}
                             disabled={isSettled}
                             // Note: These options are temporarily disabled while we figure out the required API changes

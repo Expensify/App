@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import {Text, View, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
+import Text from '../../../../components/Text';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
@@ -43,7 +44,7 @@ function IsEnabledPage(props) {
                         containerStyles={[styles.twoFactorAuthSection]}
                     >
                         <View style={styles.mv3}>
-                            <Text style={styles.textLabel}>{props.translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
+                            <Text>{props.translate('twoFactorAuth.whatIsTwoFactorAuth')}</Text>
                         </View>
                     </Section>
                     <ConfirmModal
