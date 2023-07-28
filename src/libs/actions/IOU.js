@@ -82,14 +82,6 @@ function resetMoneyRequestInfo(id = '', iouType = '') {
     });
 }
 
-function resetMoneyRequestAmount() {
-    Onyx.merge(ONYXKEYS.IOU, {amount: 0});
-}
-
-function resetMoneyRequestReceipt() {
-    Onyx.merge(ONYXKEYS.IOU, {receiptPath: '', receiptSource: ''});
-}
-
 function buildOnyxDataForMoneyRequest(
     chatReport,
     iouReport,
@@ -1431,8 +1423,6 @@ export {
     sendMoneyWithWallet,
     startMoneyRequest,
     resetMoneyRequestInfo,
-    resetMoneyRequestAmount,
-    resetMoneyRequestReceipt,
     setMoneyRequestId,
     setMoneyRequestType,
     setMoneyRequestAmount,

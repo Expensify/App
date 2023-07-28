@@ -26,7 +26,7 @@ import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from '../../libs/actions/NavigateToNextIOUPage';
 import ReceiptUtils from '../../libs/ReceiptUtils';
 import withCurrentReportID from '../../components/withCurrentReportID';
-import {resetMoneyRequestAmount} from '../../libs/actions/IOU';
+import {resetMoneyRequestAmount, resetMoneyRequestInfo} from '../../libs/actions/IOU';
 import Tab from '../../libs/actions/Tab';
 
 const TopTab = createMaterialTopTabNavigator();
@@ -101,14 +101,8 @@ function MoneyRequestSelectorPage(props) {
     };
 
     const onTabPress = (tab) => {
-        console.log(`tab: ${tab}`);
-
-        if (tab === CONST.TAB.TAB_SCAN) {
-            IOU.resetMoneyRequestAmount();
-        } else if (tab === CONST.TAB.TAB_MANUAL) {
-            IOU.resetMoneyRequestReceipt();
-        }
-
+        const moneyRequestID = `${iouType.current}${reportID.current}`;
+        IOU.resetMoneyRequestInfo(moneyRequestID, iouType.current);
         Tab.onTabPress(tab);
     };
 
@@ -149,9 +143,11 @@ function MoneyRequestSelectorPage(props) {
                             />
                             <TopTab.Navigator
                                 initialRouteName={props.selectedTab}
-                                tabBar={(materialTopBarProps) => (
+                                backBehavior="order"
+                                tabBar={({state, navigation}) => (
                                     <TabSelector
-                                        {...materialTopBarProps}
+                                        state={state}
+                                        navigation={navigation}
                                         onTabPress={onTabPress}
                                     />
                                 )}
