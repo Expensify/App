@@ -379,13 +379,11 @@ function getLastMessageTextForReport(report) {
 
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
-        return {
+        lastMessageTextFromReport = {
             key: report.lastMessageTranslationKey || 'common.attachment',
             transformer: (translatedPhrase) => `[${translatedPhrase}]`,
         };
-    }
-    
-    if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
+    } else if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
         const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
         lastMessageTextFromReport = ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
     } else {
@@ -402,18 +400,6 @@ function getLastMessageTextForReport(report) {
                 ) || {};
             lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
         }
-    }
-    if (ReportActionUtils.isReportPreviewAction(lastReportAction)) {
-        const iouReport = ReportUtils.getReport(ReportActionUtils.getIOUReportIDFromReportActionPreview(lastReportAction));
-        return ReportUtils.getReportPreviewMessage(iouReport, lastReportAction);
-    }
-    lastMessageTextFromReport = report ? report.lastMessageText || '' : '';
-
-    // Yeah this is a bit ugly. If the latest report action that is not a whisper has been moderated as pending remove, then set the last message text to the text of the latest visible action that is not a whisper.
-    const lastNonWhisper = _.find(allSortedReportActions[report.reportID], (action) => !ReportActionUtils.isWhisperAction(action)) || {};
-    if (ReportActionUtils.isPendingRemove(lastNonWhisper)) {
-        const latestVisibleAction = _.find(allSortedReportActions[report.reportID], (action) => ReportActionUtils.shouldReportActionBeVisible(action, action.reportActionID)) || {};
-        lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
     }
 
     return lastMessageTextFromReport;
