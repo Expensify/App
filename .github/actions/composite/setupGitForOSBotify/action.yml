@@ -7,7 +7,7 @@ inputs:
     required: true
 
 outputs:
-  # Do not try to use this for committing code. Use `secrets.OSBOTIFY_COMMIT_TOKEN` instead
+  # Do not try to use this for committing code. Use `secrets.OS_BOTIFY_COMMIT_TOKEN` instead
   OSBOTIFY_API_TOKEN:
     description: Token to use for GitHub API interactions.
     value: ${{ steps.generateToken.outputs.token }}
