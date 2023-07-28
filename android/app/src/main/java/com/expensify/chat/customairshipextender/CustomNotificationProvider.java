@@ -185,7 +185,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             String conversationName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
 
             // Retrieve or create the Person object who sent the latest report comment
-            Person person = notificationData.people.get(accountID);
+            Person person = notificationData.getPerson(accountID);
             Bitmap personIcon = notificationData.getIcon(accountID);
 
             if (personIcon == null) {
@@ -202,8 +202,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                     .setName(name)
                     .build();
 
-                notificationData.people.put(accountID, person);
-                notificationData.putIcon(accountID, personIcon);
+                notificationData.putPerson(accountID, name, personIcon);
             }
 
             // Despite not using conversation style for the initial notification from each chat, we need to cache it to enable conversation style for future notifications
@@ -220,7 +219,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
                 // Add all conversation messages to the notification, including the last one we just received.
                 for (NotificationMessage cachedMessage : notificationData.messages) {
-                    messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, notificationData.people.get(cachedMessage.accountID));
+                    messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, notificationData.getPerson(cachedMessage.accountID));
                 }
                 builder.setStyle(messagingStyle);
             }

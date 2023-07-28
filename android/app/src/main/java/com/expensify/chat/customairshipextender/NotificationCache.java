@@ -64,7 +64,7 @@ public class NotificationCache {
     }
 
     public static class NotificationData implements Serializable {
-        public HashMap<String, Person> people = new HashMap();
+        private HashMap<String, String> names = new HashMap();
         private HashMap<String, String> icons = new HashMap();
         public ArrayList<NotificationMessage> messages = new ArrayList<>();
 
@@ -78,6 +78,26 @@ public class NotificationCache {
 
         public void putIcon(String accountID, Bitmap bitmap) {
             icons.put(accountID, encodeTobase64(bitmap));
+        }
+
+        public Person getPerson(String accountID) {
+            if (!names.containsKey(accountID) || !icons.containsKey(accountID)) {
+                return null;
+            }
+
+            String name = names.get(accountID);
+            Bitmap icon = getIcon(accountID);
+
+            return new Person.Builder()
+                    .setIcon(IconCompat.createWithBitmap(icon))
+                    .setKey(accountID)
+                    .setName(name)
+                    .build();
+        }
+
+        public void putPerson(String accountID, String name, Bitmap icon) {
+            names.put(accountID, name);
+            icons.put(accountID, encodeTobase64(icon));
         }
 
         public static String encodeTobase64(Bitmap bitmap) {
@@ -110,6 +130,16 @@ public class NotificationCache {
             this.accountID = accountID;
             this.text = text;
             this.time = time;
+        }
+    }
+
+    public static class NotificationPerson implements Serializable {
+        public String accountID;
+        public String name;
+
+        public NotificationPerson(String accountID, String name) {
+            this.accountID = accountID;
+            this.name = name;
         }
     }
 }
