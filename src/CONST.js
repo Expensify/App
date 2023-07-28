@@ -480,7 +480,6 @@ const CONST = {
         PERSONAL_DETAIL: 'personalDetail',
     },
     REPORT: {
-        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
