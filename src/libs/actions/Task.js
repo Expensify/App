@@ -752,12 +752,10 @@ function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
 }
 
 /**
- * Clears any possible stored errors for a specific field on a task report
- *
- * @param {Object} report
+ * @param {String} reportID
  */
-function clearEditTaskErrors(report) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+function clearEditTaskErrors(reportID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
         pendingFields: null,
         errorFields: null,
     });
