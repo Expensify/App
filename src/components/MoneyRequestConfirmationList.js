@@ -166,9 +166,9 @@ function MoneyRequestConfirmationList(props) {
             );
         } else {
             const formattedSelectedParticipants = _.map(props.selectedParticipants, (participant) => ({
-                    ...participant,
-                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
-                }));
+                ...participant,
+                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+            }));
             sections.push({
                 title: translate('common.to'),
                 data: formattedSelectedParticipants,
