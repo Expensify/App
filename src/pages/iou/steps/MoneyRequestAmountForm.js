@@ -24,6 +24,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 
+// TODO: refactor propTypes
 const propTypes = {
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -77,18 +78,18 @@ const numPadViewID = 'numPadView';
 
 function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectionPage, navigateToNextPage, reportID, iouType, isEditing, ...props}) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
+
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
-
-    const prevMoneyRequestID = useRef(props.iou.id);
-    const textInput = useRef(null);
-
     const [amount, setAmount] = useState(selectedAmountAsString);
-    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
+
     const [selection, setSelection] = useState({
         start: selectedAmountAsString.length,
         end: selectedAmountAsString.length,
     });
+
+    const textInput = useRef(null);
+    const prevMoneyRequestID = useRef(props.iou.id);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -123,7 +124,7 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
      * Focus text input
      */
     const focusTextInput = () => {
-        // Component may not initialized due to navigation transitions
+        // Component may not be initialized due to navigation transitions
         // Wait until interactions are complete before trying to focus
         InteractionManager.runAfterInteractions(() => {
             // Focus text input
@@ -178,17 +179,6 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
         };
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
-    useEffect(() => {
-        if (!props.route.params.currency) {
-            return;
-        }
-
-        setSelectedCurrencyCode(props.route.params.currency);
-    }, [props.route.params.currency]);
-
-    useEffect(() => {
-        setSelectedCurrencyCode(props.iou.currency);
-    }, [props.iou.currency]);
 
     useEffect(() => {
         saveAmountToState(props.iou.currency, props.iou.amount);
@@ -296,7 +286,7 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
                                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                                 placeholder={numberFormat(0)}
                                 ref={(el) => (textInput.current = el)}
-                                selectedCurrencyCode={selectedCurrencyCode}
+                                selectedCurrencyCode={props.iou.currency}
                                 selection={selection}
                                 onSelectionChange={(e) => {
                                     if (!shouldUpdateSelection) {
@@ -321,7 +311,7 @@ function MoneyRequestAmountForm({title, navigateBack, navigateToCurrencySelectio
                             <Button
                                 success
                                 style={[styles.w100, styles.mt5]}
-                                onPress={navigateToNextPage}
+                                onPress={() => navigateToNextPage(amount)}
                                 pressOnEnter
                                 isDisabled={!amount.length || parseFloat(amount) < 0.01}
                                 text={buttonText}

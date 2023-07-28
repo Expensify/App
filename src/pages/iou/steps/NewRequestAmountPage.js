@@ -74,24 +74,17 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-const amountViewID = 'amountView';
-const numPadContainerViewID = 'numPadContainerView';
-const numPadViewID = 'numPadView';
-
-
-function MoneyRequestAmountPage(props) {
+function NewRequestAmountPage(props) {
     const { translate } = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
     console.log('newshit');
 
     const prevMoneyRequestID = useRef(props.iou.id);
-    const textInput = useRef(null);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
 
-    const [amount, setAmount] = useState(selectedAmountAsString);
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
     const [selection, setSelection] = useState({
         start: selectedAmountAsString.length,
@@ -114,40 +107,6 @@ function MoneyRequestAmountPage(props) {
         }
         Navigation.dismissModal(reportID.current);
     }, [props.errors, props.report]);
-
-    /**
-     * Focus text input
-     */
-    const focusTextInput = () => {
-        // Component may not initialized due to navigation transitions
-        // Wait until interactions are complete before trying to focus
-        InteractionManager.runAfterInteractions(() => {
-            // Focus text input
-            if (!textInput.current) {
-                return;
-            }
-
-            textInput.current.focus();
-        });
-    };
-
-    /**
-     * Convert amount to whole unit and update selection
-     *
-     * @param {String} currencyCode
-     * @param {Number} amountInCurrencyUnits
-     */
-    const saveAmountToState = (currencyCode, amountInCurrencyUnits) => {
-        if (!currencyCode || !amountInCurrencyUnits) {
-            return;
-        }
-        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currencyCode, amountInCurrencyUnits).toString();
-        setAmount(amountAsStringForState);
-        setSelection({
-            start: amountAsStringForState.length,
-            end: amountAsStringForState.length,
-        });
-    };
 
     useEffect(() => {
         if (isEditing.current) {
@@ -182,20 +141,6 @@ function MoneyRequestAmountPage(props) {
         setSelectedCurrencyCode(props.route.params.currency);
     }, [props.route.params.currency]);
 
-    useEffect(() => {
-        setSelectedCurrencyCode(props.iou.currency);
-    }, [props.iou.currency]);
-
-    useEffect(() => {
-        saveAmountToState(props.iou.currency, props.iou.amount);
-    }, [props.iou.amount, props.iou.currency]);
-
-    useFocusEffect(
-        useCallback(() => {
-            focusTextInput();
-        }, []),
-    );
-
     const navigateBack = () => {
         Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
     };
@@ -206,12 +151,12 @@ function MoneyRequestAmountPage(props) {
         Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType.current, reportID.current, selectedCurrencyCode, activeRoute));
     };
 
-    const navigateToNextPage = () => {
+    const navigateToNextPage = (amount) => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(selectedCurrencyCode, Number.parseFloat(amount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
         IOU.setMoneyRequestCurrency(selectedCurrencyCode);
 
-        saveAmountToState(selectedCurrencyCode, amountInSmallestCurrencyUnits);
+        // saveAmountToState(selectedCurrencyCode, amountInSmallestCurrencyUnits);
 
         if (isEditing.current) {
             Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
@@ -263,9 +208,9 @@ function MoneyRequestAmountPage(props) {
     );
 }
 
-MoneyRequestAmountPage.propTypes = propTypes;
-MoneyRequestAmountPage.defaultProps = defaultProps;
-MoneyRequestAmountPage.displayName = 'MoneyRequestAmountPage';
+NewRequestAmountPage.propTypes = propTypes;
+NewRequestAmountPage.defaultProps = defaultProps;
+NewRequestAmountPage.displayName = 'NewRequestAmountPage';
 
 export default compose(
     withCurrentUserPersonalDetails,
@@ -275,4 +220,4 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
     }),
-)(MoneyRequestAmountPage);
+)(NewRequestAmountPage);
