@@ -124,7 +124,7 @@ function cleanFileName(fileName) {
  */
 function appendTimeToFileName(fileName) {
     const file = splitExtensionFromFileName(fileName);
-    let newFileName = `${file.fileName} - ${DateUtils.getDBTime()}`;
+    let newFileName = `${file.fileName}-${DateUtils.getDBTime()}`;
     if (file.fileExtension) {
         newFileName += `.${file.fileExtension}`;
     }
