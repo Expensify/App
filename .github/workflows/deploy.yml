@@ -9,15 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/staging'
     steps:
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        id: setupGitForOSBotify
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
       - name: Checkout staging branch
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         with:
           ref: staging
           token: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
-
-      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Tag version
         run: git tag "$(npm run print-version --silent)"
@@ -29,6 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/production'
     steps:
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        id: setupGitForOSBotify
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
       - uses: actions/checkout@v3
         with:
           ref: production

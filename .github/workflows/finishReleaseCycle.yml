@@ -12,6 +12,11 @@ jobs:
     outputs:
       isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
     steps:
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        id: setupGitForOSBotify
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
       - name: Validate actor is deployer
         id: isDeployer
         run: |
@@ -68,6 +73,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        id: setupGitForOSBotify
         with:
           GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
@@ -125,6 +131,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [updateStaging, createNewPatchVersion]
     steps:
+      - uses: Expensify/App/.github/actions/composite/setupGitForOSBotify@main
+        id: setupGitForOSBotify
+        with:
+          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+
       - uses: actions/checkout@v3
         with:
           ref: staging
