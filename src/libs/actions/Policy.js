@@ -829,6 +829,9 @@ function generateCustomUnitID() {
         .toUpperCase();
 }
 
+/**
+ * @returns {Object}
+ */
 function buildOptimisticCustomUnits() {
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
