@@ -878,7 +878,7 @@ function deleteReportComment(reportID, reportAction) {
             html: '',
             text: '',
             isEdited: true,
-            isDeletedParentAction: true,
+            isDeletedParentAction: ReportActionsUtils.hasCommentThread(reportAction),
         },
     ];
     const optimisticReportActions = {
@@ -887,6 +887,7 @@ function deleteReportComment(reportID, reportAction) {
             previousMessage: reportAction.message,
             message: deletedMessage,
             errors: null,
+            linkMetadata: [],
         },
     };
 
@@ -897,7 +898,7 @@ function deleteReportComment(reportID, reportAction) {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
-    if (reportAction.reportActionID && reportAction.childVisibleActionCount > 0) {
+    if (reportAction.childVisibleActionCount === 0) {
         optimisticReport = {
             lastMessageTranslationKey: '',
             lastMessageText: '',
@@ -906,11 +907,14 @@ function deleteReportComment(reportID, reportAction) {
     } else {
         const {lastMessageText = '', lastMessageTranslationKey = ''} = ReportActionsUtils.getLastVisibleMessage(originalReportID, optimisticReportActions);
         if (lastMessageText || lastMessageTranslationKey) {
-            const lastVisibleActionCreated = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions).created;
+            const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(originalReportID, optimisticReportActions);
+            const lastVisibleActionCreated = lastVisibleAction.created;
+            const lastActorAccountID = lastVisibleAction.actorAccountID;
             optimisticReport = {
                 lastMessageTranslationKey,
                 lastMessageText,
                 lastVisibleActionCreated,
+                lastActorAccountID,
             };
         }
     }
@@ -961,6 +965,16 @@ function deleteReportComment(reportID, reportAction) {
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(reportID, optimisticReport.lastVisibleActionCreated, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
+    }
+
+    // Check to see if the report action we are deleting is the first comment on a thread report. In this case, we need to trigger
+    // an update to let the LHN know that the parentReportAction is now deleted.
+    if (ReportUtils.isThreadFirstChat(reportAction, reportID)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {updateReportInLHN: true},
+        });
     }
 
     const parameters = {
@@ -1146,7 +1160,7 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  */
 function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     if (previousValue === newValue) {
-        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1164,7 +1178,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1204,7 +1218,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
  */
 function updateWriteCapabilityAndNavigate(report, newValue) {
     if (report.writeCapability === newValue) {
-        Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
+        Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID));
         return;
     }
 
@@ -1224,7 +1238,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
     ];
     API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
-    Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
+    Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID));
 }
 
 /**
@@ -1254,8 +1268,9 @@ function navigateToConciergeChat() {
  * @param {String} reportName
  * @param {String} visibility
  * @param {Array<Number>} policyMembersAccountIDs
+ * @param {String} writeCapability
  */
-function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs) {
+function addPolicyReport(policyID, reportName, visibility, policyMembersAccountIDs, writeCapability) {
     // The participants include the current user (admin), and for restricted rooms, the policy members. Participants must not be empty.
     const members = visibility === CONST.REPORT.VISIBILITY.RESTRICTED ? policyMembersAccountIDs : [];
     const participants = _.unique([currentUserAccountID, ...members]);
@@ -1268,6 +1283,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
         false,
         '',
         visibility,
+        writeCapability,
 
         // The room might contain all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
@@ -1334,6 +1350,7 @@ function addPolicyReport(policyID, reportName, visibility, policyMembersAccountI
             visibility,
             reportID: policyReport.reportID,
             createdReportActionID: createdReportAction.reportActionID,
+            writeCapability,
         },
         {optimisticData, successData, failureData},
     );
@@ -1390,7 +1407,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
 
     // No change needed, navigate back
     if (previousName === policyRoomName) {
-        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1429,7 +1446,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1773,32 +1790,28 @@ function flagComment(reportID, reportAction, severity) {
     const message = reportAction.message[0];
     let updatedDecision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
-        if (_.isEmpty(message.moderationDecisions) || message.moderationDecisions[message.moderationDecisions.length - 1].decision !== CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE) {
-            updatedDecision = [
-                {
-                    decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
-                },
-            ];
+        if (!message.moderationDecision) {
+            updatedDecision = {
+                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
+            };
+        } else {
+            updatedDecision = message.moderationDecision;
         }
     } else if (severity === CONST.MODERATION.FLAG_SEVERITY_ASSAULT || severity === CONST.MODERATION.FLAG_SEVERITY_HARASSMENT) {
-        updatedDecision = [
-            {
-                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
-            },
-        ];
+        updatedDecision = {
+            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+        };
     } else {
-        updatedDecision = [
-            {
-                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
-            },
-        ];
+        updatedDecision = {
+            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+        };
     }
 
     const reportActionID = reportAction.reportActionID;
 
     const updatedMessage = {
         ...message,
-        moderationDecisions: updatedDecision,
+        moderationDecision: updatedDecision,
     };
 
     const optimisticData = [

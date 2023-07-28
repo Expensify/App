@@ -288,6 +288,8 @@ export default {
         beginningOfChatHistoryDomainRoomPartTwo: ' to chat with colleagues, share tips, and ask questions.',
         beginningOfChatHistoryAdminRoomPartOne: ({workspaceName}) => `Collaboration among ${workspaceName} admins starts here! 🎉\nUse `,
         beginningOfChatHistoryAdminRoomPartTwo: ' to chat about topics such as workspace configurations and more.',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartOne: 'Use ',
+        beginningOfChatHistoryAdminOnlyPostingRoomPartTwo: ({workspaceName}) => ` to hear about important announcements related to ${workspaceName}`,
         beginningOfChatHistoryAnnounceRoomPartOne: ({workspaceName}) => `Collaboration between all ${workspaceName} members starts here! 🎉\nUse `,
         beginningOfChatHistoryAnnounceRoomPartTwo: ({workspaceName}) => ` to chat about anything ${workspaceName} related.`,
         beginningOfChatHistoryUserRoomPartOne: 'Collaboration starts here! 🎉\nUse this space to chat about anything ',
@@ -351,6 +353,7 @@ export default {
         sendMoney: 'Send money',
         pay: 'Pay',
         viewDetails: 'View details',
+        pending: 'Pending',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
@@ -365,6 +368,8 @@ export default {
         payerPaidAmount: ({payer, amount}) => `${payer} paid ${amount}`,
         payerPaid: ({payer}) => `${payer} paid: `,
         payerSettled: ({amount}) => `paid ${amount}`,
+        waitingOnBankAccount: ({submitterDisplayName}) => `started settling up, payment is held until ${submitterDisplayName} adds a bank account`,
+        settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} added a bank account. The ${amount} payment has been made.`,
         paidElsewhereWithAmount: ({amount}) => `paid ${amount} elsewhere`,
         paidUsingPaypalWithAmount: ({amount}) => `paid ${amount} using Paypal.me`,
         paidUsingExpensifyWithAmount: ({amount}) => `paid ${amount} using Expensify`,
@@ -916,6 +921,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Invalid email',
+        userIsAlreadyMemberOfWorkspace: ({login, workspace}) => `${login} is already a member of ${workspace}`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -1125,6 +1131,11 @@ export default {
         emptyWorkspace: {
             title: 'Create a new workspace',
             subtitle: "Workspaces are where you'll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.",
+            features: {
+                trackAndCollect: 'Track and collect receipts',
+                companyCards: 'Company credit cards',
+                reimbursements: 'Easy reimbursements',
+            },
         },
         new: {
             newWorkspace: 'New workspace',
@@ -1492,6 +1503,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        deletedRequest: '[Deleted request]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
@@ -1524,5 +1536,11 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Search to see options',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Search to see options',
     },
 };

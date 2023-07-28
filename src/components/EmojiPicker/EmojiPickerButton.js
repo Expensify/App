@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import * as StyleUtils from '../../styles/StyleUtils';
@@ -35,6 +35,7 @@ const defaultProps = {
 
 function EmojiPickerButton(props) {
     let emojiPopoverAnchor = null;
+    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
     return (
         <Tooltip text={props.translate('reportActionCompose.emoji')}>
             <PressableWithoutFeedback

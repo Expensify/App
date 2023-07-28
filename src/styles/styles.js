@@ -525,6 +525,11 @@ const styles = {
         textAlign: 'center',
     },
 
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
+    },
+
     buttonSuccess: {
         backgroundColor: themeColors.success,
         borderWidth: 0,
@@ -1945,6 +1950,11 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarSmaller: {
+        height: variables.avatarSizeSmaller,
+        width: variables.avatarSizeSmaller,
+    },
+
     emptyAvatarMedium: {
         height: variables.avatarSizeMedium,
         width: variables.avatarSizeMedium,
@@ -1960,6 +1970,10 @@ const styles = {
     },
 
     emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
+    },
+
+    emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
     },
 
@@ -2340,11 +2354,6 @@ const styles = {
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
-        padding: 20,
-    },
-
-    pageWrapperNotCentered: {
-        width: '100%',
         padding: 20,
     },
 
@@ -3420,6 +3429,11 @@ const styles = {
 
     contextMenuItemPopoverMaxWidth: {
         maxWidth: 375,
+    },
+
+    formSpaceVertical: {
+        height: 20,
+        width: 1,
     },
 
     taskCheckbox: {
