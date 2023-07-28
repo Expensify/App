@@ -104,6 +104,7 @@ const propTypes = {
     personalDetailsList: PropTypes.objectOf(personalDetailsPropType),
 
     /** Is this the only report action on the report? */
+    // eslint-disable-next-line react/no-unused-prop-types
     isOnlyReportAction: PropTypes.bool,
 
     /** Flag to show, hide the thread divider line */
@@ -456,7 +457,7 @@ function ReportActionItem(props) {
             return (
                 <MoneyRequestView
                     report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
+                    shouldShowHorizontalRule={!props.shouldHideThreadDividerLine}
                 />
             );
         }
