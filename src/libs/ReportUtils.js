@@ -1878,7 +1878,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
-    writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL,
+    writeCapability = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
