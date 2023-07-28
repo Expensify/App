@@ -18,17 +18,14 @@ import colors from '../styles/colors';
 import MultipleAvatars from './MultipleAvatars';
 import * as defaultWorkspaceAvatars from './Icon/WorkspaceDefaultAvatars';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 import ControlSelection from '../libs/ControlSelection';
 import variables from '../styles/variables';
 import * as Session from '../libs/actions/Session';
 import Hoverable from './Hoverable';
+import useWindowDimensions from '../hooks/useWindowDimensions';
 
-const propTypes = {
-    ...menuItemPropTypes,
-    ...windowDimensionsPropTypes,
-};
+const propTypes = menuItemPropTypes;
 
 const defaultProps = {
     badgeText: undefined,
@@ -63,7 +60,7 @@ const defaultProps = {
     brickRoadIndicator: '',
     floatRightAvatars: [],
     shouldStackHorizontally: false,
-    avatarSize: undefined,
+    avatarSize: CONST.AVATAR_SIZE.DEFAULT,
     floatRightAvatarSize: undefined,
     shouldBlockSelection: false,
     hoverAndPressStyle: [],
@@ -76,7 +73,9 @@ const defaultProps = {
     shouldGreyOutWhenDisabled: true,
 };
 
-function MenuItem(props) {
+const MenuItem = React.forwardRef((props, ref) => {
+    const {isSmallScreenWidth} = useWindowDimensions();
+
     const isDeleted = _.contains(props.style, styles.offlineFeedback.deleted);
     const descriptionVerticalMargin = props.shouldShowDescriptionOnTop ? styles.mb1 : styles.mt1;
     const titleTextStyle = StyleUtils.combineStyles(
@@ -86,7 +85,7 @@ function MenuItem(props) {
             props.icon && !_.isArray(props.icon) && (props.avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3),
             props.shouldShowBasicTitle ? undefined : styles.textStrong,
             props.shouldShowHeaderTitle ? styles.textHeadlineH1 : undefined,
-            props.numberOfLinesTitle > 1 ? styles.preWrap : styles.pre,
+            props.numberOfLinesTitle !== 1 ? styles.preWrap : styles.pre,
             props.interactive && props.disabled ? {...styles.userSelectNone} : undefined,
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : undefined,
@@ -96,7 +95,6 @@ function MenuItem(props) {
     const descriptionTextStyle = StyleUtils.combineStyles([
         styles.textLabelSupporting,
         props.icon && !_.isArray(props.icon) ? styles.ml3 : undefined,
-        styles.lhNormal,
         props.title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         props.descriptionTextStyle,
         isDeleted ? styles.offlineFeedback.deleted : undefined,
@@ -119,7 +117,7 @@ function MenuItem(props) {
 
                         props.onPress(e);
                     }, props.isAnonymousAction)}
-                    onPressIn={() => props.shouldBlockSelection && props.isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                    onPressIn={() => props.shouldBlockSelection && isSmallScreenWidth && DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={ControlSelection.unblock}
                     onSecondaryInteraction={props.onSecondaryInteraction}
                     style={({pressed}) => [
@@ -131,7 +129,7 @@ function MenuItem(props) {
                         props.shouldGreyOutWhenDisabled && props.disabled && styles.buttonOpacityDisabled,
                     ]}
                     disabled={props.disabled}
-                    ref={props.forwardedRef}
+                    ref={ref}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.MENUITEM}
                     accessibilityLabel={props.title}
                 >
@@ -151,7 +149,7 @@ function MenuItem(props) {
                                             isHovered={isHovered}
                                             isPressed={pressed}
                                             icons={props.icon}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
+                                            size={props.avatarSize}
                                             secondAvatarStyle={[
                                                 StyleUtils.getBackgroundAndBorderStyle(themeColors.sidebar),
                                                 pressed ? StyleUtils.getBackgroundAndBorderStyle(themeColors.buttonPressedBG) : undefined,
@@ -160,7 +158,7 @@ function MenuItem(props) {
                                         />
                                     )}
                                     {Boolean(props.icon) && !_.isArray(props.icon) && (
-                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize || CONST.AVATAR_SIZE.DEFAULT)]}>
+                                        <View style={[styles.popoverMenuIcon, ...props.iconStyles, StyleUtils.getAvatarWidthStyle(props.avatarSize)]}>
                                             {props.iconType === CONST.ICON_TYPE_ICON && (
                                                 <Icon
                                                     src={props.icon}
@@ -190,7 +188,7 @@ function MenuItem(props) {
                                                     imageStyles={[styles.alignSelfCenter]}
                                                     source={props.icon}
                                                     fallbackIcon={props.fallbackIcon}
-                                                    size={props.avatarSize || CONST.AVATAR_SIZE.DEFAULT}
+                                                    size={props.avatarSize}
                                                 />
                                             )}
                                         </View>
@@ -208,7 +206,7 @@ function MenuItem(props) {
                                             {Boolean(props.title) && (
                                                 <Text
                                                     style={titleTextStyle}
-                                                    numberOfLines={props.numberOfLinesTitle}
+                                                    numberOfLines={props.numberOfLinesTitle || undefined}
                                                 >
                                                     {convertToLTR(props.title)}
                                                 </Text>
@@ -302,20 +300,10 @@ function MenuItem(props) {
             )}
         </Hoverable>
     );
-}
+});
 
 MenuItem.propTypes = propTypes;
+MenuItem.defaultProps = defaultProps;
 MenuItem.displayName = 'MenuItem';
 
-const MenuItemWithWindowDimensions = withWindowDimensions(
-    React.forwardRef((props, ref) => (
-        <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    )),
-);
-MenuItemWithWindowDimensions.defaultProps = defaultProps;
-
-export default MenuItemWithWindowDimensions;
+export default MenuItem;

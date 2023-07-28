@@ -13,6 +13,7 @@ import * as UserUtils from '../UserUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -119,6 +120,16 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 isOptimisticReport: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
+            value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        },
     ];
 
     const failureData = [
@@ -161,6 +172,12 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 value: optimisticAssigneeReport,
             },
         );
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
 
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -242,6 +259,12 @@ function completeTask(taskReportID, taskTitle) {
         },
     ];
 
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
+
     API.write(
         'CompleteTask',
         {
@@ -311,6 +334,12 @@ function reopenTask(taskReportID, taskTitle) {
             },
         },
     ];
+
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     API.write(
         'ReopenTask',
@@ -567,10 +596,16 @@ function getAssignee(details) {
  * */
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
+    let subtitle = '';
+    if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
+        subtitle = LocalePhoneNumber.formatPhoneNumber(report.participants[0]);
+    } else {
+        subtitle = ReportUtils.getChatRoomSubtitle(report);
+    }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
-        subtitle: ReportUtils.getChatRoomSubtitle(report),
+        subtitle,
     };
 }
 

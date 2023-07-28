@@ -6,7 +6,6 @@ import lodashGet from 'lodash/get';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
-import * as Expensicons from './Icon/Expensicons';
 import participantPropTypes from './participantPropTypes';
 import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
@@ -19,7 +18,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
 import reportPropTypes from '../pages/reportPropTypes';
-import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -59,11 +57,10 @@ function MoneyReportHeader(props) {
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer =
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = !isSettled && isPayer;
+    const shouldShowSettlementButton = !isSettled && isPayer && !moneyRequestReport.isWaitingOnBankAccount;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
     const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-    const {translate} = useLocalize();
 
     return (
         <View style={[styles.pt0]}>
@@ -71,14 +68,6 @@ function MoneyReportHeader(props) {
                 shouldShowAvatarWithDisplay
                 shouldShowPinButton={false}
                 shouldShowThreeDotsButton={false}
-                threeDotsMenuItems={[
-                    {
-                        icon: Expensicons.Trashcan,
-                        text: translate('common.delete'),
-                        onSelected: () => {},
-                    },
-                ]}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
                 report={props.report}
                 policies={props.policies}
                 personalDetails={props.personalDetails}
