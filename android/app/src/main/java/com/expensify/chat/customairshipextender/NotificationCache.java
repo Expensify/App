@@ -3,7 +3,6 @@ package com.expensify.chat.customairshipextender;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Bundle;
 import android.util.Base64;
 
 import androidx.core.app.Person;
@@ -13,8 +12,10 @@ import com.expensify.chat.MainApplication;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -22,13 +23,17 @@ import java.util.HashMap;
 
 public class NotificationCache {
 
-    private static final HashMap<String, NotificationData> cache = new HashMap();
+    private static HashMap<String, NotificationData> cache = null;
 
     /*
      * Get NotificationData for an existing notification or create a new instance
      * if it doesn't exist
      */
     public static NotificationData getNotificationData(long reportID) {
+        if (cache == null) {
+            cache = readFromInternalStorage();
+        }
+
         NotificationData notificationData = cache.get(Long.toString(reportID));
 
         if (notificationData == null) {
@@ -61,6 +66,26 @@ public class NotificationCache {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static HashMap<String, NotificationData> readFromInternalStorage() {
+        HashMap<String, NotificationData> result;
+        Context context = MainApplication.getContext();
+        try {
+            File fileCache = new File(context.getFilesDir(), "notification-cache");
+            FileInputStream fis = new FileInputStream(fileCache);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            result = (HashMap<String, NotificationData>) ois.readObject();
+
+            ois.close();
+            fis.close();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            result = new HashMap<>();
+        }
+
+        return result;
     }
 
     public static class NotificationData implements Serializable {
