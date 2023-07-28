@@ -69,6 +69,7 @@
     "@react-native-firebase/crashlytics": "^12.3.0",
     "@react-native-firebase/perf": "^12.3.0",
     "@react-native-picker/picker": "^2.4.3",
+    "@react-navigation/bottom-tabs": "^6.5.8",
     "@react-navigation/native": "6.1.6",
     "@react-navigation/stack": "6.3.16",
     "@react-ng/bounds-observer": "^0.2.1",
