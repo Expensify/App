@@ -4,11 +4,9 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import * as Expensicons from '../Icon/Expensicons';
 import TabSelectorItem from './TabSelectorItem';
-import Tab from '../../libs/actions/Tab';
 import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
-import * as IOU from '../../libs/actions/IOU';
 
 const propTypes = {
     // eslint-disable-next-line react/forbid-prop-types
@@ -18,11 +16,17 @@ const propTypes = {
         navigate: PropTypes.func.isRequired,
         emit: PropTypes.func.isRequired,
     }).isRequired,
+
+    onTabPress: PropTypes.func,
+};
+
+const defaultProps = {
+    onTabPress: () => {},
 };
 
 const getIcon = (route) => (route === CONST.TAB.TAB_MANUAL ? Expensicons.Pencil : Expensicons.Receipt);
 
-function TabSelector({state, navigation}) {
+function TabSelector({state, navigation, onTabPress}) {
     const {translate} = useLocalize();
     return (
         <View style={styles.tabSelector}>
@@ -41,8 +45,7 @@ function TabSelector({state, navigation}) {
                         navigation.navigate({name: route.name, merge: true});
                     }
 
-                    IOU.resetMoneyRequestInfo();
-                    Tab.onTabPress(route.name);
+                    onTabPress(route.name);
                 };
 
                 return (
@@ -59,6 +62,7 @@ function TabSelector({state, navigation}) {
 }
 
 TabSelector.propTypes = propTypes;
+TabSelector.defaultProps = defaultProps;
 TabSelector.displayName = 'TabSelector';
 
 export default TabSelector;

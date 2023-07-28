@@ -134,8 +134,11 @@ function ReceiptSelector(props) {
                                         }
 
                                         const filePath = URL.createObjectURL(file);
+
+                                        console.log(`File: ${filePath} ${file.name}`);
+
                                         IOU.setMoneyRequestReceipt(filePath, file.name);
-                                        NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
+                                        NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
                                     },
                                 });
                             }}
@@ -174,5 +177,8 @@ export default compose(
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
+        report: {
+            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+        },
     }),
 )(ReceiptSelector);

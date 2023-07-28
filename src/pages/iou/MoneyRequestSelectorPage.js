@@ -25,6 +25,9 @@ import * as IOU from '../../libs/actions/IOU';
 import reportPropTypes from '../reportPropTypes';
 import NavigateToNextIOUPage from '../../libs/actions/NavigateToNextIOUPage';
 import ReceiptUtils from '../../libs/ReceiptUtils';
+import withCurrentReportID from '../../components/withCurrentReportID';
+import {resetMoneyRequestAmount} from '../../libs/actions/IOU';
+import Tab from '../../libs/actions/Tab';
 
 const TopTab = createMaterialTopTabNavigator();
 
@@ -97,6 +100,18 @@ function MoneyRequestSelectorPage(props) {
         Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
     };
 
+    const onTabPress = (tab) => {
+        console.log(`tab: ${tab}`);
+
+        if (tab === CONST.TAB.TAB_SCAN) {
+            IOU.resetMoneyRequestAmount();
+        } else if (tab === CONST.TAB.TAB_MANUAL) {
+            IOU.resetMoneyRequestReceipt();
+        }
+
+        Tab.onTabPress(tab);
+    };
+
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -121,7 +136,7 @@ function MoneyRequestSelectorPage(props) {
 
                             const filePath = URL.createObjectURL(file);
                             IOU.setMoneyRequestReceipt(filePath, file.name);
-                            NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
+                            NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
                         }}
                     >
                         <View
@@ -134,7 +149,12 @@ function MoneyRequestSelectorPage(props) {
                             />
                             <TopTab.Navigator
                                 initialRouteName={props.selectedTab}
-                                tabBar={(materialTopBarProps) => <TabSelector {...materialTopBarProps} />}
+                                tabBar={(materialTopBarProps) => (
+                                    <TabSelector
+                                        {...materialTopBarProps}
+                                        onTabPress={onTabPress}
+                                    />
+                                )}
                             >
                                 <TopTab.Screen
                                     name={CONST.TAB.TAB_MANUAL}
@@ -160,10 +180,11 @@ MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default compose(
     withCurrentUserPersonalDetails,
+    withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
         },
         selectedTab: {key: ONYXKEYS.SELECTED_TAB},
     }),

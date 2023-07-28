@@ -4,14 +4,16 @@ import * as ReportUtils from '../ReportUtils';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
-const navigateToNextPage = (iou, iouType, reportID, report, currentUserPersonalDetails) => {
-    const moneyRequestID = `${iouType.current}${reportID.current}`;
+const navigateToNextPage = (iou, reportID, report, currentUserPersonalDetails) => {
+    const moneyRequestID = `${iou.iouType}${reportID.current}`;
     const shouldReset = iou.id !== moneyRequestID;
     // If the money request ID in Onyx does not match the ID from params, we want to start a new request
     // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
     if (shouldReset) {
-        IOU.resetMoneyRequestData(moneyRequestID);
+        IOU.resetMoneyRequestInfo(moneyRequestID, iou.iouType);
     }
+
+    console.log(`Navigating: ${JSON.stringify(iou)} ${iou.iouType} ${JSON.stringify(reportID)} ${JSON.stringify(report)}`);
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
     if (report.reportID) {
@@ -26,10 +28,10 @@ const navigateToNextPage = (iou, iouType, reportID, report, currentUserPersonalD
                       .value();
             IOU.setMoneyRequestParticipants(participants);
         }
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iou.iouType, reportID.current));
         return;
     }
-    Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
+    Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iou.iouType));
 };
 
 export default navigateToNextPage;

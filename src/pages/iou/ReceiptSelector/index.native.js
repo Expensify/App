@@ -190,7 +190,7 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
+                NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
             })
             .catch(() => {
                 showCameraAlert();
@@ -271,7 +271,7 @@ function ReceiptSelector(props) {
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
                             IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                            NavigateToNextIOUPage(props.iou, iouType, reportID, props.report, props.currentUserPersonalDetails);
+                            NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
                         });
                     }}
                 >
@@ -319,5 +319,8 @@ export default compose(
     withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
+        report: {
+            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+        },
     }),
 )(ReceiptSelector);

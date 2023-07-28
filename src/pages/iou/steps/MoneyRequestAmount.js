@@ -250,7 +250,7 @@ function MoneyRequestAmount(props) {
             const moneyRequestID = `${iouType.current}${reportID.current}`;
             const shouldReset = props.iou.id !== moneyRequestID;
             if (shouldReset) {
-                IOU.resetMoneyRequestInfo(moneyRequestID);
+                IOU.resetMoneyRequestInfo(moneyRequestID, iouType.current);
             }
 
             if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
