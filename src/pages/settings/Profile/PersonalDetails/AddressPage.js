@@ -7,7 +7,6 @@ import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import Form from '../../../../components/Form';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import CONST from '../../../../CONST';
@@ -15,12 +14,14 @@ import TextInput from '../../../../components/TextInput';
 import styles from '../../../../styles/styles';
 import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import * as ValidationUtils from '../../../../libs/ValidationUtils';
-import compose from '../../../../libs/compose';
 import AddressSearch from '../../../../components/AddressSearch';
 import CountryPicker from '../../../../components/CountryPicker';
 import StatePicker from '../../../../components/StatePicker';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import useLocalize from '../../../../hooks/useLocalize';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -36,8 +37,6 @@ const propTypes = {
             country: PropTypes.string,
         }),
     }),
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -60,15 +59,15 @@ function updateAddress(values) {
     PersonalDetails.updateAddress(values.addressLine1.trim(), values.addressLine2.trim(), values.city.trim(), values.state.trim(), values.zipPostCode.trim().toUpperCase(), values.country);
 }
 
-function AddressPage(props) {
-    const {translate} = props;
-    const [countryISO, setCountryISO] = useState(PersonalDetails.getCountryISO(lodashGet(props.privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
-    const isUSAForm = countryISO === CONST.COUNTRY.US;
-
-    const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [countryISO, 'samples'], '');
+function AddressPage({privatePersonalDetails}) {
+    usePrivatePersonalDetails();
+    const {translate} = useLocalize();
+    const [currentCountry, setCurrentCountry] = useState(PersonalDetails.getCountryISO(lodashGet(privatePersonalDetails, 'address.country')) || CONST.COUNTRY.US);
+    const isUSAForm = currentCountry === CONST.COUNTRY.US;
+    const zipSampleFormat = lodashGet(CONST.COUNTRY_ZIP_REGEX_DATA, [currentCountry, 'samples'], '');
     const zipFormat = translate('common.zipCodeExampleFormat', {zipSampleFormat});
 
-    const address = lodashGet(props.privatePersonalDetails, 'address') || {};
+    const address = lodashGet(privatePersonalDetails, 'address') || {};
     const [street1, street2] = (address.street || '').split('\n');
 
     /**
@@ -79,7 +78,6 @@ function AddressPage(props) {
      */
     const validate = useCallback((values) => {
         const errors = {};
-
         const requiredFields = ['addressLine1', 'city', 'country', 'state'];
 
         // Check "State" dropdown is a valid state if selected Country is USA
@@ -117,27 +115,39 @@ function AddressPage(props) {
         return errors;
     }, []);
 
+    const handleAddressChange = (value, key) => {
+        if (key !== 'country') {
+            return;
+        }
+        setCurrentCountry(value);
+    };
+
+    if (lodashGet(privatePersonalDetails, 'isLoading', true)) {
+        return <FullscreenLoadingIndicator />;
+    }
+
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={props.translate('privatePersonalDetails.homeAddress')}
+                title={translate('privatePersonalDetails.homeAddress')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
             />
             <Form
-                style={[styles.flexGrow1, styles.ph5]}
+                style={[styles.flexGrow1, styles.mh5]}
                 formID={ONYXKEYS.FORMS.HOME_ADDRESS_FORM}
                 validate={validate}
                 onSubmit={updateAddress}
-                submitButtonText={props.translate('common.save')}
+                submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
+                <View>
                     <AddressSearch
                         inputID="addressLine1"
-                        label={props.translate('common.addressLine', {lineNumber: 1})}
+                        label={translate('common.addressLine', {lineNumber: 1})}
                         defaultValue={street1 || ''}
                         isLimitedToUSA={false}
+                        onValueChange={handleAddressChange}
                         renamedInputKeys={{
                             street: 'addressLine1',
                             street2: 'addressLine2',
@@ -149,62 +159,61 @@ function AddressPage(props) {
                         maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                     />
                 </View>
-                <View style={styles.mb4}>
-                    <TextInput
-                        inputID="addressLine2"
-                        label={props.translate('common.addressLine', {lineNumber: 2})}
-                        accessibilityLabel={props.translate('common.addressLine')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={street2 || ''}
-                        maxLength={CONST.FORM_CHARACTER_LIMIT}
-                    />
-                </View>
-                <View style={styles.mb4}>
-                    <TextInput
-                        inputID="city"
-                        label={props.translate('common.city')}
-                        accessibilityLabel={props.translate('common.city')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        defaultValue={address.city || ''}
-                        maxLength={CONST.FORM_CHARACTER_LIMIT}
-                    />
-                </View>
-                <View style={styles.mb4}>
-                    {isUSAForm ? (
-                        <StatePicker
-                            inputID="state"
-                            defaultValue={address.state || ''}
-                        />
-                    ) : (
-                        <TextInput
-                            inputID="state"
-                            label={props.translate('common.stateOrProvince')}
-                            accessibilityLabel={props.translate('common.stateOrProvince')}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                            defaultValue={address.state || ''}
-                            maxLength={CONST.FORM_CHARACTER_LIMIT}
-                        />
-                    )}
-                </View>
-                <View style={styles.mb4}>
-                    <TextInput
-                        inputID="zipPostCode"
-                        label={props.translate('common.zipPostCode')}
-                        accessibilityLabel={props.translate('common.zipPostCode')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        autoCapitalize="characters"
-                        defaultValue={address.zip || ''}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
-                        hint={zipFormat}
-                    />
-                </View>
-                <View>
+                <View style={styles.formSpaceVertical} />
+                <TextInput
+                    inputID="addressLine2"
+                    label={translate('common.addressLine', {lineNumber: 2})}
+                    accessibilityLabel={translate('common.addressLine')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    defaultValue={street2 || ''}
+                    maxLength={CONST.FORM_CHARACTER_LIMIT}
+                />
+                <View style={styles.formSpaceVertical} />
+                <View style={styles.mhn5}>
                     <CountryPicker
                         inputID="country"
-                        onValueChange={setCountryISO}
                         defaultValue={PersonalDetails.getCountryISO(address.country)}
+                        onValueChange={handleAddressChange}
                     />
                 </View>
+                <View style={styles.formSpaceVertical} />
+                {isUSAForm ? (
+                    <View style={styles.mhn5}>
+                        <StatePicker
+                            inputID="state"
+                            defaultValue={address.state}
+                        />
+                    </View>
+                ) : (
+                    <TextInput
+                        inputID="state"
+                        label={translate('common.stateOrProvince')}
+                        accessibilityLabel={translate('common.stateOrProvince')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                        defaultValue={address.state || ''}
+                        maxLength={CONST.FORM_CHARACTER_LIMIT}
+                    />
+                )}
+                <View style={styles.formSpaceVertical} />
+                <TextInput
+                    inputID="city"
+                    label={translate('common.city')}
+                    accessibilityLabel={translate('common.city')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    defaultValue={address.city || ''}
+                    maxLength={CONST.FORM_CHARACTER_LIMIT}
+                />
+                <View style={styles.formSpaceVertical} />
+                <TextInput
+                    inputID="zipPostCode"
+                    label={translate('common.zipPostCode')}
+                    accessibilityLabel={translate('common.zipPostCode')}
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
+                    autoCapitalize="characters"
+                    defaultValue={address.zip || ''}
+                    maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                    hint={zipFormat}
+                />
             </Form>
         </ScreenWrapper>
     );
@@ -213,11 +222,8 @@ function AddressPage(props) {
 AddressPage.propTypes = propTypes;
 AddressPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        privatePersonalDetails: {
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-        },
-    }),
-)(AddressPage);
+export default withOnyx({
+    privatePersonalDetails: {
+        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    },
+})(AddressPage);

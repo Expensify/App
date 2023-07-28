@@ -18,6 +18,7 @@ const darkTheme = {
     iconColorfulBackground: `${colors.ivory}cc`,
     textSupporting: colors.darkSupportingText,
     text: colors.darkPrimaryText,
+    textColorfulBackground: colors.ivory,
     link: colors.blue300,
     linkHover: colors.blue100,
     buttonDefaultBG: colors.darkDefaultButton,
@@ -84,6 +85,7 @@ const darkTheme = {
 darkTheme.PAGE_BACKGROUND_COLORS = {
     [SCREENS.HOME]: darkTheme.sidebar,
     [SCREENS.SETTINGS.PREFERENCES]: colors.blue500,
+    [SCREENS.SETTINGS.WORKSPACES]: colors.pink800,
 };
 
 export default darkTheme;

@@ -160,7 +160,7 @@ function TaskAssigneeSelectorModal(props) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
             Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
-            return Navigation.goBack();
+            return Navigation.goBack(ROUTES.NEW_TASK);
         }
 
         // Check to see if we're editing a task and if so, update the assignee
