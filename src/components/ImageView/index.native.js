@@ -224,6 +224,7 @@ class ImageView extends PureComponent {
                             resizeMode={Image.resizeMode.contain}
                             onLoadStart={this.imageLoadingStart}
                             onLoad={this.configureImageZoom}
+                            onError={this.props.onError}
                         />
                         {/**
                          Create an invisible view on top of the image so we can capture and set the amount of touches before
