@@ -3,11 +3,15 @@ import moment from 'moment';
 import Onyx from 'react-native-onyx';
 import {AppState} from 'react-native';
 import ONYXKEYS from '../ONYXKEYS';
+import * as API from '../API';
+import CONST from '../../CONST';
 
 let currentToken;
 let refreshTimeoutID;
 
 const refreshToken = () => {
+    console.debug('[MapboxTokens] refreshing token');
+
     // Cancel any previous timeouts so that there is only one request to get a token at a time.
     clearTimeout(refreshTimeoutID);
 
@@ -25,6 +29,8 @@ const hasTokenExpired = () => {
 };
 
 const clearToken = () => {
+    console.debug('[MapboxTokens] Deleting the token stored in Onyx');
+
     // Use Onyx.set() to delete the key from Onyx, which will trigger a new token to be retrieved from the API.
     Onyx.set(ONYXKEYS.MAPBOX_ACCESS_TOKEN, null);
 };
@@ -43,6 +49,7 @@ const init = () => {
             // token is an object with. If it is falsy or an empty object, the token needs to be retrieved from the API.
             // The API sets a token in Onyx with a 30 minute expiration.
             if (!token || _.size(token) === 0) {
+                console.debug('[MapboxTokens] Token does not exist so fetching one');
                 API.read('GetMapboxAccessToken');
                 return;
             }
@@ -51,10 +58,12 @@ const init = () => {
             currentToken = token;
 
             if (hasTokenExpired()) {
+                console.debug('[MapboxTokens] Token has expired after reading from Onyx');
                 clearToken();
                 return;
             }
 
+            console.debug('[MapboxTokens] Token is valid, refreshing again in 25 minutes');
             refreshToken();
         },
     });
@@ -63,6 +72,7 @@ const init = () => {
     AppState.addEventListener('change', (nextAppState) => {
         if (nextAppState === CONST.APP_STATE.ACTIVE) {
             if (hasTokenExpired()) {
+                console.debug('[MapboxTokens] Token is expired after app became active');
                 clearToken();
             }
         }
