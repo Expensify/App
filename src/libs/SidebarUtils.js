@@ -227,7 +227,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
         isExpenseRequest: false,
         isWaitingOnBankAccount: false,
         isLastMessageDeletedParentAction: false,
-        isAllowedToComment: false,
+        isAllowedToComment: true,
     };
 
     const participantPersonalDetailList = _.values(OptionsListUtils.getPersonalDetailsForAccountIDs(report.participantAccountIDs, personalDetails));
@@ -264,7 +264,7 @@ function getOptionData(report, personalDetails, preferredLocale, policy) {
     result.notificationPreference = report.notificationPreference || null;
 
     const {addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
-    // if composer is hidden then user is not allowed to comment, this is used to hide draft icon
+    // If the composer is hidden then the user is not allowed to comment, same can be used to hide the draft icon.
     result.isAllowedToComment = !ReportUtils.shouldHideComposer(report, addWorkspaceRoomOrChatErrors);
 
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat;
