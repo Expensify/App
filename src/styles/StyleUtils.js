@@ -904,7 +904,7 @@ function getHorizontalStackedAvatarBorderStyle({isHovered, isPressed, isInReport
  */
 function getHorizontalStackedAvatarStyle(index, overlapSize, borderWidth, borderRadius) {
     return {
-        left: -(overlapSize * index),
+        marginLeft: index > 0 ? -overlapSize : 0,
         borderRadius,
         borderWidth,
         zIndex: index + 2,
@@ -921,7 +921,7 @@ function getHorizontalStackedOverlayAvatarStyle(oneAvatarSize, oneAvatarBorderWi
     return {
         borderWidth: oneAvatarBorderWidth,
         borderRadius: oneAvatarSize.width,
-        left: -(oneAvatarSize.width * 2 + oneAvatarBorderWidth * 2),
+        marginLeft: -(oneAvatarSize.width + oneAvatarBorderWidth * 2),
         zIndex: 6,
         borderStyle: 'solid',
     };
