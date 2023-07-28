@@ -14,6 +14,7 @@ import * as Report from '../../libs/actions/Report';
 import * as UserUtils from '../../libs/UserUtils';
 import participantPropTypes from '../participantPropTypes';
 import CONST from '../../CONST';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 
 const propTypes = {
     /** If true will disable ever setting the OptionRowLHN to focused */
@@ -42,8 +43,7 @@ const propTypes = {
     ),
 
     /** The list of parent report action of the report */
-    // eslint-disable-next-line react/forbid-prop-types
-    parentReportActions: PropTypes.object,
+    parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...withCurrentReportIDPropTypes,
     ...basePropTypes,
