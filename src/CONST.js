@@ -324,8 +324,8 @@ const CONST = {
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
-        NEW_GROUP: {
-            descriptionKey: 'newGroup',
+        NEW_CHAT: {
+            descriptionKey: 'newChat',
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
