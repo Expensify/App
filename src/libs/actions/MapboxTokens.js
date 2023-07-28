@@ -2,7 +2,7 @@ import _ from 'underscore';
 import moment from 'moment';
 import Onyx from 'react-native-onyx';
 import {AppState} from 'react-native';
-import ONYXKEYS from '../ONYXKEYS';
+import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 
@@ -12,15 +12,16 @@ let refreshTimeoutID;
 let refreshInterval = 1000 * 60 * 25;
 
 const refreshToken = () => {
-    console.debug('[MapboxTokens] refreshing token');
+    console.debug('[MapboxTokens] refreshing token every 25 minutes', refreshInterval);
 
     // Cancel any previous timeouts so that there is only one request to get a token at a time.
     clearTimeout(refreshTimeoutID);
 
-    API.read('GetMapboxAccessToken');
-
     // Refresh the token every 25 minutes
-    refreshTimeoutID = setTimeout(refreshToken, refreshInterval);
+    refreshTimeoutID = setTimeout(() => {
+        console.debug('[MapboxTokens] Fetching a new token after waiting 25 minutes');
+        API.read('GetMapboxAccessToken');
+    }, refreshInterval);
 };
 
 const hasTokenExpired = () => {
@@ -70,7 +71,7 @@ const init = () => {
                 return;
             }
 
-            console.debug('[MapboxTokens] Token is valid, refreshing again in 25 minutes');
+            console.debug('[MapboxTokens] Token is valid, setting up refresh');
             refreshToken();
         },
     });
