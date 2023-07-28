@@ -50,9 +50,9 @@ const propTypes = {
 const defaultProps = {
     reportActions: {},
     report: {
-        isLoadingReportActions: true,
+        isLoadingReportActions: false,
     },
-    isLoadingReportData: true,
+    isLoadingReportData: false,
 };
 
 /**
@@ -159,8 +159,11 @@ function FlagCommentPage(props) {
         />
     ));
 
-    const shouldShowLoading =
-        (props.isLoadingReportData && _.isEmpty(props.report)) || _.isEmpty(props.reportActions) || (props.report.isLoadingReportActions && _.isEmpty(getActionToFlag()));
+    const isLoadingInitialReport = props.isLoadingReportData && _.isEmpty(props.report);
+    const isLoadingInitialReportActions = _.isEmpty(props.reportActions) || (props.report.isLoadingReportActions && _.isEmpty(getActionToFlag()));
+    const isExistReport = isLoadingInitialReport || (!_.isEmpty(props.report) && props.report.reportID);
+
+    const shouldShowLoading = (isLoadingInitialReport || isLoadingInitialReportActions) && isExistReport;
     if (shouldShowLoading) {
         return <FullscreenLoadingIndicator />;
     }
