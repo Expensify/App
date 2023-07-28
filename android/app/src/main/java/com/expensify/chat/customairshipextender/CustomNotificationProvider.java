@@ -208,7 +208,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
             // Despite not using conversation style for the initial notification from each chat, we need to cache it to enable conversation style for future notifications
             long createdTimeInMillis = getMessageTimeInMillis(messageData.get("created").getString(""));
-            notificationData.messages.add(new NotificationMessage(person, message, createdTimeInMillis));
+            notificationData.messages.add(new NotificationMessage(accountID, message, createdTimeInMillis));
 
 
             // Conversational styling should be applied to groups chats, rooms, and any 1:1 chats with more than one notification (ensuring the large profile image is always shown)
@@ -220,7 +220,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
                 // Add all conversation messages to the notification, including the last one we just received.
                 for (NotificationMessage cachedMessage : notificationData.messages) {
-                    messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
+                    messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, notificationData.getPerson(cachedMessage.accountID));
                 }
                 builder.setStyle(messagingStyle);
             }

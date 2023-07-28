@@ -143,25 +143,25 @@ public class NotificationCache {
     }
 
     public static class NotificationMessage implements Parcelable {
-        public Person person;
+        public String accountID;
         public String text;
         public long time;
 
-        NotificationMessage(Person person, String text, long time) {
-            this.person = person;
+        NotificationMessage(String accountID, String text, long time) {
+            this.accountID = accountID;
             this.text = text;
             this.time = time;
         }
 
         NotificationMessage(Parcel parcel) {
-            this.person = convertToPerson(parcel.readBundle());
+            this.accountID = parcel.readString();
             this.text = parcel.readString();
             this.time = parcel.readLong();
         }
 
         @Override
         public void writeToParcel(@NonNull Parcel parcel, int i) {
-            parcel.writeBundle(convertToBundle(person));
+            parcel.writeString(accountID);
             parcel.writeString(text);
             parcel.writeLong(time);
         }
