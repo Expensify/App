@@ -818,7 +818,7 @@ function deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView
     let updatedIOUReport = null;
     let updatedReportPreviewAction = null;
     if (!shouldDeleteIOUReport) {
-        if (ReportUtils.isExpenseReport(iouReport.reportID)) {
+        if (ReportUtils.isExpenseReport(iouReport)) {
             updatedIOUReport = {...iouReport};
 
             // Because of the Expense reports are stored as negative values, we add the total from the amount
