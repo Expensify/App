@@ -1,7 +1,7 @@
 import dragAndDropConsumerPropTypes from './dragAndDropConsumerPropTypes';
 
-function DragAndDropConsumer({children}) {
-    return children;
+function DragAndDropConsumer() {
+    return null;
 }
 
 DragAndDropConsumer.propTypes = dragAndDropConsumerPropTypes;
