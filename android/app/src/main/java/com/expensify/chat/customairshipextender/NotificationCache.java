@@ -23,6 +23,7 @@ import java.util.HashMap;
 
 public class NotificationCache {
 
+    private static final String CACHE_FILE_NAME = "notification-cache";
     private static HashMap<String, NotificationData> cache = null;
 
     /*
@@ -59,7 +60,7 @@ public class NotificationCache {
     private static void writeToInternalStorage() {
         Context context = MainApplication.getContext();
         try {
-            File outputFile = new File(context.getFilesDir(), "notification-cache");
+            File outputFile = new File(context.getFilesDir(), CACHE_FILE_NAME);
             FileOutputStream fos = new FileOutputStream(outputFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
 
@@ -76,7 +77,7 @@ public class NotificationCache {
         HashMap<String, NotificationData> result;
         Context context = MainApplication.getContext();
         try {
-            File fileCache = new File(context.getFilesDir(), "notification-cache");
+            File fileCache = new File(context.getFilesDir(), CACHE_FILE_NAME);
             FileInputStream fis = new FileInputStream(fileCache);
             ObjectInputStream ois = new ObjectInputStream(fis);
 
