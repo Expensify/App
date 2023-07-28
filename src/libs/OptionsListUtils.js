@@ -376,7 +376,6 @@ function getAllReportErrors(report, reportActions) {
  */
 function getLastMessageTextForReport(report) {
     const lastReportAction = lastReportActions[report.reportID];
-
     let lastMessageTextFromReport = '';
     if (ReportUtils.isReportMessageAttachment({text: report.lastMessageText, html: report.lastMessageHtml, translationKey: report.lastMessageTranslationKey})) {
         lastMessageTextFromReport = {
@@ -401,7 +400,6 @@ function getLastMessageTextForReport(report) {
             lastMessageTextFromReport = lodashGet(latestVisibleAction, 'message[0].text', '');
         }
     }
-
     return lastMessageTextFromReport;
 }
 
