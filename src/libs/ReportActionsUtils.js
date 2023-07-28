@@ -335,9 +335,9 @@ function shouldReportActionBeVisible(reportAction, key) {
         return false;
     }
 
-    if (isPendingRemove(reportAction)) {
-        return false;
-    }
+    // if (isPendingRemove(reportAction)) {
+    //     return false;
+    // }
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);

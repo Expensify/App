@@ -1244,6 +1244,7 @@ function getReportName(report, policy = undefined) {
     let formattedName;
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const decision = lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision');
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
         }
@@ -1254,10 +1255,14 @@ function getReportName(report, policy = undefined) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
         if (
-            lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
-            lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
+            [CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+                CONST.MODERATION.MODERATOR_DECISION_HIDDEN,CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE].includes(decision)
         ) {
             return Localize.translateLocal('parentReportAction.hiddenMessage');
+        }
+        if (
+            decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
+            return Localize.translateLocal('parentReportAction.deletedMessage');
         }
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
@@ -2220,10 +2225,10 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @param {Object} allReportActions
  * @returns {Boolean}
  */
-function canAccessReport(report, policies, betas, allReportActions) {
-    if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report, allReportActions))) {
-        return false;
-    }
+function canAccessReport(report, policies, betas) {
+    // if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report, allReportActions))) {
+    //     return false;
+    // }
 
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
     if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
@@ -2263,7 +2268,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return false;
     }
 
-    if (!canAccessReport(report, policies, betas, allReportActions)) {
+    if (!canAccessReport(report, policies, betas)) {
         return false;
     }
 
