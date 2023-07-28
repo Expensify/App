@@ -337,6 +337,9 @@ class BaseOptionsSelector extends Component {
                 focusedIndex={this.state.focusedIndex}
                 selectedOptions={this.props.selectedOptions}
                 canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                shouldShowMultipleOptionSelectorAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
+                multipleOptionSelectorButtonText={this.props.multipleOptionSelectorButtonText}
+                onAddToSelection={this.props.onAddToSelection}
                 hideSectionHeaders={this.props.hideSectionHeaders}
                 headerMessage={this.props.headerMessage}
                 boldStyle={this.props.boldStyle}

@@ -170,6 +170,9 @@ class BaseOptionsList extends Component {
                 onSelectRow={this.props.onSelectRow}
                 isSelected={Boolean(_.find(this.props.selectedOptions, (option) => option.accountID === item.accountID))}
                 showSelectedState={this.props.canSelectMultipleOptions}
+                shouldShowSelectedStateAsButton={this.props.shouldShowMultipleOptionSelectorAsButton}
+                selectedStateButtonText={this.props.multipleOptionSelectorButtonText}
+                onSelectedStatePressed={this.props.onAddToSelection}
                 boldStyle={this.props.boldStyle}
                 isDisabled={isDisabled}
                 shouldHaveOptionSeparator={index > 0 && this.props.shouldHaveOptionSeparator}
