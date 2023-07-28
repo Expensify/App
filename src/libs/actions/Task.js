@@ -405,7 +405,7 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                     ...(title && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     ...(description && {description: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                     ...(assigneeAccountID && {managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
-                },
+                }
             },
         },
     ];
@@ -418,7 +418,7 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                     ...(title && {reportName: null}),
                     ...(description && {description: null}),
                     ...(assigneeAccountID && {managerID: null}),
-                },
+                }
             },
         },
     ];
@@ -436,13 +436,8 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
                 description: report.description,
                 assignee: report.managerEmail,
                 assigneeAccountID: report.managerID,
-                pendingFields: {
-                    ...(title && {reportName: null}),
-                    ...(description && {description: null}),
-                    ...(assigneeAccountID && {managerID: null}),
-                },
             },
-        },
+        }
     ];
 
     if (optimisticAssigneeAddComment) {
@@ -756,6 +751,18 @@ function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
     return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
 }
 
+/**
+ * Clears any possible stored errors for a specific field on a task report
+ *
+ * @param {Object} report
+ */
+function clearEditTaskErrors(report) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {
+        pendingFields: null,
+        errorFields: null,
+    });
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -775,4 +782,5 @@ export {
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,
+    clearEditTaskErrors
 };

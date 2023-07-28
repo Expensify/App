@@ -54,7 +54,12 @@ function TaskView(props) {
     const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
     const disableState = !canEdit || !isOpen;
     return (
-        <View>
+        <OfflineWithFeedback 
+            shouldShowErrorMessages 
+            errors={lodashGet(props, 'report.errorFields')} 
+            onClose={() => Task.clearEditTaskErrors(props.report)}
+            errorRowStyles={styles.ph5}
+        >
             <Hoverable>
                 {(hovered) => (
                     <PressableWithSecondaryInteraction
@@ -71,7 +76,7 @@ function TaskView(props) {
                         accessibilityLabel={taskTitle || props.translate('task.task')}
                     >
                         {({pressed}) => (
-                            <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.reportName', null)}>
+                            <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.reportName')}>
                                 <Text style={styles.taskTitleDescription}>{props.translate('task.title')}</Text>
                                 <View style={[styles.flexRow, styles.alignItemsTop, styles.flex1]}>
                                     <Checkbox
@@ -107,7 +112,7 @@ function TaskView(props) {
                     </PressableWithSecondaryInteraction>
                 )}
             </Hoverable>
-            <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.description', null)}>
+            <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.description')}>
                 <MenuItemWithTopDescription
                     description={props.translate('task.description')}
                     title={props.report.description || ''}
@@ -120,7 +125,7 @@ function TaskView(props) {
                 />
             </OfflineWithFeedback>
             {props.report.managerID ? (
-                <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.managerID', null)}>
+                <OfflineWithFeedback pendingAction={lodashGet(props, 'report.pendingFields.managerID')}>
                     <MenuItem
                         label={props.translate('task.assignee')}
                         title={ReportUtils.getDisplayNameForParticipant(props.report.managerID)}
@@ -146,9 +151,8 @@ function TaskView(props) {
                     shouldGreyOutWhenDisabled={false}
                 />
             )}
-
-            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
-        </View>
+        {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
+    </OfflineWithFeedback>
     );
 }
 
