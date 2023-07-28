@@ -186,7 +186,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
             // Retrieve or create the Person object who sent the latest report comment
             Person person = notificationData.people.get(accountID);
-            Bitmap personIcon = notificationData.icons.get(accountID);
+            Bitmap personIcon = notificationData.getIcon(accountID);
 
             if (personIcon == null) {
                 personIcon = fetchIcon(context, avatar);
@@ -203,7 +203,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                     .build();
 
                 notificationData.people.put(accountID, person);
-                notificationData.icons.put(accountID, personIcon);
+                notificationData.putIcon(accountID, personIcon);
             }
 
             // Despite not using conversation style for the initial notification from each chat, we need to cache it to enable conversation style for future notifications

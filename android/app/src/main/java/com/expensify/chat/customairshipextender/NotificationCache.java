@@ -65,12 +65,19 @@ public class NotificationCache {
 
     public static class NotificationData implements Serializable {
         public HashMap<String, Person> people = new HashMap();
-        public HashMap<String, Bitmap> icons = new HashMap();
+        private HashMap<String, String> icons = new HashMap();
         public ArrayList<NotificationMessage> messages = new ArrayList<>();
 
         public int prevNotificationID = -1;
 
-        public NotificationData() {
+        public NotificationData() {}
+
+        public Bitmap getIcon(String accountID) {
+            return decodeToBitmap(icons.get(accountID));
+        }
+
+        public void putIcon(String accountID, Bitmap bitmap) {
+            icons.put(accountID, encodeTobase64(bitmap));
         }
 
         public static String encodeTobase64(Bitmap bitmap) {
@@ -104,25 +111,5 @@ public class NotificationCache {
             this.text = text;
             this.time = time;
         }
-    }
-
-    private static Bundle convertToBundle(Person p) {
-        Bundle bundle = new Bundle();
-        bundle.putBundle("icon", p.getIcon().toBundle());
-        bundle.putString("key", p.getKey());
-        bundle.putString("name", p.getName().toString());
-        return bundle;
-    }
-
-    private static Person convertToPerson(Bundle b) {
-        if (b == null) {
-            return null;
-        }
-
-        return new Person.Builder()
-                .setIcon(IconCompat.createFromBundle(b.getBundle("icon")))
-                .setKey(b.getString("key"))
-                .setName(b.getString("name"))
-                .build();
     }
 }
