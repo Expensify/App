@@ -253,7 +253,7 @@ function WorkspaceMembersPage(props) {
     const policyID = lodashGet(props.route, 'params.policyID');
     const policyName = lodashGet(props.policy, 'name');
 
-    const getListData = () => {
+    const getMemberOptions = () => {
         let result = [];
 
         _.each(props.policyMembers, (policyMember, accountID) => {
@@ -323,7 +323,7 @@ function WorkspaceMembersPage(props) {
         return result;
     };
 
-    const data = getListData();
+    const data = getMemberOptions();
     const headerMessage = searchValue.trim() && !data.length ? props.translate('workspace.common.memberNotFound') : '';
 
     return (

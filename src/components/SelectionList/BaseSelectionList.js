@@ -172,6 +172,20 @@ function BaseSelectionList({
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
     };
 
+    const selectRow = (item) => {
+        // Focus next index that is not disabled or already selected
+        const nextIndex = _.findIndex(
+            flattenedSections.allOptions,
+            (option, index) => index > focusedIndex && !flattenedSections.disabledOptionsIndexes.includes(index) && !option.isSelected,
+        );
+
+        if (nextIndex >= 0) {
+            setFocusedIndex(nextIndex);
+        }
+
+        onSelectRow(item);
+    };
+
     /**
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
@@ -222,7 +236,7 @@ function BaseSelectionList({
                 <CheckboxListItem
                     item={item}
                     isFocused={isFocused}
-                    onSelectRow={onSelectRow}
+                    onSelectRow={selectRow}
                     onDismissError={onDismissError}
                 />
             );
@@ -232,7 +246,7 @@ function BaseSelectionList({
             <RadioListItem
                 item={item}
                 isFocused={isFocused}
-                onSelectRow={onSelectRow}
+                onSelectRow={selectRow}
             />
         );
     };
@@ -265,7 +279,7 @@ function BaseSelectionList({
                 return;
             }
 
-            onSelectRow(focusedOption);
+            selectRow(focusedOption);
         },
         {
             captureOnInputs: true,
