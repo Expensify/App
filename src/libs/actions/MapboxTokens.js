@@ -6,6 +6,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 
+let connectionID;
 let currentToken;
 let refreshTimeoutID;
 
@@ -36,8 +37,13 @@ const clearToken = () => {
 };
 
 const init = () => {
+    if (connectionID) {
+        console.debug(`[MapboxTokens] init() is already listening to Onyx so returning early`);
+        return;
+    }
+
     // When the token changes in Onyx, the expiration needs to be checked so a new token can be retrieved.
-    Onyx.connect({
+    connectionID = Onyx.connect({
         key: ONYXKEYS.MAPBOX_ACCESS_TOKEN,
         /**
          * @param {Object} token
