@@ -29,7 +29,7 @@ const propTypes = {
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
-    shouldNavigateBeforeClosingModal: PropTypes.bool
+    shouldNavigateBeforeClosingModal: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -38,7 +38,7 @@ const defaultProps = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
     },
-    shouldNavigateBeforeClosingModal: false
+    shouldNavigateBeforeClosingModal: false,
 };
 
 function PopoverMenu(props) {
@@ -86,7 +86,11 @@ function PopoverMenu(props) {
             anchorPosition={props.anchorPosition}
             anchorAlignment={props.anchorAlignment}
             onClose={props.onClose}
-            onModalHide={onModalHide}
+            onModalHide={() => {
+                if (!props.shouldNavigateBeforeClosingModal) {
+                    onModalHide();
+                }
+            }}
             isVisible={props.isVisible}
             animationIn={props.animationIn}
             animationOut={props.animationOut}
