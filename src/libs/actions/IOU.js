@@ -112,13 +112,7 @@ function buildOnyxDataForMoneyRequest(
                 lastReadTime: DateUtils.getDBTime(),
                 hasOutstandingIOU: iouReport.total !== 0,
                 iouReportID: iouReport.reportID,
-                ...(isNewChatReport
-                    ? {
-                          pendingFields: {
-                              createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                          },
-                      }
-                    : {}),
+                ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         },
         {
@@ -128,13 +122,7 @@ function buildOnyxDataForMoneyRequest(
                 ...iouReport,
                 lastMessageText: iouAction.message[0].text,
                 lastMessageHtml: iouAction.message[0].html,
-                ...(isNewIOUReport
-                    ? {
-                          pendingFields: {
-                              createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                          },
-                      }
-                    : {}),
+                ...(isNewIOUReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         },
         {
@@ -521,11 +509,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             onyxMethod: existingGroupChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
-                ...(existingGroupChatReport
-                    ? {}
-                    : {
-                          [groupCreatedReportAction.reportActionID]: groupCreatedReportAction,
-                      }),
+                ...(existingGroupChatReport ? {} : {[groupCreatedReportAction.reportActionID]: groupCreatedReportAction}),
                 [groupIOUReportAction.reportActionID]: groupIOUReportAction,
             },
         },
@@ -541,11 +525,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${groupChatReport.reportID}`,
             value: {
-                ...(existingGroupChatReport
-                    ? {}
-                    : {
-                          [groupCreatedReportAction.reportActionID]: {pendingAction: null},
-                      }),
+                ...(existingGroupChatReport ? {} : {[groupCreatedReportAction.reportActionID]: {pendingAction: null}}),
                 [groupIOUReportAction.reportActionID]: {pendingAction: null},
             },
         },
@@ -609,13 +589,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
     const splitAmount = IOUUtils.calculateAmount(participants.length, amount, false);
-    const splits = [
-        {
-            email: currentUserEmail,
-            accountID: currentUserAccountID,
-            amount: IOUUtils.calculateAmount(participants.length, amount, true),
-        },
-    ];
+    const splits = [{email: currentUserEmail, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, true)}];
 
     const hasMultipleParticipants = participants.length > 1;
     _.each(participants, (participant) => {
@@ -1075,9 +1049,7 @@ function getSendMoneyParams(report, amount, currency, comment, paymentMethodType
         optimisticIOUReportData.onyxMethod = Onyx.METHOD.SET;
 
         // Set and clear pending fields on the chat report
-        optimisticChatReportData.value.pendingFields = {
-            createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        };
+        optimisticChatReportData.value.pendingFields = {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: optimisticChatReportData.key,
@@ -1317,11 +1289,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
 function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipient) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
-    API.write('SendMoneyElsewhere', params, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write('SendMoneyElsewhere', params, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
@@ -1339,11 +1307,7 @@ function sendMoneyElsewhere(report, amount, currency, comment, managerID, recipi
 function sendMoneyWithWallet(report, amount, currency, comment, managerID, recipient) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
 
-    API.write('SendMoneyWithWallet', params, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.write('SendMoneyWithWallet', params, {optimisticData, successData, failureData});
 
     resetMoneyRequestInfo();
     Navigation.dismissModal(params.chatReportID);
@@ -1361,6 +1325,7 @@ function sendMoneyWithWallet(report, amount, currency, comment, managerID, recip
 function sendMoneyViaPaypal(report, amount, currency, comment, managerID, recipient) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, managerID, recipient);
 
+    API.write('SendMoneyViaPaypal', params, {optimisticData, successData, failureData});
     API.write('SendMoneyViaPaypal', params, {
         optimisticData,
         successData,
@@ -1441,25 +1406,23 @@ function setMoneyRequestDescription(comment) {
  * @param {Object[]} participants
  */
 function setMoneyRequestParticipants(participants) {
-    Onyx.merge(ONYXKEYS.IOU, {
-        participants,
-    });
+    Onyx.merge(ONYXKEYS.IOU, {participants});
 }
 
 export {
     deleteMoneyRequest,
-    payMoneyRequest,
+    splitBill,
+    splitBillAndOpenReport,
     requestMoney,
-    resetMoneyRequestInfo,
     sendMoneyElsewhere,
     sendMoneyViaPaypal,
+    payMoneyRequest,
     sendMoneyWithWallet,
+    startMoneyRequest,
+    resetMoneyRequestInfo,
+    setMoneyRequestId,
     setMoneyRequestAmount,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
-    setMoneyRequestId,
     setMoneyRequestParticipants,
-    splitBill,
-    splitBillAndOpenReport,
-    startMoneyRequest,
 };
