@@ -1160,7 +1160,7 @@ function saveReportActionDraftNumberOfLines(reportID, reportActionID, numberOfLi
  */
 function updateNotificationPreferenceAndNavigate(reportID, previousValue, newValue) {
     if (previousValue === newValue) {
-        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1178,7 +1178,7 @@ function updateNotificationPreferenceAndNavigate(reportID, previousValue, newVal
         },
     ];
     API.write('UpdateReportNotificationPreference', {reportID, notificationPreference: newValue}, {optimisticData, failureData});
-    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1218,7 +1218,7 @@ function updateWelcomeMessage(reportID, previousValue, newValue) {
  */
 function updateWriteCapabilityAndNavigate(report, newValue) {
     if (report.writeCapability === newValue) {
-        Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
+        Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID));
         return;
     }
 
@@ -1238,7 +1238,7 @@ function updateWriteCapabilityAndNavigate(report, newValue) {
     ];
     API.write('UpdateReportWriteCapability', {reportID: report.reportID, writeCapability: newValue}, {optimisticData, failureData});
     // Return to the report settings page since this field utilizes push-to-page
-    Navigation.navigate(ROUTES.getReportSettingsRoute(report.reportID));
+    Navigation.goBack(ROUTES.getReportSettingsRoute(report.reportID));
 }
 
 /**
@@ -1407,7 +1407,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
 
     // No change needed, navigate back
     if (previousName === policyRoomName) {
-        Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
+        Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
         return;
     }
     const optimisticData = [
@@ -1446,7 +1446,7 @@ function updatePolicyRoomNameAndNavigate(policyRoomReport, policyRoomName) {
         },
     ];
     API.write('UpdatePolicyRoomName', {reportID, policyRoomName}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.getReportSettingsRoute(reportID));
+    Navigation.goBack(ROUTES.getReportSettingsRoute(reportID));
 }
 
 /**
@@ -1790,32 +1790,28 @@ function flagComment(reportID, reportAction, severity) {
     const message = reportAction.message[0];
     let updatedDecision;
     if (severity === CONST.MODERATION.FLAG_SEVERITY_SPAM || severity === CONST.MODERATION.FLAG_SEVERITY_INCONSIDERATE) {
-        if (_.isEmpty(message.moderationDecisions) || message.moderationDecisions[message.moderationDecisions.length - 1].decision !== CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE) {
-            updatedDecision = [
-                {
-                    decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
-                },
-            ];
+        if (!message.moderationDecision) {
+            updatedDecision = {
+                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING,
+            };
+        } else {
+            updatedDecision = message.moderationDecision;
         }
     } else if (severity === CONST.MODERATION.FLAG_SEVERITY_ASSAULT || severity === CONST.MODERATION.FLAG_SEVERITY_HARASSMENT) {
-        updatedDecision = [
-            {
-                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
-            },
-        ];
+        updatedDecision = {
+            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE,
+        };
     } else {
-        updatedDecision = [
-            {
-                decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
-            },
-        ];
+        updatedDecision = {
+            decision: CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE,
+        };
     }
 
     const reportActionID = reportAction.reportActionID;
 
     const updatedMessage = {
         ...message,
-        moderationDecisions: updatedDecision,
+        moderationDecision: updatedDecision,
     };
 
     const optimisticData = [
