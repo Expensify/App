@@ -9,7 +9,7 @@ import CONST from '../../CONST';
 let connectionID;
 let currentToken;
 let refreshTimeoutID;
-let refreshInterval = 1000 * 60 * 25;
+const refreshInterval = 1000 * 60 * 25;
 
 const refreshToken = () => {
     console.debug('[MapboxTokens] refreshing token every 25 minutes', refreshInterval);
@@ -78,12 +78,11 @@ const init = () => {
 
     // When the app becomes active (eg. after being in the background), check if the token has expired.
     AppState.addEventListener('change', (nextAppState) => {
-        if (nextAppState === CONST.APP_STATE.ACTIVE) {
-            if (hasTokenExpired()) {
-                console.debug('[MapboxTokens] Token is expired after app became active');
-                clearToken();
-            }
+        if (nextAppState !== CONST.APP_STATE.ACTIVE || !hasTokenExpired()) {
+            return;
         }
+        console.debug('[MapboxTokens] Token is expired after app became active');
+        clearToken();
     });
 };
 
