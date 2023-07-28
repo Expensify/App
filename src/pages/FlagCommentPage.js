@@ -49,7 +49,9 @@ const propTypes = {
 
 const defaultProps = {
     reportActions: {},
-    report: {},
+    report: {
+        isLoadingReportActions: true,
+    },
     isLoadingReportData: true,
 };
 
@@ -157,7 +159,8 @@ function FlagCommentPage(props) {
         />
     ));
 
-    const shouldShowLoading = props.isLoadingReportData || props.report.isLoadingReportActions;
+    const shouldShowLoading =
+        (props.isLoadingReportData && _.isEmpty(props.report)) || _.isEmpty(props.reportActions) || (props.report.isLoadingReportActions && _.isEmpty(getActionToFlag()));
     if (shouldShowLoading) {
         return <FullscreenLoadingIndicator />;
     }
