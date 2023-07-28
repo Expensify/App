@@ -1130,6 +1130,11 @@ export default {
         emptyWorkspace: {
             title: 'Create a new workspace',
             subtitle: "Workspaces are where you'll chat with your team, reimburse expenses, issue cards, send invoices, pay bills, and more — all in one place.",
+            features: {
+                trackAndCollect: 'Track and collect receipts',
+                companyCards: 'Company credit cards',
+                reimbursements: 'Easy reimbursements',
+            },
         },
         new: {
             newWorkspace: 'New workspace',
@@ -1497,6 +1502,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        deletedRequest: '[Deleted request]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
@@ -1531,5 +1537,11 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Search to see options',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Search to see options',
     },
 };

@@ -1139,6 +1139,11 @@ export default {
         emptyWorkspace: {
             title: 'Crear un nuevo espacio de trabajo',
             subtitle: 'En los espacios de trabajo es donde puedes chatear con tu equipo, reembolsar gastos, emitir tarjetas, enviar y pagar facturas y mas — todo en un mismo lugar',
+            features: {
+                trackAndCollect: 'Organiza recibos',
+                companyCards: 'Tarjetas de crédito corporativas',
+                reimbursements: 'Reembolsos fáciles',
+            },
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -1467,7 +1472,7 @@ export default {
         expenseManagement: 'Gestión de Gastos',
         spendManagement: 'Control de Gastos',
         expenseReports: 'Informes de Gastos',
-        companyCreditCard: 'Tarjeta de Crédito de Empresa',
+        companyCreditCard: 'Tarjeta de Crédito Corporativa',
         receiptScanningApp: 'Aplicación de Escaneado de Recibos',
         billPay: 'Pago de Facturas',
         invoicing: 'Facturación',
@@ -1968,6 +1973,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        deletedRequest: '[Pedido eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
@@ -2002,5 +2008,11 @@ export default {
         levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
     },
 };
