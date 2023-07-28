@@ -152,7 +152,6 @@ function ReportActionsList(props) {
                     isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     index={index}
-                    isOnlyReportAction={sortedReportActions.length === 1}
                 />
             );
         },
