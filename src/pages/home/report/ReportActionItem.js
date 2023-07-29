@@ -28,7 +28,7 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
-import {withBlockedFromConcierge, withNetwork, withPersonalDetails, withReportActionsDrafts} from '../../../components/OnyxProvider';
+import {withBlockedFromConcierge, withNetwork, withPersonalDetails, withReportActionsDrafts, withReportActionsSelection} from '../../../components/OnyxProvider';
 import RenameAction from '../../../components/ReportActionItem/RenameAction';
 import InlineSystemMessage from '../../../components/InlineSystemMessage';
 import styles from '../../../styles/styles';
@@ -352,6 +352,7 @@ function ReportActionItem(props) {
                         <ReportActionItemMessageEdit
                             action={props.action}
                             draftMessage={props.draftMessage}
+                            // selection={props.selection}
                             reportID={props.report.reportID}
                             index={props.index}
                             ref={textInputRef}
@@ -585,6 +586,13 @@ export default compose(
         transformValue: (drafts, props) => {
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.report.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
+        },
+    }),
+    withReportActionsSelection({ 
+        propName: 'selection',
+        transformValue: (selection, props) => {
+            const selectionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_SELECTION}${props.report.reportID}_${props.action.reportActionID}`;
+            return lodashGet(selection, selectionKey, {});
         },
     }),
     withOnyx({

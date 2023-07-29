@@ -110,7 +110,10 @@ function ReportActionItemMessageEdit(props) {
         // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
         // so we need to ensure that it is only updated after focus.
         setDraft((prevDraft) => {
+            console.log("TEST --- ", props.selection)
             setSelection({
+                // start: props.selection.start,
+                // end: props.selection.end,
                 start: prevDraft.length,
                 end: prevDraft.length,
             });
@@ -336,6 +339,10 @@ function ReportActionItemMessageEdit(props) {
                             }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
+                            // onSelectionChange={(e) => {
+                            //     setSelection(e.nativeEvent.selection)
+                            //     Report.saveReportActionSelection(props.reportID, props.action.reportActionID, e.nativeEvent.selection);
+                            // }}
                         />
                     </View>
                     <View style={styles.editChatItemEmojiWrapper}>

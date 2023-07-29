@@ -242,6 +242,7 @@ function addActions(reportID, text = '', file) {
     const lastAction = attachmentAction || reportCommentAction;
 
     const currentTime = DateUtils.getDBTime();
+    console.log("currentTime<>----", currentTime);
 
     const lastVisibleMessage = ReportActionsUtils.getLastVisibleMessage(reportID);
     let prevVisibleMessageText;
@@ -379,14 +380,15 @@ function addComment(reportID, text) {
  * @param {Boolean} isFromDeepLink Whether or not this report is being opened from a deep link
  * @param {Array} participantAccountIDList The list of accountIDs that are included in a new chat, not including the user creating it
  */
-function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = []) {
+function openReport(reportID, participantLoginList = [], newReportObject = {}, parentReportActionID = '0', isFromDeepLink = false, participantAccountIDList = [], lastReadTime = DateUtils.getDBTime()) {
+    // console.log("lastReadTime --- ", lastReadTime)
     const optimisticReportData = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         value: {
             isLoadingReportActions: true,
             isLoadingMoreReportActions: false,
-            lastReadTime: DateUtils.getDBTime(),
+            lastReadTime: lastReadTime,
         },
     };
     const reportSuccessData = {
@@ -1863,6 +1865,17 @@ function flagComment(reportID, reportAction, severity) {
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Saves the draft for a comment report action. This will put the comment into "edit mode"
+ *
+ * @param {String} reportID
+ * @param {Number} reportActionID
+ * @param {Object} selection
+ */
+function saveReportActionSelection(reportID, reportActionID, selection) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_SELECTION}${reportID}_${reportActionID}`, selection);
+}
+
 export {
     addComment,
     addAttachment,
@@ -1909,4 +1922,5 @@ export {
     setLastOpenedPublicRoom,
     flagComment,
     openLastOpenedPublicRoom,
+    saveReportActionSelection,
 };
