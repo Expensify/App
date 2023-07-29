@@ -1,13 +1,18 @@
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import {ScrollView } from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Text from './Text';
-import styles from '../styles/styles';
 import ONYXKEYS from '../ONYXKEYS';
 import createInitialWaypoints from '../libs/actions/Transaction';
+import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
+import * as Expensicons from './Icon/Expensicons';
+import theme from '../styles/themes/default';
+
 
 const propTypes = {
     /** The transactionID of this request */
@@ -24,6 +29,8 @@ const propTypes = {
             })
         }),
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -31,27 +38,43 @@ const defaultProps = {
     transaction: {},
 };
 
-function DistanceRequest({transaction, transactionID}) {
+function DistanceRequest({transaction, transactionID, translate}) {
+    const waypoints = lodashGet(transaction, 'comment.waypoints');
+
     useEffect(() => {
-        const waypoints = lodashGet(transaction, 'comment.waypoints');
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
             return;
         }
         // Create the initial start and stop waypoints
         createInitialWaypoints(transaction.transactionID);
-    }, [transaction]);
+    }, [transaction.transactionID, waypoints]);
 
     return (
-        <View style={[styles.flex1, styles.flexColumn, styles.w100, styles.alignItemsCenter, styles.mt4]}>
+        <ScrollView>
+            {_.map(waypoints, (waypoint, index) => {
+                let titleKey = 'distance.waypointTitle.';
+                if (index === 0) {
+                    titleKey += 'start';
+                } else if (index === waypoints.length - 1) {
+                    titleKey += 'finish';
+                } else {
+                    titleKey += 'stop';
+                }
+
+                return <MenuItemWithTopDescription title={translate(titleKey)} icon={Expensicons.Menu} secondaryIcon={Expensicons.DotIndicator} secondaryIconFill={theme.icon}/>;
+            })}
             <Text>Distance Request</Text>
             <Text>transactionID: {transactionID}</Text>
-        </View>
+        </ScrollView>
     );
 }
 
 DistanceRequest.displayName = 'DistanceRequest';
 DistanceRequest.propTypes = propTypes;
 DistanceRequest.defaultProps = defaultProps;
-export default withOnyx({
-    transaction: {key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`, selector: (transaction) => ({transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}})},
-})(DistanceRequest);
+export default compose(
+    withLocalize,
+    withOnyx({
+        transaction: {key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`, selector: (transaction) => ({transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}})},
+    })
+)(DistanceRequest);
