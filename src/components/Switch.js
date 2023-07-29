@@ -30,6 +30,7 @@ function Switch(props) {
             duration: 300,
             useNativeDriver: true,
         }).start();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isOn]);
 
     return (
