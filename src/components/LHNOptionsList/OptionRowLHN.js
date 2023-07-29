@@ -66,6 +66,11 @@ function OptionRowLHN(props) {
         return null;
     }
 
+    const isMuted = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    if (isMuted && !props.isFocused && !optionItem.isPinned) {
+        return null;
+    }
+
     let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
@@ -123,6 +128,7 @@ function OptionRowLHN(props) {
             pendingAction={optionItem.pendingAction}
             errors={optionItem.allReportErrors}
             shouldShowErrorMessages={false}
+            needsOffscreenAlphaCompositing
         >
             <Hoverable>
                 {(hovered) => (
