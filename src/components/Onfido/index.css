@@ -47,3 +47,7 @@
         height: 92% !important;
     }
 }
+
+.onfido-sdk-ui-NavigationBar-back {
+    visibility: hidden;
+}
