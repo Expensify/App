@@ -55,16 +55,16 @@ function DistanceRequest({transaction, transactionID, translate}) {
             {_.map(waypoints, (waypoint, key) => {
                 // key is of the form waypoint0, waypoint1, ...
                 const index = Number(key.replace('waypoint', ''));
-                let titleKey = 'distance.waypointTitle.';
+                let descriptionKey = 'distance.waypointDescription.';
                 if (index === 0) {
-                    titleKey += 'start';
+                    descriptionKey += 'start';
                 } else if (index === lastWaypointIndex) {
-                    titleKey += 'finish';
+                    descriptionKey += 'finish';
                 } else {
-                    titleKey += 'stop';
+                    descriptionKey += 'stop';
                 }
 
-                return <MenuItemWithTopDescription title={translate(titleKey)} icon={Expensicons.Menu} secondaryIcon={Expensicons.DotIndicator} secondaryIconFill={theme.icon}/>;
+                return <MenuItemWithTopDescription description={translate(descriptionKey)} icon={Expensicons.Menu} secondaryIcon={Expensicons.DotIndicator} secondaryIconFill={theme.icon} shouldShowRightIcon/>;
             })}
             <Text>Distance Request</Text>
             <Text>transactionID: {transactionID}</Text>
