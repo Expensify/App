@@ -75,7 +75,7 @@ class EmojiPickerMenu extends Component {
         // prevent auto focus when open picker for mobile device
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
-        this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
+        this.filterEmojis = _.throttle(this.filterEmojis.bind(this), 150);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
         this.scrollToHighlightedIndex = this.scrollToHighlightedIndex.bind(this);
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
