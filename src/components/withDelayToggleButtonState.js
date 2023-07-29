@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
@@ -11,46 +11,36 @@ const withDelayToggleButtonStatePropTypes = {
 };
 
 export default function (WrappedComponent) {
-    class WithDelayToggleButtonState extends Component {
-        constructor(props) {
-            super(props);
+    function WithDelayToggleButtonState({forwardedRef, ...props}){
+        const [isDelayButtonStateComplete, setIsDelayButtonStateComplete] = useState(false);
+        const resetButtonStateCompleteTimer = useRef(null);
 
-            this.state = {
-                isDelayButtonStateComplete: false,
+        // eslint-disable-next-line arrow-body-style
+        useEffect(() => {
+            return () => {
+                if (!resetButtonStateCompleteTimer.current) {
+                    return;
+                }
+                clearTimeout(resetButtonStateCompleteTimer.current)
             };
-            this.toggleDelayButtonState = this.toggleDelayButtonState.bind(this);
-        }
+        }, []);
 
-        componentWillUnmount() {
-            if (!this.resetButtonStateCompleteTimer) {
-                return;
-            }
-
-            clearTimeout(this.resetButtonStateCompleteTimer);
-        }
-
-        toggleDelayButtonState() {
-            this.setState({
-                isDelayButtonStateComplete: true,
-            });
-
-            this.resetButtonStateCompleteTimer = setTimeout(() => {
-                this.setState({
-                    isDelayButtonStateComplete: false,
-                });
+        const toggleDelayButtonState = () => {
+            setIsDelayButtonStateComplete(true);
+            resetButtonStateCompleteTimer.current = setTimeout(() => {
+                setIsDelayButtonStateComplete(false);
             }, 1800);
-        }
+        };
 
-        render() {
-            return (
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...this.props}
-                    isDelayButtonStateComplete={this.state.isDelayButtonStateComplete}
-                    toggleDelayButtonState={this.toggleDelayButtonState}
-                />
-            );
-        }
+        return (
+            <WrappedComponent
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+                forwardedRef={forwardedRef}
+                isDelayButtonStateComplete={isDelayButtonStateComplete}
+                toggleDelayButtonState={toggleDelayButtonState}
+            />
+        );
     }
 
     WithDelayToggleButtonState.displayName = `WithDelayToggleButtonState(${getComponentDisplayName(WrappedComponent)})`;
