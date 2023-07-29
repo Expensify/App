@@ -163,8 +163,6 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            console.log(">>>>", props.report);
-
             IOU.requestMoney(
                 props.report,
                 props.iou.amount,
@@ -264,9 +262,6 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        policyCategories: {
-            key: ONYXKEYS.POLICY_CATEGORIES
         },
     }),
 )(MoneyRequestConfirmPage);
