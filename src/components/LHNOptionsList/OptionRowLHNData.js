@@ -85,6 +85,7 @@ function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullRepor
         }
         optionItemRef.current = item;
         return item;
+        // listen parentReportAction to update title of thread report when parentReportAction changed
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fullReport, personalDetails, preferredLocale, policy, parentReportAction]);
 
