@@ -144,7 +144,7 @@ function InitialSettingsPage(props) {
 
     const signOut = useCallback(
         (shouldForceSignout = false) => {
-            if (props.network.isOffline || shouldForceSignout) {
+            if (!props.network.isOffline || shouldForceSignout) {
                 Session.signOutAndRedirectToSignIn();
                 return;
             }
