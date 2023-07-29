@@ -58,8 +58,12 @@ export default function useDragAndDrop({dropZone, onDrop = () => {}, shouldAllow
             }
 
             event.preventDefault();
+            event.stopPropagation();
 
             switch (event.type) {
+                case DRAG_OVER_EVENT:
+                    setDropEffect(event);
+                    break;
                 case DRAG_ENTER_EVENT:
                     dragCounter.current++;
                     setDropEffect(event);
