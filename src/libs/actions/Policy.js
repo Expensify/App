@@ -1135,7 +1135,6 @@ function getWorkspaceCategories(policyID) {
     API.read('GetWorkspaceCategories', {policyID});
 }
 
-
 /**
  * @param {String} policyID
  * @param {Object} invitedEmailsToAccountIDs
