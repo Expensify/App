@@ -316,7 +316,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
             return SettingsWorkspacesPage;
         },
-        name: 'Settings_Workspaces',
+        name: SCREENS.SETTINGS.WORKSPACES,
     },
     {
         getComponent: () => {
@@ -431,13 +431,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     //     },
     //     name: 'Settings_Preferences_Theme',
     // },
-    {
-        getComponent: () => {
-            const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
-            return SettingsPasswordPage;
-        },
-        name: 'Settings_Password',
-    },
     {
         getComponent: () => {
             const SettingsCloseAccountPage = require('../../../pages/settings/Security/CloseAccountPage').default;

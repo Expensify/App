@@ -1,11 +1,12 @@
 import lodashClamp from 'lodash/clamp';
 import React, {PureComponent} from 'react';
-import {View} from 'react-native';
+import {View, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -62,7 +63,9 @@ class ThumbnailImage extends PureComponent {
         // Note: Clamp minimum width 40px to support touch device
         let thumbnailScreenWidth = lodashClamp(width, 40, 250);
         const imageHeight = height / (width / thumbnailScreenWidth);
-        let thumbnailScreenHeight = lodashClamp(imageHeight, 40, this.props.windowHeight * 0.4);
+        // On mWeb, when soft keyboard opens, window height changes, making thumbnail height inconsistent. We use screen height instead.
+        const screenHeight = DeviceCapabilities.canUseTouchScreen() ? Dimensions.get('screen').height : this.props.windowHeight;
+        let thumbnailScreenHeight = lodashClamp(imageHeight, 40, screenHeight * 0.4);
         const aspectRatio = height / width;
 
         // If thumbnail height is greater than its width, then the image is portrait otherwise landscape.
