@@ -39,7 +39,8 @@ const defaultProps = {
 };
 
 function DistanceRequest({transaction, transactionID, translate}) {
-    const waypoints = lodashGet(transaction, 'comment.waypoints');
+    const waypoints = lodashGet(transaction, 'comment.waypoints', {}) ;
+    const lastWaypointIndex = _.size(waypoints) - 1;
 
     useEffect(() => {
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
@@ -51,11 +52,13 @@ function DistanceRequest({transaction, transactionID, translate}) {
 
     return (
         <ScrollView>
-            {_.map(waypoints, (waypoint, index) => {
+            {_.map(waypoints, (waypoint, key) => {
+                // key is of the form waypoint0, waypoint1, ...
+                const index = Number(key.replace('waypoint', ''));
                 let titleKey = 'distance.waypointTitle.';
                 if (index === 0) {
                     titleKey += 'start';
-                } else if (index === waypoints.length - 1) {
+                } else if (index === lastWaypointIndex) {
                     titleKey += 'finish';
                 } else {
                     titleKey += 'stop';
