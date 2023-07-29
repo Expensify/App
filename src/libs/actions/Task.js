@@ -568,11 +568,12 @@ function clearOutTaskInfoAndNavigate(reportID) {
 /**
  * Get the assignee data
  *
- * @param {Object} details
+ * @param {string} assigneeAccountID
  * @param {Object} personalDetails
  * @returns {Object}
  */
-function getAssignee(details, personalDetails) {
+function getAssignee(assigneeAccountID, personalDetails) {
+    const details = personalDetails[assigneeAccountID];
     if (!details) {
         return {
             icons: [],
