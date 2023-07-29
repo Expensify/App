@@ -74,7 +74,7 @@ function OptionRowLHNData({shouldDisableFocusOptions, currentReportID, fullRepor
 
     const policy = lodashGet(policies, [`${ONYXKEYS.COLLECTION.POLICY}${fullReport.policyID}`], '');
 
-    const parentReportAction = useMemo(() => parentReportActions[fullReport.parentReportActionID], [parentReportActions, fullReport.parentReportActionID]);
+    const parentReportAction = parentReportActions[fullReport.parentReportActionID]
 
     const optionItemRef = useRef();
     const optionItem = useMemo(() => {
