@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
-import { Animated } from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import {Animated} from 'react-native';
 import CONST from '../CONST';
 import styles from '../styles/styles';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
@@ -22,7 +22,7 @@ const OFFSET_X = {
 };
 
 function Switch(props) {
-    const [offsetX] = useState(new Animated.Value(props.isOn ? OFFSET_X.ON : OFFSET_X.OFF));
+    const offsetX = useRef(new Animated.Value(props.isOn ? OFFSET_X.ON : OFFSET_X.OFF)).current;
 
     useEffect(() => {
         Animated.timing(offsetX, {
@@ -38,14 +38,14 @@ function Switch(props) {
             onPress={() => props.onToggle(!props.isOn)}
             onLongPress={() => props.onToggle(!props.isOn)}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.SWITCH}
-            accessibilityState={{ checked: props.isOn }}
+            accessibilityState={{checked: props.isOn}}
             aria-checked={props.isOn}
             accessibilityLabel={props.accessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
         >
-            <Animated.View style={[styles.switchThumb, { transform: [{ translateX: offsetX }] }]} />
+            <Animated.View style={[styles.switchThumb, {transform: [{translateX: offsetX}]}]} />
         </PressableWithFeedback>
     );
 }
