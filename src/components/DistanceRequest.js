@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {ScrollView } from 'react-native';
+import {ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -13,7 +13,6 @@ import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 
-
 const propTypes = {
     /** The transactionID of this request */
     transactionID: PropTypes.string,
@@ -26,7 +25,7 @@ const propTypes = {
                 lat: PropTypes.number,
                 lng: PropTypes.number,
                 address: PropTypes.string,
-            })
+            }),
         }),
     }),
 
@@ -39,7 +38,7 @@ const defaultProps = {
 };
 
 function DistanceRequest({transaction, transactionID, translate}) {
-    const waypoints = lodashGet(transaction, 'comment.waypoints', {}) ;
+    const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const lastWaypointIndex = _.size(waypoints) - 1;
 
     useEffect(() => {
@@ -64,7 +63,15 @@ function DistanceRequest({transaction, transactionID, translate}) {
                     descriptionKey += 'stop';
                 }
 
-                return <MenuItemWithTopDescription description={translate(descriptionKey)} icon={Expensicons.Menu} secondaryIcon={Expensicons.DotIndicator} secondaryIconFill={theme.icon} shouldShowRightIcon/>;
+                return (
+                    <MenuItemWithTopDescription
+                        description={translate(descriptionKey)}
+                        icon={Expensicons.Menu}
+                        secondaryIcon={Expensicons.DotIndicator}
+                        secondaryIconFill={theme.icon}
+                        shouldShowRightIcon
+                    />
+                );
             })}
             <Text>Distance Request</Text>
             <Text>transactionID: {transactionID}</Text>
@@ -78,6 +85,9 @@ DistanceRequest.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
-        transaction: {key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`, selector: (transaction) => ({transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}})},
-    })
+        transaction: {
+            key: (props) => `${ONYXKEYS.COLLECTION.TRANSACTION}${props.transactionID}`,
+            selector: (transaction) => ({transactionID: transaction.transactionID, comment: {waypoints: lodashGet(transaction, 'comment.waypoints')}}),
+        },
+    }),
 )(DistanceRequest);

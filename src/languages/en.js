@@ -1551,5 +1551,5 @@ export default {
             finish: 'Finish',
             stop: 'Stop',
         },
-    }
+    },
 };

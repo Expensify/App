@@ -66,7 +66,6 @@ function DistanceRequestPage({route, report, iou, transactionID}) {
         IOU.createEmptyTransaction();
     }, [transactionID]);
 
-
     return (
         <DistanceRequest
             route={route}
@@ -83,5 +82,5 @@ DistanceRequestPage.defaultProps = defaultProps;
 export default withOnyx({
     // We must provide a default value for transactionID here, otherwise the component won't mount
     // because withOnyx returns null until all the keys are defined
-    transactionID: {key: ONYXKEYS.IOU, selector: (iou) => iou && iou.transactionID || ''},
+    transactionID: {key: ONYXKEYS.IOU, selector: (iou) => (iou && iou.transactionID) || ''},
 })(DistanceRequestPage);
