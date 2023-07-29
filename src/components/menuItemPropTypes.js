@@ -24,6 +24,9 @@ const propTypes = {
     /** Icon to display on the left side of component */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string, PropTypes.arrayOf(avatarPropTypes)]),
 
+    /** Secondary icon to display on the left side of component, right of the icon */
+    secondaryIcon: PropTypes.elementType,
+
     /** Icon Width */
     iconWidth: PropTypes.number,
 
@@ -71,6 +74,9 @@ const propTypes = {
 
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
+
+    /** The fill color to pass into the secondary icon. */
+    secondaryIconFill: PropTypes.string,
 
     /** Whether item is focused or active */
     focused: PropTypes.bool,
