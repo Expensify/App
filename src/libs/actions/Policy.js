@@ -1130,6 +1130,14 @@ function openWorkspaceInvitePage(policyID, clientMemberEmails) {
 
 /**
  * @param {String} policyID
+ */
+function getWorkspaceCategories(policyID) {
+    API.read('GetWorkspaceCategories', {policyID});
+}
+
+
+/**
+ * @param {String} policyID
  * @param {Object} invitedEmailsToAccountIDs
  */
 function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
@@ -1173,4 +1181,5 @@ export {
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
     clearErrors,
+    getWorkspaceCategories,
 };

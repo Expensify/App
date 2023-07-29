@@ -1088,6 +1088,7 @@ const CONST = {
         ROOM_PREFIX: '#',
         CUSTOM_UNIT_RATE_BASE_OFFSET: 100,
         OWNER_EMAIL_FAKE: '_FAKE_',
+        POLICY_ID_FAKE: '_FAKE_',
         OWNER_ACCOUNT_ID_FAKE: 0,
     },
 

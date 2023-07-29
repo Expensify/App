@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import MoneyRequestConfirmationList from '../../../components/MoneyRequestConfirmationList';
@@ -20,6 +20,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import * as Policy from '../../../libs/actions/Policy';
 
 const propTypes = {
     report: reportPropTypes,
@@ -71,6 +72,28 @@ function MoneyRequestConfirmPage(props) {
                 : OptionsListUtils.getParticipantsOptions(props.iou.participants, props.personalDetails),
         [props.iou.participants, props.personalDetails],
     );
+
+    useEffect(() => {
+        const policyID = lodashGet(props.report, 'policyID', '');
+        let connectionID;
+
+        // Any money requests triggered from the FAB or from DMs/group chats won't be associated with policies.
+        // Therefore, we only want to fetch categories if we know this request is tied to an existing policy and isn't a DM/group chat.
+        if (policyID && policyID !== CONST.POLICY.POLICY_ID_FAKE) {
+            // We can't use Onyx.connect to get the policyCategories here,
+            // since we have to access the policyID from the report in Onyx.
+            // eslint-disable-next-line rulesdir/prefer-onyx-connect-in-libs
+            connectionID = Onyx.connect({
+                key: `${ONYXKEYS.POLICY_CATEGORIES}${policyID}`,
+
+                // We only want to fetch categories if:
+                // - there aren't any categories for this policy locally
+                // - the categories for this policy have been marked as stale
+                callback: (val) => (!val || val.stale) && Policy.getWorkspaceCategories(policyID),
+            });
+        }
+        return () => connectionID && Onyx.disconnect(connectionID);
+    }, [props.report]);
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
@@ -139,6 +162,8 @@ function MoneyRequestConfirmPage(props) {
                 );
                 return;
             }
+
+            console.log(">>>>", props.report);
 
             IOU.requestMoney(
                 props.report,
@@ -239,6 +264,9 @@ export default compose(
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+        },
+        policyCategories: {
+            key: ONYXKEYS.POLICY_CATEGORIES
         },
     }),
 )(MoneyRequestConfirmPage);
