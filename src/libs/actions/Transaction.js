@@ -3,9 +3,14 @@ import ONYXKEYS from '../../ONYXKEYS';
 
 function createInitialWaypoints(transactionID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        'waypoint0': {},
-        'waypoint1': {},
+        comment: {
+            waypoints: {
+                'waypoint0': {},
+                'waypoint1': {},
+            }
+        }
     });
+
 }
 
 export default createInitialWaypoints;
