@@ -11,7 +11,7 @@ const withDelayToggleButtonStatePropTypes = {
 };
 
 export default function (WrappedComponent) {
-    function WithDelayToggleButtonState({forwardedRef, ...props}){
+    function WithDelayToggleButtonState({forwardedRef, ...props}) {
         const [isDelayButtonStateComplete, setIsDelayButtonStateComplete] = useState(false);
         const resetButtonStateCompleteTimer = useRef(null);
 
@@ -21,7 +21,7 @@ export default function (WrappedComponent) {
                 if (!resetButtonStateCompleteTimer.current) {
                     return;
                 }
-                clearTimeout(resetButtonStateCompleteTimer.current)
+                clearTimeout(resetButtonStateCompleteTimer.current);
             };
         }, []);
 
