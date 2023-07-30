@@ -5,7 +5,7 @@ import Icon from './Icon';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
-import useDelayToggleButtonState from '../hooks/useDelayToggleButtonState'; // Import our new hook
+import useDelayToggleButtonState from '../hooks/useDelayToggleButtonState';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
