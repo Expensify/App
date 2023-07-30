@@ -23,6 +23,7 @@ const OFFSET_X = {
 
 function Switch(props) {
     const offsetX = useRef(new Animated.Value(props.isOn ? OFFSET_X.ON : OFFSET_X.OFF)).current;
+    const switchTransformStyle = {transform: [{translateX: offsetX}]}
 
     useEffect(() => {
         Animated.timing(offsetX, {
@@ -46,7 +47,7 @@ function Switch(props) {
             hoverDimmingValue={1}
             pressDimmingValue={0.8}
         >
-            <Animated.View style={[styles.switchThumb, {transform: [{translateX: offsetX}]}]} />
+            <Animated.View style={[styles.switchThumb, switchTransformStyle]} />
         </PressableWithFeedback>
     );
 }
