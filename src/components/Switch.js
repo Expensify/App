@@ -23,7 +23,7 @@ const OFFSET_X = {
 
 function Switch(props) {
     const offsetX = useRef(new Animated.Value(props.isOn ? OFFSET_X.ON : OFFSET_X.OFF));
-    const switchTransformStyle = {transform: [{translateX: offsetX.current}]}
+    const switchTransformStyle = {transform: [{translateX: offsetX.current}]};
 
     useEffect(() => {
         Animated.timing(offsetX.current, {
