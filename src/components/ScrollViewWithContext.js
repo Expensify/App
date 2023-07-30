@@ -1,68 +1,54 @@
-import React from 'react';
-import {ScrollView} from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView } from 'react-native';
 
 const MIN_SMOOTH_SCROLL_EVENT_THROTTLE = 16;
 
 const ScrollContext = React.createContext();
+const defaultScrollViewRef = React.createRef();
 
 // eslint-disable-next-line react/forbid-foreign-prop-types
 const propTypes = ScrollView.propTypes;
 
-/*
- * <ScrollViewWithContext /> is a wrapper around <ScrollView /> that provides a ref to the <ScrollView />.
- * <ScrollViewWithContext /> can be used as a direct replacement for <ScrollView />
- * if it contains one or more <Picker /> / <RNPickerSelect /> components.
- * Using this wrapper will automatically handle scrolling to the picker's <TextInput />
- * when the picker modal is opened
- */
-class ScrollViewWithContext extends React.Component {
-    constructor(props) {
-        super(props);
+const ScrollViewWithContext = React.forwardRef(
+  ({ onScroll, scrollEventThrottle, children, innerRef, ...restProps }, ref) => {
+    const [contentOffsetY, setContentOffsetY] = useState(0);
+    const scrollViewRef = innerRef || ref || defaultScrollViewRef;
 
-        this.state = {
-            contentOffsetY: 0,
-        };
-        this.scrollViewRef = this.props.innerRef || React.createRef(null);
+    const setContextScrollPosition = (event) => {
+      if (onScroll) {
+        onScroll(event);
+      }
+      setContentOffsetY(event.nativeEvent.contentOffset.y);
+    };
 
-        this.setContextScrollPosition = this.setContextScrollPosition.bind(this);
-    }
+    return (
+      <ScrollView
+        ref={scrollViewRef}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...restProps}
+        onScroll={setContextScrollPosition}
+        scrollEventThrottle={scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+      >
+        <ScrollContext.Provider
+          value={{
+            scrollViewRef,
+            contentOffsetY,
+          }}
+        >
+          {children}
+        </ScrollContext.Provider>
+      </ScrollView>
+    );
+  }
+);
 
-    setContextScrollPosition(event) {
-        if (this.props.onScroll) {
-            this.props.onScroll(event);
-        }
-        this.setState({contentOffsetY: event.nativeEvent.contentOffset.y});
-    }
-
-    render() {
-        return (
-            <ScrollView
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                ref={this.scrollViewRef}
-                onScroll={this.setContextScrollPosition}
-                scrollEventThrottle={this.props.scrollEventThrottle || MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
-            >
-                <ScrollContext.Provider
-                    value={{
-                        scrollViewRef: this.scrollViewRef,
-                        contentOffsetY: this.state.contentOffsetY,
-                    }}
-                >
-                    {this.props.children}
-                </ScrollContext.Provider>
-            </ScrollView>
-        );
-    }
-}
-ScrollViewWithContext.propTypes = propTypes;
+ScrollViewWithContext.propTypes = propTypes
 
 export default React.forwardRef((props, ref) => (
-    <ScrollViewWithContext
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
+  <ScrollViewWithContext
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...props}
+      innerRef={ref}
+  />
 ));
-
-export {ScrollContext};
+export { ScrollContext };
