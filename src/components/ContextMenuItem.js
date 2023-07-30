@@ -5,7 +5,7 @@ import Icon from './Icon';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import useDelayToggleButtonState from '../hooks/useDelayToggleButtonState'; // Import our new hook
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
@@ -34,8 +34,6 @@ const propTypes = {
 
     /** The action accept for anonymous user or not */
     isAnonymousAction: PropTypes.bool,
-
-    ...withDelayToggleButtonStatePropTypes,
 };
 
 const defaultProps = {
@@ -46,8 +44,9 @@ const defaultProps = {
     isAnonymousAction: false,
 };
 
-function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, successText, toggleDelayButtonState, icon, text, isMini, description, isAnonymousAction}) {
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction}) {
     const {windowWidth} = useWindowDimensions();
+    const {isDelayButtonStateComplete, toggleDelayButtonState} = useDelayToggleButtonState();
 
     const triggerPressAndUpdateSuccess = useCallback(() => {
         if (isDelayButtonStateComplete) {
@@ -97,4 +96,4 @@ function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, succ
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
 
-export default withDelayToggleButtonState(ContextMenuItem);
+export default ContextMenuItem;
