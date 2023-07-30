@@ -205,7 +205,7 @@ const styles = {
         fontSize: variables.fontSizeMedium,
         flex: 1,
         ...wordBreak.breakWord,
-        paddingRight: 10,
+        ...spacing.pr4,
     },
 
     mentionSuggestionsAvatarContainer: {
