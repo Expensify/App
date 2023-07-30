@@ -22,16 +22,15 @@ const OFFSET_X = {
 };
 
 function Switch(props) {
-    const offsetX = useRef(new Animated.Value(props.isOn ? OFFSET_X.ON : OFFSET_X.OFF)).current;
-    const switchTransformStyle = {transform: [{translateX: offsetX}]}
+    const offsetX = useRef(new Animated.Value(props.isOn ? OFFSET_X.ON : OFFSET_X.OFF));
+    const switchTransformStyle = {transform: [{translateX: offsetX.current}]}
 
     useEffect(() => {
-        Animated.timing(offsetX, {
+        Animated.timing(offsetX.current, {
             toValue: props.isOn ? OFFSET_X.ON : OFFSET_X.OFF,
             duration: 300,
             useNativeDriver: true,
         }).start();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.isOn]);
 
     return (
