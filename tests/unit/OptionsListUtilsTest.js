@@ -522,6 +522,14 @@ describe('OptionsListUtils', () => {
         expect(results.userToInvite).not.toBe(null);
         expect(results.userToInvite.login).toBe('+18003243233');
 
+        // When we use a search term for contact number that contains alphabet characters
+        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '998243aaaa');
+
+        // Then we shouldn't have any results or user to invite
+        expect(results.recentReports.length).toBe(0);
+        expect(results.personalDetails.length).toBe(0);
+        expect(results.userToInvite).toBe(null);
+
         // Test Concierge's existence in new group options
         results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
 

@@ -71,9 +71,25 @@ const defaultProps = {
     maxAvatarsInRow: CONST.AVATAR_ROW_SIZE.DEFAULT,
 };
 
+function getContainerStyles(size) {
+    let containerStyles;
+
+    switch (size) {
+        case CONST.AVATAR_SIZE.SMALL:
+            containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+            break;
+        case CONST.AVATAR_SIZE.SMALLER:
+            containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
+            break;
+        default:
+            containerStyles = [styles.emptyAvatar, styles.emptyAvatarMargin];
+    }
+
+    return containerStyles;
+}
 function MultipleAvatars(props) {
     const [avatarRows, setAvatarRows] = useState([props.icons]);
-    let avatarContainerStyles = props.size === CONST.AVATAR_SIZE.SMALL ? [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall] : [styles.emptyAvatar, styles.emptyAvatarMargin];
+    let avatarContainerStyles = getContainerStyles(props.size);
     const singleAvatarStyle = props.size === CONST.AVATAR_SIZE.SMALL ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [props.size === CONST.AVATAR_SIZE.SMALL ? styles.secondAvatarSmall : styles.secondAvatar, ...props.secondAvatarStyle];
     const tooltipTexts = props.shouldShowTooltip ? _.pluck(props.icons, 'name') : [''];
@@ -135,18 +151,9 @@ function MultipleAvatars(props) {
     const overlapSize = oneAvatarSize.width / 3;
 
     if (props.shouldStackHorizontally) {
-        let width;
-
         // Height of one avatar + border space
         const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
-        if (props.icons.length > 4) {
-            const length = avatarRows.length > 1 ? Math.max(avatarRows[0].length, avatarRows[1].length) : avatarRows[0].length;
-            width = oneAvatarSize.width + overlapSize * 2 * (length - 1) + oneAvatarBorderWidth * (length * 2);
-        } else {
-            // one avatar width + overlaping avatar sizes + border space
-            width = oneAvatarSize.width + overlapSize * 2 * (props.icons.length - 1) + oneAvatarBorderWidth * (props.icons.length * 2);
-        }
-        avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), StyleUtils.getWidthStyle(width)]);
+        avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height)]);
     }
 
     return (
@@ -193,8 +200,8 @@ function MultipleAvatars(props) {
                         ))}
                         {avatars.length > props.maxAvatarsInRow && (
                             <Tooltip
-                                // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                                text={tooltipTexts.slice(3, 10).join(', ')}
+                                // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
+                                text={tooltipTexts.slice(avatarRows.length * props.maxAvatarsInRow - 1, avatarRows.length * props.maxAvatarsInRow + 9).join(', ')}
                             >
                                 <View
                                     style={[
