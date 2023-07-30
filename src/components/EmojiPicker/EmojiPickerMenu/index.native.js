@@ -95,7 +95,6 @@ function EmojiPickerMenu ({preferredLocale, onEmojiSelected, preferredSkinTone, 
     const scrollToHeader = (headerIndex) => {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
         emojiList.current.flashScrollIndicators();
-        // const node = findNodeHandle(this.emojiList);
         runOnUI(() => {
             'worklet';
 
