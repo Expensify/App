@@ -52,5 +52,6 @@ function Switch(props) {
 }
 
 Switch.propTypes = propTypes;
+Switch.displayName = 'Switch';
 
 export default Switch;
