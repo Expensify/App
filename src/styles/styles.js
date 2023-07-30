@@ -203,6 +203,9 @@ const styles = {
     },
     emojiSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...wordBreak.breakWord,
+        paddingRight: 10,
     },
 
     mentionSuggestionsAvatarContainer: {
