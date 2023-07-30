@@ -5,7 +5,7 @@ import Icon from './Icon';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
-import useDelayToggleButtonState from '../hooks/useDelayToggleButtonState';
+import useThrottledButtonState from '../hooks/useThrottledButtonState';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
@@ -46,10 +46,10 @@ const defaultProps = {
 
 function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction}) {
     const {windowWidth} = useWindowDimensions();
-    const {isDelayButtonStateComplete, toggleDelayButtonState} = useDelayToggleButtonState();
+    const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
     const triggerPressAndUpdateSuccess = useCallback(() => {
-        if (isDelayButtonStateComplete) {
+        if (!isThrottledButtonActive) {
             return;
         }
         onPress();
@@ -57,24 +57,24 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (successIcon || successText) {
-            toggleDelayButtonState();
+            setThrottledButtonInactive();
         }
-    }, [isDelayButtonStateComplete, onPress, successIcon, successText, toggleDelayButtonState]);
+    }, [isThrottledButtonActive, onPress, successIcon, successText, setThrottledButtonInactive]);
 
-    const itemIcon = isDelayButtonStateComplete && successIcon ? successIcon : icon;
-    const itemText = isDelayButtonStateComplete && successText ? successText : text;
+    const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
+    const itemText = !isThrottledButtonActive && successText ? successText : text;
 
     return isMini ? (
         <BaseMiniContextMenuItem
             tooltipText={itemText}
             onPress={triggerPressAndUpdateSuccess}
-            isDelayButtonStateComplete={isDelayButtonStateComplete}
+            isDelayButtonStateComplete={!isThrottledButtonActive}
         >
             {({hovered, pressed}) => (
                 <Icon
                     small
                     src={itemIcon}
-                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, isDelayButtonStateComplete))}
+                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />
             )}
         </BaseMiniContextMenuItem>
@@ -84,7 +84,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
             wrapperStyle={styles.pr9}
-            success={isDelayButtonStateComplete}
+            success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakAll}
             style={getContextMenuItemStyles(windowWidth)}
