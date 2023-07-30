@@ -2,6 +2,7 @@ import {Keyboard, View, PanResponder} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashCloneDeep from 'lodash/cloneDeep';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
@@ -19,6 +20,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import withEnvironment from '../withEnvironment';
 import toggleTestToolsModal from '../../libs/actions/TestTool';
 import CustomDevMenu from '../CustomDevMenu';
+import * as StyleUtils from '../../styles/StyleUtils';
 
 class ScreenWrapper extends React.Component {
     constructor(props) {
@@ -89,9 +91,16 @@ class ScreenWrapper extends React.Component {
                         paddingStyle.paddingTop = paddingTop;
                     }
 
-                    // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-                    if (this.props.includeSafeAreaPaddingBottom || this.props.network.isOffline) {
+                    if (this.props.includeSafeAreaPaddingBottom) {
                         paddingStyle.paddingBottom = paddingBottom;
+                    }
+
+                    // If we're offline, we need to include the paddingBottom style inside the offline indicator
+                    // so that the styles of the offline indicator extend to the bottom of the page.
+                    // Also, we have to clone the props here before we edit the style, otherwise the changes to props will be preserved between renders.
+                    const offlineIndicatorStyle = lodashCloneDeep(StyleUtils.parseStyleAsArray(this.props.offlineIndicatorStyle));
+                    if (this.props.network.isOffline) {
+                        offlineIndicatorStyle.push({paddingBottom});
                     }
 
                     return (
@@ -122,7 +131,7 @@ class ScreenWrapper extends React.Component {
                                               })
                                             : this.props.children
                                     }
-                                    {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
+                                    {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={offlineIndicatorStyle} />}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>
