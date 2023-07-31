@@ -54,23 +54,6 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
-        // If we're on Windows, don't display the flag emojis (the last category),
-        // since Windows doesn't support them
-        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
-        this.emojis =
-            getOperatingSystem() === CONST.OS.WINDOWS
-                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex))
-                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
-
-        // Get the header emojis along with the code, index and icon.
-        // index is the actual header index starting at the first emoji and counting each one
-        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis);
-
-        // This is the indices of each header's Row
-        // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
-
         // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
         // prevent auto focus when open picker for mobile device
         this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
@@ -90,6 +73,10 @@ class EmojiPickerMenu extends Component {
 
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
+
+        const {filteredEmojis, headerRowIndices} = this.getInitialFilteredEmojisAndHeaderRowIndices();
+        this.emojis = filteredEmojis;
+        this.headerRowIndices = headerRowIndices;
 
         this.state = {
             filteredEmojis: this.emojis,
@@ -117,8 +104,44 @@ class EmojiPickerMenu extends Component {
         this.setFirstNonHeaderIndex(this.emojis);
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.frequentlyUsedEmojis !== this.props.frequentlyUsedEmojis) {
+            const {filteredEmojis, headerRowIndices} = this.getInitialFilteredEmojisAndHeaderRowIndices();
+            this.emojis = filteredEmojis;
+            this.headerRowIndices = headerRowIndices;
+            this.setState({
+                filteredEmojis: this.emojis,
+                headerIndices: this.headerRowIndices,
+            });
+        }
+    }
+
     componentWillUnmount() {
         this.cleanupEventHandlers();
+    }
+
+    /**
+     * Calculate the initial filtered emojis and header row indices
+     */
+    getInitialFilteredEmojisAndHeaderRowIndices() {
+        // If we're on Windows, don't display the flag emojis (the last category),
+        // since Windows doesn't support them
+        const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
+        const filteredEmojis =
+            getOperatingSystem() === CONST.OS.WINDOWS
+                ? EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis.slice(0, flagHeaderIndex))
+                : EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
+
+        // Get the header emojis along with the code, index and icon.
+        // index is the actual header index starting at the first emoji and counting each one
+        const headerEmojis = EmojiUtils.getHeaderEmojis(filteredEmojis);
+
+        // This is the indices of each header's Row
+        // The positions are static, and are calculated as index/numColumns (8 in our case)
+        // This is because each row of 8 emojis counts as one index to the flatlist
+        const headerRowIndices = _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+
+        return {filteredEmojis, headerRowIndices};
     }
 
     /**
@@ -552,6 +575,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(

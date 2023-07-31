@@ -45,17 +45,6 @@ class EmojiPickerMenu extends Component {
         // Ref for emoji FlatList
         this.emojiList = undefined;
 
-        this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
-
-        // Get the header emojis along with the code, index and icon.
-        // index is the actual header index starting at the first emoji and counting each one
-        this.headerEmojis = EmojiUtils.getHeaderEmojis(this.emojis);
-
-        // This is the indices of each header's Row
-        // The positions are static, and are calculated as index/numColumns (8 in our case)
-        // This is because each row of 8 emojis counts as one index to the flatlist
-        this.headerRowIndices = _.map(this.headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
-
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
         this.updatePreferredSkinTone = this.updatePreferredSkinTone.bind(this);
@@ -63,10 +52,44 @@ class EmojiPickerMenu extends Component {
         this.scrollToHeader = this.scrollToHeader.bind(this);
         this.getItemLayout = this.getItemLayout.bind(this);
 
+        const {filteredEmojis, headerRowIndices} = this.getInitialFilteredEmojisAndHeaderRowIndices();
+        this.emojis = filteredEmojis;
+        this.headerRowIndices = headerRowIndices;
+
         this.state = {
             filteredEmojis: this.emojis,
             headerIndices: this.headerRowIndices,
         };
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.frequentlyUsedEmojis !== this.props.frequentlyUsedEmojis) {
+            const {filteredEmojis, headerRowIndices} = this.getInitialFilteredEmojisAndHeaderRowIndices();
+            this.emojis = filteredEmojis;
+            this.headerRowIndices = headerRowIndices;
+            this.setState({
+                filteredEmojis: this.emojis,
+                headerIndices: this.headerRowIndices,
+            });
+        }
+    }
+
+    /**
+     * Calculate the initial filtered emojis and header row indices
+     */
+    getInitialFilteredEmojisAndHeaderRowIndices() {
+        const filteredEmojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis);
+
+        // Get the header emojis along with the code, index and icon.
+        // index is the actual header index starting at the first emoji and counting each one
+        const headerEmojis = EmojiUtils.getHeaderEmojis(filteredEmojis);
+
+        // This is the indices of each header's Row
+        // The positions are static, and are calculated as index/numColumns (8 in our case)
+        // This is because each row of 8 emojis counts as one index to the flatlist
+        const headerRowIndices = _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
+
+        return {filteredEmojis, headerRowIndices};
     }
 
     getItemLayout(data, index) {
@@ -243,6 +266,9 @@ export default compose(
     withOnyx({
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(
