@@ -2745,7 +2745,7 @@ function getPolicy(policyID) {
  * @returns {Boolean}
  */
 function shouldDisableSettings(report) {
-    return !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report);
+    return !isPolicyExpenseChat(report) && !isChatRoom(report) && !isChatThread(report) || isArchivedRoom(report);
 }
 
 /**
