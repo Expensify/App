@@ -35,8 +35,7 @@ const defaultProps = {
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
 };
 
-function EmojiPickerMenu ({preferredLocale, onEmojiSelected, preferredSkinTone, translate}) {
-
+function EmojiPickerMenu({preferredLocale, onEmojiSelected, preferredSkinTone, translate}) {
     const emojiList = useAnimatedRef();
     const allEmojis = useMemo(() => EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis), []);
     const headerEmojis = useMemo(() => EmojiUtils.getHeaderEmojis(allEmojis), [allEmojis]);
@@ -45,7 +44,7 @@ function EmojiPickerMenu ({preferredLocale, onEmojiSelected, preferredSkinTone, 
     const [headerIndices, setHeaderIndices] = useState(headerRowIndices);
     const {windowWidth} = useWindowDimensions();
 
-    const getItemLayout = (data, index) => ({length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index})
+    const getItemLayout = (data, index) => ({length: CONST.EMOJI_PICKER_ITEM_HEIGHT, offset: CONST.EMOJI_PICKER_ITEM_HEIGHT * index, index});
 
     /**
      * Filter the entire list of emojis to only emojis that have the search term in their keywords
@@ -79,7 +78,7 @@ function EmojiPickerMenu ({preferredLocale, onEmojiSelected, preferredSkinTone, 
         const frequentEmojiList = EmojiUtils.getFrequentlyUsedEmojis(emojiObject);
         User.updateFrequentlyUsedEmojis(frequentEmojiList);
         onEmojiSelected(emoji, emojiObject);
-    }
+    };
 
     /**
      * @param {Number} skinTone
@@ -90,7 +89,7 @@ function EmojiPickerMenu ({preferredLocale, onEmojiSelected, preferredSkinTone, 
         }
 
         User.updatePreferredSkinTone(skinTone);
-    }
+    };
 
     const scrollToHeader = (headerIndex) => {
         const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
@@ -100,7 +99,7 @@ function EmojiPickerMenu ({preferredLocale, onEmojiSelected, preferredSkinTone, 
 
             scrollTo(emojiList, 0, calculatedOffset, true);
         })();
-    }
+    };
 
     /**
      * Return a unique key for each emoji item
@@ -109,7 +108,7 @@ function EmojiPickerMenu ({preferredLocale, onEmojiSelected, preferredSkinTone, 
      * @param {Number} index
      * @returns {String}
      */
-    const keyExtractor = (item, index) => `${index}${item.code}`
+    const keyExtractor = (item, index) => `${index}${item.code}`;
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -141,7 +140,7 @@ function EmojiPickerMenu ({preferredLocale, onEmojiSelected, preferredSkinTone, 
                 emoji={emojiCode}
             />
         );
-    }
+    };
 
     const isFiltered = allEmojis.length !== filteredEmojis.length;
 
