@@ -41,10 +41,6 @@ const defaultProps = {
  */
 
 function calculateThumbnailImageSize(width, height, windowHeight) {
-    if (!width || !height) {
-        return {thumbnailWidth: 200, thumbnailHeight: 200};
-    }
-
     // Width of the thumbnail works better as a constant than it does
     // a percentage of the screen width since it is relative to each screen
     // Note: Clamp minimum width 40px to support touch device
