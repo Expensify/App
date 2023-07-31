@@ -53,7 +53,7 @@ const defaultProps = {
 };
 
 function AvatarWithDisplayName(props) {
-    const title = props.isAnonymous ? props.report.displayName : ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID, true);
+    const title = props.isAnonymous ? ReportUtils.getReportName(props.report) : ReportUtils.getDisplayNameForParticipant(props.report.ownerAccountID, true);
     const subtitle = ReportUtils.getChatRoomSubtitle(props.report);
     const parentNavigationSubtitle = ReportUtils.getParentNavigationSubtitle(props.report);
     const isExpenseReport = ReportUtils.isExpenseReport(props.report);
@@ -70,8 +70,6 @@ function AvatarWithDisplayName(props) {
                             backgroundColor={themeColors.highlightBG}
                             mainAvatar={icons[0]}
                             secondaryAvatar={icons[1]}
-                            mainTooltip={props.report.ownerEmail}
-                            secondaryTooltip={subtitle}
                             size={props.size}
                         />
                     ) : (

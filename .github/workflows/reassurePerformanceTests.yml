@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+        uses: actions/checkout@v3
 
       - name: Setup NodeJS
         uses: Expensify/App/.github/actions/composite/setupNode@main
@@ -19,13 +19,13 @@ jobs:
       - name: Run performance testing script
         shell: bash
         run: |
-          set -e 
+          set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
-          git fetch origin
+          git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
           git switch "$BASELINE_BRANCH"
           npm install --force
           npx reassure --baseline
-          git switch --detach -
+          git switch --force --detach -
           npm install --force
           npx reassure --branch
 

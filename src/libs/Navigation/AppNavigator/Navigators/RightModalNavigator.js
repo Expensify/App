@@ -20,10 +20,18 @@ function RigthModalNavigator() {
             <Stack.Screen
                 name="NewGroup"
                 component={ModalStackNavigators.NewGroupModalStackNavigator}
+                options={{
+                    // Disable animation for this screen because it causes an animation glitch when using shortcuts
+                    animationEnabled: false,
+                }}
             />
             <Stack.Screen
                 name="Search"
                 component={ModalStackNavigators.SearchModalStackNavigator}
+                options={{
+                    // Disable animation for this screen because it causes an animation glitch when using shortcuts
+                    animationEnabled: false,
+                }}
             />
             <Stack.Screen
                 name="Details"
@@ -76,10 +84,6 @@ function RigthModalNavigator() {
             <Stack.Screen
                 name="Wallet_Statement"
                 component={ModalStackNavigators.WalletStatementStackNavigator}
-            />
-            <Stack.Screen
-                name="Select_Year"
-                component={ModalStackNavigators.YearPickerStackNavigator}
             />
             <Stack.Screen
                 name="Flag_Comment"

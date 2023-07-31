@@ -60,6 +60,7 @@ function ReportActionItemCreated(props) {
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
+            needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <Image
@@ -73,7 +74,7 @@ function ReportActionItemCreated(props) {
                 >
                     <PressableWithoutFeedback
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                        style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
+                        style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
                         accessibilityLabel={props.translate('common.details')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     >

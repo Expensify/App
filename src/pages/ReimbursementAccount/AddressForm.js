@@ -113,18 +113,21 @@ function AddressForm(props) {
                 inputID={props.inputKeys.city}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.city')}
+                accessibilityLabel={props.translate('common.city')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 value={props.values.city}
                 defaultValue={props.defaultValues.city}
                 onChangeText={(value) => props.onFieldChange({city: value})}
                 errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
                 containerStyles={[styles.mt4]}
             />
-            <View style={styles.mt4}>
+
+            <View style={[styles.mt4, styles.mhn5]}>
                 <StatePicker
                     inputID={props.inputKeys.state}
                     shouldSaveDraft={props.shouldSaveDraft}
                     value={props.values.state}
-                    defaultValue={props.defaultValues.state}
+                    defaultValue={props.defaultValues.state || ''}
                     onInputChange={(value) => props.onFieldChange({state: value})}
                     errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                 />
@@ -133,7 +136,8 @@ function AddressForm(props) {
                 inputID={props.inputKeys.zipCode}
                 shouldSaveDraft={props.shouldSaveDraft}
                 label={props.translate('common.zip')}
-                containerStyles={[styles.mt4]}
+                accessibilityLabel={props.translate('common.zip')}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                 keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                 value={props.values.zipCode}
                 defaultValue={props.defaultValues.zipCode}

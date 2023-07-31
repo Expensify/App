@@ -17,6 +17,8 @@ import * as PersonalDetails from '../../../../libs/actions/PersonalDetails';
 import compose from '../../../../libs/compose';
 import Navigation from '../../../../libs/Navigation/Navigation';
 import ROUTES from '../../../../ROUTES';
+import usePrivatePersonalDetails from '../../../../hooks/usePrivatePersonalDetails';
+import FullscreenLoadingIndicator from '../../../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -42,6 +44,7 @@ const updateLegalName = (values) => {
 };
 
 function LegalNamePage(props) {
+    usePrivatePersonalDetails();
     const legalFirstName = lodashGet(props.privatePersonalDetails, 'legalFirstName', '');
     const legalLastName = lodashGet(props.privatePersonalDetails, 'legalLastName', '');
 
@@ -63,8 +66,15 @@ function LegalNamePage(props) {
         return errors;
     }, []);
 
+    if (lodashGet(props.privatePersonalDetails, 'isLoading', true)) {
+        return <FullscreenLoadingIndicator />;
+    }
+
     return (
-        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            shouldEnableMaxHeight
+        >
             <HeaderWithBackButton
                 title={props.translate('privatePersonalDetails.legalName')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS)}
@@ -82,6 +92,8 @@ function LegalNamePage(props) {
                         inputID="legalFirstName"
                         name="lfname"
                         label={props.translate('privatePersonalDetails.legalFirstName')}
+                        accessibilityLabel={props.translate('privatePersonalDetails.legalFirstName')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={legalFirstName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                     />
@@ -91,6 +103,8 @@ function LegalNamePage(props) {
                         inputID="legalLastName"
                         name="llname"
                         label={props.translate('privatePersonalDetails.legalLastName')}
+                        accessibilityLabel={props.translate('privatePersonalDetails.legalLastName')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={legalLastName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                     />

@@ -16,7 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
 
@@ -129,8 +129,8 @@ function TaskShareDestinationSelectorModal(props) {
         if (option.reportID) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setShareDestinationValue(option.reportID);
-            Navigation.goBack();
+            Task.setShareDestinationValue(option.reportID);
+            Navigation.goBack(ROUTES.NEW_TASK);
         }
     };
 
@@ -154,7 +154,7 @@ function TaskShareDestinationSelectorModal(props) {
                             Headers
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
-                            placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>
