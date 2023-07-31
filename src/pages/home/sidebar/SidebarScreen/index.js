@@ -8,6 +8,10 @@ import FreezeWrapper from '../../../../libs/Navigation/FreezeWrapper';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
 import StatusBar from '../../../../libs/StatusBar';
 import themeColors from '../../../../styles/themes/default';
+import OfflineIndicator from '../../../../components/OfflineIndicator';
+import * as StyleUtils from '../../../../styles/StyleUtils';
+import {withNetwork} from '../../../../components/OnyxProvider';
+import compose from '../../../../libs/compose';
 
 function SidebarScreen(props) {
     const popoverModal = useRef(null);
@@ -42,7 +46,11 @@ function SidebarScreen(props) {
             <BaseSidebarScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                shouldShowOfflineIndicator={false}
             >
+                {props.isSmallScreenWidth && props.network.isOffline && (
+                    <OfflineIndicator style={[StyleUtils.getBackgroundColorStyle(themeColors.greenHighlightBackground)]} />
+                )}
                 <FloatingActionButtonAndPopover
                     ref={popoverModal}
                     onShowCreateMenu={createDragoverListener}
@@ -56,4 +64,4 @@ function SidebarScreen(props) {
 SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';
 
-export default withWindowDimensions(SidebarScreen);
+export default compose(withWindowDimensions, withNetwork())(SidebarScreen);

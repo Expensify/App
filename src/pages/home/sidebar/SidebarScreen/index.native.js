@@ -4,6 +4,8 @@ import BaseSidebarScreen from './BaseSidebarScreen';
 import FloatingActionButtonAndPopover from './FloatingActionButtonAndPopover';
 import FreezeWrapper from '../../../../libs/Navigation/FreezeWrapper';
 import withWindowDimensions from '../../../../components/withWindowDimensions';
+import {withNetwork} from '../../../../components/OnyxProvider';
+import compose from '../../../../libs/compose';
 
 function SidebarScreen(props) {
     return (
@@ -11,6 +13,7 @@ function SidebarScreen(props) {
             <BaseSidebarScreen
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
+                shouldShowOfflineIndicator={props.network.isOffline}
             >
                 <FloatingActionButtonAndPopover />
             </BaseSidebarScreen>
@@ -21,4 +24,4 @@ function SidebarScreen(props) {
 SidebarScreen.propTypes = sidebarPropTypes;
 SidebarScreen.displayName = 'SidebarScreen';
 
-export default withWindowDimensions(SidebarScreen);
+export default compose(withWindowDimensions, withNetwork())(SidebarScreen);
