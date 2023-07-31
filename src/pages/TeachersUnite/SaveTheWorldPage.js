@@ -30,8 +30,8 @@ function SaveTheWorldPage() {
 
     return (
         <IllustratedHeaderPageLayout
-            title={translate('sidebarScreen.saveTheWorld')}
             shouldShowBackButton
+            title={translate('sidebarScreen.saveTheWorld')}
             onBackButtonPress={() => Navigation.goBack()}
             backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.I_Know_A_TEACHER]}
             illustration={LottieAnimations.SaveTheWorld}

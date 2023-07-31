@@ -36,7 +36,7 @@ const defaultProps = {
  * @param {String} [values.lastName]
  */
 function submit(values) {
-    TeachersUnite.referTeachersUniteVolunteer(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID, values.firstName.trim(), values.phoneOrEmail.trim(), values.lastName.trim());
+    TeachersUnite.referTeachersUniteVolunteer(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID, values.firstName.trim(), values.phoneOrEmail.trim(), values.lastName);
 }
 
 function getPhoneLogin(phoneOrEmail) {
@@ -78,12 +78,12 @@ function KnowATeacherPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SAVE_THE_WORLD)}
             />
             <Form
+                enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.I_KNOW_A_TEACHER}
                 validate={validate}
                 onSubmit={submit}
                 submitButtonText={props.translate('common.letsDoThis')}
-                enabledWhenOffline
             >
                 <Text style={[styles.mb6]}>{props.translate('teachersUnitePage.getInTouch')}</Text>
                 <View>

@@ -33,7 +33,7 @@ const defaultProps = {
  * @param {String} values.lastName
  */
 const submit = (values) => {
-    TeachersUnite.createExpenseChatSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName.trim());
+    TeachersUnite.createExpenseChatSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName);
 };
 
 function IntroSchoolPrincipalPage(props) {
@@ -66,12 +66,12 @@ function IntroSchoolPrincipalPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SAVE_THE_WORLD)}
             />
             <Form
+                enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL}
                 validate={validate}
                 onSubmit={submit}
                 submitButtonText={props.translate('common.letsStart')}
-                enabledWhenOffline
             >
                 <Text style={[styles.mb6]}>{props.translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
                 <View>
