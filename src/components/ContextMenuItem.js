@@ -95,5 +95,6 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
 
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
+ContextMenuItem.displayName = 'ContextMenuItem';
 
 export default ContextMenuItem;
