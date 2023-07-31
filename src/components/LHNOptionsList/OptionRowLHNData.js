@@ -42,7 +42,7 @@ const propTypes = {
         }),
     ),
 
-    /** The list of parent report action of the report */
+    /** The actions from the parent report */
     parentReportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     ...withCurrentReportIDPropTypes,
