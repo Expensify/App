@@ -568,7 +568,7 @@ function clearOutTaskInfoAndNavigate(reportID) {
 /**
  * Get the assignee data
  *
- * @param {string} assigneeAccountID
+ * @param {Number} assigneeAccountID
  * @param {Object} personalDetails
  * @returns {Object}
  */
