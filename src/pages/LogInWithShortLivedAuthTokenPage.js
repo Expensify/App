@@ -16,7 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
-import ROUTES from '../ROUTES'
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short-lived token are in the URL */
@@ -57,12 +57,12 @@ function LogInWithShortLivedAuthTokenPage(props) {
         const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '') || lodashGet(props, 'route.params.shortLivedToken', '');
         const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
 
-        // If user is not signed in, prevent auto sign in with  shortLivedAuthToken
-        if(!isSignedIn) {
+        // If user is not signed in, prevent auto sign in with shortLivedAuthToken
+        if (!isSignedIn) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.HOME);
             });
-            return
+            return;
         }
 
         if (shortLivedAuthToken) {
