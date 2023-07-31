@@ -7,6 +7,7 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import * as NumberUtils from '../NumberUtils';
 import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
@@ -847,9 +848,7 @@ function generateDefaultWorkspaceName(email = '') {
  * @returns {String}
  */
 function generatePolicyID() {
-    return _.times(16, () => Math.floor(Math.random() * 16).toString(16))
-        .join('')
-        .toUpperCase();
+    return NumberUtils.generateHexadecimalValue(16);
 }
 
 /**
@@ -857,9 +856,7 @@ function generatePolicyID() {
  * @returns {String}
  */
 function generateCustomUnitID() {
-    return _.times(13, () => Math.floor(Math.random() * 13).toString(13))
-        .join('')
-        .toUpperCase();
+    return NumberUtils.generateHexadecimalValue(13);
 }
 
 /**
