@@ -1234,41 +1234,23 @@ function getReportPreviewMessage(report, reportAction = {}) {
 /**
  * Get the report action message when expense has been modified
  *
- * @param {Object} iouReport
- * @param {Object} transactionThreadReport
- * @param {Object} [reportAction={}]
- * @returns  {String}
+ * @param {Object} reportAction
+ * @returns {String}
  */
-function getModifiedExpenseMessage(iouReport, transactionThreadReport, reportAction = {}) {
-    const reportActionMessage = lodashGet(reportAction, 'message[0].html', '');
+function getModifiedExpenseMessage(reportAction) {
+    const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', []);
+    if (reportActionOriginalMessage.oldAmount && reportActionOriginalMessage.oldCurrency && reportActionOriginalMessage.amount && reportActionOriginalMessage.currency) {
+        const oldCurrency = reportActionOriginalMessage.oldCurrency;
+        const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
+        const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', oldCurrency});
 
-    if (_.isEmpty(report) || !report.reportID) {
-        // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
-        // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
-        return reportActionMessage;
+        const currency = reportActionOriginalMessage.currency;
+        const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
+        const amount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.amount) / currencyUnit, {style: 'currency', currency});
+
+        return `changed the request to ${amount} (previously ${oldAmount})`;
     }
-
-    const totalAmount = getMoneyRequestTotal(report);
-    const payerName = isExpenseReport(report) ? getPolicyName(report) : getDisplayNameForParticipant(report.managerID, true);
-    const formattedAmount = CurrencyUtils.convertToDisplayString(totalAmount, report.currency);
-
-    if (isSettled(report.reportID)) {
-        // A settled report preview message can come in three formats "paid ... using Paypal.me", "paid ... elsewhere" or "paid ... using Expensify"
-        let translatePhraseKey = 'iou.paidElsewhereWithAmount';
-        if (reportActionMessage.match(/ Paypal.me$/)) {
-            translatePhraseKey = 'iou.paidUsingPaypalWithAmount';
-        } else if (reportActionMessage.match(/ using Expensify$/)) {
-            translatePhraseKey = 'iou.paidUsingExpensifyWithAmount';
-        }
-        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
-    }
-
-    if (report.isWaitingOnBankAccount) {
-        const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID, true);
-        return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
-    }
-
-    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
+    return `changed the request`;
 }
 
 /**
