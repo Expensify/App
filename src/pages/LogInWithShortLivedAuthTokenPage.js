@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import TextLink from '../components/TextLink';
 import ONYXKEYS from '../ONYXKEYS';
+import ROUTES from '../ROUTES'
 
 const propTypes = {
     /** The parameters needed to authenticate with a short-lived token are in the URL */
@@ -54,6 +55,16 @@ function LogInWithShortLivedAuthTokenPage(props) {
 
         // We have to check for both shortLivedAuthToken and shortLivedToken, as the old mobile app uses shortLivedToken, and is not being actively updated.
         const shortLivedAuthToken = lodashGet(props, 'route.params.shortLivedAuthToken', '') || lodashGet(props, 'route.params.shortLivedToken', '');
+        const isSignedIn = Boolean(lodashGet(props, 'session.authToken', null));
+
+        // If user is not signed in, prevent auto sign in with  shortLivedAuthToken
+        if(!isSignedIn) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(ROUTES.HOME);
+            });
+            return
+        }
+
         if (shortLivedAuthToken) {
             Session.signInWithShortLivedAuthToken(email, shortLivedAuthToken);
             return;
