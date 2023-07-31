@@ -429,7 +429,7 @@ function ReportActionItem(props) {
                 <ReportActionItemSingle
                     action={props.action}
                     showHeader={!props.draftMessage}
-                    wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
+                    wrapperStyles={[styles.chatItem, isWhisper ? styles.pv1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
                     hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
@@ -439,7 +439,7 @@ function ReportActionItem(props) {
             );
         }
 
-        return <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}>{content}</ReportActionItemGrouped>;
+        return <ReportActionItemGrouped wrapperStyles={[styles.chatItem, isWhisper ? styles.pv1 : {}]}>{content}</ReportActionItemGrouped>;
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
@@ -524,7 +524,7 @@ function ReportActionItem(props) {
                                 (props.network.isOffline && props.action.isLoading) || props.action.error,
                             )}
                         >
-                            {hovered && (
+                            {hovered && !isWhisper && (
                                 <>
                                     <View style={StyleUtils.getReportActionItemHoverStyle()} />
 
