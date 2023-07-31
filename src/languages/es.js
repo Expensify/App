@@ -928,6 +928,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Email inválido',
+        userIsAlreadyMemberOfWorkspace: ({login, workspace}) => `${login} ya es miembro de ${workspace}`,
     },
     onfidoStep: {
         acceptTerms: 'Al continuar con la solicitud para activar su billetera Expensify, confirma que ha leído, comprende y acepta ',
@@ -1973,6 +1974,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Mensaje eliminado]',
+        deletedRequest: '[Pedido eliminado]',
         hiddenMessage: '[Mensaje oculto]',
     },
     threads: {
@@ -2005,5 +2007,11 @@ export default {
         levelOneResult: 'Envia una advertencia anónima y el mensaje es reportado para revisión.',
         levelTwoResult: 'Mensaje ocultado del canal, más advertencia anónima y mensaje reportado para revisión.',
         levelThreeResult: 'Mensaje eliminado del canal, más advertencia anónima y mensaje reportado para revisión.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Buscar para ver opciones',
     },
 };
