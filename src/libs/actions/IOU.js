@@ -344,8 +344,12 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
     }
 
     // STEP 3: Build optimistic receipt and transaction
-    const optimisticReceipt = TransactionUtils.buildOptimisticReceipt(receipt);
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, optimisticReceipt);
+    const receiptObject = {};
+    if (receipt && receipt.source) {
+        receiptObject.source = receipt.source;
+        receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+    }
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, receiptObject);
 
     // STEP 4: Build optimistic reportActions. We need:
     // 1. CREATED action for the chatReport
@@ -364,7 +368,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         optimisticTransaction.transactionID,
         '',
         iouReport.reportID,
-        optimisticReceipt,
+        receiptObject,
     );
 
     // Add optimistic personal details for participant

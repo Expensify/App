@@ -41,25 +41,6 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
     };
 }
 
-/**
- * Optimistically generate a receipt.
- *
- * @param {Object} receipt
- * @returns {Object}
- */
-function buildOptimisticReceipt(receipt) {
-    if (!receipt || !receipt.source) {
-        return {};
-    }
-
-    return {
-        receiptID: NumberUtils.rand64(),
-        source: receipt.source,
-        state: CONST.IOU.RECEIPT_STATE.SCANREADY,
-    };
-}
-
 export default {
     buildOptimisticTransaction,
-    buildOptimisticReceipt,
 };
