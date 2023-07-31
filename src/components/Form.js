@@ -264,7 +264,7 @@ function Form(props) {
 
                 // We want to initialize the input value if it's undefined
                 if (_.isUndefined(inputValues[inputID])) {
-                    inputValues[inputID] = defaultValue;
+                    inputValues[inputID] = defaultValue || '';
                 }
 
                 // We force the form to set the input value from the defaultValue props if there is a saved valid value
@@ -296,6 +296,9 @@ function Form(props) {
                         }
                     },
                     value: inputValues[inputID],
+                    // As the text input is controlled, we never set the defaultValue prop
+                    // as this is already happening by the value prop.
+                    defaultValue: undefined,
                     errorText: errors[inputID] || fieldErrorMessage,
                     onBlur: (event) => {
                         // We delay the validation in order to prevent Checkbox loss of focus when
