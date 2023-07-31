@@ -19,7 +19,6 @@ import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
-import * as IOU from './IOU';
 import ReceiptUtils from '../ReceiptUtils';
 
 let allReports;
@@ -1500,7 +1499,7 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
  * @param {Object} report
  * @param {Object} currentUserPersonalDetails
  */
-function navigateToNextPage(iou, reportID, report, currentUserPersonalDetails) {
+function navigateToNextPage(iou, reportID, report) {
     const moneyRequestID = `${iou.iouType}${reportID}`;
     const shouldReset = iou.id !== moneyRequestID;
     // If the money request ID in Onyx does not match the ID from params, we want to start a new request
@@ -1536,14 +1535,14 @@ function navigateToNextPage(iou, reportID, report, currentUserPersonalDetails) {
  * @param {Object} report
  * @param {Object} currentUserPersonalDetails
  */
-function onReceiptImageSelected(file, iou, reportID, report, currentUserPersonalDetails) {
+function onReceiptImageSelected(file, iou, reportID, report) {
     if (!ReceiptUtils.isValidReceipt(file)) {
         return;
     }
 
     const filePath = URL.createObjectURL(file);
-    IOU.setMoneyRequestReceipt(filePath, file.name);
-    IOU.navigateToNextPage(iou, reportID, report, currentUserPersonalDetails);
+    setMoneyRequestReceipt(filePath, file.name);
+    navigateToNextPage(iou, reportID, report);
 }
 
 export {

@@ -16,9 +16,7 @@ import Hand from '../../../../assets/images/hand.svg';
 import * as IOU from '../../../libs/actions/IOU';
 import themeColors from '../../../styles/themes/default';
 import reportPropTypes from '../../reportPropTypes';
-import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import Button from '../../../components/Button';
 import useLocalize from '../../../hooks/useLocalize';
 import withCurrentReportID from '../../../components/withCurrentReportID';
@@ -51,11 +49,6 @@ const propTypes = {
             }),
         ),
     }),
-
-    /**
-     * Current user personal details
-     */
-    currentUserPersonalDetails: personalDetailsPropType,
 };
 
 const defaultProps = {
@@ -72,7 +65,6 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 /**
@@ -188,7 +180,7 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, reportID.current, props.report, props.currentUserPersonalDetails);
+                IOU.navigateToNextPage(props.iou, reportID.current, props.report);
             })
             .catch(() => {
                 showCameraAlert();
@@ -269,7 +261,7 @@ function ReceiptSelector(props) {
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
                             IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                            IOU.navigateToNextPage(props.iou, reportID.current, props.report, props.currentUserPersonalDetails);
+                            IOU.navigateToNextPage(props.iou, reportID.current, props.report);
                         });
                     }}
                 >
@@ -314,7 +306,6 @@ ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
 export default compose(
-    withCurrentUserPersonalDetails,
     withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},

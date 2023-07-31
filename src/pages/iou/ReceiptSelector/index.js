@@ -6,9 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import {compose} from 'underscore';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
-import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Button from '../../../components/Button';
@@ -21,7 +19,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
-import ReceiptUtils from '../../../libs/ReceiptUtils';
 import withCurrentReportID from '../../../components/withCurrentReportID';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 
@@ -51,9 +48,6 @@ const propTypes = {
             }),
         ),
     }),
-
-    /** Current user personal details */
-    currentUserPersonalDetails: personalDetailsPropType,
 };
 
 const defaultProps = {
@@ -75,7 +69,6 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function ReceiptSelector(props) {
@@ -123,7 +116,7 @@ function ReceiptSelector(props) {
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
-                                        IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report, props.currentUserPersonalDetails);
+                                        IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report);
                                     },
                                 });
                             }}
@@ -140,7 +133,7 @@ function ReceiptSelector(props) {
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report, props.currentUserPersonalDetails);
+                    IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report);
                 }}
                 receiptImageTopPosition={receiptImageTopPosition}
             />
@@ -162,7 +155,6 @@ ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
 export default compose(
-    withCurrentUserPersonalDetails,
     withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},

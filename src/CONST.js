@@ -2547,6 +2547,7 @@ const CONST = {
         ATTACHMENT: 'common.attachment',
     },
     TAB: {
+        RECEIPT_TAB_ID: 'ReceiptTab',
         TAB_MANUAL: 'manual',
         TAB_SCAN: 'scan',
     },

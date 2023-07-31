@@ -19,6 +19,8 @@ import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
 import Tab from '../../libs/actions/Tab';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
+import OnyxTabNavigator from '../../libs/Navigation/OnyxTabNavigator';
+import {useNavigationState} from '@react-navigation/native';
 
 const TopTab = createMaterialTopTabNavigator();
 
@@ -68,9 +70,8 @@ const defaultProps = {
 
 function MoneyRequestSelectorPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const {translate} = useLocalize();
-
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const {translate} = useLocalize();
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -78,10 +79,9 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
 
-    const onTabPress = (tab) => {
+    const onTabPress = () => {
         const moneyRequestID = `${iouType.current}${reportID.current}`;
         IOU.resetMoneyRequestInfo(moneyRequestID, iouType.current);
-        Tab.setSelectedTab(tab);
     };
 
     return (
@@ -94,8 +94,8 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType.current]}
                                 onBackButtonPress={() => Navigation.goBack()}
                             />
-                            <TopTab.Navigator
-                                initialRouteName={props.selectedTab}
+                            <OnyxTabNavigator
+                                id={CONST.TAB.RECEIPT_TAB_ID}
                                 backBehavior="order"
                                 tabBar={({state, navigation}) => (
                                     <TabSelector
@@ -113,7 +113,7 @@ function MoneyRequestSelectorPage(props) {
                                     name={CONST.TAB.TAB_SCAN}
                                     component={ReceiptSelector}
                                 />
-                            </TopTab.Navigator>
+                            </OnyxTabNavigator>
                         </View>
                     </DragAndDropProvider>
                 )}
@@ -128,5 +128,7 @@ MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default withOnyx({
     iou: {key: ONYXKEYS.IOU},
-    selectedTab: {key: ONYXKEYS.SELECTED_TAB},
+    selectedTab: {
+        key: () => `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+    },
 })(MoneyRequestSelectorPage);
