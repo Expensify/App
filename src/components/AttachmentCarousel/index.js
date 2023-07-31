@@ -53,7 +53,15 @@ function AttachmentCarousel(props) {
         setPage(initialState.page);
         setAttachments(initialState.attachments);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [props.reportActions]);
+
+    useEffect(() => {
+        if (!scrollRef || !scrollRef.current) {
+            return;
+        }
+        scrollRef.current.scrollToIndex({index: page, animated: false});
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [attachments]);
 
     /**
      * Calculate items layout information to optimize scrolling performance
