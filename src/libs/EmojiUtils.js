@@ -266,14 +266,13 @@ const getEmojiCodeWithSkinColor = (item, preferredSkinToneIndex) => {
  * @returns {Object[]} An array of emoji codes.
  */
 function extractEmojis(text) {
-    const str = `${text}`;
     const emojis = [];
 
-    if (!str) {
+    if (!text) {
         return emojis;
     }
 
-    let parseEmojis = str.match(CONST.REGEX.EMOJIS);
+    let parseEmojis = text.match(CONST.REGEX.EMOJIS);
 
     if (!parseEmojis) {
         return emojis;
@@ -284,8 +283,9 @@ function extractEmojis(text) {
     for (let i = 0; i < parseEmojis.length; i++) {
         const character = parseEmojis[i];
         const emoji = Emojis.emojiCodeTable[character];
-        if (!emoji) continue; // eslint-disable-line no-continue
-        emojis.push(emoji);
+        if (emoji) {
+            emojis.push(emoji);
+        }
     }
 
     return emojis;
