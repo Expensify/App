@@ -1259,9 +1259,6 @@ function getReportName(report, policy = undefined) {
         if ([CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE, CONST.MODERATION.MODERATOR_DECISION_HIDDEN, CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE].includes(decision)) {
             return Localize.translateLocal('parentReportAction.hiddenMessage');
         }
-        if (decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE) {
-            return Localize.translateLocal('parentReportAction.deletedMessage');
-        }
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
     if (isChatRoom(report) || isTaskReport(report)) {
