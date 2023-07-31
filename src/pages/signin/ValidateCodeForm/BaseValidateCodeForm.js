@@ -113,7 +113,7 @@ function BaseValidateCodeForm(props) {
         if (!input2FARef.current || prevRequiresTwoFactorAuth || !props.account.requiresTwoFactorAuth) {
             return;
         }
-        input2FARef.current.resetFocus();
+        input2FARef.current.focus();
     }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
 
     useEffect(() => {

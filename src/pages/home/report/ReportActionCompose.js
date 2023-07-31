@@ -41,7 +41,6 @@ import withNavigation from '../../../components/withNavigation';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as UserUtils from '../../../libs/UserUtils';
 import ReportDropUI from './ReportDropUI';
-import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
 import EmojiSuggestions from '../../../components/EmojiSuggestions';
 import MentionSuggestions from '../../../components/MentionSuggestions';
@@ -124,9 +123,6 @@ const propTypes = {
 
     /** animated ref from react-native-reanimated */
     animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
-
-    /** Unique id for nativeId in DragAndDrop */
-    dragAndDropId: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -232,7 +228,6 @@ class ReportActionCompose extends React.Component {
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
-            isDraggingOver: false,
             selection: {
                 start: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
                 end: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
@@ -989,7 +984,7 @@ class ReportActionCompose extends React.Component {
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
+        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && this.state.isFocused;
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
@@ -1144,75 +1139,59 @@ class ReportActionCompose extends React.Component {
                                         )}
                                     </AttachmentPicker>
                                     <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
-                                        <DragAndDrop
-                                            dropZoneId={this.props.dragAndDropId}
-                                            activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + this.props.reportID}
-                                            onDragEnter={() => {
-                                                this.setState({isDraggingOver: true});
+                                        <Composer
+                                            checkComposerVisibility={() => this.checkComposerVisibility()}
+                                            autoFocus={this.shouldAutoFocus}
+                                            multiline
+                                            ref={this.setTextInputRef}
+                                            textAlignVertical="top"
+                                            placeholder={inputPlaceholder}
+                                            placeholderTextColor={themeColors.placeholderText}
+                                            onChangeText={(comment) => this.updateComment(comment, true)}
+                                            onKeyPress={this.triggerHotkeyActions}
+                                            style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                            maxLines={maxComposerLines}
+                                            onFocus={() => this.setIsFocused(true)}
+                                            onBlur={() => {
+                                                this.setIsFocused(false);
+                                                this.resetSuggestions();
                                             }}
-                                            onDragLeave={() => {
-                                                this.setState({isDraggingOver: false});
+                                            onClick={() => {
+                                                this.shouldBlockEmojiCalc = false;
+                                                this.shouldBlockMentionCalc = false;
                                             }}
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                if (this.state.isAttachmentPreviewActive) {
-                                                    this.setState({isDraggingOver: false});
+                                            onPasteFile={displayFileInModal}
+                                            shouldClear={this.state.textInputShouldClear}
+                                            onClear={() => this.setTextInputShouldClear(false)}
+                                            isDisabled={isBlockedFromConcierge || this.props.disabled}
+                                            selection={this.state.selection}
+                                            onSelectionChange={this.onSelectionChange}
+                                            isFullComposerAvailable={isFullComposerAvailable}
+                                            setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                            value={this.state.value}
+                                            numberOfLines={this.props.numberOfLines}
+                                            onNumberOfLinesChange={this.updateNumberOfLines}
+                                            shouldCalculateCaretPosition
+                                            onLayout={(e) => {
+                                                const composerHeight = e.nativeEvent.layout.height;
+                                                if (this.state.composerHeight === composerHeight) {
                                                     return;
                                                 }
-
-                                                const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-
-                                                displayFileInModal(file);
-
-                                                this.setState({isDraggingOver: false});
+                                                this.setState({composerHeight});
                                             }}
-                                            disabled={this.props.disabled}
-                                        >
-                                            <Composer
-                                                checkComposerVisibility={() => this.checkComposerVisibility()}
-                                                autoFocus={this.shouldAutoFocus}
-                                                multiline
-                                                ref={this.setTextInputRef}
-                                                textAlignVertical="top"
-                                                placeholder={inputPlaceholder}
-                                                placeholderTextColor={themeColors.placeholderText}
-                                                onChangeText={(comment) => this.updateComment(comment, true)}
-                                                onKeyPress={this.triggerHotkeyActions}
-                                                style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                                maxLines={maxComposerLines}
-                                                onFocus={() => this.setIsFocused(true)}
-                                                onBlur={() => {
-                                                    this.setIsFocused(false);
-                                                    this.resetSuggestions();
-                                                }}
-                                                onClick={() => {
-                                                    this.shouldBlockEmojiCalc = false;
-                                                    this.shouldBlockMentionCalc = false;
-                                                }}
-                                                onPasteFile={displayFileInModal}
-                                                shouldClear={this.state.textInputShouldClear}
-                                                onClear={() => this.setTextInputShouldClear(false)}
-                                                isDisabled={isBlockedFromConcierge || this.props.disabled}
-                                                selection={this.state.selection}
-                                                onSelectionChange={this.onSelectionChange}
-                                                isFullComposerAvailable={isFullComposerAvailable}
-                                                setIsFullComposerAvailable={this.setIsFullComposerAvailable}
-                                                isComposerFullSize={this.props.isComposerFullSize}
-                                                value={this.state.value}
-                                                numberOfLines={this.props.numberOfLines}
-                                                onNumberOfLinesChange={this.updateNumberOfLines}
-                                                shouldCalculateCaretPosition
-                                                onLayout={(e) => {
-                                                    const composerHeight = e.nativeEvent.layout.height;
-                                                    if (this.state.composerHeight === composerHeight) {
-                                                        return;
-                                                    }
-                                                    this.setState({composerHeight});
-                                                }}
-                                                onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
-                                            />
-                                        </DragAndDrop>
+                                            onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
+                                        />
                                     </View>
+                                    <ReportDropUI
+                                        onDrop={(e) => {
+                                            if (this.state.isAttachmentPreviewActive) {
+                                                return;
+                                            }
+                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                            displayFileInModal(file);
+                                        }}
+                                    />
                                 </>
                             )}
                         </AttachmentModal>
@@ -1267,7 +1246,6 @@ class ReportActionCompose extends React.Component {
                         />
                     </View>
                 </OfflineWithFeedback>
-                {this.state.isDraggingOver && <ReportDropUI />}
                 {!_.isEmpty(this.state.suggestedEmojis) && this.state.shouldShowEmojiSuggestionMenu && (
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedEmojiIndex}
