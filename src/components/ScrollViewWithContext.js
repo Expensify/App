@@ -41,6 +41,7 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRe
 }
 
 ScrollViewWithContext.propTypes = propTypes;
+ScrollViewWithContext.displayName = 'ScrollViewWithContext';
 
 export default React.forwardRef((props, ref) => (
     <ScrollViewWithContext
