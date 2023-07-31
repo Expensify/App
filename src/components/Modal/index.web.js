@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
 import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
