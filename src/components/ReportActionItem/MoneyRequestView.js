@@ -20,6 +20,7 @@ import DateUtils from '../../libs/DateUtils';
 import * as CurrencyUtils from '../../libs/CurrencyUtils';
 import EmptyStateBackgroundImage from '../../../assets/images/empty-state_background-fade.png';
 import useLocalize from '../../hooks/useLocalize';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -38,20 +39,22 @@ const defaultProps = {
     parentReport: {},
 };
 
-function MoneyRequestView(props) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule}) {
+    const {isSmallScreenWidth} = useWindowDimensions();
+
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
     const transactionDate = lodashGet(parentReportAction, ['created']);
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
 
-    const moneyRequestReport = props.parentReport;
+    const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const {translate} = useLocalize();
 
     return (
         <View>
-            <View style={[StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
+            <View style={[StyleUtils.getReportWelcomeContainerStyle(isSmallScreenWidth), StyleUtils.getMinimumHeight(CONST.EMPTY_STATE_BACKGROUND.MONEY_REPORT.MIN_HEIGHT)]}>
                 <Image
                     pointerEvents="none"
                     source={EmptyStateBackgroundImage}
@@ -65,24 +68,23 @@ function MoneyRequestView(props) {
                 description={`${translate('iou.amount')} • ${translate('iou.cash')}${isSettled ? ` • ${translate('iou.settledExpensify')}` : ''}`}
                 titleStyle={styles.newKansasLarge}
                 disabled={isSettled}
-                // Note: These options are temporarily disabled while we figure out the required API changes
-                // shouldShowRightIcon={!isSettled}
-                // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                shouldShowRightIcon={!isSettled}
+                onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
             />
             <MenuItemWithTopDescription
                 description={translate('common.description')}
                 title={transactionDescription}
                 disabled={isSettled}
-                // shouldShowRightIcon={!isSettled}
-                // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                shouldShowRightIcon={!isSettled}
+                onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
                 title={formattedTransactionDate}
-                // shouldShowRightIcon={!isSettled}
-                // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                shouldShowRightIcon={!isSettled}
+                onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
             />
-            {props.shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
+            {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
         </View>
     );
 }
@@ -92,11 +94,10 @@ MoneyRequestView.defaultProps = defaultProps;
 MoneyRequestView.displayName = 'MoneyRequestView';
 
 export default compose(
-    withWindowDimensions,
     withCurrentUserPersonalDetails,
     withOnyx({
         parentReport: {
-            key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${props.report.parentReportID}`,
+            key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
         },
     }),
 )(MoneyRequestView);
