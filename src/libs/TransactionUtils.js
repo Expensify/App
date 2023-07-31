@@ -66,7 +66,64 @@ function getTransaction(transactionID) {
     return lodashGet(allTransactions, [transactionID], {});
 }
 
-export default {
+/**
+ * Return the comment (in other words description) from the transaction object.
+ * The comment does not have its modifiedComment counterpart.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getDescription(transaction) {
+    return lodashGet(transaction, 'comment', '');
+}
+
+/**
+ * Return the amount from the transaction, take the modifiedAmount if present.
+ *
+ * @param {Object} transaction
+ * @returns {Number}
+ */
+function getAmount(transaction) {
+    const amount = lodashGet(transaction, 'modifiedAmount', '');
+    if (amount) {
+        return amount;
+    }
+    return lodashGet(transaction, 'amount', 0);
+}
+
+/**
+ * Return the currency from the transaction, take the modifiedCurrency if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getCurrency(transaction) {
+    const currency = lodashGet(transaction, 'modifiedCurrency', '');
+    if (currency) {
+        return currency;
+    }
+    return lodashGet(transaction, 'currency', 0);
+}
+
+/**
+ * Return the created from the transaction, take the modifiedCreated if present.
+ *
+ * @param {Object} transaction
+ * @returns {String}
+ */
+function getCreated(transaction) {
+    const created = lodashGet(transaction, 'modifiedCreated', '');
+    if (created) {
+        return created;
+    }
+    return lodashGet(transaction, 'created', 0);
+}
+
+export {
     buildOptimisticTransaction,
     getTransaction,
+    getDescription,
+    getAmount,
+    getCurrency,
+    getCreated,
 };

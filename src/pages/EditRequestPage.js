@@ -7,6 +7,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import * as TransactionUtils from '../libs/TransactionUtils';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import reportPropTypes from './reportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
@@ -34,7 +35,8 @@ const defaultProps = {
 
 function EditRequestPage({report}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-    const moneyRequestReportAction = ReportUtils.getMoneyRequestAction(parentReportAction);
+    const transactionID = ReportActionsUtils.getLinkedTransactionID(ReportUtils.getParentReport(report), parentReportAction)
+    const transaction = TransactionUtils.getTransaction(transactionID);
     const transactionDescription = moneyRequestReportAction.comment;
     const field = lodashGet(props, ['route', 'params', 'field'], '');
 
