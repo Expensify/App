@@ -37,5 +37,4 @@ const defaultProps = {
     titleStyles: [],
 };
 
-export { propTypes, defaultProps };
-
+export {propTypes, defaultProps};

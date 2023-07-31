@@ -1,11 +1,11 @@
-import React, { Fragment, useEffect, useRef, useState } from 'react';
-import { View } from 'react-native';
+import React, {Fragment, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import Tooltip from '../Tooltip';
 import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
-import { defaultProps, propTypes } from './displayNamesPropTypes';
+import {defaultProps, propTypes} from './displayNamesPropTypes';
 
 function DisplayNamesWithToolTip(props) {
     const containerRef = useRef(null);

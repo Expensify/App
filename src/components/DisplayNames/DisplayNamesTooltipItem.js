@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useCallback } from 'react';
+import React, {useCallback} from 'react';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import UserDetailsTooltip from '../UserDetailsTooltip';
