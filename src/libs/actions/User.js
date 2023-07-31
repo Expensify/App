@@ -563,6 +563,7 @@ function subscribeToUserEvents() {
 
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON) => {
+        console.log('over here', pushJSON)
         SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) we don't want to update Onyx with data from Pusher
             if (!currentUserAccountID) {

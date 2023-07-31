@@ -114,7 +114,7 @@ function ReportPreview(props) {
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const previewMessage = props.translate(ReportUtils.isSettled(props.iouReportID) || props.iouReport.isWaitingOnBankAccount ? 'iou.payerPaid' : 'iou.payerOwes', {payer: managerName});
     const shouldShowSettlementButton =
-        !_.isEmpty(props.iouReport) && isCurrentUserManager && !ReportUtils.isSettled(props.iouReportID) && !props.iouReport.isWaitingOnBankAccount && props.iouReport.total !== 0;
+        !_.isEmpty(props.iouReport) && isCurrentUserManager && !ReportUtils.isSettled(props.iouReportID) && !props.iouReport.isWaitingOnBankAccount && reportAmount !== 0;
     return (
         <View style={[styles.chatItemMessage, ...props.containerStyles]}>
             <PressableWithoutFeedback
