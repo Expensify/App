@@ -13,8 +13,8 @@ import TextInputWithCurrencySymbol from '../../../../components/TextInputWithCur
 import ScreenWrapper from '../../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
 import useLocalize from '../../../../hooks/useLocalize';
+import CONST from '../../../../CONST';
 import * as propTypes from './moneyRequestAmountFormPropTypes';
-import CONST from "../../../../CONST";
 
 const amountViewID = 'amountView';
 const numPadContainerViewID = 'numPadContainerView';
