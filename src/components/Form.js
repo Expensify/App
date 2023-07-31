@@ -466,7 +466,7 @@ export default compose(
     withOnyx({
         formState: {
             key: (props) => props.formID,
-            initWithStoredValues: false
+            initWithStoredValues: false,
         },
         draftValues: {
             key: (props) => `${props.formID}Draft`,

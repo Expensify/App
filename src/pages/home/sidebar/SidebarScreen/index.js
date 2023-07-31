@@ -48,9 +48,7 @@ function SidebarScreen(props) {
                 {...props}
                 shouldShowOfflineIndicator={false}
             >
-                {props.isSmallScreenWidth && props.network.isOffline && (
-                    <OfflineIndicator style={[StyleUtils.getBackgroundColorStyle(themeColors.greenHighlightBackground)]} />
-                )}
+                {props.isSmallScreenWidth && props.network.isOffline && <OfflineIndicator style={[StyleUtils.getBackgroundColorStyle(themeColors.greenHighlightBackground)]} />}
                 <FloatingActionButtonAndPopover
                     ref={popoverModal}
                     onShowCreateMenu={createDragoverListener}
