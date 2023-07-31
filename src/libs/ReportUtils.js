@@ -1246,7 +1246,7 @@ function getReportName(report, policy = undefined) {
     let formattedName;
     if (isChatThread(report)) {
         const parentReportAction = ReportActionsUtils.getParentReportAction(report);
-        const decision = lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision');
+        const decision = lodashGet(parentReportAction, 'message[0].moderationDecision.decision');
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
         }
