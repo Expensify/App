@@ -1763,6 +1763,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
  *
  * @param {Object} chatReport
  * @param {Object} iouReport
+ * @param {String} comment - User comment for the IOU.
  *
  * @returns {Object}
  */
@@ -1797,6 +1798,7 @@ function buildOptimisticReportPreview(chatReport, iouReport, comment) {
  *
  * @param {Object} iouReport
  * @param {Object} reportPreviewAction
+ * @param {String} comment - User comment for the IOU.
  *
  * @returns {Object}
  */
