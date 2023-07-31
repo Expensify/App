@@ -1813,6 +1813,39 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
 }
 
 /**
+ * Builds an optimistic report preview action with a randomly generated reportActionID.
+ *
+ * @param {Object} transactionThread
+ * @param {Object} iouReport
+ *
+ * @returns {Object}
+ */
+function buildOptimisticModifiedExpenseReportAction(transactionThread, iouReport) {
+    const message = getReportPreviewMessage(iouReport);
+    return {
+        reportActionID: NumberUtils.rand64(),
+        reportID: transactionThread.reportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        originalMessage: {
+            linkedReportID: iouReport.reportID,
+        },
+        message: [
+            {
+                html: message,
+                text: message,
+                isEdited: false,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
+        created: DateUtils.getDBTime(),
+        accountID: iouReport.managerID || 0,
+        actorAccountID: iouReport.managerID || 0,
+    };
+}
+
+
+/**
  * Updates a report preview action that exists for an IOU report.
  *
  * @param {Object} iouReport
@@ -2849,6 +2882,7 @@ export {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
+    buildOptimisticModifiedExpenseReportAction,
     updateReportPreview,
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,

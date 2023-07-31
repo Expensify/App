@@ -12,14 +12,14 @@ import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
-    /** Transaction description default value */
-    defaultDescription: PropTypes.string.isRequired,
+    /** Transaction created default value */
+    defaultCreated: PropTypes.string.isRequired,
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: PropTypes.func.isRequired,
 };
 
-function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
+function EditRequestCreatedPage({defaultDescription, onSubmit}) {
     const {translate} = useLocalize();
     const descriptionInputRef = useRef(null);
     return (
@@ -41,9 +41,8 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
             >
                 <View style={styles.mb4}>
                     <TextInput
-                        // Comment field does not have its modified counterpart
-                        inputID="comment"
-                        name="comment"
+                        inputID="modifiedCreated"
+                        name="modifiedCreated"
                         defaultValue={defaultDescription}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
@@ -56,7 +55,7 @@ function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
     );
 }
 
-EditRequestDescriptionPage.propTypes = propTypes;
-EditRequestDescriptionPage.displayName = 'EditRequestDescriptionPage';
+EditRequestCreatedPage.propTypes = propTypes;
+EditRequestCreatedPage.displayName = 'EditRequestCreatedPage';
 
-export default EditRequestDescriptionPage;
+export default EditRequestCreatedPage;

@@ -9,6 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import * as TransactionUtils from '../libs/TransactionUtils';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
+import EditRequestCreatedPage from './EditRequestCreatedPage';
 import reportPropTypes from './reportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
 
@@ -56,6 +57,15 @@ function EditRequestPage({report, route}) {
         return (
             <EditRequestDescriptionPage
                 defaultDescription={transactionDescription}
+                onSubmit={(changes) => {
+                    updateTransactionWithChanges(changes);
+                }}
+            />
+        );
+    } else if (field === CONST.EDIT_REQUEST_FIELD.DATE) {
+        return (
+            <EditRequestCreatedPage
+                defaultCreated={transactionDescription}
                 onSubmit={(changes) => {
                     updateTransactionWithChanges(changes);
                 }}

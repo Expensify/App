@@ -767,15 +767,39 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
 
 /**
  * @param {String} transactionID
- * @param {String} transactionThreadReportID
+ * @param {Number} transactionThreadReportID
+ * @param {Object} updatedTransaction
  */
-function editIOUTransaction(transactionID, transactionThreadReportID) {
+function editIOUTransaction(transactionID, transactionThreadReportID, updatedTransaction) {
     // STEP 1: Get all collections we're updating
-    let transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
+    const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
     const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport.chatReportID, iouReport.reportID);
     const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
+
+    // STEP 2: Build new modified expense report action.
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread);
+    
+    // STEP 3: Compose the data for the API command
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [reportAction.reportActionID]: {pendingAction: null},
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction,
+        },
+    ]
+
     API.write(
         'EditIOUTransaction',
         {
