@@ -67,11 +67,22 @@ const defaultProps = {
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
-function SidebarLinks(props) {
+function SidebarLinks({
+    isSmallScreenWidth,
+    isCreateMenuOpen,
+    currentReportID,
+    onLinkClick,
+    translate,
+    currentUserPersonalDetails = {avatar: ''},
+    priorityMode = CONST.PRIORITY_MODE.DEFAULT,
+    optionListItems,
+    isLoading,
+    insets,
+}) {
     useEffect(() => {
-        if (!props.isSmallScreenWidth) return;
+        if (isSmallScreenWidth) return;
         App.confirmReadyToOpenApp();
-    }, [props.isSmallScreenWidth]);
+    }, [isSmallScreenWidth]);
 
     useEffect(() => {
         App.setSidebarLoaded();
@@ -112,7 +123,7 @@ function SidebarLinks(props) {
     }, []);
 
     function showSearchPage() {
-        if (props.isCreateMenuOpen) {
+        if (isCreateMenuOpen) {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
@@ -121,7 +132,7 @@ function SidebarLinks(props) {
     }
 
     function showSettingsPage() {
-        if (props.isCreateMenuOpen) {
+        if (isCreateMenuOpen) {
             // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
             return;
         }
@@ -141,13 +152,13 @@ function SidebarLinks(props) {
             // or when clicking the active LHN row
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
-            if (props.isCreateMenuOpen || props.currentReportID === option.reportID || (props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
+            if (isCreateMenuOpen || currentReportID === option.reportID || (isSmallScreenWidth && Navigation.getTopmostReportId())) {
                 return;
             }
             Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-            props.onLinkClick();
+            onLinkClick();
         },
-        [props],
+        [isCreateMenuOpen, currentReportID, isSmallScreenWidth, onLinkClick],
     );
 
     return (
@@ -167,9 +178,9 @@ function SidebarLinks(props) {
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                     shouldShowEnvironmentBadge
                 />
-                <Tooltip text={props.translate('common.search')}>
+                <Tooltip text={translate('common.search')}>
                     <PressableWithoutFeedback
-                        accessibilityLabel={props.translate('sidebarScreen.buttonSearch')}
+                        accessibilityLabel={translate('sidebarScreen.buttonSearch')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         style={[styles.flexRow, styles.ph5]}
                         onPress={Session.checkIfActionIsAllowed(showSearchPage)}
@@ -178,7 +189,7 @@ function SidebarLinks(props) {
                     </PressableWithoutFeedback>
                 </Tooltip>
                 <PressableWithoutFeedback
-                    accessibilityLabel={props.translate('sidebarScreen.buttonMySettings')}
+                    accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     onPress={Session.checkIfActionIsAllowed(showSettingsPage)}
                 >
@@ -187,29 +198,29 @@ function SidebarLinks(props) {
                             <Button
                                 medium
                                 success
-                                text={props.translate('common.signIn')}
+                                text={translate('common.signIn')}
                                 onPress={() => Session.signOutAndRedirectToSignIn()}
                             />
                         </View>
                     ) : (
-                        <OfflineWithFeedback pendingAction={lodashGet(props.currentUserPersonalDetails, 'pendingFields.avatar', null)}>
+                        <OfflineWithFeedback pendingAction={lodashGet(currentUserPersonalDetails, 'pendingFields.avatar', null)}>
                             <AvatarWithIndicator
-                                source={UserUtils.getAvatar(props.currentUserPersonalDetails.avatar, props.currentUserPersonalDetails.accountID)}
-                                tooltipText={props.translate('common.settings')}
+                                source={UserUtils.getAvatar(currentUserPersonalDetails.avatar, currentUserPersonalDetails.accountID)}
+                                tooltipText={translate('common.settings')}
                             />
                         </OfflineWithFeedback>
                     )}
                 </PressableWithoutFeedback>
             </View>
-            {props.isLoading ? (
+            {isLoading ? (
                 <OptionsListSkeletonView shouldAnimate />
             ) : (
                 <LHNOptionsList
-                    contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(props.insets).marginBottom}]}
-                    data={props.optionListItems}
+                    contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
+                    data={optionListItems}
                     onSelectRow={showReportPage}
-                    shouldDisableFocusOptions={props.isSmallScreenWidth}
-                    optionMode={props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
+                    shouldDisableFocusOptions={isSmallScreenWidth}
+                    optionMode={priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
                 />
             )}
         </View>
