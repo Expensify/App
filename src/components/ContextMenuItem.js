@@ -48,18 +48,18 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
     const {windowWidth} = useWindowDimensions();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
-    const triggerPressAndUpdateSuccess = useCallback(() => {
+    const triggerPressAndUpdateSuccess = () => {
         if (!isThrottledButtonActive) {
             return;
         }
         onPress();
-
+    
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (successIcon || successText) {
             setThrottledButtonInactive();
         }
-    }, [isThrottledButtonActive, onPress, successIcon, successText, setThrottledButtonInactive]);
+    };
 
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
