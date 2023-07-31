@@ -162,9 +162,8 @@ function PaymentMethodList(props) {
         translate,
     } = props;
 
-    const paymentCardList = fundList || cardList || {};
-
     const filteredPaymentMethods = useMemo(() => {
+        const paymentCardList = fundList || cardList || {};
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
         const filteredCardList = _.filter(paymentCardList, (card) => card.accountData.additionalData.isP2PDebitCard);
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList, payPalMeData);
@@ -191,7 +190,7 @@ function PaymentMethodList(props) {
         }));
 
         return combinedPaymentMethods;
-    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, filterType, network, onPress, payPalMeData, paymentCardList]);
+    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, filterType, network, onPress, payPalMeData, cardList, fundList]);
 
     /**
      * Render placeholder when there are no payments methods
