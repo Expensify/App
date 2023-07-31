@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import Text from './Text';
-import reportPropTypes from '../pages/reportPropTypes';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
@@ -18,8 +17,8 @@ const propTypes = {
         workspaceName: PropTypes.string,
     }).isRequired,
 
-    /** report */
-    report: reportPropTypes,
+    /** parent Report ID */
+    parentReportID: PropTypes.string,
 
     /** PressableWithoutFeedack additional styles */
     // eslint-disable-next-line react/forbid-prop-types
@@ -27,7 +26,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    report: {},
+    parentReportID: '',
     pressableStyles: [],
 };
 
@@ -39,7 +38,7 @@ function ParentNavigationSubtitle(props) {
     return (
         <PressableWithoutFeedback
             onPress={() => {
-                Navigation.navigate(ROUTES.getReportRoute(props.report.parentReportID));
+                Navigation.navigate(ROUTES.getReportRoute(props.parentReportID));
             }}
             accessibilityLabel={translate('threads.parentNavigationSummary', {rootReportName, workspaceName})}
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
