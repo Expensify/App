@@ -122,7 +122,7 @@ function ReceiptSelector(props) {
                             medium
                             success
                             text={translate('receipt.chooseFile')}
-                            style={[styles.buttonReceiptUpload]}
+                            style={[styles.p9]}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {

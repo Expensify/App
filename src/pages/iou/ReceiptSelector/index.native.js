@@ -237,7 +237,7 @@ function ReceiptSelector(props) {
                     medium
                     success
                     text={translate('receipt.givePermission')}
-                    style={[styles.buttonReceiptUpload, {paddingTop: 20}]}
+                    style={[styles.p9, styles.pt5]}
                     onPress={() => {
                         if (permissions === 'not-determined') {
                             Camera.requestCameraPermission().then((permissionStatus) => {

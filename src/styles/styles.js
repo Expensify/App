@@ -1120,10 +1120,6 @@ const styles = {
         color: themeColors.textLight,
     },
 
-    buttonReceiptUpload: {
-        padding: 36,
-    },
-
     furtherDetailsText: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
@@ -3593,14 +3589,14 @@ const styles = {
     loginButtonRow: {
         justifyContent: 'center',
         width: '100%',
-        ...flex.flexRow,
+        flexDirection: 'row',
     },
 
     loginButtonRowSmallScreen: {
         justifyContent: 'center',
         width: '100%',
         marginBottom: 10,
-        ...flex.flexRow,
+        flexDirection: 'row',
     },
 
     appleButtonContainer: {
