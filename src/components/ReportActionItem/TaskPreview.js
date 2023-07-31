@@ -22,6 +22,7 @@ import * as ReportUtils from '../../libs/ReportUtils';
 import RenderHTML from '../RenderHTML';
 import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** All personal details asssociated with user */
@@ -71,8 +72,10 @@ function TaskPreview(props) {
     const assigneeDisplayName = lodashGet(props.personalDetailsList, [taskAssigneeAccountID, 'displayName'], '');
     const taskAssignee = assigneeLogin || assigneeDisplayName;
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
-
-    return (
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
+    return isDeletedParentAction ? (
+        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
+    ) : (
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.getReportRoute(props.taskReportID))}
