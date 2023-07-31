@@ -37,6 +37,7 @@ const defaultProps = {
  *
  * @param {Number} width - Width of the original image.
  * @param {Number} height - Height of the original image.
+ * @param {Number} windowHeight - Height of the browser/device window.
  * @returns {Object} - Object containing thumbnails width and height.
  */
 
