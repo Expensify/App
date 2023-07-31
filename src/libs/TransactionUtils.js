@@ -1,6 +1,23 @@
+import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
+import ONYXKEYS from '../ONYXKEYS';
 import DateUtils from './DateUtils';
 import * as NumberUtils from './NumberUtils';
+import * as CollectionUtils from './CollectionUtils';
+
+const allTransactions = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    callback: (transaction, key) => {
+        if (!key || !transaction) {
+            return;
+        }
+
+        const transactionID = CollectionUtils.extractCollectionItemID(key);
+        allTransactions[transactionID] = transaction;
+    },
+});
 
 /**
  * Optimistically generate a transaction.
@@ -39,6 +56,17 @@ function buildOptimisticTransaction(amount, currency, reportID, comment = '', so
     };
 }
 
+/**
+ * Retrieve the particular transaction object given its ID.
+ *
+ * @param {String} transactionID
+ * @returns {Object}
+ */
+function getTransaction(transactionID) {
+    return lodashGet(allTransactions, [transactionID], {});
+}
+
 export default {
     buildOptimisticTransaction,
+    getTransaction,
 };
