@@ -68,9 +68,10 @@ const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 };
 function SidebarLinks(props) {
-    if (props.isSmallScreenWidth) {
+    useEffect(() => {
+        if (!props.isSmallScreenWidth) return;
         App.confirmReadyToOpenApp();
-    }
+    }, [props.isSmallScreenWidth]);
 
     useEffect(() => {
         App.setSidebarLoaded();
