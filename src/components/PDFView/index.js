@@ -13,6 +13,7 @@ import withWindowDimensions from '../withWindowDimensions';
 import withLocalize from '../withLocalize';
 import Text from '../Text';
 import compose from '../../libs/compose';
+import PressableWithoutFeedback from '../Pressable/PressableWithoutFeedback';
 
 class PDFView extends Component {
     constructor(props) {
@@ -37,7 +38,10 @@ class PDFView extends Component {
         // Use window height changes to toggle the keyboard. To maintain keyboard state
         // on all platforms we also use focus/blur events. So we need to make sure here
         // that we avoid redundant keyboard toggling.
-        if (!this.state.isKeyboardOpen && this.props.windowHeight < prevProps.windowHeight) {
+        // Minus 100px is needed to make sure that when the internet connection is
+        // disabled in android chrome and a small 'No internet connection' text box appears,
+        // we do not take it as a sign to open the keyboard
+        if (!this.state.isKeyboardOpen && this.props.windowHeight < prevProps.windowHeight - 100) {
             this.toggleKeyboardOnSmallScreens(true);
         } else if (this.state.isKeyboardOpen && this.props.windowHeight > prevProps.windowHeight) {
             this.toggleKeyboardOnSmallScreens(false);
@@ -105,7 +109,7 @@ class PDFView extends Component {
         this.props.onToggleKeyboard(isKeyboardOpen);
     }
 
-    render() {
+    renderPDFView() {
         const pdfContainerWidth = this.state.windowWidth - 100;
         const pageWidthOnLargeScreen = pdfContainerWidth <= variables.pdfPageMaxWidth ? pdfContainerWidth : variables.pdfPageMaxWidth;
         const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth : pageWidthOnLargeScreen;
@@ -150,6 +154,7 @@ class PDFView extends Component {
                 </View>
                 {this.state.shouldRequestPassword && (
                     <PDFPasswordForm
+                        isFocused={this.props.isFocused}
                         onSubmit={this.attemptPDFLoad}
                         onPasswordUpdated={() => this.setState({isPasswordInvalid: false})}
                         isPasswordInvalid={this.state.isPasswordInvalid}
@@ -157,6 +162,21 @@ class PDFView extends Component {
                     />
                 )}
             </View>
+        );
+    }
+
+    render() {
+        return this.props.onPress ? (
+            <PressableWithoutFeedback
+                onPress={this.props.onPress}
+                style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.IMAGEBUTTON}
+                accessibilityLabel={this.props.fileName || this.props.translate('attachmentView.unknownFilename')}
+            >
+                {this.renderPDFView()}
+            </PressableWithoutFeedback>
+        ) : (
+            this.renderPDFView()
         );
     }
 }

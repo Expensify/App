@@ -5,7 +5,7 @@ const {merge} = require('webpack-merge');
 const {TimeAnalyticsPlugin} = require('time-analytics-webpack-plugin');
 const getCommonConfig = require('./webpack.common');
 
-const BASE_PORT = 8080;
+const BASE_PORT = 8082;
 
 /**
  * Configuration for the local dev server

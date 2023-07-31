@@ -1,8 +1,10 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import OptionsSelector from '../../components/OptionsSelector';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -10,16 +12,14 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Timing from '../../libs/actions/Timing';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
-import Performance from '../../libs/Performance';
 import ROUTES from '../../ROUTES';
 
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
 
 const propTypes = {
     /** Beta features list */
@@ -77,15 +77,6 @@ function TaskAssigneeSelectorModal(props) {
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
     const [filteredCurrentUserOption, setFilteredCurrentUserOption] = useState(null);
 
-    useEffect(() => {
-        const results = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, false);
-
-        setFilteredRecentReports(results.recentReports);
-        setFilteredPersonalDetails(results.personalDetails);
-        setFilteredUserToInvite(results.userToInvite);
-        setFilteredCurrentUserOption(results.currentUserOption);
-    }, [props]);
-
     const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite, currentUserOption} = OptionsListUtils.getNewChatOptions(
             props.reports,
@@ -106,20 +97,15 @@ function TaskAssigneeSelectorModal(props) {
     }, [props, searchValue]);
 
     useEffect(() => {
-        Timing.start(CONST.TIMING.SEARCH_RENDER);
-        Performance.markStart(CONST.TIMING.SEARCH_RENDER);
-
-        updateOptions();
-
+        const debouncedSearch = _.debounce(updateOptions, 200);
+        debouncedSearch();
         return () => {
-            Timing.end(CONST.TIMING.SEARCH_RENDER);
-            Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
+            debouncedSearch.cancel();
         };
     }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
-        updateOptions();
     };
 
     const sections = useMemo(() => {
@@ -173,17 +159,21 @@ function TaskAssigneeSelectorModal(props) {
         if (!props.route.params && option.accountID) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
-            return Navigation.goBack();
+            Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+            return Navigation.goBack(ROUTES.NEW_TASK);
         }
 
         // Check to see if we're editing a task and if so, update the assignee
         if (props.route.params.reportID && props.task.report.reportID === props.route.params.reportID) {
             // There was an issue where sometimes a new assignee didn't have a DM thread
             // This would cause the app to crash, so we need to make sure we have a DM thread
-            TaskUtils.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+            Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+
             // Pass through the selected assignee
-            TaskUtils.editTaskAndNavigate(props.task.report, props.session.email, props.session.accountID, {assignee: option.login, assigneeAccountID: option.accountID});
+            Task.editTaskAndNavigate(props.task.report, props.session.accountID, {
+                assignee: option.login,
+                assigneeAccountID: option.accountID,
+            });
         }
     };
 
@@ -192,8 +182,8 @@ function TaskAssigneeSelectorModal(props) {
             {({didScreenTransitionEnd, safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        title={props.translate('newTaskPage.assignee')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.NEW_TASK)}
+                        title={props.translate('task.assignee')}
+                        onBackButtonPress={() => (lodashGet(props.task.report, 'isExistingTaskReport') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
@@ -204,11 +194,7 @@ function TaskAssigneeSelectorModal(props) {
                             headerMessage={headerMessage}
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
-                            placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            onLayout={() => {
-                                Timing.end(CONST.TIMING.SEARCH_RENDER);
-                                Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
-                            }}
+                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>

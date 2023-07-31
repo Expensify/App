@@ -1,11 +1,12 @@
 import lodashClamp from 'lodash/clamp';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
+import React, {PureComponent} from 'react';
+import {View, Dimensions} from 'react-native';
 import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import useWindowDimensions from '../hooks/useWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
+import * as DeviceCapabilities from '../libs/DeviceCapabilities';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -44,13 +45,27 @@ function calculateThumbnailImageSize(width, height, windowHeight) {
         return {thumbnailWidth: 200, thumbnailHeight: 200};
     }
 
-    // Width of the thumbnail works better as a constant than it does
-    // a percentage of the screen width since it is relative to each screen
-    // Note: Clamp minimum width 40px to support touch device
-    let thumbnailScreenWidth = lodashClamp(width, 40, 250);
-    const imageHeight = height / (width / thumbnailScreenWidth);
-    let thumbnailScreenHeight = lodashClamp(imageHeight, 40, windowHeight * 0.4);
-    const aspectRatio = height / width;
+    /**
+     * Compute the thumbnails width and height given original image dimensions.
+     *
+     * @param {Number} width - Width of the original image.
+     * @param {Number} height - Height of the original image.
+     * @returns {Object} - Object containing thumbnails width and height.
+     */
+    calculateThumbnailImageSize(width, height) {
+        if (!width || !height) {
+            return {};
+        }
+
+        // Width of the thumbnail works better as a constant than it does
+        // a percentage of the screen width since it is relative to each screen
+        // Note: Clamp minimum width 40px to support touch device
+        let thumbnailScreenWidth = lodashClamp(width, 40, 250);
+        const imageHeight = height / (width / thumbnailScreenWidth);
+        // On mWeb, when soft keyboard opens, window height changes, making thumbnail height inconsistent. We use screen height instead.
+        const screenHeight = DeviceCapabilities.canUseTouchScreen() ? Dimensions.get('screen').height : this.props.windowHeight;
+        let thumbnailScreenHeight = lodashClamp(imageHeight, 40, screenHeight * 0.4);
+        const aspectRatio = height / width;
 
     // If thumbnail height is greater than its width, then the image is portrait otherwise landscape.
     // For portrait images, we need to adjust the width of the image to keep the aspect ratio and vice-versa.
@@ -71,7 +86,9 @@ function ThumbnailImage(props) {
     /**
      * Update the state with the computed thumbnail sizes.
      *
-     * @param {{ width: number, height: number }} Params - width and height of the original image.
+     * @param {Object} Params - width and height of the original image.
+     * @param {Number} Params.width
+     * @param {Number} Params.height
      */
 
     const updateImageSize = useCallback(

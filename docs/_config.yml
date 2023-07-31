@@ -11,6 +11,7 @@ defaults:
       path: "" # an empty string here means all files in the project
     values:
       layout: "default"
+      image: /assets/images/og-preview-image.png
 
 exclude: [README.md, TEMPLATE.md, vendor]
 

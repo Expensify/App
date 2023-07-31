@@ -12,10 +12,9 @@ const defaultProps = {};
 
 function SuccessPage(props) {
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldShowOfflineIndicator={false}>
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
-                shouldShowStepCounter
                 stepCounter={{
                     step: 3,
                     text: props.translate('twoFactorAuth.stepSuccess'),

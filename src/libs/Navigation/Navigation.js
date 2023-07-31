@@ -11,6 +11,7 @@ import navigationRef from './navigationRef';
 import NAVIGATORS from '../../NAVIGATORS';
 import originalGetTopmostReportId from './getTopmostReportId';
 import getStateFromPath from './getStateFromPath';
+import SCREENS from '../../SCREENS';
 
 let resolveNavigationIsReadyPromise;
 const navigationIsReadyPromise = new Promise((resolve) => {
@@ -18,6 +19,15 @@ const navigationIsReadyPromise = new Promise((resolve) => {
 });
 
 let pendingRoute = null;
+
+let shouldPopAllStateOnUP = false;
+
+/**
+ * Inform the navigation that next time user presses UP we should pop all the state back to LHN.
+ */
+function setShouldPopAllStateOnUP() {
+    shouldPopAllStateOnUP = true;
+}
 
 /**
  * @param {String} methodName
@@ -84,10 +94,19 @@ function navigate(route = ROUTES.HOME, type) {
 /**
  * @param {String} fallbackRoute - Fallback route if pop/goBack action should, but is not possible within RHP
  * @param {Bool} shouldEnforceFallback - Enforces navigation to fallback route
+ * @param {Bool} shouldPopToTop - Should we navigate to LHN on back press
  */
-function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false) {
+function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false, shouldPopToTop = false) {
     if (!canNavigate('goBack')) {
         return;
+    }
+
+    if (shouldPopToTop) {
+        if (shouldPopAllStateOnUP) {
+            shouldPopAllStateOnUP = false;
+            navigationRef.current.dispatch(StackActions.popToTop());
+            return;
+        }
     }
 
     if (!navigationRef.current.canGoBack()) {
@@ -95,7 +114,19 @@ function goBack(fallbackRoute = ROUTES.HOME, shouldEnforceFallback = false) {
         return;
     }
 
-    if (shouldEnforceFallback || (!getActiveRouteIndex(navigationRef.current.getState()) && fallbackRoute)) {
+    const isFirstRouteInNavigator = !getActiveRouteIndex(navigationRef.current.getState());
+
+    if (isFirstRouteInNavigator) {
+        const rootState = navigationRef.getRootState();
+        const lastRoute = _.last(rootState.routes);
+        // If the user comes from a different flow (there is more than one route in RHP) we should go back to the previous flow on UP button press instead of using the fallbackRoute.
+        if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && lastRoute.state.index > 0) {
+            navigationRef.current.goBack();
+            return;
+        }
+    }
+
+    if (shouldEnforceFallback || (isFirstRouteInNavigator && fallbackRoute)) {
         navigate(fallbackRoute, 'UP');
         return;
     }
@@ -127,19 +158,24 @@ function dismissModal(targetReportID) {
     }
     const rootState = navigationRef.getRootState();
     const lastRoute = _.last(rootState.routes);
-    if (lastRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || lastRoute.name === NAVIGATORS.FULL_SCREEN_NAVIGATOR) {
-        // if we are not in the target report, we need to navigate to it after dismissing the modal
-        if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
-            const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
+    switch (lastRoute.name) {
+        case NAVIGATORS.RIGHT_MODAL_NAVIGATOR:
+        case NAVIGATORS.FULL_SCREEN_NAVIGATOR:
+        case SCREENS.REPORT_ATTACHMENTS:
+            // if we are not in the target report, we need to navigate to it after dismissing the modal
+            if (targetReportID && targetReportID !== getTopmostReportId(rootState)) {
+                const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
 
-            const action = getActionFromState(state, linkingConfig.config);
-            action.type = 'REPLACE';
-            navigationRef.current.dispatch(action);
-        } else {
-            navigationRef.current.dispatch(StackActions.pop());
+                const action = getActionFromState(state, linkingConfig.config);
+                action.type = 'REPLACE';
+                navigationRef.current.dispatch(action);
+            } else {
+                navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});
+            }
+            break;
+        default: {
+            Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
         }
-    } else {
-        Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
     }
 }
 
@@ -148,7 +184,8 @@ function dismissModal(targetReportID) {
  * @returns {String}
  */
 function getActiveRoute() {
-    const currentRouteHasName = navigationRef.current && navigationRef.current.getCurrentRoute().name;
+    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
     if (!currentRouteHasName) {
         return '';
     }
@@ -160,19 +197,6 @@ function getActiveRoute() {
     }
 
     return '';
-}
-
-/**
- * @returns {String}
- */
-function getReportIDFromRoute() {
-    if (!navigationRef.current) {
-        return '';
-    }
-
-    const drawerState = lodashGet(navigationRef.current.getState(), ['routes', 0, 'state']);
-    const reportRoute = lodashGet(drawerState, ['routes', 0]);
-    return lodashGet(reportRoute, ['params', 'reportID'], '');
 }
 
 /**
@@ -215,6 +239,7 @@ function setIsNavigationReady() {
 }
 
 export default {
+    setShouldPopAllStateOnUP,
     canNavigate,
     navigate,
     setParams,
@@ -224,7 +249,6 @@ export default {
     goBack,
     isNavigationReady,
     setIsNavigationReady,
-    getReportIDFromRoute,
     getTopmostReportId,
 };
 

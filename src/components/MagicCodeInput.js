@@ -11,7 +11,7 @@ import TextInput from './TextInput';
 import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
-import useOnNetworkReconnect from '../hooks/useOnNetworkReconnect';
+import useNetwork from '../hooks/useNetwork';
 import * as Browser from '../libs/Browser';
 
 const propTypes = {
@@ -108,13 +108,9 @@ function MagicCodeInput(props) {
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
-            setFocusedIndex(0);
             inputRefs.current[0].focus();
         },
         clear() {
-            setInput('');
-            setFocusedIndex(0);
-            setEditIndex(0);
             inputRefs.current[0].focus();
             props.onChangeText('');
         },
@@ -134,14 +130,16 @@ function MagicCodeInput(props) {
         props.onFulfill(props.value);
     };
 
-    useOnNetworkReconnect(validateAndSubmit);
+    useNetwork({onReconnect: validateAndSubmit});
 
     useEffect(() => {
         validateAndSubmit();
 
-        // We have not added the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
+        // We have not added:
+        // + the editIndex as the dependency because we don't want to run this logic after focusing on an input to edit it after the user has completed the code.
+        // + the props.onFulfill as the dependency because props.onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.value, props.shouldSubmitOnComplete, props.onFulfill]);
+    }, [props.value, props.shouldSubmitOnComplete]);
 
     useEffect(() => {
         if (!props.autoFocus) {
@@ -151,9 +149,9 @@ function MagicCodeInput(props) {
         let focusTimeout = null;
         if (props.shouldDelayFocus) {
             focusTimeout = setTimeout(() => inputRefs.current[0].focus(), CONST.ANIMATED_TRANSITION);
+        } else {
+            inputRefs.current[0].focus();
         }
-
-        inputRefs.current[0].focus();
 
         return () => {
             if (!focusTimeout) {
@@ -161,26 +159,18 @@ function MagicCodeInput(props) {
             }
             clearTimeout(focusTimeout);
         };
-    }, [props.autoFocus, props.shouldDelayFocus]);
+        // We only want this to run on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     /**
-     * Focuses on the input when it is pressed.
-     *
-     * @param {Object} event
-     * @param {Number} index
-     */
-    const onFocus = (event) => {
-        event.preventDefault();
-    };
-
-    /**
-     * Callback for the onPress event, updates the indexes
+     * Callback for the onFocus event, updates the indexes
      * of the currently focused input.
      *
      * @param {Object} event
      * @param {Number} index
      */
-    const onPress = (event, index) => {
+    const onFocus = (event, index) => {
         event.preventDefault();
         setInput('');
         setFocusedIndex(index);
@@ -212,8 +202,7 @@ function MagicCodeInput(props) {
         let numbers = decomposeString(props.value, props.maxLength);
         numbers = [...numbers.slice(0, editIndex), ...numbersArr, ...numbers.slice(numbersArr.length + editIndex, props.maxLength)];
 
-        setFocusedIndex(updatedFocusedIndex);
-        setInput(value);
+        inputRefs.current[updatedFocusedIndex].focus();
 
         const finalInput = composeToString(numbers);
         props.onChangeText(finalInput);
@@ -253,13 +242,6 @@ function MagicCodeInput(props) {
             }
 
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
-
-            // Saves the input string so that it can compare to the change text
-            // event that will be triggered, this is a workaround for mobile that
-            // triggers the change text on the event after the key press.
-            setInput('');
-            setFocusedIndex(newFocusedIndex);
-            setEditIndex(newFocusedIndex);
             props.onChangeText(composeToString(numbers));
 
             if (!_.isUndefined(newFocusedIndex)) {
@@ -268,15 +250,9 @@ function MagicCodeInput(props) {
         }
         if (keyValue === 'ArrowLeft' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.max(0, focusedIndex - 1);
-            setInput('');
-            setFocusedIndex(newFocusedIndex);
-            setEditIndex(newFocusedIndex);
             inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'ArrowRight' && !_.isUndefined(focusedIndex)) {
             const newFocusedIndex = Math.min(focusedIndex + 1, props.maxLength - 1);
-            setInput('');
-            setFocusedIndex(newFocusedIndex);
-            setEditIndex(newFocusedIndex);
             inputRefs.current[newFocusedIndex].focus();
         } else if (keyValue === 'Enter') {
             // We should prevent users from submitting when it's offline.
@@ -314,7 +290,7 @@ function MagicCodeInput(props) {
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
-                                autoFocus={index === 0 && props.autoFocus}
+                                autoFocus={index === 0 && props.autoFocus && !props.shouldDelayFocus}
                                 inputMode="numeric"
                                 textContentType="oneTimeCode"
                                 name={props.name}
@@ -328,16 +304,16 @@ function MagicCodeInput(props) {
                                     // not currently being responsible for the input, this is
                                     // necessary to avoid calls when the input changes due to
                                     // deleted characters. Only happens in mobile.
-                                    if (index !== editIndex) {
+                                    if (index !== editIndex || _.isUndefined(focusedIndex)) {
                                         return;
                                     }
                                     onChangeText(value);
                                 }}
                                 onKeyPress={onKeyPress}
-                                onPress={(event) => onPress(event, index)}
-                                onFocus={onFocus}
+                                onFocus={(event) => onFocus(event, index)}
                                 caretHidden={isMobileSafari}
                                 inputStyle={[isMobileSafari ? styles.magicCodeInputTransparent : undefined]}
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
                     </View>

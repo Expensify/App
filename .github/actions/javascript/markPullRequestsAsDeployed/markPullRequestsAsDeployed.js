@@ -2,6 +2,7 @@ const _ = require('underscore');
 const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {context} = require('@actions/github');
+const CONST = require('../../../libs/CONST');
 const ActionUtils = require('../../../libs/ActionUtils');
 const GithubUtils = require('../../../libs/GithubUtils');
 
@@ -78,9 +79,9 @@ const run = function () {
         // First find the deployer (who closed the last deploy checklist)?
         return GithubUtils.octokit.issues
             .listForRepo({
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
-                labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                labels: CONST.LABELS.STAGING_DEPLOY,
                 state: 'closed',
             })
             .then(({data}) => _.first(data).number)
@@ -95,15 +96,15 @@ const run = function () {
     // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
     return GithubUtils.octokit.repos
         .listTags({
-            owner: GithubUtils.GITHUB_OWNER,
-            repo: GithubUtils.APP_REPO,
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
             per_page: 100,
         })
         .then(({data}) => {
             const tagSHA = _.find(data, (tag) => tag.name === version).commit.sha;
             return GithubUtils.octokit.git.getCommit({
-                owner: GithubUtils.GITHUB_OWNER,
-                repo: GithubUtils.APP_REPO,
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
                 commit_sha: tagSHA,
             });
         })
@@ -117,8 +118,8 @@ const run = function () {
                         // Then, for each PR, find out who merged it and determine the deployer
                         .then(() =>
                             GithubUtils.octokit.pulls.get({
-                                owner: GithubUtils.GITHUB_OWNER,
-                                repo: GithubUtils.APP_REPO,
+                                owner: CONST.GITHUB_OWNER,
+                                repo: CONST.APP_REPO,
                                 pull_number: PR,
                             }),
                         )
@@ -133,7 +134,7 @@ const run = function () {
                             let deployer = lodashGet(response, 'data.merged_by.login', '');
                             const issueTitle = lodashGet(response, 'data.title', '');
                             const CPActorMatches = data.message.match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
-                            if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
+                            if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== CONST.OS_BOTIFY) {
                                 deployer = CPActorMatches[1];
                             }
 

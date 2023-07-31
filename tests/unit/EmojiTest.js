@@ -101,40 +101,51 @@ describe('EmojiTest', () => {
         expect(EmojiUtils.containsOnlyEmojis('🅃🄴🅂🅃')).toBe(false);
     });
 
-    it('replaces an emoji code with an emoji and a space on mobile', () => {
+    it('replaces an emoji code with an emoji and a space', () => {
         const text = 'Hi :smile:';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text, true), 'text')).toBe('Hi 😄 ');
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄 ');
     });
 
-    it('will not add a space after the last emoji if there is text after it', () => {
-        const text = 'Hi :smile::wave:no space after last emoji';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋no space after last emoji');
-    });
-
-    it('will not add a space after the last emoji when there is text after it on mobile', () => {
-        const text = 'Hi :smile::wave:no space after last emoji';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text, true), 'text')).toBe('Hi 😄👋no space after last emoji');
-    });
-
-    it("will not add a space after the last emoji if we're not on mobile", () => {
-        const text = 'Hi :smile:';
-        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄');
+    it('will add a space after the last emoji if there is text after it', () => {
+        const text = 'Hi :smile::wave:space after last emoji';
+        expect(lodashGet(EmojiUtils.replaceEmojis(text), 'text')).toBe('Hi 😄👋 space after last emoji');
     });
 
     it('suggests emojis when typing emojis prefix after colon', () => {
         const text = 'Hi :coffin';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([{code: '⚰️', name: 'coffin'}]);
+        expect(EmojiUtils.suggestEmojis(text, 'en')).toEqual([{code: '⚰️', name: 'coffin'}]);
     });
 
     it('suggests a limited number of matching emojis', () => {
         const text = 'Hi :face';
         const limit = 3;
-        expect(EmojiUtils.suggestEmojis(text, limit).length).toBe(limit);
+        expect(EmojiUtils.suggestEmojis(text, 'en', limit).length).toBe(limit);
     });
 
     it('correct suggests emojis accounting for keywords', () => {
-        const text = ':thumb';
-        expect(EmojiUtils.suggestEmojis(text)).toEqual([
+        const thumbEmojis = [
+            {
+                code: '👍',
+                name: '+1',
+                types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
+            },
+            {
+                code: '👎',
+                name: '-1',
+                types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
+            },
+        ];
+
+        expect(EmojiUtils.suggestEmojis(':thumb', 'en')).toEqual(thumbEmojis);
+
+        expect(EmojiUtils.suggestEmojis(':thumb', 'es')).toEqual(thumbEmojis);
+
+        expect(EmojiUtils.suggestEmojis(':pulgar', 'es')).toEqual([
+            {
+                code: '🤙',
+                name: 'mano_llámame',
+                types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
+            },
             {
                 code: '👍',
                 name: '+1',
@@ -171,6 +182,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {
                     code: '💤',
@@ -191,7 +203,7 @@ describe('EmojiTest', () => {
                     lastUpdatedAt: 1,
                 },
             ];
-            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
+            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
             return waitForPromisesToResolve().then(() => {
                 // When add a new emoji
@@ -202,6 +214,7 @@ describe('EmojiTest', () => {
 
                 // Then the new emoji should be at the last item of the list
                 const expectedSmileEmoji = {...smileEmoji, count: 1, lastUpdatedAt: currentTime};
+
                 const expectedFrequentlyEmojisList = [...frequentlyEmojisList, expectedSmileEmoji];
                 expect(spy).toBeCalledWith(expectedFrequentlyEmojisList);
             });
@@ -222,6 +235,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {
                     code: '💤',
@@ -268,6 +282,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 2,
                     lastUpdatedAt: 4,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {...zzzEmoji, count: 2, lastUpdatedAt: 3},
                 {
@@ -278,7 +293,7 @@ describe('EmojiTest', () => {
                 },
                 {...smileEmoji, count: 1, lastUpdatedAt: 1},
             ];
-            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
+            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
             return waitForPromisesToResolve().then(() => {
                 // When add multiple emojis that either exist or not exist in the list
@@ -317,6 +332,7 @@ describe('EmojiTest', () => {
                     name: 'wave',
                     count: 3,
                     lastUpdatedAt: 23,
+                    types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
                 },
                 {
                     code: '😡',
@@ -377,6 +393,7 @@ describe('EmojiTest', () => {
                     name: 'baby',
                     count: 3,
                     lastUpdatedAt: 13,
+                    types: ['👶🏿', '👶🏾', '👶🏽', '👶🏼', '👶🏻'],
                 },
                 {
                     code: '👄',
@@ -447,7 +464,7 @@ describe('EmojiTest', () => {
                 {...bookEmoji, count: 3, lastUpdatedAt: 1},
             ];
             expect(frequentlyEmojisList.length).toBe(CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW);
-            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
+            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
             return waitForPromisesToResolve().then(() => {
                 // When add new emojis

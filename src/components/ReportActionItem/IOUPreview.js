@@ -57,14 +57,8 @@ const propTypes = {
 
     /** Active IOU Report for current report */
     iouReport: PropTypes.shape({
-        /** Email address of the manager in this iou report */
-        managerEmail: PropTypes.string,
-
         /** Account ID of the manager in this iou report */
         managerID: PropTypes.number,
-
-        /** Email address of the creator of this iou report */
-        ownerEmail: PropTypes.string,
 
         /** Account ID of the creator of this iou report */
         ownerAccountID: PropTypes.number,
@@ -171,7 +165,13 @@ function IOUPreview(props) {
             return props.translate('iou.split');
         }
 
-        return `${props.translate('iou.cash')}${!props.iouReport.hasOutstandingIOU ? ` • ${props.translate('iou.settledExpensify')}` : ''}`;
+        let message = props.translate('iou.cash');
+        if (props.iouReport.isWaitingOnBankAccount) {
+            message += ` • ${props.translate('iou.pending')}`;
+        } else if (ReportUtils.isSettled(props.iouReport.reportID)) {
+            message += ` • ${props.translate('iou.settledExpensify')}`;
+        }
+        return message;
     };
 
     const childContainer = (
@@ -189,7 +189,7 @@ function IOUPreview(props) {
                 <View style={[styles.iouPreviewBox, ...props.containerStyles]}>
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLabelSupporting, styles.lh16]}>{getPreviewHeaderText()}</Text>
+                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.lh16]}>{getPreviewHeaderText()}</Text>
                             {Boolean(getSettledMessage()) && (
                                 <>
                                     <Icon
@@ -206,8 +206,8 @@ function IOUPreview(props) {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                             <Text style={styles.textHeadline}>{CurrencyUtils.convertToDisplayString(requestAmount, requestCurrency)}</Text>
-                            {!props.iouReport.hasOutstandingIOU && !props.isBillSplit && (
-                                <View style={styles.iouPreviewBoxCheckmark}>
+                            {ReportUtils.isSettled(props.iouReport.reportID) && !props.isBillSplit && (
+                                <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
                                         src={Expensicons.Checkmark}
                                         fill={themeColors.iconSuccessFill}
@@ -230,9 +230,9 @@ function IOUPreview(props) {
                     <View style={[styles.flexRow]}>
                         <View style={[styles.flex1]}>
                             {!isCurrentUserManager && props.shouldShowPendingConversionMessage && (
-                                <Text style={[styles.textLabel, styles.colorMuted]}>{props.translate('iou.pendingConversionMessage')}</Text>
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt1]}>{props.translate('iou.pendingConversionMessage')}</Text>
                             )}
-                            {!_.isEmpty(requestComment) && <Text style={[styles.colorMuted]}>{requestComment}</Text>}
+                            {!_.isEmpty(requestComment) && <Text style={[styles.mt1, styles.colorMuted]}>{requestComment}</Text>}
                         </View>
                         {props.isBillSplit && !_.isEmpty(participantAccountIDs) && (
                             <Text style={[styles.textLabel, styles.colorMuted, styles.ml1]}>

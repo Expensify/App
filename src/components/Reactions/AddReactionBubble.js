@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useEffect} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Tooltip from '../Tooltip';
@@ -13,6 +13,7 @@ import variables from '../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as Session from '../../libs/actions/Session';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether it is for context menu so we can modify its style */
@@ -35,6 +36,13 @@ const propTypes = {
      */
     onSelectEmoji: PropTypes.func.isRequired,
 
+    /**
+     * ReportAction for EmojiPicker.
+     */
+    reportAction: PropTypes.shape({
+        reportActionID: PropTypes.string.isRequired,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -42,10 +50,12 @@ const defaultProps = {
     isContextMenu: false,
     onWillShowPicker: () => {},
     onPressOpenPicker: undefined,
+    reportAction: {},
 };
 
 function AddReactionBubble(props) {
     const ref = useRef();
+    useEffect(() => EmojiPickerAction.resetEmojiPopoverAnchor, []);
 
     const onPress = () => {
         const openPicker = (refParam, anchorOrigin) => {
@@ -57,6 +67,7 @@ function AddReactionBubble(props) {
                 refParam || ref.current,
                 anchorOrigin,
                 props.onWillShowPicker,
+                props.reportAction,
             );
         };
 
@@ -76,7 +87,7 @@ function AddReactionBubble(props) {
                 // Prevent text input blur when Add reaction is clicked
                 onMouseDown={(e) => e.preventDefault()}
                 accessibilityLabel={props.translate('emojiReactions.addReactionTooltip')}
-                accessibilityRole="button"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 // disable dimming
                 pressDimmingValue={1}
             >

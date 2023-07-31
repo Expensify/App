@@ -17,7 +17,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import styles from '../../../../styles/styles';
 import FixedFooter from '../../../../components/FixedFooter';
 import Button from '../../../../components/Button';
-import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
+import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 import Text from '../../../../components/Text';
 import Section from '../../../../components/Section';
 import ONYXKEYS from '../../../../ONYXKEYS';
@@ -56,10 +56,9 @@ function CodesPage(props) {
     }, []);
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldShowOfflineIndicator={false}>
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
-                shouldShowStepCounter
                 stepCounter={{
                     step: 1,
                     text: props.translate('twoFactorAuth.stepCodes'),
@@ -67,7 +66,7 @@ function CodesPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_SECURITY)}
             />
             <FullPageOfflineBlockingView>
-                <ScrollView contentContainerStyle={styles.flex1}>
+                <ScrollView>
                     <Section
                         title={props.translate('twoFactorAuth.keepCodesSafe')}
                         icon={Illustrations.ShieldYellow}
@@ -95,9 +94,10 @@ function CodesPage(props) {
                                                 </Text>
                                             ))}
                                     </View>
-                                    <View style={styles.twoFactorAuthCodesButtonsContainer}>
+                                    <View style={[styles.twoFactorAuthCodesButtonsContainer]}>
                                         <PressableWithDelayToggle
-                                            text={props.translate('twoFactorAuth.copyCodes')}
+                                            text={props.translate('twoFactorAuth.copy')}
+                                            textChecked={props.translate('common.copied')}
                                             icon={Expensicons.Copy}
                                             inline={false}
                                             onPress={() => {
@@ -123,15 +123,15 @@ function CodesPage(props) {
                             )}
                         </View>
                     </Section>
-                    <FixedFooter style={[styles.twoFactorAuthFooter]}>
-                        <Button
-                            success
-                            text={props.translate('common.next')}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY)}
-                            isDisabled={isNextButtonDisabled}
-                        />
-                    </FixedFooter>
                 </ScrollView>
+                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
+                    <Button
+                        success
+                        text={props.translate('common.next')}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY)}
+                        isDisabled={isNextButtonDisabled}
+                    />
+                </FixedFooter>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>
     );

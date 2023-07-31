@@ -40,6 +40,7 @@ class PopoverReportActionContextMenu extends React.Component {
             isArchivedRoom: false,
             isChronosReport: false,
             isPinnedChat: false,
+            isUnreadChat: false,
         };
         this.onPopoverShow = () => {};
         this.onPopoverHide = () => {};
@@ -128,6 +129,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
      * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
      * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
+     * @param {Boolean} isUnreadChat - Flag to check if the chat is unread in the LHN. Used for the Mark as Read/Unread action
      */
     showContextMenu(
         type,
@@ -142,6 +144,7 @@ class PopoverReportActionContextMenu extends React.Component {
         isArchivedRoom = false,
         isChronosReport = false,
         isPinnedChat = false,
+        isUnreadChat = false,
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
@@ -173,6 +176,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 isArchivedRoom,
                 isChronosReport,
                 isPinnedChat,
+                isUnreadChat,
             });
         });
     }
@@ -246,7 +250,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.callbackWhenDeleteModalHide = () => (this.onComfirmDeleteModal = this.runAndResetCallback(this.onComfirmDeleteModal));
 
         if (ReportActionsUtils.isMoneyRequestAction(this.state.reportAction)) {
-            IOU.deleteMoneyRequest(this.state.reportID, this.state.reportAction.originalMessage.IOUReportID, this.state.reportAction, true);
+            IOU.deleteMoneyRequest(this.state.reportAction.originalMessage.IOUTransactionID, this.state.reportAction);
         } else {
             Report.deleteReportComment(this.state.reportID, this.state.reportAction);
         }
@@ -261,6 +265,7 @@ class PopoverReportActionContextMenu extends React.Component {
             isArchivedRoom: false,
             isChronosReport: false,
             isPinnedChat: false,
+            isUnreadChat: false,
         });
     }
 
@@ -308,6 +313,7 @@ class PopoverReportActionContextMenu extends React.Component {
                         isArchivedRoom={this.state.isArchivedRoom}
                         isChronosReport={this.state.isChronosReport}
                         isPinnedChat={this.state.isPinnedChat}
+                        isUnreadChat={this.state.isUnreadChat}
                         anchor={this.contextMenuTargetNode}
                         contentRef={this.contentRef}
                     />

@@ -17,6 +17,7 @@ const contextMenuRef = React.createRef();
  * @param {Boolean} isArchivedRoom - Whether the provided report is an archived room
  * @param {Boolean} isChronosReport - Flag to check if the chat participant is Chronos
  * @param {Boolean} isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
+ * @param {Boolean} isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
  */
 function showContextMenu(
     type,
@@ -31,11 +32,26 @@ function showContextMenu(
     isArchivedRoom = false,
     isChronosReport = false,
     isPinnedChat = false,
+    isUnreadChat = false,
 ) {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showContextMenu(type, event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShow, onHide, isArchivedRoom, isChronosReport, isPinnedChat);
+    contextMenuRef.current.showContextMenu(
+        type,
+        event,
+        selection,
+        contextMenuAnchor,
+        reportID,
+        reportAction,
+        draftMessage,
+        onShow,
+        onHide,
+        isArchivedRoom,
+        isChronosReport,
+        isPinnedChat,
+        isUnreadChat,
+    );
 }
 
 /**

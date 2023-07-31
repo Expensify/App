@@ -1,19 +1,15 @@
 import {Keyboard, View, PanResponder} from 'react-native';
 import React from 'react';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import KeyboardAvoidingView from '../KeyboardAvoidingView';
 import CONST from '../../CONST';
-import KeyboardShortcut from '../../libs/KeyboardShortcut';
-import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import HeaderGap from '../HeaderGap';
 import OfflineIndicator from '../OfflineIndicator';
 import compose from '../../libs/compose';
 import withNavigation from '../withNavigation';
-import ONYXKEYS from '../../ONYXKEYS';
 import {withNetwork} from '../OnyxProvider';
 import {propTypes, defaultProps} from './propTypes';
 import SafeAreaConsumer from '../SafeAreaConsumer';
@@ -39,22 +35,6 @@ class ScreenWrapper extends React.Component {
     }
 
     componentDidMount() {
-        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
-            shortcutConfig.shortcutKey,
-            () => {
-                if (this.props.modal.willAlertModalBecomeVisible) {
-                    return;
-                }
-
-                Navigation.dismissModal();
-            },
-            shortcutConfig.descriptionKey,
-            shortcutConfig.modifiers,
-            true,
-            true,
-        );
-
         this.unsubscribeTransitionEnd = this.props.navigation.addListener('transitionEnd', (event) => {
             // Prevent firing the prop callback when user is exiting the page.
             if (lodashGet(event, 'data.closing')) {
@@ -89,9 +69,6 @@ class ScreenWrapper extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.unsubscribeEscapeKey) {
-            this.unsubscribeEscapeKey();
-        }
         if (this.unsubscribeTransitionEnd) {
             this.unsubscribeTransitionEnd();
         }
@@ -126,6 +103,7 @@ class ScreenWrapper extends React.Component {
                             <KeyboardAvoidingView
                                 style={[styles.w100, styles.h100, {maxHeight}]}
                                 behavior={this.props.keyboardAvoidingViewBehavior}
+                                enabled={this.props.shouldEnableKeyboardAvoidingView}
                             >
                                 <PickerAvoidingView
                                     style={styles.flex1}
@@ -144,7 +122,7 @@ class ScreenWrapper extends React.Component {
                                               })
                                             : this.props.children
                                     }
-                                    {this.props.isSmallScreenWidth && <OfflineIndicator />}
+                                    {this.props.isSmallScreenWidth && this.props.shouldShowOfflineIndicator && <OfflineIndicator style={this.props.offlineIndicatorStyle} />}
                                 </PickerAvoidingView>
                             </KeyboardAvoidingView>
                         </View>
@@ -158,15 +136,4 @@ class ScreenWrapper extends React.Component {
 ScreenWrapper.propTypes = propTypes;
 ScreenWrapper.defaultProps = defaultProps;
 
-export default compose(
-    withNavigation,
-    withEnvironment,
-    withWindowDimensions,
-    withKeyboardState,
-    withOnyx({
-        modal: {
-            key: ONYXKEYS.MODAL,
-        },
-    }),
-    withNetwork(),
-)(ScreenWrapper);
+export default compose(withNavigation, withEnvironment, withWindowDimensions, withKeyboardState, withNetwork())(ScreenWrapper);

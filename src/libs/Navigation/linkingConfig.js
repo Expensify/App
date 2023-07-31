@@ -11,8 +11,9 @@ export default {
             // Main Routes
             ValidateLogin: ROUTES.VALIDATE_LOGIN,
             UnlinkLogin: ROUTES.UNLINK_LOGIN,
-            [SCREENS.TRANSITION_FROM_OLD_DOT]: ROUTES.TRANSITION_FROM_OLD_DOT,
+            [SCREENS.TRANSITION_BETWEEN_APPS]: ROUTES.TRANSITION_BETWEEN_APPS,
             Concierge: ROUTES.CONCIERGE,
+            [SCREENS.REPORT_ATTACHMENTS]: ROUTES.REPORT_ATTACHMENTS,
 
             // Sidebar
             [SCREENS.HOME]: {
@@ -37,11 +38,11 @@ export default {
                             Settings_Root: {
                                 path: ROUTES.SETTINGS,
                             },
-                            Settings_Workspaces: {
+                            [SCREENS.SETTINGS.WORKSPACES]: {
                                 path: ROUTES.SETTINGS_WORKSPACES,
                                 exact: true,
                             },
-                            Settings_Preferences: {
+                            [SCREENS.SETTINGS.PREFERENCES]: {
                                 path: ROUTES.SETTINGS_PREFERENCES,
                                 exact: true,
                             },
@@ -53,12 +54,12 @@ export default {
                                 path: ROUTES.SETTINGS_LANGUAGE,
                                 exact: true,
                             },
-                            Settings_Close: {
-                                path: ROUTES.SETTINGS_CLOSE,
+                            Settings_Preferences_Theme: {
+                                path: ROUTES.SETTINGS_THEME,
                                 exact: true,
                             },
-                            Settings_Password: {
-                                path: ROUTES.SETTINGS_PASSWORD,
+                            Settings_Close: {
+                                path: ROUTES.SETTINGS_CLOSE,
                                 exact: true,
                             },
                             Settings_Security: {
@@ -127,6 +128,9 @@ export default {
                             },
                             Settings_ContactMethodDetails: {
                                 path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS,
+                            },
+                            Settings_Lounge_Access: {
+                                path: ROUTES.SETTINGS_LOUNGE_ACCESS,
                             },
                             Settings_NewContactMethod: {
                                 path: ROUTES.SETTINGS_NEW_CONTACT_METHOD,
@@ -215,9 +219,6 @@ export default {
                             GetAssistance: {
                                 path: ROUTES.GET_ASSISTANCE,
                             },
-                            YearPicker_Root: {
-                                path: ROUTES.SELECT_YEAR,
-                            },
                         },
                     },
                     Report_Details: {
@@ -285,26 +286,16 @@ export default {
                     Participants: {
                         screens: {
                             ReportParticipants_Root: ROUTES.REPORT_PARTICIPANTS,
-                            ReportParticipants_Details: ROUTES.REPORT_PARTICIPANT,
                         },
                     },
-                    IOU_Request: {
+                    MoneyRequest: {
                         screens: {
-                            IOU_Request_Root: ROUTES.IOU_REQUEST_WITH_REPORT_ID,
-                            IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
+                            Money_Request: ROUTES.MONEY_REQUEST,
+                            Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
+                            Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS,
+                            Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,
+                            Money_Request_Currency: ROUTES.MONEY_REQUEST_CURRENCY,
                             Money_Request_Description: ROUTES.MONEY_REQUEST_DESCRIPTION,
-                        },
-                    },
-                    IOU_Bill: {
-                        screens: {
-                            IOU_Bill_Root: ROUTES.IOU_BILL_WITH_REPORT_ID,
-                            IOU_Bill_Currency: ROUTES.IOU_BILL_CURRENCY,
-                        },
-                    },
-                    IOU_Send: {
-                        screens: {
-                            IOU_Send_Root: ROUTES.IOU_SEND_WITH_REPORT_ID,
-                            IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
                             IOU_Send_Enable_Payments: ROUTES.IOU_SEND_ENABLE_PAYMENTS,
                             IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                             IOU_Send_Add_Debit_Card: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -340,6 +331,11 @@ export default {
                     Flag_Comment: {
                         screens: {
                             FlagComment_Root: ROUTES.FLAG_COMMENT,
+                        },
+                    },
+                    EditRequest: {
+                        screens: {
+                            EditRequest_Root: ROUTES.EDIT_REQUEST,
                         },
                     },
                 },

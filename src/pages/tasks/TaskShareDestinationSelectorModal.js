@@ -1,5 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -10,14 +11,13 @@ import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Timing from '../../libs/actions/Timing';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
-import Performance from '../../libs/Performance';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
+import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
@@ -48,17 +48,19 @@ function TaskShareDestinationSelectorModal(props) {
     const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
     const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
-    useEffect(() => {
-        const results = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
-
-        setFilteredUserToInvite(results.userToInvite);
-        setFilteredRecentReports(results.recentReports);
-        setFilteredPersonalDetails(results.personalDetails);
-    }, [props]);
-
+    const filteredReports = useMemo(() => {
+        const reports = {};
+        _.keys(props.reports).forEach((reportKey) => {
+            if (!ReportUtils.isAllowedToComment(props.reports[reportKey])) {
+                return;
+            }
+            reports[reportKey] = props.reports[reportKey];
+        });
+        return reports;
+    }, [props.reports]);
     const updateOptions = useCallback(() => {
         const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
-            props.reports,
+            filteredReports,
             props.personalDetails,
             props.betas,
             searchValue.trim(),
@@ -72,23 +74,18 @@ function TaskShareDestinationSelectorModal(props) {
         setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
         setFilteredPersonalDetails(personalDetails);
-    }, [props, searchValue]);
+    }, [props, searchValue, filteredReports]);
 
     useEffect(() => {
-        Timing.start(CONST.TIMING.SEARCH_RENDER);
-        Performance.markStart(CONST.TIMING.SEARCH_RENDER);
-
-        updateOptions();
-
+        const debouncedSearch = _.debounce(updateOptions, 150);
+        debouncedSearch();
         return () => {
-            Timing.end(CONST.TIMING.SEARCH_RENDER);
-            Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
+            debouncedSearch.cancel();
         };
     }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
-        updateOptions();
     };
 
     const getSections = () => {
@@ -132,8 +129,8 @@ function TaskShareDestinationSelectorModal(props) {
         if (option.reportID) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setShareDestinationValue(option.reportID);
-            Navigation.goBack();
+            Task.setShareDestinationValue(option.reportID);
+            Navigation.goBack(ROUTES.NEW_TASK);
         }
     };
 
@@ -157,11 +154,7 @@ function TaskShareDestinationSelectorModal(props) {
                             Headers
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
-                            placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
-                            onLayout={() => {
-                                Timing.end(CONST.TIMING.SEARCH_RENDER);
-                                Performance.markEnd(CONST.TIMING.SEARCH_RENDER);
-                            }}
+                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>

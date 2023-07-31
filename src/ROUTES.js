@@ -9,9 +9,6 @@ const REPORT = 'r';
 const IOU_REQUEST = 'request/new';
 const IOU_BILL = 'split/new';
 const IOU_SEND = 'send/new';
-const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
-const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
-const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
@@ -30,13 +27,14 @@ export default {
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
+    SETTINGS_LOUNGE_ACCESS: 'settings/profile/lounge-access',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
+    SETTINGS_THEME: 'settings/preferences/theme',
     SETTINGS_WORKSPACES: 'settings/workspaces',
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
-    SETTINGS_PASSWORD: 'settings/security/password',
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_PAYMENTS: 'settings/payments',
@@ -65,11 +63,13 @@ export default {
     NEW_TASK,
     REPORT,
     REPORT_WITH_ID: 'r/:reportID?',
+    EDIT_REQUEST: 'r/:threadReportID/edit/:field',
+    getEditRequestRoute: (threadReportID, field) => `r/${threadReportID}/edit/${field}`,
     getReportRoute: (reportID) => `r/${reportID}`,
     REPORT_WITH_ID_DETAILS_SHARE_CODE: 'r/:reportID/details/shareCode',
     getReportShareCodeRoute: (reportID) => `r/${reportID}/details/shareCode`,
-    SELECT_YEAR: 'select-year',
-    getYearSelectionRoute: (minYear, maxYear, currYear, backTo) => `select-year?min=${minYear}&max=${maxYear}&year=${currYear}&backTo=${backTo}`,
+    REPORT_ATTACHMENTS: 'r/:reportID/attachment',
+    getReportAttachmentRoute: (reportID, source) => `r/${reportID}/attachment?source=${encodeURI(source)}`,
 
     /** This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated */
     CONCIERGE: 'concierge',
@@ -77,22 +77,23 @@ export default {
     IOU_REQUEST,
     IOU_BILL,
     IOU_SEND,
-    IOU_REQUEST_WITH_REPORT_ID: `${IOU_REQUEST}/:reportID?`,
-    IOU_BILL_WITH_REPORT_ID: `${IOU_BILL}/:reportID?`,
-    IOU_SEND_WITH_REPORT_ID: `${IOU_SEND}/:reportID?`,
-    getIouRequestRoute: (reportID) => `${IOU_REQUEST}/${reportID}`,
-    getIouSplitRoute: (reportID) => `${IOU_BILL}/${reportID}`,
-    getIOUSendRoute: (reportID) => `${IOU_SEND}/${reportID}`,
-    IOU_BILL_CURRENCY: `${IOU_BILL_CURRENCY}/:reportID?`,
-    IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
-    MONEY_REQUEST_DESCRIPTION: `${IOU_REQUEST}/description`,
-    IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
+
+    // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
+    MONEY_REQUEST: ':iouType/new/:reportID?',
+    MONEY_REQUEST_AMOUNT: ':iouType/new/amount/:reportID?',
+    MONEY_REQUEST_PARTICIPANTS: ':iouType/new/participants/:reportID?',
+    MONEY_REQUEST_CONFIRMATION: ':iouType/new/confirmation/:reportID?',
+    MONEY_REQUEST_CURRENCY: ':iouType/new/currency/:reportID?',
+    MONEY_REQUEST_DESCRIPTION: ':iouType/new/description/:reportID?',
     IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     IOU_SEND_ADD_DEBIT_CARD: `${IOU_SEND}/add-debit-card`,
     IOU_SEND_ENABLE_PAYMENTS: `${IOU_SEND}/enable-payments`,
-    getIouRequestCurrencyRoute: (reportID, currency, backTo) => `${IOU_REQUEST_CURRENCY}/${reportID}?currency=${currency}&backTo=${backTo}`,
-    getIouBillCurrencyRoute: (reportID, currency, backTo) => `${IOU_BILL_CURRENCY}/${reportID}?currency=${currency}&backTo=${backTo}`,
-    getIouSendCurrencyRoute: (reportID, currency, backTo) => `${IOU_SEND_CURRENCY}/${reportID}?currency=${currency}&backTo=${backTo}`,
+    getMoneyRequestRoute: (iouType, reportID = '') => `${iouType}/new/${reportID}`,
+    getMoneyRequestAmountRoute: (iouType, reportID = '') => `${iouType}/new/amount/${reportID}`,
+    getMoneyRequestParticipantsRoute: (iouType, reportID = '') => `${iouType}/new/participants/${reportID}`,
+    getMoneyRequestConfirmationRoute: (iouType, reportID = '') => `${iouType}/new/confirmation/${reportID}`,
+    getMoneyRequestCurrencyRoute: (iouType, reportID = '', currency, backTo) => `${iouType}/new/currency/${reportID}?currency=${currency}&backTo=${backTo}`,
+    getMoneyRequestDescriptionRoute: (iouType, reportID = '') => `${iouType}/new/description/${reportID}`,
     SPLIT_BILL_DETAILS: `r/:reportID/split/:reportActionID`,
     getSplitBillDetailsRoute: (reportID, reportActionID) => `r/${reportID}/split/${reportActionID}`,
     getNewTaskRoute: (reportID) => `${NEW_TASK}/${reportID}`,
@@ -117,8 +118,6 @@ export default {
     getProfileRoute: (accountID) => `a/${accountID}`,
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: (reportID) => `r/${reportID}/participants`,
-    REPORT_PARTICIPANT: 'r/:reportID/participants/a/:accountID',
-    getReportParticipantRoute: (reportID, accountID) => `r/${reportID}/participants/a/${accountID}`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: (reportID) => `r/${reportID}/details`,
     REPORT_SETTINGS: 'r/:reportID/settings',
@@ -131,7 +130,7 @@ export default {
     getReportWelcomeMessageRoute: (reportID) => `r/${reportID}/welcomeMessage`,
     REPORT_SETTINGS_WRITE_CAPABILITY: 'r/:reportID/settings/who-can-post',
     getReportSettingsWriteCapabilityRoute: (reportID) => `r/${reportID}/settings/who-can-post`,
-    TRANSITION_FROM_OLD_DOT: 'transition',
+    TRANSITION_BETWEEN_APPS: 'transition',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     GET_ASSISTANCE: 'get-assistance/:taskID',
     getGetAssistanceRoute: (taskID) => `get-assistance/${taskID}`,
@@ -172,11 +171,17 @@ export default {
      * @returns {Object}
      */
     parseReportRouteParams: (route) => {
-        if (!route.startsWith(Url.addTrailingForwardSlash(REPORT))) {
+        let parsingRoute = route;
+        if (parsingRoute.at(0) === '/') {
+            // remove the first slash
+            parsingRoute = parsingRoute.slice(1);
+        }
+
+        if (!parsingRoute.startsWith(Url.addTrailingForwardSlash(REPORT))) {
             return {reportID: '', isSubReportPageRoute: false};
         }
 
-        const pathSegments = route.split('/');
+        const pathSegments = parsingRoute.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
             isSubReportPageRoute: Boolean(lodashGet(pathSegments, 2)),

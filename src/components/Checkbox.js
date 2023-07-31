@@ -1,11 +1,14 @@
 import React from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import stylePropTypes from '../styles/stylePropTypes';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
+import * as StyleUtils from '../styles/StyleUtils';
+import CONST from '../CONST';
+import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 const propTypes = {
     /** Whether checkbox is checked */
@@ -32,8 +35,20 @@ const propTypes = {
     /** Callback that is called when mousedown is triggered. */
     onMouseDown: PropTypes.func,
 
+    /** The size of the checkbox container */
+    containerSize: PropTypes.number,
+
+    /** The border radius of the checkbox container */
+    containerBorderRadius: PropTypes.number,
+
+    /** The size of the caret (checkmark) */
+    caretSize: PropTypes.number,
+
     /** A ref to forward to the Pressable */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+
+    /** An accessibility label for the checkbox */
+    accessibilityLabel: PropTypes.string.isRequired,
 };
 
 const defaultProps = {
@@ -45,6 +60,9 @@ const defaultProps = {
     forwardedRef: undefined,
     children: null,
     onMouseDown: undefined,
+    containerSize: 20,
+    containerBorderRadius: 4,
+    caretSize: 14,
 };
 
 function Checkbox(props) {
@@ -67,42 +85,42 @@ function Checkbox(props) {
     };
 
     return (
-        <Pressable
+        <PressableWithFeedback
             disabled={props.disabled}
             onPress={firePressHandlerOnClick}
             onMouseDown={props.onMouseDown}
             ref={props.forwardedRef}
-            style={props.style}
+            style={[props.style, styles.checkboxPressable]}
             onKeyDown={handleSpaceKey}
-            accessibilityRole="checkbox"
+            accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
             accessibilityState={{checked: props.isChecked}}
+            accessibilityLabel={props.accessibilityLabel}
+            pressDimmingValue={1}
         >
             {props.children ? (
                 props.children
             ) : (
                 <View
                     style={[
-                        styles.checkboxContainer,
+                        StyleUtils.getCheckboxContainerStyle(props.containerSize, props.containerBorderRadius),
                         props.containerStyle,
                         props.isChecked && styles.checkedContainer,
                         props.hasError && styles.borderColorDanger,
                         props.disabled && styles.cursorDisabled,
                         props.isChecked && styles.borderColorFocus,
                     ]}
-                    // Used as CSS selector to customize focus-visible style
-                    dataSet={{checkbox: true}}
                 >
                     {props.isChecked && (
                         <Icon
                             src={Expensicons.Checkmark}
                             fill={themeColors.textLight}
-                            height={14}
-                            width={14}
+                            height={props.caretSize}
+                            width={props.caretSize}
                         />
                     )}
                 </View>
             )}
-        </Pressable>
+        </PressableWithFeedback>
     );
 }
 

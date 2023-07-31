@@ -50,14 +50,14 @@ function computeHorizontalShift(windowWidth, xOffset, componentWidth, tooltipWid
 }
 
 /**
- * Determines if there is an overlapping element at the top of both given coordinates.
+ * Determines if there is an overlapping element at the top of a given coordinate.
  *                    (targetCenterX, y)
  *                            |
  *                            v
  *                        _ _ _ _ _
  *                       |         |
  *                       |         |
- * (x, targetCenterY) -> |         |
+ *                       |         |
  *                       |         |
  *                       |_ _ _ _ _|
  *
@@ -75,29 +75,24 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, toolt
         return false;
     }
 
-    // Use the x and y center position of the target to prevent wrong element
-    // returned by elementFromPoint in case the target has a border radius or is a multiline text.
+    // Use the x center position of the target to prevent wrong element returned by elementFromPoint
+    // in case the target has a border radius or is a multiline text.
     const targetCenterX = xOffset + tooltipTargetWidth / 2;
-    const targetCenterY = yOffset + tooltipTargetHeight / 2;
     const elementAtTargetCenterX = document.elementFromPoint(targetCenterX, yOffset);
-    const elementAtTargetCenterY = document.elementFromPoint(xOffset, targetCenterY);
     const tooltipRef = (tooltip && tooltip.current) || tooltip;
 
     // Ensure it's not the already rendered element of this very tooltip, so the tooltip doesn't try to "avoid" itself
-    if (!elementAtTargetCenterX || !elementAtTargetCenterY || (tooltipRef && (tooltipRef.contains(elementAtTargetCenterX) || tooltipRef.contains(elementAtTargetCenterY)))) {
+    if (!elementAtTargetCenterX || (tooltipRef && tooltipRef.contains(elementAtTargetCenterX))) {
         return false;
     }
 
     const rectAtTargetCenterX = elementAtTargetCenterX.getBoundingClientRect();
-    const rectAtTargetCenterY = elementAtTargetCenterY.getBoundingClientRect();
 
     // Ensure it's not overlapping with another element by checking if the yOffset is greater than the top of the element
-    // and less than the bottom of the element
-    const isOverlappingAtTargetCenterX = yOffset > rectAtTargetCenterX.top && yOffset < rectAtTargetCenterX.bottom;
-    const isOverlappingAtTargetCenterY = yOffset > rectAtTargetCenterY.top && yOffset < rectAtTargetCenterY.bottom;
+    // and less than the bottom of the element. Also ensure the tooltip target is not completely inside the elementAtTargetCenterX by vertical direction
+    const isOverlappingAtTargetCenterX = yOffset > rectAtTargetCenterX.top && yOffset < rectAtTargetCenterX.bottom && yOffset + tooltipTargetHeight > rectAtTargetCenterX.bottom;
 
-    // Return true only if both elementAtTargetCenterX and elementAtTargetCenterY overlap with another element
-    return isOverlappingAtTargetCenterX && isOverlappingAtTargetCenterY;
+    return isOverlappingAtTargetCenterX;
 }
 
 /**
@@ -113,7 +108,7 @@ function isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, toolt
  * @param {Number} tooltipTargetHeight - The height of the tooltip's target
  * @param {Number} maxWidth - The tooltip's max width.
  * @param {Number} tooltipContentWidth - The tooltip's inner content measured width.
- * @param {Number} tooltipContentHeight - The tooltip's inner content measured height.
+ * @param {Number} tooltipWrapperHeight - The tooltip's wrapper measured height.
  * @param {Number} [manualShiftHorizontal] - Any additional amount to manually shift the tooltip to the left or right.
  *                                         A positive value shifts it to the right,
  *                                         and a negative value shifts it to the left.
@@ -131,18 +126,18 @@ export default function getTooltipStyles(
     tooltipTargetHeight,
     maxWidth,
     tooltipContentWidth,
-    tooltipContentHeight,
+    tooltipWrapperHeight,
     manualShiftHorizontal = 0,
     manualShiftVertical = 0,
     tooltip,
 ) {
     const tooltipVerticalPadding = spacing.pv1;
 
-    // We calculate tooltip width and height based on the tooltip's content width and height
+    // We calculate tooltip width based on the tooltip's content width
     // so the tooltip wrapper is just big enough to fit content and prevent white space.
     // NOTE: Add 1 to the tooltipWidth to prevent truncated text in Safari
     const tooltipWidth = tooltipContentWidth && tooltipContentWidth + spacing.ph2.paddingHorizontal * 2 + 1;
-    const tooltipHeight = tooltipContentHeight && tooltipContentHeight + tooltipVerticalPadding.paddingVertical * 2;
+    const tooltipHeight = tooltipWrapperHeight;
 
     const isTooltipSizeReady = tooltipWidth !== undefined && tooltipHeight !== undefined;
 
@@ -160,7 +155,7 @@ export default function getTooltipStyles(
     if (isTooltipSizeReady) {
         // Determine if the tooltip should display below the wrapped component.
         // If either a tooltip will try to render within GUTTER_WIDTH logical pixels of the top of the screen,
-        // Or the wrapped component is overlapping at top-left with another element
+        // Or the wrapped component is overlapping at top-center with another element
         // we'll display it beneath its wrapped component rather than above it as usual.
         shouldShowBelow = yOffset - tooltipHeight < GUTTER_WIDTH || isOverlappingAtTop(xOffset, yOffset, tooltip, tooltipTargetWidth, tooltipTargetHeight);
 

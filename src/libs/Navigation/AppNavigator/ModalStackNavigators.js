@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
+import SCREENS from '../../../SCREENS';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -32,37 +33,41 @@ function createModalStackNavigator(screens) {
 }
 
 // We use getComponent/require syntax so that file used by screens are not loaded until we need them.
-const IOUBillStackNavigator = createModalStackNavigator([
+const MoneyRequestModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
-            const IOUBillPage = require('../../../pages/iou/IOUBillPage').default;
-            return IOUBillPage;
+            const MoneyRequestAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
+            return MoneyRequestAmountPage;
         },
-        name: 'IOU_Bill_Root',
+        name: 'Money_Request',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestEditAmountPage = require('../../../pages/iou/steps/MoneyRequestAmountPage').default;
+            return MoneyRequestEditAmountPage;
+        },
+        name: 'Money_Request_Amount',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestParticipantsPage = require('../../../pages/iou/steps/MoneyRequstParticipantsPage/MoneyRequestParticipantsPage').default;
+            return MoneyRequestParticipantsPage;
+        },
+        name: 'Money_Request_Participants',
+    },
+    {
+        getComponent: () => {
+            const MoneyRequestConfirmPage = require('../../../pages/iou/steps/MoneyRequestConfirmPage').default;
+            return MoneyRequestConfirmPage;
+        },
+        name: 'Money_Request_Confirmation',
     },
     {
         getComponent: () => {
             const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
             return IOUCurrencySelection;
         },
-        name: 'IOU_Bill_Currency',
-    },
-]);
-
-const IOURequestModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const IOURequestPage = require('../../../pages/iou/IOURequestPage').default;
-            return IOURequestPage;
-        },
-        name: 'IOU_Request_Root',
-    },
-    {
-        getComponent: () => {
-            const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
-            return IOUCurrencySelection;
-        },
-        name: 'IOU_Request_Currency',
+        name: 'Money_Request_Currency',
     },
     {
         getComponent: () => {
@@ -70,23 +75,6 @@ const IOURequestModalStackNavigator = createModalStackNavigator([
             return MoneyRequestDescriptionPage;
         },
         name: 'Money_Request_Description',
-    },
-]);
-
-const IOUSendModalStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const IOUSendPage = require('../../../pages/iou/IOUSendPage').default;
-            return IOUSendPage;
-        },
-        name: 'IOU_Send_Root',
-    },
-    {
-        getComponent: () => {
-            const IOUCurrencySelection = require('../../../pages/iou/IOUCurrencySelection').default;
-            return IOUCurrencySelection;
-        },
-        name: 'IOU_Send_Currency',
     },
     {
         getComponent: () => {
@@ -231,13 +219,6 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
         },
         name: 'ReportParticipants_Root',
     },
-    {
-        getComponent: () => {
-            const ProfilePage = require('../../../pages/ProfilePage').default;
-            return ProfilePage;
-        },
-        name: 'ReportParticipants_Details',
-    },
 ]);
 
 const SearchModalStackNavigator = createModalStackNavigator([
@@ -335,7 +316,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsWorkspacesPage = require('../../../pages/workspace/WorkspacesListPage').default;
             return SettingsWorkspacesPage;
         },
-        name: 'Settings_Workspaces',
+        name: SCREENS.SETTINGS.WORKSPACES,
     },
     {
         getComponent: () => {
@@ -426,7 +407,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             const SettingsPreferencesPage = require('../../../pages/settings/Preferences/PreferencesPage').default;
             return SettingsPreferencesPage;
         },
-        name: 'Settings_Preferences',
+        name: SCREENS.SETTINGS.PREFERENCES,
     },
     {
         getComponent: () => {
@@ -442,13 +423,14 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         },
         name: 'Settings_Preferences_Language',
     },
-    {
-        getComponent: () => {
-            const SettingsPasswordPage = require('../../../pages/settings/PasswordPage').default;
-            return SettingsPasswordPage;
-        },
-        name: 'Settings_Password',
-    },
+    // Will be uncommented as part of https://github.com/Expensify/App/issues/21670
+    // {
+    //     getComponent: () => {
+    //         const SettingsPreferencesThemePage = require('../../../pages/settings/Preferences/ThemePage').default;
+    //         return SettingsPreferencesThemePage;
+    //     },
+    //     name: 'Settings_Preferences_Theme',
+    // },
     {
         getComponent: () => {
             const SettingsCloseAccountPage = require('../../../pages/settings/Security/CloseAccountPage').default;
@@ -476,6 +458,13 @@ const SettingsModalStackNavigator = createModalStackNavigator([
             return SettingsAppDownloadLinks;
         },
         name: 'Settings_App_Download_Links',
+    },
+    {
+        getComponent: () => {
+            const SettingsLoungeAccessPage = require('../../../pages/settings/Profile/LoungeAccessPage').default;
+            return SettingsLoungeAccessPage;
+        },
+        name: 'Settings_Lounge_Access',
     },
     {
         getComponent: () => {
@@ -627,13 +616,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     },
     {
         getComponent: () => {
-            const YearPickerPage = require('../../../pages/YearPickerPage').default;
-            return YearPickerPage;
-        },
-        name: 'YearPicker_Root',
-    },
-    {
-        getComponent: () => {
             const SettingsTwoFactorAuthIsEnabled = require('../../../pages/settings/Security/TwoFactorAuth/IsEnabledPage').default;
             return SettingsTwoFactorAuthIsEnabled;
         },
@@ -709,16 +691,6 @@ const WalletStatementStackNavigator = createModalStackNavigator([
     },
 ]);
 
-const YearPickerStackNavigator = createModalStackNavigator([
-    {
-        getComponent: () => {
-            const YearPickerPage = require('../../../pages/YearPickerPage').default;
-            return YearPickerPage;
-        },
-        name: 'YearPicker_Root',
-    },
-]);
-
 const FlagCommentStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -729,10 +701,18 @@ const FlagCommentStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const EditRequestStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const EditRequestPage = require('../../../pages/EditRequestPage').default;
+            return EditRequestPage;
+        },
+        name: 'EditRequest_Root',
+    },
+]);
+
 export {
-    IOUBillStackNavigator,
-    IOURequestModalStackNavigator,
-    IOUSendModalStackNavigator,
+    MoneyRequestModalStackNavigator,
     SplitDetailsModalStackNavigator,
     DetailsModalStackNavigator,
     ProfileModalStackNavigator,
@@ -750,6 +730,6 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     WalletStatementStackNavigator,
-    YearPickerStackNavigator,
     FlagCommentStackNavigator,
+    EditRequestStackNavigator,
 };

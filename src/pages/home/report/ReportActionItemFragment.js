@@ -57,6 +57,9 @@ const propTypes = {
     // Additional styles to add after local styles
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** The accountID of the copilot who took this action on behalf of the user */
+    delegateAccountID: PropTypes.number,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -75,6 +78,7 @@ const defaultProps = {
     isSingleLine: false,
     source: '',
     style: [],
+    delegateAccountID: 0,
 };
 
 function ReportActionItemFragment(props) {
@@ -145,7 +149,10 @@ function ReportActionItemFragment(props) {
         }
         case 'TEXT':
             return (
-                <UserDetailsTooltip accountID={props.accountID}>
+                <UserDetailsTooltip
+                    accountID={props.accountID}
+                    delegateAccountID={props.delegateAccountID}
+                >
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}

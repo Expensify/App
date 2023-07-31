@@ -25,17 +25,17 @@ function calculateAmount(numberOfParticipants, total, isDefaultUser = false) {
 /**
  * The owner of the IOU report is the account who is owed money and the manager is the one who owes money!
  * In case the owner/manager swap, we need to update the owner of the IOU report and the report total, since it is always positive.
- * For example: if user1 owes user2 $10, then we have: {ownerEmail: user2, managerEmail: user1, total: $10 (a positive amount, owed to user2)}
- * If user1 requests $17 from user2, then we have: {ownerEmail: user1, managerEmail: user2, total: $7 (still a positive amount, but now owed to user1)}
+ * For example: if user1 owes user2 $10, then we have: {ownerAccountID: user2, managerID: user1, total: $10 (a positive amount, owed to user2)}
+ * If user1 requests $17 from user2, then we have: {ownerAccountID: user1, managerID: user2, total: $7 (still a positive amount, but now owed to user1)}
  *
  * @param {Object} iouReport
  * @param {Number} actorAccountID
  * @param {Number} amount
  * @param {String} currency
- * @param {String} type
+ * @param {String} isDeleting - whether the user is deleting the request
  * @returns {Object}
  */
-function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, type = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, isDeleting = false) {
     if (currency !== iouReport.currency) {
         return iouReport;
     }
@@ -44,17 +44,15 @@ function updateIOUOwnerAndTotal(iouReport, actorAccountID, amount, currency, typ
     const iouReportUpdate = {...iouReport};
 
     if (actorAccountID === iouReport.ownerAccountID) {
-        iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? -amount : amount;
+        iouReportUpdate.total += isDeleting ? -amount : amount;
     } else {
-        iouReportUpdate.total += type === CONST.IOU.REPORT_ACTION_TYPE.DELETE ? amount : -amount;
+        iouReportUpdate.total += isDeleting ? amount : -amount;
     }
 
     if (iouReportUpdate.total < 0) {
         // The total sign has changed and hence we need to flip the manager and owner of the report.
         iouReportUpdate.ownerAccountID = iouReport.managerID;
         iouReportUpdate.managerID = iouReport.ownerAccountID;
-        iouReportUpdate.ownerEmail = iouReport.managerEmail;
-        iouReportUpdate.managerEmail = iouReport.ownerEmail;
         iouReportUpdate.total = -iouReportUpdate.total;
     }
 
@@ -121,4 +119,13 @@ function isIOUReportPendingCurrencyConversion(reportActions, iouReport) {
     return hasPendingRequests;
 }
 
-export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion};
+/**
+ * Checks if the iou type is one of request, send, or split.
+ * @param {String} iouType
+ * @returns {Boolean}
+ */
+function isValidMoneyRequestType(iouType) {
+    return [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST, CONST.IOU.MONEY_REQUEST_TYPE.SPLIT].includes(iouType);
+}
+
+export {calculateAmount, updateIOUOwnerAndTotal, getIOUReportActions, isIOUReportPendingCurrencyConversion, isValidMoneyRequestType};

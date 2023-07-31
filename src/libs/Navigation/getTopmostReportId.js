@@ -10,6 +10,9 @@ import lodashGet from 'lodash/get';
  * @returns {String | undefined} - It's possible that there is no report screen
  */
 function getTopmostReportId(state) {
+    if (!state) {
+        return;
+    }
     const topmostCentralPane = lodashFindLast(state.routes, (route) => route.name === 'CentralPaneNavigator');
 
     if (!topmostCentralPane) {

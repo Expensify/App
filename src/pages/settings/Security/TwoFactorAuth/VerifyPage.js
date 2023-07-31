@@ -18,7 +18,7 @@ import TextLink from '../../../../components/TextLink';
 import Clipboard from '../../../../libs/Clipboard';
 import FixedFooter from '../../../../components/FixedFooter';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
-import PressableWithDelayToggle from '../../../../components/PressableWithDelayToggle';
+import PressableWithDelayToggle from '../../../../components/Pressable/PressableWithDelayToggle';
 import TwoFactorAuthForm from './TwoFactorAuthForm';
 import QRCode from '../../../../components/QRCode';
 import expensifyLogo from '../../../../../assets/images/expensify-logo-round-transparent.png';
@@ -55,6 +55,8 @@ const defaultProps = {
 };
 
 function VerifyPage(props) {
+    const formRef = React.useRef(null);
+
     useEffect(() => {
         Session.clearAccountMessages();
     }, []);
@@ -91,10 +93,9 @@ function VerifyPage(props) {
     }
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldShowOfflineIndicator={false}>
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
-                shouldShowStepCounter
                 stepCounter={{
                     step: 2,
                     text: props.translate('twoFactorAuth.stepVerify'),
@@ -102,7 +103,10 @@ function VerifyPage(props) {
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_2FA_CODES)}
             />
             <FullPageOfflineBlockingView>
-                <ScrollView style={styles.mb5}>
+                <ScrollView
+                    style={styles.mb5}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <View style={[styles.ph5, styles.mt3]}>
                         <Text>
                             {props.translate('twoFactorAuth.scanCode')}
@@ -125,25 +129,31 @@ function VerifyPage(props) {
                             {Boolean(props.account.twoFactorAuthSecretKey) && <Text>{splitSecretInChunks(props.account.twoFactorAuthSecretKey)}</Text>}
                             <PressableWithDelayToggle
                                 text={props.translate('twoFactorAuth.copy')}
+                                textChecked={props.translate('common.copied')}
                                 icon={Expensicons.Copy}
                                 inline={false}
                                 onPress={() => Clipboard.setString(props.account.twoFactorAuthSecretKey)}
-                                styles={[styles.button, styles.buttonMedium]}
+                                styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                                 textStyles={[styles.buttonMediumText]}
                             />
                         </View>
                         <Text style={styles.mt11}>{props.translate('twoFactorAuth.enterCode')}</Text>
                     </View>
                     <View style={[styles.mt3, styles.mh5]}>
-                        <TwoFactorAuthForm />
+                        <TwoFactorAuthForm innerRef={formRef} />
                     </View>
                 </ScrollView>
-                <FixedFooter style={[styles.twoFactorAuthFooter]}>
+                <FixedFooter style={[styles.mtAuto, styles.pt2]}>
                     <Button
                         success
                         text={props.translate('common.next')}
-                        isDisabled
                         isLoading={props.account.isLoading}
+                        onPress={() => {
+                            if (!formRef.current) {
+                                return;
+                            }
+                            formRef.current.validateAndSubmitForm();
+                        }}
                     />
                 </FixedFooter>
             </FullPageOfflineBlockingView>

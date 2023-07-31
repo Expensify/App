@@ -2,7 +2,7 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, FlatList as NativeFlatlist} from 'react-native';
 import * as CollectionUtils from '../../libs/CollectionUtils';
 import FlatList from '../FlatList';
 
@@ -18,7 +18,7 @@ const propTypes = {
     initialRowHeight: PropTypes.number.isRequired,
 
     /** Passed via forwardRef so we can access the FlatList ref */
-    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(FlatList)})]).isRequired,
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(NativeFlatlist)})]).isRequired,
 
     /** Should we measure these items and call getItemLayout? */
     shouldMeasureItems: PropTypes.bool,

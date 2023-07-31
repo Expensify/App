@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import PropTypes from 'prop-types';
 import * as Expensicons from './Icon/Expensicons';
-import PressableWithDelayToggle from './PressableWithDelayToggle';
+import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
 import Clipboard from '../libs/Clipboard';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 

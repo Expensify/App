@@ -20,10 +20,16 @@ Onyx.connect({
     },
 });
 
-let personalDetails;
+let allPersonalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => (personalDetails = val),
+    callback: (val) => (allPersonalDetails = val),
+});
+
+let privatePersonalDetails;
+Onyx.connect({
+    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    callback: (val) => (privatePersonalDetails = val),
 });
 
 /**
@@ -37,7 +43,7 @@ function getDisplayName(login, personalDetail) {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms and format it
     // so that the option looks cleaner in our UI.
     const userLogin = LocalePhoneNumber.formatPhoneNumber(login);
-    const userDetails = personalDetail || lodashGet(personalDetails, login);
+    const userDetails = personalDetail || lodashGet(allPersonalDetails, login);
 
     if (!userDetails) {
         return userLogin;
@@ -48,6 +54,27 @@ function getDisplayName(login, personalDetail) {
     const fullName = `${firstName} ${lastName}`.trim();
 
     return fullName || userLogin;
+}
+
+/**
+ * @param {String} userAccountIDOrLogin
+ * @param {String} [defaultDisplayName] display name to use if user details don't exist in Onyx or if
+ *                                      found details don't include the user's displayName or login
+ * @returns {String}
+ */
+function getDisplayNameForTypingIndicator(userAccountIDOrLogin, defaultDisplayName = '') {
+    // Try to convert to a number, which means we have an accountID
+    const accountID = Number(userAccountIDOrLogin);
+
+    // If the user is typing on OldDot, userAccountIDOrLogin will be a string (the user's login),
+    // so Number(string) is NaN. Search for personalDetails by login to get the display name.
+    if (_.isNaN(accountID)) {
+        const detailsByLogin = _.findWhere(allPersonalDetails, {login: userAccountIDOrLogin}) || {};
+        return detailsByLogin.displayName || userAccountIDOrLogin;
+    }
+
+    const detailsByAccountID = lodashGet(allPersonalDetails, accountID, {});
+    return detailsByAccountID.displayName || detailsByAccountID.login || defaultDisplayName;
 }
 
 /**
@@ -116,7 +143,7 @@ function updatePronouns(pronouns) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -146,7 +173,7 @@ function updateDisplayName(firstName, lastName) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+    Navigation.goBack(ROUTES.SETTINGS_PROFILE);
 }
 
 /**
@@ -170,7 +197,7 @@ function updateLegalName(legalFirstName, legalLastName) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -192,7 +219,7 @@ function updateDateOfBirth({dob}) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -235,7 +262,7 @@ function updateAddress(street, street2, city, state, zip, country) {
             },
         ],
     });
-    Navigation.navigate(ROUTES.SETTINGS_PERSONAL_DETAILS);
+    Navigation.goBack(ROUTES.SETTINGS_PERSONAL_DETAILS);
 }
 
 /**
@@ -297,21 +324,44 @@ function updateSelectedTimezone(selectedTimezone) {
             ],
         },
     );
-    Navigation.navigate(ROUTES.SETTINGS_TIMEZONE);
-}
-
-/**
- * Fetches the local currency based on location and sets currency code/symbol to Onyx
- */
-function openMoneyRequestModalPage() {
-    API.read('OpenIOUModalPage');
+    Navigation.goBack(ROUTES.SETTINGS_TIMEZONE);
 }
 
 /**
  * Fetches additional personal data like legal name, date of birth, address
  */
 function openPersonalDetailsPage() {
-    API.read('OpenPersonalDetailsPage');
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read('OpenPersonalDetailsPage', {}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -402,8 +452,8 @@ function updateAvatar(file) {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: personalDetails[currentUserAccountID].avatar,
-                    avatarThumbnail: personalDetails[currentUserAccountID].avatarThumbnail || personalDetails[currentUserAccountID].avatar,
+                    avatar: allPersonalDetails[currentUserAccountID].avatar,
+                    avatarThumbnail: allPersonalDetails[currentUserAccountID].avatarThumbnail || allPersonalDetails[currentUserAccountID].avatar,
                     pendingFields: {
                         avatar: null,
                     },
@@ -439,7 +489,7 @@ function deleteAvatar() {
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
                 [currentUserAccountID]: {
-                    avatar: personalDetails[currentUserAccountID].avatar,
+                    avatar: allPersonalDetails[currentUserAccountID].avatar,
                 },
             },
         },
@@ -464,11 +514,19 @@ function clearAvatarErrors() {
     });
 }
 
+/**
+ * Get private personal details value
+ * @returns {Object}
+ */
+function getPrivatePersonalDetails() {
+    return privatePersonalDetails;
+}
+
 export {
     getDisplayName,
+    getDisplayNameForTypingIndicator,
     updateAvatar,
     deleteAvatar,
-    openMoneyRequestModalPage,
     openPersonalDetailsPage,
     openPublicProfilePage,
     extractFirstAndLastNameFromAvailableDetails,
@@ -481,4 +539,5 @@ export {
     updateAutomaticTimezone,
     updateSelectedTimezone,
     getCountryISO,
+    getPrivatePersonalDetails,
 };

@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -60,13 +60,14 @@ function openEditor(policyID) {
  * @param {string} policyID
  */
 function dismissError(policyID) {
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     Policy.removeWorkspace(policyID);
 }
 
 function WorkspaceInitialPage(props) {
     const policy = props.policy;
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
     const hasPolicyCreationError = Boolean(policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && policy.errors);
 
     /**
@@ -76,8 +77,25 @@ function WorkspaceInitialPage(props) {
         const policyReports = _.filter(props.reports, (report) => report && report.policyID === policy.id);
         Policy.deleteWorkspace(policy.id, policyReports, policy.name);
         setIsDeleteModalOpen(false);
-        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES);
+        // Pop the deleted workspace page before opening workspace settings.
+        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES);
     }, [props.reports, policy]);
+
+    useEffect(() => {
+        if (!isCurrencyModalOpen || policy.outputCurrency !== CONST.CURRENCY.USD) {
+            return;
+        }
+        setIsCurrencyModalOpen(false);
+    }, [policy.outputCurrency, isCurrencyModalOpen]);
+
+    /**
+     * Call update workspace currency and hide the modal
+     */
+    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+        Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+        setIsCurrencyModalOpen(false);
+        ReimbursementAccount.navigateToBankAccountRoute(policy.id);
+    }, [policy]);
 
     /**
      * Navigates to workspace rooms
@@ -85,7 +103,7 @@ function WorkspaceInitialPage(props) {
      */
     const goToRoom = useCallback(
         (type) => {
-            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type);
+            const room = _.find(props.reports, (report) => report && report.policyID === policy.id && report.chatType === type && !ReportUtils.isThread(report));
             Navigation.navigate(ROUTES.getReportRoute(room.reportID));
         },
         [props.reports, policy],
@@ -137,7 +155,7 @@ function WorkspaceInitialPage(props) {
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Expensicons.Bank,
-            action: () => ReimbursementAccount.navigateToBankAccountRoute(policy.id),
+            action: () => (policy.outputCurrency === CONST.CURRENCY.USD ? ReimbursementAccount.navigateToBankAccountRoute(policy.id) : setIsCurrencyModalOpen(true)),
             brickRoadIndicator: !_.isEmpty(props.reimbursementAccount.errors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '',
         },
     ];
@@ -182,7 +200,7 @@ function WorkspaceInitialPage(props) {
                             pendingAction={policy.pendingAction}
                             onClose={() => dismissError(policy.id)}
                             errors={policy.errors}
-                            errorRowStyles={[styles.ph6, styles.pv2]}
+                            errorRowStyles={[styles.ph5, styles.pv2]}
                         >
                             <View style={[styles.flex1]}>
                                 <View style={styles.avatarSectionWrapper}>
@@ -193,7 +211,7 @@ function WorkspaceInitialPage(props) {
                                                 style={[styles.pRelative, styles.avatarLarge]}
                                                 onPress={() => openEditor(policy.id)}
                                                 accessibilityLabel={props.translate('workspace.common.settings')}
-                                                accessibilityRole="button"
+                                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                             >
                                                 <Avatar
                                                     containerStyles={styles.avatarLarge}
@@ -213,7 +231,7 @@ function WorkspaceInitialPage(props) {
                                                     style={[styles.alignSelfCenter, styles.mt4, styles.w100]}
                                                     onPress={() => openEditor(policy.id)}
                                                     accessibilityLabel={props.translate('workspace.common.settings')}
-                                                    accessibilityRole="button"
+                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                                 >
                                                     <Text
                                                         numberOfLines={1}
@@ -242,6 +260,16 @@ function WorkspaceInitialPage(props) {
                             </View>
                         </OfflineWithFeedback>
                     </ScrollView>
+                    <ConfirmModal
+                        title={props.translate('workspace.bankAccount.workspaceCurrency')}
+                        isVisible={isCurrencyModalOpen}
+                        onConfirm={confirmCurrencyChangeAndHideModal}
+                        onCancel={() => setIsCurrencyModalOpen(false)}
+                        prompt={props.translate('workspace.bankAccount.updateCurrencyPrompt')}
+                        confirmText={props.translate('workspace.bankAccount.updateToUSD')}
+                        cancelText={props.translate('common.cancel')}
+                        danger
+                    />
                     <ConfirmModal
                         title={props.translate('workspace.common.delete')}
                         isVisible={isDeleteModalOpen}
