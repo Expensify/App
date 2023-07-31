@@ -1,4 +1,4 @@
-const globalRestrictedImport = [
+const restrictedImportPaths = [
     {
         name: 'react-native',
         importNames: ['useWindowDimensions', 'StatusBar', 'TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight', 'Pressable'],
@@ -13,6 +13,13 @@ const globalRestrictedImport = [
         name: 'react-native-gesture-handler',
         importNames: ['TouchableOpacity', 'TouchableWithoutFeedback', 'TouchableNativeFeedback', 'TouchableHighlight'],
         message: "Please use 'PressableWithFeedback' and/or 'PressableWithoutFeedback' from 'src/components/Pressable' instead.",
+    },
+];
+
+const restrictedImportPatterns = [
+    {
+        group: ['**/assets/animations/**/*.json'],
+        message: "Do not import animations directly. Please use the 'src/components/LottieAnimations' import instead.",
     },
 ];
 
@@ -64,7 +71,8 @@ module.exports = {
                 'no-restricted-imports': [
                     'error',
                     {
-                        paths: globalRestrictedImport,
+                        paths: restrictedImportPaths,
+                        patterns: restrictedImportPatterns,
                     },
                 ],
             },
@@ -145,21 +153,13 @@ module.exports = {
                     'error',
                     {
                         paths: [
-                            ...globalRestrictedImport,
-                            {
-                                name: 'lodash/get',
-                                message: 'Please use optional chaining and nullish coalescing instead.',
-                            },
-                            {
-                                name: 'lodash',
-                                importNames: ['get'],
-                                message: 'Please use optional chaining and nullish coalescing instead.',
-                            },
+                            ...restrictedImportPaths,
                             {
                                 name: 'underscore',
                                 message: 'Please use the corresponding method from lodash instead',
                             },
                         ],
+                        patterns: restrictedImportPatterns,
                     },
                 ],
             },
