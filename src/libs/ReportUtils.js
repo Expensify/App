@@ -236,7 +236,7 @@ function canEditReportAction(reportAction) {
  */
 function isSettled(reportID) {
     const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
-    return !_.isEmpty(report) && !report.hasOutstandingIOU && !report.isWaitingOnBankAccount;
+    return !_.isEmpty(report) && !report.isWaitingOnBankAccount && report.stateNum > CONST.REPORT.STATE_NUM.PROCESSING;
 }
 
 /**
@@ -1223,14 +1223,12 @@ function getReportPreviewMessage(report, reportAction = {}) {
         return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
     }
 
-    if (report.hasOutstandingIOU) {
-        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
-    }
-
     if (report.isWaitingOnBankAccount) {
         const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID, true);
         return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
+
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
 
 /**
@@ -1254,8 +1252,8 @@ function getReportName(report, policy = undefined) {
             return `[${Localize.translateLocal('common.attachment')}]`;
         }
         if (
-            lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
-            lodashGet(parentReportAction, 'message[0].moderationDecisions[0].decision') === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
+            lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE ||
+            lodashGet(parentReportAction, 'message[0].moderationDecision.decision') === CONST.MODERATION.MODERATOR_DECISION_HIDDEN
         ) {
             return Localize.translateLocal('parentReportAction.hiddenMessage');
         }
@@ -1760,6 +1758,14 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
     };
 }
 
+/**
+ * Builds an optimistic report preview action with a randomly generated reportActionID.
+ *
+ * @param {Object} chatReport
+ * @param {Object} iouReport
+ *
+ * @returns {Object}
+ */
 function buildOptimisticReportPreview(chatReport, iouReport) {
     const message = getReportPreviewMessage(iouReport);
     return {
@@ -1781,6 +1787,30 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
         created: DateUtils.getDBTime(),
         accountID: iouReport.managerID || 0,
         actorAccountID: iouReport.managerID || 0,
+    };
+}
+
+/**
+ * Updates a report preview action that exists for an IOU report.
+ *
+ * @param {Object} iouReport
+ * @param {Object} reportPreviewAction
+ *
+ * @returns {Object}
+ */
+function updateReportPreview(iouReport, reportPreviewAction) {
+    const message = getReportPreviewMessage(iouReport, reportPreviewAction);
+    return {
+        ...reportPreviewAction,
+        created: DateUtils.getDBTime(),
+        message: [
+            {
+                html: message,
+                text: message,
+                isEdited: false,
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+            },
+        ],
     };
 }
 
@@ -1846,7 +1876,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
-    writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL,
+    writeCapability = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
@@ -2016,6 +2046,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         false,
         policyName,
         null,
+        undefined,
 
         // #announce contains all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
@@ -2796,6 +2827,7 @@ export {
     buildOptimisticExpenseReport,
     buildOptimisticIOUReportAction,
     buildOptimisticReportPreview,
+    updateReportPreview,
     buildOptimisticTaskReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticTaskCommentReportAction,
