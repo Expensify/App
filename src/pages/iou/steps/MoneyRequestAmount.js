@@ -265,7 +265,7 @@ function MoneyRequestAmount(props) {
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
     useEffect(() => {
-        if (!currentRoute.params.currency) {
+        if (!currentRoute.params || !currentRoute.params.currency) {
             return;
         }
 
