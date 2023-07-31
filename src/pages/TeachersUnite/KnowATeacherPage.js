@@ -33,19 +33,19 @@ const defaultProps = {
  * @param {Object} values
  * @param {String} values.firstName
  * @param {String} values.phoneOrEmail
- * @param {String} values.lastName
+ * @param {String} [values.lastName]
  */
-const submit = (values) => {
+function submit(values) {
     TeachersUnite.referTeachersUniteVolunteer(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID, values.firstName.trim(), values.phoneOrEmail.trim(), values.lastName.trim());
-};
+}
 
-const getPhoneLogin = (phoneOrEmail) => {
+function getPhoneLogin(phoneOrEmail) {
     if (_.isEmpty(phoneOrEmail)) {
         return '';
     }
 
     return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
-};
+}
 
 function KnowATeacherPage(props) {
     /**
