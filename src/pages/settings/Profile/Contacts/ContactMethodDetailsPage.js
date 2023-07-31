@@ -105,6 +105,10 @@ class ContactMethodDetailsPage extends Component {
         };
     }
 
+    componentDidMount() {
+        User.resetContactMethodValidateCodeSentState(this.getContactMethod());
+    }
+
     componentDidUpdate(prevProps) {
         const errorFields = lodashGet(this.props.loginList, [this.getContactMethod(), 'errorFields'], {});
         const prevPendingFields = lodashGet(prevProps.loginList, [this.getContactMethod(), 'pendingFields'], {});
@@ -112,7 +116,7 @@ class ContactMethodDetailsPage extends Component {
         // Navigate to methods page on successful magic code verification
         // validateLogin property of errorFields & prev pendingFields is responsible to decide the status of the magic code verification
         if (!errorFields.validateLogin && prevPendingFields.validateLogin === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE) {
-            Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+            Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
         }
     }
 

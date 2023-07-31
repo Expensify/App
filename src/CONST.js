@@ -480,9 +480,6 @@ const CONST = {
         PERSONAL_DETAIL: 'personalDetail',
     },
     REPORT: {
-        DROP_HOST_NAME: 'ReportDropZone',
-        DROP_NATIVE_ID: 'report-dropzone',
-        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -2541,9 +2538,6 @@ const CONST = {
         SWITCH: 'switch',
         ADJUSTABLE: 'adjustable',
         IMAGE: 'image',
-    },
-    SETTINGS_LOUNGE_ACCESS: {
-        HEADER_IMAGE_ASPECT_RATIO: 0.64,
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',

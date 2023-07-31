@@ -70,10 +70,11 @@ function openPaymentsPage() {
  * @param {Object} previousPaymentMethod
  * @param {Object} currentPaymentMethod
  * @param {Boolean} isOptimisticData
+ * @param {string} paymentCardOnyxKey - to pass in the correct ONYX key while renaming cardList -> fundList
  * @return {Array}
  *
  */
-function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true) {
+function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, isOptimisticData = true, paymentCardOnyxKey) {
     const onyxData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -93,7 +94,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     if (previousPaymentMethod) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
+            key: previousPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : paymentCardOnyxKey,
             value: {
                 [previousPaymentMethod.methodID]: {
                     isDefault: !isOptimisticData,
@@ -105,7 +106,7 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
     if (currentPaymentMethod) {
         onyxData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST,
+            key: currentPaymentMethod.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : paymentCardOnyxKey,
             value: {
                 [currentPaymentMethod.methodID]: {
                     isDefault: isOptimisticData,
@@ -124,9 +125,10 @@ function getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMet
  * @param {Number} fundID
  * @param {Object} previousPaymentMethod
  * @param {Object} currentPaymentMethod
+ * @param {string} paymentCardOnyxKey - pass in the correct ONYX key while renaming cardList -> fundList
  *
  */
-function makeDefaultPaymentMethod(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod) {
+function makeDefaultPaymentMethod(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, paymentCardOnyxKey) {
     API.write(
         'MakeDefaultPaymentMethod',
         {
@@ -134,8 +136,8 @@ function makeDefaultPaymentMethod(bankAccountID, fundID, previousPaymentMethod, 
             fundID,
         },
         {
-            optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod),
-            failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false),
+            optimisticData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, true, paymentCardOnyxKey),
+            failureData: getMakeDefaultPaymentOnyxData(bankAccountID, fundID, previousPaymentMethod, currentPaymentMethod, false, paymentCardOnyxKey),
         },
     );
 }
@@ -272,7 +274,7 @@ function saveWalletTransferMethodType(filterPaymentMethodType) {
 
 function dismissSuccessfulTransferBalancePage() {
     Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {shouldShowSuccess: false});
-    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+    Navigation.goBack(ROUTES.SETTINGS_PAYMENTS);
 }
 
 /**
