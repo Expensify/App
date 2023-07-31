@@ -8,7 +8,7 @@ import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
-import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Button from '../../../components/Button';
@@ -16,7 +16,6 @@ import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import NavigateToNextIOUPage from '../../../libs/actions/NavigateToNextIOUPage';
 import ConfirmModal from '../../../components/ConfirmModal';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
@@ -103,13 +102,11 @@ function ReceiptSelector(props) {
             </View>
             <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
             <Text style={[styles.subTextReceiptUpload]}>
-                {isSmallScreenWidth ? translate('receipt.chooseReceiptBeforeEmail') : translate('receipt.dragReceiptBeforeEmail')}
-                <View style={{flexDirection: 'row'}}>
-                    <CopyTextToClipboard
-                        text="receipts@expensify.com"
-                        textStyles={[styles.textBlue]}
-                    />
-                </View>
+                {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                <CopyTextToClipboard
+                    text={CONST.EMAIL.RECEIPTS}
+                    textStyles={[styles.textBlue]}
+                />
                 {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
             </Text>
             <AttachmentPicker>
@@ -126,13 +123,7 @@ function ReceiptSelector(props) {
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
-                                        if (!ReceiptUtils.isValidReceipt(file)) {
-                                            return;
-                                        }
-
-                                        const filePath = URL.createObjectURL(file);
-                                        IOU.setMoneyRequestReceipt(filePath, file.name);
-                                        NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
+                                        IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report, props.currentUserPersonalDetails);
                                     },
                                 });
                             }}
@@ -149,13 +140,7 @@ function ReceiptSelector(props) {
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    if (!ReceiptUtils.isValidReceipt(file)) {
-                        return;
-                    }
-
-                    const filePath = URL.createObjectURL(file);
-                    IOU.setMoneyRequestReceipt(filePath, file.name);
-                    NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
+                    IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report, props.currentUserPersonalDetails);
                 }}
                 receiptImageTopPosition={receiptImageTopPosition}
             />
@@ -177,6 +162,7 @@ ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
 export default compose(
+    withCurrentUserPersonalDetails,
     withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},

@@ -121,7 +121,7 @@ function ContactMethodsPage(props) {
                     <Text numberOfLines={100}>
                         {props.translate('contacts.helpTextBeforeEmail')}
                         <CopyTextToClipboard
-                            text="receipts@expensify.com"
+                            text={CONST.EMAIL.RECEIPTS}
                             textStyles={[styles.textBlue]}
                         />
                         <Text>{props.translate('contacts.helpTextAfterEmail')}</Text>

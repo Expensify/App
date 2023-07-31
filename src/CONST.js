@@ -482,9 +482,6 @@ const CONST = {
     RECEIPT: {
         ICON_SIZE: 164,
         PERMISSION_AUTHORIZED: 'authorized',
-        FLASH: 'Flash',
-        SHUTTER: 'Shutter',
-        GALLERY: 'Gallery',
     },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,

@@ -12,6 +12,8 @@ function setUploadReceiptError(isAttachmentInvalid, attachmentInvalidReasonTitle
 function clearUploadReceiptError() {
     Onyx.merge(ONYXKEYS.RECEIPT_MODAL, {
         isAttachmentInvalid: false,
+        attachmentInvalidReasonTitle: '',
+        attachmentInvalidReason: '',
     });
 }
 

@@ -18,9 +18,8 @@ import themeColors from '../../../styles/themes/default';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
-import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import Button from '../../../components/Button';
-import NavigateToNextIOUPage from '../../../libs/actions/NavigateToNextIOUPage';
 import useLocalize from '../../../hooks/useLocalize';
 import withCurrentReportID from '../../../components/withCurrentReportID';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -189,7 +188,7 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
+                IOU.navigateToNextPage(props.iou, reportID.current, props.report, props.currentUserPersonalDetails);
             })
             .catch(() => {
                 showCameraAlert();
@@ -265,12 +264,12 @@ function ReceiptSelector(props) {
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <PressableWithFeedback
                     accessibilityRole="button"
-                    accessibilityLabel={CONST.RECEIPT.GALLERY}
+                    accessibilityLabel={translate('receipt.gallery')}
                     style={[styles.alignItemsStart]}
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
                             IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                            NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
+                            IOU.navigateToNextPage(props.iou, reportID.current, props.report, props.currentUserPersonalDetails);
                         });
                     }}
                 >
@@ -283,7 +282,7 @@ function ReceiptSelector(props) {
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     accessibilityRole="button"
-                    accessibilityLabel={CONST.RECEIPT.SHUTTER}
+                    accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={() => takePhoto()}
                 >
@@ -294,7 +293,7 @@ function ReceiptSelector(props) {
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     accessibilityRole="button"
-                    accessibilityLabel={CONST.RECEIPT.FLASH}
+                    accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
                     onPress={() => setFlash(!flash)}
                 >
@@ -315,6 +314,7 @@ ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
 export default compose(
+    withCurrentUserPersonalDetails,
     withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},

@@ -23,7 +23,7 @@ function ReceiptDropUI({onDrop, receiptImageTopPosition}) {
     return (
         <DragAndDropConsumer onDrop={onDrop}>
             <View style={[styles.receiptDropOverlay, styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <View style={{position: 'absolute', top: receiptImageTopPosition}}>
+                <View style={styles.receiptImageWrapper(receiptImageTopPosition)}>
                     <ReceiptUpload
                         width={CONST.RECEIPT.ICON_SIZE}
                         height={CONST.RECEIPT.ICON_SIZE}

@@ -3227,6 +3227,11 @@ const styles = {
         zIndex: 2,
     },
 
+    receiptImageWrapper: (receiptImageTopPosition) => ({
+        position: 'absolute',
+        top: receiptImageTopPosition,
+    }),
+
     cardSection: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
@@ -3602,18 +3607,12 @@ const styles = {
         paddingBottom: 12,
     },
 
-    tabSelected: {
+    tabText: (isSelected) => ({
         marginHorizontal: 8,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.textLight,
-    },
-
-    tabDeselected: {
-        marginHorizontal: 8,
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.EXP_NEUE,
-    },
+        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
+        fontWeight: isSelected ? fontWeightBold : 400,
+        color: isSelected ? themeColors.textLight : themeColors.textSupporting,
+    }),
 
     /**
      * @param {String} backgroundColor

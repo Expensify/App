@@ -2,10 +2,8 @@ import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import React, {useRef} from 'react';
 import lodashGet from 'lodash/get';
-import {compose} from 'underscore';
 import PropTypes from 'prop-types';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
-import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../components/withCurrentUserPersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -15,7 +13,6 @@ import CONST from '../../CONST';
 import useLocalize from '../../hooks/useLocalize';
 import * as IOUUtils from '../../libs/IOUUtils';
 import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
@@ -51,8 +48,6 @@ const propTypes = {
 
     /** Which tab has been selected */
     selectedTab: PropTypes.string,
-
-    ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
@@ -69,14 +64,12 @@ const defaultProps = {
         participants: [],
     },
     selectedTab: CONST.TAB.TAB_MANUAL,
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function MoneyRequestSelectorPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const {translate} = useLocalize();
 
-    const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
     const title = {
@@ -84,16 +77,11 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
-    const titleForStep = isEditing.current ? translate('iou.amount') : title[iouType.current];
-
-    const navigateBack = () => {
-        Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
-    };
 
     const onTabPress = (tab) => {
         const moneyRequestID = `${iouType.current}${reportID.current}`;
         IOU.resetMoneyRequestInfo(moneyRequestID, iouType.current);
-        Tab.onTabPress(tab);
+        Tab.setSelectedTab(tab);
     };
 
     return (
@@ -103,8 +91,8 @@ function MoneyRequestSelectorPage(props) {
                     <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.TAB_MANUAL}>
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
-                                title={titleForStep}
-                                onBackButtonPress={navigateBack}
+                                title={title[iouType.current]}
+                                onBackButtonPress={() => Navigation.goBack()}
                             />
                             <TopTab.Navigator
                                 initialRouteName={props.selectedTab}
@@ -138,10 +126,7 @@ MoneyRequestSelectorPage.propTypes = propTypes;
 MoneyRequestSelectorPage.defaultProps = defaultProps;
 MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
-export default compose(
-    withCurrentUserPersonalDetails,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        selectedTab: {key: ONYXKEYS.SELECTED_TAB},
-    }),
-)(MoneyRequestSelectorPage);
+export default withOnyx({
+    iou: {key: ONYXKEYS.IOU},
+    selectedTab: {key: ONYXKEYS.SELECTED_TAB},
+})(MoneyRequestSelectorPage);

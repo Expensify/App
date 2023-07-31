@@ -350,7 +350,7 @@ export default {
         upload: 'Subir recibo',
         dragReceiptBeforeEmail: 'Arrastra un recibo a esta página, reenvíalo a ',
         dragReceiptAfterEmail: ' o elije un archivo para subir a continuación.',
-        chooseReceiptBeforeEmail: 'Elige un recibo para subir o reenvía un recibo a ',
+        chooseReceipt: 'Elige un recibo para subir o reenvía un recibo a ',
         chooseFile: 'Elegir archivo',
         givePermission: 'Permitir',
         takePhoto: 'Haz una foto',
@@ -359,6 +359,9 @@ export default {
         cameraErrorMessage: 'Se produjo un error al hacer una foto, Por favor, inténtalo de nuevo.',
         dropTitle: 'Suéltalo',
         dropMessage: 'Suelta tu archivo aquí',
+        flash: 'flash',
+        shutter: 'obturador',
+        gallery: 'galería',
     },
     iou: {
         amount: 'Importe',
