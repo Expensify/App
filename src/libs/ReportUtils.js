@@ -413,6 +413,17 @@ function isOptimisticPersonalDetail(accountID) {
 }
 
 /**
+ * Check if report is a DM and personal detail of participant is optimistic data
+ * @param {String} report
+ * @returns {Boolean}
+ */
+function shouldDisableDetailPage(report) {
+    const participants = lodashGet(report, 'participantAccountIDs', []);
+    const isMultipleParticipant = participants.length > 1;
+    return !isMultipleParticipant && isOptimisticPersonalDetail(participants[0]) && !report.parentReportID;
+}
+
+/**
  * Checks if a report is a task report from a policy expense chat.
  *
  * @param {Object} report
@@ -2849,6 +2860,7 @@ export {
     getIOUReportActionMessage,
     getDisplayNameForParticipant,
     isOptimisticPersonalDetail,
+    shouldDisableDetailPage,
     isChatReport,
     isCurrentUserSubmitter,
     isExpenseReport,
