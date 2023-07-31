@@ -81,6 +81,14 @@ function isPendingRemove(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
+function isPendingRemoveWithoutParentAction(reportAction) {
+    return isPendingRemove(reportAction) && lodashGet(reportAction, 'childVisibleActionCount', 0) === 0;
+}
+
+/**
+ * @param {Object} reportAction
+ * @returns {Boolean}
+ */
 function isMoneyRequestAction(reportAction) {
     return lodashGet(reportAction, 'actionName', '') === CONST.REPORT.ACTIONS.TYPE.IOU;
 }
@@ -334,10 +342,10 @@ function shouldReportActionBeVisible(reportAction, key) {
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return false;
     }
-
-    // if (isPendingRemove(reportAction)) {
-    //     return false;
-    // }
+    //
+    if (isPendingRemoveWithoutParentAction(reportAction)) {
+        return false;
+    }
 
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     const isDeleted = isDeletedAction(reportAction);
@@ -593,4 +601,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    isPendingRemoveWithoutParentAction,
 };

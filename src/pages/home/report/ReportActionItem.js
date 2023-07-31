@@ -310,8 +310,12 @@ function ReportActionItem(props) {
             );
         } else {
             const message = _.last(lodashGet(props.action, 'message', [{}]));
-            const hasBeenFlagged = !_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision);
+            const hasBeenFlagged = !_.contains(
+                [CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING, CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE],
+                moderationDecision,
+            );
             const isAttachment = _.has(props.action, 'isAttachment') ? props.action.isAttachment : ReportUtils.isReportMessageAttachment(message);
+            const isFlaggedRed = moderationDecision === CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE;
             children = (
                 <ShowContextMenuContext.Provider
                     value={{
@@ -323,16 +327,19 @@ function ReportActionItem(props) {
                 >
                     {!props.draftMessage ? (
                         <View style={props.displayAsGroup && hasBeenFlagged ? styles.blockquote : {}}>
-                            <ReportActionItemMessage
-                                action={props.action}
-                                isHidden={isHidden}
-                                style={[
-                                    !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
-                                    _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
-                                        ? styles.colorMuted
-                                        : undefined,
-                                ]}
-                            />
+                            {!isFlaggedRed && (
+                                <ReportActionItemMessage
+                                    action={props.action}
+                                    isHidden={isHidden}
+                                    style={[
+                                        !props.displayAsGroup && isAttachment ? styles.mt2 : undefined,
+                                        _.contains([..._.values(CONST.REPORT.ACTIONS.TYPE.POLICYCHANGELOG), CONST.REPORT.ACTIONS.TYPE.IOU], props.action.actionName)
+                                            ? styles.colorMuted
+                                            : undefined,
+                                    ]}
+                                />
+                            )}
+                            {isFlaggedRed && <Text>{props.translate('parentReportAction.hiddenMessage')}</Text>}
                             {hasBeenFlagged && (
                                 <Button
                                     small
@@ -438,7 +445,12 @@ function ReportActionItem(props) {
                     wrapperStyles={[styles.chatItem, isWhisper ? styles.pt1 : {}]}
                     shouldShowSubscriptAvatar={props.shouldShowSubscriptAvatar}
                     report={props.report}
-                    hasBeenFlagged={!_.contains([CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING], moderationDecision)}
+                    hasBeenFlagged={
+                        !_.contains(
+                            [CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING, CONST.MODERATION.MODERATOR_DECISION_PENDING_REMOVE],
+                            moderationDecision,
+                        )
+                    }
                 >
                     {content}
                 </ReportActionItemSingle>
