@@ -1094,6 +1094,10 @@ function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
     return false;
 }
 
+function isWaitingForTaskCompleteFromAssignee(report) {
+    return isTaskReport(report) && isTaskAssignee(report) && isOpenTaskReport(report);
+}
+
 /**
  * @param {Object} report
  * @param {Object} allReportsDict
@@ -2273,9 +2277,9 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    // Include reports if they have a draft, are pinned, or have an outstanding IOU
+    // Include reports if they have a draft, are pinned, have an outstanding IOU or assigned to an open task
     // These are always relevant to the user no matter what view mode the user prefers
-    if (report.hasDraft || report.isPinned || isWaitingForIOUActionFromCurrentUser(report, iouReports)) {
+    if (report.hasDraft || report.isPinned || isWaitingForIOUActionFromCurrentUser(report, iouReports) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
 
