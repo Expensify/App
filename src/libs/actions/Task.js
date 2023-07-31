@@ -499,23 +499,18 @@ function setAssigneeChatReport(chatReport) {
  * Sets the assignee value for the task and checks for an existing chat with the assignee
  * If there is no existing chat, it creates an optimistic chat report
  * It also sets the shareDestination as that chat report if a share destination isn't already set
- * @param {string} assignee
+ * @param {string} assigneeEmail
  * @param {Number} assigneeAccountID
  * @param {string} shareDestination
  * @param {boolean} isCurrentUser
  */
 
-function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurrentUser = false) {
+function setAssigneeValue(assigneeEmail, assigneeAccountID, shareDestination, isCurrentUser = false) {
     let newAssigneeAccountID = Number(assigneeAccountID);
     let chatReport;
 
-    // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
-    if (!newAssigneeAccountID) {
-        newAssigneeAccountID = UserUtils.generateAccountID(assignee);
-    }
-
     if (!isCurrentUser) {
-        chatReport = ReportUtils.getChatByParticipants([newAssigneeAccountID]);
+        chatReport = ReportUtils.getChatByParticipantsByLoginList([assigneeEmail]);
         if (!chatReport) {
             chatReport = ReportUtils.buildOptimisticChatReport([newAssigneeAccountID]);
             chatReport.isOptimisticReport = true;
@@ -531,8 +526,8 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
             const optimisticPersonalDetailsListAction = {
                 accountID: newAssigneeAccountID,
                 avatar: lodashGet(allPersonalDetails, [newAssigneeAccountID, 'avatar'], UserUtils.getDefaultAvatarURL(newAssigneeAccountID)),
-                displayName: lodashGet(allPersonalDetails, [newAssigneeAccountID, 'displayName'], assignee),
-                login: assignee,
+                displayName: lodashGet(allPersonalDetails, [newAssigneeAccountID, 'displayName'], assigneeEmail),
+                login: assigneeEmail,
             };
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[newAssigneeAccountID]: optimisticPersonalDetailsListAction});
         }
@@ -547,7 +542,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
     }
 
     // This is only needed for creation of a new task and so it should only be stored locally
-    Onyx.merge(ONYXKEYS.TASK, {assignee, assigneeAccountID: newAssigneeAccountID});
+    Onyx.merge(ONYXKEYS.TASK, {assignee: assigneeEmail, assigneeAccountID: newAssigneeAccountID});
 
     // When we're editing the assignee, we immediately call EditTaskAndNavigate. Since setting the assignee is async,
     // the chatReport is not yet set when EditTaskAndNavigate is called. So we return the chatReport here so that
