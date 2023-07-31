@@ -35,8 +35,8 @@ const defaultProps = {
     report: {},
 };
 
-function EditRequestPage(props) {
-    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+function EditRequestPage({report}) {
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const moneyRequestReportAction = ReportUtils.getMoneyRequestAction(parentReportAction);
     const transactionDescription = moneyRequestReportAction.comment;
     const field = lodashGet(props, ['route', 'params', 'field'], '');
