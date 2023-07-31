@@ -475,24 +475,11 @@ const CONST = {
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'http://localhost:',
 
-    SIGN_IN_FORM_WIDTH: 300,
-
-    APPLE_SIGN_IN_SERVICE_ID: 'com.chat.expensify.chat.AppleSignIn',
-    APPLE_SIGN_IN_REDIRECT_URI: 'https://new.expensify.com/appleauth',
-
-    SIGN_IN_METHOD: {
-        APPLE: 'Apple',
-        GOOGLE: 'Google',
-    },
-
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
     REPORT: {
-        DROP_HOST_NAME: 'ReportDropZone',
-        DROP_NATIVE_ID: 'report-dropzone',
-        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -504,6 +491,7 @@ const CONST = {
                 TASKEDITED: 'TASKEDITED',
                 TASKCANCELLED: 'TASKCANCELLED',
                 IOU: 'IOU',
+                REIMBURSEMENTQUEUED: 'REIMBURSEMENTQUEUED',
                 RENAMED: 'RENAMED',
                 CHRONOSOOOLIST: 'CHRONOSOOOLIST',
                 TASKCOMPLETED: 'TASKCOMPLETED',
@@ -2550,9 +2538,6 @@ const CONST = {
         SWITCH: 'switch',
         ADJUSTABLE: 'adjustable',
         IMAGE: 'image',
-    },
-    SETTINGS_LOUNGE_ACCESS: {
-        HEADER_IMAGE_ASPECT_RATIO: 0.64,
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',

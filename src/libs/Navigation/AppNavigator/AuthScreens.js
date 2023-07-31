@@ -33,21 +33,23 @@ import NAVIGATORS from '../../../NAVIGATORS';
 import FullScreenNavigator from './Navigators/FullScreenNavigator';
 import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
+import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 
-let currentUserEmail;
+let timezone;
+let currentAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
+        // When signed out, val hasn't accountID
+        if (!_.has(val, 'accountID')) {
+            timezone = null;
             return;
         }
 
-        currentUserEmail = val.email;
+        currentAccountID = val.accountID;
     },
 });
 
-let timezone;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
@@ -55,7 +57,7 @@ Onyx.connect({
             return;
         }
 
-        timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
+        timezone = lodashGet(val, [currentAccountID, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -135,7 +137,7 @@ class AuthScreens extends React.Component {
             App.reconnectApp();
         }
 
-        App.setUpPoliciesAndNavigate(this.props.session);
+        App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
 
         if (this.props.lastOpenedPublicRoomID) {
             // Re-open the last opened public room if the user logged in from a public room link
@@ -210,7 +212,10 @@ class AuthScreens extends React.Component {
             ...commonScreenOptions,
             // we want pop in RHP since there are some flows that would work weird otherwise
             animationTypeForReplace: 'pop',
-            cardStyle: styles.navigationModalCard(this.props.isSmallScreenWidth),
+            cardStyle: getNavigationModalCardStyle({
+                windowHeight: this.props.windowHeight,
+                isSmallScreenWidth: this.props.isSmallScreenWidth,
+            }),
         };
 
         return (

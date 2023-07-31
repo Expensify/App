@@ -35,6 +35,7 @@ import * as UserUtils from '../../../libs/UserUtils';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 import onyxSubscribe from '../../../libs/onyxSubscribe';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
 
 const basePropTypes = {
     /** Toggles the navigation menu open and closed */
@@ -56,7 +57,7 @@ const propTypes = {
 
     currentUserPersonalDetails: personalDetailsPropType,
 
-    priorityMode: PropTypes.oneOf(_.values(CONST.OPTION_MODE)),
+    priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
     ...withLocalizePropTypes,
 };
@@ -109,6 +110,8 @@ class SidebarLinks extends React.PureComponent {
             true,
             true,
         );
+
+        ReportActionContextMenu.hideContextMenu(false);
     }
 
     componentWillUnmount() {
@@ -227,6 +230,5 @@ class SidebarLinks extends React.PureComponent {
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-
 export default compose(withLocalize, withCurrentUserPersonalDetails, withWindowDimensions)(SidebarLinks);
 export {basePropTypes};
