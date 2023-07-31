@@ -38,9 +38,7 @@ const setExpirationTimer = () => {
 };
 
 const hasTokenExpired = () => {
-    const now = moment();
-    const expiration = moment(currentToken.expiration);
-    return now.isAfter(expiration);
+    return moment().isAfter(currentToken.expiration);
 };
 
 const clearToken = () => {
