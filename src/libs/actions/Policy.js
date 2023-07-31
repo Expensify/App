@@ -862,7 +862,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
         {
             optimisticData: [
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     value: {
                         id: policyID,
@@ -876,6 +876,11 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                 },
                 {
                     onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+                    value: true,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: {
                         [sessionAccountID]: {
@@ -885,7 +890,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     },
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
                     value: {
                         pendingFields: {
@@ -895,12 +900,12 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     },
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
                     value: announceReportActionData,
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
                     value: {
                         pendingFields: {
@@ -910,12 +915,12 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     },
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
                     value: adminsReportActionData,
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
                     value: {
                         pendingFields: {
@@ -925,7 +930,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     },
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                     value: expenseReportActionData,
                 },
@@ -935,6 +940,11 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     value: {pendingAction: null},
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+                    value: false,
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -996,37 +1006,42 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             ],
             failureData: [
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`,
                     value: null,
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.IS_LOADING_REPORT_DATA}`,
+                    value: false,
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${announceChatReportID}`,
                     value: null,
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${announceChatReportID}`,
                     value: null,
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`,
                     value: null,
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminsChatReportID}`,
                     value: null,
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseChatReportID}`,
                     value: null,
                 },
                 {
-                    onyxMethod: Onyx.METHOD.SET,
+                    onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseChatReportID}`,
                     value: null,
                 },
@@ -1046,6 +1061,10 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
 
         Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
     });
+}
+
+function unsetLoadingFlag() {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
 }
 
 /**
@@ -1141,4 +1160,5 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
+    unsetLoadingFlag
 };

@@ -83,6 +83,10 @@ function WorkspaceInitialPage(props) {
     }, [props.reports, policy]);
 
     useEffect(() => {
+        Policy.unsetLoadingFlag();
+    }, [])
+
+    useEffect(() => {
         if (!isCurrencyModalOpen || policy.outputCurrency !== CONST.CURRENCY.USD) {
             return;
         }
