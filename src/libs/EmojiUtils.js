@@ -273,7 +273,7 @@ function extractEmojis(text) {
         return emojis;
     }
 
-    let parseEmojis = str.match(CONST.REGEX.EMOJIS_AND_ZWJ_SEQUENCE);
+    let parseEmojis = str.match(CONST.REGEX.EMOJIS);
 
     if (!parseEmojis) {
         return emojis;
