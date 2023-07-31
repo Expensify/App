@@ -231,6 +231,16 @@ const SearchModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+const NewChatModalStackNavigator = createModalStackNavigator([
+    {
+        getComponent: () => {
+            const NewChatSelectorPage = require('../../../pages/NewChatSelectorPage').default;
+            return NewChatSelectorPage;
+        },
+        name: 'NewChat_Root',
+    },
+]);
+
 const NewTaskModalStackNavigator = createModalStackNavigator([
     {
         getComponent: () => {
@@ -695,6 +705,7 @@ export {
     ReportWelcomeMessageModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     SearchModalStackNavigator,
+    NewChatModalStackNavigator,
     NewTaskModalStackNavigator,
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,

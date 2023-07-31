@@ -2,7 +2,6 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 
 import * as ModalStackNavigators from '../ModalStackNavigators';
-import * as ModalTabNavigators from '../ModalTabNavigators';
 import RHPScreenOptions from '../RHPScreenOptions';
 
 const Stack = createStackNavigator();
@@ -16,7 +15,7 @@ function RightModalNavigator() {
             />
             <Stack.Screen
                 name="NewChat"
-                component={ModalTabNavigators.NewChatModalTabNavigator}
+                component={ModalStackNavigators.NewChatModalStackNavigator}
             />
             <Stack.Screen
                 name="Search"

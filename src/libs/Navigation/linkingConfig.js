@@ -247,8 +247,20 @@ export default {
                     },
                     NewChat: {
                         screens: {
-                            NewChat_Root: ROUTES.NEW_CHAT,
-                            Workspace_NewRoom: ROUTES.WORKSPACE_NEW_ROOM,
+                            NewChat_Root: {
+                                path: ROUTES.NEW,
+                                // exact: true,
+                                // screens: {
+                                //     NewChat_Chat: {
+                                //         path: ROUTES.NEW_CHAT,
+                                //         exact: true,
+                                //     },
+                                //     Workspace_NewRoom: {
+                                //         path: ROUTES.NEW_ROOM,
+                                //         exact: true,
+                                //     },
+                                // },
+                            }
                         },
                     },
                     NewTask: {
