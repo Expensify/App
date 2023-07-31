@@ -54,6 +54,8 @@ function Modal(props) {
                         props.onClose();
                     }}
                     style={[styles.fullscreenFixed, {opacity: variables.overlayOpacity, backgroundColor: themeColors.overlay}]}
+                    accessibilityLabel="backdrop"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
                 />
             }
         >
