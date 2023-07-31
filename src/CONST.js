@@ -2552,6 +2552,8 @@ const CONST = {
     TAB: {
         TAB_MANUAL: 'manual',
         TAB_SCAN: 'scan',
+        TAB_NEW_CHAT: 'chat',
+        TAB_NEW_ROOM: 'room',
     },
 };
 

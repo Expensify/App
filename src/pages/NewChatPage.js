@@ -3,9 +3,7 @@ import React, {useState, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import ButtonToggleNewChat from '../components/ButtonToggle/ButtonToggleNewChat';
 import OptionsSelector from '../components/OptionsSelector';
-import Permissions from '../libs/Permissions';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import * as ReportUtils from '../libs/ReportUtils';
 import ONYXKEYS from '../ONYXKEYS';
@@ -13,7 +11,6 @@ import styles from '../styles/styles';
 import * as Report from '../libs/actions/Report';
 import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import * as Browser from '../libs/Browser';
@@ -178,8 +175,6 @@ function NewChatPage(props) {
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
-                    <HeaderWithBackButton title={props.translate('sidebarScreen.fabNewChat')} />
-                    {Permissions.canUsePolicyRooms(props.betas) && <ButtonToggleNewChat activeToggle="chat" />}
                     <View style={[styles.flex1, styles.w100, styles.pRelative, selectedOptions.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
                         <OptionsSelector
                             canSelectMultipleOptions

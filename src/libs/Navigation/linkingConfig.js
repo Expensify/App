@@ -249,18 +249,18 @@ export default {
                         screens: {
                             NewChat_Root: {
                                 path: ROUTES.NEW,
-                                // exact: true,
-                                // screens: {
-                                //     NewChat_Chat: {
-                                //         path: ROUTES.NEW_CHAT,
-                                //         exact: true,
-                                //     },
-                                //     Workspace_NewRoom: {
-                                //         path: ROUTES.NEW_ROOM,
-                                //         exact: true,
-                                //     },
-                                // },
-                            }
+                                exact: true,
+                                screens: {
+                                    chat: {
+                                        path: ROUTES.NEW_CHAT,
+                                        exact: true,
+                                    },
+                                    room: {
+                                        path: ROUTES.NEW_ROOM,
+                                        exact: true,
+                                    },
+                                },
+                            },
                         },
                     },
                     NewTask: {

@@ -348,6 +348,8 @@ export default {
     tabSelector: {
         manual: 'Manual',
         scan: 'Escanear',
+        chat: 'Chat',
+        room: 'Sala',
     },
     receipt: {
         upload: 'Subir recibo',
