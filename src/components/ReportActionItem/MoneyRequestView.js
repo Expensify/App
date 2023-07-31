@@ -5,7 +5,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
-import withWindowDimensions from '../withWindowDimensions';
+import * as Policy from '../libs/actions/Policy';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
@@ -29,6 +29,21 @@ const propTypes = {
     /** The expense report or iou report (only will have a value if this is a transaction thread) */
     parentReport: iouReportPropTypes,
 
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
+
+    /** Session info for the currently logged in user. */
+    session: PropTypes.shape({
+        /** Currently logged in user email */
+        email: PropTypes.string,
+    }),
+
     /** Whether we should display the horizontal rule below the component */
     shouldShowHorizontalRule: PropTypes.bool.isRequired,
 
@@ -37,6 +52,10 @@ const propTypes = {
 
 const defaultProps = {
     parentReport: {},
+    policy: null,
+    session: {
+        email: null,
+    },
 };
 
 function MoneyRequestView({report, parentReport, shouldShowHorizontalRule}) {
@@ -50,6 +69,9 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule}) {
 
     const moneyRequestReport = parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
+    const isPayer =
+    Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID);
+    const canEdit = !isSettled && (ReportUtils.isExpenseReport(moneyRequestReport) || (ReportUtils.isIOUReport(moneyRequestReport) && !isPayer))
     const {translate} = useLocalize();
 
     return (
@@ -68,20 +90,20 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule}) {
                 description={`${translate('iou.amount')} • ${translate('iou.cash')}${isSettled ? ` • ${translate('iou.settledExpensify')}` : ''}`}
                 titleStyle={styles.newKansasLarge}
                 disabled={isSettled}
-                shouldShowRightIcon={!isSettled}
+                shouldShowRightIcon={!canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
             />
             <MenuItemWithTopDescription
                 description={translate('common.description')}
                 title={transactionDescription}
                 disabled={isSettled}
-                shouldShowRightIcon={!isSettled}
+                shouldShowRightIcon={!canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
                 title={formattedTransactionDate}
-                shouldShowRightIcon={!isSettled}
+                shouldShowRightIcon={!canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
             />
             {shouldShowHorizontalRule && <View style={styles.reportHorizontalRule} />}
@@ -97,7 +119,10 @@ export default compose(
     withCurrentUserPersonalDetails,
     withOnyx({
         parentReport: {
-            key: (props) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(MoneyRequestView);
