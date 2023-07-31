@@ -6,6 +6,14 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 
+let authToken;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        authToken = lodashGet(val, 'authToken', null);
+    },
+});
+
 let connectionID;
 let currentToken;
 let refreshTimeoutID;
@@ -54,7 +62,12 @@ const init = () => {
          * @param {String[]} [token.errors]
          */
         callback: (token) => {
-            // token is an object with. If it is falsy or an empty object, the token needs to be retrieved from the API.
+            // If the user has logged out, don't do anything and ignore changes to the access token
+            if (!authToken) {
+                return;
+            }
+
+            // If the token is falsy or an empty object, the token needs to be retrieved from the API.
             // The API sets a token in Onyx with a 30 minute expiration.
             if (!token || _.size(token) === 0) {
                 console.debug('[MapboxTokens] Token does not exist so fetching one');
@@ -76,9 +89,13 @@ const init = () => {
         },
     });
 
-    // When the app becomes active (eg. after being in the background), check if the token has expired.
     AppState.addEventListener('change', (nextAppState) => {
-        if (nextAppState !== CONST.APP_STATE.ACTIVE || !currentToken || !hasTokenExpired()) {
+        // Skip getting a new token if:
+        // - The app state is not changing to active
+        // - There is no current token (which means it's not been fetch yet for the first time)
+        // - The token hasn't expired yet (this would just be a waste of an API call)
+        // - There is no authToken (which means the user has logged out)
+        if (nextAppState !== CONST.APP_STATE.ACTIVE || !currentToken || !hasTokenExpired() || !authToken) {
             return;
         }
         console.debug('[MapboxTokens] Token is expired after app became active');
