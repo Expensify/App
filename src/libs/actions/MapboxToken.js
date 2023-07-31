@@ -17,10 +17,10 @@ Onyx.connect({
 let connectionID;
 let currentToken;
 let refreshTimeoutID;
-const refreshInterval = 1000 * 60 * 25;
+const REFRESH_INTERVAL = 1000 * 60 * 25;
 
 const setExpirationTimer = () => {
-    console.debug('[MapboxToken] refreshing token every 25 minutes', refreshInterval);
+    console.debug('[MapboxToken] refreshing token on an interval', REFRESH_INTERVAL, 'ms');
 
     // Cancel any previous timeouts so that there is only one request to get a token at a time.
     clearTimeout(refreshTimeoutID);
@@ -29,17 +29,15 @@ const setExpirationTimer = () => {
     refreshTimeoutID = setTimeout(() => {
         // If the user has logged out while the timer was running, skip doing anything when this callback runs
         if (!authToken) {
-            console.debug('[MapboxToken] Skipping the fetch of a new token becuase user signed out');
+            console.debug('[MapboxToken] Skipping the fetch of a new token because user signed out');
             return;
         }
         console.debug('[MapboxToken] Fetching a new token after waiting 25 minutes');
         API.read('GetMapboxAccessToken');
-    }, refreshInterval);
+    }, REFRESH_INTERVAL);
 };
 
-const hasTokenExpired = () => {
-    return moment().isAfter(currentToken.expiration);
-};
+const hasTokenExpired = () => moment().isAfter(currentToken.expiration);
 
 const clearToken = () => {
     console.debug('[MapboxToken] Deleting the token stored in Onyx');
@@ -50,7 +48,7 @@ const clearToken = () => {
 
 const init = () => {
     if (connectionID) {
-        console.debug(`[MapboxToken] init() is already listening to Onyx so returning early`);
+        console.debug('[MapboxToken] init() is already listening to Onyx so returning early');
         return;
     }
 
@@ -66,7 +64,7 @@ const init = () => {
         callback: (token) => {
             // If the user has logged out, don't do anything and ignore changes to the access token
             if (!authToken) {
-                console.debug('[MapboxToken] Ignoring changes to token becuase user signed out');
+                console.debug('[MapboxToken] Ignoring changes to token because user signed out');
                 return;
             }
 
