@@ -64,6 +64,18 @@ function getNonOptimisticPolicyIDs(policies) {
 }
 
 /**
+ * @param {Array} policies
+ * @return {Object} map of policy id to lastUpdated
+ */
+function getNonOptimisticPolicyIDToLastModifiedMap(policies) {
+    return _.chain(policies)
+        .reject((policy) => lodashGet(policy, 'pendingAction', '') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .map((policy) => [policy.id, policy.lastModified || 0])
+        .object()
+        .value();
+}
+
+/**
  * @param {String} locale
  */
 function setLocale(locale) {
@@ -100,7 +112,7 @@ function setLocale(locale) {
  */
 function setLocaleAndNavigate(locale) {
     setLocale(locale);
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 function setSidebarLoaded() {
@@ -136,7 +148,7 @@ function openApp(isReconnecting = false) {
                 //
                 // - Look through the local report actions and reports to find the most recently modified report action or report.
                 // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-                const params = {policyIDList: getNonOptimisticPolicyIDs(policies)};
+                const params = {policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
                 if (isReconnecting) {
                     Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
                     params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
