@@ -23,7 +23,7 @@ const defaultProps = {
 function DisplayNamesWithoutTooltip(props) {
     return (
         <Text
-            style={[...props.textStyles, styles.pRelative]}
+            style={[...props.textStyles, props.numberOfLines === 1 ? styles.pre : styles.preWrap]}
             numberOfLines={props.numberOfLines}
         >
             {props.fullTitle}
