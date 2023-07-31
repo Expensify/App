@@ -188,20 +188,21 @@ function MoneyRequestDetails({isSingleTransactionView, report, chatReport, sessi
                             titleIcon={Expensicons.Checkmark}
                             description={description}
                             titleStyle={styles.newKansasLarge}
-                            disabled={isSettled}
+                            disabled={canEdit}
                             shouldShowRightIcon={canEdit}
                             onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         />
                         <MenuItemWithTopDescription
                             description={translate('common.description')}
                             title={transactionDescription}
-                            disabled={isSettled}
+                            disabled={canEdit}
                             shouldShowRightIcon={canEdit}
                             onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                         />
                         <MenuItemWithTopDescription
                             description={translate('common.date')}
                             title={formattedTransactionDate}
+                            disabled={canEdit}
                             shouldShowRightIcon={canEdit}
                             onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                         />
