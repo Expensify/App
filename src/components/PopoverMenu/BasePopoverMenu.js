@@ -87,9 +87,10 @@ function PopoverMenu(props) {
             anchorAlignment={props.anchorAlignment}
             onClose={props.onClose}
             onModalHide={() => {
-                if (!props.shouldNavigateBeforeClosingModal) {
-                    onModalHide();
+                if (props.shouldNavigateBeforeClosingModal) {
+                    return;
                 }
+                onModalHide();
             }}
             isVisible={props.isVisible}
             animationIn={props.animationIn}

@@ -8,6 +8,7 @@ import themeColors from '../../styles/themes/default';
 import StatusBar from '../../libs/StatusBar';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
+import styles from '../../styles/styles';
 
 function Modal(props) {
     const [previousStatusBarColor, setPreviousStatusBarColor] = useState();
@@ -51,7 +52,7 @@ function Modal(props) {
                         }
                         props.onClose();
                     }}
-                    style={{position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, opacity: variables.overlayOpacity, backgroundColor: themeColors.overlay}}
+                    style={[styles.fullscreenFixed, {opacity: variables.overlayOpacity, backgroundColor: themeColors.overlay}]}
                 />
             }
         >
