@@ -1,10 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import Text from '../Text';
 import Tooltip from '../Tooltip';
-import UserDetailsTooltip from '../UserDetailsTooltip';
+import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 import { defaultProps, propTypes } from './displayNamesPropTypes';
 
 function DisplayNamesWithToolTip(props) {
@@ -12,16 +12,13 @@ function DisplayNamesWithToolTip(props) {
     const childRefs = useRef([]);
     const [isEllipsisActive, setIsEllipsisActive] = useState(false);
     const [containerLayout, setContainerLayout] = useState(null);
-  
+
     useEffect(() => {
-      setIsEllipsisActive(
-        containerRef.current &&
-          containerRef.current.offsetWidth &&
-          containerRef.current.scrollWidth &&
-          containerRef.current.offsetWidth < containerRef.current.scrollWidth
-      );
+        setIsEllipsisActive(
+            containerRef.current && containerRef.current.offsetWidth && containerRef.current.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth,
+        );
     }, [containerRef]);
-  
+
     /**
      * We may need to shift the Tooltip horizontally as some of the inline text wraps well with ellipsis,
      * but their container node overflows the parent view which causes the tooltip to be misplaced.
@@ -35,94 +32,75 @@ function DisplayNamesWithToolTip(props) {
      * @returns {Number} Distance to shift the tooltip horizontally
      */
     const getTooltipShiftX = (index) => {
-      // Only shift the tooltip in case the containerLayout or Refs to the text node are available
-      if (!containerLayout || !childRefs.current[index]) {
-        return;
-      }
-      const { width: containerWidth, left: containerLeft } = containerLayout;
-  
-      // We have to return the value as Number so we can't use `measureWindow` which takes a callback
-      const {
-        width: textNodeWidth,
-        left: textNodeLeft,
-      } = childRefs.current[index].getBoundingClientRect();
-      const tooltipX = textNodeWidth / 2 + textNodeLeft;
-      const containerRight = containerWidth + containerLeft;
-      const textNodeRight = textNodeWidth + textNodeLeft;
-      const newToolX = textNodeLeft + (containerRight - textNodeLeft) / 2;
-  
-      // When text right end is beyond the Container right end
-      return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
+        // Only shift the tooltip in case the containerLayout or Refs to the text node are available
+        if (!containerLayout || !childRefs.current[index]) {
+            return;
+        }
+        const {width: containerWidth, left: containerLeft} = containerLayout;
+
+        // We have to return the value as Number so we can't use `measureWindow` which takes a callback
+        const {width: textNodeWidth, left: textNodeLeft} = childRefs.current[index].getBoundingClientRect();
+        const tooltipX = textNodeWidth / 2 + textNodeLeft;
+        const containerRight = containerWidth + containerLeft;
+        const textNodeRight = textNodeWidth + textNodeLeft;
+        const newToolX = textNodeLeft + (containerRight - textNodeLeft) / 2;
+
+        // When text right end is beyond the Container right end
+        return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
     };
-  
+
     if (!props.tooltipEnabled) {
-      // No need for any complex text-splitting, just return a simple Text component
-      return (
-        <Text
-          style={[
-            ...props.textStyles,
-            props.numberOfLines === 1 ? styles.pre : styles.preWrap,
-          ]}
-          numberOfLines={props.numberOfLines}
-        >
-          {props.fullTitle}
-        </Text>
-      );
+        // No need for any complex text-splitting, just return a simple Text component
+        return (
+            <Text
+                style={[...props.textStyles, props.numberOfLines === 1 ? styles.pre : styles.preWrap]}
+                numberOfLines={props.numberOfLines}
+            >
+                {props.fullTitle}
+            </Text>
+        );
     }
-  
+
     return (
-      // Tokenization of string only support prop numberOfLines on Web
-      <Text
-        style={[...props.textStyles, styles.pRelative]}
-        onLayout={({ nativeEvent }) => setContainerLayout(nativeEvent.layout)}
-        numberOfLines={props.numberOfLines || undefined}
-        ref={(el) => (containerRef.current = el)}
-      >
-        {props.shouldUseFullTitle
-          ? props.fullTitle
-          : _.map(
-              props.displayNamesWithTooltips,
-              ({ displayName, accountID, avatar, login }, index) => (
-                <React.Fragment key={index}>
-                  <UserDetailsTooltip
-                    key={index}
-                    accountID={accountID}
-                    fallbackUserDetails={{
-                      avatar,
-                      login,
-                      displayName,
-                    }}
-                    shiftHorizontal={() => getTooltipShiftX(index)}
-                  >
-                    {/*  // We need to get the refs to all the names which will be used to correct
-                      the horizontal position of the tooltip */}
-                    <Text
-                      ref={(el) => (childRefs.current[index] = el)}
-                      style={[...props.textStyles, styles.pre]}
-                    >
-                      {displayName}
-                    </Text>
-                  </UserDetailsTooltip>
-                  {index < props.displayNamesWithTooltips.length - 1 && (
-                    <Text style={props.textStyles}>,&nbsp;</Text>
-                  )}
-                </React.Fragment>
-              )
+        // Tokenization of string only support prop numberOfLines on Web
+        <Text
+            style={[...props.textStyles, styles.pRelative]}
+            onLayout={({nativeEvent}) => setContainerLayout(nativeEvent.layout)}
+            numberOfLines={props.numberOfLines || undefined}
+            ref={(el) => (containerRef.current = el)}
+        >
+            {props.shouldUseFullTitle
+                ? props.fullTitle
+                : _.map(props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
+                      <Fragment key={index}>
+                           <DisplayNamesTooltipItem
+                            index={index}
+                            getTooltipShiftX={getTooltipShiftX}
+                            accountID={accountID}
+                            displayName={displayName}
+                            login={login}
+                            avatar={avatar}
+                            textStyles={props.textStyles}
+                            childRefs={childRefs}
+                            addComma={index < props.displayNamesWithTooltips.length - 1}
+                        />
+                          {index < props.displayNamesWithTooltips.length - 1 && <Text style={props.textStyles}>,&nbsp;</Text>}
+                      </Fragment>
+                  ))}
+            {Boolean(isEllipsisActive) && (
+                <View style={styles.displayNameTooltipEllipsis}>
+                    <Tooltip text={props.fullTitle}>
+                        {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
+                        <Text>....</Text>
+                    </Tooltip>
+                </View>
             )}
-        {Boolean(isEllipsisActive) && (
-          <View style={styles.displayNameTooltipEllipsis}>
-            <Tooltip text={props.fullTitle}>
-              {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
-              <Text>....</Text>
-            </Tooltip>
-          </View>
-        )}
-      </Text>
+        </Text>
     );
-  };
-  
-  DisplayNamesWithToolTip.propTypes = propTypes;
-  DisplayNamesWithToolTip.defaultProps = defaultProps;
-  DisplayNamesWithToolTip.displayName = 'DisplayNames';
-  
-  export default DisplayNamesWithToolTip;
+}
+
+DisplayNamesWithToolTip.propTypes = propTypes;
+DisplayNamesWithToolTip.defaultProps = defaultProps;
+DisplayNamesWithToolTip.displayName = 'DisplayNames';
+
+export default DisplayNamesWithToolTip;
