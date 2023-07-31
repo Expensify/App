@@ -33,6 +33,9 @@ const propTypes = {
     /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
+    /** Stores user's frequently used emojis */
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.object),
+
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
@@ -42,6 +45,7 @@ const propTypes = {
 const defaultProps = {
     forwardedRef: () => {},
     preferredSkinTone: CONST.EMOJI_DEFAULT_SKIN_TONE,
+    frequentlyUsedEmojis: [],
 };
 
 class EmojiPickerMenu extends Component {
@@ -121,7 +125,17 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
+     * On text input selection change
+     *
+     * @param {Event} event
+     */
+    onSelectionChange(event) {
+        this.setState({selection: event.nativeEvent.selection});
+    }
+
+    /**
      * Calculate the initial filtered emojis and header row indices
+     * @returns {Object}
      */
     getInitialFilteredEmojisAndHeaderRowIndices() {
         // If we're on Windows, don't display the flag emojis (the last category),
@@ -142,15 +156,6 @@ class EmojiPickerMenu extends Component {
         const headerRowIndices = _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
 
         return {filteredEmojis, headerRowIndices};
-    }
-
-    /**
-     * On text input selection change
-     *
-     * @param {Event} event
-     */
-    onSelectionChange(event) {
-        this.setState({selection: event.nativeEvent.selection});
     }
 
     /**
