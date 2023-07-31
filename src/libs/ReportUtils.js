@@ -202,7 +202,7 @@ function isMoneyRequestReport(reportOrID) {
 function sortReportsByLastRead(reports) {
     return _.chain(reports)
         .toArray()
-        .filter((report) => report && report.reportID && !isIOUReport(report))
+        .filter((report) => report && report.reportID && report.lastReadTime)
         .sortBy('lastReadTime')
         .value();
 }
