@@ -13,7 +13,6 @@ import Avatar from './Avatar';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
-import withWindowDimensions from './withWindowDimensions';
 import compose from '../libs/compose';
 import ROUTES from '../ROUTES';
 import Icon from './Icon';
@@ -27,6 +26,8 @@ import DateUtils from '../libs/DateUtils';
 import reportPropTypes from '../pages/reportPropTypes';
 import * as UserUtils from '../libs/UserUtils';
 import OfflineWithFeedback from './OfflineWithFeedback';
+import useWindowDimensions from '../hooks/useWindowDimensions';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -72,34 +73,38 @@ const defaultProps = {
     policy: null,
 };
 
-function MoneyRequestDetails(props) {
+function MoneyRequestDetails({isSingleTransactionView, report, chatReport, session, parentReport, policy, parentReportAction, personalDetails}) {
+    const {isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
+
     // These are only used for the single transaction view and not for expense and iou reports
-    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(props.parentReportAction);
+    const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(parentReportAction);
     const formattedTransactionAmount = transactionAmount && transactionCurrency && CurrencyUtils.convertToDisplayString(transactionAmount, transactionCurrency);
-    const transactionDate = lodashGet(props.parentReportAction, ['created']);
+    const transactionDate = lodashGet(parentReportAction, ['created']);
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
-    const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
+    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(report), report.currency);
+    const moneyRequestReport = isSingleTransactionView ? parentReport : report;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
     const payeeName = isExpenseReport ? ReportUtils.getPolicyName(moneyRequestReport) : ReportUtils.getDisplayNameForParticipant(moneyRequestReport.managerID);
     const payeeAvatar = isExpenseReport
-        ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
-        : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
+    ? ReportUtils.getWorkspaceAvatar(moneyRequestReport)
+    : UserUtils.getAvatar(lodashGet(personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
     const isPayer =
-        Policy.isAdminOfFreePolicy([props.policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = moneyRequestReport.reportID && !isSettled && !props.isSingleTransactionView && isPayer && !moneyRequestReport.isWaitingOnBankAccount;
-    const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
-    const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
-    let description = `${props.translate('iou.amount')} • ${props.translate('iou.cash')}`;
+    Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID);
+    const canEdit = !isSettled && (isExpenseReport || (ReportUtils.isIOUReport(moneyRequestReport) && !isPayer))
+    const shouldShowSettlementButton = moneyRequestReport.reportID && !isSettled && !isSingleTransactionView && isPayer && !moneyRequestReport.isWaitingOnBankAccount;
+    const bankAccountRoute = ReportUtils.getBankAccountRoute(chatReport);
+    const shouldShowPaypal = Boolean(lodashGet(personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
+    let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
     if (isSettled) {
-        description += ` • ${props.translate('iou.settledExpensify')}`;
-    } else if (props.report.isWaitingOnBankAccount) {
-        description += ` • ${props.translate('iou.pending')}`;
+        description += ` • ${translate('iou.settledExpensify')}`;
+    } else if (report.isWaitingOnBankAccount) {
+        description += ` • ${translate('iou.pending')}`;
     }
 
-    const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(props.report);
+    const {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors} = ReportUtils.getReportOfflinePendingActionAndErrors(report);
     return (
         <OfflineWithFeedback
             pendingAction={addWorkspaceRoomOrChatPendingAction}
@@ -108,7 +113,7 @@ function MoneyRequestDetails(props) {
         >
             <View style={[{backgroundColor: themeColors.highlightBG}, styles.pl0]}>
                 <View style={[styles.ph5, styles.pb2]}>
-                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{props.translate('common.to')}</Text>
+                    <Text style={[styles.textLabelSupporting, styles.lh16]}>{translate('common.to')}</Text>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                             <Avatar
@@ -129,14 +134,14 @@ function MoneyRequestDetails(props) {
                                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                                         numberOfLines={1}
                                     >
-                                        {props.translate('workspace.common.workspace')}
+                                        {translate('workspace.common.workspace')}
                                     </Text>
                                 )}
                             </View>
                         </View>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            {!props.isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
-                            {!props.isSingleTransactionView && isSettled && (
+                            {!isSingleTransactionView && <Text style={[styles.newKansasLarge]}>{formattedAmount}</Text>}
+                            {!isSingleTransactionView && isSettled && (
                                 <View style={styles.defaultCheckmarkWrapper}>
                                     <Icon
                                         src={Expensicons.Checkmark}
@@ -144,7 +149,7 @@ function MoneyRequestDetails(props) {
                                     />
                                 </View>
                             )}
-                            {shouldShowSettlementButton && !props.isSmallScreenWidth && (
+                            {shouldShowSettlementButton && !isSmallScreenWidth && (
                                 <View style={[styles.ml4]}>
                                     <SettlementButton
                                         currency={props.report.currency}
@@ -161,7 +166,7 @@ function MoneyRequestDetails(props) {
                             )}
                         </View>
                     </View>
-                    {shouldShowSettlementButton && props.isSmallScreenWidth && (
+                    {shouldShowSettlementButton && isSmallScreenWidth && (
                         <SettlementButton
                             currency={props.report.currency}
                             policyID={props.report.policyID}
@@ -175,7 +180,7 @@ function MoneyRequestDetails(props) {
                         />
                     )}
                 </View>
-                {props.isSingleTransactionView && (
+                {isSingleTransactionView && (
                     <>
                         <MenuItemWithTopDescription
                             title={formattedTransactionAmount}
@@ -184,22 +189,21 @@ function MoneyRequestDetails(props) {
                             description={description}
                             titleStyle={styles.newKansasLarge}
                             disabled={isSettled}
-                            // Note: These options are temporarily disabled while we figure out the required API changes
-                            // shouldShowRightIcon={!isSettled}
-                            // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
+                            shouldShowRightIcon={canEdit}
+                            onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.AMOUNT))}
                         />
                         <MenuItemWithTopDescription
-                            description={props.translate('common.description')}
+                            description={translate('common.description')}
                             title={transactionDescription}
                             disabled={isSettled}
-                            // shouldShowRightIcon={!isSettled}
-                            // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
+                            shouldShowRightIcon={canEdit}
+                            onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DESCRIPTION))}
                         />
                         <MenuItemWithTopDescription
-                            description={props.translate('common.date')}
+                            description={translate('common.date')}
                             title={formattedTransactionDate}
-                            // shouldShowRightIcon={!isSettled}
-                            // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
+                            shouldShowRightIcon={canEdit}
+                            onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
                         />
                     </>
                 )}
@@ -213,7 +217,6 @@ MoneyRequestDetails.propTypes = propTypes;
 MoneyRequestDetails.defaultProps = defaultProps;
 
 export default compose(
-    withWindowDimensions,
     withLocalize,
     withOnyx({
         chatReport: {
