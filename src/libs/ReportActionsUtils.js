@@ -81,7 +81,7 @@ function isPendingRemove(reportAction) {
  * @param {Object} reportAction
  * @returns {Boolean}
  */
-function isPendingRemoveWithoutParentAction(reportAction) {
+function isPendingRemoveWithoutChildren(reportAction) {
     return isPendingRemove(reportAction) && lodashGet(reportAction, 'childVisibleActionCount', 0) === 0;
 }
 
@@ -342,8 +342,8 @@ function shouldReportActionBeVisible(reportAction, key) {
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return false;
     }
-    //
-    if (isPendingRemoveWithoutParentAction(reportAction)) {
+    // Hide red flagged messages without children
+    if (isPendingRemoveWithoutChildren(reportAction)) {
         return false;
     }
 
@@ -601,5 +601,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
-    isPendingRemoveWithoutParentAction,
+    isPendingRemoveWithoutChildren,
 };

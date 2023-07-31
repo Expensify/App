@@ -2225,10 +2225,6 @@ function canSeeDefaultRoom(report, policies, betas) {
  * @returns {Boolean}
  */
 function canAccessReport(report, policies, betas) {
-    // if (isThread(report) && ReportActionsUtils.isPendingRemove(ReportActionsUtils.getParentReportAction(report, allReportActions))) {
-    //     return false;
-    // }
-
     // We hide default rooms (it's basically just domain rooms now) from people who aren't on the defaultRooms beta.
     if (isDefaultRoom(report) && !canSeeDefaultRoom(report, policies, betas)) {
         return false;
