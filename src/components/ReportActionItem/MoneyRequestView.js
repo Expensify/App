@@ -58,8 +58,9 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule}) {
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, policy}) {
     const {isSmallScreenWidth} = useWindowDimensions();
+    const {translate} = useLocalize();
 
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const {amount: transactionAmount, currency: transactionCurrency, comment: transactionDescription} = ReportUtils.getMoneyRequestAction(parentReportAction);
@@ -72,7 +73,13 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule}) {
     const isPayer =
     Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(session, 'accountID', null) === moneyRequestReport.managerID);
     const canEdit = !isSettled && (ReportUtils.isExpenseReport(moneyRequestReport) || (ReportUtils.isIOUReport(moneyRequestReport) && !isPayer))
-    const {translate} = useLocalize();
+
+    let description = `${translate('iou.amount')} • ${translate('iou.cash')}`;
+    if (isSettled) {
+        description += ` • ${translate('iou.settledExpensify')}`;
+    } else if (report.isWaitingOnBankAccount) {
+        description += ` • ${translate('iou.pending')}`;
+    }
 
     return (
         <View>
@@ -87,7 +94,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule}) {
                 title={formattedTransactionAmount}
                 shouldShowTitleIcon={isSettled}
                 titleIcon={Expensicons.Checkmark}
-                description={`${translate('iou.amount')} • ${translate('iou.cash')}${isSettled ? ` • ${translate('iou.settledExpensify')}` : ''}`}
+                description={description}
                 titleStyle={styles.newKansasLarge}
                 disabled={isSettled}
                 shouldShowRightIcon={!canEdit}
@@ -120,6 +127,9 @@ export default compose(
     withOnyx({
         parentReport: {
             key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`,
+        },
+        policy: {
+            key: ({report}) => `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
