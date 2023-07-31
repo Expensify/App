@@ -19,10 +19,14 @@ import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import OnyxTabNavigator from '../../libs/Navigation/OnyxTabNavigator';
+import Permissions from '../../libs/Permissions';
 
 const TopTab = createMaterialTopTabNavigator();
 
 const propTypes = {
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     route: PropTypes.shape({
         params: PropTypes.shape({
             iouType: PropTypes.string,
@@ -51,6 +55,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: [],
     route: {
         params: {
             iouType: '',
@@ -92,25 +97,28 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType.current]}
                                 onBackButtonPress={() => Navigation.goBack()}
                             />
-                            <OnyxTabNavigator
-                                id={CONST.TAB.RECEIPT_TAB_ID}
-                                tabBar={({state, navigation}) => (
-                                    <TabSelector
-                                        state={state}
-                                        navigation={navigation}
-                                        onTabPress={onTabPress}
+                            {Permissions.canUseScanReceipts(props.betas) && (
+                                <OnyxTabNavigator
+                                    id={CONST.TAB.RECEIPT_TAB_ID}
+                                    tabBar={({state, navigation}) => (
+                                        <TabSelector
+                                            state={state}
+                                            navigation={navigation}
+                                            onTabPress={onTabPress}
+                                        />
+                                    )}
+                                >
+                                    <TopTab.Screen
+                                        name={CONST.TAB.TAB_MANUAL}
+                                        component={MoneyRequestAmount}
                                     />
-                                )}
-                            >
-                                <TopTab.Screen
-                                    name={CONST.TAB.TAB_MANUAL}
-                                    component={MoneyRequestAmount}
-                                />
-                                <TopTab.Screen
-                                    name={CONST.TAB.TAB_SCAN}
-                                    component={ReceiptSelector}
-                                />
-                            </OnyxTabNavigator>
+                                    <TopTab.Screen
+                                        name={CONST.TAB.TAB_SCAN}
+                                        component={ReceiptSelector}
+                                    />
+                                </OnyxTabNavigator>
+                            )}
+                            {!Permissions.canUseScanReceipts(props.betas) && <MoneyRequestAmount />}
                         </View>
                     </DragAndDropProvider>
                 )}
@@ -124,7 +132,12 @@ MoneyRequestSelectorPage.defaultProps = defaultProps;
 MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default withOnyx({
-    iou: {key: ONYXKEYS.IOU},
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
     selectedTab: {
         key: () => `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
     },
