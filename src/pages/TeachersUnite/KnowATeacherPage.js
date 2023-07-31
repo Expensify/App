@@ -17,6 +17,7 @@ import styles from '../../styles/styles';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
+import TeachersUnite from '../../libs/actions/TeachersUnite';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -34,8 +35,8 @@ const defaultProps = {
  * @param {String} values.lastName
  * @param {String} values.phoneOrEmail
  */
-const submit = () => {
-    Navigation.navigate(ROUTES.getReportRoute(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID));
+const submit = (values) => {
+    TeachersUnite.referTeachersUniteVolunteer(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID, values.firstName, values.lastName, values.phoneOrEmail);
 };
 
 const getPhoneLogin = (phoneOrEmail) => {
