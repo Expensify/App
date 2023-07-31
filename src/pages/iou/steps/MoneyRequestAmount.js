@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -169,6 +169,7 @@ function MoneyRequestAmount(props) {
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
     const [selection, setSelection] = useState({start: selectedAmountAsString.length, end: selectedAmountAsString.length});
+    const currentRoute = useRoute();
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -262,6 +263,14 @@ function MoneyRequestAmount(props) {
             prevMoneyRequestID.current = props.iou.id;
         };
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
+
+    useEffect(() => {
+        if (!currentRoute.params.currency) {
+            return;
+        }
+
+        setSelectedCurrencyCode(currentRoute.params.currency);
+    }, [currentRoute.params]);
 
     useEffect(() => {
         setSelectedCurrencyCode(props.iou.currency);
