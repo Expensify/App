@@ -80,6 +80,14 @@ function BaseAnchorForCommentsOnly(props) {
                         target: isEmail || !linkProps.href ? '_self' : props.target,
                     }}
                     href={linkProps.href || props.href}
+                    onPress={(event) => {
+                        if (!linkProps.onPress) {
+                          return;
+                        }
+                      
+                        event.preventDefault();
+                        linkProps.onPress();
+                    }}
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
                     // eslint-disable-next-line react/jsx-props-no-spreading
