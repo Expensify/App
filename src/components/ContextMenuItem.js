@@ -53,7 +53,7 @@ function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini,
             return;
         }
         onPress();
-    
+
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (successIcon || successText) {
