@@ -19,7 +19,7 @@ let currentToken;
 let refreshTimeoutID;
 const refreshInterval = 1000 * 60 * 25;
 
-const refreshToken = () => {
+const setExpirationTimer = () => {
     console.debug('[MapboxToken] refreshing token every 25 minutes', refreshInterval);
 
     // Cancel any previous timeouts so that there is only one request to get a token at a time.
@@ -91,7 +91,7 @@ const init = () => {
             }
 
             console.debug('[MapboxToken] Token is valid, setting up refresh');
-            refreshToken();
+            setExpirationTimer();
         },
     });
 
