@@ -27,11 +27,10 @@ const propTypes = {
     textStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Refs to all the names which will be used to correct the horizontal position of the tooltip */
-    // childRefs: PropTypes.shape({
-    //     current: PropTypes.arrayOf(PropTypes.object),
-    // }),
-
-    addComma: PropTypes.bool,
+    childRefs: PropTypes.shape({
+        // eslint-disable-next-line react/forbid-prop-types
+        current: PropTypes.arrayOf(PropTypes.object),
+    }),
 };
 
 const defaultProps = {
@@ -42,11 +41,10 @@ const defaultProps = {
     login: '',
     avatar: '',
     textStyles: [],
-    // childRefs: { current: [] },
-    addComma: false,
+    childRefs: {current: []},
 };
 
-function DisplayNamesTooltipItem({index, getTooltipShiftX, accountID, avatar, login, displayName, textStyles, addComma}) {
+function DisplayNamesTooltipItem({index, getTooltipShiftX, accountID, avatar, login, displayName, textStyles, childRefs}) {
     const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
 
     return (
@@ -60,11 +58,12 @@ function DisplayNamesTooltipItem({index, getTooltipShiftX, accountID, avatar, lo
             }}
             shiftHorizontal={tooltipIndexBridge}
         >
-            {/*  // We need to get the refs to all the names which will be used to correct
-                      the horizontal position of the tooltip */}
+            {/* We need to get the refs to all the names which will be used to correct the horizontal position of the tooltip */}
             <Text
+                eslint-disable-next-line
+                no-param-reassign
                 // eslint-disable-next-line no-param-reassign
-                // ref={(el) => (childRefs.current[index] = el)}
+                ref={(el) => (childRefs.current[index] = el)}
                 style={[...textStyles, styles.pre]}
             >
                 {displayName}

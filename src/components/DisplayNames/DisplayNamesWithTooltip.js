@@ -73,17 +73,17 @@ function DisplayNamesWithToolTip(props) {
                 ? props.fullTitle
                 : _.map(props.displayNamesWithTooltips, ({displayName, accountID, avatar, login}, index) => (
                       <Fragment key={index}>
-                           <DisplayNamesTooltipItem
-                            index={index}
-                            getTooltipShiftX={getTooltipShiftX}
-                            accountID={accountID}
-                            displayName={displayName}
-                            login={login}
-                            avatar={avatar}
-                            textStyles={props.textStyles}
-                            childRefs={childRefs}
-                            addComma={index < props.displayNamesWithTooltips.length - 1}
-                        />
+                          <DisplayNamesTooltipItem
+                              index={index}
+                              getTooltipShiftX={getTooltipShiftX}
+                              accountID={accountID}
+                              displayName={displayName}
+                              login={login}
+                              avatar={avatar}
+                              textStyles={props.textStyles}
+                              childRefs={childRefs}
+                              addComma={index < props.displayNamesWithTooltips.length - 1}
+                          />
                           {index < props.displayNamesWithTooltips.length - 1 && <Text style={props.textStyles}>,&nbsp;</Text>}
                       </Fragment>
                   ))}
@@ -101,6 +101,6 @@ function DisplayNamesWithToolTip(props) {
 
 DisplayNamesWithToolTip.propTypes = propTypes;
 DisplayNamesWithToolTip.defaultProps = defaultProps;
-DisplayNamesWithToolTip.displayName = 'DisplayNames';
+DisplayNamesWithToolTip.displayName = 'DisplayNamesWithTooltip';
 
 export default DisplayNamesWithToolTip;
