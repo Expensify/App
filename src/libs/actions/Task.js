@@ -55,11 +55,11 @@ function clearOutTaskInfo() {
  * @param {String} parentReportID
  * @param {String} title
  * @param {String} description
- * @param {String} assignee
+ * @param {String} assigneeEmail
  * @param {Number} assigneeAccountID
  * @param {Object} assigneeChatReport - The chat report between you and the assignee
  */
-function createTaskAndNavigate(parentReportID, title, description, assignee, assigneeAccountID = 0, assigneeChatReport = null) {
+function createTaskAndNavigate(parentReportID, title, description, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
     const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, assigneeAccountID, parentReportID, title, description);
 
     const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
@@ -68,7 +68,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
 
     // Parent ReportAction indicating that a task has been created
     const optimisticTaskCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmail);
-    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Created a task: ${title}`, parentReportID);
+    const optimisticAddCommentReport = ReportUtils.buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `Created a task: ${title}`, parentReportID);
     optimisticTaskReport.parentReportActionID = optimisticAddCommentReport.reportAction.reportActionID;
 
     const currentTime = DateUtils.getDBTime();
@@ -138,7 +138,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     if (assigneeChatReport) {
         assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
             currentUserAccountID,
-            assignee,
+            assigneeEmail,
             assigneeAccountID,
             taskReportID,
             assigneeChatReportID,
@@ -189,7 +189,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             createdTaskReportActionID: optimisticTaskCreatedAction.reportActionID,
             title: optimisticTaskReport.reportName,
             description: optimisticTaskReport.description,
-            assignee,
+            assignee: assigneeEmail,
             assigneeAccountID,
             assigneeChatReportID,
             assigneeChatReportActionID:
@@ -357,7 +357,7 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {String} editedTask.description
  * @param {String} editedTask.assignee
  * @param {Number} editedTask.assigneeAccountID
- * @param {Object} assigneeChatReport
+ * @param {Object} assigneeChatReport - The chat report between you and the assignee
  */
 function editTaskAndNavigate(report, ownerAccountID, {title, description, assignee = '', assigneeAccountID = 0}, assigneeChatReport = null) {
     // Create the EditedReportAction on the task

@@ -2777,7 +2777,7 @@ function shouldDisableRename(report, policy) {
 /**
  * Returns the onyx data needed for the task assignee chat
  * @param {Number} accountID
- * @param {String} assignee - Assignee email
+ * @param {String} assigneeEmail
  * @param {Number} assigneeAccountID
  * @param {String} taskReportID
  * @param {String} assigneeChatReportID
@@ -2786,7 +2786,7 @@ function shouldDisableRename(report, policy) {
  * @param {Object} assigneeChatReport
  * @returns {Object}
  */
-function getTaskAssigneeChatOnyxData(accountID, assignee, assigneeAccountID, taskReportID, assigneeChatReportID, parentReportID, title, assigneeChatReport) {
+function getTaskAssigneeChatOnyxData(accountID, assigneeEmail, assigneeAccountID, taskReportID, assigneeChatReportID, parentReportID, title, assigneeChatReport) {
     // Set if we need to add a comment to the assignee chat notifying them that they have been assigned a task
     let optimisticAssigneeAddComment;
     // Set if this is a new chat that needs to be created for the assignee
@@ -2853,7 +2853,7 @@ function getTaskAssigneeChatOnyxData(accountID, assignee, assigneeAccountID, tas
 
     // If you're choosing to share the task in the same DM as the assignee then we don't need to create another reportAction indicating that you've been assigned
     if (assigneeChatReportID !== parentReportID) {
-        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assignee, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
+        optimisticAssigneeAddComment = buildOptimisticTaskCommentReportAction(taskReportID, title, assigneeEmail, assigneeAccountID, `Assigned a task to you: ${title}`, parentReportID);
 
         const lastAssigneeCommentText = formatReportLastMessageText(optimisticAssigneeAddComment.reportAction.message[0].text);
         const optimisticAssigneeReport = {
