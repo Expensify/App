@@ -1,31 +1,22 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
-import {View, InteractionManager} from 'react-native';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {useFocusEffect} from '@react-navigation/native';
 import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
-import BigNumberPad from '../../../components/BigNumberPad';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import * as IOUUtils from '../../../libs/IOUUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
-import Button from '../../../components/Button';
 import CONST from '../../../CONST';
-import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
-import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
-import MoneyRequestAmountForm from './MoneyRequestAmountForm';
+import MoneyRequestAmountForm from './MoneyRequestAmountForm/MoneyRequestAmountForm';
+import * as IOUUtils from '../../../libs/IOUUtils';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -74,137 +65,76 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function NewRequestAmountPage(props) {
-    const { translate } = useLocalize();
-    const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
+function NewRequestAmountPage({route, report, iou, currentUserPersonalDetails}) {
+    const {translate} = useLocalize();
 
-    console.log('newshit');
+    const iouType = lodashGet(route, 'params.iouType', '');
+    const reportID = lodashGet(route, 'params.reportID', '');
+    const isEditing = lodashGet(route, 'path', '').includes('amount');
+    const currentCurrency = lodashGet(route, 'params.currency', '');
 
-    const prevMoneyRequestID = useRef(props.iou.id);
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
-    const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
-
-    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
-    const [selection, setSelection] = useState({
-        start: selectedAmountAsString.length,
-        end: selectedAmountAsString.length,
-    });
+    const {amount} = iou;
+    const currency = currentCurrency || iou.currency;
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SEND]: translate('iou.sendMoney'),
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
-    const titleForStep = isEditing.current ? translate('iou.amount') : title[iouType.current];
 
-    /**
-     * Check and dismiss modal
-     */
-    useEffect(() => {
-        if (!ReportUtils.shouldHideComposer(props.report, props.errors)) {
-            return;
-        }
-        Navigation.dismissModal(reportID.current);
-    }, [props.errors, props.report]);
-
-    useEffect(() => {
-        if (isEditing.current) {
-            if (prevMoneyRequestID.current !== props.iou.id) {
-                // The ID is cleared on completing a request. In that case, we will do nothing.
-                if (props.iou.id) {
-                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
-                }
-                return;
-            }
-            const moneyRequestID = `${iouType.current}${reportID.current}`;
-            const shouldReset = props.iou.id !== moneyRequestID;
-            if (shouldReset) {
-                IOU.resetMoneyRequestInfo(moneyRequestID);
-            }
-
-            if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
-            }
-        }
-
-        return () => {
-            prevMoneyRequestID.current = props.iou.id;
-        };
-    }, [props.iou.participants, props.iou.amount, props.iou.id]);
-
-    useEffect(() => {
-        if (!props.route.params.currency) {
-            return;
-        }
-
-        setSelectedCurrencyCode(props.route.params.currency);
-    }, [props.route.params.currency]);
+    const titleForStep = isEditing ? translate('iou.amount') : title[iouType];
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current) : null);
+        Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
     };
 
     const navigateToCurrencySelectionPage = () => {
         // Remove query from the route and encode it.
         const activeRoute = encodeURIComponent(Navigation.getActiveRoute().replace(/\?.*/, ''));
-        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType.current, reportID.current, selectedCurrencyCode, activeRoute));
+        Navigation.navigate(ROUTES.getMoneyRequestCurrencyRoute(iouType, reportID, currency, activeRoute));
     };
 
-    const navigateToNextPage = (amount) => {
-        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(selectedCurrencyCode, Number.parseFloat(amount));
+    const navigateToNextPage = (currentAmount) => {
+        const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(currency, Number.parseFloat(currentAmount));
         IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
-        IOU.setMoneyRequestCurrency(selectedCurrencyCode);
+        IOU.setMoneyRequestCurrency(currency);
 
-        // saveAmountToState(selectedCurrencyCode, amountInSmallestCurrencyUnits);
-
-        if (isEditing.current) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+        if (isEditing) {
+            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
             return;
-        }
-
-        const moneyRequestID = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestID;
-        // If the money request ID in Onyx does not match the ID from params, we want to start a new request
-        // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
-        if (shouldReset) {
-            IOU.setMoneyRequestId(moneyRequestID);
-            IOU.setMoneyRequestDescription('');
-            IOU.setMoneyRequestParticipants([]);
         }
 
         // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-        if (props.report.reportID) {
+        if (report.reportID) {
             // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
-            if (_.isEmpty(props.iou.participants) || shouldReset) {
-                const currentUserAccountID = props.currentUserPersonalDetails.accountID;
-                const participants = ReportUtils.isPolicyExpenseChat(props.report)
-                    ? [{reportID: props.report.reportID, isPolicyExpenseChat: true, selected: true}]
-                    : _.chain(props.report.participantAccountIDs)
+            if (_.isEmpty(iou.participants)) {
+                const currentUserAccountID = currentUserPersonalDetails.accountID;
+                const iouParticipants = ReportUtils.isPolicyExpenseChat(report)
+                    ? [{reportID: report.reportID, isPolicyExpenseChat: true, selected: true}]
+                    : _.chain(report.participantAccountIDs)
                           .filter((accountID) => currentUserAccountID !== accountID)
                           .map((accountID) => ({accountID, selected: true}))
                           .value();
-                IOU.setMoneyRequestParticipants(participants);
+                IOU.setMoneyRequestParticipants(iouParticipants);
             }
-            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
             return;
         }
-        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
+        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
     };
 
     return (
-        <MoneyRequestAmountForm
-            report={props.report}
-            iou={props.iou}
-            reportID={reportID.current}
-            iouType={iouType.current}
-            title={title}
-            navigateBack={navigateBack}
-            navigateToCurrencySelectionPage={navigateToCurrencySelectionPage}
-            route={props.route}
-            navigateToNextPage={navigateToNextPage}
-            currentUserPersonalDetails={props.currentUserPersonalDetails}
-        />
+        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
+            <MoneyRequestAmountForm
+                title={titleForStep}
+                isEditing={isEditing}
+                currency={currency}
+                amount={amount}
+                onBackButtonPress={navigateBack}
+                onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                onSubmitButtonPress={navigateToNextPage}
+            />
+        </FullPageNotFoundView>
     );
 }
 
