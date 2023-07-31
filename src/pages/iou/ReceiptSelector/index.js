@@ -56,12 +56,6 @@ const defaultProps = {
         attachmentInvalidReasonTitle: '',
         attachmentInvalidReason: '',
     },
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     report: {},
     iou: {
         id: '',

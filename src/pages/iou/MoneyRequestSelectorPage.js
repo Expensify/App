@@ -17,10 +17,8 @@ import styles from '../../styles/styles';
 import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
-import Tab from '../../libs/actions/Tab';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import OnyxTabNavigator from '../../libs/Navigation/OnyxTabNavigator';
-import {useNavigationState} from '@react-navigation/native';
 
 const TopTab = createMaterialTopTabNavigator();
 
@@ -96,7 +94,6 @@ function MoneyRequestSelectorPage(props) {
                             />
                             <OnyxTabNavigator
                                 id={CONST.TAB.RECEIPT_TAB_ID}
-                                backBehavior="order"
                                 tabBar={({state, navigation}) => (
                                     <TabSelector
                                         state={state}

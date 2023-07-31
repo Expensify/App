@@ -2,8 +2,19 @@ import React from 'react';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import PropTypes from 'prop-types';
 import Tab from '../actions/Tab';
 import ONYXKEYS from '../../ONYXKEYS';
+
+const propTypes = {
+    id: PropTypes.string.isRequired,
+    selectedTab: PropTypes.string,
+    children: PropTypes.node.isRequired,
+};
+
+const defaultProps = {
+    selectedTab: '',
+};
 
 const TopTab = createMaterialTopTabNavigator();
 
@@ -30,6 +41,10 @@ function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
         </TopTab.Navigator>
     );
 }
+
+OnyxTabNavigator.defaultProps = defaultProps;
+OnyxTabNavigator.propTypes = propTypes;
+OnyxTabNavigator.displayName = 'OnyxTabNavigator';
 
 export default withOnyx({
     selectedTab: {
