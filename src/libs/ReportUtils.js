@@ -1876,7 +1876,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
-    writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL,
+    writeCapability = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
@@ -2046,6 +2046,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         false,
         policyName,
         null,
+        undefined,
 
         // #announce contains all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
