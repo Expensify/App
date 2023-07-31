@@ -231,7 +231,7 @@ function BasePaymentsPage(props) {
     );
 
     const makeDefaultPaymentMethod = useCallback(() => {
-        const paymentCardList = props.fundList || props.cardList;
+        const paymentCardList = props.fundList || props.cardList || {};
         const paymentCardOnyxKey = props.fundList ? ONYXKEYS.FUND_LIST : ONYXKEYS.CARD_LIST;
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
         const paymentMethods = PaymentUtils.formatPaymentMethods(props.bankAccountList, paymentCardList);

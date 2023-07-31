@@ -97,7 +97,7 @@ class KYCWall extends React.Component {
     continue(event, iouPaymentType) {
         this.setState({transferBalanceButton: event.nativeEvent.target});
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
-        const paymentCardList = this.props.fundList || this.props.cardList;
+        const paymentCardList = this.props.fundList || this.props.cardList || {};
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (

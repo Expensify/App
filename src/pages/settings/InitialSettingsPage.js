@@ -184,7 +184,7 @@ function InitialSettingsPage(props) {
                 : null;
         const profileBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(props.loginList);
 
-        const paymentCardList = props.fundList || props.cardList;
+        const paymentCardList = props.fundList || props.cardList || {};
 
         return [
             {

@@ -70,7 +70,7 @@ const defaultProps = {
 };
 
 function TransferBalancePage(props) {
-    const paymentCardList = props.fundList || props.cardList;
+    const paymentCardList = props.fundList || props.cardList || {};
 
     const paymentTypes = [
         {

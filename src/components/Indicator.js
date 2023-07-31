@@ -72,7 +72,7 @@ function Indicator(props) {
     const cleanPolicies = _.pick(props.policies, (policy) => policy);
     const cleanAllPolicyMembers = _.pick(props.allPolicyMembers, (policyMembers) => policyMembers);
 
-    const paymentCardList = props.fundList || props.cardList;
+    const paymentCardList = props.fundList || props.cardList || {};
 
     // All of the error & info-checking methods are put into an array. This is so that using _.some() will return
     // early as soon as the first error / info condition is returned. This makes the checks very efficient since

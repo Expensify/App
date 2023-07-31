@@ -162,7 +162,7 @@ function PaymentMethodList(props) {
         translate,
     } = props;
 
-    const paymentCardList = fundList || cardList;
+    const paymentCardList = fundList || cardList || {};
 
     const filteredPaymentMethods = useMemo(() => {
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
