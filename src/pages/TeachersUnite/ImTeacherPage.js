@@ -40,8 +40,8 @@ function ImTeacherPage(props) {
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
-                    accessibilityLabel={props.translate('teachersUnitePage.updateEmail')}
                     success
+                    accessibilityLabel={props.translate('teachersUnitePage.updateEmail')}
                     text={props.translate('teachersUnitePage.updateEmail')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
                 />

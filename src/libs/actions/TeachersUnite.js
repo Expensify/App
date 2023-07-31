@@ -52,9 +52,7 @@ function referTeachersUniteVolunteer(reportID, firstName, phoneOrEmail, lastName
     //         lastName,
     //         phoneOrEmail,
     //     },
-    //     {
-    //         optimisticData,
-    //     },
+    //     {optimisticData},
     // );
     Navigation.dismissModal(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID);
 }
