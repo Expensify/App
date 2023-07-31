@@ -3586,31 +3586,6 @@ const styles = {
         textAlign: 'center',
     },
 
-    loginButtonRow: {
-        justifyContent: 'center',
-        width: '100%',
-        flexDirection: 'row',
-    },
-
-    loginButtonRowSmallScreen: {
-        justifyContent: 'center',
-        width: '100%',
-        marginBottom: 10,
-        flexDirection: 'row',
-    },
-
-    appleButtonContainer: {
-        width: 40,
-        height: 40,
-        marginRight: 20,
-    },
-
-    signInIconButton: {
-        margin: 10,
-        marginTop: 0,
-        padding: 2,
-    },
-
     tabSelectorButton: (isSelected) => ({
         height: 40,
         padding: 12,

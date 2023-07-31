@@ -37,7 +37,7 @@ function TimezoneInitialPage(props) {
     const updateAutomaticTimezone = (isAutomatic) => {
         PersonalDetails.updateAutomaticTimezone({
             automatic: isAutomatic,
-            isSelected: isAutomatic ? moment.tz.guess() : timezone.selected,
+            selected: isAutomatic ? moment.tz.guess() : timezone.selected,
         });
     };
 
