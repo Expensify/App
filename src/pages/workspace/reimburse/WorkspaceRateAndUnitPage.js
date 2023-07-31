@@ -67,7 +67,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
         if (!distanceCustomUnit) {
             return;
         }
-        const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (r) => r.name === 'Default Rate');
+        const currentCustomUnitRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (r) => r.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
         const unitID = lodashGet(distanceCustomUnit, 'customUnitID', '');
         const unitName = lodashGet(distanceCustomUnit, 'name', '');
         const rateNumValue = this.getNumericValue(rate);
@@ -102,7 +102,7 @@ class WorkspaceRateAndUnitPage extends React.Component {
 
     render() {
         const distanceCustomUnit = _.find(lodashGet(this.props, 'policy.customUnits', {}), (unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === 'Default Rate');
+        const distanceCustomRate = _.find(lodashGet(distanceCustomUnit, 'rates', {}), (rate) => rate.name === CONST.CUSTOM_UNITS.DEFAULT_RATE);
         return (
             <WorkspacePageWithSections
                 headerText={this.props.translate('workspace.reimburse.trackDistance')}
