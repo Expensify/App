@@ -12,8 +12,6 @@ import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Transaction description default value */
     defaultDescription: PropTypes.string.isRequired,
 

@@ -5,7 +5,6 @@ import {withOnyx} from 'react-native-onyx';
 import CONST from '../CONST';
 import Navigation from '../libs/Navigation/Navigation';
 import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import EditRequestDescriptionPage from './EditRequestDescriptionPage';
@@ -13,8 +12,6 @@ import reportPropTypes from './reportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
     /** Route from navigation */
     route: PropTypes.shape({
         /** Params from the route */
@@ -68,7 +65,6 @@ EditRequestPage.displayName = 'EditRequestPage';
 EditRequestPage.propTypes = propTypes;
 EditRequestPage.defaultProps = defaultProps;
 export default compose(
-    withLocalize,
     withOnyx({
         report: {
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.threadReportID}`,
