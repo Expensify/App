@@ -38,6 +38,7 @@ import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** All the data of the action */
@@ -239,15 +240,15 @@ function ReportActionItemMessageEdit(props) {
 
         const report = ReportUtils.getReport(props.reportID);
 
-        // updating in child message cause parent draft message to change
+        // Updating in child message cause parent draft message to change
         if (report.parentReportActionID && lodashGet(props.action, 'childType', '') === CONST.REPORT.TYPE.CHAT) {
-            if (lodashGet(props.drafts, [`reportActionsDrafts_${report.parentReportID}_${props.action.reportActionID}`], undefined)) {
+            if (lodashGet(props.drafts, [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${report.parentReportID}_${props.action.reportActionID}`], undefined)) {
                 Report.saveReportActionDraft(report.parentReportID, props.action.reportActionID, trimmedNewDraft);
             }
         }
-        // updating in parent message cause child draft message to change
+        // Updating in parent message cause child draft message to change
         if (props.action.childReportID) {
-            if (lodashGet(props.drafts, [`reportActionsDrafts_${props.action.childReportID}_${props.action.reportActionID}`], undefined)) {
+            if (lodashGet(props.drafts, [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.action.childReportID}_${props.action.reportActionID}`], undefined)) {
                 Report.saveReportActionDraft(props.action.childReportID, props.action.reportActionID, trimmedNewDraft);
             }
         }
@@ -412,7 +413,6 @@ export default compose(
     withLocalize,
     withReportActionsDrafts({
         propName: 'drafts',
-        transformValue: (drafts) => drafts,
     }),
 )(
     React.forwardRef((props, ref) => (
