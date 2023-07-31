@@ -6,6 +6,9 @@ import Header from './Header';
 import styles from '../styles/styles';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import {withNetwork} from './OnyxProvider';
+import networkPropTypes from './networkPropTypes';
+import compose from '../libs/compose';
 import Text from './Text';
 
 const propTypes = {
@@ -33,12 +36,18 @@ const propTypes = {
     /** Whether we should use the danger button color. Use if the action is destructive */
     danger: PropTypes.bool,
 
+    /** Whether we should disable the confirm button when offline */
+    shouldDisableConfirmButtonWhenOffline: PropTypes.bool,
+
     /** Whether we should show the cancel button */
     shouldShowCancelButton: PropTypes.bool,
 
     /** Styles for view */
     // eslint-disable-next-line react/forbid-prop-types
     contentStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Information about the network */
+    network: networkPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -50,6 +59,7 @@ const defaultProps = {
     success: true,
     danger: false,
     onCancel: () => {},
+    shouldDisableConfirmButtonWhenOffline: false,
     shouldShowCancelButton: true,
     contentStyles: [],
 };
@@ -70,6 +80,7 @@ function ConfirmContent(props) {
                 onPress={props.onConfirm}
                 pressOnEnter
                 text={props.confirmText || props.translate('common.yes')}
+                isDisabled={props.network.isOffline && props.shouldDisableConfirmButtonWhenOffline}
             />
             {props.shouldShowCancelButton && (
                 <Button
@@ -86,4 +97,7 @@ function ConfirmContent(props) {
 ConfirmContent.propTypes = propTypes;
 ConfirmContent.defaultProps = defaultProps;
 ConfirmContent.displayName = 'ConfirmContent';
-export default withLocalize(ConfirmContent);
+export default compose(
+    withLocalize,
+    withNetwork(),
+)(ConfirmContent);
