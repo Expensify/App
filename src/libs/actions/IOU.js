@@ -1504,7 +1504,7 @@ function setMoneyRequestParticipants(participants) {
 }
 
 export {
-    editTransaction,
+    editIOUTransaction,
     deleteMoneyRequest,
     splitBill,
     splitBillAndOpenReport,
