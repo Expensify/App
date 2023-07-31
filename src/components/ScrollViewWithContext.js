@@ -8,10 +8,10 @@ const ScrollContext = React.createContext();
 // eslint-disable-next-line react/forbid-foreign-prop-types
 const propTypes = ScrollView.propTypes;
 
-function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRef, ...restProps}, ref) {
+function ScrollViewWithContext({onScroll, scrollEventThrottle, children, innerRef, ...restProps}) {
     const [contentOffsetY, setContentOffsetY] = useState(0);
     const defaultScrollViewRef = useRef();
-    const scrollViewRef = innerRef || ref || defaultScrollViewRef;
+    const scrollViewRef = innerRef || defaultScrollViewRef;
 
     const setContextScrollPosition = (event) => {
         if (onScroll) {
