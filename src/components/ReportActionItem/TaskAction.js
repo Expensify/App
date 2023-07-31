@@ -56,10 +56,7 @@ function TaskAction(props) {
     return (
         <>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                <Text>
-                    <Text style={[styles.colorMuted]}>{taskStatusText}</Text>
-                    <Text style={[styles.chatItemMessage]}>{` ${taskReportName}`}</Text>
-                </Text>
+                <Text style={[styles.chatItemMessage, styles.colorMuted]}>{`${taskStatusText} ${taskReportName}`}</Text>
             </View>
         </>
     );
