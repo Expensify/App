@@ -1,29 +1,59 @@
 import React, {useEffect, useState, useRef, useCallback} from 'react';
 import {View, InteractionManager} from 'react-native';
+import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import {useFocusEffect} from '@react-navigation/native';
-import styles from '../../../../styles/styles';
-import BigNumberPad from '../../../../components/BigNumberPad';
-import * as CurrencyUtils from '../../../../libs/CurrencyUtils';
-import * as MoneyRequestUtils from '../../../../libs/MoneyRequestUtils';
-import Button from '../../../../components/Button';
-import * as DeviceCapabilities from '../../../../libs/DeviceCapabilities';
-import TextInputWithCurrencySymbol from '../../../../components/TextInputWithCurrencySymbol';
-import ScreenWrapper from '../../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../../components/HeaderWithBackButton';
-import useLocalize from '../../../../hooks/useLocalize';
-import CONST from '../../../../CONST';
-import * as propTypes from './moneyRequestAmountFormPropTypes';
+import styles from '../../../styles/styles';
+import BigNumberPad from '../../../components/BigNumberPad';
+import * as CurrencyUtils from '../../../libs/CurrencyUtils';
+import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
+import Button from '../../../components/Button';
+import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
+import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import useLocalize from '../../../hooks/useLocalize';
+import CONST from '../../../CONST';
+
+const propTypes = {
+    /** IOU amount saved in Onyx */
+    amount: PropTypes.number,
+
+    /** Currency chosen by user or saved in Onyx */
+    currency: PropTypes.string,
+
+    /** Title to be displayed in the header */
+    title: PropTypes.string,
+
+    /** Whether the amount is being edited or not */
+    isEditing: PropTypes.bool,
+
+    /** Fired when back button pressed, navigates back to a proper page */
+    onBackButtonPress: PropTypes.func.isRequired,
+
+    /** Fired when back button pressed, navigates to currency selection page */
+    onCurrencyButtonPress: PropTypes.func.isRequired,
+
+    /** Fired when submit button pressed, saves the given amount and navigates to the next page */
+    onSubmitButtonPress: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+    amount: 0,
+    currency: CONST.CURRENCY.USD,
+    title: '',
+    isEditing: false,
+};
 
 const amountViewID = 'amountView';
 const numPadContainerViewID = 'numPadContainerView';
 const numPadViewID = 'numPadView';
 
-function MoneyRequestAmountForm({amount = 0, currency = CONST.CURRENCY.USD, isEditing = false, title = '', onBackButtonPress, onCurrencyButtonPress, onSubmitButtonPress}) {
+function MoneyRequestAmountForm(props) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
 
-    const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
+    const selectedAmountAsString = props.amount ? CurrencyUtils.convertToWholeUnit(props.currency, props.amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -87,8 +117,8 @@ function MoneyRequestAmountForm({amount = 0, currency = CONST.CURRENCY.USD, isEd
     };
 
     useEffect(() => {
-        saveAmountToState(currency, amount);
-    }, [amount, currency]);
+        saveAmountToState(props.currency, props.amount);
+    }, [props.amount, props.currency]);
 
     useFocusEffect(
         useCallback(() => {
@@ -171,11 +201,11 @@ function MoneyRequestAmountForm({amount = 0, currency = CONST.CURRENCY.USD, isEd
      *
      */
     const handleSubmit = useCallback(() => {
-        onSubmitButtonPress(currentAmount);
-    }, [onSubmitButtonPress, currentAmount]);
+        props.onSubmitButtonPress(currentAmount);
+    }, [props.onSubmitButtonPress, currentAmount]);
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
-    const buttonText = isEditing ? translate('common.save') : translate('common.next');
+    const buttonText = props.isEditing ? translate('common.save') : translate('common.next');
 
     return (
         <ScreenWrapper
@@ -185,8 +215,8 @@ function MoneyRequestAmountForm({amount = 0, currency = CONST.CURRENCY.USD, isEd
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={title}
-                        onBackButtonPress={onBackButtonPress}
+                        title={props.title}
+                        onBackButtonPress={props.onBackButtonPress}
                     />
                     <View
                         nativeID={amountViewID}
@@ -196,10 +226,10 @@ function MoneyRequestAmountForm({amount = 0, currency = CONST.CURRENCY.USD, isEd
                         <TextInputWithCurrencySymbol
                             formattedAmount={formattedAmount}
                             onChangeAmount={updateAmount}
-                            onCurrencyButtonPress={onCurrencyButtonPress}
+                            onCurrencyButtonPress={props.onCurrencyButtonPress}
                             placeholder={numberFormat(0)}
                             ref={textInput}
-                            selectedCurrencyCode={currency}
+                            selectedCurrencyCode={props.currency}
                             selection={selection}
                             onSelectionChange={(e) => {
                                 if (!shouldUpdateSelection) {
@@ -237,6 +267,7 @@ function MoneyRequestAmountForm({amount = 0, currency = CONST.CURRENCY.USD, isEd
 }
 
 MoneyRequestAmountForm.propTypes = propTypes;
+MoneyRequestAmountForm.defaultProps = defaultProps;
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
 export default MoneyRequestAmountForm;
