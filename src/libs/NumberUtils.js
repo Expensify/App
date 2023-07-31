@@ -47,7 +47,4 @@ function generateHexadecimalValue(num) {
         .toUpperCase();
 }
 
-export {
-    rand64,
-    generateHexadecimalValue,
-};
+export {rand64, generateHexadecimalValue};
