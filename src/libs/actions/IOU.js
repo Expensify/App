@@ -792,6 +792,16 @@ function editIOUTransaction(transactionID, transactionThreadReportID, updatedTra
         },
     ];
 
+    const successData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread.reportID}`,
+            value: {
+                [reportAction.reportActionID]: {pendingAction: null},
+            },
+        },
+    ];
+
     const failureData = [
         {
             onyxMethod: Onyx.METHOD.SET,

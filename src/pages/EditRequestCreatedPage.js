@@ -1,15 +1,14 @@
 import React, {useRef} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import TextInput from '../components/TextInput';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Form from '../components/Form';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
-import CONST from '../CONST';
 import useLocalize from '../hooks/useLocalize';
+import NewDatePicker from '../components/NewDatePicker';
+import * as ValidationUtils from '../libs/ValidationUtils';
 
 const propTypes = {
     /** Transaction created default value */
@@ -19,37 +18,46 @@ const propTypes = {
     onSubmit: PropTypes.func.isRequired,
 };
 
-function EditRequestCreatedPage({defaultDescription, onSubmit}) {
+function EditRequestCreatedPage({defaultCreated, onSubmit}) {
     const {translate} = useLocalize();
-    const descriptionInputRef = useRef(null);
+
+    /**
+     * @param {Object} values
+     * @param {String} values.dob - date of birth
+     * @returns {Object} - An object containing the errors for each inputID
+     */
+    const validate = useCallback((values) => {
+        const errors = {};
+
+        if (!values.dob || !ValidationUtils.isValidDate(values.dob)) {
+            errors.dob = 'common.error.fieldRequired';
+        }
+
+        return errors;
+    }, []);
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            onEntryTransitionEnd={() => descriptionInputRef.current && descriptionInputRef.current.focus()}
         >
             <HeaderWithBackButton
-                title={translate('common.description')}
+                title={translate('common.date')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
-                formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
+                formID={ONYXKEYS.FORMS.MONEY_REQUEST_CREATED_FORM}
+                validate={validate}
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
-                    <TextInput
-                        inputID="modifiedCreated"
-                        name="modifiedCreated"
-                        defaultValue={defaultDescription}
-                        label={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-                        ref={descriptionInputRef}
-                    />
-                </View>
+                <NewDatePicker
+                    inputID="modifiedCreated"
+                    label={translate('common.date')}
+                    defaultValue={defaultCreated}
+                />
             </Form>
         </ScreenWrapper>
     );
