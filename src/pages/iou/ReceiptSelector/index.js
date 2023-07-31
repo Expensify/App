@@ -3,7 +3,6 @@ import React, {useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {compose} from 'underscore';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
 import CONST from '../../../CONST';
@@ -19,7 +18,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
-import withCurrentReportID from '../../../components/withCurrentReportID';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 
 const propTypes = {
@@ -32,6 +30,13 @@ const propTypes = {
 
     /** The report on which the request is initiated on */
     report: reportPropTypes,
+
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            iouType: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
+    }),
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
@@ -57,6 +62,12 @@ const defaultProps = {
         attachmentInvalidReason: '',
     },
     report: {},
+    route: {
+        params: {
+            iouType: '',
+            reportID: '',
+        },
+    },
     iou: {
         id: '',
         amount: 0,
@@ -66,7 +77,7 @@ const defaultProps = {
 };
 
 function ReceiptSelector(props) {
-    const reportID = useRef(lodashGet(props, 'currentReportID', ''));
+    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
     const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
@@ -148,13 +159,10 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default compose(
-    withCurrentReportID,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
-        report: {
-            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-        },
-    }),
-)(ReceiptSelector);
+export default withOnyx({
+    iou: {key: ONYXKEYS.IOU},
+    receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+    },
+})(ReceiptSelector);

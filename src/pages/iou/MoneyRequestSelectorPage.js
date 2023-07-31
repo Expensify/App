@@ -111,10 +111,12 @@ function MoneyRequestSelectorPage(props) {
                                     <TopTab.Screen
                                         name={CONST.TAB.TAB_MANUAL}
                                         component={MoneyRequestAmount}
+                                        initialParams={{reportID: reportID.current}}
                                     />
                                     <TopTab.Screen
                                         name={CONST.TAB.TAB_SCAN}
                                         component={ReceiptSelector}
+                                        initialParams={{reportID: reportID.current}}
                                     />
                                 </OnyxTabNavigator>
                             )}

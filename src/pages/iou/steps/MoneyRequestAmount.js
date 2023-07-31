@@ -25,7 +25,6 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import * as IOUUtils from '../../../libs/IOUUtils';
-import withCurrentReportID from '../../../components/withCurrentReportID';
 
 const propTypes = {
     /** The report on which the request is initiated on */
@@ -47,6 +46,13 @@ const propTypes = {
         ),
     }),
 
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            iouType: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
+    }),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -57,6 +63,12 @@ const defaultProps = {
         amount: 0,
         currency: CONST.CURRENCY.USD,
         participants: [],
+    },
+    route: {
+        params: {
+            iouType: '',
+            reportID: '',
+        },
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -162,7 +174,7 @@ function MoneyRequestAmount(props) {
     const prevMoneyRequestID = useRef(props.iou.id);
     const textInput = useRef(null);
     const iouType = useRef(lodashGet(props, 'iou.iouType', ''));
-    const reportID = useRef(lodashGet(props, 'currentReportID', ''));
+    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const isEditing = useRef(Navigation.getActiveRoute().includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
@@ -482,11 +494,10 @@ MoneyRequestAmount.displayName = 'MoneyRequestAmount';
 
 export default compose(
     withCurrentUserPersonalDetails,
-    withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         report: {
-            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
     }),
 )(MoneyRequestAmount);
