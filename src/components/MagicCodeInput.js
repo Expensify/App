@@ -264,8 +264,6 @@ function MagicCodeInput(props) {
         }
     };
 
-    const isBrowser = Boolean(Browser.getBrowser());
-
     return (
         <>
             <View style={[styles.magicCodeInputContainer]}>
@@ -308,9 +306,11 @@ function MagicCodeInput(props) {
                                 }}
                                 onKeyPress={onKeyPress}
                                 onFocus={(event) => onFocus(event, index)}
+                                // Manually set selectionColor to make caret transparent.
+                                // We cannot use caretHidden as it breaks the pasting function on Android.
                                 selectionColor="transparent"
                                 textInputContainerStyles={[styles.borderNone]}
-                                inputStyle={[styles.magicCodeInputTransparent, isBrowser ? styles.magicCodeInputTransparentWebKit : undefined]}
+                                inputStyle={[styles.inputTransparent]}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             />
                         </View>
