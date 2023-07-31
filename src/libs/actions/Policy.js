@@ -360,24 +360,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
 
-    // Optimistic personal details for the new accounts invited
-    const optimisticPersonalDetails = _.chain(invitedEmailsToAccountIDs)
-        .map(
-            (accountID, memberLogin) =>
-                !_.has(allPersonalDetails, accountID) && [
-                    accountID,
-                    {
-                        accountID,
-                        avatar: UserUtils.getDefaultAvatarURL(accountID),
-                        displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
-                        login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
-                    },
-                ],
-        )
-        .compact()
-        .object()
-        .value();
-
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -388,11 +370,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetails,
-        },
     ];
 
     const successData = [
@@ -406,11 +383,6 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
         },
         ...newPersonalDetailsOnyxData.successData,
         ...membersChats.onyxSuccessData,
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: _.object(_.keys(optimisticPersonalDetails), Array(_.size(optimisticPersonalDetails)).fill(null)),
-        },
     ];
 
     const failureData = [
