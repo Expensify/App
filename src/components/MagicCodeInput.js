@@ -12,7 +12,6 @@ import FormHelpMessage from './FormHelpMessage';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
 import useNetwork from '../hooks/useNetwork';
-import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** Information about the network */
