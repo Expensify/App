@@ -29,14 +29,14 @@ const defaultProps = {
 };
 
 /**
- * Submit form to pass firstName, lastName and phoneOrEmail
+ * Submit form to pass firstName, phoneOrEmail and lastName
  * @param {Object} values
  * @param {String} values.firstName
- * @param {String} values.lastName
  * @param {String} values.phoneOrEmail
+ * @param {String} values.lastName
  */
 const submit = (values) => {
-    TeachersUnite.referTeachersUniteVolunteer(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID, values.firstName, values.lastName, values.phoneOrEmail);
+    TeachersUnite.referTeachersUniteVolunteer(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID, values.firstName.trim(), values.phoneOrEmail.trim(), values.lastName.trim());
 };
 
 const getPhoneLogin = (phoneOrEmail) => {

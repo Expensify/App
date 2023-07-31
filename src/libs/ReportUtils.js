@@ -2738,6 +2738,27 @@ function shouldDisableRename(report, policy) {
     return !_.keys(loginList).includes(policy.owner) && policy.role !== CONST.POLICY.ROLE.ADMIN;
 }
 
+/**
+ * @param {String} policyID
+ * @param {String} policyName
+ * @returns {Object}
+ */
+function buildOptimisticExpenseChatForSchoolPrincipal(policyID, policyName) {
+    const expenseChatData = buildOptimisticChatReport([currentUserAccountID], '', CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID, currentUserAccountID, true, policyName);
+    const expenseChatReportID = expenseChatData.reportID;
+    const expenseReportCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
+    const expenseReportActionData = {
+        [expenseReportCreatedAction.reportActionID]: expenseReportCreatedAction,
+    };
+
+    return {
+        expenseChatReportID,
+        expenseChatData,
+        expenseReportActionData,
+        expenseCreatedReportActionID: expenseReportCreatedAction.reportActionID,
+    };
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -2852,4 +2873,5 @@ export {
     shouldDisableSettings,
     shouldDisableRename,
     hasSingleParticipant,
+    buildOptimisticExpenseChatForSchoolPrincipal,
 };

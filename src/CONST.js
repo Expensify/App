@@ -2548,6 +2548,7 @@ const CONST = {
     TEACHER_UNITE: {
         // PUBLIC_ROOM_ID TBD later stage currently we are just using ECX #anounce room
         PUBLIC_ROOM_ID: '3504895439653267',
+        SCHOOL_PRINCIPAL_POLICY_ID: 'E4A84B830909EBD3',
     },
 };
 

@@ -15,6 +15,7 @@ import styles from '../../styles/styles';
 import * as ErrorUtils from '../../libs/ErrorUtils';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
+import TeachersUnite from '../../libs/actions/TeachersUnite';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,31 +28,32 @@ const defaultProps = {
 
 /**
  * @param {Object} values
- * @param {String} values.principalFirstName
- * @param {String} values.principalEmail
+ * @param {String} values.firstName
+ * @param {String} values.email
+ * @param {String} values.lastName
  */
-const updateDisplayName = () => {
-    // PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
+const submit = (values) => {
+    TeachersUnite.createExpenseChatSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName.trim());
 };
 
 function IntroSchoolPrincipalPage(props) {
     /**
      * @param {Object} values
-     * @param {String} values.principalFirstName
-     * @param {String} values.principalEmail
+     * @param {String} values.firstName
+     * @param {String} values.email
      * @returns {Object} - An object containing the errors for each inputID
      */
     const validate = (values) => {
         const errors = {};
 
-        if (_.isEmpty(values.principalFirstName)) {
-            ErrorUtils.addErrorMessage(errors, 'principalFirstName', props.translate('teachersUnitePage.error.enterName'));
+        if (_.isEmpty(values.firstName)) {
+            ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('teachersUnitePage.error.enterName'));
         }
-        if (_.isEmpty(values.principalEmail)) {
-            ErrorUtils.addErrorMessage(errors, 'principalEmail', props.translate('teachersUnitePage.error.enterEmail'));
+        if (_.isEmpty(values.email)) {
+            ErrorUtils.addErrorMessage(errors, 'email', props.translate('teachersUnitePage.error.enterEmail'));
         }
-        if (!_.isEmpty(values.principalEmail) && !Str.isValidEmail(values.principalEmail)) {
-            ErrorUtils.addErrorMessage(errors, 'principalEmail', props.translate('teachersUnitePage.error.enterValidEmail'));
+        if (!_.isEmpty(values.email) && !Str.isValidEmail(values.email)) {
+            ErrorUtils.addErrorMessage(errors, 'email', props.translate('teachersUnitePage.error.enterValidEmail'));
         }
 
         return errors;
@@ -67,15 +69,15 @@ function IntroSchoolPrincipalPage(props) {
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL}
                 validate={validate}
-                onSubmit={updateDisplayName}
+                onSubmit={submit}
                 submitButtonText={props.translate('common.letsStart')}
                 enabledWhenOffline
             >
                 <Text style={[styles.mb6]}>{props.translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
                 <View>
                     <TextInput
-                        inputID="principalFirstName"
-                        name="fname"
+                        inputID="firstName"
+                        name="firstName"
                         label={props.translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={props.translate('teachersUnitePage.principalFirstName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -85,8 +87,8 @@ function IntroSchoolPrincipalPage(props) {
                 </View>
                 <View style={styles.mv4}>
                     <TextInput
-                        inputID="principalLastName"
-                        name="lname"
+                        inputID="lastName"
+                        name="lastName"
                         label={props.translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={props.translate('teachersUnitePage.principalLastName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
@@ -100,7 +102,7 @@ function IntroSchoolPrincipalPage(props) {
                         accessibilityLabel={props.translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
-                        inputID="principalEmail"
+                        inputID="email"
                         autoCapitalize="none"
                     />
                 </View>
