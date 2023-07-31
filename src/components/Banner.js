@@ -13,6 +13,7 @@ import getButtonState from '../libs/getButtonState';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Text to display in the banner. */
@@ -96,7 +97,7 @@ function Banner(props) {
                             <Tooltip text={props.translate('common.close')}>
                                 <PressableWithFeedback
                                     onPress={props.onClose}
-                                    accessibilityRole="button"
+                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                     accessibilityLabel={props.translate('common.close')}
                                 >
                                     <Icon src={Expensicons.Close} />

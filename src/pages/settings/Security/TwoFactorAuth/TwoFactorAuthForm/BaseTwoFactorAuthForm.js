@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useState, forwardRef, useImperativeHandle} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import MagicCodeInput from '../../../../../components/MagicCodeInput';
@@ -31,6 +31,7 @@ const defaultProps = {
 function BaseTwoFactorAuthForm(props) {
     const [formError, setFormError] = useState({});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
+    const inputRef = React.useRef(null);
 
     /**
      * Handle text input and clear formError upon text change
@@ -53,6 +54,9 @@ function BaseTwoFactorAuthForm(props) {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
+        if (inputRef.current) {
+            inputRef.current.blur();
+        }
         if (!twoFactorAuthCode.trim()) {
             setFormError({twoFactorAuthCode: 'twoFactorAuthForm.error.pleaseFillTwoFactorAuth'});
             return;
@@ -67,6 +71,12 @@ function BaseTwoFactorAuthForm(props) {
         Session.validateTwoFactorAuth(twoFactorAuthCode);
     }, [twoFactorAuthCode]);
 
+    useImperativeHandle(props.innerRef, () => ({
+        validateAndSubmitForm() {
+            validateAndSubmitForm();
+        },
+    }));
+
     return (
         <MagicCodeInput
             autoComplete={props.autoComplete}
@@ -78,6 +88,7 @@ function BaseTwoFactorAuthForm(props) {
             onChangeText={onTextInput}
             onFulfill={validateAndSubmitForm}
             errorText={formError.twoFactorAuthCode ? props.translate(formError.twoFactorAuthCode) : ErrorUtils.getLatestErrorMessage(props.account)}
+            ref={inputRef}
         />
     );
 }
@@ -90,4 +101,12 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
-)(BaseTwoFactorAuthForm);
+)(
+    forwardRef((props, ref) => (
+        <BaseTwoFactorAuthForm
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            innerRef={ref}
+        />
+    )),
+);

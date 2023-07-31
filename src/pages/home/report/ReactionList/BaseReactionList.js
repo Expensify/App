@@ -87,6 +87,7 @@ function BaseReactionList(props) {
                 participantsList: [item],
                 icons: [
                     {
+                        id: item.accountID,
                         source: UserUtils.getAvatar(item.avatar, item.accountID),
                         name: item.login,
                         type: CONST.ICON_TYPE_AVATAR,

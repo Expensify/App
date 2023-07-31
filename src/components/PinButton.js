@@ -9,6 +9,7 @@ import * as Report from '../libs/actions/Report';
 import * as Expensicons from './Icon/Expensicons';
 import * as Session from '../libs/actions/Session';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Report to pin */
@@ -28,7 +29,7 @@ function PinButton(props) {
                 style={[styles.touchableButtonImage]}
                 accessibilityState={{checked: props.report.isPinned}}
                 accessibilityLabel={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}
-                accessibilityRole="button"
+                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
             >
                 <Icon
                     src={Expensicons.Pin}

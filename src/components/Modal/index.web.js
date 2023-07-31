@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import {InteractionManager} from 'react-native';
 import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
 import {propTypes, defaultProps} from './modalPropTypes';
@@ -16,7 +15,7 @@ function Modal(props) {
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => StatusBar.setBackgroundColor(color));
+        StatusBar.setBackgroundColor(color);
     };
 
     const hideModal = () => {

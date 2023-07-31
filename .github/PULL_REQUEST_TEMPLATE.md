@@ -5,21 +5,21 @@
 
 ### Fixed Issues
 <!---
-1. Please replace GH_LINK with a URL link to the GitHub issue this Pull Request is fixing.
-2. Please replace PROPOSAL: GH_LINK_ISSUE(COMMENT) with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).
+1. Please postfix `$` with a URL link to the GitHub issue this Pull Request is fixing. For example, `$ https://github.com/Expensify/App/issues/<issueID>`.
+2. Please postfix  `PROPOSAL:` with a URL link to your GitHub comment, which contains the approved proposal (i.e. the proposal that was approved by Expensify).  For example, `PROPOSAL: https://github.com/Expensify/App/issues/<issueID>#issuecomment-1369752925`
 
 Do NOT add the special GH keywords like `fixed` etc, we have our own process of managing the flow.
-It MUST be an entire link to the github issue and your comment proposal ; otherwise, the linking will not work as expected.
+It MUST be an entire link to the github issue and your comment proposal ; otherwise, the linking and its automation will not work as expected.
 
 Make sure this section looks similar to this (you can link multiple issues using the same formatting, just add a new line):
 
-$ https://github.com/Expensify/App/issues/<number-of-the-issue>
-$ https://github.com/Expensify/App/issues/<number-of-the-issue(comment)>
+$ https://github.com/Expensify/App/issues/<issueID>
+$ https://github.com/Expensify/App/issues/<issueID(comment)>
 
-Do NOT only link the issue number like this: $ #<number-of-the-issue>
+Do NOT only link the issue number like this: $ #<issueID>
 --->
-$ GH_LINK
-PROPOSAL: GH_LINK_ISSUE(COMMENT)
+$ 
+PROPOSAL: 
 
 
 ### Tests
@@ -100,6 +100,7 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] The file is named correctly
     - [ ] The component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone
     - [ ] The only data being stored in the state is data necessary for rendering and nothing else
+    - [ ] If we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes
     - [ ] For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)
     - [ ] Any internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)
     - [ ] All JSX used for rendering exists in the render method

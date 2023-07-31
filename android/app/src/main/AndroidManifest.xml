@@ -54,6 +54,7 @@
 
                 <!-- Production URLs -->
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/r"/>
+                <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/a"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/settings"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/details"/>
                 <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/v"/>
@@ -65,6 +66,7 @@
 
                 <!-- Staging URLs -->
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
+                <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/a"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/settings"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/details"/>
                 <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/v"/>
