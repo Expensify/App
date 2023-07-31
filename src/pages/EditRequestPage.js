@@ -33,12 +33,15 @@ const defaultProps = {
     report: {},
 };
 
-function EditRequestPage({report}) {
+function EditRequestPage({report, route}) {
     const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     const transactionID = ReportActionsUtils.getLinkedTransactionID(ReportUtils.getParentReport(report), parentReportAction)
     const transaction = TransactionUtils.getTransaction(transactionID);
-    const transactionDescription = moneyRequestReportAction.comment;
-    const field = lodashGet(props, ['route', 'params', 'field'], '');
+    const transactionDescription = TransactionUtils.getDescription(transaction);
+    const transactionAmount = TransactionUtils.getAmount(transaction);
+    const transactionCurrency = TransactionUtils.getCurrency(transaction);
+    const transactionCreated = TransactionUtils.getCreated(transaction);
+    const field = lodashGet(route, ['params', 'field'], '');
 
     function updateTransactionWithChanges(changes) {
         // Update the transaction...

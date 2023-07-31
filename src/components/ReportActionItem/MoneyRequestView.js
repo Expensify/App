@@ -5,7 +5,9 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import reportPropTypes from '../../pages/reportPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Policy from '../libs/actions/Policy';
+import ROUTES from '../../ROUTES';
+import * as Policy from '../../libs/actions/Policy';
+import Navigation from '../../libs/Navigation/Navigation';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes} from '../withCurrentUserPersonalDetails';
 import compose from '../../libs/compose';
 import MenuItemWithTopDescription from '../MenuItemWithTopDescription';
@@ -58,7 +60,7 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, policy}) {
+function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, policy, session}) {
     const {isSmallScreenWidth} = useWindowDimensions();
     const {translate} = useLocalize();
 
