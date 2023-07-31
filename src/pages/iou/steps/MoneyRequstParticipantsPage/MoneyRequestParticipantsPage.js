@@ -71,17 +71,17 @@ function MoneyRequestParticipantsPage(props) {
         const moneyRequestId = `${iouType.current}${reportID.current}`;
         const shouldReset = props.iou.id !== moneyRequestId;
         if (shouldReset) {
-            IOU.resetMoneyRequestInfo(moneyRequestId);
+            IOU.resetMoneyRequestInfo(moneyRequestId, iouType.current);
         }
 
-        if (props.iou.amount === 0 || shouldReset) {
+        if ((props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
             navigateBack(true);
         }
 
         return () => {
             prevMoneyRequestId.current = props.iou.id;
         };
-    }, [props.iou.amount, props.iou.id]);
+    }, [props.iou.amount, props.iou.id, props.iou.receiptPath]);
 
     return (
         <ScreenWrapper

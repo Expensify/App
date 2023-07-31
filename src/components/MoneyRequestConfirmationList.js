@@ -2,12 +2,11 @@ import React, {useState, useCallback, useMemo} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import CONST from '../CONST';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -20,6 +19,13 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import Navigation from '../libs/Navigation/Navigation';
 import optionPropTypes from './optionPropTypes';
 import * as CurrencyUtils from '../libs/CurrencyUtils';
+import Image from './Image';
+import ReceiptHTML from '../../assets/images/receipt-html.png';
+import ReceiptDoc from '../../assets/images/receipt-doc.png';
+import ReceiptGeneric from '../../assets/images/receipt-generic.png';
+import ReceiptSVG from '../../assets/images/receipt-svg.png';
+import * as FileUtils from '../libs/fileDownload/FileUtils';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -61,13 +67,7 @@ const propTypes = {
     /** Depending on expense report or personal IOU report, respective bank account route */
     bankAccountRoute: PropTypes.string,
 
-    ...windowDimensionsPropTypes,
-
-    ...withLocalizePropTypes,
-
     ...withCurrentUserPersonalDetailsPropTypes,
-
-    /* Onyx Props */
 
     /** Current user session */
     session: PropTypes.shape({
@@ -79,6 +79,12 @@ const propTypes = {
 
     /** The reportID of the request */
     reportID: PropTypes.string,
+
+    /** File path of the receipt */
+    receiptPath: PropTypes.string,
+
+    /** File source of the receipt */
+    receiptSource: PropTypes.string,
 };
 
 const defaultProps = {
@@ -96,12 +102,15 @@ const defaultProps = {
     policyID: '',
     reportID: '',
     ...withCurrentUserPersonalDetailsDefaultProps,
+    receiptPath: '',
+    receiptSource: '',
 };
 
 function MoneyRequestConfirmationList(props) {
     // Destructure functions from props to pass it as a dependecy to useCallback/useMemo hooks.
     // Prop functions pass props itself as a "this" value to the function which means they change every time props change.
-    const {translate, onSendMoney, onConfirm, onSelectParticipant} = props;
+    const {onSendMoney, onConfirm, onSelectParticipant} = props;
+    const {translate} = useLocalize();
 
     /**
      * Returns the participants with amount
@@ -119,16 +128,20 @@ function MoneyRequestConfirmationList(props) {
     const [didConfirm, setDidConfirm] = useState(false);
 
     const splitOrRequestOptions = useMemo(() => {
-        const text = translate(props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount', {
-            amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode),
-        });
+        let text;
+        if (props.receiptPath) {
+            text = translate('iou.request');
+        } else {
+            const translationKey = props.hasMultipleParticipants ? 'iou.splitAmount' : 'iou.requestAmount';
+            text = translate(translationKey, {amount: CurrencyUtils.convertToDisplayString(props.iouAmount, props.iouCurrencyCode)});
+        }
         return [
             {
                 text: text[0].toUpperCase() + text.slice(1),
                 value: props.hasMultipleParticipants ? CONST.IOU.MONEY_REQUEST_TYPE.SPLIT : CONST.IOU.MONEY_REQUEST_TYPE.REQUEST,
             },
         ];
-    }, [props.hasMultipleParticipants, props.iouAmount, props.iouCurrencyCode, translate]);
+    }, [props.hasMultipleParticipants, props.iouAmount, props.receiptPath, props.iouCurrencyCode, translate]);
 
     const selectedParticipants = useMemo(() => _.filter(props.selectedParticipants, (participant) => participant.selected), [props.selectedParticipants]);
     const payeePersonalDetails = useMemo(() => props.payeePersonalDetails || props.currentUserPersonalDetails, [props.payeePersonalDetails, props.currentUserPersonalDetails]);
@@ -273,6 +286,36 @@ function MoneyRequestConfirmationList(props) {
         );
     }, [confirm, props.selectedParticipants, props.bankAccountRoute, props.iouCurrencyCode, props.iouType, props.isReadOnly, props.policyID, selectedParticipants, splitOrRequestOptions]);
 
+    /**
+     * Grab the appropriate image URI based on file type
+     *
+     * @param {String} receiptPath
+     * @param {String} receiptSource
+     * @returns {*}
+     */
+    const getImageURI = (receiptPath, receiptSource) => {
+        const {fileExtension} = FileUtils.splitExtensionFromFileName(receiptSource);
+        const isReceiptImage = Str.isImage(props.receiptSource);
+
+        if (isReceiptImage) {
+            return receiptPath;
+        }
+
+        if (fileExtension === 'html') {
+            return ReceiptHTML;
+        }
+
+        if (fileExtension === 'doc' || fileExtension === 'docx') {
+            return ReceiptDoc;
+        }
+
+        if (fileExtension === 'svg') {
+            return ReceiptSVG;
+        }
+
+        return ReceiptGeneric;
+    };
+
     return (
         <OptionsSelector
             sections={optionSelectorSections}
@@ -290,15 +333,23 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            <MenuItemWithTopDescription
-                shouldShowRightIcon={!props.isReadOnly}
-                title={formattedAmount}
-                description={translate('iou.amount')}
-                onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
-                style={[styles.moneyRequestMenuItem, styles.mt2]}
-                titleStyle={styles.moneyRequestConfirmationAmount}
-                disabled={didConfirm || props.isReadOnly}
-            />
+            {!_.isEmpty(props.receiptPath) && (
+                <Image
+                    style={styles.moneyRequestImage}
+                    source={{uri: getImageURI(props.receiptPath, props.receiptSource)}}
+                />
+            )}
+            {_.isEmpty(props.receiptPath) && (
+                <MenuItemWithTopDescription
+                    shouldShowRightIcon={!props.isReadOnly}
+                    title={formattedAmount}
+                    description={translate('iou.amount')}
+                    onPress={() => Navigation.navigate(ROUTES.getMoneyRequestAmountRoute(props.iouType, props.reportID))}
+                    style={[styles.moneyRequestMenuItem, styles.mt2]}
+                    titleStyle={styles.moneyRequestConfirmationAmount}
+                    disabled={didConfirm || props.isReadOnly}
+                />
+            )}
             <MenuItemWithTopDescription
                 shouldShowRightIcon={!props.isReadOnly}
                 title={props.iouComment}
@@ -315,8 +366,6 @@ MoneyRequestConfirmationList.propTypes = propTypes;
 MoneyRequestConfirmationList.defaultProps = defaultProps;
 
 export default compose(
-    withLocalize,
-    withWindowDimensions,
     withCurrentUserPersonalDetails,
     withOnyx({
         session: {

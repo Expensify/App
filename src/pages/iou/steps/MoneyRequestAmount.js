@@ -12,28 +12,22 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import * as IOUUtils from '../../../libs/IOUUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import * as IOUUtils from '../../../libs/IOUUtils';
+import withCurrentReportID from '../../../components/withCurrentReportID';
 
 const propTypes = {
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            iouType: PropTypes.string,
-            reportID: PropTypes.string,
-        }),
-    }),
-
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
@@ -57,12 +51,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     report: {},
     iou: {
         id: '',
@@ -167,15 +155,15 @@ const replaceAllDigits = (text, convertFn) =>
         .join('')
         .value();
 
-function MoneyRequestAmountPage(props) {
+function MoneyRequestAmount(props) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
     const prevMoneyRequestID = useRef(props.iou.id);
     const textInput = useRef(null);
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
-    const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
+    const iouType = useRef(lodashGet(props, 'iou.iouType', ''));
+    const reportID = useRef(lodashGet(props, 'currentReportID', ''));
+    const isEditing = useRef(Navigation.getActiveRoute().includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
@@ -262,7 +250,7 @@ function MoneyRequestAmountPage(props) {
             const moneyRequestID = `${iouType.current}${reportID.current}`;
             const shouldReset = props.iou.id !== moneyRequestID;
             if (shouldReset) {
-                IOU.resetMoneyRequestInfo(moneyRequestID);
+                IOU.resetMoneyRequestInfo(moneyRequestID, iouType.current);
             }
 
             if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {
@@ -274,14 +262,6 @@ function MoneyRequestAmountPage(props) {
             prevMoneyRequestID.current = props.iou.id;
         };
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
-
-    useEffect(() => {
-        if (!props.route.params.currency) {
-            return;
-        }
-
-        setSelectedCurrencyCode(props.route.params.currency);
-    }, [props.route.params.currency]);
 
     useEffect(() => {
         setSelectedCurrencyCode(props.iou.currency);
@@ -429,10 +409,12 @@ function MoneyRequestAmountPage(props) {
             >
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={titleForStep}
-                            onBackButtonPress={navigateBack}
-                        />
+                        {isEditing.current && (
+                            <HeaderWithBackButton
+                                title={titleForStep}
+                                onBackButtonPress={navigateBack}
+                            />
+                        )}
                         <View
                             nativeID={amountViewID}
                             onMouseDown={(event) => onMouseDown(event, [amountViewID])}
@@ -485,16 +467,17 @@ function MoneyRequestAmountPage(props) {
     );
 }
 
-MoneyRequestAmountPage.propTypes = propTypes;
-MoneyRequestAmountPage.defaultProps = defaultProps;
-MoneyRequestAmountPage.displayName = 'MoneyRequestAmountPage';
+MoneyRequestAmount.propTypes = propTypes;
+MoneyRequestAmount.defaultProps = defaultProps;
+MoneyRequestAmount.displayName = 'MoneyRequestAmount';
 
 export default compose(
     withCurrentUserPersonalDetails,
+    withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
         },
     }),
-)(MoneyRequestAmountPage);
+)(MoneyRequestAmount);

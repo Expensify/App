@@ -479,10 +479,14 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+    RECEIPT: {
+        ICON_SIZE: 164,
+        PERMISSION_AUTHORIZED: 'authorized',
+        FLASH: 'Flash',
+        SHUTTER: 'Shutter',
+        GALLERY: 'Gallery',
+    },
     REPORT: {
-        DROP_HOST_NAME: 'ReportDropZone',
-        DROP_NATIVE_ID: 'report-dropzone',
-        ACTIVE_DROP_NATIVE_ID: 'report-dropzone',
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
         ACTIONS: {
@@ -2544,6 +2548,10 @@ const CONST = {
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
+    },
+    TAB: {
+        TAB_MANUAL: 'manual',
+        TAB_SCAN: 'scan',
     },
 };
 

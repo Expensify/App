@@ -60,14 +60,18 @@ Onyx.connect({
 /**
  * Reset money request info from the store with its initial value
  * @param {String} id
+ * @param {String} iouType
  */
-function resetMoneyRequestInfo(id = '') {
+function resetMoneyRequestInfo(id = '', iouType = '') {
     Onyx.merge(ONYXKEYS.IOU, {
         id,
+        iouType,
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
+        receiptPath: '',
+        receiptSource: '',
     });
 }
 
@@ -377,10 +381,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        reportPreviewAction.created = DateUtils.getDBTime();
-        const message = ReportUtils.getReportPreviewMessage(iouReport, reportPreviewAction);
-        reportPreviewAction.message[0].html = message;
-        reportPreviewAction.message[0].text = message;
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
     } else {
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
     }
@@ -650,10 +651,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction.created = DateUtils.getDBTime();
-            const message = ReportUtils.getReportPreviewMessage(oneOnOneIOUReport, oneOnOneReportPreviewAction);
-            oneOnOneReportPreviewAction.message[0].html = message;
-            oneOnOneReportPreviewAction.message[0].text = message;
+            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
@@ -1237,11 +1235,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         login: recipient.login,
     };
 
-    const optimisticReportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
-    optimisticReportPreviewAction.created = DateUtils.getDBTime();
-    const message = ReportUtils.getReportPreviewMessage(iouReport, optimisticReportPreviewAction);
-    optimisticReportPreviewAction.message[0].html = message;
-    optimisticReportPreviewAction.message[0].text = message;
+    const optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
 
     const optimisticData = [
         {
@@ -1444,12 +1438,20 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 }
 
 /**
+ * @param {String} iouType
+ */
+function setMoneyRequestType(iouType) {
+    Onyx.merge(ONYXKEYS.IOU, {iouType});
+}
+
+/**
  * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} reportID
  */
 function startMoneyRequest(iouType, reportID = '') {
     resetMoneyRequestInfo(`${iouType}${reportID}`);
+    setMoneyRequestType(iouType);
     Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
 }
 
@@ -1488,6 +1490,14 @@ function setMoneyRequestParticipants(participants) {
     Onyx.merge(ONYXKEYS.IOU, {participants});
 }
 
+/**
+ * @param {String} receiptPath
+ * @param {String} receiptSource
+ */
+function setMoneyRequestReceipt(receiptPath, receiptSource) {
+    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
+}
+
 export {
     deleteMoneyRequest,
     splitBill,
@@ -1500,8 +1510,10 @@ export {
     startMoneyRequest,
     resetMoneyRequestInfo,
     setMoneyRequestId,
+    setMoneyRequestType,
     setMoneyRequestAmount,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
+    setMoneyRequestReceipt,
 };
