@@ -20,14 +20,19 @@ let refreshTimeoutID;
 const refreshInterval = 1000 * 60 * 25;
 
 const refreshToken = () => {
-    console.debug('[MapboxTokens] refreshing token every 25 minutes', refreshInterval);
+    console.debug('[MapboxToken] refreshing token every 25 minutes', refreshInterval);
 
     // Cancel any previous timeouts so that there is only one request to get a token at a time.
     clearTimeout(refreshTimeoutID);
 
     // Refresh the token every 25 minutes
     refreshTimeoutID = setTimeout(() => {
-        console.debug('[MapboxTokens] Fetching a new token after waiting 25 minutes');
+        // If the user has logged out while the timer was running, skip doing anything when this callback runs
+        if (!authToken) {
+            console.debug('[MapboxToken] Skipping the fetch of a new token becuase user signed out');
+            return;
+        }
+        console.debug('[MapboxToken] Fetching a new token after waiting 25 minutes');
         API.read('GetMapboxAccessToken');
     }, refreshInterval);
 };
@@ -40,7 +45,7 @@ const hasTokenExpired = () => {
 };
 
 const clearToken = () => {
-    console.debug('[MapboxTokens] Deleting the token stored in Onyx');
+    console.debug('[MapboxToken] Deleting the token stored in Onyx');
 
     // Use Onyx.set() to delete the key from Onyx, which will trigger a new token to be retrieved from the API.
     Onyx.set(ONYXKEYS.MAPBOX_ACCESS_TOKEN, null);
@@ -48,7 +53,7 @@ const clearToken = () => {
 
 const init = () => {
     if (connectionID) {
-        console.debug(`[MapboxTokens] init() is already listening to Onyx so returning early`);
+        console.debug(`[MapboxToken] init() is already listening to Onyx so returning early`);
         return;
     }
 
@@ -64,13 +69,14 @@ const init = () => {
         callback: (token) => {
             // If the user has logged out, don't do anything and ignore changes to the access token
             if (!authToken) {
+                console.debug('[MapboxToken] Ignoring changes to token becuase user signed out');
                 return;
             }
 
             // If the token is falsy or an empty object, the token needs to be retrieved from the API.
             // The API sets a token in Onyx with a 30 minute expiration.
             if (!token || _.size(token) === 0) {
-                console.debug('[MapboxTokens] Token does not exist so fetching one');
+                console.debug('[MapboxToken] Token does not exist so fetching one');
                 API.read('GetMapboxAccessToken');
                 return;
             }
@@ -79,12 +85,12 @@ const init = () => {
             currentToken = token;
 
             if (hasTokenExpired()) {
-                console.debug('[MapboxTokens] Token has expired after reading from Onyx');
+                console.debug('[MapboxToken] Token has expired after reading from Onyx');
                 clearToken();
                 return;
             }
 
-            console.debug('[MapboxTokens] Token is valid, setting up refresh');
+            console.debug('[MapboxToken] Token is valid, setting up refresh');
             refreshToken();
         },
     });
@@ -98,7 +104,7 @@ const init = () => {
         if (nextAppState !== CONST.APP_STATE.ACTIVE || !currentToken || !hasTokenExpired() || !authToken) {
             return;
         }
-        console.debug('[MapboxTokens] Token is expired after app became active');
+        console.debug('[MapboxToken] Token is expired after app became active');
         clearToken();
     });
 };
