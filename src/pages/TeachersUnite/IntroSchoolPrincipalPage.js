@@ -26,24 +26,24 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-/**
- * @param {Object} values
- * @param {String} values.firstName
- * @param {String} values.email
- * @param {String} values.lastName
- */
-const submit = (values) => {
-    TeachersUnite.createExpenseChatSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName);
-};
-
 function IntroSchoolPrincipalPage(props) {
+    /**
+     * @param {Object} values
+     * @param {String} values.firstName
+     * @param {String} values.email
+     * @param {String} values.lastName
+     */
+    function onSubmit(values) {
+        TeachersUnite.createExpenseChatSchoolPrincipal(values.firstName.trim(), values.email.trim(), values.lastName);
+    }
+
     /**
      * @param {Object} values
      * @param {String} values.firstName
      * @param {String} values.email
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = (values) => {
+    function validate(values) {
         const errors = {};
 
         if (_.isEmpty(values.firstName)) {
@@ -57,7 +57,7 @@ function IntroSchoolPrincipalPage(props) {
         }
 
         return errors;
-    };
+    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -69,8 +69,8 @@ function IntroSchoolPrincipalPage(props) {
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL}
-                validate={validate}
-                onSubmit={submit}
+                validate={(values) => validate(values)}
+                onSubmit={(values) => onSubmit(values)}
                 submitButtonText={props.translate('common.letsStart')}
             >
                 <Text style={[styles.mb6]}>{props.translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>

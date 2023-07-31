@@ -28,17 +28,6 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-/**
- * Submit form to pass firstName, phoneOrEmail and lastName
- * @param {Object} values
- * @param {String} values.firstName
- * @param {String} values.phoneOrEmail
- * @param {String} [values.lastName]
- */
-function submit(values) {
-    TeachersUnite.referTeachersUniteVolunteer(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID, values.firstName.trim(), values.phoneOrEmail.trim(), values.lastName);
-}
-
 function getPhoneLogin(phoneOrEmail) {
     if (_.isEmpty(phoneOrEmail)) {
         return '';
@@ -49,12 +38,23 @@ function getPhoneLogin(phoneOrEmail) {
 
 function KnowATeacherPage(props) {
     /**
+     * Submit form to pass firstName, phoneOrEmail and lastName
+     * @param {Object} values
+     * @param {String} values.firstName
+     * @param {String} values.phoneOrEmail
+     * @param {String} values.lastName
+     */
+    function onSubmit(values) {
+        TeachersUnite.referTeachersUniteVolunteer(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID, values.firstName.trim(), values.phoneOrEmail.trim(), values.lastName);
+    }
+
+    /**
      * @param {Object} values
      * @param {String} values.firstName
      * @param {String} values.phoneOrEmail
      * @returns {Object} - An object containing the errors for each inputID
      */
-    const validate = (values) => {
+    function validate(values) {
         const errors = {};
         const phoneLogin = getPhoneLogin(values.phoneOrEmail);
 
@@ -69,7 +69,7 @@ function KnowATeacherPage(props) {
         }
 
         return errors;
-    };
+    }
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
@@ -81,8 +81,8 @@ function KnowATeacherPage(props) {
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.I_KNOW_A_TEACHER}
-                validate={validate}
-                onSubmit={submit}
+                validate={(values) => validate(values)}
+                onSubmit={(values) => onSubmit(values)}
                 submitButtonText={props.translate('common.letsDoThis')}
             >
                 <Text style={[styles.mb6]}>{props.translate('teachersUnitePage.getInTouch')}</Text>

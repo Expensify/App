@@ -63,7 +63,6 @@ function referTeachersUniteVolunteer(reportID, firstName, phoneOrEmail, lastName
  * @param {String} email
  * @param {String} [lastName]
  */
-
 // Will be removed once we start using & remove this comment as well :)
 // eslint-disable-next-line no-unused-vars
 function createExpenseChatSchoolPrincipal(firstName, email, lastName = '') {
