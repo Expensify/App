@@ -97,7 +97,4 @@ function ConfirmContent(props) {
 ConfirmContent.propTypes = propTypes;
 ConfirmContent.defaultProps = defaultProps;
 ConfirmContent.displayName = 'ConfirmContent';
-export default compose(
-    withLocalize,
-    withNetwork(),
-)(ConfirmContent);
+export default compose(withLocalize, withNetwork())(ConfirmContent);
