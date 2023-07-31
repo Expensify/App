@@ -2,7 +2,6 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import TextInput from '../components/TextInput';
-import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ScreenWrapper from '../components/ScreenWrapper';
 import HeaderWithBackButton from '../components/HeaderWithBackButton';
 import Form from '../components/Form';
@@ -10,6 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import CONST from '../CONST';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -21,7 +21,8 @@ const propTypes = {
     onSubmit: PropTypes.func.isRequired,
 };
 
-function EditRequestDescriptionPage(props) {
+function EditRequestDescriptionPage({defaultDescription, onSubmit}) {
+    const {translate} = useLocalize();
     const descriptionInputRef = useRef(null);
     return (
         <ScreenWrapper
@@ -30,23 +31,23 @@ function EditRequestDescriptionPage(props) {
             onEntryTransitionEnd={() => descriptionInputRef.current && descriptionInputRef.current.focus()}
         >
             <HeaderWithBackButton
-                title={props.translate('common.description')}
+                title={translate('common.description')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <Form
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM}
-                onSubmit={props.onSubmit}
-                submitButtonText={props.translate('common.save')}
+                onSubmit={onSubmit}
+                submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
                 <View style={styles.mb4}>
                     <TextInput
                         inputID="modifiedComment"
                         name="modifiedComment"
-                        defaultValue={props.defaultDescription}
-                        label={props.translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityLabel={props.translate('moneyRequestConfirmationList.whatsItFor')}
+                        defaultValue={defaultDescription}
+                        label={translate('moneyRequestConfirmationList.whatsItFor')}
+                        accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         ref={descriptionInputRef}
                     />
@@ -59,4 +60,4 @@ function EditRequestDescriptionPage(props) {
 EditRequestDescriptionPage.propTypes = propTypes;
 EditRequestDescriptionPage.displayName = 'EditRequestDescriptionPage';
 
-export default withLocalize(EditRequestDescriptionPage);
+export default EditRequestDescriptionPage;
