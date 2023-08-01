@@ -119,7 +119,7 @@ function cleanFileName(fileName) {
 }
 
 /**
- * Returns the filename replacing special characters with underscore
+ * Reads a locally uploaded file
  *
  * @param {String} path - the blob url of the locally uplodaded file
  * @param {String} fileName
