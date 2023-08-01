@@ -353,10 +353,6 @@ function reopenTask(taskReportID, taskTitle) {
  * @param {object} report
  * @param {Number} ownerAccountID
  * @param {Object} editedTask
- * @param {String} editedTask.title
- * @param {String} editedTask.description
- * @param {String} editedTask.assignee
- * @param {Number} editedTask.assigneeAccountID
  * @param {Object} assigneeChatReport - The chat report between you and the assignee
  */
 function editTaskAndNavigate(report, ownerAccountID, {title, description, assignee = '', assigneeAccountID = 0}, assigneeChatReport = null) {
