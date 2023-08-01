@@ -87,7 +87,7 @@ function SplitBillDetailsPage(props) {
                         <MoneyRequestConfirmationList
                             hasMultipleParticipants
                             payeePersonalDetails={payeePersonalDetails}
-                            participants={participantsExcludingPayee}
+                            selectedParticipants={participantsExcludingPayee}
                             iouAmount={splitAmount}
                             iouComment={splitComment}
                             iouCurrencyCode={splitCurrency}

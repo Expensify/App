@@ -7,6 +7,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
+import StatePicker from '../../components/StatePicker';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
@@ -15,7 +16,6 @@ import TextInput from '../../components/TextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
-import StatePicker from '../../components/StatePicker';
 import withLocalize from '../../components/withLocalize';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
@@ -40,6 +40,9 @@ const propTypes = {
         /** Whether or not the user is on a public domain email account or not */
         isFromPublicDomain: PropTypes.bool,
     }),
+
+    /* The workspace policyID */
+    policyID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -47,6 +50,7 @@ const defaultProps = {
         email: null,
     },
     user: {},
+    policyID: '',
 };
 
 class CompanyStep extends React.Component {
@@ -57,10 +61,6 @@ class CompanyStep extends React.Component {
         this.validate = this.validate.bind(this);
 
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false) ? 'https://' : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
-    }
-
-    componentWillUnmount() {
-        BankAccounts.resetReimbursementAccount();
     }
 
     /**
@@ -148,7 +148,7 @@ class CompanyStep extends React.Component {
             companyPhone: parsePhoneNumber(values.companyPhone, {regionCode: CONST.COUNTRY.US}).number.significant,
         };
 
-        BankAccounts.updateCompanyInformationForBankAccount(bankAccount);
+        BankAccounts.updateCompanyInformationForBankAccount(bankAccount, this.props.policyID);
     }
 
     render() {
@@ -171,7 +171,7 @@ class CompanyStep extends React.Component {
                     onSubmit={this.submit}
                     scrollContextEnabled
                     submitButtonText={this.props.translate('common.saveAndContinue')}
-                    style={[styles.ph5, styles.flexGrow1]}
+                    style={[styles.mh5, styles.flexGrow1]}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <TextInput
@@ -256,7 +256,7 @@ class CompanyStep extends React.Component {
                             shouldSaveDraft
                         />
                     </View>
-                    <View style={styles.mt4}>
+                    <View style={[styles.mt4, styles.mhn5]}>
                         <StatePicker
                             inputID="incorporationState"
                             label={this.props.translate('companyStep.incorporationState')}
