@@ -60,7 +60,6 @@ function DeeplinkWrapper({children, isAuthenticated}) {
         }
     }, [hasShownPrompt, isAuthenticated]);
     useEffect(() => {
-        CONFIG.ENVIRONMENT = CONST.ENVIRONMENT.STAGING;
         if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
             return;
         }
@@ -70,11 +69,10 @@ function DeeplinkWrapper({children, isAuthenticated}) {
         }
 
         if (isAuthenticated) {
-            // Extra guard, but removing the listener should prevent this from firing
             promptToOpenInDesktopApp();
             setHasShownPrompt(true);
         } else {
-            // Navigation state is not set up yet, don't know if we should show the deep link prompt or not
+            // Navigation state is not set up yet, we're unsure if we should show the deep link prompt or not
             if (currentScreen === undefined || isAuthenticated === false) {
                 return;
             }
