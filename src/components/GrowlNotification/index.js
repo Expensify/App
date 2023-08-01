@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
 import {View, Animated} from 'react-native';
 import colors from '../../styles/colors';
@@ -29,9 +29,9 @@ const types = {
 const INACTIVE_POSITION_Y = -255;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
-const translateY = new Animated.Value(INACTIVE_POSITION_Y);
 
 function GrowlNotification(_, ref) {
+    const translateY = useRef(new Animated.Value(INACTIVE_POSITION_Y)).current;
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
     const [duration, setDuration] = useState();
@@ -54,13 +54,16 @@ function GrowlNotification(_, ref) {
      *
      * @param {Number} val
      */
-    const fling = useCallback((val = INACTIVE_POSITION_Y) => {
-        Animated.spring(translateY, {
-            toValue: val,
-            duration: 80,
-            useNativeDriver: true,
-        }).start();
-    }, []);
+    const fling = useCallback(
+        (val = INACTIVE_POSITION_Y) => {
+            Animated.spring(translateY, {
+                toValue: val,
+                duration: 80,
+                useNativeDriver: true,
+            }).start();
+        },
+        [translateY],
+    );
 
     useImperativeHandle(
         ref,
