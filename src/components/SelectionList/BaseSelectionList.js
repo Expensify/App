@@ -173,14 +173,23 @@ function BaseSelectionList({
     };
 
     const selectRow = (item) => {
-        // Focus next index that is not disabled or already selected
-        const nextIndex = _.findIndex(
-            flattenedSections.allOptions,
-            (option, index) => index > focusedIndex && !flattenedSections.disabledOptionsIndexes.includes(index) && !option.isSelected,
-        );
+        if (canSelectMultiple && (!item.isSelected || sections.length === 1)) {
+            // 1. Focusing the next item when selecting a row only makes sense in multiple selection lists,
+            // because in single selection lists we're closing the list after selecting an item.
 
-        if (nextIndex >= 0) {
-            setFocusedIndex(nextIndex);
+            // 2. If `item` is not selected, it means we're selecting it, so we ALWAYS focus the next available item.
+
+            // 3. If `item` is selected, it means we're unselecting it.
+            // There's 2 types of lists. Lists with only 1 section (e.g. Workspace Members) and lists with multiple sections (e.g. Workspace Invite Members):
+            // - For lists with only 1 section, we still want to focus the next item, even if the one we're pressing is being unselected.
+            // - For lists with multiple sections, we want to do nothing - just keep the `focusedIndex` where it is. The list will already reorder the items, so also changing the focus might be confusing.
+
+            const pressedIndex = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === item.keyForList);
+            const nextIndex = _.findIndex(flattenedSections.allOptions, (option, index) => index > pressedIndex && !flattenedSections.disabledOptionsIndexes.includes(index));
+
+            if (nextIndex >= 0) {
+                setFocusedIndex(nextIndex);
+            }
         }
 
         onSelectRow(item);
