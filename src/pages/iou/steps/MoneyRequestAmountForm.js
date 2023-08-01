@@ -23,7 +23,7 @@ const propTypes = {
     /** Whether the amount is being edited or not */
     isEditing: PropTypes.bool,
 
-    /** Fired when back button pressed, navigates back to a proper page */
+    /** Refs forwarded to the TextInputWithCurrencySymbol */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** Fired when back button pressed, navigates to currency selection page */
