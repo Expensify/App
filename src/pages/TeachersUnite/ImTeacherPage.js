@@ -35,8 +35,8 @@ function ImTeacherPage(props) {
                 subtitle={props.translate('teachersUnitePage.schoolMailAsDefault')}
                 link={props.translate('teachersUnitePage.contactMethods')}
                 onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS)}
-                iconWidth={variables.modalTopIconWidth}
-                iconHeight={variables.modalTopIconHeight}
+                iconWidth={variables.signInLogoWidthLargeScreen}
+                iconHeight={variables.lhnLogoWidth}
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button

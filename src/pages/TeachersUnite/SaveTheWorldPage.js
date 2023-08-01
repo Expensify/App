@@ -44,6 +44,7 @@ function SaveTheWorldPage(props) {
                 <Text style={[styles.textHeadline, styles.mb3]}>{translate('teachersUnitePage.teachersUnite')}</Text>
                 <Text>{translate('teachersUnitePage.joinExpensifyOrg')}</Text>
             </View>
+
             <MenuItem
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iKnowATeacher')}
@@ -54,14 +55,6 @@ function SaveTheWorldPage(props) {
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iAmATeacher')}
                 onPress={() => (isLoggedInEmailPublicDomain ? Navigation.navigate(ROUTES.I_Am_A_Teacher) : Navigation.navigate(ROUTES.Intro_School_Principal))}
-            />
-
-            {/* Remove Below option */}
-
-            <MenuItem
-                shouldShowRightIcon
-                title="Email (Depricate on final release)"
-                onPress={() => Navigation.navigate(ROUTES.I_Am_A_Teacher)}
             />
         </IllustratedHeaderPageLayout>
     );
