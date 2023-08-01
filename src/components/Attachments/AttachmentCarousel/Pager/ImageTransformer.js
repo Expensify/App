@@ -24,7 +24,7 @@ const MIN_SCALE = 0.7;
 const DOUBLE_TAP_SCALE = 3;
 
 const SPRING_CONFIG = {
-    mass: 3,
+    mass: 1,
     stiffness: 1000,
     damping: 500,
 };
