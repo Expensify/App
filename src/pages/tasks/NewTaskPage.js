@@ -17,6 +17,7 @@ import MenuItemWithTopDescription from '../../components/MenuItemWithTopDescript
 import MenuItem from '../../components/MenuItem';
 import reportPropTypes from '../reportPropTypes';
 import * as Task from '../../libs/actions/Task';
+import * as Report from '../../libs/actions/Report';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import * as ReportUtils from '../../libs/ReportUtils';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
@@ -75,32 +76,53 @@ function NewTaskPage(props) {
     useEffect(() => {
         setErrorMessage('');
 
-        // If we have an assignee, we want to set the assignee data
-        // If there's an issue with the assignee chosen, we want to notify the user
-        if (props.task.assignee) {
-            const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), props.task.assigneeAccountID);
-            if (!assigneeDetails) {
-                return setErrorMessage(props.translate('task.assigneeError'));
-            }
-            const displayDetails = Task.getAssignee(assigneeDetails);
-            setAssignee(displayDetails);
-        }
-
         // We only set the parentReportID if we are creating a task from a report
         // this allows us to go ahead and set that report as the share destination
         // and disable the share destination selector
         if (props.task.parentReportID) {
             Task.setShareDestinationValue(props.task.parentReportID);
         }
+    }, [props.task.parentReportID]);
+
+    useEffect(() => {
+        setErrorMessage('');
+
+        // If we have an assignee, we want to set the assignee data
+        // If there's an issue with the assignee chosen, we want to notify the user
+        if (props.task.assignee) {
+            const user = _.find(props.personalDetails, ({login}) => login === props.task.assignee);
+
+            if (lodashGet(user, 'accountID') && user.accountID !== props.task.assigneeAccountID) {
+                Report.setParticipantAccountIDs(props.task.shareDestination, [user.accountID]);
+
+                Task.setAssigneeAccountId(user.accountID);
+            }
+
+            const assigneeDetails = lodashGet(OptionsListUtils.getPersonalDetailsForAccountIDs([props.task.assigneeAccountID], props.personalDetails), props.task.assigneeAccountID);
+
+            if (!assigneeDetails) {
+                return setErrorMessage(props.translate('task.assigneeError'));
+            }
+
+            const displayDetails = Task.getAssignee(assigneeDetails);
+
+            setAssignee(displayDetails);
+        }
+    }, [props.task.assignee, props.personalDetails, props.task.assigneeAccountID, props.translate]);
+
+    useEffect(() => {
+        setErrorMessage('');
 
         // If we have a share destination, we want to set the parent report and
         // the share destination data
         if (props.task.shareDestination) {
             setParentReport(lodashGet(props.reports, `report_${props.task.shareDestination}`, {}));
+
             const displayDetails = Task.getShareDestination(props.task.shareDestination, props.reports, props.personalDetails);
+
             setShareDestination(displayDetails);
         }
-    }, [props]);
+    }, [props.task.shareDestination, props.reports, props.personalDetails]);
 
     useEffect(
         () => () => {

@@ -1864,6 +1864,16 @@ function flagComment(reportID, reportAction, severity) {
     API.write('FlagComment', parameters, {optimisticData, successData, failureData});
 }
 
+/**
+ * Sets participantAccountIDs array for a given report
+ *
+ * @param {string} reportID
+ * @param {Array<number>} participantAccountIDs
+ */
+function setParticipantAccountIDs(reportID, participantAccountIDs) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {participantAccountIDs});
+}
+
 export {
     addComment,
     addAttachment,
@@ -1910,4 +1920,5 @@ export {
     setLastOpenedPublicRoom,
     flagComment,
     openLastOpenedPublicRoom,
+    setParticipantAccountIDs,
 };

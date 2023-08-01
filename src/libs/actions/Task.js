@@ -729,6 +729,15 @@ function isTaskAssigneeOrTaskOwner(taskReport, sessionAccountID) {
     return sessionAccountID === getTaskOwnerAccountID(taskReport) || sessionAccountID === getTaskAssigneeAccountID(taskReport);
 }
 
+/**
+ *  Assigns different assigneeAccountID to a task
+ *
+ * @param {number} assigneeAccountID
+ */
+function setAssigneeAccountId(assigneeAccountID) {
+    Onyx.merge(ONYXKEYS.TASK, {assigneeAccountID});
+}
+
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
@@ -748,4 +757,5 @@ export {
     dismissModalAndClearOutTaskInfo,
     getTaskAssigneeAccountID,
     isTaskAssigneeOrTaskOwner,
+    setAssigneeAccountId,
 };
