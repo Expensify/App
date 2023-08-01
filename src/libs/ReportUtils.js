@@ -1244,8 +1244,8 @@ function getReportPreviewMessage(report, reportAction = {}) {
  */
 function getReportName(report, policy = undefined) {
     let formattedName;
+    const parentReportAction = ReportActionsUtils.getParentReportAction(report);
     if (isChatThread(report)) {
-        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
         if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return getTransactionReportName(parentReportAction);
         }
@@ -1263,6 +1263,11 @@ function getReportName(report, policy = undefined) {
         }
         return parentReportActionMessage || Localize.translateLocal('parentReportAction.deletedMessage');
     }
+
+    if (isTaskReport(report) && ReportActionsUtils.isDeletedParentAction(parentReportAction)) {
+        return Localize.translateLocal('parentReportAction.deletedTask');
+    }
+
     if (isChatRoom(report) || isTaskReport(report)) {
         formattedName = report.reportName;
     }
