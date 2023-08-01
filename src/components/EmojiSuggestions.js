@@ -69,7 +69,7 @@ function EmojiSuggestions(props) {
         return (
             <View style={styles.autoCompleteSuggestionContainer}>
                 <Text style={styles.emojiSuggestionsEmoji}>{EmojiUtils.getEmojiCodeWithSkinColor(item, props.preferredSkinToneIndex)}</Text>
-                <Text style={styles.emojiSuggestionsText}>
+                <Text numberOfLines={2} style={styles.emojiSuggestionsText}>
                     :
                     {_.map(styledTextArray, ({text, isColored}, i) => (
                         <Text
