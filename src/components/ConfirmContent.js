@@ -60,7 +60,7 @@ const defaultProps = {
 function ConfirmContent(props) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    
+
     return (
         <View style={[styles.m5, ...props.contentStyles]}>
             <View style={[styles.flexRow, styles.mb4]}>
