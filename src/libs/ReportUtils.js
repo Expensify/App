@@ -2277,8 +2277,7 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    // Include reports if they have a draft, are pinned, have an outstanding IOU or assigned to an open task
-    // These are always relevant to the user no matter what view mode the user prefers
+    // Include reports that are relevant to the user in any view mode. Criteria include having a draft, being pinned, having an outstanding IOU, or being assigned to an open task.
     if (report.hasDraft || report.isPinned || isWaitingForIOUActionFromCurrentUser(report, iouReports) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
