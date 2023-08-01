@@ -199,12 +199,12 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
     };
 
     return (
-        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                onEntryTransitionEnd={focusTextInput}
-            >
-                {({safeAreaPaddingBottomStyle}) => (
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom={false}
+            onEntryTransitionEnd={focusTextInput}
+        >
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                         <HeaderWithBackButton
                             title={titleForStep}
@@ -219,9 +219,9 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
                             onSubmitButtonPress={navigateToNextPage}
                         />
                     </View>
-                )}
-            </ScreenWrapper>
-        </FullPageNotFoundView>
+                </FullPageNotFoundView>
+            )}
+        </ScreenWrapper>
     );
 }
 
