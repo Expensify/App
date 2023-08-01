@@ -106,17 +106,20 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
      *
      * @param {Number} amountInCurrencyUnits
      */
-    const saveAmountToState = useCallback((amountInCurrencyUnits) => {
-        if (!currency || !amountInCurrencyUnits) {
-            return;
-        }
-        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currency, amountInCurrencyUnits).toString();
-        setCurrentAmount(amountAsStringForState);
-        setSelection({
-            start: amountAsStringForState.length,
-            end: amountAsStringForState.length,
-        });
-    }, [currency]);
+    const saveAmountToState = useCallback(
+        (amountInCurrencyUnits) => {
+            if (!currency || !amountInCurrencyUnits) {
+                return;
+            }
+            const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currency, amountInCurrencyUnits).toString();
+            setCurrentAmount(amountAsStringForState);
+            setSelection({
+                start: amountAsStringForState.length,
+                end: amountAsStringForState.length,
+            });
+        },
+        [currency],
+    );
 
     useEffect(() => {
         saveAmountToState(amount);

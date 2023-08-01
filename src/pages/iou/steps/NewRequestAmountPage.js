@@ -143,7 +143,6 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails}) 
             IOU.setMoneyRequestParticipants([]);
         }
 
-
         // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
         if (report.reportID) {
             // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
