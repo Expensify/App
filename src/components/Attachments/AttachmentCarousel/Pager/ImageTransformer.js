@@ -61,8 +61,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     const minImageScale = useMemo(() => Math.min(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
     const maxImageScale = useMemo(() => Math.max(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
 
-    const minScale = useMemo(() => MIN_SCALE * minImageScale, [minImageScale]);
-    const maxScale = useMemo(() => MAX_SCALE * maxImageScale, [maxImageScale]);
+    const minScale = useMemo(() => Math.min(MIN_SCALE, MIN_SCALE * minImageScale), [minImageScale]);
+    const maxScale = useMemo(() => Math.max(MAX_SCALE, MAX_SCALE * maxImageScale), [maxImageScale]);
     // On double tap zoom to fill, but at least 3x zoom
     const doubleTapScale = useMemo(() => Math.max(maxImageScale / minImageScale, DOUBLE_TAP_SCALE * minImageScale), [maxImageScale, minImageScale]);
 
