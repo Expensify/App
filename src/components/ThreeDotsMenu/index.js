@@ -110,6 +110,7 @@ function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, me
 
 ThreeDotsMenu.propTypes = propTypes;
 ThreeDotsMenu.defaultProps = defaultProps;
+ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
 export default withLocalize(ThreeDotsMenu);
 
