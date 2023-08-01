@@ -38,10 +38,6 @@ function BasePaymentsPage(props) {
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
-    const [showPassword] = useState({
-        shouldShowPasswordPrompt: false,
-        passwordButtonText: '',
-    });
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState({
         isSelectedPaymentMethodDefault: false,
@@ -351,7 +347,7 @@ function BasePaymentsPage(props) {
     }, [props.shouldListenForResize, setMenuPosition]);
 
     useEffect(() => {
-        if (!shouldShowDefaultDeleteMenu && !showPassword.shouldShowPasswordPrompt) {
+        if (!shouldShowDefaultDeleteMenu) {
             return;
         }
 
@@ -379,7 +375,6 @@ function BasePaymentsPage(props) {
         props.cardList,
         props.payPalMeData,
         shouldShowDefaultDeleteMenu,
-        showPassword.shouldShowPasswordPrompt,
     ]);
 
     const isPayPalMeSelected = paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
@@ -410,8 +405,8 @@ function BasePaymentsPage(props) {
                         onPress={paymentMethodPressed}
                         style={[styles.flex4]}
                         isAddPaymentMenuActive={shouldShowAddPaymentMenu}
-                        actionPaymentMethodType={shouldShowDefaultDeleteMenu || showPassword.shouldShowPasswordPrompt ? paymentMethod.selectedPaymentMethodType : ''}
-                        activePaymentMethodID={shouldShowDefaultDeleteMenu || showPassword.shouldShowPasswordPrompt ? getSelectedPaymentMethodID() : ''}
+                        actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
+                        activePaymentMethodID={shouldShowDefaultDeleteMenu ? getSelectedPaymentMethodID() : ''}
                         listHeaderComponent={listHeaderComponent}
                     />
                 </OfflineWithFeedback>
