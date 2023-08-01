@@ -1,4 +1,4 @@
-const {app, dialog, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
+const {app, dialog,clipboard, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
 const _ = require('underscore');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
@@ -29,12 +29,21 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 // See https://github.com/sindresorhus/electron-context-menu
 // Add the Paste and Match Style command to the context menu
 contextMenu({
-    append: (defaultActions, parameters) => [
+    append: (defaultActions, parameters, browserWindow) => [
         new MenuItem({
             // Only enable the menu item for Editable context which supports paste
             visible: parameters.isEditable && parameters.editFlags.canPaste,
             role: 'pasteAndMatchStyle',
             accelerator: 'CmdOrCtrl+Shift+V',
+        }),
+        new MenuItem({
+            label: 'Paste as Plain Text',
+            visible: parameters.isEditable && parameters.editFlags.canPaste,
+            click: () => {
+                // Insert the plain text from the clipboard
+                const text = clipboard.readText();
+                browserWindow.webContents.insertText(text);
+            },
         }),
     ],
 });
