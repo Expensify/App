@@ -206,10 +206,10 @@ function MoneyRequestConfirmationList(props) {
     );
 
     /**
-     * Navigate to profile of selected user
+     * Navigate to report details or profile of selected user
      * @param {Object} option
      */
-    const navigateToUserDetail = (option) => {
+    const navigateToReportOrUserDetail = (option) => {
         if (option.accountID) {
             Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
             return;
@@ -280,7 +280,7 @@ function MoneyRequestConfirmationList(props) {
         <OptionsSelector
             sections={optionSelectorSections}
             value=""
-            onSelectRow={canModifyParticipants ? selectParticipant : navigateToUserDetail}
+            onSelectRow={canModifyParticipants ? selectParticipant : navigateToReportOrUserDetail}
             onConfirmSelection={confirm}
             selectedOptions={selectedOptions}
             canSelectMultipleOptions={canModifyParticipants}
