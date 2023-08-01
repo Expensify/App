@@ -220,19 +220,29 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                 y: canvasHeight / 2,
             };
 
-            const imageCenter = {
+            const originImageCenter = {
                 x: scaledImageWidth / 2,
                 y: scaledImageHeight / 2,
             };
 
+            const targetImageSize = {
+                width: scaledImageWidth * doubleTapScale,
+                height: scaledImageHeight * doubleTapScale,
+            };
+
+            const targetImageCenter = {
+                x: targetImageSize.width / 2,
+                y: targetImageSize.height / 2,
+            };
+
             const currentOrigin = {
-                x: (targetImageSize.width / 2 - canvasCenter.x) * -1,
-                y: (targetImageSize.height / 2 - canvasCenter.y) * -1,
+                x: (targetImageCenter.x - canvasCenter.x) * -1,
+                y: (targetImageCenter.y - canvasCenter.y) * -1,
             };
 
             const koef = {
-                x: (1 / imageCenter.x) * focalX - 1,
-                y: (1 / imageCenter.y) * focalY - 1,
+                x: (1 / originImageCenter.x) * focalX - 1,
+                y: (1 / originImageCenter.y) * focalY - 1,
             };
 
             const target = {
