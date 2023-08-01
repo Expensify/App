@@ -12,6 +12,7 @@ const CONST = require('../src/CONST').default;
 const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8080;
+const PASTE_AS_PLAIN_TEXT_ACCELERATOR = 'CmdOrCtrl+Shift+V';
 
 app.setName('New Expensify');
 
@@ -39,7 +40,7 @@ contextMenu({
         new MenuItem({
             label: Localize.translate(CONST.LOCALES.DEFAULT, 'desktopApplicationMenu.pasteAsPlainText'),
             visible: parameters.isEditable && parameters.editFlags.canPaste,
-            accelerator:'CmdOrCtrl+Shift+V',
+            accelerator:PASTE_AS_PLAIN_TEXT_ACCELERATOR,
             click: () => {
                 // Insert the plain text from the clipboard
                 const text = clipboard.readText();
@@ -340,7 +341,7 @@ const mainWindow = () => {
                             },
                             {
                                 id: 'pasteAsPlainText',
-                                accelerator:'CmdOrCtrl+Shift+V',
+                                accelerator: PASTE_AS_PLAIN_TEXT_ACCELERATOR,
                                 click: () => {
                                     // Insert the plain text from the clipboard
                                     const text = clipboard.readText();
