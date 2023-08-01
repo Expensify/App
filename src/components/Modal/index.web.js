@@ -8,7 +8,6 @@ import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import StatusBar from '../../libs/StatusBar';
 import CONST from '../../CONST';
-import variables from '../../styles/variables';
 import styles from '../../styles/styles';
 
 function Modal(props) {
@@ -53,7 +52,7 @@ function Modal(props) {
                         }
                         props.onClose();
                     }}
-                    style={[styles.fullscreenFixed, {opacity: variables.overlayOpacity, backgroundColor: themeColors.overlay}]}
+                    style={styles.modalBackdrop}
                     accessibilityLabel="backdrop"
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.ADJUSTABLE}
                 />

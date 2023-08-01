@@ -17,6 +17,7 @@ import ScrollViewWithContext from './ScrollViewWithContext';
 import stylePropTypes from '../styles/stylePropTypes';
 import {withNetwork} from './OnyxProvider';
 import networkPropTypes from './networkPropTypes';
+import * as Browser from '../libs/Browser';
 
 const propTypes = {
     /** A unique Onyx key identifying the form */
@@ -469,7 +470,12 @@ export default compose(
     withOnyx({
         formState: {
             key: (props) => props.formID,
-            initWithStoredValues: false,
+            // The change was applied to make sure that Mobile Safari opens keyboard on autofocus.
+            // While performing some async calls (like to local storage) Safari was not behaving as expected -
+            // it requires so called "user interaction" to open keyboard - eg. a tap. Some longer async calls
+            // break the "chain" of user interaction events, which caused mSafari to not open keyboard correctly.
+            // That's why the isMobileSafari check was used to make sure that this change only applies there.
+            initWithStoredValues: !Browser.isMobileSafari(),
         },
         draftValues: {
             key: (props) => `${props.formID}Draft`,

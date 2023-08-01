@@ -17,18 +17,19 @@ const propTypes = {
     ...createMenuPropTypes,
     ...windowDimensionsPropTypes,
 
-    /** The horizontal and vertical anchors points for the popover */
+    /** Defines the anchor points for the popover */
     anchorPosition: PropTypes.shape({
         horizontal: PropTypes.number.isRequired,
         vertical: PropTypes.number.isRequired,
     }).isRequired,
 
-    /** Where the popover should be positioned relative to the anchor points. */
+    /** Sets the popover's position relative to the anchor points */
     anchorAlignment: PropTypes.shape({
         horizontal: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL)),
         vertical: PropTypes.oneOf(_.values(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL)),
     }),
 
+    /** Indicates whether navigation should occur before closing the modal */
     shouldNavigateBeforeClosingModal: PropTypes.bool,
 };
 

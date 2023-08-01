@@ -17,8 +17,8 @@ const propTypes = {
     /** Should we use coverScreen prop for ReactNativeModal? */
     coverScreen: PropTypes.bool,
 
-    /** Custom backdrop JSX element */
-    customBackdrop: PropTypes.object,
+    /** The customBackdrop prop allows the addition of a custom backdrop element behind the modal. */
+    customBackdrop: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
 
     /** Callback method fired when the user requests to close the modal */
     onClose: PropTypes.func.isRequired,
