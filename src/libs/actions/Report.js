@@ -530,7 +530,6 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         }
     }
 
-    console.log(`~~Monil calling openReport - ${reportID}`, currentReportData);
     params.currentLastReadTime = currentReportData[reportID].lastReadTime || '';
 
     if (isFromDeepLink) {

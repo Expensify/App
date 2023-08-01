@@ -126,6 +126,9 @@ function ReportActionsList(props) {
     }, []);
 
     useEffect(() => {
+        if (!userActiveSince.current) {
+            return;
+        }
         if (ReportUtils.isUnread(report)) {
             if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
