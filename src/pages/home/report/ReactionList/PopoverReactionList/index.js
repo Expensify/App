@@ -1,9 +1,9 @@
-import React, {forwardRef, useImperativeHandle, useRef, useState} from "react";
-import BasePopoverReactionList from "./BasePopoverReactionList";
+import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import BasePopoverReactionList from './BasePopoverReactionList';
 
 const PopoverReactionList = forwardRef((props, ref) => {
     const innerReactionListRef = useRef();
-    const [reactionListReportActionID, setReactionListReportActionID] = useState("");
+    const [reactionListReportActionID, setReactionListReportActionID] = useState('');
 
     /**
      * Show the ReactionList modal popover.

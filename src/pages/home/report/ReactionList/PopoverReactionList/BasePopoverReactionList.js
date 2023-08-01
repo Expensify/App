@@ -2,7 +2,7 @@ import React from 'react';
 import {Dimensions} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {withOnyx} from "react-native-onyx";
+import {withOnyx} from 'react-native-onyx';
 import * as Report from '../../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../../components/PopoverWithMeasuredContent';
@@ -12,14 +12,14 @@ import withCurrentUserPersonalDetails from '../../../../../components/withCurren
 import * as PersonalDetailsUtils from '../../../../../libs/PersonalDetailsUtils';
 import * as EmojiUtils from '../../../../../libs/EmojiUtils';
 import CONST from '../../../../../CONST';
-import ONYXKEYS from "../../../../../ONYXKEYS";
-import EmojiReactionsPropTypes from "../../../../../components/Reactions/EmojiReactionsPropTypes";
+import ONYXKEYS from '../../../../../ONYXKEYS';
+import EmojiReactionsPropTypes from '../../../../../components/Reactions/EmojiReactionsPropTypes';
 
 const propTypes = {
     emojiReactions: EmojiReactionsPropTypes,
 
     ...withLocalizePropTypes,
-}
+};
 
 const defaultProps = {
     emojiReactions: {},
