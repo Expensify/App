@@ -143,22 +143,14 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         };
     }, [canvasWidth, canvasHeight]);
 
-    const afterGesture = useWorkletCallback(() => {
+    const afterPanGesture = useWorkletCallback(() => {
         const {target, isInBoundaryX, isInBoundaryY, minVector, maxVector} = getBounds();
 
         if (!canPanVertically.value) {
             offsetY.value = withSpring(target.y, SPRING_CONFIG);
         }
 
-        if (
-            zoomScale.value === 1 &&
-            offsetX.value === 0 &&
-            offsetY.value === 0 &&
-            translateX.value === 0 &&
-            translateY.value === 0 &&
-            pinchTranslateX.value === 0 &&
-            pinchTranslateY.value === 0
-        ) {
+        if (zoomScale.value === 1 && offsetX.value === 0 && offsetY.value === 0 && translateX.value === 0 && translateY.value === 0) {
             // we don't need to run any animations
             return;
         }
@@ -173,7 +165,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         const deceleration = 0.9915;
 
         if (isInBoundaryX) {
-            if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= MAX_ZOOM_SCALE_WITH_BOUNCE) {
+            if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= MAX_ZOOM_SCALE_WITHOUT_BOUNCE) {
                 offsetX.value = withDecay({
                     velocity: panVelocityX.value,
                     clamp: [minVector.x, maxVector.x],
@@ -188,7 +180,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         if (isInBoundaryY) {
             if (
                 Math.abs(panVelocityY.value) > 0 &&
-                zoomScale.value <= MAX_ZOOM_SCALE_WITH_BOUNCE &&
+                zoomScale.value <= MAX_ZOOM_SCALE_WITHOUT_BOUNCE &&
                 // limit vertical pan only when image is smaller than screen
                 offsetY.value !== minVector.y &&
                 offsetY.value !== maxVector.y
@@ -416,7 +408,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                 }
             }
 
-            afterGesture();
+            afterPanGesture();
 
             panVelocityX.value = 0;
             panVelocityY.value = 0;
@@ -492,8 +484,6 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                 pinchBounceTranslateX.value = withSpring(0, SPRING_CONFIG);
                 pinchBounceTranslateY.value = withSpring(0, SPRING_CONFIG);
             }
-
-            afterGesture();
 
             pinchGestureRunning.value = false;
         });
