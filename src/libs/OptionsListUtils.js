@@ -98,16 +98,17 @@ Onyx.connect({
 function getPolicyExpenseReportOptions(report) {
     const expenseReport = policyExpenseReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`];
     const policyExpenseChatAvatarSource = ReportUtils.getWorkspaceAvatar(expenseReport);
+    const reportName = ReportUtils.getReportName(expenseReport);
     return [
         {
             ...expenseReport,
             keyForList: expenseReport.policyID,
-            text: expenseReport.displayName,
+            text: reportName,
             alternateText: Localize.translateLocal('workspace.common.workspace'),
             icons: [
                 {
                     source: policyExpenseChatAvatarSource,
-                    name: expenseReport.displayName,
+                    name: reportName,
                     type: CONST.ICON_TYPE_WORKSPACE,
                 },
             ],
