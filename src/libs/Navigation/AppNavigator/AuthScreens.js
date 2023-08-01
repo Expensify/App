@@ -321,6 +321,9 @@ export default compose(
         lastOpenedPublicRoomID: {
             key: ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID,
         },
+        isUsingMemoryOnlyKeys: {
+            key: ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS,
+        },
         onyxUpdatesLastUpdateID: {
             key: ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID,
         },
