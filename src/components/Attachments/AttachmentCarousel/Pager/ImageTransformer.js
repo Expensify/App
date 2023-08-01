@@ -63,7 +63,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
 
     const minScale = useMemo(() => MIN_SCALE * minImageScale, [minImageScale]);
     const maxScale = useMemo(() => MAX_SCALE * maxImageScale, [maxImageScale]);
-    const doubleTapScale = useMemo(() => DOUBLE_TAP_SCALE * minImageScale, [minImageScale]);
+    // On double tap zoom to fill, but at least 3x zoom
+    const doubleTapScale = useMemo(() => Math.max(maxImageScale / minImageScale, DOUBLE_TAP_SCALE * minImageScale), [maxImageScale, minImageScale]);
 
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
