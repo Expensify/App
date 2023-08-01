@@ -28,19 +28,19 @@ const TopTab = createMaterialTopTabNavigator();
 function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
     return (
         <TopTab.Navigator
+            /* eslint-disable-next-line react/jsx-props-no-spreading */
+            {...rest}
             id={id}
             initialRouteName={selectedTab}
             screenListeners={{
                 state: (event) => {
-                    const state = lodashGet(event, 'data.state', {});
+                    const state = event.data.state;
                     const index = state.index;
                     const routeNames = state.routeNames;
                     Tab.setSelectedTab(id, routeNames[index]);
                 },
                 ...(rest.screenListeners || {}),
             }}
-            /* eslint-disable-next-line react/jsx-props-no-spreading */
-            {...rest}
         >
             {children}
         </TopTab.Navigator>

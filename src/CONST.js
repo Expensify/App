@@ -2548,8 +2548,8 @@ const CONST = {
     },
     TAB: {
         RECEIPT_TAB_ID: 'ReceiptTab',
-        TAB_MANUAL: 'manual',
-        TAB_SCAN: 'scan',
+        MANUAL: 'manual',
+        SCAN: 'scan',
     },
 };
 
