@@ -104,14 +104,13 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
     /**
      * Convert amount to whole unit and update selection
      *
-     * @param {String} currencyCode
      * @param {Number} amountInCurrencyUnits
      */
-    const saveAmountToState = (currencyCode, amountInCurrencyUnits) => {
-        if (!currencyCode || !amountInCurrencyUnits) {
+    const saveAmountToState = (amountInCurrencyUnits) => {
+        if (!currency || !amountInCurrencyUnits) {
             return;
         }
-        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currencyCode, amountInCurrencyUnits).toString();
+        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currency, amountInCurrencyUnits).toString();
         setCurrentAmount(amountAsStringForState);
         setSelection({
             start: amountAsStringForState.length,
@@ -120,8 +119,8 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
     };
 
     useEffect(() => {
-        saveAmountToState(currency, amount);
-    }, [amount, currency]);
+        saveAmountToState(amount);
+    }, [amount]);
 
     useFocusEffect(
         useCallback(() => {
