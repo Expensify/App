@@ -174,21 +174,17 @@ function MultipleAvatars(props) {
                                     avatar: icon.avatar,
                                 }}
                             >
-                                <View
-                                    style={[
-                                        styles.justifyContentCenter,
-                                        styles.alignItemsCenter,
-                                        StyleUtils.getHorizontalStackedAvatarBorderStyle({
-                                            isHovered: props.isHovered,
-                                            isPressed: props.isPressed,
-                                            isInReportAction: props.isInReportAction,
-                                            shouldUseCardBackground: props.shouldUseCardBackground,
-                                        }),
-                                        StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
-                                        icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
-                                    ]}
-                                >
+                                <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(props.size, icon.type)]}>
                                     <Avatar
+                                        iconAdditionalStyles={[
+                                            StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                                isHovered: props.isHovered,
+                                                isPressed: props.isPressed,
+                                                isInReportAction: props.isInReportAction,
+                                                shouldUseCardBackground: props.shouldUseCardBackground,
+                                            }),
+                                            StyleUtils.getAvatarBorderWidth(props.size),
+                                        ]}
                                         source={icon.source || props.fallbackIcon}
                                         fill={themeColors.iconSuccessFill}
                                         size={props.size}
