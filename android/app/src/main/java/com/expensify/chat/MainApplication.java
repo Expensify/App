@@ -18,12 +18,10 @@ import com.facebook.soloader.SoLoader;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
-
-  private static Context context = null;
-
   private final ReactNativeHost mReactNativeHost =
       new DefaultReactNativeHost(this) {
         @Override
@@ -69,8 +67,6 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
   public void onCreate() {
       super.onCreate();
 
-      context = getApplicationContext();
-
       // Use night (dark) mode so native UI defaults to dark theme.
       AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
 
@@ -102,9 +98,5 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       } catch (Exception e) {
         e.printStackTrace();
       }
-  }
-
-  public static Context getContext() {
-      return context;
   }
 }
