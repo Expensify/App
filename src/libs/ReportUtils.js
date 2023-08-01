@@ -700,17 +700,17 @@ function getRoomWelcomeMessage(report) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartOne');
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfArchivedRoomPartTwo');
     } else if (isDomainRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', { domainRoom: report.reportName });
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartOne', {domainRoom: report.reportName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryDomainRoomPartTwo');
     } else if (isAdminRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', { workspaceName });
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartOne', {workspaceName});
         welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminRoomPartTwo');
     } else if (isAdminsOnlyPostingRoom(report)) {
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartOne');
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartTwo', { workspaceName });
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAdminOnlyPostingRoomPartTwo', {workspaceName});
     } else if (isAnnounceRoom(report)) {
-        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', { workspaceName });
-        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', { workspaceName });
+        welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartOne', {workspaceName});
+        welcomeMessage.phrase2 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryAnnounceRoomPartTwo', {workspaceName});
     } else {
         // Message for user created rooms or other room types.
         welcomeMessage.phrase1 = Localize.translateLocal('reportActionsView.beginningOfChatHistoryUserRoomPartOne');
@@ -754,12 +754,12 @@ function canShowReportRecipientLocalTime(personalDetails, report, accountID) {
     const isReportParticipantValidated = lodashGet(reportRecipient, 'validated', false);
     return Boolean(
         !hasMultipleParticipants &&
-        !isChatRoom(report) &&
-        !isPolicyExpenseChat(report) &&
-        reportRecipient &&
-        reportRecipientTimezone &&
-        reportRecipientTimezone.selected &&
-        isReportParticipantValidated,
+            !isChatRoom(report) &&
+            !isPolicyExpenseChat(report) &&
+            reportRecipient &&
+            reportRecipientTimezone &&
+            reportRecipientTimezone.selected &&
+            isReportParticipantValidated,
     );
 }
 
@@ -1062,7 +1062,7 @@ function getMoneyRequestAction(reportAction = {}) {
         comment = lodashGet(originalMessage, 'IOUDetails.comment', '');
     }
 
-    return { amount, currency, comment };
+    return {amount, currency, comment};
 }
 
 /**
@@ -1170,14 +1170,14 @@ function getPolicyExpenseChatName(report, policy = undefined) {
 function getMoneyRequestReportName(report, policy = undefined) {
     const formattedAmount = CurrencyUtils.convertToDisplayString(getMoneyRequestTotal(report), report.currency);
     const payerName = isExpenseReport(report) ? getPolicyName(report, false, policy) : getDisplayNameForParticipant(report.managerID);
-    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', { payer: payerName, amount: formattedAmount });
+    const payerPaidAmountMesssage = Localize.translateLocal('iou.payerPaidAmount', {payer: payerName, amount: formattedAmount});
 
     if (report.isWaitingOnBankAccount) {
         return `${payerPaidAmountMesssage} • ${Localize.translateLocal('iou.pending')}`;
     }
 
     if (report.hasOutstandingIOU) {
-        return Localize.translateLocal('iou.payerOwesAmount', { payer: payerName, amount: formattedAmount });
+        return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
     }
 
     return payerPaidAmountMesssage;
@@ -1228,15 +1228,15 @@ function getReportPreviewMessage(report, reportAction = {}) {
         } else if (reportActionMessage.match(/ using Expensify$/)) {
             translatePhraseKey = 'iou.paidUsingExpensifyWithAmount';
         }
-        return Localize.translateLocal(translatePhraseKey, { amount: formattedAmount });
+        return Localize.translateLocal(translatePhraseKey, {amount: formattedAmount});
     }
 
     if (report.isWaitingOnBankAccount) {
         const submitterDisplayName = getDisplayNameForParticipant(report.ownerAccountID, true);
-        return Localize.translateLocal('iou.waitingOnBankAccount', { submitterDisplayName });
+        return Localize.translateLocal('iou.waitingOnBankAccount', {submitterDisplayName});
     }
 
-    return Localize.translateLocal('iou.payerOwesAmount', { payer: payerName, amount: formattedAmount });
+    return Localize.translateLocal('iou.payerOwesAmount', {payer: payerName, amount: formattedAmount});
 }
 
 /**
@@ -1358,12 +1358,12 @@ function getChatRoomSubtitle(report) {
 function getParentNavigationSubtitle(report) {
     if (isThread(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
-        const { rootReportName, workspaceName } = getRootReportAndWorkspaceName(parentReport);
+        const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
         if (_.isEmpty(rootReportName)) {
             return '';
         }
 
-        return Localize.translateLocal('threads.parentNavigationSummary', { rootReportName, workspaceName });
+        return Localize.translateLocal('threads.parentNavigationSummary', {rootReportName, workspaceName});
     }
     return '';
 }
@@ -1660,7 +1660,7 @@ function buildOptimisticExpenseReport(chatReportID, policyID, payeeAccountID, to
  */
 function getIOUReportActionMessage(type, total, comment, currency, paymentType = '', isSettlingUp = false) {
     const currencyUnit = CurrencyUtils.getCurrencyUnit(currency);
-    const amount = NumberFormatUtils.format(preferredLocale, Math.abs(total) / currencyUnit, { style: 'currency', currency });
+    const amount = NumberFormatUtils.format(preferredLocale, Math.abs(total) / currencyUnit, {style: 'currency', currency});
     let paymentMethodMessage;
     switch (paymentType) {
         case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
@@ -1734,7 +1734,7 @@ function buildOptimisticIOUReportAction(type, amount, currency, comment, partici
         _.each(['amount', 'comment', 'currency'], (key) => {
             delete originalMessage[key];
         });
-        originalMessage.IOUDetails = { amount, comment, currency };
+        originalMessage.IOUDetails = {amount, comment, currency};
         originalMessage.paymentType = paymentType;
     }
 
@@ -2511,7 +2511,7 @@ function getRouteFromLink(url) {
  */
 function getReportIDFromLink(url) {
     const route = getRouteFromLink(url);
-    const { reportID, isSubReportPageRoute } = ROUTES.parseReportRouteParams(route);
+    const {reportID, isSubReportPageRoute} = ROUTES.parseReportRouteParams(route);
     if (isSubReportPageRoute) {
         // We allow the Sub-Report deep link routes (settings, details, etc.) to be handled by their respective component pages
         return '';
@@ -2740,7 +2740,7 @@ function getReportOfflinePendingActionAndErrors(report) {
     // simply looking up the first truthy value for each case will get the relevant property if it's set.
     const addWorkspaceRoomOrChatPendingAction = lodashGet(report, 'pendingFields.addWorkspaceRoom') || lodashGet(report, 'pendingFields.createChat');
     const addWorkspaceRoomOrChatErrors = lodashGet(report, 'errorFields.addWorkspaceRoom') || lodashGet(report, 'errorFields.createChat');
-    return { addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors };
+    return {addWorkspaceRoomOrChatPendingAction, addWorkspaceRoomOrChatErrors};
 }
 
 /**
