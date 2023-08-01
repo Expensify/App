@@ -2497,6 +2497,10 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
+    switchThumbTransformation: (translateX) => ({
+        transform: [{translateX}],
+    }),
+
     radioButtonContainer: {
         backgroundColor: themeColors.componentBG,
         borderRadius: 10,
