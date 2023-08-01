@@ -78,6 +78,7 @@ const defaultProps = {
 
 function ReceiptSelector(props) {
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
     const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
@@ -121,7 +122,7 @@ function ReceiptSelector(props) {
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
-                                        IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report);
+                                        IOU.onReceiptImageSelected(file, props.iou, iouType.current, reportID.current, props.report);
                                     },
                                 });
                             }}
@@ -138,7 +139,7 @@ function ReceiptSelector(props) {
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report);
+                    IOU.onReceiptImageSelected(file, props.iou, iouType.current, reportID.current, props.report);
                 }}
                 receiptImageTopPosition={receiptImageTopPosition}
             />

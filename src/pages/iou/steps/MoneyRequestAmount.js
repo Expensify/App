@@ -173,7 +173,7 @@ function MoneyRequestAmount(props) {
 
     const prevMoneyRequestID = useRef(props.iou.id);
     const textInput = useRef(null);
-    const iouType = useRef(lodashGet(props, 'iou.iouType', ''));
+    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const isEditing = useRef(Navigation.getActiveRoute().includes('amount'));
 
@@ -263,7 +263,7 @@ function MoneyRequestAmount(props) {
             const moneyRequestID = `${iouType.current}${reportID.current}`;
             const shouldReset = props.iou.id !== moneyRequestID;
             if (shouldReset) {
-                IOU.resetMoneyRequestInfo(moneyRequestID, iouType.current);
+                IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
             if (_.isEmpty(props.iou.participants) || props.iou.amount === 0 || shouldReset) {

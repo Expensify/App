@@ -99,6 +99,7 @@ function ReceiptSelector(props) {
 
     const [permissions, setPermissions] = useState('authorized');
 
+    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
     const {translate} = useLocalize();
@@ -178,7 +179,7 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, reportID.current, props.report);
+                IOU.navigateToNextPage(props.iou, iouType.current, reportID.current, props.report);
             })
             .catch(() => {
                 showCameraAlert();
@@ -259,7 +260,7 @@ function ReceiptSelector(props) {
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
                             IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                            IOU.navigateToNextPage(props.iou, reportID.current, props.report);
+                            IOU.navigateToNextPage(props.iou, iouType.current, reportID.current, props.report);
                         });
                     }}
                 >

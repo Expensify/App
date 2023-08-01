@@ -17,9 +17,9 @@ import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
-import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import Permissions from '../../libs/Permissions';
 import usePermissions from '../../hooks/usePermissions';
+import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 
 const propTypes = {
     /** Beta features list */
@@ -84,7 +84,7 @@ function MoneyRequestSelectorPage(props) {
 
     const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType.current}${reportID.current}`;
-        IOU.resetMoneyRequestInfo(moneyRequestID, iouType.current);
+        IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
     return (
@@ -111,12 +111,12 @@ function MoneyRequestSelectorPage(props) {
                                     <TopTab.Screen
                                         name={CONST.TAB.MANUAL}
                                         component={MoneyRequestAmount}
-                                        initialParams={{reportID: reportID.current}}
+                                        initialParams={{reportID: reportID.current, iouType: iouType.current}}
                                     />
                                     <TopTab.Screen
                                         name={CONST.TAB.SCAN}
                                         component={ReceiptSelector}
-                                        initialParams={{reportID: reportID.current}}
+                                        initialParams={{reportID: reportID.current, iouType: iouType.current}}
                                     />
                                 </OnyxTabNavigator>
                             ) : (

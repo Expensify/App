@@ -61,12 +61,10 @@ Onyx.connect({
 /**
  * Reset money request info from the store with its initial value
  * @param {String} id
- * @param {String} iouType
  */
-function resetMoneyRequestInfo(id = '', iouType = '') {
+function resetMoneyRequestInfo(id = '') {
     Onyx.merge(ONYXKEYS.IOU, {
         id,
-        iouType,
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
@@ -1444,7 +1442,7 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
  * @param {String} reportID
  */
 function startMoneyRequest(iouType, reportID = '') {
-    resetMoneyRequestInfo(`${iouType}${reportID}`, iouType);
+    resetMoneyRequestInfo(`${iouType}${reportID}`);
     Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
 }
 
@@ -1495,16 +1493,17 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
  * Navigates to the next IOU page based on where the IOU request was started
  *
  * @param {Object} iou
+ * @param {String} iouType
  * @param {String} reportID
  * @param {Object} report
  */
-function navigateToNextPage(iou, reportID, report) {
-    const moneyRequestID = `${iou.iouType}${reportID}`;
+function navigateToNextPage(iou, iouType, reportID, report) {
+    const moneyRequestID = `${iouType}${reportID}`;
     const shouldReset = iou.id !== moneyRequestID;
     // If the money request ID in Onyx does not match the ID from params, we want to start a new request
     // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
     if (shouldReset) {
-        resetMoneyRequestInfo(moneyRequestID, iou.iouType);
+        resetMoneyRequestInfo(moneyRequestID);
     }
 
     // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
@@ -1520,27 +1519,28 @@ function navigateToNextPage(iou, reportID, report) {
                       .value();
             setMoneyRequestParticipants(participants);
         }
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iou.iouType, reportID));
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
         return;
     }
-    Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iou.iouType));
+    Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
 }
 
 /**
  *
  * @param {Object} file
  * @param {Object} iou
+ * @param {String} iouType
  * @param {String} reportID
  * @param {Object} report
  */
-function onReceiptImageSelected(file, iou, reportID, report) {
+function onReceiptImageSelected(file, iou, iouType, reportID, report) {
     if (!ReceiptUtils.isValidReceipt(file)) {
         return;
     }
 
     const filePath = URL.createObjectURL(file);
     setMoneyRequestReceipt(filePath, file.name);
-    navigateToNextPage(iou, reportID, report);
+    navigateToNextPage(iou, iouType, reportID, report);
 }
 
 export {
