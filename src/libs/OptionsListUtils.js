@@ -978,7 +978,6 @@ function getShareDestinationOptions(reports, personalDetails, betas = [], search
         includeMultipleParticipantReports: true,
         includePersonalDetails: false,
         showChatPreviewLine: true,
-        sortByReportTypeInSearch: true,
         forcePolicyNamePreview: true,
         includeThreads: true,
         includeMoneyRequests: true,
