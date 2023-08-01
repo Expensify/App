@@ -20,13 +20,13 @@ const defaultProps = {
     numberOfLines: 1,
 };
 
-function DisplayNamesWithoutTooltip(props) {
+function DisplayNamesWithoutTooltip({textStyles, numberOfLines, fullTitle}) {
     return (
         <Text
-            style={[...props.textStyles, props.numberOfLines === 1 ? styles.pre : styles.preWrap]}
-            numberOfLines={props.numberOfLines}
+            style={[...textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
+            numberOfLines={numberOfLines}
         >
-            {props.fullTitle}
+            {fullTitle}
         </Text>
     );
 }

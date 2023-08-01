@@ -49,18 +49,6 @@ function DisplayNamesWithToolTip(props) {
         return textNodeRight > containerRight ? -(tooltipX - newToolX) : 0;
     };
 
-    if (!props.tooltipEnabled) {
-        // No need for any complex text-splitting, just return a simple Text component
-        return (
-            <Text
-                style={[...props.textStyles, props.numberOfLines === 1 ? styles.pre : styles.preWrap]}
-                numberOfLines={props.numberOfLines}
-            >
-                {props.fullTitle}
-            </Text>
-        );
-    }
-
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
