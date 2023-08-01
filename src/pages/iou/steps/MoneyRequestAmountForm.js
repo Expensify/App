@@ -95,26 +95,26 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
     /**
      * Convert amount to whole unit and update selection
      *
+     * @param {String} currencyCode
      * @param {Number} amountInCurrencyUnits
      */
-    const saveAmountToState = useCallback(
-        (amountInCurrencyUnits) => {
-            if (!currency || !amountInCurrencyUnits) {
-                return;
-            }
-            const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currency, amountInCurrencyUnits).toString();
-            setCurrentAmount(amountAsStringForState);
-            setSelection({
-                start: amountAsStringForState.length,
-                end: amountAsStringForState.length,
-            });
-        },
-        [currency],
-    );
+    const saveAmountToState = (currencyCode, amountInCurrencyUnits) => {
+        if (!currencyCode || !amountInCurrencyUnits) {
+            return;
+        }
+        const amountAsStringForState = CurrencyUtils.convertToWholeUnit(currencyCode, amountInCurrencyUnits).toString();
+        setCurrentAmount(amountAsStringForState);
+        setSelection({
+            start: amountAsStringForState.length,
+            end: amountAsStringForState.length,
+        });
+    };
 
     useEffect(() => {
-        saveAmountToState(amount);
-    }, [amount, saveAmountToState]);
+        saveAmountToState(currency, amount);
+        // we want to update the state only when the amount is changed
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [amount]);
 
     /**
      * Sets the state according to amount that is passed
