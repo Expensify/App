@@ -83,9 +83,9 @@ function MoneyRequestSelectorPage(props) {
     };
 
     return (
-        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-            <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({safeAreaPaddingBottomStyle}) => (
+        <ScreenWrapper includeSafeAreaPaddingBottom={false}>
+            {({safeAreaPaddingBottomStyle}) => (
+                <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.MANUAL}>
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
@@ -119,9 +119,9 @@ function MoneyRequestSelectorPage(props) {
                             )}
                         </View>
                     </DragAndDropProvider>
-                )}
-            </ScreenWrapper>
-        </FullPageNotFoundView>
+                </FullPageNotFoundView>
+            )}
+        </ScreenWrapper>
     );
 }
 
