@@ -119,8 +119,6 @@ function ButtonWithDropdownMenu(props) {
                     text={selectedItem.text}
                     onPress={(event) => props.onPress(event, props.options[0].value)}
                     pressOnEnter
-                    medium
-                    innerStyles={[styles.dropButtonHeight]}
                 />
             )}
             {props.options.length > 1 && !_.isEmpty(popoverAnchorPosition) && (
