@@ -45,8 +45,6 @@ function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
     const filteredReports = useMemo(() => {
         const reports = {};
@@ -59,7 +57,7 @@ function TaskShareDestinationSelectorModal(props) {
         return reports;
     }, [props.reports]);
     const updateOptions = useCallback(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
+        const { recentReports } = OptionsListUtils.getShareDestinationOptions(
             filteredReports,
             props.personalDetails,
             props.betas,
@@ -69,11 +67,9 @@ function TaskShareDestinationSelectorModal(props) {
             true,
         );
 
-        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
+        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length !== 0, false, searchValue));
 
-        setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
     }, [props, searchValue, filteredReports]);
 
     useEffect(() => {
@@ -99,23 +95,6 @@ function TaskShareDestinationSelectorModal(props) {
                 indexOffset,
             });
             indexOffset += filteredRecentReports?.length;
-        }
-
-        if (filteredPersonalDetails?.length > 0) {
-            sections.push({
-                data: filteredPersonalDetails,
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += filteredRecentReports?.length;
-        }
-
-        if (filteredUserToInvite) {
-            sections.push({
-                data: [filteredUserToInvite],
-                shouldShow: true,
-                indexOffset,
-            });
         }
 
         return sections;
