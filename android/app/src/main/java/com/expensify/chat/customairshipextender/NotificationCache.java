@@ -9,6 +9,7 @@ import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
 import com.expensify.chat.MainApplication;
+import com.urbanairship.UAirship;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -58,7 +59,7 @@ public class NotificationCache {
     }
 
     private static void writeToInternalStorage() {
-        Context context = MainApplication.getContext();
+        Context context = UAirship.getApplicationContext();
         try {
             File outputFile = new File(context.getFilesDir(), CACHE_FILE_NAME);
             FileOutputStream fos = new FileOutputStream(outputFile);
@@ -75,7 +76,7 @@ public class NotificationCache {
 
     private static HashMap<String, NotificationData> readFromInternalStorage() {
         HashMap<String, NotificationData> result;
-        Context context = MainApplication.getContext();
+        Context context = UAirship.getApplicationContext();
         try {
             File fileCache = new File(context.getFilesDir(), CACHE_FILE_NAME);
             FileInputStream fis = new FileInputStream(fileCache);
