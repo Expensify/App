@@ -197,6 +197,7 @@ function openApp() {
  * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
 function reconnectApp(updateIDFrom = 0, updateIDTo = 0) {
+    console.debug(`[Onyx Updates] App reconnecting with updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
     getPolicyIDsForOpenOrReconnect().then((policyIDs) => {
         const params = {...policyIDs};
 
