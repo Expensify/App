@@ -16,7 +16,6 @@ import * as User from '../../../../../libs/actions/User';
 import Button from '../../../../../components/Button';
 import DotIndicatorMessage from '../../../../../components/DotIndicatorMessage';
 import * as Session from '../../../../../libs/actions/Session';
-import shouldDelayFocus from '../../../../../libs/shouldDelayFocus';
 import Text from '../../../../../components/Text';
 import {withNetwork} from '../../../../../components/OnyxProvider';
 import PressableWithFeedback from '../../../../../components/Pressable/PressableWithFeedback';
