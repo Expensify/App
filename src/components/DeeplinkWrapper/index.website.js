@@ -60,11 +60,8 @@ function DeeplinkWrapper({children, isAuthenticated}) {
         }
     }, [hasShownPrompt, isAuthenticated]);
     useEffect(() => {
-        if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
-            return;
-        }
-        // Extra guard, but removing the listener should prevent this from firing
-        if (hasShownPrompt) {
+        // Making a few checks to exit early before checking authentication status
+        if (!isMacOSWeb() || CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV || hasShownPrompt) {
             return;
         }
 
