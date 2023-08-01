@@ -81,7 +81,7 @@ function GrowlNotification(_, ref) {
 
         fling(0);
         setTimeout(() => {
-            fling(INACTIVE_POSITION_Y);
+            fling();
             setDuration(undefined);
         }, duration);
     }, [duration, fling]);
@@ -94,14 +94,14 @@ function GrowlNotification(_, ref) {
                     return;
                 }
 
-                fling(INACTIVE_POSITION_Y);
+                fling();
             }}
         >
             <View style={styles.growlNotificationWrapper}>
                 <GrowlNotificationContainer translateY={translateY}>
                     <PressableWithoutFeedback
                         accessibilityLabel={bodyText}
-                        onPress={() => fling(INACTIVE_POSITION_Y)}
+                        onPress={() => fling()}
                     >
                         <View style={styles.growlNotificationBox}>
                             <Icon
