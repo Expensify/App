@@ -1,6 +1,7 @@
 import React, {useCallback, useState, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import MagicCodeInput from '../../../../../components/MagicCodeInput';
@@ -71,6 +72,7 @@ function BaseValidateCodeForm(props) {
     const [validateCode, setValidateCode] = useState('');
     const loginData = props.loginList[props.contactMethod];
     const inputValidateCodeRef = useRef();
+    const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
 
     useEffect(() => {
         if (!props.hasMagicCodeBeenSent) {
@@ -134,6 +136,7 @@ function BaseValidateCodeForm(props) {
                 value={validateCode}
                 onChangeText={onTextInput}
                 errorText={formError.validateCode ? props.translate(formError.validateCode) : ErrorUtils.getLatestErrorMessage(props.account)}
+                hasError={!_.isEmpty(validateLoginError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus
                 shouldDelayFocus={shouldDelayFocus}
@@ -168,7 +171,7 @@ function BaseValidateCodeForm(props) {
             </OfflineWithFeedback>
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateLogin', null)}
-                errors={ErrorUtils.getEarliestErrorField(loginData, 'validateLogin')}
+                errors={validateLoginError}
                 errorRowStyles={[styles.mt2]}
                 onClose={() => User.clearContactMethodErrors(props.contactMethod, 'validateLogin')}
             >
