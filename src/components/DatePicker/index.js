@@ -16,7 +16,7 @@ function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, pl
         inputRef.current.setAttribute('max', moment(maxDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
         inputRef.current.setAttribute('min', moment(minDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
         inputRef.current.classList.add('expensify-datepicker');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     /**
@@ -33,7 +33,7 @@ function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, pl
         if (asMoment.isValid()) {
             onInputChange(asMoment.format(CONST.DATE.MOMENT_FORMAT_STRING));
         }
-    }
+    };
 
     /**
      * Pops the datepicker up when we focus this field. This only works on mWeb chrome
@@ -46,7 +46,7 @@ function DatePicker({maxDate, minDate, onInputChange, innerRef, label, value, pl
         }
 
         inputRef.current.click();
-    }
+    };
 
     return (
         <TextInput
