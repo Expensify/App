@@ -214,7 +214,7 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
                             isEditing={isEditing}
                             currency={currency}
                             amount={amount}
-                            ref={textInput}
+                            ref={(e) => (textInput.current = e)}
                             onCurrencyButtonPress={navigateToCurrencySelectionPage}
                             onSubmitButtonPress={navigateToNextPage}
                         />
