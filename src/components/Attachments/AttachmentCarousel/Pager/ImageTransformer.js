@@ -210,11 +210,6 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
 
             stopAnimation();
 
-            const targetImageSize = {
-                width: scaledImageWidth * doubleTapScale,
-                height: scaledImageHeight * doubleTapScale,
-            };
-
             const canvasCenter = {
                 x: canvasWidth / 2,
                 y: canvasHeight / 2,
