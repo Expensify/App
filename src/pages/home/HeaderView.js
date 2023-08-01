@@ -31,6 +31,7 @@ import PinButton from '../../components/PinButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import TaskHeaderActionButton from '../../components/TaskHeaderActionButton';
+import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -94,12 +95,14 @@ function HeaderView(props) {
     const isConcierge = ReportUtils.hasSingleParticipant(props.report) && _.contains(participants, CONST.ACCOUNT_ID.CONCIERGE);
     const isAutomatedExpensifyAccount = ReportUtils.hasSingleParticipant(props.report) && ReportUtils.hasAutomatedExpensifyAccountIDs(participants);
     const guideCalendarLink = lodashGet(props.account, 'guideCalendarLink');
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(parentReportAction);
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
     const shouldShowCallButton = (isConcierge && guideCalendarLink) || (!isAutomatedExpensifyAccount && !isTaskReport);
     const threeDotMenuItems = [];
-    if (isTaskReport) {
+    if (isTaskReport && !isDeletedParentAction) {
         const isTaskAssigneeOrTaskOwner = Task.isTaskAssigneeOrTaskOwner(props.report, props.session.accountID);
         if (ReportUtils.isOpenTaskReport(props.report) && isTaskAssigneeOrTaskOwner) {
             threeDotMenuItems.push({
@@ -133,7 +136,7 @@ function HeaderView(props) {
     const defaultSubscriptSize = ReportUtils.isExpenseRequest(props.report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
     const icons = ReportUtils.getIcons(reportHeaderData, props.personalDetails);
     const brickRoadIndicator = ReportUtils.hasReportNameError(props.report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
-    const shouldShowBorderBottom = !isTaskReport || !props.isSmallScreenWidth;
+    const shouldShowBorderBottom = !props.isSmallScreenWidth;
 
     return (
         <View
