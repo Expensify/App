@@ -381,23 +381,25 @@ function ReportActionItem(props) {
                         <LinkPreviewer linkMetadata={_.filter(props.action.linkMetadata, (item) => !_.isEmpty(item))} />
                     </View>
                 )}
-                <View style={draftMessageRightAlign}>
-                    <ReportActionItemEmojiReactions
-                        reportActionID={props.action.reportActionID}
-                        emojiReactions={props.emojiReactions}
-                        toggleReaction={(emoji) => {
-                            if (Session.isAnonymousUser()) {
-                                hideContextMenu(false);
+                {!ReportActionsUtils.isMessageDeleted(props.action) && (
+                    <View style={draftMessageRightAlign}>
+                        <ReportActionItemEmojiReactions
+                            reportActionID={props.action.reportActionID}
+                            emojiReactions={props.emojiReactions}
+                            toggleReaction={(emoji) => {
+                                if (Session.isAnonymousUser()) {
+                                    hideContextMenu(false);
 
-                                InteractionManager.runAfterInteractions(() => {
-                                    Session.signOutAndRedirectToSignIn();
-                                });
-                            } else {
-                                toggleReaction(emoji);
-                            }
-                        }}
-                    />
-                </View>
+                                    InteractionManager.runAfterInteractions(() => {
+                                        Session.signOutAndRedirectToSignIn();
+                                    });
+                                } else {
+                                    toggleReaction(emoji);
+                                }
+                            }}
+                        />
+                    </View>
+                )}
 
                 {shouldDisplayThreadReplies && (
                     <View style={draftMessageRightAlign}>
