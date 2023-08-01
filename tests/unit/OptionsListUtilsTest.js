@@ -589,8 +589,8 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], '');
 
         // Then we should expect the DMS, the group chats and the workspace room to show
-        // We should expect all the recent reports to show
-        expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_WORKSPACE_ROOMS));
+        // We should expect all the recent reports to show, excluding the archived rooms
+        expect(results.recentReports.length).toBe(_.size(REPORTS_WITH_WORKSPACE_ROOMS) - 1);
 
         // When we search for a workspace room
         results = OptionsListUtils.getShareDestinationOptions(REPORTS_WITH_WORKSPACE_ROOMS, PERSONAL_DETAILS, [], 'Avengers Room');
