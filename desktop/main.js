@@ -37,7 +37,7 @@ contextMenu({
             accelerator: 'Option+Shift+CmdOrCtrl+V',
         }),
         new MenuItem({
-            label: 'Paste as Plain Text',
+            label: Localize.translate(CONST.LOCALES.DEFAULT, 'desktopApplicationMenu.pasteAsPlainText'),
             visible: parameters.isEditable && parameters.editFlags.canPaste,
             accelerator:'CmdOrCtrl+Shift+V',
             click: () => {
@@ -337,7 +337,16 @@ const mainWindow = () => {
                                 id: 'pasteAndMatchStyle',
                                 role: 'pasteAndMatchStyle',
                                 accelerator: 'Option+Shift+CmdOrCtrl+V',
-                            },                          
+                            },
+                            {
+                                id: 'pasteAsPlainText',
+                                accelerator:'CmdOrCtrl+Shift+V',
+                                click: () => {
+                                    // Insert the plain text from the clipboard
+                                    const text = clipboard.readText();
+                                    browserWindow.webContents.insertText(text);
+                                },
+                            },                            
                             {id: 'delete', role: 'delete'},
                             {id: 'selectAll', role: 'selectAll'},
                             {type: 'separator'},
