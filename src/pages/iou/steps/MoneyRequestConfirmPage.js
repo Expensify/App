@@ -150,7 +150,7 @@ function MoneyRequestConfirmPage(props) {
                 trimmedComment,
             );
         },
-        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report, props.iou.merchant],
+        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report],
     );
 
     /**
