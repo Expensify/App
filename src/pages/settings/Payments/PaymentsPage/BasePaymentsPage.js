@@ -38,7 +38,7 @@ function BasePaymentsPage(props) {
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
-    const [showPassword, setShowPassword] = useState({
+    const [showPassword] = useState({
         shouldShowPasswordPrompt: false,
         passwordButtonText: '',
     });
