@@ -167,7 +167,7 @@ function TaskAssigneeSelectorModal(props) {
         if (props.route.params.reportID) {
             // There was an issue where sometimes a new assignee didn't have a DM thread
             // This would cause the app to crash, so we need to make sure we have a DM thread
-            Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
+            Task.setAssigneeValue(option.login, option.accountID, props.route.params.reportID, OptionsListUtils.isCurrentUser(option));
 
             // Pass through the selected assignee
             Task.editTaskAndNavigate(lodashGet(props.reports, `report_${props.route.params.reportID}`, {}), props.session.accountID, {
@@ -183,7 +183,10 @@ function TaskAssigneeSelectorModal(props) {
                 <>
                     <HeaderWithBackButton
                         title={props.translate('task.assignee')}
-                        onBackButtonPress={() => (lodashGet(lodashGet(props.reports, `report_${props.route.params.reportID}`, {}), 'isExistingTaskReport') ? Navigation.dismissModal() : Navigation.goBack(ROUTES.NEW_TASK))}
+                        onBackButtonPress={() => (
+                            (props.route.params.reportID && lodashGet(props.reports, `report_${props.route.params.reportID}`, undefined)) 
+                                ? Navigation.dismissModal() 
+                                : Navigation.goBack(ROUTES.NEW_TASK))}
                     />
                     <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                         <OptionsSelector
