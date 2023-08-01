@@ -103,9 +103,12 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     // can we pan left/right/up/down
     // can be used to limit gesture or implementing tension effect
     const getBounds = useWorkletCallback(() => {
-        const rightBoundary = Math.abs(canvasWidth - zoomScaledImageWidth.value) / 2;
-
+        let rightBoundary = 0;
         let topBoundary = 0;
+
+        if (canvasWidth < zoomScaledImageWidth.value) {
+            rightBoundary = Math.abs(canvasWidth - zoomScaledImageWidth.value) / 2;
+        }
 
         if (canvasHeight < zoomScaledImageHeight.value) {
             topBoundary = Math.abs(zoomScaledImageHeight.value - canvasHeight) / 2;
