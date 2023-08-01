@@ -1,6 +1,7 @@
 import React from 'react';
 import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import TabSelector from '../components/TabSelector/TabSelector';
+import Permissions from '../libs/Permissions';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 import CONST from '../CONST';
@@ -35,10 +36,14 @@ function NewChatSelectorPage(props) {
                 <TopTab.Navigator
                     backBehavior="order"
                     tabBar={({state, navigation}) => (
-                        <TabSelector
-                            state={state}
-                            navigation={navigation}
-                        />
+                        <>
+                            {Permissions.canUsePolicyRooms(props.betas) && (
+                                <TabSelector
+                                    state={state}
+                                    navigation={navigation}
+                                />
+                            )}
+                        </>
                     )}
                 >
                     <TopTab.Screen
