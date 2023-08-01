@@ -51,6 +51,9 @@ const propTypes = {
         pendingFields: PropTypes.objectOf(PropTypes.objectOf(PropTypes.string)),
     }).isRequired,
 
+    /** Forwarded inner ref */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
+
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */

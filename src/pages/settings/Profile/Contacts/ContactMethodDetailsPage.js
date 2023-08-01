@@ -103,6 +103,8 @@ class ContactMethodDetailsPage extends Component {
         this.state = {
             isDeleteModalOpen: false,
         };
+
+        this.validateCodeFormRef = React.createRef();
     }
 
     componentDidMount() {
@@ -251,6 +253,7 @@ class ContactMethodDetailsPage extends Component {
                                 contactMethod={contactMethod}
                                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                                 loginList={this.props.loginList}
+                                ref={this.validateCodeFormRef}
                             />
                         </View>
                     )}
