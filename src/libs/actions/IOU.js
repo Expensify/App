@@ -377,10 +377,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
 
     let reportPreviewAction = isNewIOUReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
     if (reportPreviewAction) {
-        reportPreviewAction.created = DateUtils.getDBTime();
-        const message = ReportUtils.getReportPreviewMessage(iouReport, reportPreviewAction);
-        reportPreviewAction.message[0].html = message;
-        reportPreviewAction.message[0].text = message;
+        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction);
     } else {
         reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport);
     }
@@ -650,10 +647,7 @@ function createSplitsAndOnyxData(participants, currentUserLogin, currentUserAcco
 
         let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction.created = DateUtils.getDBTime();
-            const message = ReportUtils.getReportPreviewMessage(oneOnOneIOUReport, oneOnOneReportPreviewAction);
-            oneOnOneReportPreviewAction.message[0].html = message;
-            oneOnOneReportPreviewAction.message[0].text = message;
+            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
             oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
@@ -1237,11 +1231,7 @@ function getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentMetho
         login: recipient.login,
     };
 
-    const optimisticReportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
-    optimisticReportPreviewAction.created = DateUtils.getDBTime();
-    const message = ReportUtils.getReportPreviewMessage(iouReport, optimisticReportPreviewAction);
-    optimisticReportPreviewAction.message[0].html = message;
-    optimisticReportPreviewAction.message[0].text = message;
+    const optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID));
 
     const optimisticData = [
         {
