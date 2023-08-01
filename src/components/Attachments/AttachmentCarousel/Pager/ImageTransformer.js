@@ -19,9 +19,13 @@ import styles from '../../../../styles/styles';
 import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageWrapper from './ImageWrapper';
 
-const MAX_SCALE = 20;
-const MIN_SCALE = 0.7;
-const DOUBLE_TAP_SCALE = 3;
+const MIN_ZOOM_SCALE_WITHOUT_BOUNCE = 1;
+const MAX_ZOOM_SCALE_WITHOUT_BOUNCE = 10;
+
+const MIN_ZOOM_SCALE_WITH_BOUNCE = MIN_ZOOM_SCALE_WITHOUT_BOUNCE * 0.7;
+const MAX_ZOOM_SCALE_WITH_BOUNCE = MAX_ZOOM_SCALE_WITHOUT_BOUNCE * 1.5;
+
+const DOUBLE_TAP_SCALE = 2;
 
 const SPRING_CONFIG = {
     mass: 1,
@@ -61,16 +65,14 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     const minImageScale = useMemo(() => Math.min(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
     const maxImageScale = useMemo(() => Math.max(imageScaleX, imageScaleY), [imageScaleX, imageScaleY]);
 
-    const minScale = useMemo(() => Math.min(MIN_SCALE, MIN_SCALE * minImageScale), [minImageScale]);
-    const maxScale = useMemo(() => Math.max(MAX_SCALE, MAX_SCALE * maxImageScale), [maxImageScale]);
     // On double tap zoom to fill, but at least 3x zoom
-    const doubleTapScale = useMemo(() => Math.max(maxImageScale / minImageScale, DOUBLE_TAP_SCALE * minImageScale), [maxImageScale, minImageScale]);
+    const doubleTapScale = useMemo(() => Math.max(maxImageScale / minImageScale, DOUBLE_TAP_SCALE), [maxImageScale, minImageScale]);
 
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
     // Using the smaller imageScale, so that the immage is not bigger than the canvas
     // and not smaller than needed to fit
-    const totalScale = useDerivedValue(() => clamp(zoomScale.value * minImageScale, minScale, maxScale), [minImageScale]);
+    const totalScale = useDerivedValue(() => zoomScale.value * minImageScale, [minImageScale]);
 
     const zoomScaledImageWidth = useDerivedValue(() => imageWidth * totalScale.value, [imageWidth]);
     const zoomScaledImageHeight = useDerivedValue(() => imageHeight * totalScale.value, [imageHeight]);
@@ -85,6 +87,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     // used for moving fingers when pinching
     const pinchTranslateX = useSharedValue(0);
     const pinchTranslateY = useSharedValue(0);
+    const pinchBounceTranslateX = useSharedValue(0);
+    const pinchBounceTranslateY = useSharedValue(0);
 
     // storage for the the origin of the gesture
     const origin = {
@@ -169,7 +173,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         const deceleration = 0.9915;
 
         if (isInBoundaryX) {
-            if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= maxScale) {
+            if (Math.abs(panVelocityX.value) > 0 && zoomScale.value <= MAX_ZOOM_SCALE_WITH_BOUNCE) {
                 offsetX.value = withDecay({
                     velocity: panVelocityX.value,
                     clamp: [minVector.x, maxVector.x],
@@ -184,7 +188,7 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
         if (isInBoundaryY) {
             if (
                 Math.abs(panVelocityY.value) > 0 &&
-                zoomScale.value <= maxScale &&
+                zoomScale.value <= MAX_ZOOM_SCALE_WITH_BOUNCE &&
                 // limit vertical pan only when image is smaller than screen
                 offsetY.value !== minVector.y &&
                 offsetY.value !== maxVector.y
@@ -449,16 +453,24 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             origin.y.value = adjustFocal.y;
         })
         .onChange((evt) => {
-            zoomScale.value = clamp(pinchScaleOffset.value * evt.scale, minScale, maxScale);
+            const newZoomScale = pinchScaleOffset.value * evt.scale;
 
-            if (zoomScale.value > minScale && zoomScale.value < maxScale) {
+            if (zoomScale.value >= MIN_ZOOM_SCALE_WITH_BOUNCE && zoomScale.value <= MAX_ZOOM_SCALE_WITH_BOUNCE) {
+                zoomScale.value = newZoomScale;
                 pinchGestureScale.value = evt.scale;
             }
 
-            const adjustFocal = getAdjustedFocal(evt.focalX, evt.focalY);
+            const adjustedFocal = getAdjustedFocal(evt.focalX, evt.focalY);
+            const newPinchTranslateX = adjustedFocal.x + pinchGestureScale.value * origin.x.value * -1;
+            const newPinchTranslateY = adjustedFocal.y + pinchGestureScale.value * origin.y.value * -1;
 
-            pinchTranslateX.value = adjustFocal.x + pinchGestureScale.value * origin.x.value * -1;
-            pinchTranslateY.value = adjustFocal.y + pinchGestureScale.value * origin.y.value * -1;
+            if (zoomScale.value >= MIN_ZOOM_SCALE_WITHOUT_BOUNCE && zoomScale.value <= MAX_ZOOM_SCALE_WITHOUT_BOUNCE) {
+                pinchTranslateX.value = newPinchTranslateX;
+                pinchTranslateY.value = newPinchTranslateY;
+            } else {
+                pinchBounceTranslateX.value = newPinchTranslateX - pinchTranslateX.value;
+                pinchBounceTranslateY.value = newPinchTranslateY - pinchTranslateY.value;
+            }
         })
         .onEnd(() => {
             offsetX.value += pinchTranslateX.value;
@@ -468,15 +480,17 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
             pinchScaleOffset.value = zoomScale.value;
             pinchGestureScale.value = 1;
 
-            if (pinchScaleOffset.value < 1) {
-                // make sure we don't add stuff below the 1
-                pinchScaleOffset.value = 1;
+            if (pinchScaleOffset.value < MIN_ZOOM_SCALE_WITHOUT_BOUNCE) {
+                pinchScaleOffset.value = MIN_ZOOM_SCALE_WITHOUT_BOUNCE;
+                zoomScale.value = withSpring(MIN_ZOOM_SCALE_WITHOUT_BOUNCE, SPRING_CONFIG);
+            } else if (pinchScaleOffset.value > MAX_ZOOM_SCALE_WITHOUT_BOUNCE) {
+                pinchScaleOffset.value = MAX_ZOOM_SCALE_WITHOUT_BOUNCE;
+                zoomScale.value = withSpring(MAX_ZOOM_SCALE_WITHOUT_BOUNCE, SPRING_CONFIG);
+            }
 
-                // this runs the timing animation
-                zoomScale.value = withSpring(1, SPRING_CONFIG);
-            } else if (pinchScaleOffset.value > maxScale) {
-                pinchScaleOffset.value = maxScale;
-                zoomScale.value = withSpring(maxScale, SPRING_CONFIG);
+            if (pinchBounceTranslateX.value !== 0 || pinchBounceTranslateY.value !== 0) {
+                pinchBounceTranslateX.value = withSpring(0, SPRING_CONFIG);
+                pinchBounceTranslateY.value = withSpring(0, SPRING_CONFIG);
             }
 
             afterGesture();
@@ -498,8 +512,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
     useEffect(() => onPinchGestureChange(isPinchGestureInUse), [isPinchGestureInUse]);
 
     const animatedStyles = useAnimatedStyle(() => {
-        const x = pinchTranslateX.value + translateX.value + offsetX.value;
-        const y = pinchTranslateY.value + translateY.value + offsetY.value;
+        const x = pinchTranslateX.value + pinchBounceTranslateX.value + translateX.value + offsetX.value;
+        const y = pinchTranslateY.value + pinchBounceTranslateY.value + translateY.value + offsetY.value;
 
         if (isSwiping.value) {
             onSwipe(y);
