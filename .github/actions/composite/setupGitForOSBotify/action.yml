@@ -8,7 +8,7 @@ inputs:
 
 outputs:
   # Do not try to use this for committing code. Use `secrets.OS_BOTIFY_COMMIT_TOKEN` instead
-  OSBOTIFY_API_TOKEN:
+  OS_BOTIFY_API_TOKEN:
     description: Token to use for GitHub API interactions.
     value: ${{ steps.generateToken.outputs.token }}
 
