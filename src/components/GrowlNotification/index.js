@@ -104,7 +104,7 @@ function GrowlNotification(_, ref) {
                 <GrowlNotificationContainer translateY={translateY}>
                     <PressableWithoutFeedback
                         accessibilityLabel={bodyText}
-                        onPress={fling}
+                        onPress={() => fling()}
                     >
                         <View style={styles.growlNotificationBox}>
                             <Icon
