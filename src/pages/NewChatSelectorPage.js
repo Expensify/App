@@ -47,11 +47,11 @@ function NewChatSelectorPage(props) {
                     )}
                 >
                     <TopTab.Screen
-                        name={CONST.TAB.TAB_NEW_CHAT}
+                        name={CONST.TAB.NEW_CHAT}
                         component={NewChatPage}
                     />
                     <TopTab.Screen
-                        name={CONST.TAB.TAB_NEW_ROOM}
+                        name={CONST.TAB.NEW_ROOM}
                         component={WorkspaceNewRoomPage}
                     />
                 </TopTab.Navigator>
