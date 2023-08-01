@@ -443,13 +443,7 @@ function BasePaymentsPage(props) {
                             <Button
                                 onPress={() => {
                                     setShouldShowDefaultDeleteMenu(false);
-
-                                    // Wait for the previous modal to close, before opening a new one. A modal will be considered completely closed when closing animation is finished.
-                                    // InteractionManager fires after the currently running animation is completed.
-                                    // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
-                                    InteractionManager.runAfterInteractions(() => {
-                                        makeDefaultPaymentMethod();
-                                    });
+                                    makeDefaultPaymentMethod();
                                 }}
                                 text={translate('paymentsPage.setDefaultConfirmation')}
                             />
