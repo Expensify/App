@@ -220,7 +220,7 @@ class ContactMethodDetailsPage extends Component {
 
         return (
             <ScreenWrapper
-                onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focusAfterTransitionEnd()}
+                onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focus()}
             >
                 <HeaderWithBackButton
                     title={formattedContactMethod}

@@ -77,7 +77,7 @@ function BaseValidateCodeForm(props) {
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
 
     useImperativeHandle(props.innerRef, () => ({
-        focusAfterTransitionEnd() {
+        focus() {
             if (inputValidateCodeRef.current && inputValidateCodeRef.current.focus) {
                 inputValidateCodeRef.current.focus();
             }

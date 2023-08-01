@@ -95,7 +95,7 @@ function VerifyPage(props) {
     return (
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
-            onEntryTransitionEnd={() => formRef.current && formRef.current.focusAfterTransitionEnd()}
+            onEntryTransitionEnd={() => formRef.current && formRef.current.focus()}
         >
             <HeaderWithBackButton
                 title={props.translate('twoFactorAuth.headerTitle')}
