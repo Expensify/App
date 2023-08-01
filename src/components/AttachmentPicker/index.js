@@ -53,7 +53,7 @@ function AttachmentPicker(props) {
                     if (!fileInput.current) {
                         return;
                     }
-                    fileInput.current.addEventListener('cancel', () => onCanceled.current(), { once: true});
+                    fileInput.current.addEventListener('cancel', () => onCanceled.current(), {once: true});
                 }}
                 accept={getAcceptableFileTypes(props.type)}
             />

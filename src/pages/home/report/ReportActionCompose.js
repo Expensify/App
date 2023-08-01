@@ -222,7 +222,7 @@ class ReportActionCompose extends React.Component {
 
         this.unsubscribeNavigationBlur = () => null;
         this.unsubscribeNavigationFocus = () => null;
-        
+
         this.shouldFocusAfterClosingModal = true;
 
         this.state = {
@@ -277,7 +277,13 @@ class ReportActionCompose extends React.Component {
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.willBlurTextInputOnTapOutside && this.shouldFocusAfterClosingModal && !this.props.modal.isVisible && this.props.isFocused && (prevProps.modal.isVisible || !prevProps.isFocused)) {
+        if (
+            this.willBlurTextInputOnTapOutside &&
+            this.shouldFocusAfterClosingModal &&
+            !this.props.modal.isVisible &&
+            this.props.isFocused &&
+            (prevProps.modal.isVisible || !prevProps.isFocused)
+        ) {
             this.focus();
         }
 

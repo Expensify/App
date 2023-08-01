@@ -2,7 +2,7 @@ let isReadyToFocusPromise = Promise.resolve();
 let resolveIsReadyToFocus;
 
 function resetReadyToFocus() {
-    isReadyToFocusPromise = new Promise(resolve => {
+    isReadyToFocusPromise = new Promise((resolve) => {
         resolveIsReadyToFocus = resolve;
     });
 }
@@ -10,7 +10,7 @@ function setReadyToFocus() {
     if (!resolveIsReadyToFocus) {
         return;
     }
-    resolveIsReadyToFocus()
+    resolveIsReadyToFocus();
 }
 function isReadyToFocus() {
     return isReadyToFocusPromise;
