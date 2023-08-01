@@ -1,6 +1,6 @@
 import lodashGet from 'lodash/get';
-import CONST from '../CONST';
 import _ from 'underscore';
+import CONST from '../CONST';
 
 /**
  * Returns the new selection object based on the updated amount's length
