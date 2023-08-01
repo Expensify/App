@@ -3,6 +3,7 @@ import {Parser as HtmlParser} from 'htmlparser2';
 import * as DeviceCapabilities from '../../libs/DeviceCapabilities';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import tryResolveUrlFromApiRoot from '../../libs/tryResolveUrlFromApiRoot';
+import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 
 /**
@@ -50,7 +51,7 @@ function createInitialState(props) {
 
     const page = _.findIndex(attachments, (a) => a.source === props.source);
     if (page === -1) {
-        throw new Error('Attachment not found');
+        Navigation.dismissModal();
     }
 
     // Update the parent modal's state with the source and name from the mapped attachments

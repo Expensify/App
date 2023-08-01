@@ -437,6 +437,10 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
+    if (lodashGet(newProps, 'report.total') !== lodashGet(oldProps, 'report.total')) {
+        return false;
+    }
+
     return _.isEqual(lodashGet(newProps.report, 'icons', []), lodashGet(oldProps.report, 'icons', []));
 }
 
