@@ -151,8 +151,9 @@ function setParams(params, routeKey) {
  * Dismisses the last modal stack if there is any
  *
  * @param {String | undefined} targetReportID - The reportID to navigate to after dismissing the modal
+ * @param {Boolean} requiresNavigate - Whether or not we need to navigate to the target report instead of replacing the current route
  */
-function dismissModal(targetReportID) {
+function dismissModal(targetReportID, requiresNavigate = false) {
     if (!canNavigate('dismissModal')) {
         return;
     }
@@ -167,7 +168,9 @@ function dismissModal(targetReportID) {
                 const state = getStateFromPath(ROUTES.getReportRoute(targetReportID));
 
                 const action = getActionFromState(state, linkingConfig.config);
-                action.type = 'REPLACE';
+                if (!requiresNavigate) {
+                    action.type = 'REPLACE';
+                }
                 navigationRef.current.dispatch(action);
             } else {
                 navigationRef.current.dispatch({...StackActions.pop(), target: rootState.key});

@@ -204,7 +204,7 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         {optimisticData, successData, failureData},
     );
 
-    Navigation.dismissModal(optimisticTaskReport.reportID);
+    Navigation.dismissModal(optimisticTaskReport.reportID, true);
 }
 
 function completeTask(taskReportID, taskTitle) {
