@@ -38,9 +38,9 @@ class DeeplinkWrapper extends PureComponent {
         return !Browser.isMobile() && typeof navigator === 'object' && typeof navigator.userAgent === 'string' && /Mac/i.test(navigator.userAgent) && !/Electron/i.test(navigator.userAgent);
     }
 
-    // Function to detect if current route should open in Web only.
+    // A function to detect if current route should be opened in Web only.
     isUnsupportedDeeplinkRoute() {
-        return _.some([ROUTES.ROUTES_REGEX.UNLINK_LOGIN], (unsupportRouteRegex) => {
+        return _.some([CONST.REGEX.ROUTES.UNLINK_LOGIN], (unsupportRouteRegex) => {
             const routeRegex = new RegExp(unsupportRouteRegex);
             return routeRegex.test(window.location.pathname);
         });
