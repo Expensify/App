@@ -16,7 +16,7 @@ import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
-const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen;
+const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen();
 const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
     // more than 95% visible. When that happens we update the page index in the state.
