@@ -212,8 +212,7 @@ function MoneyRequestConfirmationList(props) {
     const navigateToReportOrUserDetail = (option) => {
         if (option.accountID) {
             Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
-        }
-        if (option.reportID) {
+        } else if (option.reportID) {
             Navigation.navigate(ROUTES.getReportDetailsRoute(option.reportID));
         }
     };
