@@ -542,29 +542,15 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                 },
             ]}
         >
-            <GestureDetector gesture={pinchGesture}>
-                <Animated.View
-                    collapsable
-                    style={StyleSheet.absoluteFill}
-                >
-                    <GestureDetector gesture={Gesture.Race(pinchGesture, singleTap, panGesture)}>
-                        <Animated.View
-                            collapsable
-                            style={StyleSheet.absoluteFill}
-                        >
-                            <ImageWrapper>
-                                <GestureDetector gesture={doubleTap}>
-                                    <Animated.View
-                                        collapsable={false}
-                                        style={[animatedStyles]}
-                                    >
-                                        {children}
-                                    </Animated.View>
-                                </GestureDetector>
-                            </ImageWrapper>
-                        </Animated.View>
-                    </GestureDetector>
-                </Animated.View>
+            <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, doubleTap, Gesture.Race(pinchGesture, singleTap, panGesture))}>
+                <ImageWrapper>
+                    <Animated.View
+                        collapsable={false}
+                        style={[animatedStyles]}
+                    >
+                        {children}
+                    </Animated.View>
+                </ImageWrapper>
             </GestureDetector>
         </View>
     );
