@@ -148,10 +148,16 @@ describe('ReportActionsUtils', () => {
                     message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"'}],
                 },
                 {
-                    created: '2022-11-08 22:27:01.825',
-                    reportActionID: '1661970171066218',
-                    actionName: 'REIMBURSED',
-                    message: [{html: 'Hello world'}],
+                    created: '2022-11-08 22:27:06.825',
+                    reportActionID: '1661970171066216',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENTQUEUED,
+                    message: [{html: 'Waiting for the bank account'}],
+                },
+                {
+                    created: '2022-11-06 22:27:08.825',
+                    reportActionID: '1661970171066220',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.TASKEDITED,
+                    message: [{html: 'I have changed the task'}],
                 },
             ];
             const result = ReportActionsUtils.getSortedReportActionsForDisplay(input);

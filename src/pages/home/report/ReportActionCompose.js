@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, InteractionManager, LayoutAnimation, NativeModules, findNodeHandle} from 'react-native';
+import {runOnJS} from 'react-native-reanimated';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -39,7 +41,6 @@ import withNavigation from '../../../components/withNavigation';
 import * as EmojiUtils from '../../../libs/EmojiUtils';
 import * as UserUtils from '../../../libs/UserUtils';
 import ReportDropUI from './ReportDropUI';
-import DragAndDrop from '../../../components/DragAndDrop';
 import reportPropTypes from '../../reportPropTypes';
 import EmojiSuggestions from '../../../components/EmojiSuggestions';
 import MentionSuggestions from '../../../components/MentionSuggestions';
@@ -56,6 +57,8 @@ import * as IOU from '../../../libs/actions/IOU';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
 import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
+import withAnimatedRef from '../../../components/withAnimatedRef';
+import updatePropsPaperWorklet from '../../../libs/updatePropsPaperWorklet';
 
 const propTypes = {
     /** Beta features list */
@@ -118,8 +121,8 @@ const propTypes = {
     /** The type of action that's pending  */
     pendingAction: PropTypes.oneOf(['add', 'update', 'delete']),
 
-    /** Unique id for nativeId in DragAndDrop */
-    dragAndDropId: PropTypes.string.isRequired,
+    /** animated ref from react-native-reanimated */
+    animatedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]).isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
@@ -225,7 +228,6 @@ class ReportActionCompose extends React.Component {
             textInputShouldClear: false,
             isCommentEmpty: props.comment.length === 0,
             isMenuVisible: false,
-            isDraggingOver: false,
             selection: {
                 start: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
                 end: isMobileSafari && !this.shouldAutoFocus ? 0 : props.comment.length,
@@ -374,6 +376,9 @@ class ReportActionCompose extends React.Component {
     setTextInputRef(el) {
         ReportActionComposeFocusManager.composerRef.current = el;
         this.textInput = el;
+        if (_.isFunction(this.props.animatedRef)) {
+            this.props.animatedRef(el);
+        }
     }
 
     /**
@@ -908,9 +913,9 @@ class ReportActionCompose extends React.Component {
      */
     prepareCommentAndResetComposer() {
         const trimmedComment = this.comment.trim();
-
+        const commentLength = ReportUtils.getCommentLength(trimmedComment);
         // Don't submit empty comments or comments that exceed the character limit
-        if (this.state.isCommentEmpty || ReportUtils.getCommentLength(trimmedComment) > CONST.MAX_COMMENT_LENGTH) {
+        if (!commentLength || commentLength > CONST.MAX_COMMENT_LENGTH) {
             return '';
         }
 
@@ -979,11 +984,27 @@ class ReportActionCompose extends React.Component {
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isBlockedFromConcierge = ReportUtils.chatIncludesConcierge(this.props.report) && User.isBlockedFromConcierge(this.props.blockedFromConcierge);
         const inputPlaceholder = this.getInputPlaceholder();
-        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && (this.state.isFocused || this.state.isDraggingOver);
+        const shouldUseFocusedColor = !isBlockedFromConcierge && !this.props.disabled && this.state.isFocused;
         const hasExceededMaxCommentLength = this.state.hasExceededMaxCommentLength;
         const isFullComposerAvailable = this.state.isFullComposerAvailable && !_.isEmpty(this.state.value);
         const hasReportRecipient = _.isObject(reportRecipient) && !_.isEmpty(reportRecipient);
         const maxComposerLines = this.props.isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
+        const submit = this.submitForm;
+        const animatedRef = this.props.animatedRef;
+        const setCommentEmpty = () => this.setState({isCommentEmpty: true});
+        const Tap = Gesture.Tap()
+            .enabled(!(this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength))
+            .onEnd(() => {
+                'worklet';
+
+                const viewTag = animatedRef();
+                const viewName = 'RCTMultilineTextInputView';
+                const updates = {text: ''};
+                // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
+                runOnJS(setCommentEmpty)();
+                updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+                runOnJS(submit)();
+            });
 
         return (
             <View
@@ -1118,75 +1139,59 @@ class ReportActionCompose extends React.Component {
                                         )}
                                     </AttachmentPicker>
                                     <View style={[containerComposeStyles, styles.textInputComposeBorder]}>
-                                        <DragAndDrop
-                                            dropZoneId={this.props.dragAndDropId}
-                                            activeDropZoneId={CONST.REPORT.ACTIVE_DROP_NATIVE_ID + this.props.reportID}
-                                            onDragEnter={() => {
-                                                this.setState({isDraggingOver: true});
+                                        <Composer
+                                            checkComposerVisibility={() => this.checkComposerVisibility()}
+                                            autoFocus={this.shouldAutoFocus}
+                                            multiline
+                                            ref={this.setTextInputRef}
+                                            textAlignVertical="top"
+                                            placeholder={inputPlaceholder}
+                                            placeholderTextColor={themeColors.placeholderText}
+                                            onChangeText={(comment) => this.updateComment(comment, true)}
+                                            onKeyPress={this.triggerHotkeyActions}
+                                            style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
+                                            maxLines={maxComposerLines}
+                                            onFocus={() => this.setIsFocused(true)}
+                                            onBlur={() => {
+                                                this.setIsFocused(false);
+                                                this.resetSuggestions();
                                             }}
-                                            onDragLeave={() => {
-                                                this.setState({isDraggingOver: false});
+                                            onClick={() => {
+                                                this.shouldBlockEmojiCalc = false;
+                                                this.shouldBlockMentionCalc = false;
                                             }}
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                if (this.state.isAttachmentPreviewActive) {
-                                                    this.setState({isDraggingOver: false});
+                                            onPasteFile={displayFileInModal}
+                                            shouldClear={this.state.textInputShouldClear}
+                                            onClear={() => this.setTextInputShouldClear(false)}
+                                            isDisabled={isBlockedFromConcierge || this.props.disabled}
+                                            selection={this.state.selection}
+                                            onSelectionChange={this.onSelectionChange}
+                                            isFullComposerAvailable={isFullComposerAvailable}
+                                            setIsFullComposerAvailable={this.setIsFullComposerAvailable}
+                                            isComposerFullSize={this.props.isComposerFullSize}
+                                            value={this.state.value}
+                                            numberOfLines={this.props.numberOfLines}
+                                            onNumberOfLinesChange={this.updateNumberOfLines}
+                                            shouldCalculateCaretPosition
+                                            onLayout={(e) => {
+                                                const composerHeight = e.nativeEvent.layout.height;
+                                                if (this.state.composerHeight === composerHeight) {
                                                     return;
                                                 }
-
-                                                const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-
-                                                displayFileInModal(file);
-
-                                                this.setState({isDraggingOver: false});
+                                                this.setState({composerHeight});
                                             }}
-                                            disabled={this.props.disabled}
-                                        >
-                                            <Composer
-                                                checkComposerVisibility={() => this.checkComposerVisibility()}
-                                                autoFocus={this.shouldAutoFocus}
-                                                multiline
-                                                ref={this.setTextInputRef}
-                                                textAlignVertical="top"
-                                                placeholder={inputPlaceholder}
-                                                placeholderTextColor={themeColors.placeholderText}
-                                                onChangeText={(comment) => this.updateComment(comment, true)}
-                                                onKeyPress={this.triggerHotkeyActions}
-                                                style={[styles.textInputCompose, this.props.isComposerFullSize ? styles.textInputFullCompose : styles.flex4]}
-                                                maxLines={maxComposerLines}
-                                                onFocus={() => this.setIsFocused(true)}
-                                                onBlur={() => {
-                                                    this.setIsFocused(false);
-                                                    this.resetSuggestions();
-                                                }}
-                                                onClick={() => {
-                                                    this.shouldBlockEmojiCalc = false;
-                                                    this.shouldBlockMentionCalc = false;
-                                                }}
-                                                onPasteFile={displayFileInModal}
-                                                shouldClear={this.state.textInputShouldClear}
-                                                onClear={() => this.setTextInputShouldClear(false)}
-                                                isDisabled={isBlockedFromConcierge || this.props.disabled}
-                                                selection={this.state.selection}
-                                                onSelectionChange={this.onSelectionChange}
-                                                isFullComposerAvailable={isFullComposerAvailable}
-                                                setIsFullComposerAvailable={this.setIsFullComposerAvailable}
-                                                isComposerFullSize={this.props.isComposerFullSize}
-                                                value={this.state.value}
-                                                numberOfLines={this.props.numberOfLines}
-                                                onNumberOfLinesChange={this.updateNumberOfLines}
-                                                shouldCalculateCaretPosition
-                                                onLayout={(e) => {
-                                                    const composerHeight = e.nativeEvent.layout.height;
-                                                    if (this.state.composerHeight === composerHeight) {
-                                                        return;
-                                                    }
-                                                    this.setState({composerHeight});
-                                                }}
-                                                onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
-                                            />
-                                        </DragAndDrop>
+                                            onScroll={() => this.setShouldShowSuggestionMenuToFalse()}
+                                        />
                                     </View>
+                                    <ReportDropUI
+                                        onDrop={(e) => {
+                                            if (this.state.isAttachmentPreviewActive) {
+                                                return;
+                                            }
+                                            const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                            displayFileInModal(file);
+                                        }}
+                                    />
                                 </>
                             )}
                         </AttachmentModal>
@@ -1204,20 +1209,25 @@ class ReportActionCompose extends React.Component {
                             // Keep focus on the composer when Send message is clicked.
                             onMouseDown={(e) => e.preventDefault()}
                         >
-                            <Tooltip text={this.props.translate('common.send')}>
-                                <PressableWithFeedback
-                                    style={[styles.chatItemSubmitButton, this.state.isCommentEmpty || hasExceededMaxCommentLength ? undefined : styles.buttonSuccess]}
-                                    onPress={this.submitForm}
-                                    disabled={this.state.isCommentEmpty || isBlockedFromConcierge || this.props.disabled || hasExceededMaxCommentLength}
-                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                                    accessibilityLabel={this.props.translate('common.send')}
-                                >
-                                    <Icon
-                                        src={Expensicons.Send}
-                                        fill={this.state.isCommentEmpty || hasExceededMaxCommentLength ? themeColors.icon : themeColors.textLight}
-                                    />
-                                </PressableWithFeedback>
-                            </Tooltip>
+                            <GestureDetector gesture={Tap}>
+                                <Tooltip text={this.props.translate('common.send')}>
+                                    <PressableWithFeedback
+                                        style={({pressed, isDisabled}) => [
+                                            styles.chatItemSubmitButton,
+                                            this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed || isDisabled ? undefined : styles.buttonSuccess,
+                                        ]}
+                                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                                        accessibilityLabel={this.props.translate('common.send')}
+                                    >
+                                        {({pressed}) => (
+                                            <Icon
+                                                src={Expensicons.Send}
+                                                fill={this.state.isCommentEmpty || hasExceededMaxCommentLength || pressed ? themeColors.icon : themeColors.textLight}
+                                            />
+                                        )}
+                                    </PressableWithFeedback>
+                                </Tooltip>
+                            </GestureDetector>
                         </View>
                     </View>
                     <View
@@ -1236,7 +1246,6 @@ class ReportActionCompose extends React.Component {
                         />
                     </View>
                 </OfflineWithFeedback>
-                {this.state.isDraggingOver && <ReportDropUI />}
                 {!_.isEmpty(this.state.suggestedEmojis) && this.state.shouldShowEmojiSuggestionMenu && (
                     <ArrowKeyFocusManager
                         focusedIndex={this.state.highlightedEmojiIndex}
@@ -1300,6 +1309,7 @@ export default compose(
     withNetwork(),
     withCurrentUserPersonalDetails,
     withKeyboardState,
+    withAnimatedRef,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
