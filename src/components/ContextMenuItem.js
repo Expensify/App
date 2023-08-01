@@ -1,11 +1,11 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import MenuItem from './MenuItem';
 import Icon from './Icon';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from './withDelayToggleButtonState';
+import useThrottledButtonState from '../hooks/useThrottledButtonState';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import useWindowDimensions from '../hooks/useWindowDimensions';
 import getContextMenuItemStyles from '../styles/getContextMenuItemStyles';
@@ -34,8 +34,6 @@ const propTypes = {
 
     /** The action accept for anonymous user or not */
     isAnonymousAction: PropTypes.bool,
-
-    ...withDelayToggleButtonStatePropTypes,
 };
 
 const defaultProps = {
@@ -46,11 +44,12 @@ const defaultProps = {
     isAnonymousAction: false,
 };
 
-function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, successText, toggleDelayButtonState, icon, text, isMini, description, isAnonymousAction}) {
+function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction}) {
     const {windowWidth} = useWindowDimensions();
+    const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
-    const triggerPressAndUpdateSuccess = useCallback(() => {
-        if (isDelayButtonStateComplete) {
+    const triggerPressAndUpdateSuccess = () => {
+        if (!isThrottledButtonActive) {
             return;
         }
         onPress();
@@ -58,24 +57,24 @@ function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, succ
         // We only set the success state when we have icon or text to represent the success state
         // We may want to replace this check by checking the Result from OnPress Callback in future.
         if (successIcon || successText) {
-            toggleDelayButtonState();
+            setThrottledButtonInactive();
         }
-    }, [isDelayButtonStateComplete, onPress, successIcon, successText, toggleDelayButtonState]);
+    };
 
-    const itemIcon = isDelayButtonStateComplete && successIcon ? successIcon : icon;
-    const itemText = isDelayButtonStateComplete && successText ? successText : text;
+    const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
+    const itemText = !isThrottledButtonActive && successText ? successText : text;
 
     return isMini ? (
         <BaseMiniContextMenuItem
             tooltipText={itemText}
             onPress={triggerPressAndUpdateSuccess}
-            isDelayButtonStateComplete={isDelayButtonStateComplete}
+            isDelayButtonStateComplete={!isThrottledButtonActive}
         >
             {({hovered, pressed}) => (
                 <Icon
                     small
                     src={itemIcon}
-                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, isDelayButtonStateComplete))}
+                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
                 />
             )}
         </BaseMiniContextMenuItem>
@@ -85,7 +84,7 @@ function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, succ
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
             wrapperStyle={styles.pr9}
-            success={isDelayButtonStateComplete}
+            success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakAll}
             style={getContextMenuItemStyles(windowWidth)}
@@ -96,5 +95,6 @@ function ContextMenuItem({isDelayButtonStateComplete, onPress, successIcon, succ
 
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
+ContextMenuItem.displayName = 'ContextMenuItem';
 
-export default withDelayToggleButtonState(ContextMenuItem);
+export default ContextMenuItem;

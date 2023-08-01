@@ -53,8 +53,9 @@ function ThreePaneView(props) {
                     );
                 }
                 if (route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+                    const Wrapper = props.state.index === i ? NoDropZone : React.Fragment;
                     return (
-                        <NoDropZone key={route.key}>
+                        <Wrapper key={route.key}>
                             <View
                                 style={[
                                     styles.flexRow,
@@ -73,7 +74,7 @@ function ThreePaneView(props) {
                                 />
                                 <View style={styles.rightPanelContainer}>{props.descriptors[route.key].render()}</View>
                             </View>
-                        </NoDropZone>
+                        </Wrapper>
                     );
                 }
                 return (
