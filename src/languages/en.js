@@ -1402,6 +1402,7 @@ export default {
         copy: 'Copy',
         paste: 'Paste',
         pasteAndMatchStyle: 'Paste and Match Style',
+        pasteAsPlainText:'Paste As Plain Text',
         delete: 'Delete',
         selectAll: 'Select All',
         speechSubmenu: 'Speech',
