@@ -6,7 +6,7 @@ import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import DomUtils from '../../libs/DomUtils';
 import Visibility from '../../libs/Visibility';
-import * as Browser from "../../libs/browser";
+import * as Browser from '../../libs/browser';
 
 class TextInput extends React.Component {
     componentDidMount() {
