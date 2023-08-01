@@ -9,14 +9,17 @@ import useLocalize from '../../hooks/useLocalize';
 import styles from '../../styles/styles';
 
 const propTypes = {
+    /* Navigation state provided by React Navigation */
     // eslint-disable-next-line react/forbid-prop-types
     state: PropTypes.object.isRequired,
 
+    /* Navigation functions provided by React Navigation */
     navigation: PropTypes.shape({
         navigate: PropTypes.func.isRequired,
         emit: PropTypes.func.isRequired,
     }).isRequired,
 
+    /* Callback fired when tab is pressed */
     onTabPress: PropTypes.func,
 };
 

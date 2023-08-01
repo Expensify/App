@@ -11,6 +11,7 @@ const propTypes = {
     /** Callback to execute when a file is dropped. */
     onDrop: PropTypes.func.isRequired,
 
+    /** Pixels the receipt image should be shifted down to match the non-drag view UI */
     receiptImageTopPosition: PropTypes.number,
 };
 

@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import React, {useRef} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
 import ONYXKEYS from '../../ONYXKEYS';
 import FullPageNotFoundView from '../../components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -18,15 +17,15 @@ import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
-import OnyxTabNavigator from '../../libs/Navigation/OnyxTabNavigator';
+import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 import Permissions from '../../libs/Permissions';
-
-const TopTab = createMaterialTopTabNavigator();
+import usePermissions from '../../hooks/usePermissions';
 
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
+    /** React Navigation route */
     route: PropTypes.shape({
         params: PropTypes.shape({
             iouType: PropTypes.string,
@@ -75,6 +74,7 @@ function MoneyRequestSelectorPage(props) {
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const {translate} = useLocalize();
+    const {canUseScanReceipts} = usePermissions();
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -95,9 +95,9 @@ function MoneyRequestSelectorPage(props) {
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={title[iouType.current]}
-                                onBackButtonPress={() => Navigation.dismissModal()}
+                                onBackButtonPress={Navigation.dismissModal}
                             />
-                            {Permissions.canUseScanReceipts(props.betas) ? (
+                            {canUseScanReceipts ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     tabBar={({state, navigation}) => (
@@ -135,9 +135,6 @@ MoneyRequestSelectorPage.defaultProps = defaultProps;
 MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default withOnyx({
-    betas: {
-        key: ONYXKEYS.BETAS,
-    },
     iou: {
         key: ONYXKEYS.IOU,
     },

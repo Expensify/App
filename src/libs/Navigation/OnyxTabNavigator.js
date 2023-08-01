@@ -20,7 +20,8 @@ const defaultProps = {
     selectedTab: '',
 };
 
-const TopTab = createMaterialTopTabNavigator();
+// eslint-disable-next-line rulesdir/no-inline-named-export
+export const TopTab = createMaterialTopTabNavigator();
 
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
