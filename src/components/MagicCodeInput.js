@@ -27,9 +27,6 @@ const propTypes = {
     /** Should the input auto focus */
     autoFocus: PropTypes.bool,
 
-    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
-    shouldDelayFocus: PropTypes.bool,
-
     /** Error text to display */
     errorText: PropTypes.string,
 
@@ -58,7 +55,6 @@ const defaultProps = {
     value: undefined,
     name: '',
     autoFocus: true,
-    shouldDelayFocus: false,
     errorText: '',
     shouldSubmitOnComplete: true,
     innerRef: null,
@@ -140,28 +136,6 @@ function MagicCodeInput(props) {
         // + the props.onFulfill as the dependency because props.onFulfill is changed when the preferred locale changed => avoid auto submit form when preferred locale changed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.value, props.shouldSubmitOnComplete]);
-
-    useEffect(() => {
-        if (!props.autoFocus) {
-            return;
-        }
-
-        let focusTimeout = null;
-        if (props.shouldDelayFocus) {
-            focusTimeout = setTimeout(() => inputRefs.current[0].focus(), CONST.ANIMATED_TRANSITION);
-        } else {
-            inputRefs.current[0].focus();
-        }
-
-        return () => {
-            if (!focusTimeout) {
-                return;
-            }
-            clearTimeout(focusTimeout);
-        };
-        // We only want this to run on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     /**
      * Callback for the onFocus event, updates the indexes
@@ -290,7 +264,7 @@ function MagicCodeInput(props) {
                         <View style={[StyleSheet.absoluteFillObject, styles.w100, isMobileSafari ? styles.bgTransparent : styles.opacity0]}>
                             <TextInput
                                 ref={(ref) => (inputRefs.current[index] = ref)}
-                                autoFocus={index === 0 && props.autoFocus && !props.shouldDelayFocus}
+                                autoFocus={index === 0 && props.autoFocus}
                                 inputMode="numeric"
                                 textContentType="oneTimeCode"
                                 name={props.name}
