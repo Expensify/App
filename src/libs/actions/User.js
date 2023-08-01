@@ -558,8 +558,8 @@ function subscribeToUserEvents() {
                 [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: pushJSON.previousUpdateID,
             });
             updates = pushJSON.updates;
-            console.debug('[Onyx Updates] Received lastUpdateID from pusher', pushJSON.lastUpdateID);
-            console.debug('[Onyx Updates] Received previousUpdateID from pusher', pushJSON.previousUpdateID);
+            console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSON.lastUpdateID);
+            console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSON.previousUpdateID);
         }
         _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
