@@ -2,6 +2,7 @@ import _ from 'underscore';
 import moment from 'moment';
 import Onyx from 'react-native-onyx';
 import {AppState} from 'react-native';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
