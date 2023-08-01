@@ -46,6 +46,19 @@ const defaultProps = {
     isEditing: false,
 };
 
+/**
+ * Returns the new selection object based on the updated amount's length
+ *
+ * @param {Object} oldSelection
+ * @param {Number} prevLength
+ * @param {Number} newLength
+ * @returns {Object}
+ */
+const getNewSelection = (oldSelection, prevLength, newLength) => {
+    const cursorPosition = oldSelection.end + (newLength - prevLength);
+    return {start: cursorPosition, end: cursorPosition};
+};
+
 const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
@@ -147,7 +160,7 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
             return;
         }
         setCurrentAmount((prevAmount) => {
-            setSelection((prevSelection) => MoneyRequestUtils.getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
+            setSelection((prevSelection) => getNewSelection(prevSelection, prevAmount.length, newAmountWithoutSpaces.length));
             return MoneyRequestUtils.stripCommaFromAmount(newAmountWithoutSpaces);
         });
     };
