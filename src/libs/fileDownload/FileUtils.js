@@ -138,24 +138,24 @@ function appendTimeToFileName(fileName) {
  * @param {String} fileName
  * @returns {Promise}
  */
-const readFileAsync = (path, fileName) => 
+const readFileAsync = (path, fileName) =>
     new Promise((resolve) => {
         if (!path) {
             resolve();
         }
 
         return fetch(path)
-            .then(res => {
+            .then((res) => {
                 if (!res.ok) {
                     throw Error(res.statusText);
                 }
                 return res.blob();
             })
-            .then(blob => resolve(new File([blob], cleanFileName(fileName) || 'file')))
+            .then((blob) => resolve(new File([blob], cleanFileName(fileName) || 'file')))
             .catch((e) => {
                 console.debug('[FileUtils] Could not read uploaded file', e);
                 resolve();
-            })
-    })
+            });
+    });
 
 export {showGeneralErrorAlert, showSuccessAlert, showPermissionErrorAlert, splitExtensionFromFileName, getAttachmentName, getFileType, cleanFileName, appendTimeToFileName, readFileAsync};

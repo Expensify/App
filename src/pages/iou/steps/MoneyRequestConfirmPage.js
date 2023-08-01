@@ -141,21 +141,29 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource)
-                .then(receipt => {
-                    IOU.requestMoney(
-                        props.report,
-                        props.iou.amount,
-                        props.iou.currency,
-                        props.currentUserPersonalDetails.login,
-                        props.currentUserPersonalDetails.accountID,
-                        selectedParticipants[0],
-                        trimmedComment,
-                        receipt,
-                    );
-                })
+            FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                IOU.requestMoney(
+                    props.report,
+                    props.iou.amount,
+                    props.iou.currency,
+                    props.currentUserPersonalDetails.login,
+                    props.currentUserPersonalDetails.accountID,
+                    selectedParticipants[0],
+                    trimmedComment,
+                    receipt,
+                );
+            });
         },
-        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report, props.iou.receiptPath, props.iou.receiptSource],
+        [
+            props.iou.amount,
+            props.iou.comment,
+            props.currentUserPersonalDetails.login,
+            props.currentUserPersonalDetails.accountID,
+            props.iou.currency,
+            props.report,
+            props.iou.receiptPath,
+            props.iou.receiptSource,
+        ],
     );
 
     /**
