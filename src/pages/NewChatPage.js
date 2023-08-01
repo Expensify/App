@@ -124,7 +124,14 @@ function NewChatPage(props) {
             newSelectedOptions = [...selectedOptions, option];
         }
 
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(props.reports, props.personalDetails, props.betas, searchTerm, newSelectedOptions, excludedGroupEmails);
+        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getNewChatOptions(
+            props.reports,
+            props.personalDetails,
+            props.betas,
+            searchTerm,
+            newSelectedOptions,
+            excludedGroupEmails,
+        );
 
         setSelectedOptions(newSelectedOptions);
         setFilteredRecentReports(recentReports);
