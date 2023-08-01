@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useState} from 'react';
 import {Directions, FlingGestureHandler, State} from 'react-native-gesture-handler';
 import {View, Animated} from 'react-native';
 import colors from '../../styles/colors';
@@ -31,7 +31,7 @@ const INACTIVE_POSITION_Y = -255;
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 const translateY = new Animated.Value(INACTIVE_POSITION_Y);
 
-function GrowlNotification() {
+function GrowlNotification(_, ref) {
     const [bodyText, setBodyText] = useState('');
     const [type, setType] = useState('success');
     const [duration, setDuration] = useState();
@@ -43,7 +43,6 @@ function GrowlNotification() {
      * @param {String} type
      * @param {Number} duration
      */
-    // eslint-disable-next-line no-unused-vars
     const show = useCallback((text, growlType, growlDuration) => {
         setBodyText(text);
         setType(growlType);
@@ -62,6 +61,14 @@ function GrowlNotification() {
             useNativeDriver: true,
         }).start();
     }, []);
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            show,
+        }),
+        [show],
+    );
 
     useEffect(() => {
         Growl.setIsReady();
@@ -112,4 +119,4 @@ function GrowlNotification() {
 
 GrowlNotification.displayName = 'GrowlNotification';
 
-export default GrowlNotification;
+export default forwardRef(GrowlNotification);
