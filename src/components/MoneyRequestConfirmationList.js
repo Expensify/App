@@ -141,7 +141,14 @@ function MoneyRequestConfirmationList(props) {
         const unselectedParticipants = _.filter(props.selectedParticipants, (participant) => !participant.selected);
         if (props.hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
-            const formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+            let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+
+            if (!canModifyParticipants) {
+                formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
+                    ...participant,
+                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                }));
+            }
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
@@ -187,6 +194,7 @@ function MoneyRequestConfirmationList(props) {
         payeePersonalDetails,
         translate,
         shouldDisablePaidBySection,
+        canModifyParticipants,
     ]);
 
     const selectedOptions = useMemo(() => {

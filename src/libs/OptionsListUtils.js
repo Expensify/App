@@ -923,7 +923,6 @@ function getIOUConfirmationOptionsFromParticipants(participants, amountText) {
     return _.map(participants, (participant) => ({
         ...participant,
         descriptiveText: amountText,
-        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
     }));
 }
 
