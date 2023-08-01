@@ -1,6 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
 import React, {useContext, useEffect, useRef, useState, useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
