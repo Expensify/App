@@ -13,6 +13,7 @@ import * as UserUtils from '../UserUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportActionsUtils from '../ReportActionsUtils';
 import * as Expensicons from '../../components/Icon/Expensicons';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -119,6 +120,16 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
                 isOptimisticReport: false,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTaskReport.reportID}`,
+            value: {[optimisticTaskCreatedAction.reportActionID]: {pendingAction: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`,
+            value: {[optimisticAddCommentReport.reportAction.reportActionID]: {pendingAction: null}},
+        },
     ];
 
     const failureData = [
@@ -162,6 +173,12 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
             },
         );
 
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+            value: {[optimisticAssigneeAddComment.reportAction.reportActionID]: {pendingAction: null}},
+        });
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
@@ -186,8 +203,6 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
         },
         {optimisticData, successData, failureData},
     );
-
-    clearOutTaskInfo();
 
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
@@ -243,6 +258,12 @@ function completeTask(taskReportID, taskTitle) {
             },
         },
     ];
+
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     API.write(
         'CompleteTask',
@@ -313,6 +334,12 @@ function reopenTask(taskReportID, taskTitle) {
             },
         },
     ];
+
+    // Update optimistic data for parent report action
+    const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    if (!_.isEmpty(optimisticParentReportData)) {
+        optimisticData.push(optimisticParentReportData);
+    }
 
     API.write(
         'ReopenTask',
@@ -498,7 +525,7 @@ function setAssigneeValue(assignee, assigneeAccountID, shareDestination, isCurre
 
     // Generate optimistic accountID if this is a brand new user account that hasn't been created yet
     if (!newAssigneeAccountID) {
-        newAssigneeAccountID = UserUtils.generateAccountID();
+        newAssigneeAccountID = UserUtils.generateAccountID(assignee);
     }
     if (!isCurrentUser) {
         let newChat = {};
@@ -541,10 +568,12 @@ function clearOutTaskInfoAndNavigate(reportID) {
 /**
  * Get the assignee data
  *
- * @param {Object} details
+ * @param {Number} assigneeAccountID
+ * @param {Object} personalDetails
  * @returns {Object}
  */
-function getAssignee(details) {
+function getAssignee(assigneeAccountID, personalDetails) {
+    const details = personalDetails[assigneeAccountID];
     if (!details) {
         return {
             icons: [],
@@ -552,9 +581,8 @@ function getAssignee(details) {
             subtitle: '',
         };
     }
-    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'accountID', -1));
     return {
-        icons: [{source, type: 'avatar', name: details.login}],
+        icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
         displayName: details.displayName,
         subtitle: details.login,
     };
@@ -569,10 +597,16 @@ function getAssignee(details) {
  * */
 function getShareDestination(reportID, reports, personalDetails) {
     const report = lodashGet(reports, `report_${reportID}`, {});
+    let subtitle = '';
+    if (ReportUtils.isChatReport(report) && ReportUtils.isDM(report) && ReportUtils.hasSingleParticipant(report)) {
+        subtitle = LocalePhoneNumber.formatPhoneNumber(report.participants[0]);
+    } else {
+        subtitle = ReportUtils.getChatRoomSubtitle(report);
+    }
     return {
         icons: ReportUtils.getIcons(report, personalDetails, Expensicons.FallbackAvatar, ReportUtils.isIOUReport(report)),
         displayName: ReportUtils.getReportName(report),
-        subtitle: ReportUtils.getChatRoomSubtitle(report),
+        subtitle,
     };
 }
 
@@ -585,7 +619,7 @@ function getShareDestination(reportID, reports, personalDetails) {
  */
 function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
     const message = `canceled task: ${taskTitle}`;
-    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELED, message);
+    const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
 
     const optimisticData = [

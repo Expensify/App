@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
@@ -21,7 +22,6 @@ import reportPropTypes from '../../reportPropTypes';
 import networkPropTypes from '../../../components/networkPropTypes';
 import withLocalize from '../../../components/withLocalize';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
-import MoneyRequestDetails from '../../../components/MoneyRequestDetails';
 
 const propTypes = {
     /** Position of the "New" line marker */
@@ -126,7 +126,10 @@ function ReportActionsList(props) {
         ({item: reportAction, index}) => {
             // When the new indicator should not be displayed we explicitly set it to null
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
-            const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report);
+            const shouldDisplayParentAction =
+                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                ReportUtils.isChatThread(report) &&
+                !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
             const shouldHideThreadDividerLine =
                 shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
             return shouldDisplayParentAction ? (
@@ -161,9 +164,11 @@ function ReportActionsList(props) {
     const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetailsList, props.report, props.currentUserPersonalDetails.accountID);
 
-    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
-    const isSingleTransactionView = ReportActionsUtils.isTransactionThread(parentReportAction);
-    const showMoneyRequestDetails = isSingleTransactionView;
+    const errors = lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat');
+    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
+    const hideComposer = ReportUtils.shouldHideComposer(props.report, errors);
+    const shouldOmitBottomSpace = hideComposer || isArchivedRoom;
+
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
             <InvertedFlatList
@@ -171,13 +176,12 @@ function ReportActionsList(props) {
                 ref={reportScrollManager.ref}
                 data={props.sortedReportActions}
                 renderItem={renderItem}
-                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0, showMoneyRequestDetails && styles.pb0]}
+                contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime || shouldOmitBottomSpace ? styles.pt0 : {}]}
                 keyExtractor={keyExtractor}
                 initialRowHeight={32}
                 initialNumToRender={calculateInitialNumToRender()}
                 onEndReached={props.loadMoreChats}
                 onEndReachedThreshold={0.75}
-                ListFooterComponentStyle={showMoneyRequestDetails ? styles.chatFooterAtTheTop : {}}
                 ListFooterComponent={() => {
                     if (props.report.isLoadingMoreReportActions) {
                         return <ReportActionsSkeletonView containerHeight={CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT * 3} />;
@@ -192,17 +196,6 @@ function ReportActionsList(props) {
                             <ReportActionsSkeletonView
                                 containerHeight={skeletonViewHeight}
                                 animate={!props.network.isOffline}
-                            />
-                        );
-                    }
-                    if (showMoneyRequestDetails) {
-                        return (
-                            <MoneyRequestDetails
-                                report={props.report}
-                                policy={props.policy}
-                                personalDetails={props.personalDetailsList}
-                                isSingleTransactionView={isSingleTransactionView}
-                                parentReportAction={parentReportAction}
                             />
                         );
                     }

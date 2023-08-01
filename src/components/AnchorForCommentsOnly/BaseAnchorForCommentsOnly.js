@@ -77,9 +77,17 @@ function BaseAnchorForCommentsOnly({onPressIn, onPressOut, href = '', rel = '', 
                     accessibilityRole={CONST.ACCESSIBILITY_ROLE.LINK}
                     hrefAttrs={{
                         rel,
-                        target: isEmail ? '_self' : target,
+                        target: isEmail || !linkProps.href ? '_self' : target,
                     }}
-                    href={linkProps.href}
+                    href={linkProps.href || href}
+                    onPress={(event) => {
+                        if (!linkProps.onPress) {
+                            return;
+                        }
+
+                        event.preventDefault();
+                        linkProps.onPress();
+                    }}
                     // Add testID so it gets selected as an anchor tag by SelectionScraper
                     testID="a"
                     // eslint-disable-next-line react/jsx-props-no-spreading

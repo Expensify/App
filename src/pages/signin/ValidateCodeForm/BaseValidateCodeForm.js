@@ -15,7 +15,6 @@ import ChangeExpensifyLoginLink from '../ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
-import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../../components/withToggleVisibilityView';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import * as ErrorUtils from '../../../libs/ErrorUtils';
 import {withNetwork} from '../../../components/OnyxProvider';
@@ -62,7 +61,6 @@ const propTypes = {
     autoComplete: PropTypes.oneOf(['sms-otp', 'one-time-code']).isRequired,
 
     ...withLocalizePropTypes,
-    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
@@ -80,7 +78,6 @@ function BaseValidateCodeForm(props) {
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const [timeRemaining, setTimeRemaining] = useState(30);
 
-    const prevIsVisible = usePrevious(props.isVisible);
     const prevRequiresTwoFactorAuth = usePrevious(props.account.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(props.credentials.validateCode);
 
@@ -99,26 +96,11 @@ function BaseValidateCodeForm(props) {
     }, [props.account.isLoading, props.session.autoAuthState, hasError]);
 
     useEffect(() => {
-        if (!inputValidateCodeRef.current || prevIsVisible || !props.isVisible || !canFocusInputOnScreenFocus()) {
+        if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus()) {
             return;
         }
         inputValidateCodeRef.current.focus();
-    }, [props.isVisible, prevIsVisible]);
-
-    useEffect(() => {
-        if (!inputValidateCodeRef.current) {
-            return;
-        }
-
-        if (!validateCode) {
-            return;
-        }
-
-        // Clear the code input if magic code valid
-        if (prevIsVisible && !props.isVisible) {
-            setValidateCode('');
-        }
-    }, [props.isVisible, prevIsVisible, validateCode]);
+    }, []);
 
     useEffect(() => {
         if (prevValidateCode || !props.credentials.validateCode) {
@@ -131,7 +113,7 @@ function BaseValidateCodeForm(props) {
         if (!input2FARef.current || prevRequiresTwoFactorAuth || !props.account.requiresTwoFactorAuth) {
             return;
         }
-        input2FARef.current.resetFocus();
+        input2FARef.current.focus();
     }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
 
     useEffect(() => {
@@ -244,7 +226,7 @@ function BaseValidateCodeForm(props) {
         if (accountID) {
             Session.signInWithValidateCode(accountID, validateCode, props.preferredLocale, twoFactorAuthCode);
         } else {
-            Session.signIn('', validateCode, twoFactorAuthCode, props.preferredLocale);
+            Session.signIn(validateCode, twoFactorAuthCode, props.preferredLocale);
         }
     }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
@@ -283,7 +265,7 @@ function BaseValidateCodeForm(props) {
                         autoFocus
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
-                    <View>
+                    <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !props.network.isOffline ? (
                             <Text style={[styles.mt2]}>
                                 {props.translate('validateCodeForm.requestNewCode')}
@@ -340,6 +322,5 @@ export default compose(
         preferredLocale: {key: ONYXKEYS.NVP_PREFERRED_LOCALE},
         session: {key: ONYXKEYS.SESSION},
     }),
-    withToggleVisibilityView,
     withNetwork(),
 )(BaseValidateCodeForm);

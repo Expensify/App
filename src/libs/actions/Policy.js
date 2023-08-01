@@ -7,13 +7,14 @@ import {escapeRegExp} from 'lodash';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import Navigation, {navigationRef} from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
+import * as LocalePhoneNumber from '../LocalePhoneNumber';
 import * as OptionsListUtils from '../OptionsListUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as ReportUtils from '../ReportUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 import Log from '../Log';
 import Permissions from '../Permissions';
+import * as UserUtils from '../UserUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -352,10 +353,30 @@ function createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas) {
  */
 function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID, betas) {
     const membersListKey = `${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`;
+    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const accountIDs = _.values(invitedEmailsToAccountIDs);
+    const newPersonalDetailsOnyxData = PersonalDetailsUtils.getNewPersonalDetailsOnyxData(logins, accountIDs);
 
     // create onyx data for policy expense chats for each new member
     const membersChats = createPolicyExpenseChats(policyID, invitedEmailsToAccountIDs, betas);
+
+    // Optimistic personal details for the new accounts invited
+    const optimisticPersonalDetails = _.chain(invitedEmailsToAccountIDs)
+        .map(
+            (accountID, memberLogin) =>
+                !_.has(allPersonalDetails, accountID) && [
+                    accountID,
+                    {
+                        accountID,
+                        avatar: UserUtils.getDefaultAvatarURL(accountID),
+                        displayName: LocalePhoneNumber.formatPhoneNumber(memberLogin),
+                        login: OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin),
+                    },
+                ],
+        )
+        .compact()
+        .object()
+        .value();
 
     const optimisticData = [
         {
@@ -365,7 +386,13 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             // Convert to object with each key containing {pendingAction: ‘add’}
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD})),
         },
+        ...newPersonalDetailsOnyxData.optimisticData,
         ...membersChats.onyxOptimisticData,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetails,
+        },
     ];
 
     const successData = [
@@ -377,7 +404,13 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
             // need to remove the members since that will be handled by onClose of OfflineWithFeedback.
             value: _.object(accountIDs, Array(accountIDs.length).fill({pendingAction: null, errors: null})),
         },
+        ...newPersonalDetailsOnyxData.successData,
         ...membersChats.onyxSuccessData,
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: _.object(_.keys(optimisticPersonalDetails), Array(_.size(optimisticPersonalDetails)).fill(null)),
+        },
     ];
 
     const failureData = [
@@ -394,15 +427,16 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs, welcomeNote, policyID,
                 }),
             ),
         },
+        ...newPersonalDetailsOnyxData.failureData,
         ...membersChats.onyxFailureData,
     ];
 
-    const logins = _.map(_.keys(invitedEmailsToAccountIDs), (memberLogin) => OptionsListUtils.addSMSDomainIfPhoneNumber(memberLogin));
     const params = {
         employees: JSON.stringify(_.map(logins, (login) => ({email: login}))),
 
-        // Escape HTML special chars to enable them to appear in the invite email
-        welcomeNote: _.escape(welcomeNote),
+        // Do not escape HTML special chars for welcomeNote as this will be handled in the backend.
+        // See https://github.com/Expensify/App/issues/20081 for more details.
+        welcomeNote,
         policyID,
     };
     if (!_.isEmpty(membersChats.reportCreationData)) {
@@ -745,6 +779,9 @@ function clearAddMemberError(policyID, accountID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_MEMBERS}${policyID}`, {
         [accountID]: null,
     });
+    Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+        [accountID]: null,
+    });
 }
 
 /**
@@ -822,11 +859,10 @@ function generatePolicyID() {
  * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
  * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
  * @param {String} [policyName] Optional, custom policy name we will use for created workspace
- * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @returns {Promise}
+ * @param {String} [policyID] Optional, custom policy id we will use for created workspace
+ * @returns {String}
  */
-function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false) {
-    const policyID = generatePolicyID();
+function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', policyID = generatePolicyID()) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
     const {
@@ -1033,19 +1069,7 @@ function createWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policyName 
             ],
         },
     );
-
-    return Navigation.isNavigationReady().then(() => {
-        if (transitionFromOldDot) {
-            // We must call goBack() to remove the /transition route from history
-            Navigation.goBack();
-        }
-
-        // Get the reportID associated with the newly created #admins room and route the user to that chat
-        const routeKey = lodashGet(navigationRef.getState(), 'routes[0].state.routes[0].key');
-        Navigation.setParams({reportID: adminsChatReportID}, routeKey);
-
-        Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
-    });
+    return adminsChatReportID;
 }
 
 /**
@@ -1113,6 +1137,14 @@ function setWorkspaceInviteMembersDraft(policyID, invitedEmailsToAccountIDs) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, invitedEmailsToAccountIDs);
 }
 
+/**
+ * @param {String} policyID
+ */
+function clearErrors(policyID) {
+    setWorkspaceErrors(policyID, {});
+    hideWorkspaceAlertMessage(policyID);
+}
+
 export {
     removeMembers,
     addMembersToWorkspace,
@@ -1141,4 +1173,5 @@ export {
     removeWorkspace,
     setWorkspaceInviteMembersDraft,
     isPolicyOwner,
+    clearErrors,
 };

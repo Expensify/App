@@ -121,6 +121,7 @@ function CloseAccountPage(props) {
                         prompt={props.translate('closeAccountPage.closeAccountPermanentlyDeleteData')}
                         confirmText={props.translate('common.yesContinue')}
                         cancelText={props.translate('common.cancel')}
+                        shouldDisableConfirmButtonWhenOffline
                         shouldShowCancelButton
                     />
                 </View>
