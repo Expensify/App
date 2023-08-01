@@ -178,7 +178,7 @@ function MoneyRequestAmountPage(props) {
     const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
-    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
+    const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency || CONST.CURRENCY.USD);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
     const [selection, setSelection] = useState({start: selectedAmountAsString.length, end: selectedAmountAsString.length});
 
@@ -280,7 +280,9 @@ function MoneyRequestAmountPage(props) {
             setSelectedCurrencyCode(props.route.params.currency);
             return;
         }
-        setSelectedCurrencyCode(props.iou.currency);
+        if (props.iou.currency) {
+            setSelectedCurrencyCode(props.iou.currency);
+        }
     }, [props.route.params.currency, props.iou.currency]);
 
     useEffect(() => {
