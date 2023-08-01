@@ -20,6 +20,7 @@ import PressableWithSecondaryInteraction from '../PressableWithSecondaryInteract
 import * as ReportActionContextMenu from '../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../pages/home/report/ContextMenu/ContextMenuActions';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as ReportUtils from '../../libs/ReportUtils';
 import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
@@ -65,6 +66,11 @@ function OptionRowLHN(props) {
         return null;
     }
 
+    const isMuted = optionItem.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
+    if (isMuted && !props.isFocused && !optionItem.isPinned) {
+        return null;
+    }
+
     let popoverAnchor = null;
     const textStyle = props.isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = optionItem.isUnread ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
@@ -90,7 +96,7 @@ function OptionRowLHN(props) {
     const shouldShowGreenDotIndicator =
         !hasBrickError &&
         (optionItem.isUnreadWithMention ||
-            (optionItem.hasOutstandingIOU && !optionItem.isIOUReportOwner) ||
+            ReportUtils.isWaitingForIOUActionFromCurrentUser(optionItem) ||
             (optionItem.isTaskReport && optionItem.isTaskAssignee && !optionItem.isCompletedTaskReport && !optionItem.isArchivedRoom));
 
     /**
@@ -122,6 +128,7 @@ function OptionRowLHN(props) {
             pendingAction={optionItem.pendingAction}
             errors={optionItem.allReportErrors}
             shouldShowErrorMessages={false}
+            needsOffscreenAlphaCompositing
         >
             <Hoverable>
                 {(hovered) => (

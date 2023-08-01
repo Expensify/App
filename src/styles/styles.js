@@ -22,9 +22,13 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+
+// touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -130,6 +134,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+            ...touchCalloutNone,
         },
 
         p: {
@@ -518,6 +523,11 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+    },
+
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
     },
 
     buttonSuccess: {
@@ -1940,6 +1950,11 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarSmaller: {
+        height: variables.avatarSizeSmaller,
+        width: variables.avatarSizeSmaller,
+    },
+
     emptyAvatarMedium: {
         height: variables.avatarSizeMedium,
         width: variables.avatarSizeMedium,
@@ -1955,6 +1970,10 @@ const styles = {
     },
 
     emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
+    },
+
+    emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
     },
 
@@ -2338,11 +2357,6 @@ const styles = {
         padding: 20,
     },
 
-    pageWrapperNotCentered: {
-        width: '100%',
-        padding: 20,
-    },
-
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -2489,6 +2503,10 @@ const styles = {
         left: 4,
         backgroundColor: themeColors.appBG,
     },
+
+    switchThumbTransformation: (translateX) => ({
+        transform: [{translateX}],
+    }),
 
     radioButtonContainer: {
         backgroundColor: themeColors.componentBG,
@@ -3142,28 +3160,22 @@ const styles = {
         marginLeft: 6,
     },
 
-    fullScreenTransparentOverlay: {
+    fullScreen: {
         position: 'absolute',
-        width: '100%',
-        height: '100%',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: themeColors.dropUIBG,
-        zIndex: 2,
     },
 
-    dropZoneTopInvisibleOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.dropTransparentOverlay,
+    invisibleOverlay: {
+        backgroundColor: themeColors.transparent,
         zIndex: 1000,
+    },
+
+    reportDropOverlay: {
+        backgroundColor: themeColors.dropUIBG,
+        zIndex: 2,
     },
 
     cardSection: {
@@ -3417,6 +3429,11 @@ const styles = {
         maxWidth: 375,
     },
 
+    formSpaceVertical: {
+        height: 20,
+        width: 1,
+    },
+
     taskCheckbox: {
         height: 16,
         width: 16,
@@ -3428,6 +3445,11 @@ const styles = {
         ...spacing.flexWrap,
         ...spacing.flex1,
         fontSize: variables.fontSizeXLarge,
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
+    taskDescriptionMenuItem: {
         maxWidth: '100%',
         ...wordBreak.breakWord,
     },
@@ -3529,6 +3551,10 @@ const styles = {
         left: 0,
         right: 0,
     }),
+
+    willChangeTransform: {
+        willChange: 'transform',
+    },
 };
 
 export default styles;

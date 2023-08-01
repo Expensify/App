@@ -113,7 +113,7 @@ function BaseValidateCodeForm(props) {
         if (!input2FARef.current || prevRequiresTwoFactorAuth || !props.account.requiresTwoFactorAuth) {
             return;
         }
-        input2FARef.current.resetFocus();
+        input2FARef.current.focus();
     }, [props.account.requiresTwoFactorAuth, prevRequiresTwoFactorAuth]);
 
     useEffect(() => {
@@ -265,7 +265,7 @@ function BaseValidateCodeForm(props) {
                         autoFocus
                     />
                     {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(props.account)} />}
-                    <View>
+                    <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !props.network.isOffline ? (
                             <Text style={[styles.mt2]}>
                                 {props.translate('validateCodeForm.requestNewCode')}
