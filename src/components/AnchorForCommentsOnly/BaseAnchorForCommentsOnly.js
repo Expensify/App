@@ -82,9 +82,9 @@ function BaseAnchorForCommentsOnly(props) {
                     href={linkProps.href || props.href}
                     onPress={(event) => {
                         if (!linkProps.onPress) {
-                          return;
+                            return;
                         }
-                      
+
                         event.preventDefault();
                         linkProps.onPress();
                     }}
