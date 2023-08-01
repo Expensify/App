@@ -300,7 +300,6 @@ function buildOnyxDataForMoneyRequest(
  *
  */
 function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, participant, comment, receipt = undefined) {
-    console.log('over here', receipt)
     const payerEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login);
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
@@ -350,7 +349,7 @@ function requestMoney(report, amount, currency, payeeEmail, payeeAccountID, part
         receiptObject.source = receipt.source;
         receiptObject.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
     }
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, receiptObject);
+    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, iouReport.reportID, comment, '', '', '', receiptObject);
 
     // STEP 4: Build optimistic reportActions. We need:
     // 1. CREATED action for the chatReport
