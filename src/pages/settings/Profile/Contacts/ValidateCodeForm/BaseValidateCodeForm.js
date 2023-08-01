@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useEffect, useRef} from 'react';
+import React, {useCallback, useState, useEffect, useRef, useImperativeHandle} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -77,6 +77,14 @@ function BaseValidateCodeForm(props) {
     const inputValidateCodeRef = useRef();
     const validateLoginError = ErrorUtils.getEarliestErrorField(loginData, 'validateLogin');
 
+    useImperativeHandle(props.innerRef, () => ({
+        focusAfterTransitionEnd() {
+            if (inputValidateCodeRef.current && inputValidateCodeRef.current.focus) {
+                inputValidateCodeRef.current.focus();
+            }
+        },
+    }));
+
     useEffect(() => {
         if (!props.hasMagicCodeBeenSent) {
             return;
@@ -141,8 +149,7 @@ function BaseValidateCodeForm(props) {
                 errorText={formError.validateCode ? props.translate(formError.validateCode) : ErrorUtils.getLatestErrorMessage(props.account)}
                 hasError={!_.isEmpty(validateLoginError)}
                 onFulfill={validateAndSubmitForm}
-                autoFocus
-                shouldDelayFocus={shouldDelayFocus}
+                autoFocus={false}
             />
             <OfflineWithFeedback
                 pendingAction={lodashGet(loginData, 'pendingFields.validateCodeSent', null)}

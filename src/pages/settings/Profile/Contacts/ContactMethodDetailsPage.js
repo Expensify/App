@@ -219,7 +219,9 @@ class ContactMethodDetailsPage extends Component {
         const isFailedAddContactMethod = Boolean(lodashGet(loginData, 'errorFields.addedLogin'));
 
         return (
-            <ScreenWrapper>
+            <ScreenWrapper
+                onEntryTransitionEnd={() => this.validateCodeFormRef.current && this.validateCodeFormRef.current.focusAfterTransitionEnd()}
+            >
                 <HeaderWithBackButton
                     title={formattedContactMethod}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS)}
