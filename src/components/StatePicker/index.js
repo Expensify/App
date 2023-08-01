@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -35,12 +35,16 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
 
+    const updateSearchValue = useCallback((states, currentValue) => {
+        setSearchValue(lodashGet(states, `${currentValue}.stateName`, ''));
+    }, []);
+
     useEffect(() => {
-        updateSearchValue();
-    }, [value, allStates]);
+        updateSearchValue(allStates, value);
+    }, [value, allStates, updateSearchValue]);
 
     const showPickerModal = () => {
-        updateSearchValue();
+        updateSearchValue(allStates, value);
         setIsPickerVisible(true);
     };
 
@@ -52,10 +56,6 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
         onInputChange(state.value);
         hidePickerModal();
     };
-
-    const updateSearchValue = () => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
-    }
 
     const title = allStates[value] ? allStates[value].stateName : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;

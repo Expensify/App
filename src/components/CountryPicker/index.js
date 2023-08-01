@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -35,12 +35,16 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState(lodashGet(allCountries, value, ''));
 
+    const updateSearchValue = useCallback((countries, currentValue) => {
+        setSearchValue(lodashGet(countries, currentValue, ''));
+    }, []);
+
     useEffect(() => {
-        updateSearchValue();
-    }, [value, allCountries]);
+        updateSearchValue(allCountries, value);
+    }, [value, allCountries, updateSearchValue]);
 
     const showPickerModal = () => {
-        updateSearchValue();
+        updateSearchValue(allCountries, value);
         setIsPickerVisible(true);
     };
 
@@ -52,10 +56,6 @@ function CountryPicker({value, errorText, onInputChange, forwardedRef}) {
         onInputChange(country.value);
         hidePickerModal();
     };
-
-    const updateSearchValue = () => {
-        setSearchValue(lodashGet(allCountries, value, ''));
-    }
 
     const title = allCountries[value] || '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
