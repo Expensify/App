@@ -67,6 +67,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    innerRef: () => {},
 };
 
 function BaseValidateCodeForm(props) {
@@ -78,9 +79,10 @@ function BaseValidateCodeForm(props) {
 
     useImperativeHandle(props.innerRef, () => ({
         focus() {
-            if (inputValidateCodeRef.current && inputValidateCodeRef.current.focus) {
-                inputValidateCodeRef.current.focus();
+            if (!(inputValidateCodeRef.current && inputValidateCodeRef.current.focus)) {
+                return;
             }
+            inputValidateCodeRef.current.focus();
         },
     }));
 

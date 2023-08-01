@@ -76,9 +76,10 @@ function BaseTwoFactorAuthForm(props) {
             validateAndSubmitForm();
         },
         focus() {
-            if (inputRef.current && inputRef.current.focus) {
-                inputRef.current.focus();
+            if (!(inputRef.current && inputRef.current.focus)) {
+                return;
             }
+            inputRef.current.focus();
         },
     }));
 
