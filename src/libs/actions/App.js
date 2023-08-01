@@ -134,42 +134,60 @@ AppState.addEventListener('change', (nextAppState) => {
 });
 
 /**
+ * Gets the policy IDs that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
+ * @returns {Object}
+ */
+function getPolicyIDsForOpenOrReconnect() {
+    return new Promise((resolve) => {
+        isReadyToOpenApp.then(() => {
+            const connectionID = Onyx.connect({
+                key: ONYXKEYS.COLLECTION.POLICY,
+                waitForCollectionCallback: true,
+                callback: (policies) => {
+                    Onyx.disconnect(connectionID);
+                    resolve({policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))});
+                },
+            });
+        });
+    });
+}
+
+/**
+ * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
+ * @returns {Object}
+ */
+function getOnyxDataForOpenOrReconnect() {
+    return {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: true,
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                value: false,
+            },
+        ],
+    };
+}
+
+/**
  * Fetches data needed for app initialization
  */
 function openApp() {
-    isReadyToOpenApp.then(() => {
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.COLLECTION.POLICY,
-            waitForCollectionCallback: true,
-            callback: (policies) => {
-                Onyx.disconnect(connectionID);
-                const params = {policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
-
-                API.read('OpenApp', params, {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: true,
-                        },
-                    ],
-                    successData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                    failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                });
-            },
-        });
+    getPolicyIDsForOpenOrReconnect().then((policyIDs) => {
+        API.read('OpenApp', policyIDs, getOnyxDataForOpenOrReconnect());
     });
 }
 
@@ -179,58 +197,29 @@ function openApp() {
  * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
 function reconnectApp(updateIDFrom = 0, updateIDTo = 0) {
-    isReadyToOpenApp.then(() => {
-        const connectionID = Onyx.connect({
-            key: ONYXKEYS.COLLECTION.POLICY,
-            waitForCollectionCallback: true,
-            callback: (policies) => {
-                Onyx.disconnect(connectionID);
-                const params = {policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
+    getPolicyIDsForOpenOrReconnect().then((policyIDs) => {
+        const params = {...policyIDs};
 
-                // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-                // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-                //
-                // - Look through the local report actions and reports to find the most recently modified report action or report.
-                // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-                Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-                params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
-                Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+        //
+        // - Look through the local report actions and reports to find the most recently modified report action or report.
+        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
+        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
-                // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-                // Otherwise, a full set of app data will be returned.
-                if (updateIDFrom) {
-                    params.updateIDFrom = updateIDFrom;
-                }
+        // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+        // Otherwise, a full set of app data will be returned.
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
 
-                if (updateIDTo) {
-                    params.updateIDTo = updateIDTo;
-                }
+        if (updateIDTo) {
+            params.updateIDTo = updateIDTo;
+        }
 
-                API.write('ReconnectApp', params, {
-                    optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: true,
-                        },
-                    ],
-                    successData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                    failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                            value: false,
-                        },
-                    ],
-                });
-            },
-        });
+        API.write('ReconnectApp', params, getOnyxDataForOpenOrReconnect());
     });
 }
 
