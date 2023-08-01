@@ -65,7 +65,7 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails}) {
+function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, errors}) {
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
@@ -85,6 +85,14 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails}) 
     };
 
     const titleForStep = isEditing ? translate('iou.amount') : title[iouType];
+
+    // Check and dismiss modal
+    useEffect(() => {
+        if (!ReportUtils.shouldHideComposer(report, errors)) {
+            return;
+        }
+        Navigation.dismissModal(reportID);
+    }, [errors, report]);
 
     // Because we use Onyx to store iou info, when we try to make two different money requests from different tabs, it can result in many bugs.
     // This logic is added to prevent such bugs.
@@ -114,7 +122,7 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails}) 
     }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID]);
 
     const navigateBack = () => {
-        Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
+        Navigation.goBack(isEditing ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
     };
 
     const navigateToCurrencySelectionPage = () => {
