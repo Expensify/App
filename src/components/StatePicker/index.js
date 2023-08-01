@@ -36,10 +36,11 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
     const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
 
     useEffect(() => {
-        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
+        updateSearchValue();
     }, [value, allStates]);
 
     const showPickerModal = () => {
+        updateSearchValue();
         setIsPickerVisible(true);
     };
 
@@ -51,6 +52,10 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
         onInputChange(state.value);
         hidePickerModal();
     };
+
+    const updateSearchValue = () => {
+        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
+    }
 
     const title = allStates[value] ? allStates[value].stateName : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
