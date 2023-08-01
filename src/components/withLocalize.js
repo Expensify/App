@@ -7,6 +7,7 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import * as Localize from '../libs/Localize';
 import DateUtils from '../libs/DateUtils';
+import * as LoginUtils from '../libs/LoginUtils';
 import * as NumberFormatUtils from '../libs/NumberFormatUtils';
 import * as LocaleDigitUtils from '../libs/LocaleDigitUtils';
 import CONST from '../CONST';
@@ -38,6 +39,9 @@ const withLocalizePropTypes = {
 
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: PropTypes.func.isRequired,
+
+    /** Gets the logged-in email and check if email is from public domain or not */
+    isEmailPublicDomain: PropTypes.func.isRequired,
 };
 
 const localeProviderPropTypes = {
@@ -55,11 +59,20 @@ const localeProviderPropTypes = {
             selected: PropTypes.string,
         }),
     }),
+
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        /** Email address */
+        email: PropTypes.string.isRequired,
+    }),
 };
 
 const localeProviderDefaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
     currentUserPersonalDetails: {},
+    session: {
+        email: null,
+    },
 };
 
 class LocaleContextProvider extends React.Component {
@@ -76,6 +89,7 @@ class LocaleContextProvider extends React.Component {
             formatPhoneNumber: this.formatPhoneNumber.bind(this),
             fromLocaleDigit: this.fromLocaleDigit.bind(this),
             toLocaleDigit: this.toLocaleDigit.bind(this),
+            isEmailPublicDomain: this.isEmailPublicDomain.bind(this),
             preferredLocale: this.props.preferredLocale,
         };
     }
@@ -140,6 +154,13 @@ class LocaleContextProvider extends React.Component {
         return LocaleDigitUtils.fromLocaleDigit(this.props.preferredLocale, localeDigit);
     }
 
+    /**
+     * @returns {Boolean}
+     */
+    isEmailPublicDomain() {
+        return LoginUtils.isEmailPublicDomain(this.props.session.email);
+    }
+
     render() {
         return <LocaleContext.Provider value={this.getContextValue()}>{this.props.children}</LocaleContext.Provider>;
     }
@@ -153,6 +174,9 @@ const Provider = compose(
     withOnyx({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(LocaleContextProvider);

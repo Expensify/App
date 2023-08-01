@@ -12,6 +12,8 @@ import MenuItem from '../../components/MenuItem';
 import IllustratedHeaderPageLayout from '../../components/IllustratedHeaderPageLayout';
 import * as LottieAnimations from '../../components/LottieAnimations';
 import useLocalize from '../../hooks/useLocalize';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** The details about the user that is signed in */
@@ -19,14 +21,16 @@ const propTypes = {
         /** Whether or not the user is subscribed to news updates */
         isSubscribedToNewsletter: PropTypes.bool,
     }),
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     user: {},
 };
 
-function SaveTheWorldPage() {
+function SaveTheWorldPage(props) {
     const {translate} = useLocalize();
+    const isLoggedInEmailPublicDomain = props.isEmailPublicDomain();
 
     return (
         <IllustratedHeaderPageLayout
@@ -49,7 +53,7 @@ function SaveTheWorldPage() {
             <MenuItem
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iAmATeacher')}
-                onPress={() => Navigation.navigate(ROUTES.Intro_School_Principal)}
+                onPress={() => (isLoggedInEmailPublicDomain ? Navigation.navigate(ROUTES.I_Am_A_Teacher) : Navigation.navigate(ROUTES.Intro_School_Principal))}
             />
 
             {/* Remove Below option */}
@@ -67,8 +71,11 @@ SaveTheWorldPage.propTypes = propTypes;
 SaveTheWorldPage.defaultProps = defaultProps;
 SaveTheWorldPage.displayName = 'SaveTheWorldPage';
 
-export default withOnyx({
-    user: {
-        key: ONYXKEYS.USER,
-    },
-})(SaveTheWorldPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
+    }),
+)(SaveTheWorldPage);
