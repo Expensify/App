@@ -1,9 +1,8 @@
-import React, {useEffect, useState, useRef, useCallback} from 'react';
-import {View, InteractionManager} from 'react-native';
+import React, {useEffect, useState, useCallback} from 'react';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {useFocusEffect} from '@react-navigation/native';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
@@ -11,8 +10,6 @@ import * as MoneyRequestUtils from '../../../libs/MoneyRequestUtils';
 import Button from '../../../components/Button';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import useLocalize from '../../../hooks/useLocalize';
 import CONST from '../../../CONST';
 
@@ -23,14 +20,11 @@ const propTypes = {
     /** Currency chosen by user or saved in Onyx */
     currency: PropTypes.string,
 
-    /** Title to be displayed in the header */
-    title: PropTypes.string,
-
     /** Whether the amount is being edited or not */
     isEditing: PropTypes.bool,
 
     /** Fired when back button pressed, navigates back to a proper page */
-    onBackButtonPress: PropTypes.func.isRequired,
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: PropTypes.func.isRequired,
@@ -42,7 +36,7 @@ const propTypes = {
 const defaultProps = {
     amount: 0,
     currency: CONST.CURRENCY.USD,
-    title: '',
+    forwardedRef: null,
     isEditing: false,
 };
 
@@ -63,7 +57,7 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButtonPress, onCurrencyButtonPress, onSubmitButtonPress}) {
+function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
 
     const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
@@ -75,8 +69,6 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
         start: selectedAmountAsString.length,
         end: selectedAmountAsString.length,
     });
-
-    const textInput = useRef(null);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -90,28 +82,12 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
             return;
         }
         event.preventDefault();
-        if (!textInput.current) {
+        if (!forwardedRef.current) {
             return;
         }
-        if (!textInput.current.isFocused()) {
-            textInput.current.focus();
+        if (!forwardedRef.current.isFocused()) {
+            forwardedRef.current.focus();
         }
-    };
-
-    /**
-     * Focus text input
-     */
-    const focusTextInput = () => {
-        // Component may not be initialized due to navigation transitions
-        // Wait until interactions are complete before trying to focus
-        InteractionManager.runAfterInteractions(() => {
-            // Focus text input
-            if (!textInput.current) {
-                return;
-            }
-
-            textInput.current.focus();
-        });
     };
 
     /**
@@ -137,12 +113,6 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
     useEffect(() => {
         saveAmountToState(amount);
     }, [amount, saveAmountToState]);
-
-    useFocusEffect(
-        useCallback(() => {
-            focusTextInput();
-        }, []),
-    );
 
     /**
      * Sets the state according to amount that is passed
@@ -173,8 +143,8 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
      */
     const updateAmountNumberPad = useCallback(
         (key) => {
-            if (shouldUpdateSelection && !textInput.current.isFocused()) {
-                textInput.current.focus();
+            if (shouldUpdateSelection && !forwardedRef.current.isFocused()) {
+                forwardedRef.current.focus();
             }
             // Backspace button is pressed
             if (key === '<' || key === 'Backspace') {
@@ -188,7 +158,7 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
             const newAmount = MoneyRequestUtils.addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
             setNewAmount(newAmount);
         },
-        [currentAmount, selection, shouldUpdateSelection],
+        [currentAmount, selection, shouldUpdateSelection, forwardedRef],
     );
 
     /**
@@ -196,12 +166,15 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
      *
      * @param {Boolean} value - Changed text from user input
      */
-    const updateLongPressHandlerState = useCallback((value) => {
-        setShouldUpdateSelection(!value);
-        if (!value && !textInput.current.isFocused()) {
-            textInput.current.focus();
-        }
-    }, []);
+    const updateLongPressHandlerState = useCallback(
+        (value) => {
+            setShouldUpdateSelection(!value);
+            if (!value && !forwardedRef.current.isFocused()) {
+                forwardedRef.current.focus();
+            }
+        },
+        [forwardedRef],
+    );
 
     /**
      * Update amount on amount change
@@ -226,61 +199,50 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
     const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            onEntryTransitionEnd={focusTextInput}
-        >
-            {({safeAreaPaddingBottomStyle}) => (
-                <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                    <HeaderWithBackButton
-                        title={title}
-                        onBackButtonPress={onBackButtonPress}
+        <>
+            <View
+                nativeID={AMOUNT_VIEW_ID}
+                onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
+                style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+            >
+                <TextInputWithCurrencySymbol
+                    formattedAmount={formattedAmount}
+                    onChangeAmount={updateAmount}
+                    onCurrencyButtonPress={onCurrencyButtonPress}
+                    placeholder={numberFormat(0)}
+                    ref={forwardedRef}
+                    selectedCurrencyCode={currency}
+                    selection={selection}
+                    onSelectionChange={(e) => {
+                        if (!shouldUpdateSelection) {
+                            return;
+                        }
+                        setSelection(e.nativeEvent.selection);
+                    }}
+                />
+            </View>
+            <View
+                onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
+                style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
+                nativeID={NUM_PAD_CONTAINER_VIEW_ID}
+            >
+                {DeviceCapabilities.canUseTouchScreen() ? (
+                    <BigNumberPad
+                        nativeID={NUM_PAD_VIEW_ID}
+                        numberPressed={updateAmountNumberPad}
+                        longPressHandlerStateChanged={updateLongPressHandlerState}
                     />
-                    <View
-                        nativeID={AMOUNT_VIEW_ID}
-                        onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
-                        style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
-                    >
-                        <TextInputWithCurrencySymbol
-                            formattedAmount={formattedAmount}
-                            onChangeAmount={updateAmount}
-                            onCurrencyButtonPress={onCurrencyButtonPress}
-                            placeholder={numberFormat(0)}
-                            ref={(e) => (textInput.current = e)}
-                            selectedCurrencyCode={currency}
-                            selection={selection}
-                            onSelectionChange={(e) => {
-                                if (!shouldUpdateSelection) {
-                                    return;
-                                }
-                                setSelection(e.nativeEvent.selection);
-                            }}
-                        />
-                    </View>
-                    <View
-                        onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
-                        style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
-                        nativeID={NUM_PAD_CONTAINER_VIEW_ID}
-                    >
-                        {DeviceCapabilities.canUseTouchScreen() ? (
-                            <BigNumberPad
-                                nativeID={NUM_PAD_VIEW_ID}
-                                numberPressed={updateAmountNumberPad}
-                                longPressHandlerStateChanged={updateLongPressHandlerState}
-                            />
-                        ) : null}
-                        <Button
-                            success
-                            style={[styles.w100, styles.mt5]}
-                            onPress={submitAndNavigateToNextPage}
-                            pressOnEnter
-                            isDisabled={!currentAmount.length || parseFloat(currentAmount) < 0.01}
-                            text={buttonText}
-                        />
-                    </View>
-                </View>
-            )}
-        </ScreenWrapper>
+                ) : null}
+                <Button
+                    success
+                    style={[styles.w100, styles.mt5]}
+                    onPress={submitAndNavigateToNextPage}
+                    pressOnEnter
+                    isDisabled={!currentAmount.length || parseFloat(currentAmount) < 0.01}
+                    text={buttonText}
+                />
+            </View>
+        </>
     );
 }
 
@@ -288,4 +250,10 @@ MoneyRequestAmountForm.propTypes = propTypes;
 MoneyRequestAmountForm.defaultProps = defaultProps;
 MoneyRequestAmountForm.displayName = 'MoneyRequestAmountForm';
 
-export default MoneyRequestAmountForm;
+export default React.forwardRef((props, ref) => (
+    <MoneyRequestAmountForm
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        forwardedRef={ref}
+    />
+));

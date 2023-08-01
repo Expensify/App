@@ -1,6 +1,8 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -17,6 +19,9 @@ import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultPro
 import MoneyRequestAmountForm from './MoneyRequestAmountForm';
 import * as IOUUtils from '../../../libs/IOUUtils';
 import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import styles from '../../../styles/styles';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import ScreenWrapper from '../../../components/ScreenWrapper';
 
 const propTypes = {
     route: PropTypes.shape({
@@ -69,6 +74,7 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
     const {translate} = useLocalize();
 
     const prevMoneyRequestID = useRef(iou.id);
+    const textInput = useRef(null);
 
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
@@ -85,6 +91,28 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
     };
 
     const titleForStep = isEditing ? translate('iou.amount') : title[iouType];
+
+    /**
+     * Focus text input
+     */
+    const focusTextInput = () => {
+        // Component may not be initialized due to navigation transitions
+        // Wait until interactions are complete before trying to focus
+        InteractionManager.runAfterInteractions(() => {
+            // Focus text input
+            if (!textInput.current) {
+                return;
+            }
+
+            textInput.current.focus();
+        });
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            focusTextInput();
+        }, []),
+    );
 
     // Check and dismiss modal
     useEffect(() => {
@@ -172,15 +200,27 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
 
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
-            <MoneyRequestAmountForm
-                title={titleForStep}
-                isEditing={isEditing}
-                currency={currency}
-                amount={amount}
-                onBackButtonPress={navigateBack}
-                onCurrencyButtonPress={navigateToCurrencySelectionPage}
-                onSubmitButtonPress={navigateToNextPage}
-            />
+            <ScreenWrapper
+                includeSafeAreaPaddingBottom={false}
+                onEntryTransitionEnd={focusTextInput}
+            >
+                {({safeAreaPaddingBottomStyle}) => (
+                    <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
+                        <HeaderWithBackButton
+                            title={titleForStep}
+                            onBackButonBackButtonPress={navigateBack}
+                        />
+                        <MoneyRequestAmountForm
+                            isEditing={isEditing}
+                            currency={currency}
+                            amount={amount}
+                            ref={textInput}
+                            onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                            onSubmitButtonPress={navigateToNextPage}
+                        />
+                    </View>
+                )}
+            </ScreenWrapper>
         </FullPageNotFoundView>
     );
 }
