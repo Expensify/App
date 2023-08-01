@@ -2,17 +2,30 @@ import React from 'react';
 import {Dimensions} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import * as Report from '../../../../libs/actions/Report';
-import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
-import BaseReactionList from './BaseReactionList';
-import compose from '../../../../libs/compose';
-import withCurrentUserPersonalDetails from '../../../../components/withCurrentUserPersonalDetails';
-import * as PersonalDetailsUtils from '../../../../libs/PersonalDetailsUtils';
-import * as EmojiUtils from '../../../../libs/EmojiUtils';
-import CONST from '../../../../CONST';
+import {withOnyx} from "react-native-onyx";
+import * as Report from '../../../../../libs/actions/Report';
+import withLocalize, {withLocalizePropTypes} from '../../../../../components/withLocalize';
+import PopoverWithMeasuredContent from '../../../../../components/PopoverWithMeasuredContent';
+import BaseReactionList from '../BaseReactionList';
+import compose from '../../../../../libs/compose';
+import withCurrentUserPersonalDetails from '../../../../../components/withCurrentUserPersonalDetails';
+import * as PersonalDetailsUtils from '../../../../../libs/PersonalDetailsUtils';
+import * as EmojiUtils from '../../../../../libs/EmojiUtils';
+import CONST from '../../../../../CONST';
+import ONYXKEYS from "../../../../../ONYXKEYS";
+import EmojiReactionsPropTypes from "../../../../../components/Reactions/EmojiReactionsPropTypes";
 
-class PopoverReactionList extends React.Component {
+const propTypes = {
+    emojiReactions: EmojiReactionsPropTypes,
+
+    ...withLocalizePropTypes,
+}
+
+const defaultProps = {
+    emojiReactions: {},
+};
+
+class BasePopoverReactionList extends React.Component {
     constructor(props) {
         super(props);
 
@@ -55,11 +68,27 @@ class PopoverReactionList extends React.Component {
         const nextLocale = lodashGet(nextProps, 'preferredLocale', CONST.LOCALES.DEFAULT);
 
         return (
-            this.state.isPopoverVisible !== nextState.isPopoverVisible ||
-            this.state.popoverAnchorPosition !== nextState.popoverAnchorPosition ||
-            previousLocale !== nextLocale ||
-            (this.state.isPopoverVisible && (this.state.reportActionID !== nextState.reportActionID || this.state.emojiName !== nextState.emojiName))
+            this.props.reportActionID !== nextProps.reportActionID ||
+            !_.isEqual(this.props.emojiReactions, nextProps.emojiReactions) ||
+            !_.isEqual(this.state, nextState) ||
+            previousLocale !== nextLocale
         );
+    }
+
+    componentDidUpdate() {
+        // Hide the list when all reactions are removed
+        if (this.state.isPopoverVisible && !_.some(lodashGet(this.props.emojiReactions, [this.state.emojiName, 'users']), (user) => !_.isNull(user))) {
+            this.hideReactionList();
+        }
+
+        const selectedReaction = lodashGet(this.props.emojiReactions, [this.state.emojiName]);
+        const {emojiCount, emojiCodes, hasUserReacted, users} = this.getReactionInformation(selectedReaction);
+        this.setState({
+            users,
+            emojiCodes,
+            emojiCount,
+            hasUserReacted,
+        });
     }
 
     componentWillUnmount() {
@@ -70,7 +99,7 @@ class PopoverReactionList extends React.Component {
     }
 
     /**
-     * Get the PopoverReactionList anchor position
+     * Get the BasePopoverReactionList anchor position
      * We calculate the achor coordinates from measureInWindow async method
      *
      * @returns {Promise<Object>}
@@ -120,14 +149,12 @@ class PopoverReactionList extends React.Component {
      *
      * @param {Object} [event] - A press event.
      * @param {Element} reactionListAnchor - reactionListAnchor
-     * @param {Object} emojiReaction
      * @param {String} emojiName - Name of emoji
      */
-    showReactionList(event, reactionListAnchor, emojiReaction) {
+    showReactionList(event, reactionListAnchor, emojiName) {
         const nativeEvent = event.nativeEvent || {};
         this.reactionListAnchor = reactionListAnchor;
-        const selectedReaction = emojiReaction;
-        const {emojiName} = emojiReaction;
+        const selectedReaction = lodashGet(this.props.emojiReactions, [emojiName]);
         const {emojiCount, emojiCodes, hasUserReacted, users} = this.getReactionInformation(selectedReaction);
         this.getReactionListMeasuredLocation().then(({x, y}) => {
             this.setState({
@@ -150,7 +177,7 @@ class PopoverReactionList extends React.Component {
     }
 
     /**
-     * This gets called on Dimensions change to find the anchor coordinates for the action PopoverReactionList.
+     * This gets called on Dimensions change to find the anchor coordinates for the action BasePopoverReactionList.
      */
     measureReactionListPosition() {
         if (!this.state.isPopoverVisible) {
@@ -207,6 +234,15 @@ class PopoverReactionList extends React.Component {
     }
 }
 
-PopoverReactionList.propTypes = withLocalizePropTypes;
+BasePopoverReactionList.propTypes = propTypes;
+BasePopoverReactionList.defaultProps = defaultProps;
 
-export default compose(withLocalize, withCurrentUserPersonalDetails)(PopoverReactionList);
+export default compose(
+    withLocalize,
+    withCurrentUserPersonalDetails,
+    withOnyx({
+        emojiReactions: {
+            key: ({reportActionID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`,
+        },
+    }),
+)(BasePopoverReactionList);
