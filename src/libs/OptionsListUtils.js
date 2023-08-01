@@ -968,7 +968,16 @@ function getNewChatOptions(reports, personalDetails, betas = [], searchValue = '
  *
  */
 
-function getShareDestinationOptions(reports, personalDetails, betas = [], searchValue = '', selectedOptions = [], excludeLogins = [], includeOwnedWorkspaceChats = true, disallowNewChats = true) {
+function getShareDestinationOptions(
+    reports,
+    personalDetails,
+    betas = [],
+    searchValue = '',
+    selectedOptions = [],
+    excludeLogins = [],
+    includeOwnedWorkspaceChats = true,
+    disallowNewChats = true,
+) {
     return getOptions(reports, personalDetails, {
         betas,
         searchInputValue: searchValue.trim(),

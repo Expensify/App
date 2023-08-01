@@ -57,15 +57,7 @@ function TaskShareDestinationSelectorModal(props) {
         return reports;
     }, [props.reports]);
     const updateOptions = useCallback(() => {
-        const { recentReports } = OptionsListUtils.getShareDestinationOptions(
-            filteredReports,
-            props.personalDetails,
-            props.betas,
-            searchValue.trim(),
-            [],
-            CONST.EXPENSIFY_EMAILS,
-            true,
-        );
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, searchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
 
         setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length !== 0, false, searchValue));
 

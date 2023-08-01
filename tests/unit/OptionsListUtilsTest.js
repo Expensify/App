@@ -570,8 +570,8 @@ describe('OptionsListUtils', () => {
         // When we pass an empty search value
         let results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], '');
 
-        // Then we should expect all the recent reports to show
-        expect(results.recentReports.length).toBe(_.size(REPORTS));
+        // Then we should expect all the recent reports to show but exclude the archived rooms
+        expect(results.recentReports.length).toBe(_.size(REPORTS) - 1);
 
         // When we pass a search value that doesn't match the group chat name
         results = OptionsListUtils.getShareDestinationOptions(REPORTS, PERSONAL_DETAILS, [], 'mutants');
