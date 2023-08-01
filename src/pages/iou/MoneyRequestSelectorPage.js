@@ -82,7 +82,7 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
 
-    const onTabPress = () => {
+    const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType.current}${reportID.current}`;
         IOU.resetMoneyRequestInfo(moneyRequestID, iouType.current);
     };
@@ -104,7 +104,7 @@ function MoneyRequestSelectorPage(props) {
                                         <TabSelector
                                             state={state}
                                             navigation={navigation}
-                                            onTabPress={onTabPress}
+                                            onTabPress={resetMoneyRequestInfo}
                                         />
                                     )}
                                 >
