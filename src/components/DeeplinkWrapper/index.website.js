@@ -13,6 +13,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 const propTypes = {
     /** Children to render. */
     children: PropTypes.node.isRequired,
+    /** User authentication status */
     isAuthenticated: PropTypes.bool.isRequired,
 };
 
