@@ -86,7 +86,7 @@ function ButtonWithDropdownMenu(props) {
                         style={[styles.flex1, styles.pr0]}
                         pressOnEnter
                         medium
-                        innerStyles={[{height: 40}]}
+                        innerStyles={[styles.dropButtonHeight]}
                     />
 
                     <Button
@@ -97,14 +97,16 @@ function ButtonWithDropdownMenu(props) {
                         onPress={() => setIsMenuVisible(true)}
                         shouldRemoveLeftBorderRadius
                         medium
-                        innerStyles={[{height: 40}]}
+                        innerStyles={[styles.cartIconContainer]}
                     >
-                        <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
+                        <View style={[styles.cartIconView]}>
                             <View style={styles.buttonDivider} />
-                            <Icon
-                                src={Expensicons.DownArrow}
-                                fill={themeColors.textLight}
-                            />
+                            <View style={[styles.ph4]}>
+                                <Icon
+                                    src={Expensicons.DownArrow}
+                                    fill={themeColors.textLight}
+                                />
+                            </View>
                         </View>
                     </Button>
                 </View>
@@ -117,6 +119,8 @@ function ButtonWithDropdownMenu(props) {
                     text={selectedItem.text}
                     onPress={(event) => props.onPress(event, props.options[0].value)}
                     pressOnEnter
+                    medium
+                    innerStyles={[styles.dropButtonHeight]}
                 />
             )}
             {props.options.length > 1 && !_.isEmpty(popoverAnchorPosition) && (

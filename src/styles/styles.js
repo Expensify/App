@@ -3554,6 +3554,24 @@ const styles = {
     willChangeTransform: {
         willChange: 'transform',
     },
+
+    dropButtonHeight: {
+        height: variables.componentSizeNormal,
+    },
+
+    cartIconContainer: {
+        height: variables.componentSizeNormal,
+        paddingRight: 0,
+        paddingLeft: 0,
+    },
+
+    cartIconView: {
+        borderTopRightRadius: variables.buttonBorderRadius,
+        borderBottomRightRadius: variables.buttonBorderRadius,
+        height: variables.componentSizeNormal,
+        ...flex.flexRow,
+        ...flex.alignItemsCenter,
+    },
 };
 
 export default styles;
