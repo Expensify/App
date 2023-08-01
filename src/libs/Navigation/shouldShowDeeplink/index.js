@@ -6,7 +6,6 @@ import CONST from '../../../CONST';
  * @returns {Boolean}
  */
 export default function shouldShowDeeplink(screenName, isAuthenticated) {
-    // TODO, reword comment, fix JSDoc
     // We want to show the deep link prompt on authenticated HOME, but not
     // unauthenticated HOME screen. They have the same name and path, so we have
     // to check to see if the user is authenticated.
