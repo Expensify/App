@@ -231,7 +231,7 @@ function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButto
                             onChangeAmount={updateAmount}
                             onCurrencyButtonPress={onCurrencyButtonPress}
                             placeholder={numberFormat(0)}
-                            ref={textInput}
+                            ref={(e) => (textInput.current = e)}
                             selectedCurrencyCode={currency}
                             selection={selection}
                             onSelectionChange={(e) => {
