@@ -36,6 +36,7 @@ function SwipeableView(props) {
     const ref = useRef();
     const scrollableChildRef = useRef();
     const startY = useRef(0);
+    const isScrolling = useRef(false);
 
     useEffect(() => {
         const element = ref.current;
@@ -54,20 +55,20 @@ function SwipeableView(props) {
                 canSwipeDown = scrollableChildRef.current.scrollTop === 0;
             }
 
-            if (deltaY > MIN_DELTA_Y && props.onSwipeDown && !isSelecting && canSwipeDown) {
+            if (deltaY > MIN_DELTA_Y && props.onSwipeDown && !isSelecting && canSwipeDown && !isScrolling.current) {
                 props.onSwipeDown();
             }
 
-            if (deltaY < -MIN_DELTA_Y && props.onSwipeUp && !isSelecting && canSwipeUp) {
+            if (deltaY < -MIN_DELTA_Y && props.onSwipeUp && !isSelecting && canSwipeUp && !isScrolling.current) {
                 props.onSwipeUp();
             }
+            isScrolling.current = false;
         };
 
         const handleScroll = (event) => {
-            if (!event.target) return;
+            isScrolling.current = true;
+            if (!event.target || scrollableChildRef.current) return;
             scrollableChildRef.current = event.target;
-
-            element.removeEventListener('scroll', handleScroll);
         };
 
         element.addEventListener('touchstart', handleTouchStart);
