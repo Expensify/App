@@ -93,17 +93,11 @@ function ReportActionItemMessageEdit(props) {
         return Str.htmlDecode(props.draftMessage);
     });
     const [selection, setSelection] = useState({start: 0, end: 0});
-    const [isFocused, setIsFocused] = useState(false);
     const [hasExceededMaxCommentLength, setHasExceededMaxCommentLength] = useState(false);
 
     const textInputRef = useRef(null);
     const isFocusedRef = useRef(false);
     const insertedEmojis = useRef([]);
-
-    useEffect(() => {
-        // required for keeping last state of isFocused variable
-        isFocusedRef.current = isFocused;
-    }, [isFocused]);
 
     useEffect(() => {
         // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
@@ -200,7 +194,7 @@ function ReportActionItemMessageEdit(props) {
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
-        if (isFocusedRef.current) {
+        if (isFocusedRef.current || ReportActionContextMenu.isActiveReportAction(props.action.reportActionID)) {
             ComposerActions.setShouldShowComposeInput(true);
             ReportActionComposeFocusManager.focus();
         }
@@ -300,7 +294,7 @@ function ReportActionItemMessageEdit(props) {
                 </View>
                 <View
                     style={[
-                        isFocused ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+                        isFocusedRef.current ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
                         styles.flexRow,
                         styles.flex1,
                         styles.chatItemComposeBox,
@@ -322,12 +316,12 @@ function ReportActionItemMessageEdit(props) {
                             maxLines={isSmallScreenWidth ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
                             style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
-                                setIsFocused(true);
+                                isFocusedRef.current = true;
                                 reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
                                 setShouldShowComposeInputKeyboardAware(false);
                             }}
                             onBlur={(event) => {
-                                setIsFocused(false);
+                                isFocusedRef.current = false;
                                 const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
                                 if (_.contains([messageEditInput, emojiButtonID], relatedTargetId)) {
                                     return;
