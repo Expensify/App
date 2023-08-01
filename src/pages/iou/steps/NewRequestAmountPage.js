@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -68,6 +68,8 @@ const defaultProps = {
 function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails}) {
     const {translate} = useLocalize();
 
+    const prevMoneyRequestID = useRef(iou.id);
+
     const iouType = lodashGet(route, 'params.iouType', '');
     const reportID = lodashGet(route, 'params.reportID', '');
     const isEditing = lodashGet(route, 'path', '').includes('amount');
@@ -83,6 +85,33 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails}) 
     };
 
     const titleForStep = isEditing ? translate('iou.amount') : title[iouType];
+
+    // Because we use Onyx to store iou info, when we try to make two different money requests from different tabs, it can result in many bugs.
+    // This logic is added to prevent such bugs.
+    useEffect(() => {
+        if (isEditing) {
+            if (prevMoneyRequestID.current !== iou.id) {
+                // The ID is cleared on completing a request. In that case, we will do nothing.
+                if (iou.id) {
+                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                }
+                return;
+            }
+            const moneyRequestID = `${iouType.current}${reportID.current}`;
+            const shouldReset = iou.id !== moneyRequestID;
+            if (shouldReset) {
+                IOU.resetMoneyRequestInfo(moneyRequestID);
+            }
+
+            if (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset) {
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+            }
+        }
+
+        return () => {
+            prevMoneyRequestID.current = iou.id;
+        };
+    }, [iou.participants, iou.amount, iou.id]);
 
     const navigateBack = () => {
         Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
@@ -103,6 +132,17 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails}) 
             Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
             return;
         }
+
+        const moneyRequestID = `${iouType}${reportID}`;
+        const shouldReset = iou.id !== moneyRequestID;
+        // If the money request ID in Onyx does not match the ID from params, we want to start a new request
+        // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
+        if (shouldReset) {
+            IOU.setMoneyRequestId(moneyRequestID);
+            IOU.setMoneyRequestDescription('');
+            IOU.setMoneyRequestParticipants([]);
+        }
+
 
         // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
         if (report.reportID) {
