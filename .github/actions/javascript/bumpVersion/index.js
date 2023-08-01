@@ -2572,7 +2572,11 @@ module.exports = parseOptions
 /***/ 523:
 /***/ ((module, exports, __nccwpck_require__) => {
 
-const { MAX_SAFE_COMPONENT_LENGTH, MAX_SAFE_BUILD_LENGTH } = __nccwpck_require__(293)
+const {
+  MAX_SAFE_COMPONENT_LENGTH,
+  MAX_SAFE_BUILD_LENGTH,
+  MAX_LENGTH,
+} = __nccwpck_require__(293)
 const debug = __nccwpck_require__(427)
 exports = module.exports = {}
 
@@ -2593,7 +2597,7 @@ const LETTERDASHNUMBER = '[a-zA-Z0-9-]'
 // all input should have extra whitespace removed.
 const safeRegexReplacements = [
   ['\\s', 1],
-  ['\\d', MAX_SAFE_COMPONENT_LENGTH],
+  ['\\d', MAX_LENGTH],
   [LETTERDASHNUMBER, MAX_SAFE_BUILD_LENGTH],
 ]
 
