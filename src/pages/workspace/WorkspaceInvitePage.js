@@ -80,13 +80,10 @@ function WorkspaceInvitePage(props) {
 
     useNetwork({onReconnect: openWorkspaceInvitePage});
 
+    const excludedUsers = useMemo(() => PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails), [props.policyMembers, props.personalDetails]);
+
     useEffect(() => {
-        const inviteOptions = OptionsListUtils.getMemberInviteOptions(
-            props.personalDetails,
-            props.betas,
-            searchTerm,
-            PolicyUtils.getIneligibleInvitees(props.policyMembers, props.personalDetails),
-        );
+        const inviteOptions = OptionsListUtils.getMemberInviteOptions(props.personalDetails, props.betas, searchTerm, excludedUsers);
 
         // Update selectedOptions with the latest personalDetails and policyMembers information
         const detailsMap = {};
@@ -100,7 +97,7 @@ function WorkspaceInvitePage(props) {
         setPersonalDetails(inviteOptions.personalDetails);
         setSelectedOptions(newSelectedOptions);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want to recalculate when selectedOptions change
-    }, [props.personalDetails, props.policyMembers, props.betas, searchTerm]);
+    }, [props.personalDetails, props.policyMembers, props.betas, searchTerm, excludedUsers]);
 
     const getSections = () => {
         const sections = [];
@@ -182,11 +179,21 @@ function WorkspaceInvitePage(props) {
         Navigation.navigate(ROUTES.getWorkspaceInviteMessageRoute(props.route.params.policyID));
     };
 
-    const headerMessage = OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchTerm);
     const [policyName, shouldShowAlertPrompt] = useMemo(
         () => [lodashGet(props.policy, 'name'), _.size(lodashGet(props.policy, 'errors', {})) > 0 || lodashGet(props.policy, 'alertMessage', '').length > 0],
         [props.policy],
     );
+
+    const headerMessage = useMemo(() => {
+        const searchValue = searchTerm.trim();
+        if (!userToInvite && CONST.EXPENSIFY_EMAILS.includes(searchValue)) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        if (!userToInvite && excludedUsers.includes(searchValue)) {
+            return translate('messages.userIsAlreadyMemberOfWorkspace', {login: searchValue, workspace: policyName});
+        }
+        return OptionsListUtils.getHeaderMessage(personalDetails.length !== 0, Boolean(userToInvite), searchValue);
+    }, [excludedUsers, translate, searchTerm, policyName, userToInvite, personalDetails]);
 
     return (
         <ScreenWrapper shouldEnableMaxHeight>

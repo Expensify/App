@@ -59,7 +59,7 @@ function BankAccountManualStep(props) {
     const submit = useCallback(
         (values) => {
             BankAccounts.connectBankAccountManually(
-                lodashGet(reimbursementAccount, ['achData.bankAccountID']) || 0,
+                lodashGet(reimbursementAccount, 'achData.bankAccountID') || 0,
                 values.accountNumber,
                 values.routingNumber,
                 lodashGet(reimbursementAccountDraft, ['plaidMask']),
@@ -68,7 +68,7 @@ function BankAccountManualStep(props) {
         [reimbursementAccount, reimbursementAccountDraft],
     );
 
-    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, ['achData.bankAccountID']));
+    const shouldDisableInputs = Boolean(lodashGet(reimbursementAccount, 'achData.bankAccountID'));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
