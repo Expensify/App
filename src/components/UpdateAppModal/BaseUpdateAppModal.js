@@ -3,26 +3,26 @@ import {propTypes, defaultProps} from './updateAppModalPropTypes';
 import ConfirmModal from '../ConfirmModal';
 import withLocalize from '../withLocalize';
 
-function BaseUpdateAppModal(props) {
+function BaseUpdateAppModal({translate, onSubmit}) {
     const [isModalOpen, setIsModalOpen] = useState(true);
 
     /**
      * Execute the onSubmit callback and close the modal.
      */
     function submitAndClose() {
-        props.onSubmit();
+        onSubmit();
         setIsModalOpen(false);
     }
 
     return (
         <ConfirmModal
-            title={props.translate('baseUpdateAppModal.updateApp')}
+            title={translate('baseUpdateAppModal.updateApp')}
             isVisible={isModalOpen}
             onConfirm={submitAndClose}
             onCancel={() => setIsModalOpen(false)}
-            prompt={props.translate('baseUpdateAppModal.updatePrompt')}
-            confirmText={props.translate('baseUpdateAppModal.updateApp')}
-            cancelText={props.translate('common.cancel')}
+            prompt={translate('baseUpdateAppModal.updatePrompt')}
+            confirmText={translate('baseUpdateAppModal.updateApp')}
+            cancelText={translate('common.cancel')}
         />
     );
 }
