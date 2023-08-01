@@ -1,48 +1,43 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import FormElement from '../FormElement';
 
-class Form extends React.Component {
-    constructor(props) {
-        super(props);
+function Form(props) {
+    const form = useRef(null);
 
-        this.preventFormDefault = this.preventFormDefault.bind(this);
-    }
-
-    componentDidMount() {
-        if (!this.form) {
-            return;
-        }
-
-        // Password Managers need these attributes to be able to identify the form elements properly.
-        this.form.setAttribute('method', 'post');
-        this.form.setAttribute('action', '/');
-
-        this.form.addEventListener('submit', this.preventFormDefault);
-    }
-
-    componentWillUnmount() {
-        if (!this.form) {
-            return;
-        }
-
-        this.form.removeEventListener('submit', this.preventFormDefault);
-    }
-
-    preventFormDefault(event) {
+    const preventFormDefault = (event) => {
         // When enter is pressed form is submitted to action url (POST /).
         // As we are using controlled component, we need to disable it here.
         event.preventDefault();
-    }
+    };
 
-    render() {
-        return (
-            <FormElement
-                ref={(el) => (this.form = el)}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-            />
-        );
-    }
+    useEffect(() => {
+        const formCurrent = form.current;
+
+        if (!formCurrent) {
+            return;
+        }
+
+        formCurrent.setAttribute('method', 'post');
+        formCurrent.setAttribute('action', '/');
+        formCurrent.addEventListener('submit', preventFormDefault);
+
+        return () => {
+            if (!formCurrent) {
+                return;
+            }
+            formCurrent.removeEventListener('submit', preventFormDefault);
+        };
+    }, []);
+
+    return (
+        <FormElement
+            ref={form}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+        />
+    );
 }
+
+Form.displayName = 'Form';
 
 export default Form;
