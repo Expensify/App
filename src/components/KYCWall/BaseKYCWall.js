@@ -97,11 +97,12 @@ class KYCWall extends React.Component {
     continue(event, iouPaymentType) {
         this.setState({transferBalanceButton: event.nativeEvent.target});
         const isExpenseReport = ReportUtils.isExpenseReport(this.props.iouReport);
+        const paymentCardList = this.props.fundList || this.props.cardList || {};
 
         // Check to see if user has a valid payment method on file and display the add payment popover if they don't
         if (
             (isExpenseReport && lodashGet(this.props.reimbursementAccount, 'achData.state', '') !== CONST.BANK_ACCOUNT.STATE.OPEN) ||
-            (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList))
+            (!isExpenseReport && !PaymentUtils.hasExpensifyPaymentMethod(paymentCardList, this.props.bankAccountList))
         ) {
             Log.info('[KYC Wallet] User does not have valid payment method');
             const clickedElementLocation = getClickedTargetLocation(event.nativeEvent.target);
@@ -162,6 +163,9 @@ export default withOnyx({
     },
     cardList: {
         key: ONYXKEYS.CARD_LIST,
+    },
+    fundList: {
+        key: ONYXKEYS.FUND_LIST,
     },
     bankAccountList: {
         key: ONYXKEYS.BANK_ACCOUNT_LIST,
