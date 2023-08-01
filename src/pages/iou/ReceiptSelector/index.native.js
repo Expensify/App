@@ -4,7 +4,6 @@ import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
-import {compose} from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Colors from '../../../styles/colors';
@@ -16,13 +15,9 @@ import Hand from '../../../../assets/images/hand.svg';
 import * as IOU from '../../../libs/actions/IOU';
 import themeColors from '../../../styles/themes/default';
 import reportPropTypes from '../../reportPropTypes';
-import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
-import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import Button from '../../../components/Button';
-import NavigateToNextIOUPage from '../../../libs/actions/NavigateToNextIOUPage';
 import useLocalize from '../../../hooks/useLocalize';
-import withCurrentReportID from '../../../components/withCurrentReportID';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
@@ -52,11 +47,6 @@ const propTypes = {
             }),
         ),
     }),
-
-    /**
-     * Current user personal details
-     */
-    currentUserPersonalDetails: personalDetailsPropType,
 };
 
 const defaultProps = {
@@ -73,7 +63,6 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 /**
@@ -110,7 +99,7 @@ function ReceiptSelector(props) {
 
     const [permissions, setPermissions] = useState('authorized');
 
-    const reportID = useRef(lodashGet(props, 'currentReportID', ''));
+    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
 
     const {translate} = useLocalize();
     /**
@@ -189,7 +178,7 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
+                IOU.navigateToNextPage(props.iou, reportID.current, props.report);
             })
             .catch(() => {
                 showCameraAlert();
@@ -237,7 +226,7 @@ function ReceiptSelector(props) {
                     medium
                     success
                     text={translate('receipt.givePermission')}
-                    style={[styles.buttonReceiptUpload, {paddingTop: 20}]}
+                    style={[styles.p9, styles.pt5]}
                     onPress={() => {
                         if (permissions === 'not-determined') {
                             Camera.requestCameraPermission().then((permissionStatus) => {
@@ -265,12 +254,12 @@ function ReceiptSelector(props) {
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <PressableWithFeedback
                     accessibilityRole="button"
-                    accessibilityLabel={CONST.RECEIPT.GALLERY}
+                    accessibilityLabel={translate('receipt.gallery')}
                     style={[styles.alignItemsStart]}
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
                             IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                            NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
+                            IOU.navigateToNextPage(props.iou, reportID.current, props.report);
                         });
                     }}
                 >
@@ -283,7 +272,7 @@ function ReceiptSelector(props) {
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     accessibilityRole="button"
-                    accessibilityLabel={CONST.RECEIPT.SHUTTER}
+                    accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={() => takePhoto()}
                 >
@@ -294,7 +283,7 @@ function ReceiptSelector(props) {
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     accessibilityRole="button"
-                    accessibilityLabel={CONST.RECEIPT.FLASH}
+                    accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
                     onPress={() => setFlash(!flash)}
                 >
@@ -314,12 +303,11 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default compose(
-    withCurrentReportID,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        report: {
-            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-        },
-    }),
-)(ReceiptSelector);
+export default withOnyx({
+    iou: {
+        key: ONYXKEYS.IOU,
+    },
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+    },
+})(ReceiptSelector);

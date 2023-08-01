@@ -3,12 +3,9 @@ import React, {useContext, useRef, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import {compose} from 'underscore';
 import * as IOU from '../../../libs/actions/IOU';
 import reportPropTypes from '../../reportPropTypes';
-import personalDetailsPropType from '../../personalDetailsPropType';
 import CONST from '../../../CONST';
-import {withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
 import ReceiptUpload from '../../../../assets/images/receipt-upload.svg';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Button from '../../../components/Button';
@@ -16,14 +13,11 @@ import styles from '../../../styles/styles';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import ReceiptDropUI from '../ReceiptDropUI';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import NavigateToNextIOUPage from '../../../libs/actions/NavigateToNextIOUPage';
 import ConfirmModal from '../../../components/ConfirmModal';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
-import ReceiptUtils from '../../../libs/ReceiptUtils';
-import withCurrentReportID from '../../../components/withCurrentReportID';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
 
 const propTypes = {
@@ -36,6 +30,13 @@ const propTypes = {
 
     /** The report on which the request is initiated on */
     report: reportPropTypes,
+
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            iouType: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
+    }),
 
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     iou: PropTypes.shape({
@@ -52,9 +53,6 @@ const propTypes = {
             }),
         ),
     }),
-
-    /** Current user personal details */
-    currentUserPersonalDetails: personalDetailsPropType,
 };
 
 const defaultProps = {
@@ -63,24 +61,23 @@ const defaultProps = {
         attachmentInvalidReasonTitle: '',
         attachmentInvalidReason: '',
     },
+    report: {},
     route: {
         params: {
             iouType: '',
             reportID: '',
         },
     },
-    report: {},
     iou: {
         id: '',
         amount: 0,
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
 function ReceiptSelector(props) {
-    const reportID = useRef(lodashGet(props, 'currentReportID', ''));
+    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
     const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
@@ -103,13 +100,11 @@ function ReceiptSelector(props) {
             </View>
             <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
             <Text style={[styles.subTextReceiptUpload]}>
-                {isSmallScreenWidth ? translate('receipt.chooseReceiptBeforeEmail') : translate('receipt.dragReceiptBeforeEmail')}
-                <View style={{flexDirection: 'row'}}>
-                    <CopyTextToClipboard
-                        text="receipts@expensify.com"
-                        textStyles={[styles.textBlue]}
-                    />
-                </View>
+                {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                <CopyTextToClipboard
+                    text={CONST.EMAIL.RECEIPTS}
+                    textStyles={[styles.textBlue]}
+                />
                 {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
             </Text>
             <AttachmentPicker>
@@ -122,17 +117,11 @@ function ReceiptSelector(props) {
                             medium
                             success
                             text={translate('receipt.chooseFile')}
-                            style={[styles.buttonReceiptUpload]}
+                            style={[styles.p9]}
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
-                                        if (!ReceiptUtils.isValidReceipt(file)) {
-                                            return;
-                                        }
-
-                                        const filePath = URL.createObjectURL(file);
-                                        IOU.setMoneyRequestReceipt(filePath, file.name);
-                                        NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
+                                        IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report);
                                     },
                                 });
                             }}
@@ -149,13 +138,7 @@ function ReceiptSelector(props) {
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    if (!ReceiptUtils.isValidReceipt(file)) {
-                        return;
-                    }
-
-                    const filePath = URL.createObjectURL(file);
-                    IOU.setMoneyRequestReceipt(filePath, file.name);
-                    NavigateToNextIOUPage(props.iou, reportID, props.report, props.currentUserPersonalDetails);
+                    IOU.onReceiptImageSelected(file, props.iou, reportID.current, props.report);
                 }}
                 receiptImageTopPosition={receiptImageTopPosition}
             />
@@ -176,13 +159,10 @@ ReceiptSelector.defaultProps = defaultProps;
 ReceiptSelector.propTypes = propTypes;
 ReceiptSelector.displayName = 'ReceiptSelector';
 
-export default compose(
-    withCurrentReportID,
-    withOnyx({
-        iou: {key: ONYXKEYS.IOU},
-        receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
-        report: {
-            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
-        },
-    }),
-)(ReceiptSelector);
+export default withOnyx({
+    iou: {key: ONYXKEYS.IOU},
+    receiptModal: {key: ONYXKEYS.RECEIPT_MODAL},
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+    },
+})(ReceiptSelector);

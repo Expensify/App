@@ -1124,10 +1124,6 @@ const styles = {
         color: themeColors.textLight,
     },
 
-    buttonReceiptUpload: {
-        padding: 36,
-    },
-
     furtherDetailsText: {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeSmall,
@@ -3235,6 +3231,11 @@ const styles = {
         zIndex: 2,
     },
 
+    receiptImageWrapper: (receiptImageTopPosition) => ({
+        position: 'absolute',
+        top: receiptImageTopPosition,
+    }),
+
     cardSection: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
@@ -3594,31 +3595,6 @@ const styles = {
         textAlign: 'center',
     },
 
-    loginButtonRow: {
-        justifyContent: 'center',
-        width: '100%',
-        ...flex.flexRow,
-    },
-
-    loginButtonRowSmallScreen: {
-        justifyContent: 'center',
-        width: '100%',
-        marginBottom: 10,
-        ...flex.flexRow,
-    },
-
-    appleButtonContainer: {
-        width: 40,
-        height: 40,
-        marginRight: 20,
-    },
-
-    signInIconButton: {
-        margin: 10,
-        marginTop: 0,
-        padding: 2,
-    },
-
     tabSelectorButton: (isSelected) => ({
         height: 40,
         padding: 12,
@@ -3635,18 +3611,12 @@ const styles = {
         paddingBottom: 12,
     },
 
-    tabSelected: {
+    tabText: (isSelected) => ({
         marginHorizontal: 8,
-        fontFamily: fontFamily.EXP_NEUE_BOLD,
-        fontWeight: fontWeightBold,
-        color: themeColors.textLight,
-    },
-
-    tabDeselected: {
-        marginHorizontal: 8,
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.EXP_NEUE,
-    },
+        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
+        fontWeight: isSelected ? fontWeightBold : 400,
+        color: isSelected ? themeColors.textLight : themeColors.textSupporting,
+    }),
 
     /**
      * @param {String} backgroundColor

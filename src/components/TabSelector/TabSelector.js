@@ -64,6 +64,7 @@ function TabSelector({state, navigation, onTabPress}) {
                 return (
                     <TabSelectorItem
                         isSelected={isFocused}
+                        key={route.name}
                         title={translate(`tabSelector.${route.name}`)}
                         icon={getIcon(route.name)}
                         onPress={onPress}

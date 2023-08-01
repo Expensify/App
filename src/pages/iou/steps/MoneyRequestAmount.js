@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useRoute} from '@react-navigation/native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -25,7 +25,6 @@ import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotF
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import * as IOUUtils from '../../../libs/IOUUtils';
-import withCurrentReportID from '../../../components/withCurrentReportID';
 
 const propTypes = {
     /** The report on which the request is initiated on */
@@ -47,6 +46,13 @@ const propTypes = {
         ),
     }),
 
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            iouType: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
+    }),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -57,6 +63,12 @@ const defaultProps = {
         amount: 0,
         currency: CONST.CURRENCY.USD,
         participants: [],
+    },
+    route: {
+        params: {
+            iouType: '',
+            reportID: '',
+        },
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -162,13 +174,14 @@ function MoneyRequestAmount(props) {
     const prevMoneyRequestID = useRef(props.iou.id);
     const textInput = useRef(null);
     const iouType = useRef(lodashGet(props, 'iou.iouType', ''));
-    const reportID = useRef(lodashGet(props, 'currentReportID', ''));
+    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
     const isEditing = useRef(Navigation.getActiveRoute().includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
     const [selection, setSelection] = useState({start: selectedAmountAsString.length, end: selectedAmountAsString.length});
+    const currentRoute = useRoute();
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
@@ -262,6 +275,14 @@ function MoneyRequestAmount(props) {
             prevMoneyRequestID.current = props.iou.id;
         };
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
+
+    useEffect(() => {
+        if (!currentRoute.params || !currentRoute.params.currency) {
+            return;
+        }
+
+        setSelectedCurrencyCode(currentRoute.params.currency);
+    }, [currentRoute.params]);
 
     useEffect(() => {
         setSelectedCurrencyCode(props.iou.currency);
@@ -473,11 +494,10 @@ MoneyRequestAmount.displayName = 'MoneyRequestAmount';
 
 export default compose(
     withCurrentUserPersonalDetails,
-    withCurrentReportID,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},
         report: {
-            key: ({currentReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
     }),
 )(MoneyRequestAmount);

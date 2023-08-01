@@ -19,6 +19,7 @@ import TransactionUtils from '../TransactionUtils';
 import * as ErrorUtils from '../ErrorUtils';
 import * as UserUtils from '../UserUtils';
 import * as Report from './Report';
+import ReceiptUtils from '../ReceiptUtils';
 
 let allReports;
 Onyx.connect({
@@ -1438,20 +1439,12 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
 }
 
 /**
- * @param {String} iouType
- */
-function setMoneyRequestType(iouType) {
-    Onyx.merge(ONYXKEYS.IOU, {iouType});
-}
-
-/**
  * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} reportID
  */
 function startMoneyRequest(iouType, reportID = '') {
-    resetMoneyRequestInfo(`${iouType}${reportID}`);
-    setMoneyRequestType(iouType);
+    resetMoneyRequestInfo(`${iouType}${reportID}`, iouType);
     Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
 }
 
@@ -1498,6 +1491,60 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
     Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
 }
 
+/**
+ * Navigates to the next IOU page based on where the IOU request was started
+ *
+ * @param {Object} iou
+ * @param {String} reportID
+ * @param {Object} report
+ * @param {Object} currentUserPersonalDetails
+ */
+function navigateToNextPage(iou, reportID, report) {
+    const moneyRequestID = `${iou.iouType}${reportID}`;
+    const shouldReset = iou.id !== moneyRequestID;
+    // If the money request ID in Onyx does not match the ID from params, we want to start a new request
+    // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
+    if (shouldReset) {
+        resetMoneyRequestInfo(moneyRequestID, iou.iouType);
+    }
+
+    // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
+    if (report.reportID) {
+        // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
+        if (_.isEmpty(iou.participants) || shouldReset) {
+            const currentUserAccountID = currentUserPersonalDetails.accountID;
+            const participants = ReportUtils.isPolicyExpenseChat(report)
+                ? [{reportID: report.reportID, isPolicyExpenseChat: true, selected: true}]
+                : _.chain(report.participantAccountIDs)
+                      .filter((accountID) => currentUserAccountID !== accountID)
+                      .map((accountID) => ({accountID, selected: true}))
+                      .value();
+            setMoneyRequestParticipants(participants);
+        }
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iou.iouType, reportID));
+        return;
+    }
+    Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iou.iouType));
+}
+
+/**
+ *
+ * @param {Object} file
+ * @param {Object} iou
+ * @param {String} reportID
+ * @param {Object} report
+ * @param {Object} currentUserPersonalDetails
+ */
+function onReceiptImageSelected(file, iou, reportID, report) {
+    if (!ReceiptUtils.isValidReceipt(file)) {
+        return;
+    }
+
+    const filePath = URL.createObjectURL(file);
+    setMoneyRequestReceipt(filePath, file.name);
+    navigateToNextPage(iou, reportID, report);
+}
+
 export {
     deleteMoneyRequest,
     splitBill,
@@ -1510,10 +1557,11 @@ export {
     startMoneyRequest,
     resetMoneyRequestInfo,
     setMoneyRequestId,
-    setMoneyRequestType,
     setMoneyRequestAmount,
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
+    navigateToNextPage,
+    onReceiptImageSelected,
 };

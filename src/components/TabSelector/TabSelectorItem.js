@@ -28,19 +28,18 @@ const defaultProps = {
 };
 
 function TabSelectorItem(props) {
-    const textStyle = props.isSelected ? styles.tabSelected : styles.tabDeselected;
     return (
         <PressableWithFeedback
             accessibilityLabel={props.title}
             style={[styles.tabSelectorButton(props.isSelected)]}
-            wrapperStyle={{flex: 1}}
+            wrapperStyle={[styles.flex1]}
             onPress={props.onPress}
         >
             <Icon
                 src={props.icon}
                 fill={props.isSelected ? themeColors.iconMenu : themeColors.icon}
             />
-            <Text style={textStyle}>{props.title}</Text>
+            <Text style={styles.tabText(props.isSelected)}>{props.title}</Text>
         </PressableWithFeedback>
     );
 }
