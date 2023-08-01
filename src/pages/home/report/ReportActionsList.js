@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
@@ -52,6 +53,15 @@ const propTypes = {
 
     /** Information about the network */
     network: networkPropTypes.isRequired,
+
+    /** The policy object for the current route */
+    policy: PropTypes.shape({
+        /** The name of the policy */
+        name: PropTypes.string,
+
+        /** The URL for the policy avatar */
+        avatar: PropTypes.string,
+    }),
 
     ...windowDimensionsPropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
@@ -116,7 +126,10 @@ function ReportActionsList(props) {
         ({item: reportAction, index}) => {
             // When the new indicator should not be displayed we explicitly set it to null
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
-            const shouldDisplayParentAction = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && ReportUtils.isChatThread(report);
+            const shouldDisplayParentAction =
+                reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED &&
+                ReportUtils.isChatThread(report) &&
+                !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
             const shouldHideThreadDividerLine =
                 shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
             return shouldDisplayParentAction ? (
@@ -139,6 +152,7 @@ function ReportActionsList(props) {
                     isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
                     hasOutstandingIOU={hasOutstandingIOU}
                     index={index}
+                    isOnlyReportAction={sortedReportActions.length === 1}
                 />
             );
         },
@@ -178,7 +192,6 @@ function ReportActionsList(props) {
                             />
                         );
                     }
-
                     return null;
                 }}
                 keyboardShouldPersistTaps="handled"

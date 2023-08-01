@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
@@ -51,67 +51,65 @@ const defaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
 };
 
-class WalletStatementPage extends React.Component {
-    constructor(props) {
-        super(props);
+function WalletStatementPage(props) {
+    const yearMonth = lodashGet(props.route.params, 'yearMonth', null);
 
-        this.processDownload = this.processDownload.bind(this);
-        this.yearMonth = lodashGet(this.props.route.params, 'yearMonth', null);
-    }
-
-    componentDidMount() {
+    useEffect(() => {
         const currentYearMonth = moment().format('YYYYMM');
-        if (!this.yearMonth || this.yearMonth.length !== 6 || this.yearMonth > currentYearMonth) {
+        if (!yearMonth || yearMonth.length !== 6 || yearMonth > currentYearMonth) {
             Navigation.dismissModal();
         }
-    }
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we want this effect to run only on mount
+    }, []);
 
-    processDownload(yearMonth) {
-        if (this.props.walletStatement.isGenerating) {
+    useEffect(() => {
+        moment.locale(props.preferredLocale);
+    }, [props.preferredLocale]);
+
+    const processDownload = () => {
+        if (props.walletStatement.isGenerating) {
             return;
         }
 
-        if (this.props.walletStatement[yearMonth]) {
+        if (props.walletStatement[yearMonth]) {
             // We already have a file URL for this statement, so we can download it immediately
             const downloadFileName = `Expensify_Statement_${yearMonth}.pdf`;
-            const fileName = this.props.walletStatement[yearMonth];
+            const fileName = props.walletStatement[yearMonth];
             const pdfURL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}`;
             fileDownload(pdfURL, downloadFileName);
             return;
         }
 
-        Growl.show(this.props.translate('statementPage.generatingPDF'), CONST.GROWL.SUCCESS, 3000);
-        User.generateStatementPDF(this.yearMonth);
-    }
+        Growl.show(props.translate('statementPage.generatingPDF'), CONST.GROWL.SUCCESS, 3000);
+        User.generateStatementPDF(yearMonth);
+    };
 
-    render() {
-        moment.locale(this.props.preferredLocale);
-        const year = this.yearMonth.substring(0, 4) || moment().year();
-        const month = this.yearMonth.substring(4) || moment().month();
-        const monthName = moment(month, 'M').format('MMMM');
-        const title = `${monthName} ${year} statement`;
-        const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${this.yearMonth}`;
+    const year = yearMonth.substring(0, 4) || moment().year();
+    const month = yearMonth.substring(4) || moment().month();
+    const monthName = moment(month, 'M').format('MMMM');
+    const title = `${monthName} ${year} statement`;
+    const url = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}statement.php?period=${yearMonth}`;
 
-        return (
-            <ScreenWrapper
-                shouldShowOfflineIndicator={false}
-                includeSafeAreaPaddingBottom={false}
-            >
-                <HeaderWithBackButton
-                    title={Str.recapitalize(title)}
-                    shouldShowDownloadButton={!this.props.network.isOffline || this.props.walletStatement.isGenerating}
-                    onDownloadButtonPress={() => this.processDownload(this.yearMonth)}
-                />
-                <FullPageOfflineBlockingView>
-                    <WalletStatementModal statementPageURL={url} />
-                </FullPageOfflineBlockingView>
-            </ScreenWrapper>
-        );
-    }
+    return (
+        <ScreenWrapper
+            shouldShowOfflineIndicator={false}
+            includeSafeAreaPaddingBottom={false}
+        >
+            <HeaderWithBackButton
+                title={Str.recapitalize(title)}
+                shouldShowDownloadButton={!props.network.isOffline || props.walletStatement.isGenerating}
+                onDownloadButtonPress={processDownload}
+            />
+            <FullPageOfflineBlockingView>
+                <WalletStatementModal statementPageURL={url} />
+            </FullPageOfflineBlockingView>
+        </ScreenWrapper>
+    );
 }
 
 WalletStatementPage.propTypes = propTypes;
 WalletStatementPage.defaultProps = defaultProps;
+WalletStatementPage.displayName = 'WalletStatementPage';
 
 export default compose(
     withLocalize,

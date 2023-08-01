@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
+import wrapOnyxWithWaitForPromisesToResolve from '../utils/wrapOnyxWithWaitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import DateUtils from '../../src/libs/DateUtils';
 import * as Localize from '../../src/libs/Localize';
@@ -28,11 +29,16 @@ describe('Sidebar', () => {
         Onyx.init({
             keys: ONYXKEYS,
             registerStorageEventListener: () => {},
+            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 
-    // Initialize the network key for OfflineWithFeedback
-    beforeEach(() => Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false}));
+    beforeEach(() => {
+        // Wrap Onyx each onyx action with waitForPromiseToResolve
+        wrapOnyxWithWaitForPromisesToResolve(Onyx);
+        // Initialize the network key for OfflineWithFeedback
+        Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    });
 
     // Cleanup (ie. unmount) all rendered components and clear out Onyx after each test so that each test starts with a clean slate
     afterEach(() => {
@@ -253,6 +259,7 @@ describe('Sidebar', () => {
             );
         });
 
+        // NOTE: This is also for #focus mode, should we move this test block?
         describe('all combinations of isArchived, isUserCreatedPolicyRoom, hasAddWorkspaceError, isUnread, isPinned, hasDraft', () => {
             // Given a report that is the active report and doesn't change
             const report1 = LHNTestUtils.getFakeReport([3, 4]);
@@ -299,9 +306,9 @@ describe('Sidebar', () => {
 
                 // To test a failing set of conditions, comment out the for loop above and then use a hardcoded array
                 // for the specific case that's failing. You can then debug the code to see why the test is not passing.
-                // const boolArr = [false, false, true, false, false, false];
+                // const boolArr = [false, false, false, false, false];
 
-                it(`the booleans ${JSON.stringify(boolArr)}`, () => {
+                it(`the booleans ${boolArr}`, () => {
                     const report2 = {
                         ...LHNTestUtils.getAdvancedFakeReport(...boolArr),
                         policyID: policy.policyID,
@@ -321,7 +328,6 @@ describe('Sidebar', () => {
                                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                                 }),
                             )
-
                             // Then depending on the outcome, either one or two reports are visible
                             .then(() => {
                                 if (booleansWhichRemovesActiveReport.indexOf(JSON.stringify(boolArr)) > -1) {

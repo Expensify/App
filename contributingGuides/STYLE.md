@@ -194,7 +194,7 @@ function populateShortcutModal(shouldShowAdvancedShortcuts) {
 ```
 
 ## Destructuring
-JavaScript destructuring is convenient and fun, but we should avoid using it in situations where it reduces code clarity. Here are some general guidelines on destructuring.
+We should avoid using object destructuring in situations where it reduces code clarity. Here are some general guidelines on destructuring.
 
 **General Guidelines**
 
@@ -210,30 +210,28 @@ const {name, accountID, email} = data;
 
 **React Components**
 
-Don't destructure props or state. It makes the source of a given variable unclear. This guideline helps us quickly know which variables are from props, state, or from some other scope.
+Always use destructuring to get prop values. Destructuring is necessary to assign default values to props. 
 
 ```javascript
 // Bad
-const {userData} = props;
-const {firstName, lastName} = state;
-...
-
-// Bad
-function UserInfo({name, email}) {
-    return (
-        <View>
-            <Text>Name: {name}</Text>
-            <Text>Email: {email}</Text>
-        </View>
-    );
-}
-
-// Good
 function UserInfo(props) {
     return (
         <View>
             <Text>Name: {props.name}</Text>
             <Text>Email: {props.email}</Text>
+        </View>
+}
+
+UserInfo.defaultProps = {
+    name: 'anonymous';
+}
+
+// Good
+function UserInfo({ name = 'anonymous', email }) {
+    return (
+        <View>
+            <Text>Name: {name}</Text>
+            <Text>Email: {email}</Text>
         </View>
     );
 }
