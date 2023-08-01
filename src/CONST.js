@@ -2545,6 +2545,14 @@ const CONST = {
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
     },
+    CUSTOM_STATUS_TYPES: {
+      NEVER: 'never',
+      THIRTY_MINUTES: 'thirtyMinutes',
+      ONE_HOUR: 'oneHour',
+      AFTER_TODAY: 'afterToday',
+      AFTER_WEEK: 'afterWeek',
+      CUSTOM: 'custom',
+    },
 };
 
 export default CONST;
