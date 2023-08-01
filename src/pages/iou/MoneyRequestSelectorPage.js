@@ -1,6 +1,6 @@
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
-import React, {useRef} from 'react';
+import React from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -17,14 +17,10 @@ import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
-import Permissions from '../../libs/Permissions';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
 
 const propTypes = {
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     /** React Navigation route */
     route: PropTypes.shape({
         params: PropTypes.shape({
@@ -54,7 +50,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    betas: [],
     route: {
         params: {
             iouType: '',
@@ -71,8 +66,8 @@ const defaultProps = {
 };
 
 function MoneyRequestSelectorPage(props) {
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const iouType = lodashGet(props.route, 'params.iouType', '');
+    const reportID = lodashGet(props.route, 'params.reportID', '');
     const {translate} = useLocalize();
     const {canUseScanReceipts} = usePermissions();
 
@@ -83,18 +78,18 @@ function MoneyRequestSelectorPage(props) {
     };
 
     const resetMoneyRequestInfo = () => {
-        const moneyRequestID = `${iouType.current}${reportID.current}`;
+        const moneyRequestID = `${iouType}${reportID}`;
         IOU.resetMoneyRequestInfo(moneyRequestID);
     };
 
     return (
-        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
+        <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
                     <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.MANUAL}>
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
-                                title={title[iouType.current]}
+                                title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
                             {canUseScanReceipts ? (
@@ -111,16 +106,16 @@ function MoneyRequestSelectorPage(props) {
                                     <TopTab.Screen
                                         name={CONST.TAB.MANUAL}
                                         component={MoneyRequestAmount}
-                                        initialParams={{reportID: reportID.current, iouType: iouType.current}}
+                                        initialParams={{reportID, iouType}}
                                     />
                                     <TopTab.Screen
                                         name={CONST.TAB.SCAN}
                                         component={ReceiptSelector}
-                                        initialParams={{reportID: reportID.current, iouType: iouType.current}}
+                                        initialParams={{reportID, iouType}}
                                     />
                                 </OnyxTabNavigator>
                             ) : (
-                                !Permissions.canUseScanReceipts(props.betas) && <MoneyRequestAmount />
+                                <MoneyRequestAmount />
                             )}
                         </View>
                     </DragAndDropProvider>
@@ -139,6 +134,6 @@ export default withOnyx({
         key: ONYXKEYS.IOU,
     },
     selectedTab: {
-        key: () => `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
+        key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
     },
 })(MoneyRequestSelectorPage);

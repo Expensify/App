@@ -1,5 +1,5 @@
 import {View, Text, PixelRatio} from 'react-native';
-import React, {useContext, useRef, useState} from 'react';
+import React, {useContext, useState} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -19,6 +19,7 @@ import Receipt from '../../../libs/actions/Receipt';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useLocalize from '../../../hooks/useLocalize';
 import {DragAndDropContext} from '../../../components/DragAndDrop/Provider';
+import ReceiptUtils from '../../../libs/ReceiptUtils';
 
 const propTypes = {
     /** Information shown to the user when a receipt is not valid */
@@ -76,9 +77,27 @@ const defaultProps = {
     },
 };
 
+/**
+ *
+ * @param {Object} file
+ * @param {Object} iou
+ * @param {String} iouType
+ * @param {String} reportID
+ * @param {Object} report
+ */
+function setReceiptAndNavigate(file, iou, iouType, reportID, report) {
+    if (!ReceiptUtils.isValidReceipt(file)) {
+        return;
+    }
+
+    const filePath = URL.createObjectURL(file);
+    IOU.setMoneyRequestReceipt(filePath, file.name);
+    IOU.navigateToNextPage(iou, iouType, reportID, report);
+}
+
 function ReceiptSelector(props) {
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
+    const reportID = lodashGet(props.route, 'params.reportID', '');
+    const iouType = lodashGet(props.route, 'params.iouType', '');
     const isAttachmentInvalid = lodashGet(props.receiptModal, 'isAttachmentInvalid', false);
     const attachmentInvalidReasonTitle = lodashGet(props.receiptModal, 'attachmentInvalidReasonTitle', '');
     const attachmentInvalidReason = lodashGet(props.receiptModal, 'attachmentInvalidReason', '');
@@ -122,7 +141,7 @@ function ReceiptSelector(props) {
                             onPress={() => {
                                 openPicker({
                                     onPicked: (file) => {
-                                        IOU.onReceiptImageSelected(file, props.iou, iouType.current, reportID.current, props.report);
+                                        setReceiptAndNavigate(file, props.iou, iouType, reportID, props.report);
                                     },
                                 });
                             }}
@@ -139,14 +158,14 @@ function ReceiptSelector(props) {
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    IOU.onReceiptImageSelected(file, props.iou, iouType.current, reportID.current, props.report);
+                    setReceiptAndNavigate(file, props.iou, iouType, reportID, props.report);
                 }}
                 receiptImageTopPosition={receiptImageTopPosition}
             />
             <ConfirmModal
                 title={attachmentInvalidReasonTitle}
-                onConfirm={() => Receipt.clearUploadReceiptError()}
-                onCancel={() => Receipt.clearUploadReceiptError()}
+                onConfirm={Receipt.clearUploadReceiptError}
+                onCancel={Receipt.clearUploadReceiptError}
                 isVisible={isAttachmentInvalid}
                 prompt={attachmentInvalidReason}
                 confirmText={translate('common.close')}

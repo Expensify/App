@@ -1,12 +1,11 @@
 import {ActivityIndicator, Alert, Linking, View, Text} from 'react-native';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
-import Colors from '../../../styles/colors';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
 import styles from '../../../styles/styles';
@@ -99,8 +98,8 @@ function ReceiptSelector(props) {
 
     const [permissions, setPermissions] = useState('authorized');
 
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+    const iouType = lodashGet(props.route, 'params.iouType', '');
+    const reportID = lodashGet(props.route, 'params.reportID', '');
 
     const {translate} = useLocalize();
     /**
@@ -132,15 +131,21 @@ function ReceiptSelector(props) {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
     };
 
-    const showCameraAlert = () => {
-        Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
+    const givePermissions = () => {
+        if (permissions === 'not-determined') {
+            Camera.requestCameraPermission().then((permissionStatus) => {
+                setPermissions(permissionStatus);
+            });
+        } else {
+            Linking.openSettings();
+        }
     };
 
     /**
      * Common image picker handling
      *
      * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
-     * @returns {Promise<ImagePickerResponse>}
+     * @returns {Promise}
      */
     const showImagePicker = (imagePickerFunc) =>
         new Promise((resolve, reject) => {
@@ -166,7 +171,11 @@ function ReceiptSelector(props) {
             });
         });
 
-    const takePhoto = () => {
+    const takePhoto = useCallback(() => {
+        const showCameraAlert = () => {
+            Alert.alert(translate('receipt.cameraErrorTitle'), translate('receipt.cameraErrorMessage'));
+        };
+
         if (!camera.current) {
             showCameraAlert();
             return;
@@ -179,74 +188,60 @@ function ReceiptSelector(props) {
             })
             .then((photo) => {
                 IOU.setMoneyRequestReceipt(`file://${photo.path}`, photo.path);
-                IOU.navigateToNextPage(props.iou, iouType.current, reportID.current, props.report);
+                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
             })
             .catch(() => {
                 showCameraAlert();
             });
-    };
+    }, [flash, iouType, props.iou, props.report, reportID, translate]);
 
     Camera.getCameraPermissionStatus().then((permissionStatus) => {
         setPermissions(permissionStatus);
     });
 
-    const cameraComponent = () => (
-        <Camera
-            ref={camera}
-            device={device}
-            style={[styles.cameraView]}
-            isActive
-            photo
-        />
-    );
-
-    const loadingComponent = () => (
-        <View style={[styles.cameraView]}>
-            <ActivityIndicator
-                size="large"
-                style={{flex: 1}}
-                color={themeColors.textSupporting}
-            />
-        </View>
-    );
-
-    const permissionComponent = () => (
-        <View style={[styles.cameraView, styles.permissionView]}>
-            <Hand
-                width={152}
-                height={200}
-                style={{paddingBottom: 20}}
-            />
-            <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
-            <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
-            <PressableWithFeedback
-                accessibilityLabel={translate('receipt.givePermission')}
-                accessibilityRole="button"
-            >
-                <Button
-                    medium
-                    success
-                    text={translate('receipt.givePermission')}
-                    style={[styles.p9, styles.pt5]}
-                    onPress={() => {
-                        if (permissions === 'not-determined') {
-                            Camera.requestCameraPermission().then((permissionStatus) => {
-                                setPermissions(permissionStatus);
-                            });
-                        } else {
-                            Linking.openSettings();
-                        }
-                    }}
-                />
-            </PressableWithFeedback>
-        </View>
-    );
-
     const getCameraView = () => {
         if (permissions !== CONST.RECEIPT.PERMISSION_AUTHORIZED) {
-            return permissionComponent();
+            return (
+                <View style={[styles.cameraView, styles.permissionView]}>
+                    <Hand
+                        width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                        height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                        style={[styles.pb5]}
+                    />
+                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.takePhoto')}</Text>
+                    <Text style={[styles.subTextReceiptUpload]}>{translate('receipt.cameraAccess')}</Text>
+                    <PressableWithFeedback
+                        accessibilityLabel={translate('receipt.givePermission')}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                    >
+                        <Button
+                            medium
+                            success
+                            text={translate('receipt.givePermission')}
+                            style={[styles.p9, styles.pt5]}
+                            onPress={givePermissions}
+                        />
+                    </PressableWithFeedback>
+                </View>
+            );
         }
-        return device == null ? loadingComponent() : cameraComponent();
+        return device == null ? (
+            <View style={[styles.cameraView]}>
+                <ActivityIndicator
+                    size="large"
+                    style={[styles.flex1]}
+                    color={themeColors.textSupporting}
+                />
+            </View>
+        ) : (
+            <Camera
+                ref={camera}
+                device={device}
+                style={[styles.cameraView]}
+                isActive
+                photo
+            />
+        );
     };
 
     return (
@@ -260,7 +255,7 @@ function ReceiptSelector(props) {
                     onPress={() => {
                         showImagePicker(launchImageLibrary).then((receiptImage) => {
                             IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                            IOU.navigateToNextPage(props.iou, iouType.current, reportID.current, props.report);
+                            IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
                         });
                     }}
                 >
@@ -268,31 +263,31 @@ function ReceiptSelector(props) {
                         height={32}
                         width={32}
                         src={Expensicons.Gallery}
-                        fill={Colors.colorMuted}
+                        fill={themeColors.textSupporting}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     accessibilityRole="button"
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
-                    onPress={() => takePhoto()}
+                    onPress={takePhoto}
                 >
                     <Shutter
-                        width={90}
-                        height={90}
+                        width={CONST.RECEIPT.SHUTTER_SIZE}
+                        height={CONST.RECEIPT.SHUTTER_SIZE}
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     style={[styles.alignItemsEnd]}
-                    onPress={() => setFlash(!flash)}
+                    onPress={() => setFlash((prevFlash) => !prevFlash)}
                 >
                     <Icon
                         height={32}
                         width={32}
                         src={Expensicons.Bolt}
-                        fill={flash ? Colors.white : Colors.colorMuted}
+                        fill={flash ? themeColors.iconHovered : themeColors.textSupporting}
                     />
                 </PressableWithFeedback>
             </View>

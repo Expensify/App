@@ -1525,24 +1525,6 @@ function navigateToNextPage(iou, iouType, reportID, report) {
     Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
 }
 
-/**
- *
- * @param {Object} file
- * @param {Object} iou
- * @param {String} iouType
- * @param {String} reportID
- * @param {Object} report
- */
-function onReceiptImageSelected(file, iou, iouType, reportID, report) {
-    if (!ReceiptUtils.isValidReceipt(file)) {
-        return;
-    }
-
-    const filePath = URL.createObjectURL(file);
-    setMoneyRequestReceipt(filePath, file.name);
-    navigateToNextPage(iou, iouType, reportID, report);
-}
-
 export {
     deleteMoneyRequest,
     splitBill,
@@ -1561,5 +1543,4 @@ export {
     setMoneyRequestParticipants,
     setMoneyRequestReceipt,
     navigateToNextPage,
-    onReceiptImageSelected,
 };
