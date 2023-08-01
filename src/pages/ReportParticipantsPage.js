@@ -122,6 +122,7 @@ function ReportParticipantsPage(props) {
                                 boldStyle
                                 optionHoveredStyle={styles.hoveredComponentBG}
                                 contentContainerStyles={[safeAreaPaddingBottomStyle]}
+                                showScrollIndicator={true}
                             />
                         )}
                     </View>
