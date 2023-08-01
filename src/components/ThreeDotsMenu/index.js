@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React, {useState, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -61,61 +61,51 @@ const defaultProps = {
     },
 };
 
-class ThreeDotsMenu extends Component {
-    constructor(props) {
-        super(props);
+function ThreeDotsMenu({iconTooltip, icon, iconFill, iconStyles, onIconPress, menuItems, anchorPosition, anchorAlignment, translate}) {
+    const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
+    const buttonRef = useRef(null);
 
-        this.hidePopoverMenu = this.hidePopoverMenu.bind(this);
-        this.showPopoverMenu = this.showPopoverMenu.bind(this);
-        this.state = {
-            isPopupMenuVisible: false,
-        };
-        this.button = null;
-    }
+    const showPopoverMenu = () => {
+        setPopupMenuVisible(true);
+    };
 
-    showPopoverMenu() {
-        this.setState({isPopupMenuVisible: true});
-    }
+    const hidePopoverMenu = () => {
+        setPopupMenuVisible(false);
+    };
 
-    hidePopoverMenu() {
-        this.setState({isPopupMenuVisible: false});
-    }
-
-    render() {
-        return (
-            <>
-                <View>
-                    <Tooltip text={this.props.translate(this.props.iconTooltip)}>
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                this.showPopoverMenu();
-                                if (this.props.onIconPress) {
-                                    this.props.onIconPress();
-                                }
-                            }}
-                            ref={(el) => (this.button = el)}
-                            style={[styles.touchableButtonImage, ...this.props.iconStyles]}
-                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
-                            accessibilityLabel={this.props.translate(this.props.iconTooltip)}
-                        >
-                            <Icon
-                                src={this.props.icon}
-                                fill={this.props.iconFill}
-                            />
-                        </PressableWithoutFeedback>
-                    </Tooltip>
-                </View>
-                <PopoverMenu
-                    onClose={this.hidePopoverMenu}
-                    isVisible={this.state.isPopupMenuVisible}
-                    anchorPosition={this.props.anchorPosition}
-                    anchorAlignment={this.props.anchorAlignment}
-                    onItemSelected={this.hidePopoverMenu}
-                    menuItems={this.props.menuItems}
-                />
-            </>
-        );
-    }
+    return (
+        <>
+            <View>
+                <Tooltip text={translate(iconTooltip)}>
+                    <PressableWithoutFeedback
+                        onPress={() => {
+                            showPopoverMenu();
+                            if (onIconPress) {
+                                onIconPress();
+                            }
+                        }}
+                        ref={buttonRef}
+                        style={[styles.touchableButtonImage, ...iconStyles]}
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        accessibilityLabel={translate(iconTooltip)}
+                    >
+                        <Icon
+                            src={icon}
+                            fill={iconFill}
+                        />
+                    </PressableWithoutFeedback>
+                </Tooltip>
+            </View>
+            <PopoverMenu
+                onClose={hidePopoverMenu}
+                isVisible={isPopupMenuVisible}
+                anchorPosition={anchorPosition}
+                anchorAlignment={anchorAlignment}
+                onItemSelected={hidePopoverMenu}
+                menuItems={menuItems}
+            />
+        </>
+    );
 }
 
 ThreeDotsMenu.propTypes = propTypes;
