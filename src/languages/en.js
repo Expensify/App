@@ -921,6 +921,7 @@ export default {
     messages: {
         errorMessageInvalidPhone: `Please enter a valid phone number without brackets or dashes. If you're outside the US please include your country code (e.g. ${CONST.EXAMPLE_PHONE_NUMBER}).`,
         errorMessageInvalidEmail: 'Invalid email',
+        userIsAlreadyMemberOfWorkspace: ({login, workspace}) => `${login} is already a member of ${workspace}`,
     },
     onfidoStep: {
         acceptTerms: 'By continuing with the request to activate your Expensify wallet, you confirm that you have read, understand and accept ',
@@ -1502,6 +1503,7 @@ export default {
     },
     parentReportAction: {
         deletedMessage: '[Deleted message]',
+        deletedRequest: '[Deleted request]',
         hiddenMessage: '[Hidden message]',
     },
     threads: {
@@ -1534,5 +1536,11 @@ export default {
         levelOneResult: 'Sends anonymous warning and message is reported for review.',
         levelTwoResult: 'Message hidden from channel, plus anonymous warning and message is reported for review.',
         levelThreeResult: 'Message removed from channel plus anonymous warning and message is reported for review.',
+    },
+    countrySelectorModal: {
+        placeholderText: 'Search to see options',
+    },
+    stateSelectorModal: {
+        placeholderText: 'Search to see options',
     },
 };
