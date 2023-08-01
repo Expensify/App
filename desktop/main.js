@@ -34,11 +34,12 @@ contextMenu({
             // Only enable the menu item for Editable context which supports paste
             visible: parameters.isEditable && parameters.editFlags.canPaste,
             role: 'pasteAndMatchStyle',
-            accelerator: 'CmdOrCtrl+Shift+V',
+            accelerator: 'Option+Shift+CmdOrCtrl+V',
         }),
         new MenuItem({
             label: 'Paste as Plain Text',
             visible: parameters.isEditable && parameters.editFlags.canPaste,
+            accelerator:'CmdOrCtrl+Shift+V',
             click: () => {
                 // Insert the plain text from the clipboard
                 const text = clipboard.readText();
