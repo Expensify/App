@@ -208,9 +208,6 @@ function BaseValidateCodeForm(props) {
                 return;
             }
         } else {
-            if (inputValidateCodeRef.current) {
-                inputValidateCodeRef.current.blur();
-            }
             if (!validateCode.trim()) {
                 setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
                 return;
