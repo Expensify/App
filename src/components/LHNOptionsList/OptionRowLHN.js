@@ -237,7 +237,7 @@ function OptionRowLHN(props) {
                                     fill={themeColors.success}
                                 />
                             )}
-                            {optionItem.hasDraftComment && (
+                            {optionItem.hasDraftComment && optionItem.isAllowedToComment && (
                                 <View
                                     style={styles.ml2}
                                     accessibilityLabel={translate('sidebarScreen.draftedMessage')}
