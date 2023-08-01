@@ -36,5 +36,6 @@ function SwipeableView({children, onSwipeDown}) {
 }
 
 SwipeableView.propTypes = propTypes;
+SwipeableView.displayName = 'SwipeableView';
 
 export default SwipeableView;
