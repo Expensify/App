@@ -10,6 +10,7 @@ import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './
 import * as Modal from '../../libs/actions/Modal';
 import getModalStyles from '../../styles/getModalStyles';
 import variables from '../../styles/variables';
+import ComposerFocusManager from '../../libs/ComposerFocusManager';
 
 const propTypes = {
     ...modalPropTypes,
@@ -73,6 +74,9 @@ class BaseModal extends PureComponent {
             this.props.onModalHide();
         }
         Modal.onModalDidClose();
+        if (!this.props.fullscreen) {
+            ComposerFocusManager.setReadyToFocus();
+        }
     }
 
     render() {
@@ -109,6 +113,9 @@ class BaseModal extends PureComponent {
                 // Note: Escape key on web/desktop will trigger onBackButtonPress callback
                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
                 onBackButtonPress={this.props.onClose}
+                onModalWillShow={() => {
+                    ComposerFocusManager.resetReadyToFocus();
+                }}
                 onModalShow={() => {
                     if (this.props.shouldSetModalVisibility) {
                         Modal.setModalVisibility(true);
@@ -117,6 +124,7 @@ class BaseModal extends PureComponent {
                 }}
                 propagateSwipe={this.props.propagateSwipe}
                 onModalHide={this.hideModal}
+                onDismiss={() => ComposerFocusManager.setReadyToFocus()}
                 onSwipeComplete={this.props.onClose}
                 swipeDirection={swipeDirection}
                 isVisible={this.props.isVisible}

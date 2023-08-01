@@ -126,6 +126,7 @@ class AttachmentPicker extends Component {
             });
         }
 
+        this.cancel = () => {};
         this.close = this.close.bind(this);
         this.pickAttachment = this.pickAttachment.bind(this);
         this.removeKeyboardListener = this.removeKeyboardListener.bind(this);
@@ -181,6 +182,7 @@ class AttachmentPicker extends Component {
      */
     pickAttachment(attachments = []) {
         if (attachments.length === 0) {
+            this.cancel();
             return;
         }
 
@@ -342,7 +344,10 @@ class AttachmentPicker extends Component {
      */
     renderChildren() {
         return this.props.children({
-            openPicker: ({onPicked}) => this.open(onPicked),
+            openPicker: ({onPicked, onCanceled = () => {}}) => {
+                this.open(onPicked);
+                this.cancel = onCanceled;
+            },
         });
     }
 
@@ -350,7 +355,10 @@ class AttachmentPicker extends Component {
         return (
             <>
                 <Popover
-                    onClose={this.close}
+                    onClose={() => {
+                        this.close();
+                        this.cancel();
+                    }}
                     isVisible={this.state.isVisible}
                     anchorPosition={styles.createMenuPosition}
                     onModalHide={this.onModalHide}

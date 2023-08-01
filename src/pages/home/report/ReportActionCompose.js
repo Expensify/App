@@ -59,6 +59,7 @@ import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressLis
 import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
 import withAnimatedRef from '../../../components/withAnimatedRef';
 import updatePropsPaperWorklet from '../../../libs/updatePropsPaperWorklet';
+import ComposerFocusManager from '../../../libs/ComposerFocusManager';
 
 const propTypes = {
     /** Beta features list */
@@ -221,6 +222,8 @@ class ReportActionCompose extends React.Component {
 
         this.unsubscribeNavigationBlur = () => null;
         this.unsubscribeNavigationFocus = () => null;
+        
+        this.shouldFocusAfterClosingModal = true;
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus && !this.props.modal.isVisible && !this.props.modal.willAlertModalBecomeVisible && this.props.shouldShowComposeInput,
@@ -268,10 +271,13 @@ class ReportActionCompose extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (this.props.modal.isVisible && !prevProps.modal.isVisible) {
+            this.shouldFocusAfterClosingModal = true;
+        }
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (this.willBlurTextInputOnTapOutside && !this.props.modal.isVisible && this.props.isFocused && (prevProps.modal.isVisible || !prevProps.isFocused)) {
+        if (this.willBlurTextInputOnTapOutside && this.shouldFocusAfterClosingModal && !this.props.modal.isVisible && this.props.isFocused && (prevProps.modal.isVisible || !prevProps.isFocused)) {
             this.focus();
         }
 
@@ -757,13 +763,14 @@ class ReportActionCompose extends React.Component {
 
             if (!shouldelay) {
                 this.textInput.focus();
-            } else {
-                // Keyboard is not opened after Emoji Picker is closed
-                // SetTimeout is used as a workaround
-                // https://github.com/react-native-modal/react-native-modal/issues/114
-                // We carefully choose a delay. 100ms is found enough for keyboard to open.
-                setTimeout(() => this.textInput.focus(), 100);
+                return;
             }
+            ComposerFocusManager.isReadyToFocus().then(() => {
+                if (!this.textInput) {
+                    return;
+                }
+                this.textInput.focus();
+            });
         });
     }
 
@@ -1036,6 +1043,7 @@ class ReportActionCompose extends React.Component {
                                 this.shouldBlockEmojiCalc = false;
                                 this.shouldBlockMentionCalc = false;
                                 this.setState({isAttachmentPreviewActive: false});
+                                this.focus(true);
                             }}
                         >
                             {({displayFileInModal}) => (
@@ -1095,6 +1103,7 @@ class ReportActionCompose extends React.Component {
                                                                 e.preventDefault();
 
                                                                 // Drop focus to avoid blue focus ring.
+                                                                this.textInput.blur();
                                                                 this.actionButton.blur();
                                                                 this.setMenuVisibility(true);
                                                             }}
@@ -1110,7 +1119,10 @@ class ReportActionCompose extends React.Component {
                                                 <PopoverMenu
                                                     animationInTiming={CONST.ANIMATION_IN_TIMING}
                                                     isVisible={this.state.isMenuVisible}
-                                                    onClose={() => this.setMenuVisibility(false)}
+                                                    onClose={() => {
+                                                        this.setMenuVisibility(false);
+                                                        this.focus(true);
+                                                    }}
                                                     onItemSelected={() => this.setMenuVisibility(false)}
                                                     anchorPosition={styles.createMenuPositionReportActionCompose(this.props.windowHeight)}
                                                     anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
@@ -1128,8 +1140,12 @@ class ReportActionCompose extends React.Component {
                                                                     this.shouldBlockMentionCalc = true;
                                                                 }
 
+                                                                this.shouldFocusAfterClosingModal = false;
                                                                 openPicker({
                                                                     onPicked: displayFileInModal,
+                                                                    onCanceled: () => {
+                                                                        this.focus(true);
+                                                                    },
                                                                 });
                                                             },
                                                         },
