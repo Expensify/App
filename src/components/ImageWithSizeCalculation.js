@@ -39,9 +39,9 @@ const defaultProps = {
  *
  */
 function ImageWithSizeCalculation(props) {
-    const [isLoading, setIsLoading] = useState(false);
     const isLoadedRef = useRef(null);
     const [isImageCached, setIsImageCached] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url: props.url});
@@ -57,14 +57,15 @@ function ImageWithSizeCalculation(props) {
 
     /** Delay the loader to detect whether the image is being loaded from the cache or the internet. */
     useEffect(() => {
-        let timeout;
-
-        if (isLoading) {
-            timeout = _.delay(() => {
-                setIsImageCached(false);
-            }, 175);
+        if (isLoadedRef.current || !isLoading) {
+            return;
         }
-
+        const timeout = _.delay(() => {
+            if (!isLoading || isLoadedRef.current) {
+                return;
+            }
+            setIsImageCached(false);
+        }, 300);
         return () => clearTimeout(timeout);
     }, [isLoading]);
 
