@@ -151,18 +151,9 @@ function MultipleAvatars(props) {
     const overlapSize = oneAvatarSize.width / 3;
 
     if (props.shouldStackHorizontally) {
-        let width;
-
         // Height of one avatar + border space
         const height = oneAvatarSize.height + 2 * oneAvatarBorderWidth;
-        if (props.icons.length > 4) {
-            const length = avatarRows.length > 1 ? Math.max(avatarRows[0].length, avatarRows[1].length) : avatarRows[0].length;
-            width = oneAvatarSize.width + overlapSize * 2 * (length - 1) + oneAvatarBorderWidth * (length * 2);
-        } else {
-            // one avatar width + overlaping avatar sizes + border space
-            width = oneAvatarSize.width + overlapSize * 2 * (props.icons.length - 1) + oneAvatarBorderWidth * (props.icons.length * 2);
-        }
-        avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), StyleUtils.getWidthStyle(width)]);
+        avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height)]);
     }
 
     return (
@@ -183,21 +174,17 @@ function MultipleAvatars(props) {
                                     avatar: icon.avatar,
                                 }}
                             >
-                                <View
-                                    style={[
-                                        styles.justifyContentCenter,
-                                        styles.alignItemsCenter,
-                                        StyleUtils.getHorizontalStackedAvatarBorderStyle({
-                                            isHovered: props.isHovered,
-                                            isPressed: props.isPressed,
-                                            isInReportAction: props.isInReportAction,
-                                            shouldUseCardBackground: props.shouldUseCardBackground,
-                                        }),
-                                        StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize, oneAvatarBorderWidth, oneAvatarSize.width),
-                                        icon.type === CONST.ICON_TYPE_WORKSPACE ? StyleUtils.getAvatarBorderRadius(props.size, icon.type) : {},
-                                    ]}
-                                >
+                                <View style={[StyleUtils.getHorizontalStackedAvatarStyle(index, overlapSize), StyleUtils.getAvatarBorderRadius(props.size, icon.type)]}>
                                     <Avatar
+                                        iconAdditionalStyles={[
+                                            StyleUtils.getHorizontalStackedAvatarBorderStyle({
+                                                isHovered: props.isHovered,
+                                                isPressed: props.isPressed,
+                                                isInReportAction: props.isInReportAction,
+                                                shouldUseCardBackground: props.shouldUseCardBackground,
+                                            }),
+                                            StyleUtils.getAvatarBorderWidth(props.size),
+                                        ]}
                                         source={icon.source || props.fallbackIcon}
                                         fill={themeColors.iconSuccessFill}
                                         size={props.size}
@@ -209,8 +196,8 @@ function MultipleAvatars(props) {
                         ))}
                         {avatars.length > props.maxAvatarsInRow && (
                             <Tooltip
-                                // We only want to cap tooltips to only the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-                                text={tooltipTexts.slice(3, 10).join(', ')}
+                                // We only want to cap tooltips to only 10 users or so since some reports have hundreds of users, causing performance to degrade.
+                                text={tooltipTexts.slice(avatarRows.length * props.maxAvatarsInRow - 1, avatarRows.length * props.maxAvatarsInRow + 9).join(', ')}
                             >
                                 <View
                                     style={[

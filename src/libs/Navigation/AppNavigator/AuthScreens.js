@@ -35,20 +35,21 @@ import styles from '../../../styles/styles';
 import * as SessionUtils from '../../SessionUtils';
 import getNavigationModalCardStyle from '../../../styles/getNavigationModalCardStyles';
 
-let currentUserEmail;
+let timezone;
+let currentAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        // When signed out, val is undefined
-        if (!val) {
+        // When signed out, val hasn't accountID
+        if (!_.has(val, 'accountID')) {
+            timezone = null;
             return;
         }
 
-        currentUserEmail = val.email;
+        currentAccountID = val.accountID;
     },
 });
 
-let timezone;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => {
@@ -56,7 +57,7 @@ Onyx.connect({
             return;
         }
 
-        timezone = lodashGet(val, [currentUserEmail, 'timezone'], {});
+        timezone = lodashGet(val, [currentAccountID, 'timezone'], {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic

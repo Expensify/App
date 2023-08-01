@@ -1,6 +1,208 @@
+import CONST from '../../src/CONST';
+
+const moment = require('moment');
 const ValidationUtils = require('../../src/libs/ValidationUtils');
 
 describe('ValidationUtils', () => {
+    describe('isValidDate', () => {
+        test('Should return true for a valid date within the range', () => {
+            const validDate = '2023-07-18';
+            const isValid = ValidationUtils.isValidDate(validDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Should return false for an invalid date', () => {
+            const invalidDate = '2023-07-32';
+            const isValid = ValidationUtils.isValidDate(invalidDate);
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return false for an empty date', () => {
+            const invalidDate = '';
+            const isValid = ValidationUtils.isValidDate(invalidDate);
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return false for a date after the range', () => {
+            const futureDate = '3024-07-18';
+            const isValid = ValidationUtils.isValidDate(futureDate);
+            expect(isValid).toBe(false);
+        });
+    });
+
+    describe('isValidPastDate', () => {
+        test('Should return true for a valid past date within the range', () => {
+            const validPastDate = '1990-01-01';
+            const isValid = ValidationUtils.isValidPastDate(validPastDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Should return false for an invalid date', () => {
+            const invalidDate = '2023-07-32';
+            const isValid = ValidationUtils.isValidPastDate(invalidDate);
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return false for an empty date', () => {
+            const emptyDate = '';
+            const isValid = ValidationUtils.isValidPastDate(emptyDate);
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return false for a future date', () => {
+            const futureDate = moment().add(1, 'day').format(CONST.DATE.MOMENT_FORMAT_STRING);
+            const isValid = ValidationUtils.isValidPastDate(futureDate);
+            expect(isValid).toBe(false);
+        });
+    });
+
+    describe('isRequiredFulfilled', () => {
+        test('Should return true for a non-empty string value', () => {
+            const stringValue = 'Test';
+            const isFulfilled = ValidationUtils.isRequiredFulfilled(stringValue);
+            expect(isFulfilled).toBe(true);
+        });
+
+        test('Should return false for an empty string value', () => {
+            const emptyStringValue = '';
+            const isFulfilled = ValidationUtils.isRequiredFulfilled(emptyStringValue);
+            expect(isFulfilled).toBe(false);
+        });
+
+        test('Should return false for a whitespace string value', () => {
+            const whitespaceStringValue = '   ';
+            const isFulfilled = ValidationUtils.isRequiredFulfilled(whitespaceStringValue);
+            expect(isFulfilled).toBe(false);
+        });
+
+        test('Should return true for a valid date value', () => {
+            const dateValue = moment();
+            const isFulfilled = ValidationUtils.isRequiredFulfilled(dateValue);
+            expect(isFulfilled).toBe(true);
+        });
+
+        test('Should return false for an invalid date value', () => {
+            const invalidDateValue = new Date('2023-07-33');
+            const isFulfilled = ValidationUtils.isRequiredFulfilled(invalidDateValue);
+            expect(isFulfilled).toBe(false);
+        });
+
+        test('Should return true for a non-empty array value', () => {
+            const arrayValue = [1, 2, 3];
+            const isFulfilled = ValidationUtils.isRequiredFulfilled(arrayValue);
+            expect(isFulfilled).toBe(true);
+        });
+
+        test('Should return false for an empty array value', () => {
+            const emptyArrayValue = [];
+            const isFulfilled = ValidationUtils.isRequiredFulfilled(emptyArrayValue);
+            expect(isFulfilled).toBe(false);
+        });
+
+        test('Should return true for a non-empty object value', () => {
+            const objectValue = {key: 'value'};
+            const isFulfilled = ValidationUtils.isRequiredFulfilled(objectValue);
+            expect(isFulfilled).toBe(true);
+        });
+
+        test('Should return false for an empty object value', () => {
+            const emptyObjectValue = {};
+            const isFulfilled = ValidationUtils.isRequiredFulfilled(emptyObjectValue);
+            expect(isFulfilled).toBe(false);
+        });
+    });
+
+    describe('isValidExpirationDate', () => {
+        test('Should return true for a valid formats expiration date in the future', () => {
+            const firstFutureExpirationDate = '12/25'; // MM/YY format, in the future
+            const secondFutureExpirationDate = '12/2025'; // MM/YYYY format, in the future
+            const thirdFutureExpirationDate = '1225'; // MMYY format, in the future
+            const fourthFutureExpirationDate = '122025'; // MMYYYY format, in the future
+            expect(ValidationUtils.isValidExpirationDate(firstFutureExpirationDate)).toBe(true);
+            expect(ValidationUtils.isValidExpirationDate(secondFutureExpirationDate)).toBe(true);
+            expect(ValidationUtils.isValidExpirationDate(thirdFutureExpirationDate)).toBe(true);
+            expect(ValidationUtils.isValidExpirationDate(fourthFutureExpirationDate)).toBe(true);
+        });
+
+        test('Should return false for a valid expiration date, but in the past', () => {
+            const pastExpirationDate = '06/20'; // MM/YY format, in the past
+            const isValid = ValidationUtils.isValidExpirationDate(pastExpirationDate);
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return false for an invalid expiration date format', () => {
+            const invalidExpirationDate = '2006'; // Invalid format, missing YYMM
+            const isValid = ValidationUtils.isValidExpirationDate(invalidExpirationDate);
+            expect(isValid).toBe(false);
+        });
+    });
+
+    describe('meetsMinimumAgeRequirement', () => {
+        test('Should return true for a date that meets the minimum age requirement', () => {
+            const validDate = moment().subtract(18, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 18 years ago
+            const meetsRequirement = ValidationUtils.meetsMinimumAgeRequirement(validDate);
+            expect(meetsRequirement).toBe(true);
+        });
+
+        test('Should return false for a date that does not meet the minimum age requirement', () => {
+            const invalidDate = moment().subtract(17, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 17 years ago
+            const meetsRequirement = ValidationUtils.meetsMinimumAgeRequirement(invalidDate);
+            expect(meetsRequirement).toBe(false);
+        });
+
+        test('Should return false for an invalid date', () => {
+            const invalidDate = '2023-07-32'; // Invalid date
+            const meetsRequirement = ValidationUtils.meetsMinimumAgeRequirement(invalidDate);
+            expect(meetsRequirement).toBe(false);
+        });
+    });
+
+    describe('meetsMaximumAgeRequirement', () => {
+        test('Should return true for a date that meets the maximum age requirement', () => {
+            const validDate = moment().subtract(65, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 65 years ago
+            const meetsRequirement = ValidationUtils.meetsMaximumAgeRequirement(validDate);
+            expect(meetsRequirement).toBe(true);
+        });
+
+        test('Should return false for a date that does not meet the maximum age requirement', () => {
+            const invalidDate = moment().subtract(151, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 151 years ago
+            const meetsRequirement = ValidationUtils.meetsMaximumAgeRequirement(invalidDate);
+            expect(meetsRequirement).toBe(false);
+        });
+
+        test('Should return false for an invalid date', () => {
+            const invalidDate = '2023-07-32'; // Invalid date
+            const meetsRequirement = ValidationUtils.meetsMaximumAgeRequirement(invalidDate);
+            expect(meetsRequirement).toBe(false);
+        });
+    });
+
+    describe('getAgeRequirementError', () => {
+        test('Should return an empty string for a date within the specified range', () => {
+            const validDate = moment().subtract(30, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 30 years ago
+            const error = ValidationUtils.getAgeRequirementError(validDate, 18, 150);
+            expect(error).toBe('');
+        });
+
+        test('Should return an error message for a date before the minimum age requirement', () => {
+            const invalidDate = moment().subtract(17, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 17 years ago
+            const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
+            expect(error).toEqual(['privatePersonalDetails.error.dateShouldBeBefore', {dateString: moment().subtract(18, 'years').startOf('day').format(CONST.DATE.MOMENT_FORMAT_STRING)}]);
+        });
+
+        test('Should return an error message for a date after the maximum age requirement', () => {
+            const invalidDate = moment().subtract(160, 'years').format(CONST.DATE.MOMENT_FORMAT_STRING); // Date of birth 160 years ago
+            const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
+            expect(error).toEqual(['privatePersonalDetails.error.dateShouldBeAfter', {dateString: moment().subtract(150, 'years').startOf('day').format(CONST.DATE.MOMENT_FORMAT_STRING)}]);
+        });
+
+        test('Should return an error message for an invalid date', () => {
+            const invalidDate = '2023-07-32'; // Invalid date
+            const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
+            expect(error).toBe('common.error.dateInvalid');
+        });
+    });
+
     describe('isValidTwoFactorCode', () => {
         test('numeric two-factor code', () => {
             expect(ValidationUtils.isValidTwoFactorCode('123456')).toBe(true);

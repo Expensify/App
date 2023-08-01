@@ -236,7 +236,7 @@ function deleteContactMethod(contactMethod, loginList) {
         },
         {optimisticData, successData, failureData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -254,6 +254,19 @@ function clearContactMethodErrors(contactMethod, fieldName) {
             pendingFields: {
                 [fieldName]: null,
             },
+        },
+    });
+}
+
+/**
+ * Resets the state indicating whether a validation code has been sent to a specific contact method.
+ *
+ * @param {String} contactMethod - The identifier of the contact method to reset.
+ */
+function resetContactMethodValidateCodeSentState(contactMethod) {
+    Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+        [contactMethod]: {
+            validateCodeSent: false,
         },
     });
 }
@@ -625,7 +638,7 @@ function updateChatPriorityMode(mode) {
         },
         {optimisticData},
     );
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 /**
@@ -780,7 +793,7 @@ function setContactMethodAsDefault(newDefaultContactMethod) {
         },
     ];
     API.write('SetContactMethodAsDefault', {partnerUserID: newDefaultContactMethod}, {optimisticData, successData, failureData});
-    Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS);
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS);
 }
 
 /**
@@ -830,4 +843,5 @@ export {
     updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
+    resetContactMethodValidateCodeSentState,
 };
