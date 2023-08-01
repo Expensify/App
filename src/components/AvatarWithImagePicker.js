@@ -109,8 +109,7 @@ class AvatarWithImagePicker extends React.Component {
         this.hideAvatarCropModal = this.hideAvatarCropModal.bind(this);
         this.state = {
             isMenuVisible: false,
-            shoudShowValidationError: false,
-            validationError: '',
+            validationError: null,
             isAvatarCropModalOpen: false,
             imageName: '',
             imageUri: '',
@@ -142,7 +141,7 @@ class AvatarWithImagePicker extends React.Component {
      * @param {String} error
      */
     setError(error) {
-        this.setState({shoudShowValidationError: true, validationError: error});
+        this.setState({validationError: error});
     }
 
     /**
@@ -212,7 +211,7 @@ class AvatarWithImagePicker extends React.Component {
 
             this.setState({
                 isAvatarCropModalOpen: true,
-                shoudShowValidationError: false,
+                validationError: null,
                 isMenuVisible: false,
                 imageUri: image.uri,
                 imageName: image.name,
@@ -250,14 +249,10 @@ class AvatarWithImagePicker extends React.Component {
                 icon: Expensicons.Trashcan,
                 text: this.props.translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
-                    this.setState(
-                        {
-                            shoudShowValidationError: false,
-                        },
-                        () => {
-                            this.props.onImageRemoved();
-                        },
-                    );
+                    this.setState({
+                        validationError: null,
+                    });
+                    this.props.onImageRemoved();
                 },
             });
         }
@@ -327,7 +322,7 @@ class AvatarWithImagePicker extends React.Component {
                         </AttachmentPicker>
                     </View>
                 </PressableWithoutFeedback>
-                {this.state.shoudShowValidationError && (
+                {this.state.validationError && (
                     <DotIndicatorMessage
                         style={[styles.mt6]}
                         messages={{0: this.state.validationError}}
