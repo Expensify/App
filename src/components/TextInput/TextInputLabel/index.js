@@ -4,14 +4,14 @@ import styles from '../../../styles/styles';
 import {propTypes, defaultProps} from './TextInputLabelPropTypes';
 import CONST from '../../../CONST';
 
-function TextInputLabel(props) {
+function TextInputLabel({for: inputId, label, labelTranslateY, labelScale}) {
     const labelRef = useRef(null);
 
     useEffect(() => {
-        if (!props.for || !labelRef.current) {
+        if (!inputId || !labelRef.current) {
             return;
         }
-        labelRef.current.setAttribute('for', props.for);
+        labelRef.current.setAttribute('for', inputId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -20,9 +20,9 @@ function TextInputLabel(props) {
             ref={labelRef}
             pointerEvents="none"
             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
-            style={[styles.textInputLabel, styles.textInputLabelDesktop, styles.textInputLabelTransformation(props.labelTranslateY, 0, props.labelScale)]}
+            style={[styles.textInputLabel, styles.textInputLabelDesktop, styles.textInputLabelTransformation(labelTranslateY, 0, labelScale)]}
         >
-            {props.label}
+            {label}
         </Animated.Text>
     );
 }
