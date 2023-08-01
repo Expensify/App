@@ -449,8 +449,8 @@ function ReportActionItem(props) {
     };
 
     if (props.action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-        const parentReport = ReportActionsUtils.getParentReportAction(props.report);
-        if (ReportActionsUtils.isTransactionThread(parentReport)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+        if (ReportActionsUtils.isTransactionThread(parentReportAction)) {
             return (
                 <MoneyRequestView
                     report={props.report}
@@ -458,7 +458,7 @@ function ReportActionItem(props) {
                 />
             );
         }
-        if (ReportUtils.isTaskReport(props.report)) {
+        if (ReportUtils.isTaskReport(props.report) && !ReportActionsUtils.isDeletedParentAction(parentReportAction)) {
             return (
                 <TaskView
                     report={props.report}
