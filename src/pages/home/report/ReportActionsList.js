@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import React, {useCallback, useEffect, useState} from 'react';
 import Animated, {useSharedValue, useAnimatedStyle, withTiming} from 'react-native-reanimated';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
@@ -164,10 +163,8 @@ function ReportActionsList(props) {
     const extraData = [props.isSmallScreenWidth ? props.newMarkerReportActionID : undefined, ReportUtils.isArchivedRoom(props.report)];
     const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(props.personalDetailsList, props.report, props.currentUserPersonalDetails.accountID);
 
-    const errors = lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat');
-    const isArchivedRoom = ReportUtils.isArchivedRoom(props.report);
-    const hideComposer = ReportUtils.shouldHideComposer(props.report, errors);
-    const shouldOmitBottomSpace = hideComposer || isArchivedRoom;
+    // If composer is hidden, omit the bottom space.
+    const shouldOmitBottomSpace = ReportUtils.shouldHideComposer(props.report);
 
     return (
         <Animated.View style={[animatedStyles, styles.flex1]}>
