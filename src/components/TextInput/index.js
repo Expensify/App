@@ -6,6 +6,7 @@ import BaseTextInput from './BaseTextInput';
 import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import DomUtils from '../../libs/DomUtils';
 import Visibility from '../../libs/Visibility';
+import * as Browser from "../../libs/browser";
 
 class TextInput extends React.Component {
     componentDidMount() {
@@ -19,7 +20,7 @@ class TextInput extends React.Component {
 
         // Forcefully activate the soft keyboard when the user switches between tabs while input was focused.
         this.removeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!Visibility.isVisible() || !this.textInput || DomUtils.getActiveElement() !== this.textInput) {
+            if (!Browser.isMobileChrome() || !Visibility.isVisible() || !this.textInput || DomUtils.getActiveElement() !== this.textInput) {
                 return;
             }
             this.textInput.blur();
