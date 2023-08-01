@@ -24,7 +24,7 @@ const propTypes = {
     isEditing: PropTypes.bool,
 
     /** Refs forwarded to the TextInputWithCurrencySymbol */
-    forwardedRef: [PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})],
+    forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
     /** Fired when back button pressed, navigates to currency selection page */
     onCurrencyButtonPress: PropTypes.func.isRequired,
