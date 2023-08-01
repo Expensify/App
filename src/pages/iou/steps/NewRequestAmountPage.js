@@ -93,25 +93,25 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails}) 
             if (prevMoneyRequestID.current !== iou.id) {
                 // The ID is cleared on completing a request. In that case, we will do nothing.
                 if (iou.id) {
-                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                    Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
                 }
                 return;
             }
-            const moneyRequestID = `${iouType.current}${reportID.current}`;
+            const moneyRequestID = `${iouType}${reportID}`;
             const shouldReset = iou.id !== moneyRequestID;
             if (shouldReset) {
                 IOU.resetMoneyRequestInfo(moneyRequestID);
             }
 
             if (_.isEmpty(iou.participants) || iou.amount === 0 || shouldReset) {
-                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), true);
+                Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType, reportID), true);
             }
         }
 
         return () => {
             prevMoneyRequestID.current = iou.id;
         };
-    }, [iou.participants, iou.amount, iou.id]);
+    }, [iou.participants, iou.amount, iou.id, isEditing, iouType, reportID]);
 
     const navigateBack = () => {
         Navigation.goBack(isEditing.current ? ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID) : null);
