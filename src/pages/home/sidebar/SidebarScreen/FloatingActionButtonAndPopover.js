@@ -36,6 +36,7 @@ const policySelector = (policy) =>
     policy && {
         type: policy.type,
         role: policy.role,
+        isControlWorkspaceEnabled: policy.isControlWorkspaceEnabled,
         pendingAction: policy.pendingAction,
     };
 
@@ -174,6 +175,7 @@ function FloatingActionButtonAndPopover(props) {
     }));
 
     const workspaces = PolicyUtils.getActivePolicies(props.allPolicies);
+    console.log('w', workspaces);
 
     return (
         <View>
