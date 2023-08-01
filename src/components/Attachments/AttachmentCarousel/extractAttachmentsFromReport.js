@@ -3,6 +3,7 @@ import _ from 'underscore';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import CONST from '../../../CONST';
 import tryResolveUrlFromApiRoot from '../../../libs/tryResolveUrlFromApiRoot';
+import Navigation from '../../../libs/Navigation/Navigation';
 
 /**
  * Constructs the initial component state from report actions
@@ -45,7 +46,13 @@ function extractAttachmentsFromReport(report, reportActions, source) {
 
     const initialPage = _.findIndex(attachments, (a) => a.source === source);
     if (initialPage === -1) {
-        throw new Error('Attachment not found');
+        Navigation.dismissModal();
+        return {
+            attachments: [],
+            initialPage: 0,
+            initialItem: undefined,
+            initialActiveSource: null,
+        };
     }
 
     const initialItem = attachments[initialPage];

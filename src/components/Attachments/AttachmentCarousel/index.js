@@ -32,6 +32,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate}) {
 
     useEffect(() => {
         // Update the parent modal's state with the source and name from the mapped attachments
+        if (!initialItem) return;
         onNavigate(initialItem);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialItem]);
