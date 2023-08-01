@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
@@ -10,6 +10,9 @@ import reportActionPropTypes from './reportActionPropTypes';
 import FullscreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
+import * as Report from '../../../libs/actions/Report';
+import compose from '../../../libs/compose';
+import withWindowDimensions from '../../../components/withWindowDimensions';
 
 export default function (WrappedComponent) {
     const propTypes = {
@@ -50,6 +53,9 @@ export default function (WrappedComponent) {
 
         /** Indicated whether the report data is loading */
         isLoadingReportData: PropTypes.bool,
+
+        /** Is the window width narrow, like on a mobile device? */
+        isSmallScreenWidth: PropTypes.bool.isRequired,
     };
 
     const defaultProps = {
@@ -65,6 +71,19 @@ export default function (WrappedComponent) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportAndReportActionOrNotFound(props) {
+        // For small screen, we don't call openReport API when we go to a sub report page by deeplinnk
+        // So we need to call openReport here for small screen
+        const firstRef = useRef(true);
+        useEffect(() => {
+            if (!firstRef.current) {
+                return;
+            }
+            firstRef.current = false;
+            if (props.isSmallScreenWidth) {
+                Report.openReport(props.route.params.reportID);
+            }
+        }, [props.isSmallScreenWidth, props.route.params.reportID]);
+
         const isLoadingReport = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
         const shouldHideReport = !isLoadingReport && (_.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas));
 
@@ -104,22 +123,25 @@ export default function (WrappedComponent) {
         />
     ));
 
-    return withOnyx({
-        report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
-        },
-        isLoadingReportData: {
-            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-        },
-        reportActions: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
-            canEvict: false,
-        },
-    })(withReportAndReportActionOrNotFound);
+    return compose(
+        withWindowDimensions,
+        withOnyx({
+            report: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${route.params.reportID}`,
+            },
+            isLoadingReportData: {
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+            },
+            betas: {
+                key: ONYXKEYS.BETAS,
+            },
+            policies: {
+                key: ONYXKEYS.COLLECTION.POLICY,
+            },
+            reportActions: {
+                key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${route.params.reportID}`,
+                canEvict: false,
+            },
+        }),
+    )(withReportAndReportActionOrNotFound);
 }
