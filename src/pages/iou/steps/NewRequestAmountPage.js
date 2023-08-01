@@ -92,7 +92,7 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
             return;
         }
         Navigation.dismissModal(reportID);
-    }, [errors, report]);
+    }, [errors, report, reportID]);
 
     // Because we use Onyx to store iou info, when we try to make two different money requests from different tabs, it can result in many bugs.
     // This logic is added to prevent such bugs.
