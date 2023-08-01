@@ -20,6 +20,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
 import reportPropTypes from '../../reportPropTypes';
 import personalDetailsPropType from '../../personalDetailsPropType';
+import * as FileUtils from '../../../libs/fileDownload/FileUtils';
 
 const propTypes = {
     report: reportPropTypes,
@@ -140,17 +141,21 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            IOU.requestMoney(
-                props.report,
-                props.iou.amount,
-                props.iou.currency,
-                props.currentUserPersonalDetails.login,
-                props.currentUserPersonalDetails.accountID,
-                selectedParticipants[0],
-                trimmedComment,
-            );
+            FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource)
+                .then(receipt => {
+                    IOU.requestMoney(
+                        props.report,
+                        props.iou.amount,
+                        props.iou.currency,
+                        props.currentUserPersonalDetails.login,
+                        props.currentUserPersonalDetails.accountID,
+                        selectedParticipants[0],
+                        trimmedComment,
+                        receipt,
+                    );
+                })
         },
-        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report],
+        [props.iou.amount, props.iou.comment, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID, props.iou.currency, props.report, props.iou.receiptPath, props.iou.receiptSource],
     );
 
     /**
