@@ -95,7 +95,7 @@ function MoneyRequestSelectorPage(props) {
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={title[iouType.current]}
-                                onBackButtonPress={() => Navigation.goBack()}
+                                onBackButtonPress={() => Navigation.dismissModal()}
                             />
                             {Permissions.canUseScanReceipts(props.betas) ? (
                                 <OnyxTabNavigator
