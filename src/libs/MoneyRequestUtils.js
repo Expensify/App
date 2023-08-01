@@ -40,6 +40,8 @@ const stripSpacesFromAmount = (newAmount) => newAmount.replace(/\s+/g, '');
 const addLeadingZero = (newAmount) => (newAmount === '.' ? '0.' : newAmount);
 
 /**
+ * Calculate the length of the amount with leading zeroes
+ *
  * @param {String} newAmount
  * @returns {Number}
  */
@@ -54,7 +56,7 @@ const calculateAmountLength = (newAmount) => {
         return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
     }
 
-    // Return the sum of leading zeroes length and absolute amount length(including fraction digits).
+    // Return the sum of leading zeroes length and absolute amount length (including fraction digits).
     // When the absolute amount is 0, add 2 to the leading zeroes length to represent fraction digits.
     return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
 };

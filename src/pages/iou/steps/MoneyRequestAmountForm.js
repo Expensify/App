@@ -46,9 +46,9 @@ const defaultProps = {
     isEditing: false,
 };
 
-const amountViewID = 'amountView';
-const numPadContainerViewID = 'numPadContainerView';
-const numPadViewID = 'numPadView';
+const AMOUNT_VIEW_ID = 'amountView';
+const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
+const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm(props) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
@@ -77,6 +77,9 @@ function MoneyRequestAmountForm(props) {
             return;
         }
         event.preventDefault();
+        if (!textInput.current) {
+            return;
+        }
         if (!textInput.current.isFocused()) {
             textInput.current.focus();
         }
@@ -200,7 +203,7 @@ function MoneyRequestAmountForm(props) {
      * Submit amount and navigate to a proper page
      *
      */
-    const handleSubmit = useCallback(() => {
+    const submitAndNavigateToNextPage = useCallback(() => {
         props.onSubmitButtonPress(currentAmount);
     }, [props.onSubmitButtonPress, currentAmount]);
 
@@ -219,8 +222,8 @@ function MoneyRequestAmountForm(props) {
                         onBackButtonPress={props.onBackButtonPress}
                     />
                     <View
-                        nativeID={amountViewID}
-                        onMouseDown={(event) => onMouseDown(event, [amountViewID])}
+                        nativeID={AMOUNT_VIEW_ID}
+                        onMouseDown={(event) => onMouseDown(event, [AMOUNT_VIEW_ID])}
                         style={[styles.flex1, styles.flexRow, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
                     >
                         <TextInputWithCurrencySymbol
@@ -240,13 +243,13 @@ function MoneyRequestAmountForm(props) {
                         />
                     </View>
                     <View
-                        onMouseDown={(event) => onMouseDown(event, [numPadContainerViewID, numPadViewID])}
+                        onMouseDown={(event) => onMouseDown(event, [NUM_PAD_CONTAINER_VIEW_ID, NUM_PAD_VIEW_ID])}
                         style={[styles.w100, styles.justifyContentEnd, styles.pageWrapper]}
-                        nativeID={numPadContainerViewID}
+                        nativeID={NUM_PAD_CONTAINER_VIEW_ID}
                     >
                         {DeviceCapabilities.canUseTouchScreen() ? (
                             <BigNumberPad
-                                nativeID={numPadViewID}
+                                nativeID={NUM_PAD_VIEW_ID}
                                 numberPressed={updateAmountNumberPad}
                                 longPressHandlerStateChanged={updateLongPressHandlerState}
                             />
@@ -254,7 +257,7 @@ function MoneyRequestAmountForm(props) {
                         <Button
                             success
                             style={[styles.w100, styles.mt5]}
-                            onPress={handleSubmit}
+                            onPress={submitAndNavigateToNextPage}
                             pressOnEnter
                             isDisabled={!currentAmount.length || parseFloat(currentAmount) < 0.01}
                             text={buttonText}
