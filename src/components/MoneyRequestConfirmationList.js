@@ -210,10 +210,13 @@ function MoneyRequestConfirmationList(props) {
      * @param {Object} option
      */
     const navigateToUserDetail = (option) => {
-        if (!option.accountID) {
+        if (option.accountID) {
+            Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
             return;
         }
-        Navigation.navigate(ROUTES.getProfileRoute(option.accountID));
+        if (option.reportID) {
+            Navigation.navigate(ROUTES.getReportDetailsRoute(option.reportID));
+        }
     };
 
     /**
