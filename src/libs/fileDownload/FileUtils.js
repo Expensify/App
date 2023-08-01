@@ -151,7 +151,11 @@ const readFileAsync = (path, fileName) =>
                 }
                 return res.blob();
             })
-            .then((blob) => resolve(new File([blob], cleanFileName(fileName) || 'file')))
+            .then((blob) => {
+                const file = new File([blob], cleanFileName(fileName));
+                file.source = path;
+                resolve(file);
+            })
             .catch((e) => {
                 console.debug('[FileUtils] Could not read uploaded file', e);
                 resolve();
