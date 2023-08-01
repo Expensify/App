@@ -183,17 +183,6 @@ function isTaskAssignee(report) {
 }
 
 /**
- * Checks if a report is an IOU or expense report.
- *
- * @param {Object|String} reportOrID
- * @returns {Boolean}
- */
-function isMoneyRequestReport(reportOrID) {
-    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
-    return isIOUReport(report) || isExpenseReport(report);
-}
-
-/**
  * Given a collection of reports returns them sorted by last read
  *
  * @param {Object} reports
@@ -684,6 +673,44 @@ function isExpenseRequest(report) {
         return isExpenseReport(parentReport) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
     return false;
+}
+
+/**
+ * An IOU Request is a thread where the parent report is an IOU Report and
+ * the parentReportAction is a transaction.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isIOURequest(report) {
+    if (isThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+        return isIOUReport(parentReport) && ReportActionsUtils.isTransactionThread(parentReportAction);
+    }
+    return false;
+}
+
+/**
+ * Checks if a report is an IOU or expense request.
+ *
+ * @param {Object|String} reportOrID
+ * @returns {Boolean}
+ */
+function isMoneyRequest(reportOrID) {
+    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
+    return isIOURequest(report) || isExpenseRequest(report);
+}
+
+/**
+ * Checks if a report is an IOU or expense report.
+ *
+ * @param {Object|String} reportOrID
+ * @returns {Boolean}
+ */
+function isMoneyRequestReport(reportOrID) {
+    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
+    return isIOUReport(report) || isExpenseReport(report);
 }
 
 /**
@@ -1303,12 +1330,12 @@ function getRootReportAndWorkspaceName(report) {
         return getRootReportAndWorkspaceName(parentReport);
     }
 
-    if (isIOUReport(report)) {
+    if (isIOURequest(report)) {
         return {
             rootReportName: lodashGet(report, 'displayName', ''),
         };
     }
-    if (isMoneyRequestReport(report)) {
+    if (isExpenseRequest(report)) {
         return {
             rootReportName: lodashGet(report, 'displayName', ''),
             workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
@@ -2860,6 +2887,7 @@ export {
     isCompletedTaskReport,
     isTaskAssignee,
     isMoneyRequestReport,
+    isMoneyRequest,
     chatIncludesChronos,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,

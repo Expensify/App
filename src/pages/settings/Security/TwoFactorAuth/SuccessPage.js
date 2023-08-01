@@ -5,7 +5,7 @@ import ScreenWrapper from '../../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ROUTES from '../../../../ROUTES';
 import FullPageOfflineBlockingView from '../../../../components/BlockingViews/FullPageOfflineBlockingView';
-import FireworksAnimation from '../../../../../assets/animations/Fireworks.json';
+import * as LottieAnimations from '../../../../components/LottieAnimations';
 import ConfirmationPage from '../../../../components/ConfirmationPage';
 
 const defaultProps = {};
@@ -23,7 +23,7 @@ function SuccessPage(props) {
             />
             <FullPageOfflineBlockingView>
                 <ConfirmationPage
-                    animation={FireworksAnimation}
+                    animation={LottieAnimations.Fireworks}
                     heading={props.translate('twoFactorAuth.enabled')}
                     description={props.translate('twoFactorAuth.congrats')}
                     shouldShowButton
