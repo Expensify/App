@@ -67,6 +67,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
 
     const zoomScale = useSharedValue(1);
     // Adding together the pinch zoom scale and the initial scale to fit the image into the canvas
+    // Using the smaller imageScale, so that the immage is not bigger than the canvas
+    // and not smaller than needed to fit
     const totalScale = useDerivedValue(() => clamp(zoomScale.value * minImageScale, minScale, maxScale), [minImageScale]);
 
     const zoomScaledImageWidth = useDerivedValue(() => imageWidth * totalScale.value, [imageWidth]);
