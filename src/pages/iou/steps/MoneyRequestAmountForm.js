@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -59,6 +59,8 @@ const NUM_PAD_VIEW_ID = 'numPadView';
 
 function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCurrencyButtonPress, onSubmitButtonPress}) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
+
+    const textInput = useRef(null);
 
     const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
 
@@ -210,7 +212,15 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
                     onChangeAmount={updateAmount}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     placeholder={numberFormat(0)}
-                    ref={forwardedRef}
+                    ref={(ref) => {
+                        if (typeof forwardedRef === 'function') {
+                            forwardedRef(ref);
+                        } else if (forwardedRef && _.has(forwardedRef, 'current')) {
+                            // eslint-disable-next-line no-param-reassign
+                            forwardedRef.current = ref;
+                        }
+                        textInput.current = ref;
+                    }}
                     selectedCurrencyCode={currency}
                     selection={selection}
                     onSelectionChange={(e) => {
