@@ -84,11 +84,11 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             return;
         }
         event.preventDefault();
-        if (!forwardedRef.current) {
+        if (!textInput.current) {
             return;
         }
-        if (!forwardedRef.current.isFocused()) {
-            forwardedRef.current.focus();
+        if (!textInput.current.isFocused()) {
+            textInput.current.focus();
         }
     };
 
@@ -145,8 +145,8 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      */
     const updateAmountNumberPad = useCallback(
         (key) => {
-            if (shouldUpdateSelection && !forwardedRef.current.isFocused()) {
-                forwardedRef.current.focus();
+            if (shouldUpdateSelection && !textInput.current.isFocused()) {
+                textInput.current.focus();
             }
             // Backspace button is pressed
             if (key === '<' || key === 'Backspace') {
@@ -160,7 +160,7 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
             const newAmount = MoneyRequestUtils.addLeadingZero(`${currentAmount.substring(0, selection.start)}${key}${currentAmount.substring(selection.end)}`);
             setNewAmount(newAmount);
         },
-        [currentAmount, selection, shouldUpdateSelection, forwardedRef],
+        [currentAmount, selection, shouldUpdateSelection],
     );
 
     /**
@@ -168,15 +168,12 @@ function MoneyRequestAmountForm({amount, currency, isEditing, forwardedRef, onCu
      *
      * @param {Boolean} value - Changed text from user input
      */
-    const updateLongPressHandlerState = useCallback(
-        (value) => {
-            setShouldUpdateSelection(!value);
-            if (!value && !forwardedRef.current.isFocused()) {
-                forwardedRef.current.focus();
-            }
-        },
-        [forwardedRef],
-    );
+    const updateLongPressHandlerState = useCallback((value) => {
+        setShouldUpdateSelection(!value);
+        if (!value && !textInput.current.isFocused()) {
+            textInput.current.focus();
+        }
+    }, []);
 
     /**
      * Update amount on amount change
