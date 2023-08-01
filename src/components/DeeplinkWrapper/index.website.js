@@ -33,7 +33,6 @@ function promptToOpenInDesktopApp() {
     }
 }
 function DeeplinkWrapper({children, isAuthenticated}) {
-    CONFIG.ENVIRONMENT = CONST.ENVIRONMENT.STAGING;
     const [currentScreen, setCurrentScreen] = useState();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef();
