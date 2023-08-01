@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -16,6 +16,8 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
+import * as IOU from '../libs/actions/IOU';
+import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -58,6 +60,12 @@ function MoneyRequestHeader(props) {
     const report = props.report;
     report.ownerAccountID = lodashGet(props, ['parentReport', 'ownerAccountID'], null);
     report.ownerEmail = lodashGet(props, ['parentReport', 'ownerEmail'], '');
+    const parentReportAction = ReportActionsUtils.getParentReportAction(props.report);
+
+    const deleteTransaction = useCallback(() => {
+        IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
+    }, [parentReportAction]);
+
     return (
         <View style={[styles.pl0]}>
             <HeaderWithBackButton
@@ -67,8 +75,8 @@ function MoneyRequestHeader(props) {
                 threeDotsMenuItems={[
                     {
                         icon: Expensicons.Trashcan,
-                        text: props.translate('common.delete'),
-                        onSelected: () => {},
+                        text: props.translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                        onSelected: deleteTransaction,
                     },
                 ]}
                 threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
