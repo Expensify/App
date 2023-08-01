@@ -14,9 +14,9 @@ function focusWithDelay(disableDelay = false) {
     return (textInput) =>
         /**
          * Focus the text input
-         * @param {Boolean} [shouldelay=false] Impose delay before focusing the text input
+         * @param {Boolean} [shouldDelay=false] Impose delay before focusing the text input
          */
-        (shouldelay = false) => {
+        (shouldDelay = false) => {
             // There could be other animations running while we trigger manual focus.
             // This prevents focus from making those animations janky.
             InteractionManager.runAfterInteractions(() => {
@@ -24,7 +24,7 @@ function focusWithDelay(disableDelay = false) {
                     return;
                 }
 
-                if (disableDelay || !shouldelay) {
+                if (disableDelay || !shouldDelay) {
                     textInput.focus();
                 } else {
                     // Keyboard is not opened after Emoji Picker is closed

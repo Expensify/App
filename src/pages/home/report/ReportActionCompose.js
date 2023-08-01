@@ -6,7 +6,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import createFocusFunction from '../../../libs/focusWithDelay';
+import focusWithDelay from '../../../libs/focusWithDelay';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import Composer from '../../../components/Composer';
@@ -178,7 +178,7 @@ class ReportActionCompose extends React.Component {
         this.submitForm = this.submitForm.bind(this);
         this.setIsFocused = this.setIsFocused.bind(this);
         this.setIsFullComposerAvailable = this.setIsFullComposerAvailable.bind(this);
-        this.focus = createFocusFunction(this.textInput).bind(this);
+        this.focus = focusWithDelay(this.textInput).bind(this);
         this.replaceSelectionWithText = this.replaceSelectionWithText.bind(this);
         this.focusComposerOnKeyPress = this.focusComposerOnKeyPress.bind(this);
         this.checkComposerVisibility = this.checkComposerVisibility.bind(this);
@@ -380,7 +380,7 @@ class ReportActionCompose extends React.Component {
         if (_.isFunction(this.props.animatedRef)) {
             this.props.animatedRef(el);
         }
-        this.focus = createFocusFunction(this.textInput).bind(this);
+        this.focus = focusWithDelay(this.textInput).bind(this);
     }
 
     /**

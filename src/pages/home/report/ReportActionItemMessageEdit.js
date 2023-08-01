@@ -36,7 +36,7 @@ import useKeyboardState from '../../../hooks/useKeyboardState';
 import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import useReportScrollManager from '../../../hooks/useReportScrollManager';
 import * as EmojiPickerAction from '../../../libs/actions/EmojiPickerAction';
-import focusAfterDelay from '../../../libs/focusWithDelay';
+import focusWithDelay from '../../../libs/focusWithDelay';
 
 const propTypes = {
     /** All the data of the action */
@@ -275,7 +275,7 @@ function ReportActionItemMessageEdit(props) {
     /**
      * Focus the composer text input
      */
-    const focus = focusAfterDelay(textInputRef.current);
+    const focus = focusWithDelay(textInputRef.current);
 
     return (
         <>
