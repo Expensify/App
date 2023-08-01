@@ -249,9 +249,7 @@ class AvatarWithImagePicker extends React.Component {
                 icon: Expensicons.Trashcan,
                 text: this.props.translate('avatarWithImagePicker.removePhoto'),
                 onSelected: () => {
-                    this.setState({
-                        validationError: null,
-                    });
+                    this.setError(null);
                     this.props.onImageRemoved();
                 },
             });
