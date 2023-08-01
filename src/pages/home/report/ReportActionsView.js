@@ -1,8 +1,9 @@
-import React, {useRef, useState, useEffect, useContext, useMemo} from 'react';
+import React, {useRef, useState, useEffect, useContext, useMemo, useCallback} from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import lodashCloneDeep from 'lodash/cloneDeep';
+import {useIsFocused} from '@react-navigation/native';
 import * as Report from '../../../libs/actions/Report';
 import reportActionPropTypes from './reportActionPropTypes';
 import Visibility from '../../../libs/Visibility';
@@ -21,7 +22,6 @@ import ReportActionsList from './ReportActionsList';
 import * as ReportActionsUtils from '../../../libs/ReportActionsUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import reportPropTypes from '../../reportPropTypes';
-import withNavigationFocus from '../../../components/withNavigationFocus';
 import PopoverReactionList from './ReactionList/PopoverReactionList';
 import getIsReportFullyVisible from '../../../libs/getIsReportFullyVisible';
 import ReportScreenContext from '../ReportScreenContext';
@@ -58,35 +58,50 @@ const defaultProps = {
     policy: null,
 };
 
+// In the component we are subscribing to the arrival of new actions.
+// As there is the possibility that there are multiple instances of a ReportScreen
+// for the same report, we only ever want one subscription to be active, as
+// the subscriptions could otherwise be conflicting.
+const newActionUnsubscribeMap = {};
+
 function ReportActionsView(props) {
     const context = useContext(ReportScreenContext);
 
     useCopySelectionHelper();
 
-    const reportScrollManager = useReportScrollManager();
+    const {scrollToBottom} = useReportScrollManager();
 
     const didLayout = useRef(false);
     const didSubscribeToReportTypingEvents = useRef(false);
-    const unsubscribeVisibilityListener = useRef(null);
     const hasCachedActions = useRef(_.size(props.reportActions) > 0);
 
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
-    const [newMarkerReportActionID, setNewMarkerReportActionID] = useState(ReportUtils.getNewMarkerReportActionID(props.report, props.reportActions));
+
+    // We use the newMarkerReport ID in a network subscription, we don't want to constantly re-create
+    // the subscription (as we want to avoid loosing events), so we use a ref to store the value in addition.
+    // As the value is also needed for UI updates, we also store it in state.
+    const [newMarkerReportActionID, _setNewMarkerReportActionID] = useState(ReportUtils.getNewMarkerReportActionID(props.report, props.reportActions));
+    const newMarkerReportActionIDRef = useRef(newMarkerReportActionID);
+    const setNewMarkerReportActionID = useCallback((value) => {
+        newMarkerReportActionIDRef.current = value;
+        _setNewMarkerReportActionID(value);
+    }, []);
 
     const currentScrollOffset = useRef(0);
     const mostRecentIOUReportActionID = useRef(ReportActionsUtils.getMostRecentIOURequestActionID(props.reportActions));
-
-    const unsubscribeFromNewActionEvent = useRef(null);
 
     const prevReportActionsRef = useRef(props.reportActions);
     const prevReportRef = useRef(props.report);
     const prevNetworkRef = useRef(props.network);
     const prevIsSmallScreenWidthRef = useRef(props.isSmallScreenWidth);
 
+    const isFocused = useIsFocused();
+    const reportID = props.report.reportID;
+
     /**
      * @returns {Boolean}
      */
-    const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(props.isFocused), [props.isFocused]);
+    const isReportFullyVisible = useMemo(() => getIsReportFullyVisible(isFocused), [isFocused]);
 
     const openReportIfNecessary = () => {
         // If the report is optimistic (AKA not yet created) we don't need to call openReport again
@@ -94,11 +109,11 @@ function ReportActionsView(props) {
             return;
         }
 
-        Report.openReport(props.report.reportID);
+        Report.openReport(reportID);
     };
 
     useEffect(() => {
-        unsubscribeVisibilityListener.current = Visibility.onVisibilityChange(() => {
+        const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
             if (!isReportFullyVisible) {
                 return;
             }
@@ -110,13 +125,12 @@ function ReportActionsView(props) {
             }
         });
         return () => {
-            if (!unsubscribeVisibilityListener.current) {
+            if (!unsubscribeVisibilityListener) {
                 return;
             }
-            unsubscribeVisibilityListener.current();
+            unsubscribeVisibilityListener();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isReportFullyVisible, isFocused, props.report, setNewMarkerReportActionID]);
 
     useEffect(() => {
         openReportIfNecessary();
@@ -124,15 +138,27 @@ function ReportActionsView(props) {
     }, []);
 
     useEffect(() => {
+        // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
+        // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
+        //         meaning that the cleanup might not get called. When we then open a report we had open already previosuly, a new
+        //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
+        //         because the two subscriptions could conflict!
+        //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
+        //         fire again, as the focus has changed and will set up the subscription correctly again.
+        const previousSubUnsubscribe = newActionUnsubscribeMap[reportID];
+        if (previousSubUnsubscribe) {
+            previousSubUnsubscribe();
+        }
+
         // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        unsubscribeFromNewActionEvent.current = Report.subscribeToNewActionEvent(props.report.reportID, (isFromCurrentUser, newActionID) => {
-            const isNewMarkerReportActionIDSet = !_.isEmpty(newMarkerReportActionID);
+        const unsubscribe = Report.subscribeToNewActionEvent(reportID, (isFromCurrentUser, newActionID) => {
+            const isNewMarkerReportActionIDSet = !_.isEmpty(newMarkerReportActionIDRef.current);
 
             // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
             // they are now in the list.
             if (isFromCurrentUser) {
-                reportScrollManager.scrollToBottom();
+                scrollToBottom();
                 // If the current user sends a new message in the chat we clear the new marker since they have "read" the report
                 setNewMarkerReportActionID('');
             } else if (isReportFullyVisible) {
@@ -140,7 +166,7 @@ function ReportActionsView(props) {
                 // If the user is scrolled up and no new line marker is set we will set it otherwise we will do nothing so the new marker
                 // stays in it's previous position.
                 if (currentScrollOffset.current === 0) {
-                    Report.readNewestAction(props.report.reportID);
+                    Report.readNewestAction(reportID);
                     setNewMarkerReportActionID('');
                 } else if (!isNewMarkerReportActionIDSet) {
                     // The report is not in view and we received a comment from another user while the new marker is not set
@@ -151,16 +177,19 @@ function ReportActionsView(props) {
                 setNewMarkerReportActionID(newActionID);
             }
         });
+        const cleanup = () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+            Report.unsubscribeFromReportChannel(reportID);
+        };
+
+        newActionUnsubscribeMap[reportID] = cleanup;
 
         return () => {
-            if (unsubscribeFromNewActionEvent.current) {
-                unsubscribeFromNewActionEvent.current();
-            }
-
-            Report.unsubscribeFromReportChannel(props.report.reportID);
+            cleanup();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isReportFullyVisible, reportID, scrollToBottom, setNewMarkerReportActionID]);
 
     useEffect(() => {
         const prevNetwork = prevNetworkRef.current;
@@ -172,7 +201,7 @@ function ReportActionsView(props) {
             if (isReportFullyVisible) {
                 openReportIfNecessary();
             } else {
-                Report.reconnect(props.report.reportID);
+                Report.reconnect(reportID);
             }
         }
         // update ref with current network state
@@ -203,7 +232,7 @@ function ReportActionsView(props) {
             setNewMarkerReportActionID(ReportUtils.getNewMarkerReportActionID(props.report, props.reportActions));
 
         prevReportActionsRef.current = props.reportActions;
-    }, [props.report, props.reportActions]);
+    }, [props.report, props.reportActions, setNewMarkerReportActionID]);
 
     useEffect(() => {
         // If the last unread message was deleted, remove the *New* green marker and the *New Messages* notification at scroll just as the deletion starts.
@@ -222,7 +251,7 @@ function ReportActionsView(props) {
         if (newMarkerReportActionID !== ReportUtils.getNewMarkerReportActionID(props.report, reportActionsWithoutPendingOne)) {
             setNewMarkerReportActionID(ReportUtils.getNewMarkerReportActionID(props.report, reportActionsWithoutPendingOne));
         }
-    }, [props.report, props.reportActions, props.network, newMarkerReportActionID]);
+    }, [props.report, props.reportActions, props.network, newMarkerReportActionID, setNewMarkerReportActionID]);
 
     useEffect(() => {
         const prevReport = prevReportRef.current;
@@ -234,7 +263,7 @@ function ReportActionsView(props) {
         }
         // update ref with current report
         prevReportRef.current = props.report;
-    }, [props.report, props.reportActions]);
+    }, [props.report, props.reportActions, setNewMarkerReportActionID]);
 
     useEffect(() => {
         // Ensures subscription event succeeds when the report/workspace room is created optimistically.
@@ -243,10 +272,10 @@ function ReportActionsView(props) {
         // Existing reports created will have empty fields for `pendingFields`.
         const didCreateReportSuccessfully = !props.report.pendingFields || (!props.report.pendingFields.addWorkspaceRoom && !props.report.pendingFields.createChat);
         if (!didSubscribeToReportTypingEvents.current && didCreateReportSuccessfully) {
-            Report.subscribeToReportTypingEvents(props.report.reportID);
+            Report.subscribeToReportTypingEvents(reportID);
             didSubscribeToReportTypingEvents.current = true;
         }
-    }, [props.report, didSubscribeToReportTypingEvents]);
+    }, [props.report, didSubscribeToReportTypingEvents, reportID]);
 
     /**
      * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
@@ -266,12 +295,12 @@ function ReportActionsView(props) {
         }
 
         // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments
-        Report.readOldestAction(props.report.reportID, oldestReportAction.reportActionID);
+        Report.readOldestAction(reportID, oldestReportAction.reportActionID);
     };
 
     const scrollToBottomAndMarkReportAsRead = () => {
-        reportScrollManager.scrollToBottom();
-        Report.readNewestAction(props.report.reportID);
+        scrollToBottom();
+        Report.readNewestAction(reportID);
     };
 
     /**
@@ -408,9 +437,13 @@ function arePropsEqual(oldProps, newProps) {
         return false;
     }
 
+    if (lodashGet(newProps, 'report.total') !== lodashGet(oldProps, 'report.total')) {
+        return false;
+    }
+
     return _.isEqual(lodashGet(newProps.report, 'icons', []), lodashGet(oldProps.report, 'icons', []));
 }
 
 const MemoizedReportActionsView = React.memo(ReportActionsView, arePropsEqual);
 
-export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withNavigationFocus, withLocalize, withNetwork())(MemoizedReportActionsView);
+export default compose(Performance.withRenderTrace({id: '<ReportActionsView> rendering'}), withWindowDimensions, withLocalize, withNetwork())(MemoizedReportActionsView);

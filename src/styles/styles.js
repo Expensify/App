@@ -2504,6 +2504,10 @@ const styles = {
         backgroundColor: themeColors.appBG,
     },
 
+    switchThumbTransformation: (translateX) => ({
+        transform: [{translateX}],
+    }),
+
     radioButtonContainer: {
         backgroundColor: themeColors.componentBG,
         borderRadius: 10,
@@ -3156,28 +3160,22 @@ const styles = {
         marginLeft: 6,
     },
 
-    fullScreenTransparentOverlay: {
+    fullScreen: {
         position: 'absolute',
-        width: '100%',
-        height: '100%',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: themeColors.dropUIBG,
-        zIndex: 2,
     },
 
-    dropZoneTopInvisibleOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.dropTransparentOverlay,
+    invisibleOverlay: {
+        backgroundColor: themeColors.transparent,
         zIndex: 1000,
+    },
+
+    reportDropOverlay: {
+        backgroundColor: themeColors.dropUIBG,
+        zIndex: 2,
     },
 
     cardSection: {

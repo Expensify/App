@@ -6,10 +6,7 @@ import styles from '../../../styles/styles';
 import CarouselButtons from './CarouselButtons';
 import AttachmentView from '../AttachmentView';
 import ONYXKEYS from '../../../ONYXKEYS';
-import withLocalize from '../../withLocalize';
-import compose from '../../../libs/compose';
-import withWindowDimensions from '../../withWindowDimensions';
-import {attachmentCarouselPropTypes, attachmentCarouselDefaultProps} from './propTypes';
+import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
 import useCarouselArrows from './useCarouselArrows';
 
@@ -122,16 +119,12 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, onClose}
         </View>
     );
 }
-AttachmentCarousel.propTypes = attachmentCarouselPropTypes;
-AttachmentCarousel.defaultProps = attachmentCarouselDefaultProps;
+AttachmentCarousel.propTypes = propTypes;
+AttachmentCarousel.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        reportActions: {
-            key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-            canEvict: false,
-        },
-    }),
-    withLocalize,
-    withWindowDimensions,
-)(AttachmentCarousel);
+export default withOnyx({
+    reportActions: {
+        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+        canEvict: false,
+    },
+})(AttachmentCarousel);

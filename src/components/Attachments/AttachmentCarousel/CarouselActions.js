@@ -9,7 +9,7 @@ const propTypes = {
     onCycleThroughAttachments: PropTypes.func.isRequired,
 };
 
-function CarouselActions(props) {
+function CarouselActions({onCycleThroughAttachments}) {
     useEffect(() => {
         const shortcutLeftConfig = CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT;
         const unsubscribeLeftKey = KeyboardShortcut.subscribe(
@@ -20,7 +20,7 @@ function CarouselActions(props) {
                     e.target.blur();
                 }
 
-                props.onCycleThroughAttachments(-1);
+                onCycleThroughAttachments(-1);
             },
             shortcutLeftConfig.descriptionKey,
             shortcutLeftConfig.modifiers,
@@ -35,7 +35,7 @@ function CarouselActions(props) {
                     e.target.blur();
                 }
 
-                props.onCycleThroughAttachments(1);
+                onCycleThroughAttachments(1);
             },
             shortcutRightConfig.descriptionKey,
             shortcutRightConfig.modifiers,
@@ -45,8 +45,7 @@ function CarouselActions(props) {
             unsubscribeLeftKey();
             unsubscribeRightKey();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [onCycleThroughAttachments]);
 
     return null;
 }

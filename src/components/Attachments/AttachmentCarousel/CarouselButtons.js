@@ -2,13 +2,14 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import _ from 'underscore';
 import {View} from 'react-native';
-import withLocalize, {withLocalizePropTypes} from '../../withLocalize';
 import * as Expensicons from '../../Icon/Expensicons';
 import Tooltip from '../../Tooltip';
 import Button from '../../Button';
 import styles from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import * as AttachmentCarouselViewPropTypes from '../propTypes';
+import useLocalize from '../../../hooks/useLocalize';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
 const propTypes = {
     /** Where the arrows should be visible */
@@ -27,8 +28,6 @@ const propTypes = {
 
     autoHideArrow: PropTypes.func,
     cancelAutoHideArrow: PropTypes.func,
-
-    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -36,15 +35,18 @@ const defaultProps = {
     cancelAutoHideArrow: () => {},
 };
 
-function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow, ...props}) {
+function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow}) {
     const isBackDisabled = page === 0;
     const isForwardDisabled = page === _.size(attachments) - 1;
+
+    const {translate} = useLocalize();
+    const {isSmallScreenWidth} = useWindowDimensions;
 
     return shouldShowArrows ? (
         <>
             {!isBackDisabled && (
-                <Tooltip text={props.translate('common.previous')}>
-                    <View style={[styles.attachmentArrow, props.isSmallScreenWidth ? styles.l2 : styles.l8]}>
+                <Tooltip text={translate('common.previous')}>
+                    <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.l2 : styles.l8]}>
                         <Button
                             small
                             innerStyles={[styles.arrowIcon]}
@@ -59,8 +61,8 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                 </Tooltip>
             )}
             {!isForwardDisabled && (
-                <Tooltip text={props.translate('common.next')}>
-                    <View style={[styles.attachmentArrow, props.isSmallScreenWidth ? styles.r2 : styles.r8]}>
+                <Tooltip text={translate('common.next')}>
+                    <View style={[styles.attachmentArrow, isSmallScreenWidth ? styles.r2 : styles.r8]}>
                         <Button
                             small
                             innerStyles={[styles.arrowIcon]}
@@ -81,4 +83,4 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
 CarouselButtons.propTypes = propTypes;
 CarouselButtons.defaultProps = defaultProps;
 
-export default withLocalize(CarouselButtons);
+export default CarouselButtons;

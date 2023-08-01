@@ -9,22 +9,24 @@ import AttachmentView from '../AttachmentView';
 import withWindowDimensions from '../../withWindowDimensions';
 import CarouselButtons from './CarouselButtons';
 import extractAttachmentsFromReport from './extractAttachmentsFromReport';
-import {attachmentCarouselPropTypes, attachmentCarouselDefaultProps} from './propTypes';
+import {propTypes, defaultProps} from './attachmentCarouselPropTypes';
 import ONYXKEYS from '../../../ONYXKEYS';
 import withLocalize from '../../withLocalize';
 import compose from '../../../libs/compose';
 import useCarouselArrows from './useCarouselArrows';
+import useWindowDimensions from '../../../hooks/useWindowDimensions';
 
-const VIEWABILITY_CONFIG = {
+const canUseTouchScreen = DeviceCapabilities.canUseTouchScreen;
+const viewabilityConfig = {
     // To facilitate paging through the attachments, we want to consider an item "viewable" when it is
     // more than 95% visible. When that happens we update the page index in the state.
     itemVisiblePercentThreshold: 95,
 };
 
-function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallScreenWidth, windowWidth}) {
+function AttachmentCarousel({report, reportActions, source, onNavigate}) {
     const scrollRef = useRef(null);
 
-    const canUseTouchScreen = useMemo(() => DeviceCapabilities.canUseTouchScreen(), []);
+    const {windowWidth, isSmallScreenWidth} = useWindowDimensions();
 
     const {attachments, initialPage, initialActiveSource, initialItem} = useMemo(() => extractAttachmentsFromReport(report, reportActions, source), [report, reportActions, source]);
 
@@ -79,7 +81,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
 
             scrollRef.current.scrollToIndex({index: nextIndex, animated: canUseTouchScreen});
         },
-        [attachments, canUseTouchScreen, page],
+        [attachments, page],
     );
 
     /**
@@ -99,7 +101,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
 
     /**
      * Defines how a container for a single attachment should be rendered
-     * @param {Object} props
+     * @param {Object} cellRendererProps
      * @returns {JSX.Element}
      */
     const renderCell = useCallback(
@@ -140,7 +142,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
                 isUsedInCarousel
             />
         ),
-        [activeSource, canUseTouchScreen, setShouldShowArrows, shouldShowArrows],
+        [activeSource, setShouldShowArrows, shouldShowArrows],
     );
 
     return (
@@ -187,7 +189,7 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
                     renderItem={renderItem}
                     getItemLayout={getItemLayout}
                     keyExtractor={(item) => item.source}
-                    viewabilityConfig={VIEWABILITY_CONFIG}
+                    viewabilityConfig={viewabilityConfig}
                     onViewableItemsChanged={updatePage.current}
                 />
             )}
@@ -196,8 +198,8 @@ function AttachmentCarousel({report, reportActions, source, onNavigate, isSmallS
         </View>
     );
 }
-AttachmentCarousel.propTypes = attachmentCarouselPropTypes;
-AttachmentCarousel.defaultProps = attachmentCarouselDefaultProps;
+AttachmentCarousel.propTypes = propTypes;
+AttachmentCarousel.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({

@@ -37,6 +37,9 @@ const propTypes = {
     /** List of cards */
     cardList: PropTypes.objectOf(cardPropTypes),
 
+    /** List of cards */
+    fundList: PropTypes.objectOf(cardPropTypes),
+
     /** Whether the add Payment button be shown on the list */
     shouldShowAddPaymentMethodButton: PropTypes.bool,
 
@@ -73,7 +76,8 @@ const propTypes = {
 const defaultProps = {
     payPalMeData: {},
     bankAccountList: {},
-    cardList: {},
+    cardList: null,
+    fundList: null,
     userWallet: {
         walletLinkedAccountID: 0,
         walletLinkedAccountType: '',
@@ -92,8 +96,9 @@ const defaultProps = {
  * @param {Object} item
  */
 function dismissError(item) {
-    const paymentList = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
-    const paymentID = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
+    const isBankAccount = item.accountType === CONST.PAYMENT_METHODS.BANK_ACCOUNT;
+    const paymentList = isBankAccount ? ONYXKEYS.BANK_ACCOUNT_LIST : ONYXKEYS.CARD_LIST;
+    const paymentID = isBankAccount ? lodashGet(item, ['accountData', 'bankAccountID'], '') : lodashGet(item, ['accountData', 'fundID'], '');
 
     if (!paymentID) {
         Log.info('Unable to clear payment method error: ', item);
@@ -102,8 +107,16 @@ function dismissError(item) {
 
     if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         PaymentMethods.clearDeletePaymentMethodError(paymentList, paymentID);
+        // as part of migrating cardList to fundList key, we will duplicate the action with both keys temporarily.
+        if (!isBankAccount) {
+            PaymentMethods.clearDeletePaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
+        }
     } else {
         PaymentMethods.clearAddPaymentMethodError(paymentList, paymentID);
+        // as part of migrating cardList to fundList key, we will duplicate the action with both keys temporarily.
+        if (!isBankAccount) {
+            PaymentMethods.clearAddPaymentMethodError(ONYXKEYS.FUND_LIST, paymentID);
+        }
     }
 }
 
@@ -134,12 +147,25 @@ function isPaymentMethodActive(actionPaymentMethodType, activePaymentMethodID, p
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 function PaymentMethodList(props) {
-    const {actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, filterType, network, onPress, payPalMeData, shouldShowSelectedState, selectedMethodID, translate} =
-        props;
+    const {
+        actionPaymentMethodType,
+        activePaymentMethodID,
+        bankAccountList,
+        cardList,
+        fundList,
+        filterType,
+        network,
+        onPress,
+        payPalMeData,
+        shouldShowSelectedState,
+        selectedMethodID,
+        translate,
+    } = props;
 
     const filteredPaymentMethods = useMemo(() => {
+        const paymentCardList = fundList || cardList || {};
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
-        const filteredCardList = _.filter(cardList, (card) => card.accountData.additionalData.isP2PDebitCard);
+        const filteredCardList = _.filter(paymentCardList, (card) => card.accountData.additionalData.isP2PDebitCard);
         let combinedPaymentMethods = PaymentUtils.formatPaymentMethods(bankAccountList, filteredCardList, payPalMeData);
 
         if (!_.isEmpty(filterType)) {
@@ -164,7 +190,7 @@ function PaymentMethodList(props) {
         }));
 
         return combinedPaymentMethods;
-    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, cardList, filterType, network, onPress, payPalMeData]);
+    }, [actionPaymentMethodType, activePaymentMethodID, bankAccountList, filterType, network, onPress, payPalMeData, cardList, fundList]);
 
     /**
      * Render placeholder when there are no payments methods
@@ -252,6 +278,9 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
+        },
+        fundList: {
+            key: ONYXKEYS.FUND_LIST,
         },
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
