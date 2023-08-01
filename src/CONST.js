@@ -2,6 +2,7 @@ import lodashGet from 'lodash/get';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import * as Url from './libs/Url';
+import SCREENS from './SCREENS';
 
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
@@ -480,10 +481,7 @@ const CONST = {
     GOOGLE_SIGN_IN_WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
     GOOGLE_SIGN_IN_IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
 
-    DEEPLINK_PROMPT_DENYLIST: {
-        SIGN_IN_WITH_GOOGLE: 'sign-in-with-google',
-        SIGN_IN_WITH_APPLE: 'sign-in-with-apple',
-    },
+    DEEPLINK_PROMPT_DENYLIST: [SCREENS.HOME, SCREENS.SIGN_IN_WITH_APPLE_DESKTOP, SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP],
 
     SIGN_IN_METHOD: {
         APPLE: 'Apple',

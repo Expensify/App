@@ -12,4 +12,6 @@ export default {
     SETTINGS: {
         PREFERENCES: 'Settings_Preferences',
     },
+    SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
+    SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
 };

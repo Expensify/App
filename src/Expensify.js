@@ -183,7 +183,7 @@ function Expensify(props) {
     }
 
     return (
-        <DeeplinkWrapper>
+        <DeeplinkWrapper isAuthenticated={isAuthenticated}>
             {shouldInit && (
                 <>
                     <KeyboardShortcutsModal />
