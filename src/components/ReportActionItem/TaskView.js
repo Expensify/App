@@ -49,7 +49,7 @@ function TaskView(props) {
     const isOpen = ReportUtils.isOpenTaskReport(props.report);
     const isCanceled = ReportUtils.isCanceledTaskReport(props.report);
     const policy = ReportUtils.getPolicy(props.report.policyID);
-    const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.isTaskAssigneeOrTaskOwner(props.report, props.currentUserPersonalDetails.accountID);
+    const canEdit = PolicyUtils.isPolicyAdmin(policy) || Task.canModifyTask(props.report, props.currentUserPersonalDetails.accountID);
     const disableState = !canEdit || !isOpen;
     return (
         <View>
