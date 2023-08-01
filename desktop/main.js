@@ -333,7 +333,11 @@ const mainWindow = () => {
                             {id: 'cut', role: 'cut'},
                             {id: 'copy', role: 'copy'},
                             {id: 'paste', role: 'paste'},
-                            {id: 'pasteAndMatchStyle', role: 'pasteAndMatchStyle'},
+                            {
+                                id: 'pasteAndMatchStyle',
+                                role: 'pasteAndMatchStyle',
+                                accelerator: 'Option+Shift+CmdOrCtrl+V',
+                            },                          
                             {id: 'delete', role: 'delete'},
                             {id: 'selectAll', role: 'selectAll'},
                             {type: 'separator'},
