@@ -7,6 +7,7 @@ import lodashExtend from 'lodash/extend';
 import _ from 'underscore';
 import CONST from '../CONST';
 import Modal from './Modal';
+import useLocalize from '../hooks/useLocalize';
 import AttachmentView from './AttachmentView';
 import AttachmentCarousel from './AttachmentCarousel';
 import styles from '../styles/styles';
@@ -105,6 +106,7 @@ function AttachmentModal(props) {
               }
             : undefined,
     );
+    const {translate} = useLocalize();
 
     const onCarouselAttachmentChange = props.onCarouselAttachmentChange;
 
@@ -130,11 +132,10 @@ function AttachmentModal(props) {
      */
     const getModalType = useCallback(
         (sourceURL, _file) =>
-            sourceURL && (Str.isPDF(sourceURL) || (_file && Str.isPDF(_file.name || props.translate('attachmentView.unknownFilename'))))
+            sourceURL && (Str.isPDF(sourceURL) || (_file && Str.isPDF(_file.name || translate('attachmentView.unknownFilename'))))
                 ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
                 : CONST.MODAL.MODAL_TYPE.CENTERED,
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.translate],
+        [translate],
     );
     /**
      * Download the currently viewed attachment.
@@ -184,31 +185,30 @@ function AttachmentModal(props) {
         (_file) => {
             const {fileExtension} = FileUtils.splitExtensionFromFileName(lodashGet(_file, 'name', ''));
             if (_.contains(CONST.API_ATTACHMENT_VALIDATIONS.UNALLOWED_EXTENSIONS, fileExtension.toLowerCase())) {
-                const invalidReason = props.translate('attachmentPicker.notAllowedExtension');
+                const invalidReason = translate('attachmentPicker.notAllowedExtension');
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.wrongFileType'));
+                setAttachmentInvalidReasonTitle(translate('attachmentPicker.wrongFileType'));
                 setAttachmentInvalidReason(invalidReason);
                 return false;
             }
 
             if (lodashGet(_file, 'size', 0) > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentTooLarge'));
-                setAttachmentInvalidReason(props.translate('attachmentPicker.sizeExceeded'));
+                setAttachmentInvalidReasonTitle(translate('attachmentPicker.attachmentTooLarge'));
+                setAttachmentInvalidReason(translate('attachmentPicker.sizeExceeded'));
                 return false;
             }
 
             if (lodashGet(_file, 'size', 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentTooSmall'));
-                setAttachmentInvalidReason(props.translate('attachmentPicker.sizeNotMet'));
+                setAttachmentInvalidReasonTitle(translate('attachmentPicker.attachmentTooSmall'));
+                setAttachmentInvalidReason(translate('attachmentPicker.sizeNotMet'));
                 return false;
             }
 
             return true;
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.translate],
+        [translate],
     );
     /**
      * @param {Object} _data
@@ -218,14 +218,13 @@ function AttachmentModal(props) {
         (_data) => {
             if (typeof _data.webkitGetAsEntry === 'function' && _data.webkitGetAsEntry().isDirectory) {
                 setIsAttachmentInvalid(true);
-                setAttachmentInvalidReasonTitle(props.translate('attachmentPicker.attachmentError'));
-                setAttachmentInvalidReason(props.translate('attachmentPicker.folderNotAllowedMessage'));
+                setAttachmentInvalidReasonTitle(translate('attachmentPicker.attachmentError'));
+                setAttachmentInvalidReason(translate('attachmentPicker.folderNotAllowedMessage'));
                 return false;
             }
             return true;
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [props.translate],
+        [translate],
     );
     /**
      * @param {Object} _data
@@ -331,7 +330,7 @@ function AttachmentModal(props) {
             >
                 {props.isSmallScreenWidth && <HeaderGap />}
                 <HeaderWithBackButton
-                    title={props.headerTitle || props.translate('common.attachment')}
+                    title={props.headerTitle || translate('common.attachment')}
                     shouldShowBorderBottom
                     shouldShowDownloadButton={props.allowDownload}
                     onDownloadButtonPress={() => downloadAttachment(source)}
@@ -370,7 +369,7 @@ function AttachmentModal(props) {
                                     success
                                     style={[styles.buttonConfirm, props.isSmallScreenWidth ? {} : styles.attachmentButtonBigScreen]}
                                     textStyles={[styles.buttonConfirmText]}
-                                    text={props.translate('common.send')}
+                                    text={translate('common.send')}
                                     onPress={submitAndClose}
                                     disabled={isConfirmButtonDisabled}
                                     pressOnEnter
@@ -387,7 +386,7 @@ function AttachmentModal(props) {
                 onCancel={closeConfirmModal}
                 isVisible={isAttachmentInvalid}
                 prompt={attachmentInvalidReason}
-                confirmText={props.translate('common.close')}
+                confirmText={translate('common.close')}
                 shouldShowCancelButton={false}
             />
 
