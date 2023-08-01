@@ -120,7 +120,7 @@ class AuthScreens extends React.Component {
 
     componentDidMount() {
         NetworkConnection.listenForReconnect();
-        NetworkConnection.onReconnect(() => App.openApp(true, this.props.onyxUpdatesLastUpdateID));
+        NetworkConnection.onReconnect(() => App.reconnectApp(this.props.onyxUpdatesLastUpdateID));
         PusherConnectionManager.init();
         Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -136,7 +136,11 @@ class AuthScreens extends React.Component {
         // the correct state on refresh. They are explicitly opting out of storing data they would need (i.e. reports_) to take advantage of
         // the optimizations performed during ReconnectApp.
         const shouldGetAllData = this.props.isUsingMemoryOnlyKeys || SessionUtils.didUserLogInDuringSession();
-        App.openApp(!shouldGetAllData);
+        if (shouldGetAllData) {
+            App.openApp();
+        } else {
+            App.reconnectApp(this.props.onyxUpdatesLastUpdateID);
+        }
 
         App.setUpPoliciesAndNavigate(this.props.session, !this.props.isSmallScreenWidth);
 

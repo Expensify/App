@@ -552,7 +552,7 @@ function subscribeToUserEvents() {
         if (_.isArray(pushJSON)) {
             updates = pushJSON;
         } else {
-            // Store these values in Onyx to allow App.openApp(true) to fetch incremental updates from the server when a previous session is being reconnected to.
+            // Store these values in Onyx to allow App.reconnectApp() to fetch incremental updates from the server when a previous session is being reconnected to.
             Onyx.multiSet({
                 [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: pushJSON.lastUpdateID,
                 [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: pushJSON.previousUpdateID,

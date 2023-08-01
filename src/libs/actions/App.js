@@ -135,42 +135,78 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
- * @param {boolean} [fetchIncrementalUpdates] When the app is reconnecting from a previous session, incremental updates are preferred so that there is less data being transferred
- * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
- * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function openApp(fetchIncrementalUpdates = false, updateIDFrom = 0, updateIDTo = 0) {
+function openApp() {
     isReadyToOpenApp.then(() => {
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.POLICY,
             waitForCollectionCallback: true,
             callback: (policies) => {
+                Onyx.disconnect(connectionID);
+                const params = {policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
+
+                API.read('OpenApp', params, {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: true,
+                        },
+                    ],
+                    successData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                    failureData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                });
+            },
+        });
+    });
+}
+
+/**
+ * Fetches data when the app reconnects to the network
+ * @param {Number} [updateIDFrom] the ID of the Onyx update that we want to start fetching from
+ * @param {Number} [updateIDTo] the ID of the Onyx update that we want to fetch up to
+ */
+function reconnectApp(updateIDFrom = 0, updateIDTo = 0) {
+    isReadyToOpenApp.then(() => {
+        const connectionID = Onyx.connect({
+            key: ONYXKEYS.COLLECTION.POLICY,
+            waitForCollectionCallback: true,
+            callback: (policies) => {
+                Onyx.disconnect(connectionID);
+                const params = {policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
+
                 // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
                 // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
                 //
                 // - Look through the local report actions and reports to find the most recently modified report action or report.
                 // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-                const params = {policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
-                if (fetchIncrementalUpdates) {
-                    Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-                    params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
-                    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+                Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+                params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+                Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
 
-                    // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
-                    // Otherwise, a full set of app data will be returned.
-                    if (updateIDFrom) {
-                        params.updateIDFrom = updateIDFrom;
-                    }
-
-                    if (updateIDTo) {
-                        params.updateIDTo = updateIDTo;
-                    }
+                // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
+                // Otherwise, a full set of app data will be returned.
+                if (updateIDFrom) {
+                    params.updateIDFrom = updateIDFrom;
                 }
-                Onyx.disconnect(connectionID);
 
-                // eslint-disable-next-line rulesdir/no-multiple-api-calls
-                const apiMethod = fetchIncrementalUpdates ? API.write : API.read;
-                apiMethod(fetchIncrementalUpdates ? 'ReconnectApp' : 'OpenApp', params, {
+                if (updateIDTo) {
+                    params.updateIDTo = updateIDTo;
+                }
+
+                API.write('ReconnectApp', params, {
                     optimisticData: [
                         {
                             onyxMethod: Onyx.METHOD.MERGE,
@@ -373,6 +409,7 @@ export {
     setUpPoliciesAndNavigate,
     openProfile,
     openApp,
+    reconnectApp,
     confirmReadyToOpenApp,
     beginDeepLinkRedirect,
     beginDeepLinkRedirectAfterTransition,
