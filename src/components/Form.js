@@ -147,7 +147,10 @@ function Form(props) {
                 setErrors(touchedInputErrors);
             }
 
-            lastValidatedValues.current = values;
+            const isAtLeastOneInputTouched = _.keys(touchedInputs.current).length > 0;
+            if (isAtLeastOneInputTouched) {
+                lastValidatedValues.current = values;
+            }
 
             return touchedInputErrors;
         },
