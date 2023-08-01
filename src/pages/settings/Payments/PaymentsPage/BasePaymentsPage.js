@@ -367,15 +367,7 @@ function BasePaymentsPage(props) {
                 hideDefaultDeleteMenu();
             }
         }
-    }, [
-        hideDefaultDeleteMenu,
-        paymentMethod.methodID,
-        paymentMethod.selectedPaymentMethodType,
-        props.bankAccountList,
-        props.cardList,
-        props.payPalMeData,
-        shouldShowDefaultDeleteMenu,
-    ]);
+    }, [hideDefaultDeleteMenu, paymentMethod.methodID, paymentMethod.selectedPaymentMethodType, props.bankAccountList, props.cardList, props.payPalMeData, shouldShowDefaultDeleteMenu]);
 
     const isPayPalMeSelected = paymentMethod.formattedSelectedPaymentMethod.type === CONST.PAYMENT_METHODS.PAYPAL;
     const shouldShowMakeDefaultButton =
