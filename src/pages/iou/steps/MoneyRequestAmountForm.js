@@ -50,10 +50,10 @@ const AMOUNT_VIEW_ID = 'amountView';
 const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
-function MoneyRequestAmountForm(props) {
+function MoneyRequestAmountForm({amount, currency, title, isEditing, onBackButtonPress, onCurrencyButtonPress, onSubmitButtonPress}) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
 
-    const selectedAmountAsString = props.amount ? CurrencyUtils.convertToWholeUnit(props.currency, props.amount).toString() : '';
+    const selectedAmountAsString = amount ? CurrencyUtils.convertToWholeUnit(currency, amount).toString() : '';
 
     const [currentAmount, setCurrentAmount] = useState(selectedAmountAsString);
     const [shouldUpdateSelection, setShouldUpdateSelection] = useState(true);
@@ -120,8 +120,8 @@ function MoneyRequestAmountForm(props) {
     };
 
     useEffect(() => {
-        saveAmountToState(props.currency, props.amount);
-    }, [props.amount, props.currency]);
+        saveAmountToState(currency, amount);
+    }, [amount, currency]);
 
     useFocusEffect(
         useCallback(() => {
@@ -204,11 +204,11 @@ function MoneyRequestAmountForm(props) {
      *
      */
     const submitAndNavigateToNextPage = useCallback(() => {
-        props.onSubmitButtonPress(currentAmount);
-    }, [props.onSubmitButtonPress, currentAmount]);
+        onSubmitButtonPress(currentAmount);
+    }, [onSubmitButtonPress, currentAmount]);
 
     const formattedAmount = MoneyRequestUtils.replaceAllDigits(currentAmount, toLocaleDigit);
-    const buttonText = props.isEditing ? translate('common.save') : translate('common.next');
+    const buttonText = isEditing ? translate('common.save') : translate('common.next');
 
     return (
         <ScreenWrapper
@@ -218,8 +218,8 @@ function MoneyRequestAmountForm(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={props.title}
-                        onBackButtonPress={props.onBackButtonPress}
+                        title={title}
+                        onBackButtonPress={onBackButtonPress}
                     />
                     <View
                         nativeID={AMOUNT_VIEW_ID}
@@ -229,10 +229,10 @@ function MoneyRequestAmountForm(props) {
                         <TextInputWithCurrencySymbol
                             formattedAmount={formattedAmount}
                             onChangeAmount={updateAmount}
-                            onCurrencyButtonPress={props.onCurrencyButtonPress}
+                            onCurrencyButtonPress={onCurrencyButtonPress}
                             placeholder={numberFormat(0)}
                             ref={textInput}
-                            selectedCurrencyCode={props.currency}
+                            selectedCurrencyCode={currency}
                             selection={selection}
                             onSelectionChange={(e) => {
                                 if (!shouldUpdateSelection) {

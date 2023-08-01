@@ -65,16 +65,16 @@ const defaultProps = {
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
 
-function NewRequestAmountPage(props) {
+function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails}) {
     const {translate} = useLocalize();
 
-    const iouType = lodashGet(props.route, 'params.iouType', '');
-    const reportID = lodashGet(props.route, 'params.reportID', '');
-    const isEditing = lodashGet(props.route, 'path', '').includes('amount');
-    const currentCurrency = lodashGet(props.route, 'params.currency', '');
+    const iouType = lodashGet(route, 'params.iouType', '');
+    const reportID = lodashGet(route, 'params.reportID', '');
+    const isEditing = lodashGet(route, 'path', '').includes('amount');
+    const currentCurrency = lodashGet(route, 'params.currency', '');
 
-    const {amount, participants} = props.iou;
-    const currency = currentCurrency || props.iou.currency;
+    const {amount, participants} = iou;
+    const currency = currentCurrency || iou.currency;
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -105,13 +105,13 @@ function NewRequestAmountPage(props) {
         }
 
         // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-        if (props.report.reportID) {
+        if (report.reportID) {
             // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
             if (_.isEmpty(participants)) {
-                const currentUserAccountID = props.currentUserPersonalDetails.accountID;
-                const iouParticipants = ReportUtils.isPolicyExpenseChat(props.report)
-                    ? [{reportID: props.report.reportID, isPolicyExpenseChat: true, selected: true}]
-                    : _.chain(props.report.participantAccountIDs)
+                const currentUserAccountID = currentUserPersonalDetails.accountID;
+                const iouParticipants = ReportUtils.isPolicyExpenseChat(report)
+                    ? [{reportID: report.reportID, isPolicyExpenseChat: true, selected: true}]
+                    : _.chain(report.participantAccountIDs)
                           .filter((accountID) => currentUserAccountID !== accountID)
                           .map((accountID) => ({accountID, selected: true}))
                           .value();
