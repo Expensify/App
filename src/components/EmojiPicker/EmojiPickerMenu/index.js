@@ -79,7 +79,7 @@ class EmojiPickerMenu extends Component {
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
 
-        const {filteredEmojis, headerRowIndices} = this.getInitialFilteredEmojisAndHeaderRowIndices();
+        const {filteredEmojis, headerRowIndices} = this.getFilteredEmojisAndHeaderRowIndices();
         this.emojis = filteredEmojis;
         this.headerRowIndices = headerRowIndices;
 
@@ -112,7 +112,7 @@ class EmojiPickerMenu extends Component {
     componentDidUpdate(prevProps) {
         if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) return;
 
-        const {filteredEmojis, headerRowIndices} = this.getInitialFilteredEmojisAndHeaderRowIndices();
+        const {filteredEmojis, headerRowIndices} = this.getFilteredEmojisAndHeaderRowIndices();
         this.emojis = filteredEmojis;
         this.headerRowIndices = headerRowIndices;
         this.setState({
@@ -138,7 +138,7 @@ class EmojiPickerMenu extends Component {
      * Calculate the initial filtered emojis and header row indices
      * @returns {Object}
      */
-    getInitialFilteredEmojisAndHeaderRowIndices() {
+    getFilteredEmojisAndHeaderRowIndices() {
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them
         const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
