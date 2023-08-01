@@ -42,6 +42,9 @@ export default {
     // Has information about the network status (offline/online)
     NETWORK: 'network',
 
+    // Contains all the personalDetails of the user
+    PERSONAL_DETAILS: 'personalDetails',
+    
     // Contains all the personalDetails the user has access to, keyed by accountID
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
@@ -212,6 +215,9 @@ export default {
         MONEY_REQUEST_DESCRIPTION_FORM: 'moneyRequestDescriptionForm',
         NEW_CONTACT_METHOD_FORM: 'newContactMethodForm',
         PAYPAL_FORM: 'payPalForm',
+        SETTINGS_STATUS_SET_FORM: 'settingsStatusSetForm',
+        SETTINGS_STATUS_CLEAR_AFTER_FORM: 'settingsStatusClearAfterForm',
+        SETTINGS_STATUS_SET_CLEAR_AFTER_FORM: 'settingsStatusSetClearAfterForm',
     },
 
     // Whether we should show the compose input or not
