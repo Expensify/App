@@ -6,6 +6,7 @@ type ACHData = {
     /** Step of the setup flow that we are on. Determines which view is presented. */
     currentStep: ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
+    /** Optional subStep we would like the user to start back on */
     subStep?: ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
     /** Bank account state */
@@ -37,7 +38,7 @@ type ReimbursementAccount = {
     /** Any additional error message to show */
     errors?: OnyxCommon.Errors;
 
-    pendingAction?: boolean;
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 export default ReimbursementAccount;

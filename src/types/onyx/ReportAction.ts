@@ -1,4 +1,5 @@
 import OriginalMessage from './OriginalMessage';
+import * as OnyxCommon from './OnyxCommon';
 
 type User = {
     accountID: number;
@@ -85,7 +86,8 @@ type ReportActionBase = {
     childCommenterCount?: number;
     childLastVisibleActionCreated?: string;
     childVisibleActionCount?: number;
-    pendingAction?: boolean;
+
+    pendingAction?: OnyxCommon.PendingAction;
 };
 
 type ReportAction = ReportActionBase & OriginalMessage;
