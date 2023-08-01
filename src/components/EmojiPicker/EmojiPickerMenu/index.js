@@ -109,17 +109,16 @@ class EmojiPickerMenu extends Component {
         this.setFirstNonHeaderIndex(this.emojis);
     }
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     componentDidUpdate(prevProps) {
-        if (prevProps.frequentlyUsedEmojis !== this.props.frequentlyUsedEmojis) {
-            const {filteredEmojis, headerRowIndices} = this.getInitialFilteredEmojisAndHeaderRowIndices();
-            this.emojis = filteredEmojis;
-            this.headerRowIndices = headerRowIndices;
-            this.setState({
-                filteredEmojis: this.emojis,
-                headerIndices: this.headerRowIndices,
-            });
-        }
+        if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) return;
+
+        const {filteredEmojis, headerRowIndices} = this.getInitialFilteredEmojisAndHeaderRowIndices();
+        this.emojis = filteredEmojis;
+        this.headerRowIndices = headerRowIndices;
+        this.setState({
+            filteredEmojis: this.emojis,
+            headerIndices: this.headerRowIndices,
+        });
     }
 
     componentWillUnmount() {
