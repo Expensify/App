@@ -125,23 +125,23 @@ function SidebarLinks({
         };
     }, []);
 
-    function showSearchPage() {
+    const showSearchPage = () => {
         if (isCreateMenuOpen) {
             // Prevent opening Search page when click Search icon quickly after clicking FAB icon
             return;
         }
 
         Navigation.navigate(ROUTES.SEARCH);
-    }
+    };
 
-    function showSettingsPage() {
+    const showSettingsPage = () => {
         if (isCreateMenuOpen) {
             // Prevent opening Settings page when click profile avatar quickly after clicking FAB icon
             return;
         }
 
         Navigation.navigate(ROUTES.SETTINGS);
-    }
+    };
 
     /**
      * Show Report page with selected report id
