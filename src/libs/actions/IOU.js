@@ -1497,7 +1497,6 @@ function setMoneyRequestReceipt(receiptPath, receiptSource) {
  * @param {Object} iou
  * @param {String} reportID
  * @param {Object} report
- * @param {Object} currentUserPersonalDetails
  */
 function navigateToNextPage(iou, reportID, report) {
     const moneyRequestID = `${iou.iouType}${reportID}`;
@@ -1533,7 +1532,6 @@ function navigateToNextPage(iou, reportID, report) {
  * @param {Object} iou
  * @param {String} reportID
  * @param {Object} report
- * @param {Object} currentUserPersonalDetails
  */
 function onReceiptImageSelected(file, iou, reportID, report) {
     if (!ReceiptUtils.isValidReceipt(file)) {

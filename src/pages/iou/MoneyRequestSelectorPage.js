@@ -68,7 +68,7 @@ const defaultProps = {
         currency: CONST.CURRENCY.USD,
         participants: [],
     },
-    selectedTab: CONST.TAB.TAB_MANUAL,
+    selectedTab: CONST.TAB.MANUAL,
 };
 
 function MoneyRequestSelectorPage(props) {
@@ -82,7 +82,7 @@ function MoneyRequestSelectorPage(props) {
         [CONST.IOU.MONEY_REQUEST_TYPE.SPLIT]: translate('iou.splitBill'),
     };
 
-    const onTabPress = () => {
+    const resetMoneyRequestInfo = () => {
         const moneyRequestID = `${iouType.current}${reportID.current}`;
         IOU.resetMoneyRequestInfo(moneyRequestID, iouType.current);
     };
@@ -91,36 +91,37 @@ function MoneyRequestSelectorPage(props) {
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
                 {({safeAreaPaddingBottomStyle}) => (
-                    <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.TAB_MANUAL}>
+                    <DragAndDropProvider isDisabled={props.selectedTab === CONST.TAB.MANUAL}>
                         <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                             <HeaderWithBackButton
                                 title={title[iouType.current]}
                                 onBackButtonPress={() => Navigation.goBack()}
                             />
-                            {Permissions.canUseScanReceipts(props.betas) && (
+                            {Permissions.canUseScanReceipts(props.betas) ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     tabBar={({state, navigation}) => (
                                         <TabSelector
                                             state={state}
                                             navigation={navigation}
-                                            onTabPress={onTabPress}
+                                            onTabPress={resetMoneyRequestInfo}
                                         />
                                     )}
                                 >
                                     <TopTab.Screen
-                                        name={CONST.TAB.TAB_MANUAL}
+                                        name={CONST.TAB.MANUAL}
                                         component={MoneyRequestAmount}
                                         initialParams={{reportID: reportID.current}}
                                     />
                                     <TopTab.Screen
-                                        name={CONST.TAB.TAB_SCAN}
+                                        name={CONST.TAB.SCAN}
                                         component={ReceiptSelector}
                                         initialParams={{reportID: reportID.current}}
                                     />
                                 </OnyxTabNavigator>
+                            ) : (
+                                !Permissions.canUseScanReceipts(props.betas) && <MoneyRequestAmount />
                             )}
-                            {!Permissions.canUseScanReceipts(props.betas) && <MoneyRequestAmount />}
                         </View>
                     </DragAndDropProvider>
                 )}

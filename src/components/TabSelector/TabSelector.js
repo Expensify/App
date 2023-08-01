@@ -26,13 +26,13 @@ const defaultProps = {
 
 const getIcon = (route) => {
     switch (route) {
-        case CONST.TAB.TAB_MANUAL:
+        case CONST.TAB.MANUAL:
             return Expensicons.Pencil;
-        case CONST.TAB.TAB_SCAN:
+        case CONST.TAB.SCAN:
             return Expensicons.Receipt;
-        case CONST.TAB.TAB_NEW_CHAT:
+        case CONST.TAB.NEW_CHAT:
             return Expensicons.User;
-        case CONST.TAB.TAB_NEW_ROOM:
+        case CONST.TAB.NEW_ROOM:
             return Expensicons.Hashtag;
         default:
             return Expensicons.DotIndicator
