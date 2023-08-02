@@ -60,9 +60,10 @@ Onyx.connect({
 /**
  * Reset money request info from the store with its initial value
  * @param {String} id
+ * @returns {Promise}
  */
 function resetMoneyRequestInfo(id = '') {
-    Onyx.merge(ONYXKEYS.IOU, {
+    return Onyx.merge(ONYXKEYS.IOU, {
         id,
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
@@ -1439,8 +1440,9 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
  * @param {String} reportID
  */
 function startMoneyRequest(iouType, reportID = '') {
-    resetMoneyRequestInfo(`${iouType}${reportID}`);
-    Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
+    resetMoneyRequestInfo(`${iouType}${reportID}`).then(() => {
+        Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
+    });
 }
 
 /**
