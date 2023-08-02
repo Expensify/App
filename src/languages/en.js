@@ -1530,6 +1530,8 @@ export default {
     threads: {
         replies: 'Replies',
         reply: 'Reply',
+        from: 'From',
+        in: 'In',
         parentNavigationSummary: ({rootReportName, workspaceName}) => `From ${rootReportName}${workspaceName ? ` in ${workspaceName}` : ''}`,
     },
     qrCodes: {
