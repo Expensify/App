@@ -69,18 +69,18 @@ Once they click the link, a new.expensify.com account is set up for them automat
 ## Flagging content as offensive
 In order to maintain a safe community for our users, Expensify provides tools to report offensive content and unwanted behavior in Expensify Chat. If you see a message (or attachment/image) from another user that you’d like our moderators to review, you can flag it by clicking the flag icon in the message context menu (on desktop) or holding down on the message and selecting “Flag as offensive” (on mobile).
 
-![Moderation Context Menu](https://help.expensify.com/assets/images/moderation-context-menu.png)
+![Moderation Context Menu](http://help.expensify.com/assets/images/moderation-context-menu.png){:width="100%"}
 
 Once the flag is selected, you will be asked to categorize the message (such as spam, bullying, and harassment). Select what you feel best represents the issue is with the content, and you’re done - the message will be sent off to our internal team for review. 
 
-![Moderation Flagging Options](https://help.expensify.com/assets/images/moderation-flag-page.png)
+![Moderation Flagging Options](https://help.expensify.com/assets/images/moderation-flag-page.png){:width="100%"}
 
 Depending on the severity of the offense, messages can be hidden (with an option to reveal) or fully removed, and in extreme cases, the sender of the message can be temporarily or permanently blocked from posting.
 
 You will receive a whisper from Concierge any time your content has been flagged, as well as when you have successfully flagged a piece of content.
 
-![Moderation Reportee Whisper](https://help.expensify.com/assets/images/moderation-reportee-whisper.png)
-![Moderation Reporter Whisper](https://help.expensify.com/assets/images/moderation-reporter-whisper.png)
+![Moderation Reportee Whisper](https://help.expensify.com/assets/images/moderation-reportee-whisper.png){:width="100%"}
+![Moderation Reporter Whisper](https://help.expensify.com/assets/images/moderation-reporter-whisper.png){:width="100%"}
 
 *Note: Any message sent in public chat rooms are automatically reviewed by an automated system looking for offensive content and sent to our moderators for final decisions if it is found.*
 
