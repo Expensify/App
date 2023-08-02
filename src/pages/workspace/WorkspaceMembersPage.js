@@ -294,7 +294,7 @@ function WorkspaceMembersPage(props) {
      */
     const renderItem = useCallback(
         ({item}) => {
-            const disabled = props.session.email === item.login || item.role === 'admin';
+            const disabled = props.session.email === item.login || item.role === 'admin' || item.pendingAction === 'delete';
             const hasError = !_.isEmpty(item.errors) || errors[item.accountID];
             const isChecked = _.contains(selectedEmployees, Number(item.accountID));
             return (
