@@ -60,35 +60,55 @@ public class NotificationCache {
 
     private static void writeToInternalStorage() {
         Context context = UAirship.getApplicationContext();
+
+        FileOutputStream fos = null;
+        ObjectOutputStream oos = null;
         try {
             File outputFile = new File(context.getFilesDir(), CACHE_FILE_NAME);
-            FileOutputStream fos = new FileOutputStream(outputFile);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-
+            fos = new FileOutputStream(outputFile);
+            oos = new ObjectOutputStream(fos);
             oos.writeObject(cache);
-
-            oos.close();
-            fos.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (oos != null) {
+                    oos.close();
+                }
+                if (fos != null) {
+                    fos.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private static HashMap<String, NotificationData> readFromInternalStorage() {
         HashMap<String, NotificationData> result;
         Context context = UAirship.getApplicationContext();
+
+        FileInputStream fis = null;
+        ObjectInputStream ois = null;
         try {
             File fileCache = new File(context.getFilesDir(), CACHE_FILE_NAME);
-            FileInputStream fis = new FileInputStream(fileCache);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-
+            fis = new FileInputStream(fileCache);
+            ois = new ObjectInputStream(fis);
             result = (HashMap<String, NotificationData>) ois.readObject();
-
-            ois.close();
-            fis.close();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
             result = new HashMap<>();
+        } finally {
+            try {
+                if (ois != null) {
+                    ois.close();
+                }
+                if (fis != null) {
+                    fis.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         return result;
