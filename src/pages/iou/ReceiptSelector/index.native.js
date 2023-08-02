@@ -91,7 +91,7 @@ function getImagePickerOptions(type) {
 }
 
 function ReceiptSelector(props) {
-    const devices = useCameraDevices('wide-angle-camera');
+    const devices = useCameraDevices();
     const device = devices.back;
 
     const camera = useRef(null);
@@ -244,6 +244,7 @@ function ReceiptSelector(props) {
                 ref={camera}
                 device={device}
                 style={[styles.cameraView]}
+                zoom={device.neutralZoom}
                 isActive
                 photo
             />
