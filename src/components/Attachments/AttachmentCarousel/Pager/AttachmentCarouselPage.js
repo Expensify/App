@@ -70,7 +70,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                     >
                         <Image
                             source={{uri: source}}
-                            style={dimensions == null ? {} : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
+                            style={dimensions == null ? undefined : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
                             isAuthTokenRequired={isAuthTokenRequired}
                             onLoadStart={() => setIsImageLoading(true)}
                             onLoadEnd={() => setIsImageLoading(false)}
