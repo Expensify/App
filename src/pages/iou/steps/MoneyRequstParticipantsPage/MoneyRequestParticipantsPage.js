@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -45,43 +45,17 @@ const defaultProps = {
 };
 
 function MoneyRequestParticipantsPage({iou, translate, route}) {
-    const prevMoneyRequestId = useRef(iou.id);
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
 
-    const navigateToNextStep = (requestType) => {
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(requestType, reportID.current));
+    const navigateToNextStep = (moneyRequestType) => {
+        IOU.setMoneyRequestId(moneyRequestType);
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(moneyRequestType, reportID.current));
     };
 
     const navigateBack = (forceFallback = false) => {
         Navigation.goBack(ROUTES.getMoneyRequestRoute(iouType.current, reportID.current), forceFallback);
     };
-
-    useEffect(() => {
-        // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== iou.id) {
-            // The ID is cleared on completing a request. In that case, we will do nothing
-            if (iou.id) {
-                navigateBack(true);
-            }
-            return;
-        }
-
-        // Reset the money request Onyx if the ID in Onyx does not match the ID from params
-        const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = iou.id !== moneyRequestId;
-        if (shouldReset) {
-            IOU.resetMoneyRequestInfo(moneyRequestId, iouType.current);
-        }
-
-        if ((iou.amount === 0 && !iou.receiptPath) || shouldReset) {
-            navigateBack(true);
-        }
-
-        return () => {
-            prevMoneyRequestId.current = iou.id;
-        };
-    }, [iou.amount, iou.id, iou.receiptPath]);
 
     return (
         <ScreenWrapper
