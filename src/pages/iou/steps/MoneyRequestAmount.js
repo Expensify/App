@@ -421,6 +421,10 @@ function MoneyRequestAmount(props) {
 
     const formattedAmount = replaceAllDigits(amount, toLocaleDigit);
     const buttonText = isEditing.current ? translate('common.save') : translate('common.next');
+    const shouldShowBackButton =
+        iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SEND ||
+        iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ||
+        (iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST && isEditing.current);
 
     return (
         <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType.current)}>
@@ -430,7 +434,7 @@ function MoneyRequestAmount(props) {
             >
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        {isEditing.current && (
+                        {shouldShowBackButton && (
                             <HeaderWithBackButton
                                 title={titleForStep}
                                 onBackButtonPress={navigateBack}
