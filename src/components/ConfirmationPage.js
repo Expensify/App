@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Lottie from 'lottie-react-native';
-import FireworksAnimation from '../../assets/animations/Fireworks.json';
+import * as LottieAnimations from './LottieAnimations';
 import Text from './Text';
 import styles from '../styles/styles';
 import Button from './Button';
@@ -30,7 +30,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    animation: FireworksAnimation,
+    animation: LottieAnimations.Fireworks,
     heading: '',
     description: '',
     buttonText: '',
