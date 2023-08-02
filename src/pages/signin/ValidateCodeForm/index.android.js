@@ -1,11 +1,20 @@
 import React from 'react';
 import BaseValidateCodeForm from './BaseValidateCodeForm';
 
-const defaultProps = {};
+const defaultProps = {
+    isInModal: false,
+};
 
-const propTypes = {};
-function ValidateCodeForm() {
-    return <BaseValidateCodeForm autoComplete="sms-otp" />;
+const propTypes = {
+    isInModal: PropTypes.bool,
+};
+function ValidateCodeForm(props) {
+    return (
+        <BaseValidateCodeForm
+            autoComplete="sms-otp"
+            isInModal={props.isInModal}
+        />
+    );
 }
 
 ValidateCodeForm.displayName = 'ValidateCodeForm';

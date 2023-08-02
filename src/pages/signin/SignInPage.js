@@ -130,7 +130,7 @@ function SignInPage({credentials, account, isInModal}) {
             }
         }
     } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage) {
-        welcomeHeader = isSmallScreenWidth ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
+        welcomeHeader = showSmallScreen ? translate('login.hero.header') : translate('welcomeText.welcomeBack');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
         if (shouldShowEmailDeliveryFailurePage) {
@@ -145,7 +145,7 @@ function SignInPage({credentials, account, isInModal}) {
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
                 welcomeText={welcomeText}
-                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
+                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth || !isInModal}
                 shouldShowWelcomeText={shouldShowWelcomeText}
                 isInModal={isInModal}
             >
@@ -155,7 +155,7 @@ function SignInPage({credentials, account, isInModal}) {
                     isVisible={shouldShowLoginForm}
                     blurOnSubmit={account.validated === false}
                 />
-                {shouldShowValidateCodeForm && <ValidateCodeForm />}
+                {shouldShowValidateCodeForm && <ValidateCodeForm isInModal={isInModal} />}
                 {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
                 {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
             </SignInPageLayout>
