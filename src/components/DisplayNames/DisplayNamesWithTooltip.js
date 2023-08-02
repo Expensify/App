@@ -11,7 +11,6 @@ function DisplayNamesWithToolTip(props) {
     const containerRef = useRef(null);
     const childRefs = useRef([]);
     const [isEllipsisActive, setIsEllipsisActive] = useState(false);
-    const [containerLayout, setContainerLayout] = useState(null);
 
     useEffect(() => {
         setIsEllipsisActive(
@@ -33,10 +32,10 @@ function DisplayNamesWithToolTip(props) {
      */
     const getTooltipShiftX = (index) => {
         // Only shift the tooltip in case the containerLayout or Refs to the text node are available
-        if (!containerLayout || !childRefs.current[index]) {
+        if (!containerRef || !childRefs.current[index]) {
             return;
         }
-        const {width: containerWidth, left: containerLeft} = containerLayout;
+        const {width: containerWidth, left: containerLeft} = containerRef.current.getBoundingClientRect();
 
         // We have to return the value as Number so we can't use `measureWindow` which takes a callback
         const {width: textNodeWidth, left: textNodeLeft} = childRefs.current[index].getBoundingClientRect();
@@ -53,7 +52,6 @@ function DisplayNamesWithToolTip(props) {
         // Tokenization of string only support prop numberOfLines on Web
         <Text
             style={[...props.textStyles, styles.pRelative]}
-            onLayout={({nativeEvent}) => setContainerLayout(nativeEvent.layout)}
             numberOfLines={props.numberOfLines || undefined}
             ref={(el) => (containerRef.current = el)}
         >
