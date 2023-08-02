@@ -1,4 +1,5 @@
 import {defaultStyles as defaultPickerStyles} from 'react-native-picker-select/src/styles';
+import lodashClamp from 'lodash/clamp';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -21,9 +22,13 @@ import pointerEventsAuto from './pointerEventsAuto';
 import getPopOverVerticalOffset from './getPopOverVerticalOffset';
 import overflowXHidden from './overflowXHidden';
 import CONST from '../CONST';
+import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+
+// touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
+const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
 
 const picker = {
     backgroundColor: themeColors.transparent,
@@ -129,6 +134,7 @@ const webViewStyles = {
             borderColor: themeColors.border,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
+            ...touchCalloutNone,
         },
 
         p: {
@@ -197,6 +203,9 @@ const styles = {
     },
     emojiSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...wordBreak.breakWord,
+        ...spacing.pr4,
     },
 
     mentionSuggestionsAvatarContainer: {
@@ -517,6 +526,11 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+    },
+
+    buttonDefaultHovered: {
+        backgroundColor: themeColors.buttonHoveredBG,
+        borderWidth: 0,
     },
 
     buttonSuccess: {
@@ -855,9 +869,15 @@ const styles = {
         backgroundColor: themeColors.buttonDefaultBG,
     },
 
-    autoGrowHeightInputContainer: (textInputHeight, maxHeight) => ({
-        height: textInputHeight >= maxHeight ? maxHeight : textInputHeight,
-        minHeight: variables.componentSizeLarge,
+    /**
+     * @param {number} textInputHeight
+     * @param {number} minHeight
+     * @param {number} maxHeight
+     * @returns {object}
+     */
+    autoGrowHeightInputContainer: (textInputHeight, minHeight, maxHeight) => ({
+        height: lodashClamp(textInputHeight, minHeight, maxHeight),
+        minHeight,
     }),
 
     autoGrowHeightHiddenInput: (maxWidth, maxHeight) => ({
@@ -1536,13 +1556,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemMessageLink: {
-        color: themeColors.link,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.EXP_NEUE,
-        lineHeight: variables.lineHeightXLarge,
-    },
-
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },
@@ -1763,15 +1776,6 @@ const styles = {
         marginRight: 4,
     },
 
-    navigationModalCard: (isSmallScreenWidth) => ({
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    }),
-
     navigationModalOverlay: {
         ...userSelect.userSelectNone,
         position: 'absolute',
@@ -1942,6 +1946,11 @@ const styles = {
         width: variables.avatarSizeSmall,
     },
 
+    emptyAvatarSmaller: {
+        height: variables.avatarSizeSmaller,
+        width: variables.avatarSizeSmaller,
+    },
+
     emptyAvatarMedium: {
         height: variables.avatarSizeMedium,
         width: variables.avatarSizeMedium,
@@ -1957,6 +1966,10 @@ const styles = {
     },
 
     emptyAvatarMarginSmall: {
+        marginRight: variables.avatarChatSpacing - 4,
+    },
+
+    emptyAvatarMarginSmaller: {
         marginRight: variables.avatarChatSpacing - 4,
     },
 
@@ -2340,11 +2353,6 @@ const styles = {
         padding: 20,
     },
 
-    pageWrapperNotCentered: {
-        width: '100%',
-        padding: 20,
-    },
-
     avatarSectionWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -2491,6 +2499,10 @@ const styles = {
         left: 4,
         backgroundColor: themeColors.appBG,
     },
+
+    switchThumbTransformation: (translateX) => ({
+        transform: [{translateX}],
+    }),
 
     radioButtonContainer: {
         backgroundColor: themeColors.componentBG,
@@ -3144,28 +3156,22 @@ const styles = {
         marginLeft: 6,
     },
 
-    fullScreenTransparentOverlay: {
+    fullScreen: {
         position: 'absolute',
-        width: '100%',
-        height: '100%',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: themeColors.dropUIBG,
-        zIndex: 2,
     },
 
-    dropZoneTopInvisibleOverlay: {
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: themeColors.dropTransparentOverlay,
+    invisibleOverlay: {
+        backgroundColor: themeColors.transparent,
         zIndex: 1000,
+    },
+
+    reportDropOverlay: {
+        backgroundColor: themeColors.dropUIBG,
+        zIndex: 2,
     },
 
     cardSection: {
@@ -3419,6 +3425,11 @@ const styles = {
         maxWidth: 375,
     },
 
+    formSpaceVertical: {
+        height: 20,
+        width: 1,
+    },
+
     taskCheckbox: {
         height: 16,
         width: 16,
@@ -3430,6 +3441,11 @@ const styles = {
         ...spacing.flexWrap,
         ...spacing.flex1,
         fontSize: variables.fontSizeXLarge,
+        maxWidth: '100%',
+        ...wordBreak.breakWord,
+    },
+
+    taskDescriptionMenuItem: {
         maxWidth: '100%',
         ...wordBreak.breakWord,
     },
@@ -3447,7 +3463,7 @@ const styles = {
         ...spacing.mr3,
     },
 
-    taskHorizontalRule: {
+    reportHorizontalRule: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
         ...spacing.mh5,
@@ -3515,6 +3531,25 @@ const styles = {
     qrShareTitle: {
         marginTop: 15,
         textAlign: 'center',
+    },
+
+    /**
+     * @param {String} backgroundColor
+     * @param {Number} height
+     * @returns {Object}
+     */
+    overscrollSpacer: (backgroundColor, height) => ({
+        backgroundColor,
+        height,
+        width: '100%',
+        position: 'absolute',
+        top: -height,
+        left: 0,
+        right: 0,
+    }),
+
+    willChangeTransform: {
+        willChange: 'transform',
     },
 };
 

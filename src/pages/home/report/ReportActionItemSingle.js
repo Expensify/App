@@ -82,9 +82,9 @@ function ReportActionItemSingle(props) {
         displayName = ReportUtils.getPolicyName(props.report);
         actorHint = displayName;
         avatarSource = ReportUtils.getWorkspaceAvatar(props.report);
-    } else if (props.action.delegateAccountID) {
-        // We replace the actor's email, name, and avatar with the Copilot manually for now. This will be improved upon when
-        // the Copilot feature is implemented.
+    } else if (props.action.delegateAccountID && props.personalDetailsList[props.action.delegateAccountID]) {
+        // We replace the actor's email, name, and avatar with the Copilot manually for now. And only if we have their
+        // details. This will be improved upon when the Copilot feature is implemented.
         const delegateDetails = props.personalDetailsList[props.action.delegateAccountID];
         const delegateDisplayName = delegateDetails.displayName;
         actorHint = `${delegateDisplayName} (${props.translate('reportAction.asCopilot')} ${displayName})`;

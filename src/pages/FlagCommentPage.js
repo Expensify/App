@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
@@ -66,12 +66,6 @@ function getReportID(route) {
 }
 
 function FlagCommentPage(props) {
-    let reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-
-    // Handle threads if needed
-    if (reportAction === undefined || reportAction.reportActionID === undefined) {
-        reportAction = ReportActionsUtils.getParentReportAction(props.report);
-    }
     const severities = [
         {
             severity: CONST.MODERATION.FLAG_SEVERITY_SPAM,
@@ -123,14 +117,30 @@ function FlagCommentPage(props) {
         },
     ];
 
-    const flagComment = (severity) => {
-        let reportID = getReportID(props.route);
+    const getActionToFlag = useCallback(() => {
+        let reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
 
         // Handle threads if needed
         if (reportAction === undefined || reportAction.reportActionID === undefined) {
+            reportAction = ReportActionsUtils.getParentReportAction(props.report);
+        }
+
+        return reportAction;
+    }, [props.report, props.reportActions, props.route.params.reportActionID]);
+
+    const flagComment = (severity) => {
+        let reportID = getReportID(props.route);
+        const reportAction = getActionToFlag();
+
+        // Handle threads if needed
+        if (ReportUtils.isChatThread(props.report) && reportAction.reportActionID === ReportActionsUtils.getParentReportAction(props.report).reportActionID) {
             reportID = ReportUtils.getParentReport(props.report).reportID;
         }
-        Report.flagComment(reportID, reportAction, severity);
+
+        if (ReportUtils.canFlagReportAction(reportAction, reportID)) {
+            Report.flagComment(reportID, reportAction, severity);
+        }
+
         Navigation.dismissModal();
     };
 
@@ -155,7 +165,7 @@ function FlagCommentPage(props) {
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!shouldShowLoading && !ReportUtils.shouldShowFlagComment(reportAction, props.report)}>
+                <FullPageNotFoundView shouldShow={!shouldShowLoading && !ReportUtils.shouldShowFlagComment(getActionToFlag(), props.report)}>
                     <HeaderWithBackButton title={props.translate('reportActionContextMenu.flagAsOffensive')} />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
