@@ -5,5 +5,7 @@
         <color android:color="?attr/windowSplashScreenBackground" />
     </item>
 
-    <item android:gravity="center" android:drawable="@drawable/ic_bootsplash"/>
+    <item android:gravity="fill">
+        <bitmap android:src="?windowSplashScreenAnimatedIcon" android:gravity="center" />
+    </item>
 </layer-list>
