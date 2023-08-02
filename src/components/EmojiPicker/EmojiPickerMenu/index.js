@@ -137,7 +137,7 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Calculate the initial filtered + header emojis and header row indices
+     * Calculate the filtered + header emojis and header row indices
      * @returns {Object}
      */
     getEmojisAndHeaderRowIndices() {
