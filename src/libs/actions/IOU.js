@@ -1438,46 +1438,52 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
  * Initialize money request info and navigate to the MoneyRequest page
  * @param {String} iouType
  * @param {String} reportID
+ * @returns {Promise}
  */
 function startMoneyRequest(iouType, reportID = '') {
-    resetMoneyRequestInfo(`${iouType}${reportID}`).then(() => {
+    return resetMoneyRequestInfo(`${iouType}${reportID}`).then(() => {
         Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
     });
 }
 
 /**
  * @param {String} id
+ * @returns {Promise}
  */
 function setMoneyRequestId(id) {
-    Onyx.merge(ONYXKEYS.IOU, {id});
+    return Onyx.merge(ONYXKEYS.IOU, {id});
 }
 
 /**
  * @param {Number} amount
+ * @returns {Promise}
  */
 function setMoneyRequestAmount(amount) {
-    Onyx.merge(ONYXKEYS.IOU, {amount});
+    return Onyx.merge(ONYXKEYS.IOU, {amount});
 }
 
 /**
  * @param {String} currency
+ * @returns {Promise}
  */
 function setMoneyRequestCurrency(currency) {
-    Onyx.merge(ONYXKEYS.IOU, {currency});
+    return Onyx.merge(ONYXKEYS.IOU, {currency});
 }
 
 /**
  * @param {String} comment
+ * @returns {Promise}
  */
 function setMoneyRequestDescription(comment) {
-    Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
+    return Onyx.merge(ONYXKEYS.IOU, {comment: comment.trim()});
 }
 
 /**
  * @param {Object[]} participants
+ * @returns {Promise}
  */
 function setMoneyRequestParticipants(participants) {
-    Onyx.merge(ONYXKEYS.IOU, {participants});
+    return Onyx.merge(ONYXKEYS.IOU, {participants});
 }
 
 export {

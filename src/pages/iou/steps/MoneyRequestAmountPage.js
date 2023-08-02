@@ -379,14 +379,13 @@ function MoneyRequestAmountPage(props) {
 
     const navigateToNextPage = () => {
         const amountInSmallestCurrencyUnits = CurrencyUtils.convertToSmallestUnit(selectedCurrencyCode, Number.parseFloat(amount));
-        IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits);
-        IOU.setMoneyRequestCurrency(selectedCurrencyCode);
-
         saveAmountToState(selectedCurrencyCode, amountInSmallestCurrencyUnits);
+        const iouUpdates = [IOU.setMoneyRequestAmount(amountInSmallestCurrencyUnits), IOU.setMoneyRequestCurrency(selectedCurrencyCode)];
 
         if (isEditing.current) {
-            Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
-            return;
+            return Promise.all(iouUpdates).then(() => {
+                Navigation.goBack(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+            });
         }
 
         const moneyRequestID = `${iouType.current}${reportID.current}`;
@@ -394,28 +393,32 @@ function MoneyRequestAmountPage(props) {
         // If the money request ID in Onyx does not match the ID from params, we want to start a new request
         // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
         if (shouldReset) {
-            IOU.setMoneyRequestId(moneyRequestID);
-            IOU.setMoneyRequestDescription('');
-            IOU.setMoneyRequestParticipants([]);
+            iouUpdates.push(IOU.setMoneyRequestId(moneyRequestID), IOU.setMoneyRequestDescription(''));
+            if (!props.report.reportID) {
+                iouUpdates.push(IOU.setMoneyRequestParticipants([]));
+            }
         }
 
-        // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-        if (props.report.reportID) {
-            // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
-            if (_.isEmpty(props.iou.participants) || shouldReset) {
-                const currentUserAccountID = props.currentUserPersonalDetails.accountID;
-                const participants = ReportUtils.isPolicyExpenseChat(props.report)
-                    ? [{reportID: props.report.reportID, isPolicyExpenseChat: true, selected: true}]
-                    : _.chain(props.report.participantAccountIDs)
-                          .filter((accountID) => currentUserAccountID !== accountID)
-                          .map((accountID) => ({accountID, selected: true}))
-                          .value();
-                IOU.setMoneyRequestParticipants(participants);
-            }
-            Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
-            return;
+        // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
+        if (props.report.reportID && (_.isEmpty(props.iou.participants) || shouldReset)) {
+            const currentUserAccountID = props.currentUserPersonalDetails.accountID;
+            const participants = ReportUtils.isPolicyExpenseChat(props.report)
+                ? [{reportID: props.report.reportID, isPolicyExpenseChat: true, selected: true}]
+                : _.chain(props.report.participantAccountIDs)
+                      .filter((accountID) => currentUserAccountID !== accountID)
+                      .map((accountID) => ({accountID, selected: true}))
+                      .value();
+            iouUpdates.push(IOU.setMoneyRequestParticipants(participants));
         }
-        Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
+
+        Promise.all(iouUpdates).then(() => {
+            // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
+            if (props.report.reportID) {
+                Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+                return;
+            }
+            Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType.current));
+        });
     };
 
     const formattedAmount = replaceAllDigits(amount, toLocaleDigit);
