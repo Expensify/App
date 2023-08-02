@@ -261,15 +261,20 @@ class OptionRow extends Component {
                                             />
                                         </View>
                                     )}
-                                    {this.props.showSelectedState && (this.props.shouldShowSelectedStateAsButton && !this.props.isSelected) ?
-                                        <Button text={this.props.selectedStateButtonText} onPress={() => this.props.onSelectedStatePressed(this.props.option)} small /> :
-                                        <PressableWithFeedback
-                                            onPress={() => this.props.onSelectedStatePressed(this.props.option)}
-                                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
-                                        >
-                                            <SelectCircle isChecked={this.props.isSelected} />
-                                        </PressableWithFeedback>
-                                    }
+                                    {this.props.showSelectedState && (
+                                        <>
+                                            {this.props.shouldShowSelectedStateAsButton && !this.props.isSelected ? (
+                                                <Button text={this.props.selectedStateButtonText} onPress={() => this.props.onSelectedStatePressed(this.props.option)} small />
+                                            ) : (
+                                                <PressableWithFeedback
+                                                    onPress={() => this.props.onSelectedStatePressed(this.props.option)}
+                                                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.CHECKBOX}
+                                                >
+                                                    <SelectCircle isChecked={this.props.isSelected} />
+                                                </PressableWithFeedback>
+                                            )}
+                                        </>
+                                    )}
                                 </View>
                             </View>
                             {Boolean(this.props.option.customIcon) && (
