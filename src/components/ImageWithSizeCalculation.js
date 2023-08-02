@@ -65,7 +65,7 @@ function ImageWithSizeCalculation(props) {
                 return;
             }
             setIsImageCached(false);
-        }, 300);
+        }, 200);
         return () => clearTimeout(timeout);
     }, [isLoading]);
 
