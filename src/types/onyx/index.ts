@@ -34,6 +34,7 @@ import PolicyMember from './PolicyMember';
 import Policy from './Policy';
 import Report from './Report';
 import ReportAction from './ReportAction';
+import ReportActionReactions from './ReportActionReactions';
 import SecurityGroup from './SecurityGroup';
 import Transaction from './Transaction';
 import Form, {AddDebitCardForm} from './Form';
@@ -75,6 +76,7 @@ export type {
     Policy,
     Report,
     ReportAction,
+    ReportActionReactions,
     SecurityGroup,
     Transaction,
     Form,

@@ -132,7 +132,7 @@ const ONYXKEYS = {
     /** The user's credit cards */
     CARD_LIST: 'cardList',
 
-    // The user's credit cards (renamed from cardList)
+    /** The user's credit cards (renamed from cardList) */
     FUND_LIST: 'fundList',
 
     /** Stores information about the user's saved statements */
@@ -180,9 +180,6 @@ const ONYXKEYS = {
     /** Is app in beta version */
     IS_BETA: 'isBeta',
 
-    /** Whether the auth token is valid */
-    IS_TOKEN_VALID: 'isTokenValid',
-
     /** Whether we're checking if the room is public or not */
     IS_CHECKING_PUBLIC_ROOM: 'isCheckingPublicRoom',
 
@@ -208,6 +205,7 @@ const ONYXKEYS = {
         REPORT: 'report_',
         REPORT_ACTIONS: 'reportActions_',
         REPORT_ACTIONS_DRAFTS: 'reportActionsDrafts_',
+        REPORT_ACTIONS_REACTIONS: 'reportActionsReactions_',
         REPORT_DRAFT_COMMENT: 'reportDraftComment_',
         REPORT_DRAFT_COMMENT_NUMBER_OF_LINES: 'reportDraftCommentNumberOfLines_',
         REPORT_IS_COMPOSER_FULL_SIZE: 'reportIsComposerFullSize_',
@@ -305,7 +303,6 @@ type OnyxValues = {
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
     [ONYXKEYS.IS_BETA]: boolean;
-    [ONYXKEYS.IS_TOKEN_VALID]: boolean;
     [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, string>;
     [ONYXKEYS.LAST_OPENED_PUBLIC_ROOM_ID]: string;
@@ -319,9 +316,10 @@ type OnyxValues = {
     [deprecatedPolicyMemberList: `${typeof ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}${string}`]: OnyxTypes.PolicyMember;
     [workspaceInviteMembersDraft: `${typeof ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${string}`]: Record<string, number>;
     [report: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`]: OnyxTypes.Report;
-    [ReportActions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`]: OnyxTypes.ReportAction;
-    [ReportActionsDrafts: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`]: string;
-    [ReportDraftComment: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}`]: string;
+    [reportActions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`]: OnyxTypes.ReportAction;
+    [reportActionsDrafts: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`]: string;
+    [reportActionsReactions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${string}`]: OnyxTypes.ReportActionReactions;
+    [reportDraftComment: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}`]: string;
     [reportDraftCommentNumberOfLines: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${string}`]: number;
     [reportIsComposerFull: `${typeof ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${string}`]: boolean;
     [reportUserIsTyping: `${typeof ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${string}`]: boolean;
