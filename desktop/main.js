@@ -40,7 +40,7 @@ contextMenu({
         new MenuItem({
             label: Localize.translate(CONST.LOCALES.DEFAULT, 'desktopApplicationMenu.pasteAsPlainText'),
             visible: parameters.isEditable && parameters.editFlags.canPaste,
-            accelerator:PASTE_AS_PLAIN_TEXT_ACCELERATOR,
+            accelerator: PASTE_AS_PLAIN_TEXT_ACCELERATOR,
             click: () => {
                 // Insert the plain text from the clipboard
                 const text = clipboard.readText();
