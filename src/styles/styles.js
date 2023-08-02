@@ -1504,6 +1504,10 @@ const styles = {
         paddingHorizontal: 20,
     },
 
+    chatSeparator: {
+        height: 8,
+    },
+
     chatItemRightGrouped: {
         flexGrow: 1,
         flexShrink: 1,

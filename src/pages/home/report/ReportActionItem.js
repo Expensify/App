@@ -105,12 +105,6 @@ const propTypes = {
 
     /** Is this the only report action on the report? */
     isOnlyReportAction: PropTypes.bool,
-
-    separatorActions: PropTypes.exact({
-        highlight: PropTypes.func.isRequired,
-        unhighlight: PropTypes.func.isRequired,
-    }).isRequired,
-    expandHoverArea: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
 const defaultProps = {
@@ -130,17 +124,6 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
-
-    useEffect(() => {
-        const shouldHighlight = lodashGet(props.action, 'whisperedToAccountIDs.length', 0) > 0 && props.displayAsGroup;
-
-        if (shouldHighlight) {
-            props.separatorActions.highlight();
-        } else {
-            props.separatorActions.unhighlight();
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [props.action.whisperedToAccountIDs, props.displayAsGroup, props.separatorActions.highlight, props.separatorActions.unhighlight]);
 
     useEffect(
         () => () => {
@@ -545,9 +528,9 @@ function ReportActionItem(props) {
                         >
                             {hovered && !isWhisper && (
                                 <>
-                                    <View style={StyleUtils.getReportActionItemHoverStyle(true, _.includes(props.expandHoverArea, 'top'))} />
+                                    <View style={StyleUtils.getReportActionItemHoverStyle()} />
 
-                                    <View style={StyleUtils.getReportActionItemHoverStyle(false, _.includes(props.expandHoverArea, 'bottom'))} />
+                                    <View style={StyleUtils.getReportActionItemHoverStyle(false)} />
                                 </>
                             )}
                             <OfflineWithFeedback
