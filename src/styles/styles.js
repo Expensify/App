@@ -203,6 +203,9 @@ const styles = {
     },
     emojiSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...wordBreak.breakWord,
+        ...spacing.pr4,
     },
 
     mentionSuggestionsAvatarContainer: {
@@ -1551,13 +1554,6 @@ const styles = {
         ...cursor.cursorAuto,
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
-    },
-
-    chatItemMessageLink: {
-        color: themeColors.link,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.EXP_NEUE,
-        lineHeight: variables.lineHeightXLarge,
     },
 
     chatItemComposeWithFirstRow: {

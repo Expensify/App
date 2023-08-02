@@ -96,6 +96,7 @@ function LegalNamePage(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={legalFirstName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        spellCheck={false}
                     />
                 </View>
                 <View>
@@ -107,6 +108,7 @@ function LegalNamePage(props) {
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         defaultValue={legalLastName}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        spellCheck={false}
                     />
                 </View>
             </Form>
