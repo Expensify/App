@@ -20,7 +20,7 @@ import AttachmentCarouselPagerContext from './AttachmentCarouselPagerContext';
 import ImageWrapper from './ImageWrapper';
 
 const MIN_ZOOM_SCALE_WITHOUT_BOUNCE = 1;
-const MAX_ZOOM_SCALE_WITHOUT_BOUNCE = 10;
+const MAX_ZOOM_SCALE_WITHOUT_BOUNCE = 20;
 
 const MIN_ZOOM_SCALE_WITH_BOUNCE = MIN_ZOOM_SCALE_WITHOUT_BOUNCE * 0.7;
 const MAX_ZOOM_SCALE_WITH_BOUNCE = MAX_ZOOM_SCALE_WITHOUT_BOUNCE * 1.5;
