@@ -310,6 +310,8 @@ const mainWindow = () => {
                     browserWindow.setTitle('New Expensify');
                 }
 
+                const PASTE_AS_PLAIN_TEXT_EDIT_MENU_ID = 'pasteAsPlainText';
+
                 const initialMenuTemplate = [
                     {
                         id: 'mainMenu',
@@ -357,7 +359,7 @@ const mainWindow = () => {
                                 accelerator: PASTE_AND_MATCH_STYLE_ACCELERATOR,
                             },
                             {
-                                id: 'pasteAsPlainText',
+                                id: PASTE_AS_PLAIN_TEXT_EDIT_MENU_ID,
                                 accelerator: PASTE_AS_PLAIN_TEXT_ACCELERATOR,
                                 click: () => pasteAsPlainText(browserWindow),
                             },
