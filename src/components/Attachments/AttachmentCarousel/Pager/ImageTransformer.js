@@ -25,7 +25,7 @@ const MAX_ZOOM_SCALE_WITHOUT_BOUNCE = 10;
 const MIN_ZOOM_SCALE_WITH_BOUNCE = MIN_ZOOM_SCALE_WITHOUT_BOUNCE * 0.7;
 const MAX_ZOOM_SCALE_WITH_BOUNCE = MAX_ZOOM_SCALE_WITHOUT_BOUNCE * 1.5;
 
-const DOUBLE_TAP_SCALE = 2;
+const DOUBLE_TAP_SCALE = 4;
 
 const SPRING_CONFIG = {
     mass: 1,
@@ -209,9 +209,12 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
 
             stopAnimation();
 
+            const canvasOffsetX = Math.max(0, (canvasWidth - scaledImageWidth) / 2);
+            const canvasOffsetY = Math.max(0, (canvasHeight - scaledImageHeight) / 2);
+
             const imageFocal = {
-                x: clamp(canvasFocalX, 0, scaledImageWidth),
-                y: clamp(canvasFocalY, 0, scaledImageHeight),
+                x: clamp(canvasFocalX - canvasOffsetX, 0, scaledImageWidth),
+                y: clamp(canvasFocalY - canvasOffsetY, 0, scaledImageHeight),
             };
 
             const canvasCenter = {
@@ -238,6 +241,8 @@ function ImageTransformer({imageWidth, imageHeight, imageScaleX, imageScaleY, sc
                 x: (targetImageCenter.x - canvasCenter.x) * -1,
                 y: (targetImageCenter.y - canvasCenter.y) * -1,
             };
+
+            console.log({x: (imageFocal.x / scaledImageWidth) * 100, y: (imageFocal.y / scaledImageHeight) * 100});
 
             const koef = {
                 x: (1 / originImageCenter.x) * imageFocal.x - 1,
