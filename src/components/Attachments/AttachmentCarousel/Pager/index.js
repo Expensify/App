@@ -143,6 +143,7 @@ function AttachmentCarouselPager({
             >
                 <AnimatedPagerView
                     pageMargin={40}
+                    offscreenPageLimit={1}
                     onPageScroll={pageScrollHandler}
                     animatedProps={animatedProps}
                     onPageSelected={onPageSelected}
