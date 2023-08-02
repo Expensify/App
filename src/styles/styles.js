@@ -560,9 +560,9 @@ const styles = {
     },
 
     buttonDivider: {
-        width: 1,
-        backgroundColor: themeColors.text,
         height: 28,
+        borderWidth: 1,
+        borderColor: themeColors.text,
     },
 
     noBorderRadius: {
