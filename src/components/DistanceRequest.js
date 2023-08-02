@@ -5,7 +5,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
-import createInitialWaypoints from '../libs/actions/Transaction';
+import * as Transaction from '../libs/actions/Transaction';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
@@ -38,7 +38,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function DistanceRequest({transaction, translate}) {
+function DistanceRequest({transactionID, transaction, translate}) {
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const lastWaypointIndex = _.size(waypoints) - 1;
 
@@ -47,7 +47,7 @@ function DistanceRequest({transaction, translate}) {
             return;
         }
         // Create the initial start and stop waypoints
-        createInitialWaypoints(transaction.transactionID);
+        Transaction.createInitialWaypoints(transaction.transactionID);
     }, [transaction.transactionID, waypoints]);
 
     return (
@@ -78,7 +78,7 @@ function DistanceRequest({transaction, translate}) {
                 <Button
                     small
                     icon={Expensicons.Plus}
-                    onPress={() => {}}
+                    onPress={() => Transaction.addStop(transactionID, lastWaypointIndex + 1)}
                     text={translate('distance.addStop')}
                     isDisabled={false}
                     innerStyles={[styles.ph10]}
