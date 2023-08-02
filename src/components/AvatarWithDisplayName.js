@@ -91,7 +91,7 @@ function AvatarWithDisplayName(props) {
                         {!_.isEmpty(parentNavigationSubtitleData) && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                parentReportID={props.report.parentReportID || ''}
+                                parentReportID={props.report.parentReportID}
                             />
                         )}
                         {!_.isEmpty(subtitle) && (
