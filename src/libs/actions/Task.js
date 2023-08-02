@@ -621,6 +621,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
     const message = `canceled task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
+    const parentReportAction = ReportActionsUtils.getParentReportAction(taskReportID);
 
     const optimisticData = [
         {

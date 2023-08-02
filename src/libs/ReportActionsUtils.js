@@ -561,6 +561,27 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
+/**
+ * When you change assignees, a task created reportAction is added to that specific assignee's report.
+ * You can do this multiple times, so when we perform an action that modifies the parent report, we need to update all the parent report actions
+ * @param {*} taskReportID 
+ * @returns {Array} taskCreatedReportActions
+ */
+function getTaskCreatedReportActions(taskReportID) {
+    const taskCreatedReportActions = [];
+    _.each(allReports, (report) => {
+        _.each(report.reportActions, (reportAction) => {
+            if (reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || reportAction.originalMessage.taskReportID !== taskReportID)
+            {
+                return;
+            }
+          
+            taskCreatedReportActions.push(reportAction);
+        });
+    });
+    return taskCreatedReportActions;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -593,4 +614,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getTaskCreatedReportActions,
 };
