@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
+import * as ReportUtils from '../libs/ReportUtils';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsSelector from './OptionsSelector';
 import ONYXKEYS from '../ONYXKEYS';
@@ -153,7 +154,14 @@ function MoneyRequestConfirmationList(props) {
         const unselectedParticipants = _.filter(props.selectedParticipants, (participant) => !participant.selected);
         if (props.hasMultipleParticipants) {
             const formattedSelectedParticipants = getParticipantsWithAmount(selectedParticipants);
-            const formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+            let formattedParticipantsList = _.union(formattedSelectedParticipants, unselectedParticipants);
+
+            if (!canModifyParticipants) {
+                formattedParticipantsList = _.map(formattedParticipantsList, (participant) => ({
+                    ...participant,
+                    isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+                }));
+            }
 
             const myIOUAmount = IOUUtils.calculateAmount(selectedParticipants.length, props.iouAmount, true);
             const formattedPayeeOption = OptionsListUtils.getIOUConfirmationOptionsFromPayeePersonalDetail(
@@ -177,9 +185,13 @@ function MoneyRequestConfirmationList(props) {
                 },
             );
         } else {
+            const formattedSelectedParticipants = _.map(props.selectedParticipants, (participant) => ({
+                ...participant,
+                isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+            }));
             sections.push({
                 title: translate('common.to'),
-                data: props.selectedParticipants,
+                data: formattedSelectedParticipants,
                 shouldShow: true,
                 indexOffset: 0,
             });
@@ -195,6 +207,7 @@ function MoneyRequestConfirmationList(props) {
         payeePersonalDetails,
         translate,
         shouldDisablePaidBySection,
+        canModifyParticipants,
     ]);
 
     const selectedOptions = useMemo(() => {
