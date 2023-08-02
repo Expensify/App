@@ -69,7 +69,7 @@ Once they click the link, a new.expensify.com account is set up for them automat
 ## Flagging content as offensive
 In order to maintain a safe community for our users, Expensify provides tools to report offensive content and unwanted behavior in Expensify Chat. If you see a message (or attachment/image) from another user that you’d like our moderators to review, you can flag it by clicking the flag icon in the message context menu (on desktop) or holding down on the message and selecting “Flag as offensive” (on mobile).
 
-![Moderation Context Menu](http://help.expensify.com/assets/images/moderation-context-menu.png){:width="100%"}
+![Moderation Context Menu](https://help.expensify.com/assets/images/moderation-context-menu.png){:width="100%"}
 
 Once the flag is selected, you will be asked to categorize the message (such as spam, bullying, and harassment). Select what you feel best represents the issue is with the content, and you’re done - the message will be sent off to our internal team for review. 
 
