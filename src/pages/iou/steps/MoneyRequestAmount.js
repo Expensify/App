@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';

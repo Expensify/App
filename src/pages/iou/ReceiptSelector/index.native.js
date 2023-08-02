@@ -19,6 +19,7 @@ import Button from '../../../components/Button';
 import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
+import {useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     /** Route params */
@@ -98,11 +99,23 @@ function ReceiptSelector(props) {
     const [flash, setFlash] = useState(false);
 
     const [permissions, setPermissions] = useState('authorized');
+    const [isVisible, setIsVisible] = useState(false);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
 
     const {translate} = useLocalize();
+
+    // Keep track of whether the camera is visible, when we navigate elsewhere, turn off the camera
+    useFocusEffect(
+        useCallback(() => {
+            setIsVisible(true);
+            return () => {
+                setIsVisible(false);
+            };
+        }, []),
+    );
+
     /**
      * Inform the users when they need to grant camera access and guide them to settings
      */
@@ -240,7 +253,7 @@ function ReceiptSelector(props) {
                     device={device}
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
-                    isActive
+                    isActive={isVisible}
                     photo
                 />
             )}
