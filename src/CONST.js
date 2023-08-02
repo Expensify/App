@@ -479,6 +479,13 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+    RECEIPT: {
+        ICON_SIZE: 164,
+        PERMISSION_AUTHORIZED: 'authorized',
+        HAND_ICON_HEIGHT: 152,
+        HAND_ICON_WIDTH: 200,
+        SHUTTER_SIZE: 90,
+    },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
@@ -1057,6 +1064,12 @@ const CONST = {
         RECEIPT_STATE: {
             SCANREADY: 'SCANREADY',
         },
+        FILE_TYPES: {
+            HTML: 'html',
+            DOC: 'doc',
+            DOCX: 'docx',
+            SVG: 'svg',
+        },
     },
 
     GROWL: {
@@ -1108,6 +1121,10 @@ const CONST = {
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
+
+    ACTIVITY_INDICATOR_SIZE: {
+        LARGE: 'large',
+    },
 
     AVATAR_SIZE: {
         LARGE: 'large',
@@ -2544,6 +2561,11 @@ const CONST = {
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
+    },
+    TAB: {
+        RECEIPT_TAB_ID: 'ReceiptTab',
+        MANUAL: 'manual',
+        SCAN: 'scan',
     },
 };
 
