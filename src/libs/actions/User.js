@@ -554,12 +554,12 @@ function subscribeToUserEvents() {
         } else {
             // Store these values in Onyx to allow App.reconnectApp() to fetch incremental updates from the server when a previous session is being reconnected to.
             Onyx.multiSet({
-                [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: pushJSON.lastUpdateID,
-                [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: pushJSON.previousUpdateID,
+                [ONYXKEYS.ONYX_UPDATES.LAST_UPDATE_ID]: Number(pushJSON.lastUpdateID || 0),
+                [ONYXKEYS.ONYX_UPDATES.PREVIOUS_UPDATE_ID]: Number(pushJSON.previousUpdateID || 0),
             });
             updates = pushJSON.updates;
-            console.debug('[OnyxUpdates] Received lastUpdateID from pusher', Number(pushJSON.lastUpdateID || 0));
-            console.debug('[OnyxUpdates] Received previousUpdateID from pusher', Number(pushJSON.previousUpdateID || 0));
+            console.debug('[OnyxUpdates] Received lastUpdateID from pusher', pushJSON.lastUpdateID);
+            console.debug('[OnyxUpdates] Received previousUpdateID from pusher', pushJSON.previousUpdateID);
         }
         _.each(updates, (multipleEvent) => {
             PusherUtils.triggerMultiEventHandler(multipleEvent.eventType, multipleEvent.data);
