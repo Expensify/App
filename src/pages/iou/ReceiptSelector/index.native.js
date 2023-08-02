@@ -200,9 +200,9 @@ function ReceiptSelector(props) {
         setPermissions(permissionStatus);
     });
 
-    const getCameraView = () => {
-        if (permissions !== CONST.RECEIPT.PERMISSION_AUTHORIZED) {
-            return (
+    return (
+        <View style={styles.flex1}>
+            {permissions !== CONST.RECEIPT.PERMISSION_AUTHORIZED && (
                 <View style={[styles.cameraView, styles.permissionView]}>
                     <Hand
                         width={CONST.RECEIPT.HAND_ICON_WIDTH}
@@ -224,11 +224,8 @@ function ReceiptSelector(props) {
                         />
                     </PressableWithFeedback>
                 </View>
-            );
-        }
-
-        if (device == null) {
-            return (
+            )}
+            {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device == null && (
                 <View style={[styles.cameraView]}>
                     <ActivityIndicator
                         size="large"
@@ -236,24 +233,17 @@ function ReceiptSelector(props) {
                         color={themeColors.textSupporting}
                     />
                 </View>
-            );
-        }
-
-        return (
-            <Camera
-                ref={camera}
-                device={device}
-                style={[styles.cameraView]}
-                zoom={device.neutralZoom}
-                isActive
-                photo
-            />
-        );
-    };
-
-    return (
-        <View style={styles.flex1}>
-            {getCameraView()}
+            )}
+            {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device != null && (
+                <Camera
+                    ref={camera}
+                    device={device}
+                    style={[styles.cameraView]}
+                    zoom={device.neutralZoom}
+                    isActive
+                    photo
+                />
+            )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <PressableWithFeedback
                     accessibilityRole="button"

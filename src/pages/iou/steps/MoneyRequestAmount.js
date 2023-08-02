@@ -175,7 +175,7 @@ function MoneyRequestAmount(props) {
     const textInput = useRef(null);
     const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
-    const isEditing = useRef(Navigation.getActiveRoute().includes('amount'));
+    const isEditing = useRef(lodashGet(props.route, 'path', '').includes('amount'));
 
     const [amount, setAmount] = useState(selectedAmountAsString);
     const [selectedCurrencyCode, setSelectedCurrencyCode] = useState(props.iou.currency || CONST.CURRENCY.USD);
