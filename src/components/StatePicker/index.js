@@ -30,7 +30,7 @@ const defaultProps = {
     forwardedRef: undefined,
     errorText: '',
     onInputChange: () => {},
-    label: '',
+    label: undefined,
 };
 
 function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {

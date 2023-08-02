@@ -34,7 +34,7 @@ const defaultProps = {
     currentState: '',
     onClose: () => {},
     onStateSelected: () => {},
-    label: '',
+    label: undefined,
 };
 
 function filterOptions(searchValue, data) {
