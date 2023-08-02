@@ -2401,6 +2401,7 @@ const styles = {
         backgroundColor: themeColors.border,
         flexGrow: 1,
         marginHorizontal: 20,
+        marginTop: 8,
     },
 
     unreadIndicatorText: {
