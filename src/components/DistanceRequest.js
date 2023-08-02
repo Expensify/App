@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import Text from './Text';
 import ONYXKEYS from '../ONYXKEYS';
 import createInitialWaypoints from '../libs/actions/Transaction';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
@@ -12,6 +11,8 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
+import Button from './Button';
+import styles from '../styles/styles';
 
 const propTypes = {
     /** The transactionID of this request */
@@ -37,7 +38,7 @@ const defaultProps = {
     transaction: {},
 };
 
-function DistanceRequest({transaction, transactionID, translate}) {
+function DistanceRequest({transaction, translate}) {
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
     const lastWaypointIndex = _.size(waypoints) - 1;
 
@@ -73,8 +74,14 @@ function DistanceRequest({transaction, transactionID, translate}) {
                     />
                 );
             })}
-            <Text>Distance Request</Text>
-            <Text>transactionID: {transactionID}</Text>
+            <Button
+                small
+                icon={Expensicons.Plus}
+                onPress={() => {}}
+                text={translate('distance.addStop')}
+                isDisabled={false}
+                style={[styles.w50]}
+            />
         </ScrollView>
     );
 }
