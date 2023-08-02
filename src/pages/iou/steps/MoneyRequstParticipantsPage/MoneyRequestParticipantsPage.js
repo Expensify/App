@@ -49,8 +49,8 @@ function MoneyRequestParticipantsPage({iou, translate, route}) {
     const iouType = useRef(lodashGet(route, 'params.iouType', ''));
     const reportID = useRef(lodashGet(route, 'params.reportID', ''));
 
-    const navigateToNextStep = () => {
-        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
+    const navigateToNextStep = (requestType) => {
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(requestType, reportID.current));
     };
 
     const navigateBack = (forceFallback = false) => {
@@ -98,13 +98,13 @@ function MoneyRequestParticipantsPage({iou, translate, route}) {
                         <MoneyRequestParticipantsSplitSelector
                             participants={iou.participants}
                             onAddParticipants={IOU.setMoneyRequestParticipants}
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             navigateToRequest={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
                             navigateToSplit={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
+                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     ) : (
                         <MoneyRequestParticipantsSelector
-                            onStepComplete={navigateToNextStep}
+                            onStepComplete={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
                             onAddParticipants={IOU.setMoneyRequestParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                             iouType={iouType.current}

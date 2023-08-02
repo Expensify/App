@@ -200,6 +200,11 @@ function FloatingActionButtonAndPopover(props) {
                         text: props.translate('iou.requestMoney'),
                         onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)),
                     },
+                    {
+                        icon: Expensicons.Receipt,
+                        text: props.translate('iou.splitBill'),
+                        onSelected: () => interceptAnonymousUser(() => IOU.startMoneyRequest(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)),
+                    },
                     ...(Permissions.canUseTasks(props.betas)
                         ? [
                               {

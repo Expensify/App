@@ -120,10 +120,20 @@ function MoneyRequestParticipantsSplitSelector({betas, participants, personalDet
     }, [maxParticipantsReached, newChatOptions, participants, personalDetails, translate]);
 
     /**
+     * Adds a single participant to the request
+     *
+     * @param {Object} option
+     */
+    const addSingleParticipant = (option) => {
+        onAddParticipants([{accountID: option.accountID, login: option.login, isPolicyExpenseChat: option.isPolicyExpenseChat, reportID: option.reportID, selected: true}]);
+        navigateToRequest();
+    }
+
+    /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      * @param {Object} option
      */
-    const toggleOption = useCallback(
+    const addParticipantToSelection = useCallback(
         (option) => {
             const isOptionInList = _.some(participants, (selectedOption) => selectedOption.accountID === option.accountID);
 
@@ -171,11 +181,11 @@ function MoneyRequestParticipantsSplitSelector({betas, participants, personalDet
                 canSelectMultipleOptions
                 shouldShowMultipleOptionSelectorAsButton
                 multipleOptionSelectorButtonText={translate('iou.split')}
-                onAddToSelection={toggleOption}
+                onAddToSelection={addParticipantToSelection}
                 sections={sections}
                 selectedOptions={participants}
                 value={searchTerm}
-                onSelectRow={navigateToRequest}
+                onSelectRow={addSingleParticipant}
                 onChangeText={setSearchTerm}
                 headerMessage={headerMessage}
                 boldStyle
