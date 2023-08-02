@@ -172,9 +172,6 @@ export default {
     // Store frequently used emojis for this user
     FREQUENTLY_USED_EMOJIS: 'frequentlyUsedEmojis',
 
-    // Stores Workspace ID that will be tied to reimbursement account during setup
-    REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
-
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
