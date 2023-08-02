@@ -1,5 +1,5 @@
-import {ActivityIndicator, Alert, Linking, Text, View} from 'react-native';
-import React, {useCallback, useRef, useState} from 'react';
+import {ActivityIndicator, Alert, AppState, Linking, Text, View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -98,6 +98,7 @@ function ReceiptSelector(props) {
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
     const [permissions, setPermissions] = useState('authorized');
+    const appState = useRef(AppState.currentState);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
@@ -105,6 +106,23 @@ function ReceiptSelector(props) {
     const {translate} = useLocalize();
     // Keep track of whether the camera is visible, when we navigate elsewhere, turn off the camera
     const isFocused = useIsFocused();
+
+    // We want to listen to if the app has come back from background and refresh the permissions status to show camera when permissions were granted
+    useEffect(() => {
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+                Camera.getCameraPermissionStatus().then((permissionStatus) => {
+                    setPermissions(permissionStatus);
+                });
+            }
+
+            appState.current = nextAppState;
+        });
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     /**
      * Inform the users when they need to grant camera access and guide them to settings
@@ -136,13 +154,14 @@ function ReceiptSelector(props) {
     };
 
     const askForPermissions = () => {
-        if (permissions === 'not-determined') {
-            Camera.requestCameraPermission().then((permissionStatus) => {
-                setPermissions(permissionStatus);
-            });
-        } else {
+        if (permissions === 'denied') {
             Linking.openSettings();
+            return;
         }
+
+        Camera.requestCameraPermission().then((permissionStatus) => {
+            setPermissions(permissionStatus);
+        });
     };
 
     /**
