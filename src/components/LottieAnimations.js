@@ -1,8 +1,8 @@
-import ExpensifyLounge from '../../assets/animations/ExpensifyLounge.json';
-import Fireworks from '../../assets/animations/Fireworks.json';
-import Hands from '../../assets/animations/Hands.json';
-import PreferencesDJ from '../../assets/animations/PreferencesDJ.json';
-import ReviewingBankInfo from '../../assets/animations/ReviewingBankInfo.json';
-import WorkspacePlanet from '../../assets/animations/WorkspacePlanet.json';
+const ExpensifyLounge = require('../../assets/animations/ExpensifyLounge.json');
+const Fireworks = require('../../assets/animations/Fireworks.json');
+const Hands = require('../../assets/animations/Hands.json');
+const PreferencesDJ = require('../../assets/animations/PreferencesDJ.json');
+const ReviewingBankInfo = require('../../assets/animations/ReviewingBankInfo.json');
+const WorkspacePlanet = require('../../assets/animations/WorkspacePlanet.json');
 
 export {ExpensifyLounge, Fireworks, Hands, PreferencesDJ, ReviewingBankInfo, WorkspacePlanet};

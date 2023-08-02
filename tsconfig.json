@@ -1,0 +1,37 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "commonjs",
+        "types": ["react-native", "jest"],
+        "lib": [
+            "DOM",
+            "es2019",
+            "es2020.bigint",
+            "es2020.date",
+            "es2020.number",
+            "es2020.promise",
+            "es2020.string",
+            "es2020.symbol.wellknown",
+            "es2021.promise",
+            "es2021.string",
+            "es2021.weakref",
+            "es2022.array",
+            "es2022.object",
+            "es2022.string"
+        ],
+        "allowJs": true,
+        "checkJs": false,
+        "jsx": "react-native",
+        "noEmit": true,
+        "isolatedModules": true,
+        "strict": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "skipLibCheck": true,
+        "incremental": true
+    },
+    "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js"],
+    "include": ["src", "desktop", "web", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*"]
+}

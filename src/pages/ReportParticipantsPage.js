@@ -86,7 +86,10 @@ const getAllParticipants = (report, personalDetails, translate) => {
 };
 
 function ReportParticipantsPage(props) {
-    const participants = getAllParticipants(props.report, props.personalDetails, props.translate);
+    const participants = _.map(getAllParticipants(props.report, props.personalDetails, props.translate), (participant) => ({
+        ...participant,
+        isDisabled: ReportUtils.isOptimisticPersonalDetail(participant.accountID),
+    }));
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
