@@ -1,4 +1,4 @@
-const {app, dialog,clipboard, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
+const {app, dialog, clipboard, BrowserWindow, Menu, MenuItem, shell, ipcMain} = require('electron');
 const _ = require('underscore');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
@@ -347,7 +347,7 @@ const mainWindow = () => {
                                     const text = clipboard.readText();
                                     browserWindow.webContents.insertText(text);
                                 },
-                            },                            
+                            },
                             {id: 'delete', role: 'delete'},
                             {id: 'selectAll', role: 'selectAll'},
                             {type: 'separator'},
