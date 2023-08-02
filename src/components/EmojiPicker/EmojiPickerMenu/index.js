@@ -79,8 +79,9 @@ class EmojiPickerMenu extends Component {
         this.currentScrollOffset = 0;
         this.firstNonHeaderIndex = 0;
 
-        const {filteredEmojis, headerRowIndices} = this.getFilteredEmojisAndHeaderRowIndices();
+        const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
         this.emojis = filteredEmojis;
+        this.headerEmojis = headerEmojis;
         this.headerRowIndices = headerRowIndices;
 
         this.state = {
@@ -112,8 +113,9 @@ class EmojiPickerMenu extends Component {
     componentDidUpdate(prevProps) {
         if (prevProps.frequentlyUsedEmojis === this.props.frequentlyUsedEmojis) return;
 
-        const {filteredEmojis, headerRowIndices} = this.getFilteredEmojisAndHeaderRowIndices();
+        const {filteredEmojis, headerEmojis, headerRowIndices} = this.getEmojisAndHeaderRowIndices();
         this.emojis = filteredEmojis;
+        this.headerEmojis = headerEmojis;
         this.headerRowIndices = headerRowIndices;
         this.setState({
             filteredEmojis: this.emojis,
@@ -135,10 +137,10 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
-     * Calculate the initial filtered emojis and header row indices
+     * Calculate the initial filtered + header emojis and header row indices
      * @returns {Object}
      */
-    getFilteredEmojisAndHeaderRowIndices() {
+    getEmojisAndHeaderRowIndices() {
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them
         const flagHeaderIndex = _.findIndex(emojis, (emoji) => emoji.header && emoji.code === 'flags');
@@ -156,7 +158,7 @@ class EmojiPickerMenu extends Component {
         // This is because each row of 8 emojis counts as one index to the flatlist
         const headerRowIndices = _.map(headerEmojis, (headerEmoji) => Math.floor(headerEmoji.index / CONST.EMOJI_NUM_PER_ROW));
 
-        return {filteredEmojis, headerRowIndices};
+        return {filteredEmojis, headerEmojis, headerRowIndices};
     }
 
     /**
