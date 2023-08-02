@@ -81,7 +81,7 @@ function ReportWelcomeMessagePage(props) {
                                 accessibilityLabel={props.translate('welcomeMessagePage.welcomeMessage')}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                                 autoGrowHeight
-                                maxLength={CONST.MAX_COMMENT_LENGTH}
+                                maxLength={CONST.SUPPORTING_TEXT_MAX_LENGTH}
                                 ref={(el) => {
                                     // Before updating the DOM, React sets the affected ref.current values to null. After updating the DOM, React immediately sets them to the corresponding DOM nodes
                                     // to avoid focus multiple time, we should early return if el is null.
