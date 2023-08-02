@@ -392,7 +392,7 @@ function BaseWalletPage(props) {
     return (
         <ScreenWrapper>
             <HeaderWithBackButton
-                title={translate('common.wallet')}
+                title={translate('common.payments')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
             />
             <View style={[styles.flex1, styles.mb4]}>
