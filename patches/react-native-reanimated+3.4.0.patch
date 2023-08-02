@@ -1,0 +1,69 @@
+diff --git a/node_modules/react-native-reanimated/lib/module/reanimated2/mock.js b/node_modules/react-native-reanimated/lib/module/reanimated2/mock.js
+index c027775..298b61d 100644
+--- a/node_modules/react-native-reanimated/lib/module/reanimated2/mock.js
++++ b/node_modules/react-native-reanimated/lib/module/reanimated2/mock.js
+@@ -42,6 +42,15 @@ const ReanimatedV2 = {
+   useSharedValue: v => ({
+     value: v
+   }),
++  useAnimatedSensor: v => ({
++    sensor: {
++      value: {
++        x: 0,
++        y: 0,
++        z: 0,
++      }
++    },
++  }),
+   useDerivedValue: a => ({
+     value: a()
+   }),
+@@ -109,6 +118,13 @@ const ReanimatedV2 = {
+     CLAMP: 'clamp',
+     IDENTITY: 'identity'
+   },
++  SensorType: {
++    ACCELEROMETER: 1,
++    GYROSCOPE: 2,
++    GRAVITY: 3,
++    MAGNETIC_FIELD: 4,
++    ROTATION: 5
++  },
+   runOnJS: fn => fn,
+   runOnUI: fn => fn
+ };
+diff --git a/node_modules/react-native-reanimated/src/reanimated2/mock.ts b/node_modules/react-native-reanimated/src/reanimated2/mock.ts
+index 22a2bda..6541e50 100644
+--- a/node_modules/react-native-reanimated/src/reanimated2/mock.ts
++++ b/node_modules/react-native-reanimated/src/reanimated2/mock.ts
+@@ -47,6 +47,15 @@ class BaseAnimationMock {
+ 
+ const ReanimatedV2 = {
+   useSharedValue: (v) => ({ value: v }),
++  useAnimatedSensor: v => ({
++    sensor: {
++      value: {
++        x: 0,
++        y: 0,
++        z: 0,
++      }
++    },
++  }),
+   useDerivedValue: (a) => ({ value: a() }),
+   useAnimatedScrollHandler: () => NOOP,
+   useAnimatedGestureHandler: () => NOOP,
+@@ -109,7 +118,13 @@ const ReanimatedV2 = {
+     CLAMP: 'clamp',
+     IDENTITY: 'identity',
+   },
+-
++  SensorType: {
++    ACCELEROMETER: 1,
++    GYROSCOPE: 2,
++    GRAVITY: 3,
++    MAGNETIC_FIELD: 4,
++    ROTATION: 5
++  },
+   runOnJS: (fn) => fn,
+   runOnUI: (fn) => fn,
+ };
