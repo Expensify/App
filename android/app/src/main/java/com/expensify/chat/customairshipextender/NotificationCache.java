@@ -94,6 +94,10 @@ public class NotificationCache {
         return result;
     }
 
+    /**
+     * A class for caching data for notifications. We use this to track active notifications so we
+     * can thread related notifications together
+     */
     public static class NotificationData implements Serializable {
         private final HashMap<String, String> names = new HashMap<>();
 
