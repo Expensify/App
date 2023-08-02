@@ -18,6 +18,7 @@ import * as Policy from '../libs/actions/Policy';
 import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
+import ConfirmModal from './ConfirmModal';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -67,27 +68,44 @@ function MoneyRequestHeader(props) {
     }, [parentReportAction]);
 
     return (
-        <View style={[styles.pl0]}>
-            <HeaderWithBackButton
-                shouldShowAvatarWithDisplay
-                shouldShowPinButton={false}
-                shouldShowThreeDotsButton={!isPayer && !isSettled}
-                threeDotsMenuItems={[
-                    {
-                        icon: Expensicons.Trashcan,
-                        text: props.translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-                        onSelected: deleteTransaction,
-                    },
-                ]}
-                threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
-                report={report}
-                policies={props.policies}
-                personalDetails={props.personalDetails}
-                shouldShowBackButton={props.isSmallScreenWidth}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
-                shouldShowBorderBottom
+        <>
+            <View style={[styles.pl0]}>
+                <HeaderWithBackButton
+                    shouldShowAvatarWithDisplay
+                    shouldShowPinButton={false}
+                    shouldShowThreeDotsButton={!isPayer && !isSettled}
+                    threeDotsMenuItems={[
+                        {
+                            icon: Expensicons.Trashcan,
+                            text: props.translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                            onSelected: deleteTransaction,
+                        },
+                    ]}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
+                    report={report}
+                    policies={props.policies}
+                    personalDetails={props.personalDetails}
+                    shouldShowBackButton={props.isSmallScreenWidth}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.HOME, false, true)}
+                    shouldShowBorderBottom
+                />
+            </View>
+            <ConfirmModal
+                title={this.props.translate('reportActionContextMenu.deleteAction', {action: this.state.reportAction})}
+                isVisible={this.state.isDeleteCommentConfirmModalVisible}
+                shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfirmation}
+                onConfirm={this.confirmDeleteAndHideModal}
+                onCancel={this.hideDeleteModal}
+                onModalHide={() => {
+                    this.setState({reportID: '0', reportAction: {}});
+                    this.callbackWhenDeleteModalHide();
+                }}
+                prompt={this.props.translate('reportActionContextMenu.deleteConfirmation', {action: this.state.reportAction})}
+                confirmText={this.props.translate('common.delete')}
+                cancelText={this.props.translate('common.cancel')}
+                danger
             />
-        </View>
+        </>
     );
 }
 
