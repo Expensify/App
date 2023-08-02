@@ -460,10 +460,12 @@ function ReportActionItem(props) {
         }
         if (ReportUtils.isTaskReport(props.report)) {
             return (
-                <TaskView
-                    report={props.report}
-                    shouldShowHorizontalRule={!props.isOnlyReportAction}
-                />
+                <OfflineWithFeedback pendingAction={props.action.pendingAction}>
+                    <TaskView
+                        report={props.report}
+                        shouldShowHorizontalRule={!props.isOnlyReportAction}
+                    />
+                </OfflineWithFeedback>
             );
         }
         if (ReportUtils.isExpenseReport(props.report) || ReportUtils.isIOUReport(props.report)) {
