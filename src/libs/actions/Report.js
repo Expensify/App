@@ -1729,7 +1729,7 @@ function openReportFromDeepLink(url, isAuthenticated) {
  * @param {String} reportID
  */
 function leaveRoom(reportID) {
-    const report = lodashGet(allReports, `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {});
+    const report = lodashGet(allReports, [reportID], {});
     const reportKeys = _.keys(report);
     API.write(
         'LeaveRoom',
