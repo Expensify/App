@@ -50,7 +50,7 @@ function GoogleSignIn({translate, isDesktopFlow}) {
                 size: 'large',
                 type: 'standard',
                 shape: 'pill',
-                width: '300',
+                width: '300px',
             });
         }
     }, []);

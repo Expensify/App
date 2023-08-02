@@ -199,6 +199,20 @@ function getActiveRoute() {
     return '';
 }
 
+/** Returns the active route name
+ * @returns {String}
+ * */
+
+function getActiveRouteName() {
+    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
+    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
+    if (!currentRouteHasName) {
+        return '';
+    }
+
+    return currentRoute.name;
+}
+
 /**
  * Check whether the passed route is currently Active or not.
  *
@@ -250,6 +264,7 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
+    getActiveRouteName,
 };
 
 export {navigationRef};

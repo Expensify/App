@@ -6,7 +6,7 @@ import ROUTES from '../../ROUTES';
 import * as App from '../../libs/actions/App';
 import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
-import shouldShowDeeplink from '../../libs/Navigation/shouldShowDeeplink';
+import shouldPreventDeeplinkPrompt from '../../libs/Navigation/shouldPreventDeeplinkPrompt';
 import navigationRef from '../../libs/Navigation/navigationRef';
 import Navigation from '../../libs/Navigation/Navigation';
 
@@ -36,6 +36,7 @@ function DeeplinkWrapper({children, isAuthenticated}) {
     const [currentScreen, setCurrentScreen] = useState();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef();
+    // CONFIG.ENVIRONMENT = CONST.ENVIRONMENT.STAGING;
 
     useEffect(() => {
         // If we've shown the prompt and still have a listener registered,
@@ -52,9 +53,8 @@ function DeeplinkWrapper({children, isAuthenticated}) {
                 const initialRoute = navigationRef.current.getCurrentRoute();
                 setCurrentScreen(initialRoute.name);
 
-                removeListener.current = navigationRef.current.addListener('state', (event) => {
-                    // accessing routes here should be in a navigation lib fn in case the state shape changes in the future
-                    setCurrentScreen(event.data.state.routes.slice(-1).name);
+                removeListener.current = navigationRef.current.addListener('state', () => {
+                    setCurrentScreen(Navigation.getActiveRouteName());
                 });
             });
         }
@@ -74,8 +74,8 @@ function DeeplinkWrapper({children, isAuthenticated}) {
                 return;
             }
 
-            const shouldPrompt = shouldShowDeeplink(currentScreen, isAuthenticated);
-            if (shouldPrompt === false) {
+            const preventPrompt = shouldPreventDeeplinkPrompt(currentScreen);
+            if (preventPrompt === true) {
                 return;
             }
 
