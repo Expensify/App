@@ -303,6 +303,7 @@ function BaseSelectionList({
                                     onChangeText={onChangeText}
                                     keyboardType={keyboardType}
                                     selectTextOnFocus
+                                    spellCheck={false}
                                 />
                             </View>
                         )}
