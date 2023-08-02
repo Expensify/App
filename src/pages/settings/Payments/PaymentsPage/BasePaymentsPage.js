@@ -87,7 +87,7 @@ function BasePaymentsPage(props) {
                 anchorPositionVertical: position.y,
             });
         },
-        [windowWidth],
+        [windowWidth, shouldShowLoadingSpinner],
     );
 
     const setMenuPosition = useCallback(() => {
