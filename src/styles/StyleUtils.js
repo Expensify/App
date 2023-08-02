@@ -657,16 +657,34 @@ function getReportActionItemStyle(isHovered = false, isLoading = false) {
  * Generate the styles for the ReportActionItem wrapper view.
  *
  * @param {Boolean} [isTop]
+ * @param {Boolean} [shouldExtendHoverArea]
  * @returns {Object}
  */
-function getReportActionItemHoverStyle(isTop = true) {
+function getReportActionItemHoverStyle(isTop, shouldExtendHoverArea) {
+    const topOffset = shouldExtendHoverArea ? styles.tn2 : styles.tn1;
+    const bottomOffset = shouldExtendHoverArea ? styles.bn2 : styles.bn1;
+
     return {
-        height: 4,
+        height: shouldExtendHoverArea ? 8 : 4,
         backgroundColor: themeColors.hoverComponentBG,
         ...styles.pAbsolute,
-        ...(isTop ? styles.tn1 : styles.bn1),
+        ...(isTop ? topOffset : bottomOffset),
         ...styles.l0,
         ...styles.r0,
+    };
+}
+
+/**
+ * Generate the styles for the ReportActionList separator view.
+ *
+ * @param {Boolean} [highlighted]
+ * @returns {Object}
+ */
+function getReportActionListSeparatorStyle(highlighted) {
+    return {
+        height: 8,
+        zIndex: -1,
+        backgroundColor: highlighted ? styles.hoverComponentBG : styles.transparent,
     };
 }
 
@@ -1350,6 +1368,7 @@ export {
     getLoginPagePromoStyle,
     getReportActionItemStyle,
     getReportActionItemHoverStyle,
+    getReportActionListSeparatorStyle,
     getMiniReportActionContextMenuWrapperStyle,
     getKeyboardShortcutsModalWidth,
     getPaymentMethodMenuWidth,

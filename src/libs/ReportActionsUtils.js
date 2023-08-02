@@ -561,6 +561,31 @@ function isMessageDeleted(reportAction) {
     return lodashGet(reportAction, ['message', 0, 'isDeletedParentAction'], false);
 }
 
+/**
+ * A helper function to understand should or not report action item has expanded hover area,
+ * when previous or next action is whispered
+ *
+ * @param {Array} reportActions
+ * @param {Number} actionIndex - index of the comment item in state to check
+ * @returns {Array<String>}
+ */
+function getExpandHoverArea(reportActions, actionIndex) {
+    const expandHoverArea = [];
+
+    const nextAction = reportActions[actionIndex + 1];
+    const prevAction = reportActions[actionIndex - 1];
+
+    if (lodashGet(nextAction, 'whisperedToAccountIDs.length', 0) > 0) {
+        expandHoverArea.push('top');
+    }
+
+    if (lodashGet(prevAction, 'whisperedToAccountIDs.length', 0) > 0) {
+        expandHoverArea.push('bottom');
+    }
+
+    return expandHoverArea;
+}
+
 export {
     getSortedReportActions,
     getLastVisibleAction,
@@ -593,4 +618,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getExpandHoverArea,
 };

@@ -68,6 +68,11 @@ function ReportActionItemParentAction(props) {
                         isMostRecentIOUReportAction={false}
                         shouldDisplayNewMarker={props.shouldDisplayNewMarker}
                         index={0}
+                        expandHoverArea={[]}
+                        separatorActions={{
+                            highlight: () => {},
+                            unhighlight: () => {},
+                        }}
                     />
                 )}
             </View>
