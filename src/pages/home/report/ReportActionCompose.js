@@ -58,7 +58,7 @@ import PressableWithFeedback from '../../../components/Pressable/PressableWithFe
 import * as KeyDownListener from '../../../libs/KeyboardShortcut/KeyDownPressListener';
 import * as EmojiPickerActions from '../../../libs/actions/EmojiPickerAction';
 import withAnimatedRef from '../../../components/withAnimatedRef';
-import updatePropsPaperWorklet from '../../../libs/updatePropsPaperWorklet';
+import updatePropsWorklet from '../../../libs/updatePropsWorklet';
 
 const propTypes = {
     /** Beta features list */
@@ -1002,7 +1002,7 @@ class ReportActionCompose extends React.Component {
                 const updates = {text: ''};
                 // we are setting the isCommentEmpty flag to true so the status of it will be in sync of the native text input state
                 runOnJS(setCommentEmpty)();
-                updatePropsPaperWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
+                updatePropsWorklet(viewTag, viewName, updates); // clears native text input on the UI thread
                 runOnJS(submit)();
             });
 
