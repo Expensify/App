@@ -7,7 +7,6 @@ import * as Url from './libs/Url';
 
 const REPORT = 'r';
 const IOU_REQUEST = 'request/new';
-const IOU_BILL = 'split/new';
 const IOU_SEND = 'send/new';
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
@@ -76,7 +75,6 @@ export default {
     CONCIERGE: 'concierge',
 
     IOU_REQUEST,
-    IOU_BILL,
     IOU_SEND,
 
     // To see the available iouType, please refer to CONST.IOU.MONEY_REQUEST_TYPE
