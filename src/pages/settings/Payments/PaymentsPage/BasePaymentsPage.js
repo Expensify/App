@@ -87,7 +87,7 @@ function BasePaymentsPage(props) {
                 anchorPositionVertical: position.y,
             });
         },
-        [windowWidth, shouldShowLoadingSpinner],
+        [windowWidth],
     );
 
     const setMenuPosition = useCallback(() => {
@@ -348,7 +348,7 @@ function BasePaymentsPage(props) {
             return;
         }
         setMenuPosition();
-    }, [props.shouldListenForResize, setMenuPosition]);
+    }, [props.shouldListenForResize, setMenuPosition, shouldShowLoadingSpinner]);
 
     useEffect(() => {
         if (!shouldShowDefaultDeleteMenu && !showPassword.shouldShowPasswordPrompt) {
