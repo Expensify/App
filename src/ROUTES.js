@@ -184,7 +184,7 @@ export default {
         const pathSegments = parsingRoute.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
-            isSubReportPageRoute: Boolean(lodashGet(pathSegments, 2)),
+            isSubReportPageRoute: pathSegments.length > 2,
         };
     },
 };
