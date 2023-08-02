@@ -84,6 +84,7 @@ storybook-static
 
 # GitHub GPG Keys
 .github/workflows/OSBotify-private-key.asc
+.gitconfig
 *.asc
 
 # Jest coverage report
