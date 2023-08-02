@@ -1,11 +1,11 @@
-import {ActivityIndicator, Alert, Linking, View, Text} from 'react-native';
+import {ActivityIndicator, Alert, Linking, Text, View} from 'react-native';
 import React, {useCallback, useRef, useState} from 'react';
 import {Camera, useCameraDevices} from 'react-native-vision-camera';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
-import {useFocusEffect} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -97,24 +97,14 @@ function ReceiptSelector(props) {
 
     const camera = useRef(null);
     const [flash, setFlash] = useState(false);
-
     const [permissions, setPermissions] = useState('authorized');
-    const [isVisible, setIsVisible] = useState(false);
 
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
 
     const {translate} = useLocalize();
-
     // Keep track of whether the camera is visible, when we navigate elsewhere, turn off the camera
-    useFocusEffect(
-        useCallback(() => {
-            setIsVisible(true);
-            return () => {
-                setIsVisible(false);
-            };
-        }, []),
-    );
+    const isFocused = useIsFocused();
 
     /**
      * Inform the users when they need to grant camera access and guide them to settings
@@ -253,7 +243,7 @@ function ReceiptSelector(props) {
                     device={device}
                     style={[styles.cameraView]}
                     zoom={device.neutralZoom}
-                    isActive={isVisible}
+                    isActive={isFocused}
                     photo
                 />
             )}
