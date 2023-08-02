@@ -21,7 +21,7 @@ const propTypes = {
     /** A ref to forward to MenuItemWithTopDescription */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
-    /** Label to display on field*/
+    /** Label to display on field */
     label: PropTypes.string,
 };
 

@@ -26,7 +26,7 @@ const propTypes = {
     /** Function to call when the user types in the search input */
     setSearchValue: PropTypes.func.isRequired,
 
-    /** Label to display on field*/
+    /** Label to display on field */
     label: PropTypes.string,
 };
 
