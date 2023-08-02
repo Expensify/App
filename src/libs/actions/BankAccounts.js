@@ -305,7 +305,7 @@ function openReimbursementAccountPage(stepToOpen, subStep, localCurrentStep) {
         localCurrentStep,
     };
 
-    return API.read('OpenReimbursementAccountPage', param, onyxData);
+    API.read('OpenReimbursementAccountPage', param, onyxData);
 }
 
 /**
