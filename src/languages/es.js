@@ -387,6 +387,7 @@ export default {
         payElsewhere: 'Pagar de otra forma',
         settlePaypalMe: ({formattedAmount}) => `Pagar ${formattedAmount} con PayPal.me`,
         requestAmount: ({amount}) => `solicitar ${amount}`,
+        addToSplit: 'TODO: TRANSLATION NEEDED',
         splitAmount: ({amount}) => `dividir ${amount}`,
         amountEach: ({amount}) => `${amount} cada uno`,
         payerOwesAmount: ({payer, amount}) => `${payer} debe ${amount}`,
