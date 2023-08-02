@@ -221,7 +221,7 @@ function ReportActionsList(props) {
                 shouldDisplayNewMarker = isCurrentMessageUnread && !isUnreadMsg(nextMessage, report.lastReadTime);
 
                 if (!messageManuallyMarked) {
-                    shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorEmail !== Report.getCurrentUserEmail();
+                    shouldDisplayNewMarker = shouldDisplayNewMarker && reportAction.actorAccountID !== Report.getCurrentUserAccountID();
                 }
                 const canDisplayMarker = scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD ? reportAction.created < userActiveSince.current : true;
 

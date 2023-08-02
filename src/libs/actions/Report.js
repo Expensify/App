@@ -31,7 +31,6 @@ import * as Environment from '../Environment/Environment';
 import * as Localize from '../Localize';
 
 let currentUserAccountID;
-let currentUserEmail;
 
 Onyx.connect({
     key: ONYXKEYS.SESSION,
@@ -41,7 +40,6 @@ Onyx.connect({
             return;
         }
 
-        currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
     },
 });
@@ -530,7 +528,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
         }
     }
 
-    params.currentLastReadTime = currentReportData[reportID].lastReadTime || '';
+    params.clientLastReadTime = lodashGet(currentReportData, [reportID, 'lastReadTime'], '');
 
     if (isFromDeepLink) {
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
@@ -1752,20 +1750,6 @@ function getCurrentUserAccountID() {
     return currentUserAccountID;
 }
 
-function getCurrentUserEmail() {
-    return currentUserEmail;
-}
-
-/**
- * @param {String|null} reportID
- */
-function getAllReportActions(reportID) {
-    if (reportID) {
-        return allReportActions[reportID];
-    }
-    return allReportActions;
-}
-
 /**
  * Leave a report by setting the state to submitted and closed
  *
@@ -1950,7 +1934,7 @@ export {
     hasAccountIDEmojiReacted,
     shouldShowReportActionNotification,
     leaveRoom,
-    getCurrentUserEmail,
+    getCurrentUserAccountID,
     setLastOpenedPublicRoom,
     flagComment,
     openLastOpenedPublicRoom,
