@@ -31,23 +31,24 @@ const defaultProps = {
     isAuthTokenRequired: false,
 };
 
-function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActiveProp}) {
+function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: initialIsActive}) {
     const {canvasWidth, canvasHeight} = useContext(AttachmentCarouselPagerContext);
 
     const dimensions = cachedDimensions.get(source);
 
-    const [isActive, setIsActive] = useState(isActiveProp);
-    const [isImageLoading, setIsImageLoading] = useState();
-
+    const [isActive, setIsActive] = useState(initialIsActive);
     // We delay setting a page to active state by a (few) millisecond(s),
     // to prevent the image transformer from flashing while still rendering
     // Instead, we show the fallback image while the image transformer is loading the image
     useEffect(() => {
-        if (isActiveProp) setTimeout(() => setIsActive(true), 1);
+        if (initialIsActive) setTimeout(() => setIsActive(true), 1);
         else setIsActive(false);
-    }, [isActiveProp]);
+    }, [initialIsActive]);
 
+    const [initialActivePageLoad, setInitialActivePageLoad] = useState(isActive);
+    const [isImageLoading, setIsImageLoading] = useState(true);
     const [showFallback, setShowFallback] = useState(isImageLoading);
+
     // We delay hiding the fallback image while image transformer is still rendering
     useEffect(() => {
         if (isImageLoading) setShowFallback(true);
@@ -72,7 +73,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                             source={{uri: source}}
                             style={dimensions == null ? undefined : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
                             isAuthTokenRequired={isAuthTokenRequired}
-                            onLoadStart={() => isImageLoading === false && setIsImageLoading(true)}
+                            onLoadStart={() => setIsImageLoading(true)}
                             onLoadEnd={() => setIsImageLoading(false)}
                             onLoad={(evt) => {
                                 const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
@@ -94,6 +95,13 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                                         imageScaleX,
                                         imageScaleY,
                                     });
+                                }
+
+                                // On the initial render of the active page, the onLoadEnd event is never fired.
+                                // That's why we instead set isImageLoading to false in the onLoad event.
+                                if (initialActivePageLoad) {
+                                    setIsImageLoading(false);
+                                    setInitialActivePageLoad(false);
                                 }
                             }}
                         />
