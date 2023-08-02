@@ -55,7 +55,7 @@ const defaultProps = {
 
 function MoneyRequestHeader(props) {
     const {translate} = useLocalize();
-    const {isDeleteModalVisible, setIsDeleteModalVisible} = useState(false);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
@@ -99,7 +99,7 @@ function MoneyRequestHeader(props) {
                 isVisible={isDeleteModalVisible}
                 onConfirm={deleteTransaction}
                 onCancel={() => setIsDeleteModalVisible(false)}
-                prompt={translate('reportActionContextMenu.deleteConfirmation', {action: this.state.reportAction})}
+                prompt={translate('iou.deleteConfirmation')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
                 danger

@@ -355,6 +355,7 @@ export default {
         viewDetails: 'View details',
         pending: 'Pending',
         deleteRequest: 'Delete request',
+        deleteConfirmation: 'Are you sure that you want to delete this request?',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',
