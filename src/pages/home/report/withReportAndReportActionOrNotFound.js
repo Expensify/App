@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import getComponentDisplayName from '../../../libs/getComponentDisplayName';
@@ -61,9 +61,7 @@ export default function (WrappedComponent) {
     const defaultProps = {
         forwardedRef: () => {},
         reportActions: {},
-        report: {
-            isLoadingReportActions: true,
-        },
+        report: {},
         policies: {},
         betas: [],
         isLoadingReportData: true,
@@ -71,35 +69,43 @@ export default function (WrappedComponent) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportAndReportActionOrNotFound(props) {
-        // For small screen, we don't call openReport API when we go to a sub report page by deeplinnk
+        // For small screen, we don't call openReport API when we go to a sub report page by deeplink
         // So we need to call openReport here for small screen
-        const firstRef = useRef(true);
         useEffect(() => {
-            if (!firstRef.current) {
+            if (!props.isSmallScreenWidth || !_.isEmpty(props.report)) {
                 return;
             }
-            firstRef.current = false;
-            if (props.isSmallScreenWidth) {
-                Report.openReport(props.route.params.reportID);
+            Report.openReport(props.route.params.reportID);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []);
+
+        const getReportAction = useCallback(() => {
+            let reportAction = props.reportActions[`${props.route.params.reportActionID}`];
+
+            // Handle threads if needed
+            if (reportAction === undefined || reportAction.reportActionID === undefined) {
+                reportAction = ReportActionsUtils.getParentReportAction(props.report);
             }
-        }, [props.isSmallScreenWidth, props.route.params.reportID]);
 
+            return reportAction;
+        }, [props.report, props.reportActions, props.route.params.reportActionID]);
+
+        const reportAction = getReportAction();
+
+        // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
+        const isLoadingReportAction = _.isEmpty(props.reportActions) || (props.report.isLoadingReportActions && _.isEmpty(getReportAction()));
         const shouldHideReport = !isLoadingReport && (_.isEmpty(props.report) || !props.report.reportID || !ReportUtils.canAccessReport(props.report, props.policies, props.betas));
-
-        let reportAction = props.reportActions[`${props.route.params.reportActionID.toString()}`];
-        // Handle threads if needed
-        if (reportAction === undefined || reportAction.reportActionID === undefined) {
-            reportAction = ReportActionsUtils.getParentReportAction(props.report);
-        }
-        const isLoadingReportAction = _.isEmpty(props.reportActions) || (props.report.isLoadingReportActions && _.isEmpty(reportAction));
 
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
             return <FullscreenLoadingIndicator />;
         }
+
+        // Perform the access/not found checks
         if (shouldHideReport || _.isEmpty(reportAction)) {
             return <NotFoundPage />;
         }
+
         const rest = _.omit(props, ['forwardedRef']);
         return (
             <WrappedComponent
