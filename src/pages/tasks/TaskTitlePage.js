@@ -84,6 +84,7 @@ function TaskTitlePage(props) {
                         accessibilityLabel={props.translate('task.title')}
                         defaultValue={(props.report && props.report.reportName) || ''}
                         ref={(el) => (inputRef.current = el)}
+                        maxLength={CONST.TITLE_MAX_LENGTH}
                     />
                 </View>
             </Form>

@@ -100,6 +100,7 @@ function NewTaskTitlePage(props) {
                         inputID="taskTitle"
                         label={props.translate('task.title')}
                         accessibilityLabel={props.translate('task.title')}
+                        maxLength={CONST.TITLE_MAX_LENGTH}
                     />
                 </View>
             </Form>

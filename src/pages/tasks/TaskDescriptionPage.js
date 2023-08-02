@@ -75,6 +75,7 @@ function TaskDescriptionPage(props) {
                         submitOnEnter
                         containerStyles={[styles.autoGrowHeightMultilineInput]}
                         textAlignVertical="top"
+                        maxLength={CONST.SUPPORTING_TEXT_MAX_LENGTH}
                     />
                 </View>
             </Form>

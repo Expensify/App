@@ -100,6 +100,7 @@ function NewTaskPage(props) {
                         accessibilityLabel={props.translate('task.title')}
                         value={taskTitle}
                         onValueChange={(value) => setTaskTitle(value)}
+                        maxLength={CONST.TITLE_MAX_LENGTH}
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -114,6 +115,7 @@ function NewTaskPage(props) {
                         textAlignVertical="top"
                         value={taskDescription}
                         onValueChange={(value) => setTaskDescription(value)}
+                        maxLength={CONST.SUPPORTING_TEXT_MAX_LENGTH}
                     />
                 </View>
             </Form>
