@@ -77,24 +77,6 @@ const defaultProps = {
     },
 };
 
-/**
- *
- * @param {Object} file
- * @param {Object} iou
- * @param {String} iouType
- * @param {String} reportID
- * @param {Object} report
- */
-function setReceiptAndNavigate(file, iou, iouType, reportID, report) {
-    if (!ReceiptUtils.isValidReceipt(file)) {
-        return;
-    }
-
-    const filePath = URL.createObjectURL(file);
-    IOU.setMoneyRequestReceipt(filePath, file.name);
-    IOU.navigateToNextPage(iou, iouType, reportID, report);
-}
-
 function ReceiptSelector(props) {
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const iouType = lodashGet(props.route, 'params.iouType', '');
@@ -106,59 +88,73 @@ function ReceiptSelector(props) {
     const {translate} = useLocalize();
     const {isDraggingOver} = useContext(DragAndDropContext);
 
-    const defaultView = () => (
-        <>
-            <View
-                onLayout={({nativeEvent}) => {
-                    setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
-                }}
-            >
-                <ReceiptUpload
-                    width={CONST.RECEIPT.ICON_SIZE}
-                    height={CONST.RECEIPT.ICON_SIZE}
-                />
-            </View>
-            <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
-            <Text style={[styles.subTextReceiptUpload]}>
-                {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
-                <CopyTextToClipboard
-                    text={CONST.EMAIL.RECEIPTS}
-                    textStyles={[styles.textBlue]}
-                />
-                {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
-            </Text>
-            <AttachmentPicker>
-                {({openPicker}) => (
-                    <PressableWithFeedback
-                        accessibilityLabel={translate('receipt.chooseFile')}
-                        accessibilityRole="button"
-                    >
-                        <Button
-                            medium
-                            success
-                            text={translate('receipt.chooseFile')}
-                            style={[styles.p9]}
-                            onPress={() => {
-                                openPicker({
-                                    onPicked: (file) => {
-                                        setReceiptAndNavigate(file, props.iou, iouType, reportID, props.report);
-                                    },
-                                });
-                            }}
-                        />
-                    </PressableWithFeedback>
-                )}
-            </AttachmentPicker>
-        </>
-    );
+    /**
+     * Sets the Receipt objects and navigates the user to the next page
+     * @param {Object} file
+     * @param {Object} iou
+     * @param {Object} report
+     */
+    const setReceiptAndNavigate = (file, iou, report) => {
+        if (!ReceiptUtils.isValidReceipt(file)) {
+            return;
+        }
+
+        const filePath = URL.createObjectURL(file);
+        IOU.setMoneyRequestReceipt(filePath, file.name);
+        IOU.navigateToNextPage(iou, iouType, reportID, report);
+    };
 
     return (
         <View style={[styles.uploadReceiptView(isSmallScreenWidth)]}>
-            {!isDraggingOver ? defaultView() : null}
+            {!isDraggingOver ? (
+                <>
+                    <View
+                        onLayout={({nativeEvent}) => {
+                            setReceiptImageTopPosition(PixelRatio.roundToNearestPixel(nativeEvent.layout.top));
+                        }}
+                    >
+                        <ReceiptUpload
+                            width={CONST.RECEIPT.ICON_SIZE}
+                            height={CONST.RECEIPT.ICON_SIZE}
+                        />
+                    </View>
+                    <Text style={[styles.textReceiptUpload]}>{translate('receipt.upload')}</Text>
+                    <Text style={[styles.subTextReceiptUpload]}>
+                        {isSmallScreenWidth ? translate('receipt.chooseReceipt') : translate('receipt.dragReceiptBeforeEmail')}
+                        <CopyTextToClipboard
+                            text={CONST.EMAIL.RECEIPTS}
+                            textStyles={[styles.textBlue]}
+                        />
+                        {isSmallScreenWidth ? null : translate('receipt.dragReceiptAfterEmail')}
+                    </Text>
+                    <AttachmentPicker>
+                        {({openPicker}) => (
+                            <PressableWithFeedback
+                                accessibilityLabel={translate('receipt.chooseFile')}
+                                accessibilityRole="button"
+                            >
+                                <Button
+                                    medium
+                                    success
+                                    text={translate('receipt.chooseFile')}
+                                    style={[styles.p9]}
+                                    onPress={() => {
+                                        openPicker({
+                                            onPicked: (file) => {
+                                                setReceiptAndNavigate(file, props.iou, props.report);
+                                            },
+                                        });
+                                    }}
+                                />
+                            </PressableWithFeedback>
+                        )}
+                    </AttachmentPicker>
+                </>
+            ) : null}
             <ReceiptDropUI
                 onDrop={(e) => {
                     const file = lodashGet(e, ['dataTransfer', 'files', 0]);
-                    setReceiptAndNavigate(file, props.iou, iouType, reportID, props.report);
+                    setReceiptAndNavigate(file, props.iou, props.report);
                 }}
                 receiptImageTopPosition={receiptImageTopPosition}
             />

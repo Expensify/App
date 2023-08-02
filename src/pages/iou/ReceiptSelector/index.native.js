@@ -131,7 +131,7 @@ function ReceiptSelector(props) {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingAttachment'));
     };
 
-    const givePermissions = () => {
+    const askForPermissions = () => {
         if (permissions === 'not-determined') {
             Camera.requestCameraPermission().then((permissionStatus) => {
                 setPermissions(permissionStatus);
@@ -219,21 +219,26 @@ function ReceiptSelector(props) {
                             success
                             text={translate('receipt.givePermission')}
                             style={[styles.p9, styles.pt5]}
-                            onPress={givePermissions}
+                            onPress={askForPermissions}
                         />
                     </PressableWithFeedback>
                 </View>
             );
         }
-        return device == null ? (
-            <View style={[styles.cameraView]}>
-                <ActivityIndicator
-                    size="large"
-                    style={[styles.flex1]}
-                    color={themeColors.textSupporting}
-                />
-            </View>
-        ) : (
+
+        if (device === null) {
+            return (
+                <View style={[styles.cameraView]}>
+                    <ActivityIndicator
+                        size="large"
+                        style={[styles.flex1]}
+                        color={themeColors.textSupporting}
+                    />
+                </View>
+            );
+        }
+
+        return (
             <Camera
                 ref={camera}
                 device={device}
