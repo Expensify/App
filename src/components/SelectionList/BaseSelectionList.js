@@ -171,6 +171,23 @@ function BaseSelectionList({
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
     };
 
+    const selectRow = (item, index) => {
+        // In single-selection lists we don't care about updating the focused index, because the list is closed after selecting an item
+        if (canSelectMultiple) {
+            if (sections.length === 1) {
+                // If the list has only 1 section (e.g. Workspace Members list), we always focus the next available item
+                const nextAvailableIndex = _.findIndex(flattenedSections.allOptions, (option, i) => i > index && !option.isDisabled);
+                setFocusedIndex(nextAvailableIndex);
+            } else {
+                // If the list has multiple sections (e.g. Workspace Invite list), we focus the first one after all the selected (selected items are always at the top)
+                const selectedOptionsCount = item.isSelected ? flattenedSections.selectedOptions.length - 1 : flattenedSections.selectedOptions.length + 1;
+                setFocusedIndex(selectedOptionsCount);
+            }
+        }
+
+        onSelectRow(item);
+    };
+
     /**
      * This function is used to compute the layout of any given item in our list.
      * We need to implement it so that we can programmatically scroll to items outside the virtual render window of the SectionList.
@@ -221,7 +238,7 @@ function BaseSelectionList({
                 <CheckboxListItem
                     item={item}
                     isFocused={isFocused}
-                    onSelectRow={onSelectRow}
+                    onSelectRow={() => selectRow(item, index)}
                     onDismissError={onDismissError}
                 />
             );
@@ -231,15 +248,10 @@ function BaseSelectionList({
             <RadioListItem
                 item={item}
                 isFocused={isFocused}
-                onSelectRow={onSelectRow}
+                onSelectRow={() => selectRow(item, index)}
             />
         );
     };
-
-    /** Focuses the next available index after selecting a row */
-    useEffect(() => {
-        setFocusedIndex(flattenedSections.selectedOptions.length);
-    }, [flattenedSections.selectedOptions]);
 
     /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
     useEffect(() => {
@@ -265,11 +277,11 @@ function BaseSelectionList({
         () => {
             const focusedOption = flattenedSections.allOptions[focusedIndex];
 
-            if (!focusedOption) {
+            if (!focusedOption || focusedOption.isDisabled) {
                 return;
             }
 
-            onSelectRow(focusedOption);
+            selectRow(focusedOption, focusedIndex);
         },
         {
             captureOnInputs: true,
