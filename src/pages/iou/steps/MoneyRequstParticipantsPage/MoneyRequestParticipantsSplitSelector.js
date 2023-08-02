@@ -19,8 +19,11 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /** Callback to inform parent modal of success */
-    onStepComplete: PropTypes.func.isRequired,
+    /** Callback to request parent modal to go to next step, which should be split */
+    navigateToRequest: PropTypes.func.isRequired,
+
+    /** Callback to request parent modal to go to next step, which should be split */
+    navigateToSplit: PropTypes.func.isRequired,
 
     /** Callback to add participants in MoneyRequestModal */
     onAddParticipants: PropTypes.func.isRequired,
@@ -56,7 +59,7 @@ const defaultProps = {
     safeAreaPaddingBottomStyle: {},
 };
 
-function MoneyRequestParticipantsSplitSelector({betas, participants, personalDetails, reports, translate, onAddParticipants, onStepComplete, safeAreaPaddingBottomStyle}) {
+function MoneyRequestParticipantsSplitSelector({betas, participants, personalDetails, reports, translate, navigateToRequest, navigateToSplit, onAddParticipants, safeAreaPaddingBottomStyle}) {
     const [searchTerm, setSearchTerm] = useState('');
     const [newChatOptions, setNewChatOptions] = useState({
         recentReports: [],
@@ -166,16 +169,19 @@ function MoneyRequestParticipantsSplitSelector({betas, participants, personalDet
         <View style={[styles.flex1, styles.w100, participants.length > 0 ? safeAreaPaddingBottomStyle : {}]}>
             <OptionsSelector
                 canSelectMultipleOptions
+                shouldShowMultipleOptionSelectorAsButton
+                multipleOptionSelectorButtonText={translate('iou.split')}
+                onAddToSelection={toggleOption}
                 sections={sections}
                 selectedOptions={participants}
                 value={searchTerm}
-                onSelectRow={toggleOption}
+                onSelectRow={navigateToRequest}
                 onChangeText={setSearchTerm}
                 headerMessage={headerMessage}
                 boldStyle
                 shouldShowConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirmSelection={onStepComplete}
+                confirmButtonText={translate('iou.addToSplit')}
+                onConfirmSelection={navigateToSplit}
                 textInputLabel={translate('optionsSelector.nameEmailOrPhoneNumber')}
                 safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                 shouldShowOptions={isOptionsDataReady}

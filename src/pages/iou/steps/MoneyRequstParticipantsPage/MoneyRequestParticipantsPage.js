@@ -44,10 +44,10 @@ const defaultProps = {
     },
 };
 
-function MoneyRequestParticipantsPage(props) {
-    const prevMoneyRequestId = useRef(props.iou.id);
-    const iouType = useRef(lodashGet(props.route, 'params.iouType', ''));
-    const reportID = useRef(lodashGet(props.route, 'params.reportID', ''));
+function MoneyRequestParticipantsPage({iou, translate, route}) {
+    const prevMoneyRequestId = useRef(iou.id);
+    const iouType = useRef(lodashGet(route, 'params.iouType', ''));
+    const reportID = useRef(lodashGet(route, 'params.reportID', ''));
 
     const navigateToNextStep = () => {
         Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType.current, reportID.current));
@@ -59,9 +59,9 @@ function MoneyRequestParticipantsPage(props) {
 
     useEffect(() => {
         // ID in Onyx could change by initiating a new request in a separate browser tab or completing a request
-        if (prevMoneyRequestId.current !== props.iou.id) {
+        if (prevMoneyRequestId.current !== iou.id) {
             // The ID is cleared on completing a request. In that case, we will do nothing
-            if (props.iou.id) {
+            if (iou.id) {
                 navigateBack(true);
             }
             return;
@@ -69,19 +69,19 @@ function MoneyRequestParticipantsPage(props) {
 
         // Reset the money request Onyx if the ID in Onyx does not match the ID from params
         const moneyRequestId = `${iouType.current}${reportID.current}`;
-        const shouldReset = props.iou.id !== moneyRequestId;
+        const shouldReset = iou.id !== moneyRequestId;
         if (shouldReset) {
             IOU.resetMoneyRequestInfo(moneyRequestId, iouType.current);
         }
 
-        if ((props.iou.amount === 0 && !props.iou.receiptPath) || shouldReset) {
+        if ((iou.amount === 0 && !iou.receiptPath) || shouldReset) {
             navigateBack(true);
         }
 
         return () => {
-            prevMoneyRequestId.current = props.iou.id;
+            prevMoneyRequestId.current = iou.id;
         };
-    }, [props.iou.amount, props.iou.id, props.iou.receiptPath]);
+    }, [iou.amount, iou.id, iou.receiptPath]);
 
     return (
         <ScreenWrapper
@@ -91,15 +91,16 @@ function MoneyRequestParticipantsPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
-                        title={props.translate('iou.cash')}
+                        title={translate('iou.cash')}
                         onBackButtonPress={navigateBack}
                     />
                     {iouType.current === CONST.IOU.MONEY_REQUEST_TYPE.SPLIT ? (
                         <MoneyRequestParticipantsSplitSelector
-                            onStepComplete={navigateToNextStep}
-                            participants={props.iou.participants}
+                            participants={iou.participants}
                             onAddParticipants={IOU.setMoneyRequestParticipants}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+                            navigateToRequest={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.REQUEST)}
+                            navigateToSplit={() => navigateToNextStep(CONST.IOU.MONEY_REQUEST_TYPE.SPLIT)}
                         />
                     ) : (
                         <MoneyRequestParticipantsSelector
