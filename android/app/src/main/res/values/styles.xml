@@ -66,7 +66,7 @@
     </style>
 
     <style name="Theme.SplashScreen" parent="Theme.SplashScreen.Common">
-        <item name="windowSplashScreenAnimatedIcon">@drawable/bootsplash</item>
+        <item name="windowSplashScreenAnimatedIcon">@android:drawable/sym_def_app_icon</item>
         <item name="windowSplashScreenBackground">?android:colorBackground</item>
     </style>
 
