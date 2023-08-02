@@ -39,7 +39,7 @@ const propTypes = {
         id: PropTypes.string,
         amount: PropTypes.number,
         currency: PropTypes.string,
-        participants: participantPropTypes,
+        participants: PropTypes.arrayOf(participantPropTypes),
     }),
 };
 
