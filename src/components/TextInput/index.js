@@ -7,7 +7,7 @@ import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import DomUtils from '../../libs/DomUtils';
 import Visibility from '../../libs/Visibility';
 
-const TextInput = (props) => {
+function TextInput(props) {
     const textInputRef = useRef(null);
     const removeVisibilityListenerRef = useRef(null);
 
@@ -29,9 +29,8 @@ const TextInput = (props) => {
         });
 
         return () => {
-            if (removeVisibilityListenerRef.current) {
-                removeVisibilityListenerRef.current();
-            }
+            if (!removeVisibilityListenerRef.current) return;
+            removeVisibilityListenerRef.current();
         };
     }, []);
 
@@ -57,14 +56,16 @@ const TextInput = (props) => {
                     return;
                 }
 
+                // eslint-disable-next-line no-param-reassign
                 props.innerRef.current = el;
             }}
             inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...props.inputStyle]}
             textInputContainerStyles={[labelAnimationStyle, ...props.textInputContainerStyles]}
         />
     );
-};
+}
 
+TextInput.displayName = 'TextInput';
 TextInput.propTypes = baseTextInputPropTypes.propTypes;
 TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
