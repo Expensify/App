@@ -35,6 +35,8 @@ const propTypes = {
     /** Whether to show welcome header on a particular page */
     shouldShowWelcomeHeader: PropTypes.bool.isRequired,
 
+    isInModal: PropTypes.bool,
+    
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -48,7 +50,7 @@ function SignInPageLayout(props) {
     // To scroll on both mobile and web, we need to set the container height manually
     const containerHeight = props.windowHeight - props.insets.top - props.insets.bottom;
 
-    if (props.isSmallScreenWidth) {
+    if (props.isSmallScreenWidth || props.isInModal) {
         containerStyles = [styles.flex1];
         contentContainerStyles = [styles.flex1, styles.flexColumn];
     }
@@ -70,7 +72,7 @@ function SignInPageLayout(props) {
 
     return (
         <View style={containerStyles}>
-            {!props.isSmallScreenWidth ? (
+            {!(props.isSmallScreenWidth || props.isInModal) ? (
                 <View style={contentContainerStyles}>
                     <SignInPageContent
                         welcomeHeader={props.welcomeHeader}

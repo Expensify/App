@@ -8,6 +8,7 @@ import NetworkConnection from '../NetworkConnection';
 import HttpUtils from '../HttpUtils';
 import navigationRef from '../Navigation/navigationRef';
 import SCREENS from '../../SCREENS';
+import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
 import * as ErrorUtils from '../ErrorUtils';
 import * as SessionUtils from '../SessionUtils';
@@ -89,6 +90,7 @@ function redirectToSignIn(errorMessage) {
     clearStorageAndRedirect(errorMessage);
     resetHomeRouteParams();
     SessionUtils.resetDidUserLogInDuringSession();
+    Navigation.navigate(ROUTES.SIGNINMODAL);
 }
 
 export default redirectToSignIn;

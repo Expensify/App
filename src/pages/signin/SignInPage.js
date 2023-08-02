@@ -45,11 +45,14 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
         validateCode: PropTypes.string,
     }),
+
+    isInModal: PropTypes.bool,
 };
 
 const defaultProps = {
     account: {},
     credentials: {},
+    isInModal: false,
 };
 
 /**
@@ -77,9 +80,10 @@ function getRenderOptions({hasLogin, hasValidateCode, hasAccount, isPrimaryLogin
     };
 }
 
-function SignInPage({credentials, account}) {
+function SignInPage({credentials, account, isInModal}) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isSmallScreenWidth} = useWindowDimensions();
+    const showSmallScreen = isSmallScreenWidth || isInModal;
     const safeAreaInsets = useSafeAreaInsets();
 
     useEffect(() => Performance.measureTTI(), []);
@@ -114,13 +118,13 @@ function SignInPage({credentials, account}) {
             // replacing spaces with "hard spaces" to prevent breaking the number
             const userLoginToDisplay = Str.isSMSLogin(userLogin) ? formatPhoneNumber(userLogin).replace(/ /g, '\u00A0') : userLogin;
             if (account.validated) {
-                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcomeBack');
-                welcomeText = isSmallScreenWidth
+                welcomeHeader = showSmallScreen ? '' : translate('welcomeText.welcomeBack');
+                welcomeText = showSmallScreen
                     ? `${translate('welcomeText.welcomeBack')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
             } else {
-                welcomeHeader = isSmallScreenWidth ? '' : translate('welcomeText.welcome');
-                welcomeText = isSmallScreenWidth
+                welcomeHeader = showSmallScreen ? '' : translate('welcomeText.welcome');
+                welcomeText = showSmallScreen
                     ? `${translate('welcomeText.welcome')} ${translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay})}`
                     : translate('welcomeText.newFaceEnterMagicCode', {login: userLoginToDisplay});
             }
@@ -143,6 +147,7 @@ function SignInPage({credentials, account}) {
                 welcomeText={welcomeText}
                 shouldShowWelcomeHeader={shouldShowWelcomeHeader || !isSmallScreenWidth}
                 shouldShowWelcomeText={shouldShowWelcomeText}
+                isInModal={isInModal}
             >
                 {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
                     so that password managers can access the values. Conditionally rendering this component will break this feature. */}

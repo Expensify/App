@@ -89,11 +89,14 @@ function isAnonymousUser() {
 }
 
 function signOutAndRedirectToSignIn() {
+    Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
     signOut();
-    redirectToSignIn();
-    Log.info('Redirecting to Sign In because signOut() was called');
-    if (isAnonymousUser()) {
+    if (!isAnonymousUser()) {
+        redirectToSignIn();
+    }
+    else (isAnonymousUser()) {
+        Navigation.navigate(ROUTES.SIGNINMODAL);
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);
             if (reportID) {
