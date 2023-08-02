@@ -203,6 +203,9 @@ const styles = {
     },
     emojiSuggestionsText: {
         fontSize: variables.fontSizeMedium,
+        flex: 1,
+        ...wordBreak.breakWord,
+        ...spacing.pr4,
     },
 
     mentionSuggestionsAvatarContainer: {
@@ -1554,13 +1557,6 @@ const styles = {
         ...wordBreak.breakWord,
     },
 
-    chatItemMessageLink: {
-        color: themeColors.link,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.EXP_NEUE,
-        lineHeight: variables.lineHeightXLarge,
-    },
-
     chatItemComposeWithFirstRow: {
         minHeight: 90,
     },
@@ -2504,6 +2500,10 @@ const styles = {
         left: 4,
         backgroundColor: themeColors.appBG,
     },
+
+    switchThumbTransformation: (translateX) => ({
+        transform: [{translateX}],
+    }),
 
     radioButtonContainer: {
         backgroundColor: themeColors.componentBG,
