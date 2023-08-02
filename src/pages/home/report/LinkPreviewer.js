@@ -1,9 +1,8 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {uniqBy} from 'lodash';
-import useWindowDimensions from '../../../hooks/useWindowDimensions';
 import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
 import * as StyleUtils from '../../../styles/StyleUtils';
@@ -12,9 +11,8 @@ import variables from '../../../styles/variables';
 import colors from '../../../styles/colors';
 
 const IMAGE_TYPES = ['jpg', 'jpeg', 'png'];
-const LARGE_SCREEN_MAX_IMAGE_SIZE = 240; // used for both width and height on large screens
-const SMALL_SCREEN_MAX_IMAGE_HEIGHT = 180;
-const SMALL_SCREEN_MAX_IMAGE_WIDTH = 340;
+const MAX_IMAGE_HEIGHT = 180;
+const MAX_IMAGE_WIDTH = 340;
 
 const propTypes = {
     /** Data about links provided in message. */
@@ -68,16 +66,6 @@ const defaultProps = {
 };
 
 function LinkPreviewer(props) {
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const [maxImageSize, setMaxImageSize] = useState({height: LARGE_SCREEN_MAX_IMAGE_SIZE, width: LARGE_SCREEN_MAX_IMAGE_SIZE});
-
-    useEffect(() => {
-        setMaxImageSize({
-            height: isSmallScreenWidth ? SMALL_SCREEN_MAX_IMAGE_HEIGHT : LARGE_SCREEN_MAX_IMAGE_SIZE,
-            width: isSmallScreenWidth ? SMALL_SCREEN_MAX_IMAGE_WIDTH : LARGE_SCREEN_MAX_IMAGE_SIZE,
-        });
-    }, [isSmallScreenWidth]);
-
     return _.map(
         _.take(uniqBy(props.linkMetadata, 'url'), props.maxAmountOfPreviews >= 0 ? Math.min(props.maxAmountOfPreviews, props.linkMetadata.length) : props.linkMetadata.length),
         (linkData) => {
@@ -124,10 +112,10 @@ function LinkPreviewer(props) {
                                     styles.linkPreviewImage,
                                     {
                                         aspectRatio: image.width / image.height,
-                                        maxHeight: Math.min(image.height, maxImageSize.height),
+                                        maxHeight: Math.min(image.height, MAX_IMAGE_HEIGHT),
 
                                         // Calculate maximum width when image is too tall, so it doesn't move away from left
-                                        maxWidth: Math.min((Math.min(image.height, maxImageSize.height) / image.height) * image.width, maxImageSize.width),
+                                        maxWidth: Math.min((Math.min(image.height, MAX_IMAGE_HEIGHT) / image.height) * image.width, MAX_IMAGE_WIDTH),
                                     },
                                 ]}
                                 resizeMode="contain"
