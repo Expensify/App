@@ -252,11 +252,13 @@ describe('actions/Report', () => {
                 jest.advanceTimersByTime(10);
                 currentTime = DateUtils.getDBTime();
                 Report.openReport(REPORT_ID);
+                Report.readNewestAction(REPORT_ID);
                 return waitForPromisesToResolve();
             })
             .then(() => {
                 // The report will be read
                 expect(ReportUtils.isUnread(report)).toBe(false);
+
                 expect(moment.utc(report.lastReadTime).valueOf()).toBeGreaterThanOrEqual(moment.utc(currentTime).valueOf());
 
                 // And no longer show the green dot for unread mentions in the LHN
