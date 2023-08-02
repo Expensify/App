@@ -89,8 +89,7 @@ export default function (WrappedComponent) {
                 return;
             }
             Report.openReport(props.route.params.reportID);
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []);
+        }, [props.report, props.isSmallScreenWidth, props.route.params.reportID, reportAction]);
 
         // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
