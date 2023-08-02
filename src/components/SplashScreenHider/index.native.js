@@ -15,7 +15,6 @@ const defaultProps = {
     onHide: () => {},
 };
 
-
 function SplashScreenHider(props) {
     const {onHide} = props;
 
