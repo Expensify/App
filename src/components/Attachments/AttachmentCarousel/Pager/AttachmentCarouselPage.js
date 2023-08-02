@@ -36,9 +36,9 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
 
     const dimensions = cachedDimensions.get(source);
 
-    const [isImageLoading, setIsImageLoading] = useState(isActiveProp);
-
     const [isActive, setIsActive] = useState(isActiveProp);
+    const [isImageLoading, setIsImageLoading] = useState();
+
     // We delay setting a page to active state by a (few) millisecond(s),
     // to prevent the image transformer from flashing while still rendering
     // Instead, we show the fallback image while the image transformer is loading the image
@@ -72,7 +72,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                             source={{uri: source}}
                             style={dimensions == null ? undefined : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
                             isAuthTokenRequired={isAuthTokenRequired}
-                            onLoadStart={() => setIsImageLoading(true)}
+                            onLoadStart={() => isImageLoading === false && setIsImageLoading(true)}
                             onLoadEnd={() => setIsImageLoading(false)}
                             onLoad={(evt) => {
                                 const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
