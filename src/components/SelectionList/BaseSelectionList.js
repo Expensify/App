@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -66,7 +66,7 @@ function BaseSelectionList({
      *
      * @return {{itemLayouts: [{offset: number, length: number}], disabledOptionsIndexes: *[], allOptions: *[]}}
      */
-    const getFlattenedSections = () => {
+    const flattenedSections = useMemo(() => {
         const allOptions = [];
 
         const disabledOptionsIndexes = [];
@@ -75,7 +75,7 @@ function BaseSelectionList({
         let offset = 0;
         const itemLayouts = [{length: 0, offset}];
 
-        let selectedCount = 0;
+        const selectedOptions = [];
 
         _.each(sections, (section, sectionIndex) => {
             const sectionHeaderHeight = variables.optionsListSectionHeaderHeight;
@@ -102,7 +102,7 @@ function BaseSelectionList({
                 offset += fullItemHeight;
 
                 if (item.isSelected) {
-                    selectedCount++;
+                    selectedOptions.push(item);
                 }
             });
 
@@ -115,7 +115,7 @@ function BaseSelectionList({
         // because React Native accounts for it in getItemLayout
         itemLayouts.push({length: 0, offset});
 
-        if (selectedCount > 1 && !canSelectMultiple) {
+        if (selectedOptions.length > 1 && !canSelectMultiple) {
             Log.alert(
                 'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
             );
@@ -123,13 +123,12 @@ function BaseSelectionList({
 
         return {
             allOptions,
+            selectedOptions,
             disabledOptionsIndexes,
             itemLayouts,
-            allSelected: selectedCount > 0 && selectedCount === allOptions.length - disabledOptionsIndexes.length,
+            allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
         };
-    };
-
-    const flattenedSections = getFlattenedSections();
+    }, [canSelectMultiple, sections]);
 
     const [focusedIndex, setFocusedIndex] = useState(() => {
         const defaultIndex = 0;
@@ -170,29 +169,6 @@ function BaseSelectionList({
         }
 
         listRef.current.scrollToLocation({sectionIndex: adjustedSectionIndex, itemIndex, animated});
-    };
-
-    const selectRow = (item) => {
-        if (canSelectMultiple && (!item.isSelected || sections.length === 1)) {
-            // 1. Focusing the next item when selecting a row only makes sense in multiple selection lists,
-            // because in single selection lists we're closing the list after selecting an item.
-
-            // 2. If `item` is not selected, it means we're selecting it, so we ALWAYS focus the next available item.
-
-            // 3. If `item` is selected, it means we're unselecting it.
-            // There's 2 types of lists. Lists with only 1 section (e.g. Workspace Members) and lists with multiple sections (e.g. Workspace Invite Members):
-            // - For lists with only 1 section, we still want to focus the next item, even if the one we're pressing is being unselected.
-            // - For lists with multiple sections, we want to do nothing - just keep the `focusedIndex` where it is. The list will already reorder the items, so also changing the focus might be confusing.
-
-            const pressedIndex = _.findIndex(flattenedSections.allOptions, (option) => option.keyForList === item.keyForList);
-            const nextIndex = _.findIndex(flattenedSections.allOptions, (option, index) => index > pressedIndex && !flattenedSections.disabledOptionsIndexes.includes(index));
-
-            if (nextIndex >= 0) {
-                setFocusedIndex(nextIndex);
-            }
-        }
-
-        onSelectRow(item);
     };
 
     /**
@@ -245,7 +221,7 @@ function BaseSelectionList({
                 <CheckboxListItem
                     item={item}
                     isFocused={isFocused}
-                    onSelectRow={selectRow}
+                    onSelectRow={onSelectRow}
                     onDismissError={onDismissError}
                 />
             );
@@ -255,10 +231,15 @@ function BaseSelectionList({
             <RadioListItem
                 item={item}
                 isFocused={isFocused}
-                onSelectRow={selectRow}
+                onSelectRow={onSelectRow}
             />
         );
     };
+
+    /** Focuses the next available index after selecting a row */
+    useEffect(() => {
+        setFocusedIndex(flattenedSections.selectedOptions.length);
+    }, [flattenedSections.selectedOptions]);
 
     /** Focuses the text input when the component mounts. If `props.shouldDelayFocus` is true, we wait for the animation to finish */
     useEffect(() => {
@@ -288,7 +269,7 @@ function BaseSelectionList({
                 return;
             }
 
-            selectRow(focusedOption);
+            onSelectRow(focusedOption);
         },
         {
             captureOnInputs: true,
