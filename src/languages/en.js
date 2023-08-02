@@ -354,6 +354,7 @@ export default {
         pay: 'Pay',
         viewDetails: 'View details',
         pending: 'Pending',
+        deleteRequest: 'Delete request',
         settledExpensify: 'Paid',
         settledElsewhere: 'Paid elsewhere',
         settledPaypalMe: 'Paid using Paypal.me',

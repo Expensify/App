@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -19,6 +19,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as IOU from '../libs/actions/IOU';
 import * as ReportActionsUtils from '../libs/ReportActionsUtils';
 import ConfirmModal from './ConfirmModal';
+import useLocalize from '../hooks/useLocalize';
 
 const propTypes = {
     /** The report currently being looked at */
@@ -53,6 +54,8 @@ const defaultProps = {
 };
 
 function MoneyRequestHeader(props) {
+    const {translate} = useLocalize();
+    const {isDeleteModalVisible, setIsDeleteModalVisible} = useState(false);
     const moneyRequestReport = props.parentReport;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
@@ -65,7 +68,8 @@ function MoneyRequestHeader(props) {
 
     const deleteTransaction = useCallback(() => {
         IOU.deleteMoneyRequest(parentReportAction.originalMessage.IOUTransactionID, parentReportAction, true);
-    }, [parentReportAction]);
+        setIsDeleteModalVisible(false);
+    }, [parentReportAction, setIsDeleteModalVisible]);
 
     return (
         <>
@@ -78,7 +82,7 @@ function MoneyRequestHeader(props) {
                         {
                             icon: Expensicons.Trashcan,
                             text: props.translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
-                            onSelected: deleteTransaction,
+                            onSelected: () => setIsDeleteModalVisible(true),
                         },
                     ]}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(props.windowWidth)}
@@ -91,18 +95,13 @@ function MoneyRequestHeader(props) {
                 />
             </View>
             <ConfirmModal
-                title={this.props.translate('reportActionContextMenu.deleteAction', {action: this.state.reportAction})}
-                isVisible={this.state.isDeleteCommentConfirmModalVisible}
-                shouldSetModalVisibility={this.state.shouldSetModalVisibilityForDeleteConfirmation}
-                onConfirm={this.confirmDeleteAndHideModal}
-                onCancel={this.hideDeleteModal}
-                onModalHide={() => {
-                    this.setState({reportID: '0', reportAction: {}});
-                    this.callbackWhenDeleteModalHide();
-                }}
-                prompt={this.props.translate('reportActionContextMenu.deleteConfirmation', {action: this.state.reportAction})}
-                confirmText={this.props.translate('common.delete')}
-                cancelText={this.props.translate('common.cancel')}
+                title={translate('iou.deleteRequest')}
+                isVisible={isDeleteModalVisible}
+                onConfirm={deleteTransaction}
+                onCancel={() => setIsDeleteModalVisible(false)}
+                prompt={translate('reportActionContextMenu.deleteConfirmation', {action: this.state.reportAction})}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
                 danger
             />
         </>
