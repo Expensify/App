@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {ScrollView, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
@@ -50,31 +50,53 @@ function DistanceRequest({transactionID, transaction, translate}) {
         Transaction.createInitialWaypoints(transaction.transactionID);
     }, [transaction.transactionID, waypoints]);
 
-    return (
-        <ScrollView>
-            {_.map(waypoints, (waypoint, key) => {
-                // key is of the form waypoint0, waypoint1, ...
-                const index = Number(key.replace('waypoint', ''));
-                let descriptionKey = 'distance.waypointDescription.';
-                if (index === 0) {
-                    descriptionKey += 'start';
-                } else if (index === lastWaypointIndex) {
-                    descriptionKey += 'finish';
-                } else {
-                    descriptionKey += 'stop';
-                }
+    const firstMenuItem = useRef(null);
+    const [menuItemHeight, setMenuItemHeight] = useState(0);
+    const measureMenuItemHeight = () => {
+        if (!firstMenuItem.current) {
+            return;
+        }
+        firstMenuItem.current.measure((x, y, width, height) => {
+            setMenuItemHeight(height);
+        });
+    };
 
-                return (
-                    <MenuItemWithTopDescription
-                        description={translate(descriptionKey)}
-                        icon={Expensicons.Menu}
-                        secondaryIcon={Expensicons.DotIndicator}
-                        secondaryIconFill={theme.icon}
-                        shouldShowRightIcon
-                    />
-                );
-            })}
-            <View style={[styles.flexRow, styles.justifyContentCenter]}>
+    // Show 4 waypoints plus 1/2 of one
+    const scrollContainerHeight = menuItemHeight * 4 + Math.floor(menuItemHeight / 2);
+    return (
+        <>
+            <View style={{height: scrollContainerHeight}}>
+                <ScrollView>
+                    {_.map(waypoints, (waypoint, key) => {
+                        // key is of the form waypoint0, waypoint1, ...
+                        const index = Number(key.replace('waypoint', ''));
+                        let descriptionKey = 'distance.waypointDescription.';
+                        if (index === 0) {
+                            descriptionKey += 'start';
+                        } else if (index === lastWaypointIndex) {
+                            descriptionKey += 'finish';
+                        } else {
+                            descriptionKey += 'stop';
+                        }
+
+                        return (
+                            <View
+                                onLayout={index === 0 ? measureMenuItemHeight : null}
+                                ref={index === 0 ? firstMenuItem : null}
+                            >
+                                <MenuItemWithTopDescription
+                                    description={translate(descriptionKey)}
+                                    icon={Expensicons.Menu}
+                                    secondaryIcon={Expensicons.DotIndicator}
+                                    secondaryIconFill={theme.icon}
+                                    shouldShowRightIcon
+                                />
+                            </View>
+                        );
+                    })}
+                </ScrollView>
+            </View>
+            <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                 <Button
                     small
                     icon={Expensicons.Plus}
@@ -84,7 +106,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                     innerStyles={[styles.ph10]}
                 />
             </View>
-        </ScrollView>
+        </>
     );
 }
 
