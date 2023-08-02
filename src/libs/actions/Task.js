@@ -568,10 +568,12 @@ function clearOutTaskInfoAndNavigate(reportID) {
 /**
  * Get the assignee data
  *
- * @param {Object} details
+ * @param {Number} assigneeAccountID
+ * @param {Object} personalDetails
  * @returns {Object}
  */
-function getAssignee(details) {
+function getAssignee(assigneeAccountID, personalDetails) {
+    const details = personalDetails[assigneeAccountID];
     if (!details) {
         return {
             icons: [],
@@ -579,9 +581,8 @@ function getAssignee(details) {
             subtitle: '',
         };
     }
-    const source = UserUtils.getAvatar(lodashGet(details, 'avatar', ''), lodashGet(details, 'accountID', -1));
     return {
-        icons: [{source, type: 'avatar', name: details.login}],
+        icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
         displayName: details.displayName,
         subtitle: details.login,
     };

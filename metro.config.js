@@ -27,6 +27,7 @@ const config = {
             if (isUsingMockAPI && moduleName.includes('/API')) {
                 return {
                     ...resolution,
+                    // TODO: Change API.mock.js extension once it is migrated to TypeScript
                     filePath: resolution.filePath.replace(/src\/libs\/API.js/, 'src/libs/E2E/API.mock.js'),
                 };
             }
