@@ -10,7 +10,6 @@ import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
-import variables from '../styles/variables';
 
 const propTypes = {
     /** Text to display for the menu header */
