@@ -32,6 +32,7 @@ function TextInput(props) {
             if (!removeVisibilityListenerRef.current) return;
             removeVisibilityListenerRef.current();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const isLabeledMultiline = Boolean(props.label.length) && props.multiline;
