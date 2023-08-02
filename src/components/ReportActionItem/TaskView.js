@@ -41,7 +41,7 @@ const propTypes = {
 
 function TaskView(props) {
     useEffect(() => {
-        Task.setTaskReport({...props.report, isExistingTaskReport: true});
+        Task.setTaskReport({...props.report});
     }, [props.report]);
 
     const taskTitle = convertToLTR(props.report.reportName || '');
