@@ -27,15 +27,15 @@ index 0000000..d8284fc
 +  isInitialized = true;
 +  let timer;
 +
-+  // Gestures that would trigger navigation forward are broken on iOS safari. 
-+  // They don't have touchend event fired so we can look at expectingTouchEnd flag to detect if we should run animation. 
++  // Gestures that would trigger navigation forward are broken on iOS safari.
++  // They don't have touchend event fired so we can look at expectingTouchEnd flag to detect if we should run animation.
 +  const handleTouchStart = () => {
 +    expectingTouchend = true;
 +  };
 +  const handleTouchEnd = e => {
 +    var _e$changedTouches$;
 +    const pageX = (_e$changedTouches$ = e.changedTouches[0]) === null || _e$changedTouches$ === void 0 ? void 0 : _e$changedTouches$.pageX;
-+    // PageX for gesture that would trigger navigation back is negative. 
++    // PageX for gesture that would trigger navigation back is negative.
 +    if (pageX < 0) {
 +      if (timer) {
 +        clearTimeout(timer);
@@ -89,6 +89,29 @@ index 548ba79..155d87f 100644
        if (finished) {
          if (closing) {
            onClose();
+diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
+index b595af8..b4df3ec 100644
+--- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
++++ b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardContainer.js
+@@ -1,7 +1,7 @@
+ import { getHeaderTitle, HeaderBackContext, HeaderHeightContext, HeaderShownContext } from '@react-navigation/elements';
+ import { useTheme } from '@react-navigation/native';
+ import * as React from 'react';
+-import { StyleSheet, View } from 'react-native';
++import { StyleSheet, View, Platform } from 'react-native';
+ import ModalPresentationContext from '../../utils/ModalPresentationContext';
+ import useKeyboardManager from '../../utils/useKeyboardManager';
+ import Card from './Card';
+@@ -215,7 +215,8 @@ function CardContainer(_ref) {
+       display:
+       // Hide unfocused screens when animation isn't enabled
+       // This is also necessary for a11y on web
+-      animationEnabled === false && isNextScreenTransparent === false && detachCurrentScreen !== false && !focused ? 'none' : 'flex'
++      animationEnabled === false && isNextScreenTransparent === false && detachCurrentScreen !== false && !focused ? 'none' : 'flex',
++      zIndex: Platform.OS === 'web' ? 'auto' : undefined,
+     }, StyleSheet.absoluteFill]
+   }, /*#__PURE__*/React.createElement(View, {
+     style: styles.container
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 index 95e6871..b7bb75e 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
