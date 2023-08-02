@@ -147,7 +147,10 @@ function Form(props) {
                 setErrors(touchedInputErrors);
             }
 
-            lastValidatedValues.current = values;
+            const isAtLeastOneInputTouched = _.keys(touchedInputs.current).length > 0;
+            if (isAtLeastOneInputTouched) {
+                lastValidatedValues.current = values;
+            }
 
             return touchedInputErrors;
         },
@@ -343,24 +346,6 @@ function Form(props) {
                 });
             });
 
-            // We need to verify that all references and values are still actual.
-            // We should not store it when e.g. some input has been unmounted
-            _.each(inputRefs.current, (inputRef, inputID) => {
-                if (inputRef) {
-                    return;
-                }
-
-                delete inputRefs.current[inputID];
-
-                setInputValues((prevState) => {
-                    const copyPrevState = _.clone(prevState);
-
-                    delete copyPrevState[inputID];
-
-                    return copyPrevState;
-                });
-            });
-
             return childrenElements;
         },
         [errors, inputRefs, inputValues, onValidate, props.draftValues, props.formID, props.formState, setTouchedInput],
@@ -431,6 +416,29 @@ function Form(props) {
             props.submitButtonText,
         ],
     );
+
+    useEffect(() => {
+        _.each(inputRefs.current, (inputRef, inputID) => {
+            if (inputRef) {
+                return;
+            }
+
+            delete inputRefs.current[inputID];
+            delete touchedInputs.current[inputID];
+            delete lastValidatedValues.current[inputID];
+
+            setInputValues((prevState) => {
+                const copyPrevState = _.clone(prevState);
+
+                delete copyPrevState[inputID];
+
+                return copyPrevState;
+            });
+        });
+        // We need to verify that all references and values are still actual.
+        // We should not store it when e.g. some input has been unmounted.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [children]);
 
     return (
         <SafeAreaConsumer>
