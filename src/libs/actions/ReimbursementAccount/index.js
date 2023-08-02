@@ -4,7 +4,7 @@ import resetFreePlanBankAccount from './resetFreePlanBankAccount';
 import deleteFromBankAccountList from './deleteFromBankAccountList';
 
 export {goToWithdrawalAccountSetupStep, navigateToBankAccountRoute} from './navigation';
-export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, resetReimbursementAccount, showBankAccountFormValidationError} from './errors';
+export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, resetReimbursementAccount} from './errors';
 
 /**
  * Set the current sub step in first step of adding withdrawal bank account:
@@ -20,10 +20,6 @@ function setBankAccountSubStep(subStep) {
 
 function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
-}
-
-function setWorkspaceIDForReimbursementAccount(workspaceID) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
 }
 
 /**
@@ -51,7 +47,6 @@ export {
     resetFreePlanBankAccount,
     setBankAccountSubStep,
     hideBankAccountErrors,
-    setWorkspaceIDForReimbursementAccount,
     updateReimbursementAccountDraft,
     requestResetFreePlanBankAccount,
     cancelResetFreePlanBankAccount,

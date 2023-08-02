@@ -33,15 +33,4 @@ function resetReimbursementAccount() {
     });
 }
 
-/**
- * Set the current error message.
- *
- * @param {String} error
- */
-function showBankAccountFormValidationError(error) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-        errors: ErrorUtils.getMicroSecondOnyxError(error),
-    });
-}
-
-export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, showBankAccountFormValidationError, resetReimbursementAccount};
+export {setBankAccountFormValidationErrors, setPersonalBankAccountFormValidationErrorFields, resetReimbursementAccount};
