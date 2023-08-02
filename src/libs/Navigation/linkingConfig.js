@@ -290,8 +290,8 @@ export default {
                     },
                     MoneyRequest: {
                         screens: {
-                            Money_Request_Selector: {
-                                path: ROUTES.MONEY_REQUEST_SELECTOR,
+                            Money_Request: {
+                                path: ROUTES.MONEY_REQUEST,
                                 exact: true,
                                 screens: {
                                     manual: {
@@ -304,7 +304,6 @@ export default {
                                     },
                                 },
                             },
-                            Money_Request: ROUTES.MONEY_REQUEST,
                             Money_Request_Amount: ROUTES.MONEY_REQUEST_AMOUNT,
                             Money_Request_Participants: ROUTES.MONEY_REQUEST_PARTICIPANTS,
                             Money_Request_Confirmation: ROUTES.MONEY_REQUEST_CONFIRMATION,

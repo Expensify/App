@@ -32,6 +32,7 @@ function OnyxTabNavigator({id, selectedTab, children, ...rest}) {
             {...rest}
             id={id}
             initialRouteName={selectedTab}
+            backBehavior="initialRoute"
             screenListeners={{
                 state: (event) => {
                     const state = event.data.state;

@@ -1442,12 +1442,6 @@ function payMoneyRequest(paymentType, chatReport, iouReport) {
  */
 function startMoneyRequest(iouType, reportID = '') {
     resetMoneyRequestInfo(`${iouType}${reportID}`);
-
-    if (iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST) {
-        Navigation.navigate(ROUTES.getMoneyRequestSelectorRoute(iouType, reportID));
-        return;
-    }
-
     Navigation.navigate(ROUTES.getMoneyRequestRoute(iouType, reportID));
 }
 

@@ -92,7 +92,7 @@ function MoneyRequestSelectorPage(props) {
                                 title={title[iouType]}
                                 onBackButtonPress={Navigation.dismissModal}
                             />
-                            {canUseScanReceipts ? (
+                            {canUseScanReceipts && iouType === CONST.IOU.MONEY_REQUEST_TYPE.REQUEST ? (
                                 <OnyxTabNavigator
                                     id={CONST.TAB.RECEIPT_TAB_ID}
                                     tabBar={({state, navigation}) => (
@@ -115,7 +115,7 @@ function MoneyRequestSelectorPage(props) {
                                     />
                                 </OnyxTabNavigator>
                             ) : (
-                                <MoneyRequestAmount />
+                                <MoneyRequestAmount route={props.route} />
                             )}
                         </View>
                     </DragAndDropProvider>
@@ -130,9 +130,6 @@ MoneyRequestSelectorPage.defaultProps = defaultProps;
 MoneyRequestSelectorPage.displayName = 'MoneyRequestSelectorPage';
 
 export default withOnyx({
-    iou: {
-        key: ONYXKEYS.IOU,
-    },
     selectedTab: {
         key: `${ONYXKEYS.SELECTED_TAB}_${CONST.TAB.RECEIPT_TAB_ID}`,
     },
