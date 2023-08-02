@@ -115,6 +115,7 @@ class MoneyRequestDescriptionPage extends Component {
                             accessibilityLabel={this.props.translate('moneyRequestConfirmationList.whatsItFor')}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             ref={(el) => (this.descriptionInputRef = el)}
+                            maxLength={CONST.SUPPORTING_TEXT_MAX_LENGTH}
                         />
                     </View>
                 </Form>
