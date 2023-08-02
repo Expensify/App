@@ -183,17 +183,6 @@ function isTaskAssignee(report) {
 }
 
 /**
- * Checks if a report is an IOU or expense report.
- *
- * @param {Object|String} reportOrID
- * @returns {Boolean}
- */
-function isMoneyRequestReport(reportOrID) {
-    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
-    return isIOUReport(report) || isExpenseReport(report);
-}
-
-/**
  * Given a collection of reports returns them sorted by last read
  *
  * @param {Object} reports
@@ -202,7 +191,7 @@ function isMoneyRequestReport(reportOrID) {
 function sortReportsByLastRead(reports) {
     return _.chain(reports)
         .toArray()
-        .filter((report) => report && report.reportID && !isIOUReport(report))
+        .filter((report) => report && report.reportID && report.lastReadTime)
         .sortBy('lastReadTime')
         .value();
 }
@@ -259,6 +248,10 @@ function isCurrentUserSubmitter(reportID) {
  * @returns {Boolean}
  */
 function canDeleteReportAction(reportAction, reportID) {
+    // For now, users cannot delete split actions
+    if (ReportActionsUtils.isMoneyRequestAction(reportAction) && lodashGet(reportAction, 'originalMessage.type') === CONST.IOU.REPORT_ACTION_TYPE.SPLIT) {
+        return false;
+    }
     const isActionOwner = reportAction.actorAccountID === currentUserAccountID;
     if (isActionOwner && ReportActionsUtils.isMoneyRequestAction(reportAction) && !isSettled(reportAction.originalMessage.IOUReportID)) {
         return true;
@@ -700,6 +693,44 @@ function isExpenseRequest(report) {
         return isExpenseReport(parentReport) && ReportActionsUtils.isTransactionThread(parentReportAction);
     }
     return false;
+}
+
+/**
+ * An IOU Request is a thread where the parent report is an IOU Report and
+ * the parentReportAction is a transaction.
+ *
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+function isIOURequest(report) {
+    if (isThread(report)) {
+        const parentReportAction = ReportActionsUtils.getParentReportAction(report);
+        const parentReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
+        return isIOUReport(parentReport) && ReportActionsUtils.isTransactionThread(parentReportAction);
+    }
+    return false;
+}
+
+/**
+ * Checks if a report is an IOU or expense request.
+ *
+ * @param {Object|String} reportOrID
+ * @returns {Boolean}
+ */
+function isMoneyRequest(reportOrID) {
+    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
+    return isIOURequest(report) || isExpenseRequest(report);
+}
+
+/**
+ * Checks if a report is an IOU or expense report.
+ *
+ * @param {Object|String} reportOrID
+ * @returns {Boolean}
+ */
+function isMoneyRequestReport(reportOrID) {
+    const report = _.isObject(reportOrID) ? reportOrID : allReports[`${ONYXKEYS.COLLECTION.REPORT}${reportOrID}`];
+    return isIOUReport(report) || isExpenseReport(report);
 }
 
 /**
@@ -1319,12 +1350,12 @@ function getRootReportAndWorkspaceName(report) {
         return getRootReportAndWorkspaceName(parentReport);
     }
 
-    if (isIOUReport(report)) {
+    if (isIOURequest(report)) {
         return {
             rootReportName: lodashGet(report, 'displayName', ''),
         };
     }
-    if (isMoneyRequestReport(report)) {
+    if (isExpenseRequest(report)) {
         return {
             rootReportName: lodashGet(report, 'displayName', ''),
             workspaceName: isIOUReport(report) ? CONST.POLICY.OWNER_EMAIL_FAKE : getPolicyName(report, true),
@@ -1896,7 +1927,7 @@ function buildOptimisticChatReport(
     isOwnPolicyExpenseChat = false,
     oldPolicyName = '',
     visibility = undefined,
-    writeCapability = CONST.REPORT.WRITE_CAPABILITIES.ALL,
+    writeCapability = undefined,
     notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
     parentReportActionID = '',
     parentReportID = '',
@@ -2066,6 +2097,7 @@ function buildOptimisticWorkspaceChats(policyID, policyName) {
         false,
         policyName,
         null,
+        undefined,
 
         // #announce contains all policy members so notifying always should be opt-in only.
         CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
@@ -2292,9 +2324,19 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    // Include reports if they have a draft, are pinned, or have an outstanding IOU
+    // Include reports if they have a draft or have an outstanding IOU
     // These are always relevant to the user no matter what view mode the user prefers
-    if (report.hasDraft || report.isPinned || isWaitingForIOUActionFromCurrentUser(report, iouReports)) {
+    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report, iouReports)) {
+        return true;
+    }
+
+    // Hide only chat threads that haven't been commented on (other threads are actionable)
+    if (isChatThread(report) && !report.lastMessageText) {
+        return false;
+    }
+
+    // Include reports if they are pinned
+    if (report.isPinned) {
         return true;
     }
 
@@ -2316,11 +2358,6 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
 
     // Exclude policy expense chats if the user isn't in the policy expense chat beta
     if (isPolicyExpenseChat(report) && !Permissions.canUsePolicyExpenseChat(betas)) {
-        return false;
-    }
-
-    // Hide only chat threads that haven't been commented on (other threads are actionable)
-    if (isChatThread(report) && !report.lastMessageText) {
         return false;
     }
 
@@ -2872,6 +2909,7 @@ export {
     isCompletedTaskReport,
     isTaskAssignee,
     isMoneyRequestReport,
+    isMoneyRequest,
     chatIncludesChronos,
     getNewMarkerReportActionID,
     canSeeDefaultRoom,
