@@ -1061,6 +1061,12 @@ const CONST = {
             DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
+        FILE_TYPES: {
+            HTML: 'html',
+            DOC: 'doc',
+            DOCX: 'docx',
+            SVG: 'svg',
+        },
     },
 
     GROWL: {
@@ -1112,6 +1118,10 @@ const CONST = {
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
+
+    ACTIVITY_INDICATOR_SIZE: {
+        LARGE: 'large',
+    },
 
     AVATAR_SIZE: {
         LARGE: 'large',

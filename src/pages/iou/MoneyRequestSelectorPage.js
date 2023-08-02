@@ -19,6 +19,7 @@ import * as IOU from '../../libs/actions/IOU';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
+import participantPropTypes from '../../components/participantPropTypes';
 
 const propTypes = {
     /** React Navigation route */
@@ -34,15 +35,7 @@ const propTypes = {
         id: PropTypes.string,
         amount: PropTypes.number,
         currency: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
+        participants: participantPropTypes,
     }),
 
     /** Which tab has been selected */

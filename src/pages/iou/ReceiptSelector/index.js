@@ -95,7 +95,7 @@ function ReceiptSelector(props) {
      * @param {Object} report
      */
     const setReceiptAndNavigate = (file, iou, report) => {
-        if (!ReceiptUtils.isValidReceipt(file)) {
+        if (!ReceiptUtils.validateReceipt(file)) {
             return;
         }
 
@@ -131,7 +131,7 @@ function ReceiptSelector(props) {
                         {({openPicker}) => (
                             <PressableWithFeedback
                                 accessibilityLabel={translate('receipt.chooseFile')}
-                                accessibilityRole="button"
+                                accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             >
                                 <Button
                                     medium

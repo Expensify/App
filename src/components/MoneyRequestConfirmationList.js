@@ -315,15 +315,15 @@ function MoneyRequestConfirmationList(props) {
             return receiptPath;
         }
 
-        if (fileExtension === 'html') {
+        if (fileExtension === CONST.IOU.FILE_TYPES.HTML) {
             return ReceiptHTML;
         }
 
-        if (fileExtension === 'doc' || fileExtension === 'docx') {
+        if (fileExtension === CONST.IOU.FILE_TYPES.DOC || fileExtension === CONST.IOU.FILE_TYPES.DOCX) {
             return ReceiptDoc;
         }
 
-        if (fileExtension === 'svg') {
+        if (fileExtension === CONST.IOU.FILE_TYPES.SVG) {
             return ReceiptSVG;
         }
 
@@ -347,13 +347,12 @@ function MoneyRequestConfirmationList(props) {
             optionHoveredStyle={canModifyParticipants ? styles.hoveredComponentBG : {}}
             footerContent={footerContent}
         >
-            {!_.isEmpty(props.receiptPath) && (
+            {!_.isEmpty(props.receiptPath) ? (
                 <Image
                     style={styles.moneyRequestImage}
                     source={{uri: getImageURI(props.receiptPath, props.receiptSource)}}
                 />
-            )}
-            {_.isEmpty(props.receiptPath) && (
+            ) : (
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!props.isReadOnly}
                     title={formattedAmount}

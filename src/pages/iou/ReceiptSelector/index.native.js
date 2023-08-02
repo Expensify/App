@@ -20,6 +20,7 @@ import Button from '../../../components/Button';
 import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
+import participantPropTypes from '../../../components/participantPropTypes';
 
 const propTypes = {
     /** Route params */
@@ -38,15 +39,7 @@ const propTypes = {
         id: PropTypes.string,
         amount: PropTypes.number,
         currency: PropTypes.string,
-        participants: PropTypes.arrayOf(
-            PropTypes.shape({
-                accountID: PropTypes.number,
-                login: PropTypes.string,
-                isPolicyExpenseChat: PropTypes.bool,
-                isOwnPolicyExpenseChat: PropTypes.bool,
-                selected: PropTypes.bool,
-            }),
-        ),
+        participants: participantPropTypes,
     }),
 };
 
@@ -154,14 +147,13 @@ function ReceiptSelector(props) {
     };
 
     const askForPermissions = () => {
-        if (permissions === 'denied') {
+        if (permissions === 'not-determined') {
+            Camera.requestCameraPermission().then((permissionStatus) => {
+                setPermissions(permissionStatus);
+            });
+        } else {
             Linking.openSettings();
-            return;
         }
-
-        Camera.requestCameraPermission().then((permissionStatus) => {
-            setPermissions(permissionStatus);
-        });
     };
 
     /**
@@ -250,7 +242,7 @@ function ReceiptSelector(props) {
             {permissions === CONST.RECEIPT.PERMISSION_AUTHORIZED && device == null && (
                 <View style={[styles.cameraView]}>
                     <ActivityIndicator
-                        size="large"
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
                         color={themeColors.textSupporting}
                     />
@@ -268,7 +260,7 @@ function ReceiptSelector(props) {
             )}
             <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
                 <PressableWithFeedback
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.gallery')}
                     style={[styles.alignItemsStart]}
                     onPress={() => {
@@ -290,7 +282,7 @@ function ReceiptSelector(props) {
                     />
                 </PressableWithFeedback>
                 <PressableWithFeedback
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
                     style={[styles.alignItemsCenter]}
                     onPress={takePhoto}
