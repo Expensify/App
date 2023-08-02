@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Lottie from 'lottie-react-native';
-import ReviewingBankInfoAnimation from '../../assets/animations/ReviewingBankInfo.json';
+import * as LottieAnimations from './LottieAnimations';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
@@ -36,7 +36,7 @@ function ReimbursementAccountLoadingIndicator(props) {
                 {props.isSubmittingVerificationsData ? (
                     <View style={[styles.pageWrapper]}>
                         <Lottie
-                            source={ReviewingBankInfoAnimation}
+                            source={LottieAnimations.ReviewingBankInfoAnimation}
                             autoPlay
                             loop
                             style={styles.loadingVBAAnimation}
