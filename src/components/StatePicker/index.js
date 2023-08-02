@@ -20,6 +20,9 @@ const propTypes = {
 
     /** A ref to forward to MenuItemWithTopDescription */
     forwardedRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
+
+    /** Label to display on field*/
+    label: PropTypes.string,
 };
 
 const defaultProps = {
@@ -27,9 +30,10 @@ const defaultProps = {
     forwardedRef: undefined,
     errorText: '',
     onInputChange: () => {},
+    label: '',
 };
 
-function StatePicker({value, errorText, onInputChange, forwardedRef}) {
+function StatePicker({value, errorText, onInputChange, forwardedRef, label}) {
     const {translate} = useLocalize();
     const allStates = translate('allStates');
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -61,7 +65,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
                 ref={forwardedRef}
                 shouldShowRightIcon
                 title={title}
-                description={translate('common.state')}
+                description={label || translate('common.state')}
                 descriptionTextStyle={descStyle}
                 onPress={showPickerModal}
             />
@@ -75,6 +79,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
                 onStateSelected={updateStateInput}
                 searchValue={searchValue}
                 setSearchValue={setSearchValue}
+                label={label}
             />
         </View>
     );
