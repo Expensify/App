@@ -69,16 +69,6 @@ export default function (WrappedComponent) {
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithReportAndReportActionOrNotFound(props) {
-        // For small screen, we don't call openReport API when we go to a sub report page by deeplink
-        // So we need to call openReport here for small screen
-        useEffect(() => {
-            if (!props.isSmallScreenWidth || !_.isEmpty(props.report)) {
-                return;
-            }
-            Report.openReport(props.route.params.reportID);
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-        }, []);
-
         const getReportAction = useCallback(() => {
             let reportAction = props.reportActions[`${props.route.params.reportActionID}`];
 
@@ -91,6 +81,16 @@ export default function (WrappedComponent) {
         }, [props.report, props.reportActions, props.route.params.reportActionID]);
 
         const reportAction = getReportAction();
+
+        // For small screen, we don't call openReport API when we go to a sub report page by deeplink
+        // So we need to call openReport here for small screen
+        useEffect(() => {
+            if (!props.isSmallScreenWidth || (!_.isEmpty(props.report) && !_.isEmpty(reportAction))) {
+                return;
+            }
+            Report.openReport(props.route.params.reportID);
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []);
 
         // Perform all the loading checks
         const isLoadingReport = props.isLoadingReportData && (_.isEmpty(props.report) || !props.report.reportID);
