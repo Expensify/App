@@ -145,7 +145,7 @@ function WorkspaceReimburseView(props) {
                     <Text>
                         {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                         <CopyTextToClipboard
-                            text="receipts@expensify.com"
+                            text={CONST.EMAIL.RECEIPTS}
                             textStyles={[styles.textBlue]}
                         />
                         <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
