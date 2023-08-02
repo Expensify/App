@@ -38,7 +38,7 @@ function BasePaymentsPage(props) {
     const {isSmallScreenWidth, windowWidth} = useWindowDimensions();
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
-    const [showPassword, setShowPassword] = useState({
+    const [showPassword] = useState({
         shouldShowPasswordPrompt: false,
         passwordButtonText: '',
     });
@@ -453,14 +453,7 @@ function BasePaymentsPage(props) {
                                     // InteractionManager fires after the currently running animation is completed.
                                     // https://github.com/Expensify/App/issues/7768#issuecomment-1044879541
                                     InteractionManager.runAfterInteractions(() => {
-                                        if (Permissions.canUsePasswordlessLogins(props.betas)) {
-                                            makeDefaultPaymentMethod();
-                                        } else {
-                                            setShowPassword({
-                                                shouldShowPasswordPrompt: true,
-                                                passwordButtonText: translate('paymentsPage.setDefaultConfirmation'),
-                                            });
-                                        }
+                                        makeDefaultPaymentMethod();
                                     });
                                 }}
                                 text={translate('paymentsPage.setDefaultConfirmation')}

@@ -53,6 +53,7 @@ function ReportActionItemCreated(props) {
     }
 
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
     return (
         <OfflineWithFeedback
@@ -77,6 +78,7 @@ function ReportActionItemCreated(props) {
                         style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
                         accessibilityLabel={props.translate('common.details')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        disabled={shouldDisableDetailPage}
                     >
                         <MultipleAvatars
                             icons={icons}
