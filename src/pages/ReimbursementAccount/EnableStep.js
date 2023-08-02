@@ -29,10 +29,10 @@ const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: ReimbursementAccountProps.reimbursementAccountPropTypes.isRequired,
 
-    /* Onyx Props */
+    /** Onyx Props */
     user: userPropTypes,
 
-    /* The workspace name */
+    /** The workspace name */
     policyName: PropTypes.string,
 
     ...withLocalizePropTypes,
