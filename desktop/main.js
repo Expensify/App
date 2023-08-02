@@ -37,6 +37,16 @@ function pasteAsPlainText(browserWindow) {
     browserWindow.webContents.insertText(text);
 }
 
+/**
+ * Checks if the clipboard contains text.
+ *
+ * @returns {boolean} - Returns `true` if the clipboard contains text, otherwise returns `false`.
+ */
+function clipboardHasText() {
+    const clipboardText = clipboard.readText();
+    return clipboardText.length > 0;
+}
+
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
 // Add the Paste and Match Style command to the context menu
@@ -50,7 +60,7 @@ contextMenu({
         }),
         new MenuItem({
             label: Localize.translate(CONST.LOCALES.DEFAULT, 'desktopApplicationMenu.pasteAsPlainText'),
-            visible: parameters.isEditable && parameters.editFlags.canPaste,
+            visible: parameters.isEditable && parameters.editFlags.canPaste && clipboardHasText(),
             accelerator: PASTE_AS_PLAIN_TEXT_ACCELERATOR,
             click: () => pasteAsPlainText(browserWindow),
         }),
@@ -349,7 +359,7 @@ const mainWindow = () => {
                             {
                                 id: 'pasteAsPlainText',
                                 accelerator: PASTE_AS_PLAIN_TEXT_ACCELERATOR,
-                                click: pasteAsPlainText(browserWindow),
+                                click: () => pasteAsPlainText(browserWindow),
                             },
                             {id: 'delete', role: 'delete'},
                             {id: 'selectAll', role: 'selectAll'},
