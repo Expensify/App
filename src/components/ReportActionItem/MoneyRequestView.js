@@ -112,6 +112,7 @@ function MoneyRequestView({report, parentReport, shouldShowHorizontalRule, polic
             <MenuItemWithTopDescription
                 description={translate('common.date')}
                 title={formattedTransactionDate}
+                disabled={isSettled}
                 shouldShowRightIcon={!canEdit}
                 onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
             />
