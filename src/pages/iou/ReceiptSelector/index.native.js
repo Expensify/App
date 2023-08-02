@@ -5,6 +5,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {launchImageLibrary} from 'react-native-image-picker';
 import {withOnyx} from 'react-native-onyx';
+import {useFocusEffect} from '@react-navigation/native';
 import PressableWithFeedback from '../../../components/Pressable/PressableWithFeedback';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -19,7 +20,6 @@ import Button from '../../../components/Button';
 import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Log from '../../../libs/Log';
-import {useFocusEffect} from '@react-navigation/native';
 
 const propTypes = {
     /** Route params */
