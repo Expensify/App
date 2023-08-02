@@ -440,6 +440,83 @@ function editTaskAndNavigate(report, ownerAccountID, {title, description, assign
     Navigation.dismissModal(report.reportID);
 }
 
+function editTaskAssigneeAndNavigate(report, ownerAccountID, assigneeEmail, assigneeAccountID = 0, assigneeChatReport = null) {
+    // Create the EditedReportAction on the task
+    const editTaskReportAction = ReportUtils.buildOptimisticEditedTaskReportAction(currentUserEmail);
+    const reportName = report.reportName.trim();
+
+    let assigneeChatReportOnyxData;
+    const assigneeChatReportID = assigneeChatReport ? assigneeChatReport.reportID : 0;
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: editTaskReportAction},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {
+                reportName,
+                managerID: assigneeAccountID || report.managerID,
+                managerEmail: assigneeEmail || report.managerEmail,
+            },
+        },
+    ];
+    const successData = [];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
+            value: {[editTaskReportAction.reportActionID]: {pendingAction: null}},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
+            value: {assignee: report.managerEmail, assigneeAccountID: report.managerID},
+        },
+    ];
+
+    // If we make a change to the assignee, we want to add a comment to the assignee's chat
+    // Check if the assignee actually changed
+    if (assigneeAccountID && assigneeAccountID !== report.managerID && assigneeAccountID !== ownerAccountID && assigneeChatReport) {
+        assigneeChatReportOnyxData = ReportUtils.getTaskAssigneeChatOnyxData(
+            currentUserAccountID,
+            assigneeEmail,
+            assigneeAccountID,
+            report.reportID,
+            assigneeChatReportID,
+            report.parentReportID,
+            reportName,
+            assigneeChatReport,
+        );
+        optimisticData.push(...assigneeChatReportOnyxData.optimisticData);
+        successData.push(...assigneeChatReportOnyxData.successData);
+        failureData.push(...assigneeChatReportOnyxData.failureData);
+    }
+
+    API.write(
+        'EditTaskAssignee',
+        {
+            taskReportID: report.reportID,
+            assignee: assigneeEmail || report.managerEmail,
+            assigneeAccountID: assigneeAccountID || report.managerID,
+            editedTaskReportActionID: editTaskReportAction.reportActionID,
+            assigneeChatReportID,
+            assigneeChatReportActionID:
+                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticAssigneeAddComment
+                    ? assigneeChatReportOnyxData.optimisticAssigneeAddComment.reportAction.reportActionID
+                    : 0,
+            assigneeChatCreatedReportActionID:
+                assigneeChatReportOnyxData && assigneeChatReportOnyxData.optimisticChatCreatedReportAction ? assigneeChatReportOnyxData.optimisticChatCreatedReportAction.reportActionID : 0,
+        },
+        {optimisticData, successData, failureData},
+    );
+
+    Navigation.dismissModal(report.reportID);
+}
+
 /**
  * Sets the report info for the task being viewed
  *
@@ -739,6 +816,7 @@ function canModifyTask(taskReport, sessionAccountID) {
 export {
     createTaskAndNavigate,
     editTaskAndNavigate,
+    editTaskAssigneeAndNavigate,
     setTitleValue,
     setDescriptionValue,
     setTaskReport,

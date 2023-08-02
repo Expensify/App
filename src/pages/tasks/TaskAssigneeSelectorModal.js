@@ -170,15 +170,13 @@ function TaskAssigneeSelectorModal(props) {
             const assigneeChatReport = Task.setAssigneeValue(option.login, option.accountID, props.task.shareDestination, OptionsListUtils.isCurrentUser(option));
 
             // Pass through the selected assignee
-            Task.editTaskAndNavigate(
+            Task.editTaskAssigneeAndNavigate(
                 props.task.report,
                 props.session.accountID,
-                {
-                    assignee: option.login,
-                    assigneeAccountID: option.accountID,
-                },
+                option.login,
+                option.accountID,
                 assigneeChatReport,
-            );
+            )
         }
     };
 
