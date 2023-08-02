@@ -478,7 +478,6 @@ function ReportActionItem(props) {
                         shouldShowHorizontalRule={!props.isOnlyReportAction}
                     />
                 </OfflineWithFeedback>
-                
             );
         }
         return (
