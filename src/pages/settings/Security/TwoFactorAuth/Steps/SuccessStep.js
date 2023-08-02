@@ -1,7 +1,7 @@
 import React from 'react';
-import FireworksAnimation from '../../../../../../assets/animations/Fireworks.json';
 import ConfirmationPage from '../../../../../components/ConfirmationPage';
 import * as TwoFactorAuthActions from '../../../../../libs/actions/TwoFactorAuthActions';
+import * as LottieAnimations from '../../../../../components/LottieAnimations';
 import CONST from '../../../../../CONST';
 import StepWrapper from '../StepWrapper/StepWrapper';
 import useTwoFactorAuthContext from '../TwoFactorAuthContext/useTwoFactorAuth';
@@ -21,7 +21,7 @@ function SuccessStep() {
             }}
         >
             <ConfirmationPage
-                animation={FireworksAnimation}
+                animation={LottieAnimations.Fireworks}
                 heading={translate('twoFactorAuth.enabled')}
                 description={translate('twoFactorAuth.congrats')}
                 shouldShowButton
