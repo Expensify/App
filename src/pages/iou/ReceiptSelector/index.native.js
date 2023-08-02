@@ -227,15 +227,19 @@ function ReceiptSelector(props) {
             );
         }
 
-        return device == null ? (
-            <View style={[styles.cameraView]}>
-                <ActivityIndicator
-                    size="large"
-                    style={[styles.flex1]}
-                    color={themeColors.textSupporting}
-                />
-            </View>
-        ) : (
+        if (device == null) {
+            return (
+                <View style={[styles.cameraView]}>
+                    <ActivityIndicator
+                        size="large"
+                        style={[styles.flex1]}
+                        color={themeColors.textSupporting}
+                    />
+                </View>
+            );
+        }
+
+        return (
             <Camera
                 ref={camera}
                 device={device}
