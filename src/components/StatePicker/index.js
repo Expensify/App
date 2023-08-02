@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -35,16 +35,12 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
     const [searchValue, setSearchValue] = useState(lodashGet(allStates, `${value}.stateName`, ''));
 
-    const updateSearchValue = useCallback((states, currentValue) => {
-        setSearchValue(lodashGet(states, `${currentValue}.stateName`, ''));
-    }, []);
-
     useEffect(() => {
-        updateSearchValue(allStates, value);
-    }, [value, allStates, updateSearchValue]);
+        setSearchValue(lodashGet(states, `${currentValue}.stateName`, ''));
+    }, [value, allStates]);
 
     const showPickerModal = () => {
-        updateSearchValue(allStates, value);
+        setSearchValue(lodashGet(states, `${currentValue}.stateName`, ''));
         setIsPickerVisible(true);
     };
 
