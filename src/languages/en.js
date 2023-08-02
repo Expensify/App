@@ -1332,7 +1332,7 @@ export default {
         completed: 'Completed',
         messages: {
             completed: 'completed task',
-            canceled: 'canceled task',
+            canceled: 'deleted task',
             reopened: 'reopened task',
             error: 'You do not have the permission to do the requested action.',
         },

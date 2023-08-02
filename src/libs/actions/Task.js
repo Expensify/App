@@ -618,20 +618,14 @@ function getShareDestination(reportID, reports, personalDetails) {
  * @param {number} originalStatusNum
  */
 function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum) {
-    const message = `canceled task: ${taskTitle}`;
+    const message = `deleted task: ${taskTitle}`;
     const optimisticCancelReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCANCELLED, message);
     const optimisticReportActionID = optimisticCancelReportAction.reportActionID;
-    const parentReportAction = ReportActionsUtils.getParentReportAction(taskReportID);
+    const taskReport = ReportUtils.getReport(taskReportID);
+    const parentReportAction = ReportActionsUtils.getParentReportAction(taskReport);
+    const parentReport = ReportUtils.getParentReport(taskReport);
 
     const optimisticData = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
-            value: {
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS.CLOSED,
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`,
@@ -648,6 +642,27 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 [optimisticReportActionID]: optimisticCancelReportAction,
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`,
+            value: {
+                [parentReportAction.reportActionID]: {
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    previousMessage: parentReportAction.message,
+                    message: {
+                        translationKey: '',
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isEdited: true,
+                        isDeletedParentAction: true,
+                    },
+                    errors: null,
+                    linkMetaData: [],
+                },
+            },
+        }
+
     ];
 
     const successData = [
