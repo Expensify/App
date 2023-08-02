@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import * as styleConst from './styleConst';
@@ -7,72 +7,71 @@ import * as baseTextInputPropTypes from './baseTextInputPropTypes';
 import DomUtils from '../../libs/DomUtils';
 import Visibility from '../../libs/Visibility';
 
-class TextInput extends React.Component {
-    componentDidMount() {
-        if (this.props.disableKeyboard) {
-            this.textInput.setAttribute('inputmode', 'none');
-        }
+const TextInput = (props) => {
+  const textInputRef = useRef(null);
+  const removeVisibilityListenerRef = useRef(null);
 
-        if (this.props.name) {
-            this.textInput.setAttribute('name', this.props.name);
-        }
-
-        // Forcefully activate the soft keyboard when the user switches between tabs while input was focused.
-        this.removeVisibilityListener = Visibility.onVisibilityChange(() => {
-            if (!Visibility.isVisible() || !this.textInput || DomUtils.getActiveElement() !== this.textInput) {
-                return;
-            }
-            this.textInput.blur();
-            this.textInput.focus();
-        });
+  useEffect(() => {
+    if (props.disableKeyboard) {
+      textInputRef.current.setAttribute('inputmode', 'none');
     }
 
-    componentWillUnmount() {
-        if (!this.removeVisibilityListener) {
-            return;
-        }
-        this.removeVisibilityListener();
+    if (props.name) {
+      textInputRef.current.setAttribute('name', props.name);
     }
 
-    render() {
-        const isLabeledMultiline = Boolean(this.props.label.length) && this.props.multiline;
-        const labelAnimationStyle = {
-            '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,
-            '--active-label-scale': `${styleConst.ACTIVE_LABEL_SCALE}`,
-            '--label-transition-duration': `${styleConst.LABEL_ANIMATION_DURATION}ms`,
-        };
+    removeVisibilityListenerRef.current = Visibility.onVisibilityChange(() => {
+      if (!Visibility.isVisible() || !textInputRef.current || DomUtils.getActiveElement() !== textInputRef.current) {
+        return;
+      }
+      textInputRef.current.blur();
+      textInputRef.current.focus();
+    });
 
-        return (
-            <BaseTextInput
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...this.props}
-                innerRef={(el) => {
-                    this.textInput = el;
-                    if (!this.props.innerRef) {
-                        return;
-                    }
+    return () => {
+      if (removeVisibilityListenerRef.current) {
+        removeVisibilityListenerRef.current();
+      }
+    };
+  }, []);
 
-                    if (_.isFunction(this.props.innerRef)) {
-                        this.props.innerRef(el);
-                        return;
-                    }
+  const isLabeledMultiline = Boolean(props.label.length) && props.multiline;
+  const labelAnimationStyle = {
+    '--active-label-translate-y': `${styleConst.ACTIVE_LABEL_TRANSLATE_Y}px`,
+    '--active-label-scale': `${styleConst.ACTIVE_LABEL_SCALE}`,
+    '--label-transition-duration': `${styleConst.LABEL_ANIMATION_DURATION}ms`,
+  };
 
-                    this.props.innerRef.current = el;
-                }}
-                inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...this.props.inputStyle]}
-                textInputContainerStyles={[labelAnimationStyle, ...this.props.textInputContainerStyles]}
-            />
-        );
-    }
-}
+  return (
+    <BaseTextInput
+    // eslint-disable-next-line react/jsx-props-no-spreading
+      {...props}
+      innerRef={(el) => {
+        textInputRef.current = el;
+        if (!props.innerRef) {
+          return;
+      }
+
+      if (_.isFunction(props.innerRef)) {
+          props.innerRef(el);
+          return;
+      }
+
+      props.innerRef.current = el;
+      }}
+      inputStyle={[styles.baseTextInput, styles.textInputDesktop, isLabeledMultiline ? styles.textInputMultiline : {}, ...props.inputStyle]}
+      textInputContainerStyles={[labelAnimationStyle, ...props.textInputContainerStyles]}
+    />
+  );
+};
 
 TextInput.propTypes = baseTextInputPropTypes.propTypes;
 TextInput.defaultProps = baseTextInputPropTypes.defaultProps;
 
 export default React.forwardRef((props, ref) => (
-    <TextInput
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
+  <TextInput
+      // eslint-disable-next-line react/jsx-props-no-spreading
+      {...props}
+      innerRef={ref}
+  />
 ));
