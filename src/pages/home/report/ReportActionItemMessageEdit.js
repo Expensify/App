@@ -14,7 +14,7 @@ import containerComposeStyles from '../../../styles/containerComposeStyles';
 import Composer from '../../../components/Composer';
 import * as Report from '../../../libs/actions/Report';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
-import setShouldShowComposeInputKeyboardAware from '../../../libs/setShouldShowComposeInputKeyboardAware';
+import openReportActionComposeViewWhenClosingMessageEdit from '../../../libs/openReportActionComposeViewWhenClosingMessageEdit';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import EmojiPickerButton from '../../../components/EmojiPicker/EmojiPickerButton';
 import Icon from '../../../components/Icon';
@@ -82,6 +82,8 @@ const defaultProps = {
 };
 
 // native ids
+const saveButtonID = 'saveButton';
+const cancelButtonID = 'cancelButton';
 const emojiButtonID = 'emojiButton';
 const messageEditInput = 'messageEditInput';
 
@@ -208,10 +210,8 @@ function ReportActionItemMessageEdit(props) {
     const deleteDraft = useCallback(() => {
         debouncedSaveDraft.cancel();
         Report.saveReportActionDraft(props.reportID, props.action.reportActionID, '');
-        if (isFocusedRef.current) {
-            ComposerActions.setShouldShowComposeInput(true);
-            ReportActionComposeFocusManager.focus();
-        }
+        ComposerActions.setShouldShowComposeInput(true);
+        ReportActionComposeFocusManager.focus();
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (props.index === 0) {
@@ -302,6 +302,7 @@ function ReportActionItemMessageEdit(props) {
                         <PressableWithFeedback
                             onPress={deleteDraft}
                             style={styles.chatItemSubmitButton}
+                            nativeID={cancelButtonID}
                             accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             accessibilityLabel={translate('common.close')}
                             // disable dimming
@@ -309,8 +310,6 @@ function ReportActionItemMessageEdit(props) {
                             pressDimmingValue={1}
                             hoverStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)}
                             pressStyle={StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)}
-                            // Keep focus on the composer when cancel button is clicked.
-                            onMouseDown={(e) => e.preventDefault()}
                         >
                             {({hovered, pressed}) => (
                                 <Icon
@@ -347,15 +346,21 @@ function ReportActionItemMessageEdit(props) {
                             onFocus={() => {
                                 setIsFocused(true);
                                 reportScrollManager.scrollToIndex({animated: true, index: props.index}, true);
-                                setShouldShowComposeInputKeyboardAware(false);
+                                ComposerActions.setShouldShowComposeInput(false);
                             }}
                             onBlur={(event) => {
                                 setIsFocused(false);
                                 const relatedTargetId = lodashGet(event, 'nativeEvent.relatedTarget.id');
-                                if (_.contains([messageEditInput, emojiButtonID], relatedTargetId)) {
+
+                                // Return to prevent re-render when save/cancel button is pressed which cancels the onPress event by re-rendering
+                                if (_.contains([saveButtonID, cancelButtonID, emojiButtonID], relatedTargetId)) {
                                     return;
                                 }
-                                setShouldShowComposeInputKeyboardAware(true);
+
+                                if (messageEditInput === relatedTargetId) {
+                                    return;
+                                }
+                                openReportActionComposeViewWhenClosingMessageEdit();
                             }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
@@ -366,8 +371,8 @@ function ReportActionItemMessageEdit(props) {
                             isDisabled={props.shouldDisableEmojiPicker}
                             onModalHide={() => InteractionManager.runAfterInteractions(() => textInputRef.current.focus())}
                             onEmojiSelected={addEmojiToTextBox}
-                            reportAction={props.action}
                             nativeID={emojiButtonID}
+                            reportAction={props.action}
                         />
                     </View>
 
@@ -376,13 +381,12 @@ function ReportActionItemMessageEdit(props) {
                             <PressableWithFeedback
                                 style={[styles.chatItemSubmitButton, hasExceededMaxCommentLength ? {} : styles.buttonSuccess]}
                                 onPress={publishDraft}
+                                nativeID={saveButtonID}
                                 disabled={hasExceededMaxCommentLength}
                                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                                 accessibilityLabel={translate('common.saveChanges')}
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
-                                // Keep focus on the composer when save button is clicked.
-                                onMouseDown={(e) => e.preventDefault()}
                             >
                                 <Icon
                                     src={Expensicons.Checkmark}
