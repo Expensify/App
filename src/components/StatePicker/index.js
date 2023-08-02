@@ -40,6 +40,7 @@ function StatePicker({value, errorText, onInputChange, forwardedRef}) {
     }, [value, allStates]);
 
     const showPickerModal = () => {
+        setSearchValue(lodashGet(allStates, `${value}.stateName`, ''));
         setIsPickerVisible(true);
     };
 
