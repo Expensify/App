@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {ScrollView} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
@@ -74,14 +74,16 @@ function DistanceRequest({transaction, translate}) {
                     />
                 );
             })}
-            <Button
-                small
-                icon={Expensicons.Plus}
-                onPress={() => {}}
-                text={translate('distance.addStop')}
-                isDisabled={false}
-                style={[styles.w50]}
-            />
+            <View style={[styles.flexRow, styles.justifyContentCenter]}>
+                <Button
+                    small
+                    icon={Expensicons.Plus}
+                    onPress={() => {}}
+                    text={translate('distance.addStop')}
+                    isDisabled={false}
+                    innerStyles={[styles.ph10]}
+                />
+            </View>
         </ScrollView>
     );
 }
