@@ -5,12 +5,11 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import iouReportPropTypes from '../pages/iouReportPropTypes';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import * as ReportUtils from '../libs/ReportUtils';
 import * as Expensicons from './Icon/Expensicons';
 import participantPropTypes from './participantPropTypes';
 import styles from '../styles/styles';
-import withWindowDimensions from './withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
@@ -43,7 +42,7 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
-    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -81,7 +80,7 @@ function MoneyRequestHeader(props) {
                     threeDotsMenuItems={[
                         {
                             icon: Expensicons.Trashcan,
-                            text: props.translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
+                            text: translate('reportActionContextMenu.deleteAction', {action: parentReportAction}),
                             onSelected: () => setIsDeleteModalVisible(true),
                         },
                     ]}
@@ -114,7 +113,6 @@ MoneyRequestHeader.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withLocalize,
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
