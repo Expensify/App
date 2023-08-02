@@ -18,6 +18,7 @@ import CONST from '../../../CONST';
 import Button from '../../../components/Button';
 import useLocalize from '../../../hooks/useLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
+import Log from '../../../libs/Log';
 
 const propTypes = {
     /** Route params */
@@ -226,19 +227,15 @@ function ReceiptSelector(props) {
             );
         }
 
-        if (device === null) {
-            return (
-                <View style={[styles.cameraView]}>
-                    <ActivityIndicator
-                        size="large"
-                        style={[styles.flex1]}
-                        color={themeColors.textSupporting}
-                    />
-                </View>
-            );
-        }
-
-        return (
+        return device == null ? (
+            <View style={[styles.cameraView]}>
+                <ActivityIndicator
+                    size="large"
+                    style={[styles.flex1]}
+                    color={themeColors.textSupporting}
+                />
+            </View>
+        ) : (
             <Camera
                 ref={camera}
                 device={device}
@@ -258,10 +255,14 @@ function ReceiptSelector(props) {
                     accessibilityLabel={translate('receipt.gallery')}
                     style={[styles.alignItemsStart]}
                     onPress={() => {
-                        showImagePicker(launchImageLibrary).then((receiptImage) => {
-                            IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
-                            IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
-                        });
+                        showImagePicker(launchImageLibrary)
+                            .then((receiptImage) => {
+                                IOU.setMoneyRequestReceipt(receiptImage[0].uri, receiptImage[0].fileName);
+                                IOU.navigateToNextPage(props.iou, iouType, reportID, props.report);
+                            })
+                            .catch(() => {
+                                Log.info('User did not select an image from gallery');
+                            });
                     }}
                 >
                     <Icon
