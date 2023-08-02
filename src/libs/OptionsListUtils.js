@@ -615,7 +615,7 @@ function getOptions(
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
-        disallowNewChats = false,
+        excludeUnknownUsers = false,
     },
 ) {
     if (!isPersonalDetailsReady(personalDetails)) {
@@ -798,7 +798,7 @@ function getOptions(
             (parsedPhoneNumber.possible && Str.isValidPhone(LoginUtils.getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number.input)))) &&
         !_.find(loginOptionsToExclude, (loginOptionToExclude) => loginOptionToExclude.login === addSMSDomainIfPhoneNumber(searchValue).toLowerCase()) &&
         (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas)) &&
-        !disallowNewChats
+        !excludeUnknownUsers
     ) {
         // Generates an optimistic account ID for new users not yet saved in Onyx
         const optimisticAccountID = UserUtils.generateAccountID(searchValue);
@@ -976,7 +976,7 @@ function getShareDestinationOptions(
     selectedOptions = [],
     excludeLogins = [],
     includeOwnedWorkspaceChats = true,
-    disallowNewChats = true,
+    excludeUnknownUsers = true,
 ) {
     return getOptions(reports, personalDetails, {
         betas,
@@ -993,7 +993,7 @@ function getShareDestinationOptions(
         includeTasks: true,
         excludeLogins,
         includeOwnedWorkspaceChats,
-        disallowNewChats,
+        excludeUnknownUsers,
     });
 }
 
