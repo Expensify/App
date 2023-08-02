@@ -53,18 +53,6 @@ function confirmReadyToOpenApp() {
 
 /**
  * @param {Array} policies
- * @return {Array<String>} array of policy ids
- */
-function getNonOptimisticPolicyIDs(policies) {
-    return _.chain(policies)
-        .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-        .pluck('id')
-        .compact()
-        .value();
-}
-
-/**
- * @param {Array} policies
  * @return {Object} map of policy id to lastUpdated
  */
 function getNonOptimisticPolicyIDToLastModifiedMap(policies) {
@@ -148,7 +136,7 @@ function openApp(isReconnecting = false) {
                 //
                 // - Look through the local report actions and reports to find the most recently modified report action or report.
                 // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-                const params = {policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
+                const params = {policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
                 if (isReconnecting) {
                     Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
                     params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
