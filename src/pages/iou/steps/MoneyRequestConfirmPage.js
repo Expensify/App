@@ -187,7 +187,7 @@ function MoneyRequestConfirmPage(props) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
                     <HeaderWithBackButton
-                        title={props.translate('iou.cash')}
+                        title={props.translate('tabSelector.manual')}
                         onBackButtonPress={navigateBack}
                     />
                     <MoneyRequestConfirmationList

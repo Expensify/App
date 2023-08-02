@@ -64,7 +64,7 @@ function MoneyRequestParticipantsPage({iou, translate, route}) {
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
-                        title={translate('iou.cash')}
+                        title={translate('tabSelector.manual')}
                         onBackButtonPress={navigateBack}
                     />
                         <MoneyRequestParticipantsSelector
