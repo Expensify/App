@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 /**
- * Shows an alert modal with ok and cancel options.
+ * Displays an alert modal with the choices "ok" and "cancel".
  *
  * @param {String} title The title of the alert
  * @param {String} description The description of the alert
