@@ -1145,6 +1145,10 @@ function isWaitingForIOUActionFromCurrentUser(report, allReportsDict = null) {
     return false;
 }
 
+function isWaitingForTaskCompleteFromAssignee(report) {
+    return isTaskReport(report) && isTaskAssignee(report) && isOpenTaskReport(report);
+}
+
 /**
  * @param {Object} report
  * @param {Object} allReportsDict
@@ -2324,9 +2328,8 @@ function shouldReportBeInOptionList(report, currentReportId, isInGSDMode, iouRep
         return true;
     }
 
-    // Include reports if they have a draft or have an outstanding IOU
-    // These are always relevant to the user no matter what view mode the user prefers
-    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report, iouReports)) {
+    // Include reports that are relevant to the user in any view mode. Criteria include having a draft, having an outstanding IOU, or being assigned to an open task.
+    if (report.hasDraft || isWaitingForIOUActionFromCurrentUser(report, iouReports) || isWaitingForTaskCompleteFromAssignee(report)) {
         return true;
     }
 
