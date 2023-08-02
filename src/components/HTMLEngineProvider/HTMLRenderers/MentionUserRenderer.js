@@ -32,7 +32,7 @@ function MentionUserRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
 
     // We need to remove the leading @ from data as it is not part of the login
-    const loginWithoutLeadingAt = props.tnode.data.slice(1);
+    const loginWithoutLeadingAt = props.tnode.data ? props.tnode.data.slice(1) : '';
 
     const accountID = _.first(PersonalDetailsUtils.getAccountIDsByLogins([loginWithoutLeadingAt]));
 
