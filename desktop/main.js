@@ -13,6 +13,7 @@ const Localize = require('../src/libs/Localize');
 
 const port = process.env.PORT || 8080;
 const PASTE_AS_PLAIN_TEXT_ACCELERATOR = 'CmdOrCtrl+Shift+V';
+const PASTE_AND_MATCH_STYLE_ACCELERATOR = 'Option+Shift+CmdOrCtrl+V';
 
 app.setName('New Expensify');
 
@@ -35,7 +36,7 @@ contextMenu({
             // Only enable the menu item for Editable context which supports paste
             visible: parameters.isEditable && parameters.editFlags.canPaste,
             role: 'pasteAndMatchStyle',
-            accelerator: 'Option+Shift+CmdOrCtrl+V',
+            accelerator: PASTE_AND_MATCH_STYLE_ACCELERATOR,
         }),
         new MenuItem({
             label: Localize.translate(CONST.LOCALES.DEFAULT, 'desktopApplicationMenu.pasteAsPlainText'),
@@ -337,7 +338,7 @@ const mainWindow = () => {
                             {
                                 id: 'pasteAndMatchStyle',
                                 role: 'pasteAndMatchStyle',
-                                accelerator: 'Option+Shift+CmdOrCtrl+V',
+                                accelerator: PASTE_AND_MATCH_STYLE_ACCELERATOR,
                             },
                             {
                                 id: 'pasteAsPlainText',
