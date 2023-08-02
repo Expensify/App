@@ -27,6 +27,16 @@ app.setName('New Expensify');
 // See: https://github.com/electron/electron/issues/22597
 app.commandLine.appendSwitch('enable-network-information-downlink-max');
 
+/**
+ * Inserts the plain text from the clipboard into the provided browser window's web contents.
+ *
+ * @param {BrowserWindow} browserWindow - The Electron BrowserWindow instance where the text should be inserted.
+ */
+function pasteAsPlainText(browserWindow) {
+    const text = clipboard.readText();
+    browserWindow.webContents.insertText(text);
+}
+
 // Initialize the right click menu
 // See https://github.com/sindresorhus/electron-context-menu
 // Add the Paste and Match Style command to the context menu
@@ -42,11 +52,7 @@ contextMenu({
             label: Localize.translate(CONST.LOCALES.DEFAULT, 'desktopApplicationMenu.pasteAsPlainText'),
             visible: parameters.isEditable && parameters.editFlags.canPaste,
             accelerator: PASTE_AS_PLAIN_TEXT_ACCELERATOR,
-            click: () => {
-                // Insert the plain text from the clipboard
-                const text = clipboard.readText();
-                browserWindow.webContents.insertText(text);
-            },
+            click: () => pasteAsPlainText(browserWindow),
         }),
     ],
 });
@@ -343,11 +349,7 @@ const mainWindow = () => {
                             {
                                 id: 'pasteAsPlainText',
                                 accelerator: PASTE_AS_PLAIN_TEXT_ACCELERATOR,
-                                click: () => {
-                                    // Insert the plain text from the clipboard
-                                    const text = clipboard.readText();
-                                    browserWindow.webContents.insertText(text);
-                                },
+                                click: pasteAsPlainText(browserWindow),
                             },
                             {id: 'delete', role: 'delete'},
                             {id: 'selectAll', role: 'selectAll'},
