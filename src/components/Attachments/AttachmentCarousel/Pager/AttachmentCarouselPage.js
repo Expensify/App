@@ -1,5 +1,5 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useContext, useEffect, useState, useMemo} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {ActivityIndicator, PixelRatio, StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Image from '../../../Image';
@@ -36,9 +36,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
 
     const dimensions = cachedDimensions.get(source);
 
-    const areImageDimensionsSet = dimensions?.imageWidth !== 0 && dimensions?.imageHeight !== 0;
-
-    const [isImageLoading, setIsImageLoading] = useState(!areImageDimensionsSet);
+    const [isImageLoading, setIsImageLoading] = useState(isActiveProp);
 
     const [isActive, setIsActive] = useState(isActiveProp);
     // We delay setting a page to active state by a (few) millisecond(s),
@@ -47,11 +45,6 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
     useEffect(() => {
         if (isActiveProp) setTimeout(() => setIsActive(true), 1);
         else setIsActive(false);
-    }, [isActiveProp]);
-
-    useMemo(() => {
-        if (!isActiveProp) return;
-        setIsImageLoading(true);
     }, [isActiveProp]);
 
     const [showFallback, setShowFallback] = useState(isImageLoading);
@@ -79,6 +72,8 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                             source={{uri: source}}
                             style={dimensions == null ? {} : {width: dimensions.imageWidth, height: dimensions.imageHeight}}
                             isAuthTokenRequired={isAuthTokenRequired}
+                            onLoadStart={() => setIsImageLoading(true)}
+                            onLoadEnd={() => setIsImageLoading(false)}
                             onLoad={(evt) => {
                                 const imageWidth = (evt.nativeEvent?.width || 0) / PixelRatio.get();
                                 const imageHeight = (evt.nativeEvent?.height || 0) / PixelRatio.get();
@@ -100,9 +95,6 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                                         imageScaleY,
                                     });
                                 }
-
-                                if (imageWidth === 0 || imageHeight === 0) return;
-                                setIsImageLoading(false);
                             }}
                         />
                     </ImageTransformer>
@@ -115,6 +107,7 @@ function AttachmentCarouselPage({source, isAuthTokenRequired, isActive: isActive
                     <Image
                         source={{uri: source}}
                         isAuthTokenRequired={isAuthTokenRequired}
+                        onLoadStart={() => setIsImageLoading(true)}
                         onLoad={(evt) => {
                             const imageWidth = evt.nativeEvent.width;
                             const imageHeight = evt.nativeEvent.height;
