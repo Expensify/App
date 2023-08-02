@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import React, {useState, useRef, useEffect, memo, useCallback} from 'react';
+import React, {useState, useRef, useEffect, memo, useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -105,6 +105,17 @@ const propTypes = {
 
     /** Is this the only report action on the report? */
     isOnlyReportAction: PropTypes.bool,
+
+    /** Actions to add/remove highlight effect of separator of ReportActionsList */
+    separatorActions: PropTypes.shape({
+        highlight: PropTypes.func,
+        unhighlight: PropTypes.func,
+    }),
+
+    /** An array that determines should report action have expanded hover area.
+     * It gets strings: "top" and "bottom".
+     * */
+    expandHoverArea: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -115,6 +126,8 @@ const defaultProps = {
     shouldShowSubscriptAvatar: false,
     hasOutstandingIOU: false,
     isOnlyReportAction: false,
+    separatorActions: {},
+    expandHoverArea: [],
 };
 
 function ReportActionItem(props) {
@@ -124,6 +137,29 @@ function ReportActionItem(props) {
     const textInputRef = useRef();
     const popoverAnchorRef = useRef();
     const downloadedPreviews = useRef([]);
+    const {whisperedToAccountIDs, isWhisper} = useMemo(() => {
+        const safeWhisperedToAccountIDs = props.action.whisperedToAccountIDs || [];
+
+        return {
+            whisperedToAccountIDs: safeWhisperedToAccountIDs,
+            isWhisper: safeWhisperedToAccountIDs.length > 0,
+        };
+    }, [props.action.whisperedToAccountIDs]);
+
+    useEffect(() => {
+        if (!props.separatorActions.highlight || !props.separatorActions.unhighlight) {
+            return;
+        }
+
+        if (isWhisper && props.displayAsGroup) {
+            props.separatorActions.highlight();
+        } else {
+            props.separatorActions.unhighlight();
+        }
+        // This useEffect should be invoked as less as possible.
+        // It still has all dependencies, but tracks directly each value.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isWhisper, props.displayAsGroup, props.separatorActions.highlight, props.separatorActions.unhighlight]);
 
     useEffect(
         () => () => {
@@ -416,10 +452,9 @@ function ReportActionItem(props) {
     /**
      * Get ReportActionItem with a proper wrapper
      * @param {Boolean} hovered whether the ReportActionItem is hovered
-     * @param {Boolean} isWhisper whether the ReportActionItem is a whisper
      * @returns {Object} report action item
      */
-    const renderReportActionItem = (hovered, isWhisper) => {
+    const renderReportActionItem = (hovered) => {
         const content = renderItemContent(hovered || isContextMenuActive);
 
         if (props.draftMessage) {
@@ -490,8 +525,6 @@ function ReportActionItem(props) {
     }
 
     const hasErrors = !_.isEmpty(props.action.errors);
-    const whisperedToAccountIDs = props.action.whisperedToAccountIDs || [];
-    const isWhisper = whisperedToAccountIDs.length > 0;
     const isMultipleParticipant = whisperedToAccountIDs.length > 1;
     const isWhisperOnlyVisibleByUser = isWhisper && ReportUtils.isCurrentUserTheOnlyParticipant(whisperedToAccountIDs);
     const whisperedToPersonalDetails = isWhisper ? _.filter(props.personalDetailsList, (details) => _.includes(whisperedToAccountIDs, details.accountID)) : [];
@@ -528,9 +561,9 @@ function ReportActionItem(props) {
                         >
                             {hovered && !isWhisper && (
                                 <>
-                                    <View style={StyleUtils.getReportActionItemHoverStyle()} />
+                                    <View style={StyleUtils.getReportActionItemHoverStyle(true, _.includes(props.expandHoverArea, 'top'))} />
 
-                                    <View style={StyleUtils.getReportActionItemHoverStyle(false)} />
+                                    <View style={StyleUtils.getReportActionItemHoverStyle(false, _.includes(props.expandHoverArea, 'bottom'))} />
                                 </>
                             )}
                             <OfflineWithFeedback
@@ -563,7 +596,7 @@ function ReportActionItem(props) {
                                         />
                                     </View>
                                 )}
-                                {renderReportActionItem(hovered, isWhisper)}
+                                {renderReportActionItem(hovered)}
                             </OfflineWithFeedback>
                         </View>
                     </View>

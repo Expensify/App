@@ -7,6 +7,7 @@ import lodashGet from 'lodash/get';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import compose from '../../../libs/compose';
 import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import * as ReportUtils from '../../../libs/ReportUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../../components/withCurrentUserPersonalDetails';
@@ -120,10 +121,11 @@ function ReportActionsList(props) {
     /**
      * @param {Object} args
      * @param {Number} args.index
+     * @param {Object} args.separators
      * @returns {React.Component}
      */
     const renderItem = useCallback(
-        ({item: reportAction, index}) => {
+        ({item: reportAction, index, separators}) => {
             // When the new indicator should not be displayed we explicitly set it to null
             const shouldDisplayNewMarker = reportAction.reportActionID === newMarkerReportActionID;
             const shouldDisplayParentAction =
@@ -132,6 +134,8 @@ function ReportActionsList(props) {
                 !ReportActionsUtils.isTransactionThread(ReportActionsUtils.getParentReportAction(report));
             const shouldHideThreadDividerLine =
                 shouldDisplayParentAction && sortedReportActions.length > 1 && sortedReportActions[sortedReportActions.length - 2].reportActionID === newMarkerReportActionID;
+            const expandHoverArea = ReportActionsUtils.getExpandHoverArea(sortedReportActions, index);
+
             return shouldDisplayParentAction ? (
                 <ReportActionItemParentAction
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
@@ -153,6 +157,11 @@ function ReportActionsList(props) {
                     hasOutstandingIOU={hasOutstandingIOU}
                     index={index}
                     isOnlyReportAction={sortedReportActions.length === 1}
+                    separatorActions={{
+                        highlight: separators.highlight,
+                        unhighlight: separators.unhighlight,
+                    }}
+                    expandHoverArea={expandHoverArea}
                 />
             );
         },
@@ -201,9 +210,9 @@ function ReportActionsList(props) {
                     }
                     return null;
                 }}
-                ItemSeparatorComponent={() => (
+                ItemSeparatorComponent={({highlighted}) => (
                     <View
-                        style={styles.chatSeparator}
+                        style={StyleUtils.getReportActionListSeparatorStyle(highlighted)}
                         pointerEvents="none"
                     />
                 )}

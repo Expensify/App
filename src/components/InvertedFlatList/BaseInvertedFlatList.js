@@ -115,15 +115,16 @@ class BaseInvertedFlatList extends Component {
      * @param {Object} params
      * @param {Object} params.item
      * @param {Number} params.index
+     * @param {Object} params.separators
      *
      * @return {React.Component}
      */
-    renderItem({item, index}) {
+    renderItem({item, index, separators}) {
         if (this.props.shouldMeasureItems) {
-            return <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>{this.props.renderItem({item, index})}</View>;
+            return <View onLayout={({nativeEvent}) => this.measureItemLayout(nativeEvent, index)}>{this.props.renderItem({item, index, separators})}</View>;
         }
 
-        return this.props.renderItem({item, index});
+        return this.props.renderItem({item, index, separators});
     }
 
     render() {
