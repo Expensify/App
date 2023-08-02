@@ -95,7 +95,7 @@ function signOutAndRedirectToSignIn() {
     if (!isAnonymousUser()) {
         redirectToSignIn();
     }
-    else (isAnonymousUser()) {
+    else {
         Navigation.navigate(ROUTES.SIGNINMODAL);
         Linking.getInitialURL().then((url) => {
             const reportID = ReportUtils.getReportIDFromLink(url);

@@ -90,7 +90,6 @@ function redirectToSignIn(errorMessage) {
     clearStorageAndRedirect(errorMessage);
     resetHomeRouteParams();
     SessionUtils.resetDidUserLogInDuringSession();
-    Navigation.navigate(ROUTES.SIGNINMODAL);
 }
 
 export default redirectToSignIn;
