@@ -110,6 +110,27 @@ function MoneyRequestConfirmPage(props) {
         Navigation.goBack(fallback);
     };
 
+    /**
+     * @param {Array} selectedParticipants
+     * @param {String} trimmedComment
+     * @param {File} [receipt]
+     */
+    const requestMoney = useCallback(
+        (selectedParticipants, trimmedComment, receipt) => {
+            IOU.requestMoney(
+                props.report,
+                props.iou.amount,
+                props.iou.currency,
+                props.currentUserPersonalDetails.login,
+                props.currentUserPersonalDetails.accountID,
+                selectedParticipants[0],
+                trimmedComment,
+                receipt,
+            );
+        },
+        [props.report, props.iou.amount, props.iou.currency, props.currentUserPersonalDetails.login, props.currentUserPersonalDetails.accountID],
+    );
+
     const createTransaction = useCallback(
         (selectedParticipants) => {
             const trimmedComment = props.iou.comment.trim();
@@ -142,18 +163,14 @@ function MoneyRequestConfirmPage(props) {
                 return;
             }
 
-            FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
-                IOU.requestMoney(
-                    props.report,
-                    props.iou.amount,
-                    props.iou.currency,
-                    props.currentUserPersonalDetails.login,
-                    props.currentUserPersonalDetails.accountID,
-                    selectedParticipants[0],
-                    trimmedComment,
-                    receipt,
-                );
-            });
+            if (props.iou.receiptPath && props.iou.receiptSource) {
+                FileUtils.readFileAsync(props.iou.receiptPath, props.iou.receiptSource).then((receipt) => {
+                    requestMoney(selectedParticipants, trimmedComment, receipt);
+                });
+                return;
+            }
+
+            requestMoney(selectedParticipants, trimmedComment);
         },
         [
             props.iou.amount,
@@ -161,9 +178,9 @@ function MoneyRequestConfirmPage(props) {
             props.currentUserPersonalDetails.login,
             props.currentUserPersonalDetails.accountID,
             props.iou.currency,
-            props.report,
             props.iou.receiptPath,
             props.iou.receiptSource,
+            requestMoney,
         ],
     );
 
