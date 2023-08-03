@@ -8,6 +8,7 @@ import useWindowDimensions from '../../../../hooks/useWindowDimensions';
 import {withNavigationPropTypes} from '../../../../components/withNavigation';
 import styles from '../../../../styles/styles';
 import Overlay from './Overlay';
+import NoDropZone from '../../../../components/DragAndDrop/NoDropZone';
 
 const Stack = createStackNavigator();
 
@@ -19,7 +20,7 @@ function RightModalNavigator(props) {
     const {isSmallScreenWidth} = useWindowDimensions();
 
     return (
-        <>
+        <NoDropZone>
             {!isSmallScreenWidth && <Overlay onPress={props.navigation.goBack} />}
             <View style={styles.RHPNavigatorContainer(isSmallScreenWidth)}>
                 <Stack.Navigator screenOptions={RHPScreenOptions}>
@@ -109,7 +110,7 @@ function RightModalNavigator(props) {
                     />
                 </Stack.Navigator>
             </View>
-        </>
+        </NoDropZone>
     );
 }
 
