@@ -34,12 +34,12 @@ const defaultProps = {
 };
 
 function filterOptions(searchValue, data) {
-    const trimmedSearchValue = searchValue.trim();
-    if (trimmedSearchValue.length === 0) {
+    const searchValueWithOnlyAlphabets = searchValue.toLowerCase().replaceAll(CONST.REGEX.COUNTRY_NAME_WITH_ONLY_ALPHABETS, '');
+    if (searchValueWithOnlyAlphabets.length === 0) {
         return [];
     }
 
-    return _.filter(data, (country) => country.text.toLowerCase().includes(searchValue.toLowerCase()));
+    return _.filter(data, (country) => country.searchValue.includes(searchValueWithOnlyAlphabets));
 }
 
 function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySelected, setSearchValue, searchValue}) {
@@ -52,6 +52,7 @@ function CountrySelectorModal({currentCountry, isVisible, onClose, onCountrySele
                 keyForList: countryISO,
                 text: countryName,
                 isSelected: currentCountry === countryISO,
+                searchValue: countryName.toLowerCase().replaceAll(CONST.REGEX.COUNTRY_NAME_WITH_ONLY_ALPHABETS, ''),
             })),
         [translate, currentCountry],
     );
