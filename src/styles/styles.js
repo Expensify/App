@@ -565,7 +565,7 @@ const styles = {
 
     buttonDivider: {
         height: 28,
-        borderWidth: 1,
+        borderWidth: 0.7,
         borderColor: themeColors.text,
     },
 
