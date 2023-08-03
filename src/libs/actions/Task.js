@@ -207,7 +207,13 @@ function createTaskAndNavigate(parentReportID, title, description, assignee, ass
     Navigation.dismissModal(optimisticTaskReport.reportID);
 }
 
-function completeTask(taskReportID, taskTitle) {
+/**
+ * Complete a task
+ * @param {Object} taskReport task report
+ * @param {String} taskTitle Title of the task
+ */
+function completeTask(taskReport, taskTitle) {
+    const taskReportID = taskReport.reportID;
     const message = `completed task: ${taskTitle}`;
     const completedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKCOMPLETED, message);
 
@@ -259,10 +265,32 @@ function completeTask(taskReportID, taskTitle) {
         },
     ];
 
-    // Update optimistic data for parent report action
+    // Update optimistic data and failure data for parent report action
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, completedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
+        const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+        if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
+            const parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
+            if (parentReportAction) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                    value: {
+                        [parentReportAction.reportActionID]: _.values(optimisticParentReportData.value)[0],
+                    },
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                    value: {
+                        [parentReportAction.reportActionID]: {
+                            errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                        },
+                    },
+                });
+            }
+        }
     }
 
     API.write(
@@ -276,11 +304,12 @@ function completeTask(taskReportID, taskTitle) {
 }
 
 /**
- * Reopens a closed task
- * @param {string} taskReportID ReportID of the task
- * @param {string} taskTitle Title of the task
+ * Reopen a closed task
+ * @param {Object} taskReport task report
+ * @param {String} taskTitle Title of the task
  */
-function reopenTask(taskReportID, taskTitle) {
+function reopenTask(taskReport, taskTitle) {
+    const taskReportID = taskReport.reportID;
     const message = `reopened task: ${taskTitle}`;
     const reopenedTaskReportAction = ReportUtils.buildOptimisticTaskReportAction(taskReportID, CONST.REPORT.ACTIONS.TYPE.TASKREOPENED, message);
 
@@ -335,10 +364,32 @@ function reopenTask(taskReportID, taskTitle) {
         },
     ];
 
-    // Update optimistic data for parent report action
+    // Update optimistic data and failure data for parent report action
     const optimisticParentReportData = ReportUtils.getOptimisticDataForParentReportAction(taskReportID, reopenedTaskReportAction.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     if (!_.isEmpty(optimisticParentReportData)) {
         optimisticData.push(optimisticParentReportData);
+        const assigneeChatReportID = lodashGet(ReportUtils.getChatByParticipants(taskReport.participantAccountIDs), 'reportID');
+        if (assigneeChatReportID && `${assigneeChatReportID}` !== `${taskReport.parentReportID}`) {
+            const parentReportAction = ReportActionsUtils.getParentReportActionForTask(taskReportID, assigneeChatReportID);
+            if (parentReportAction) {
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                    value: {
+                        [parentReportAction.reportActionID]: _.values(optimisticParentReportData.value)[0],
+                    },
+                });
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
+                    value: {
+                        [parentReportAction.reportActionID]: {
+                            errors: ErrorUtils.getMicroSecondOnyxError('task.messages.error'),
+                        },
+                    },
+                });
+            }
+        }
     }
 
     API.write(

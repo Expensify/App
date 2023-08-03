@@ -547,6 +547,20 @@ function getIOUReportIDFromReportActionPreview(reportAction) {
     return lodashGet(reportAction, 'originalMessage.linkedReportID', '');
 }
 
+/**
+ * Find the reportAction whose childReportID is taskReportID in reportActions with reportID
+ *
+ * @param {String} taskReportID
+ * @param {String} reportID
+ * @returns {Object}
+ */
+function getParentReportActionForTask(taskReportID, reportID) {
+    return _.find(
+        allReportActions[reportID],
+        (reportAction) => reportAction && `${reportAction.childReportID}` === `${taskReportID}` && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT,
+    );
+}
+
 function isCreatedTaskReportAction(reportAction) {
     return reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && _.has(reportAction.originalMessage, 'taskReportID');
 }
@@ -593,4 +607,5 @@ export {
     isWhisperAction,
     isPendingRemove,
     getReportAction,
+    getParentReportActionForTask,
 };
