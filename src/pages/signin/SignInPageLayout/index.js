@@ -73,7 +73,7 @@ function SignInPageLayout(props) {
 
     return (
         <View style={containerStyles}>
-            {!(showSmallScreen) ? (
+            {!showSmallScreen ? (
                 <View style={contentContainerStyles}>
                     <SignInPageContent
                         welcomeHeader={props.welcomeHeader}

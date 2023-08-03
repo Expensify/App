@@ -28,7 +28,6 @@ import usePrevious from '../../../hooks/usePrevious';
 import * as StyleUtils from '../../../styles/StyleUtils';
 
 const propTypes = {
-
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */

@@ -1190,7 +1190,7 @@ const styles = {
     },
 
     signInModal: {
-        backgroundColor: themeColors.highlightBG
+        backgroundColor: themeColors.highlightBG,
     },
 
     changeExpensifyLoginLinkContainer: {

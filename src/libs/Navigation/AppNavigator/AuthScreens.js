@@ -47,7 +47,7 @@ Onyx.connect({
         }
 
         currentAccountID = val.accountID;
-        if(Navigation.isActiveRoute(ROUTES.SIGNINMODAL)) {
+        if (Navigation.isActiveRoute(ROUTES.SIGNINMODAL)) {
             Navigation.dismissModal();
         }
     },
