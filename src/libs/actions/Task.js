@@ -651,14 +651,16 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
         [parentReportAction.reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             previousMessage: parentReportAction.message,
-            message: [{
-                translationKey: '',
-                type: 'COMMENT',
-                html: '',
-                text: '',
-                isEdited: true,
-                isDeletedParentAction: true,
-            }],
+            message: [
+                {
+                    translationKey: '',
+                    type: 'COMMENT',
+                    html: '',
+                    text: '',
+                    isEdited: true,
+                    isDeletedParentAction: true,
+                },
+            ],
             errors: null,
             linkMetaData: [],
         },
@@ -675,6 +677,7 @@ function cancelTask(taskReportID, taskTitle, originalStateNum, originalStatusNum
                 lastMessageText: message,
                 lastActorAccountID: optimisticCancelReportAction.actorAccountID,
                 updateReportInLHN: true,
+                isDeletedParentAction: true,
             },
         },
         {
