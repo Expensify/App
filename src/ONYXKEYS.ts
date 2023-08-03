@@ -242,8 +242,8 @@ const ONYXKEYS = {
 } as const;
 
 type OnyxKeysMap = typeof ONYXKEYS;
-type CollectionKey = `${ValueOf<OnyxKeysMap['COLLECTION']>}${string}`;
-type OnyxKey = DeepValueOf<Omit<OnyxKeysMap, 'COLLECTION'>> | CollectionKey;
+type OnyxCollectionKey = ValueOf<OnyxKeysMap['COLLECTION']>;
+type OnyxKey = DeepValueOf<Omit<OnyxKeysMap, 'COLLECTION'>>;
 
 type OnyxValues = {
     [ONYXKEYS.ACCOUNT]: OnyxTypes.Account;
@@ -310,21 +310,21 @@ type OnyxValues = {
     [ONYXKEYS.IS_USING_MEMORY_ONLY_KEYS]: boolean;
 
     // Collections
-    [download: `${typeof ONYXKEYS.COLLECTION.DOWNLOAD}${string}`]: OnyxTypes.Download;
-    [policy: `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`]: OnyxTypes.Policy;
-    [policyMembers: `${typeof ONYXKEYS.COLLECTION.POLICY_MEMBERS}${string}`]: OnyxTypes.PolicyMember;
-    [deprecatedPolicyMemberList: `${typeof ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST}${string}`]: OnyxTypes.PolicyMember;
-    [workspaceInviteMembersDraft: `${typeof ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${string}`]: Record<string, number>;
-    [report: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`]: OnyxTypes.Report;
-    [reportActions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`]: OnyxTypes.ReportAction;
-    [reportActionsDrafts: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`]: string;
-    [reportActionsReactions: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${string}`]: OnyxTypes.ReportActionReactions;
-    [reportDraftComment: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}`]: string;
-    [reportDraftCommentNumberOfLines: `${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES}${string}`]: number;
-    [reportIsComposerFull: `${typeof ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${string}`]: boolean;
-    [reportUserIsTyping: `${typeof ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${string}`]: boolean;
-    [securityGroup: `${typeof ONYXKEYS.COLLECTION.SECURITY_GROUP}${string}`]: OnyxTypes.SecurityGroup;
-    [transaction: `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`]: OnyxTypes.Transaction;
+    [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
+    [ONYXKEYS.COLLECTION.POLICY]: OnyxTypes.Policy;
+    [ONYXKEYS.COLLECTION.POLICY_MEMBERS]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.DEPRECATED_POLICY_MEMBER_LIST]: OnyxTypes.PolicyMember;
+    [ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT]: Record<string, number>;
+    [ONYXKEYS.COLLECTION.REPORT]: OnyxTypes.Report;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: OnyxTypes.ReportAction;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: string;
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
+    [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
+    [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT_NUMBER_OF_LINES]: number;
+    [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
+    [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: boolean;
+    [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
+    [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
 
     // Forms
     [ONYXKEYS.FORMS.ADD_DEBIT_CARD_FORM]: OnyxTypes.AddDebitCardForm;
@@ -348,4 +348,4 @@ type OnyxValues = {
 };
 
 export default ONYXKEYS;
-export type {OnyxKey, OnyxValues};
+export type {OnyxKey, OnyxCollectionKey, OnyxValues};
