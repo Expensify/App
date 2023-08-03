@@ -1422,19 +1422,19 @@ function getChatRoomSubtitle(report) {
 /**
  * Gets the parent navigation subtitle for the report
  * @param {Object} report
- * @returns {String}
+ * @returns {Object}
  */
 function getParentNavigationSubtitle(report) {
     if (isThread(report)) {
         const parentReport = lodashGet(allReports, [`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`]);
         const {rootReportName, workspaceName} = getRootReportAndWorkspaceName(parentReport);
         if (_.isEmpty(rootReportName)) {
-            return '';
+            return {};
         }
 
-        return Localize.translateLocal('threads.parentNavigationSummary', {rootReportName, workspaceName});
+        return {rootReportName, workspaceName};
     }
-    return '';
+    return {};
 }
 
 /**
