@@ -10,7 +10,7 @@ npx patch-package
 # Install node_modules in subpackages, unless we're in a CI/CD environment,
 # where the node_modules for subpackages are cached separately.
 # See `.github/actions/composite/setupNode/action.yml` for more context.
-if [[ -n ${CI+x} ]]; then
+if [[ -z ${CI+x} ]]; then
   cd desktop || exit 1
   npm install
 fi

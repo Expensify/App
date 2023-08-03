@@ -15,12 +15,17 @@ import ROUTES from '../../ROUTES';
 import * as SessionUtils from '../SessionUtils';
 import getCurrentUrl from '../Navigation/currentUrl';
 import * as Session from './Session';
+import * as ReportActionsUtils from '../ReportActionsUtils';
+import Timing from './Timing';
+import * as Browser from '../Browser';
 
 let currentUserAccountID;
+let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -29,25 +34,6 @@ Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
     initWithStoredValues: false,
-});
-
-let myPersonalDetails;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (val) => {
-        if (!val || !currentUserAccountID) {
-            return;
-        }
-
-        myPersonalDetails = val[currentUserAccountID];
-    },
-});
-
-let allPolicies = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (policies) => (allPolicies = policies),
 });
 
 let preferredLocale;
@@ -67,13 +53,13 @@ function confirmReadyToOpenApp() {
 
 /**
  * @param {Array} policies
- * @return {Array<String>} array of policy ids
+ * @return {Object} map of policy id to lastUpdated
  */
-function getNonOptimisticPolicyIDs(policies) {
+function getNonOptimisticPolicyIDToLastModifiedMap(policies) {
     return _.chain(policies)
-        .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-        .pluck('id')
-        .compact()
+        .reject((policy) => lodashGet(policy, 'pendingAction', '') === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
+        .map((policy) => [policy.id, policy.lastModified || 0])
+        .object()
         .value();
 }
 
@@ -114,7 +100,7 @@ function setLocale(locale) {
  */
 function setLocaleAndNavigate(locale) {
     setLocale(locale);
-    Navigation.navigate(ROUTES.SETTINGS_PREFERENCES);
+    Navigation.goBack(ROUTES.SETTINGS_PREFERENCES);
 }
 
 function setSidebarLoaded() {
@@ -137,42 +123,52 @@ AppState.addEventListener('change', (nextAppState) => {
 
 /**
  * Fetches data needed for app initialization
+ * @param {boolean} [isReconnecting]
  */
-function openApp() {
+function openApp(isReconnecting = false) {
     isReadyToOpenApp.then(() => {
-        // We need a fresh connection/callback here to make sure that the list of policyIDs that is sent to OpenApp is the most updated list from Onyx
         const connectionID = Onyx.connect({
             key: ONYXKEYS.COLLECTION.POLICY,
             waitForCollectionCallback: true,
             callback: (policies) => {
+                // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
+                // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
+                //
+                // - Look through the local report actions and reports to find the most recently modified report action or report.
+                // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
+                const params = {policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))};
+                if (isReconnecting) {
+                    Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
+                    params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
+                    Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+                }
                 Onyx.disconnect(connectionID);
-                API.read(
-                    'OpenApp',
-                    {policyIDList: getNonOptimisticPolicyIDs(policies)},
-                    {
-                        optimisticData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: true,
-                            },
-                        ],
-                        successData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: false,
-                            },
-                        ],
-                        failureData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                                value: false,
-                            },
-                        ],
-                    },
-                );
+
+                // eslint-disable-next-line rulesdir/no-multiple-api-calls
+                const apiMethod = isReconnecting ? API.write : API.read;
+                apiMethod(isReconnecting ? 'ReconnectApp' : 'OpenApp', params, {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: true,
+                        },
+                    ],
+                    successData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                    failureData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                            value: false,
+                        },
+                    ],
+                });
             },
         });
     });
@@ -182,33 +178,52 @@ function openApp() {
  * Refreshes data when the app reconnects
  */
 function reconnectApp() {
-    API.write(
-        CONST.NETWORK.COMMAND.RECONNECT_APP,
-        {policyIDList: getNonOptimisticPolicyIDs(allPolicies)},
-        {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                    value: true,
-                },
-            ],
-            successData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                    value: false,
-                },
-            ],
-            failureData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                    value: false,
-                },
-            ],
-        },
-    );
+    openApp(true);
+}
+
+/**
+ * This promise is used so that deeplink component know when a transition is end.
+ * This is necessary because we want to begin deeplink redirection after the transition is end.
+ */
+let resolveSignOnTransitionToFinishPromise;
+const signOnTransitionToFinishPromise = new Promise((resolve) => {
+    resolveSignOnTransitionToFinishPromise = resolve;
+});
+
+function waitForSignOnTransitionToFinish() {
+    return signOnTransitionToFinishPromise;
+}
+
+function endSignOnTransition() {
+    return resolveSignOnTransitionToFinishPromise();
+}
+
+/**
+ * Create a new workspace and navigate to it
+ *
+ * @param {String} [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
+ * @param {Boolean} [makeMeAdmin] Optional, leave the calling account as an admin on the policy
+ * @param {String} [policyName] Optional, custom policy name we will use for created workspace
+ * @param {Boolean} [transitionFromOldDot] Optional, if the user is transitioning from old dot
+ * @param {Boolean} [shouldNavigateToAdminChat] Optional, navigate to the #admin room after creation
+ */
+function createWorkspaceAndNavigateToIt(policyOwnerEmail = '', makeMeAdmin = false, policyName = '', transitionFromOldDot = false, shouldNavigateToAdminChat = true) {
+    const policyID = Policy.generatePolicyID();
+    const adminsChatReportID = Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
+    Navigation.isNavigationReady()
+        .then(() => {
+            if (transitionFromOldDot) {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack();
+            }
+
+            if (shouldNavigateToAdminChat) {
+                Navigation.navigate(ROUTES.getReportRoute(adminsChatReportID));
+            }
+
+            Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID));
+        })
+        .then(endSignOnTransition);
 }
 
 /**
@@ -230,8 +245,9 @@ function reconnectApp() {
  * pass it in as a parameter. withOnyx guarantees that the value has been read
  * from Onyx because it will not render the AuthScreens until that point.
  * @param {Object} session
+ * @param {Boolean} shouldNavigateToAdminChat Should we navigate to admin chat after creating workspace
  */
-function setUpPoliciesAndNavigate(session) {
+function setUpPoliciesAndNavigate(session, shouldNavigateToAdminChat) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl || !currentUrl.includes('exitTo')) {
         return;
@@ -243,32 +259,34 @@ function setUpPoliciesAndNavigate(session) {
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
-    const ownerEmail = url.searchParams.get('ownerEmail');
+    const policyOwnerEmail = url.searchParams.get('ownerEmail');
     const makeMeAdmin = url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName');
 
-    // Sign out the current user if we're transitioning from oldDot with a different user
-    const isTransitioningFromOldDot = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_FROM_OLD_DOT));
-    if (isLoggingInAsNewUser && isTransitioningFromOldDot) {
+    // Sign out the current user if we're transitioning with a different user
+    const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
+    if (isLoggingInAsNewUser && isTransitioning) {
         Session.signOut();
     }
 
-    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioningFromOldDot && exitTo === ROUTES.WORKSPACE_NEW;
+    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
     if (shouldCreateFreePolicy) {
-        Policy.createWorkspace(ownerEmail, makeMeAdmin, policyName, true);
+        createWorkspaceAndNavigateToIt(policyOwnerEmail, makeMeAdmin, policyName, true, shouldNavigateToAdminChat);
         return;
     }
     if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.isNavigationReady().then(() => {
-            // We must call goBack() to remove the /transition route from history
-            Navigation.goBack();
-            Navigation.navigate(exitTo);
-        });
+        Navigation.isNavigationReady()
+            .then(() => {
+                // We must call goBack() to remove the /transition route from history
+                Navigation.goBack();
+                Navigation.navigate(exitTo);
+            })
+            .then(endSignOnTransition);
     }
 }
 
-function openProfile() {
-    const oldTimezoneData = myPersonalDetails.timezone || {};
+function openProfile(personalDetails) {
+    const oldTimezoneData = personalDetails.timezone || {};
     let newTimezoneData = oldTimezoneData;
 
     if (lodashGet(oldTimezoneData, 'automatic', true)) {
@@ -308,8 +326,39 @@ function openProfile() {
             ],
         },
     );
-
-    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 }
 
-export {setLocale, setLocaleAndNavigate, setSidebarLoaded, setUpPoliciesAndNavigate, openProfile, openApp, reconnectApp, confirmReadyToOpenApp};
+function beginDeepLinkRedirect() {
+    // There's no support for anonymous users on desktop
+    if (Session.isAnonymousUser()) {
+        return;
+    }
+
+    if (!currentUserAccountID) {
+        Browser.openRouteInDesktopApp();
+        return;
+    }
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects('OpenOldDotLink', {shouldRetry: false}, {}).then((response) => {
+        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail);
+    });
+}
+
+function beginDeepLinkRedirectAfterTransition() {
+    waitForSignOnTransitionToFinish().then(beginDeepLinkRedirect);
+}
+
+export {
+    setLocale,
+    setLocaleAndNavigate,
+    setSidebarLoaded,
+    setUpPoliciesAndNavigate,
+    openProfile,
+    openApp,
+    reconnectApp,
+    confirmReadyToOpenApp,
+    beginDeepLinkRedirect,
+    beginDeepLinkRedirectAfterTransition,
+    createWorkspaceAndNavigateToIt,
+};

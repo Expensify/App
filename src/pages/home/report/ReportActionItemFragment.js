@@ -19,6 +19,7 @@ import CONST from '../../../CONST';
 import applyStrikethrough from '../../../components/HTMLEngineProvider/applyStrikethrough';
 import editedLabelStyles from '../../../styles/editedLabelStyles';
 import UserDetailsTooltip from '../../../components/UserDetailsTooltip';
+import avatarPropTypes from '../../../components/avatarPropTypes';
 
 const propTypes = {
     /** Users accountID */
@@ -57,6 +58,12 @@ const propTypes = {
     // Additional styles to add after local styles
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 
+    /** The accountID of the copilot who took this action on behalf of the user */
+    delegateAccountID: PropTypes.number,
+
+    /** icon */
+    actorIcon: avatarPropTypes,
+
     ...windowDimensionsPropTypes,
 
     /** localization props */
@@ -75,6 +82,8 @@ const defaultProps = {
     isSingleLine: false,
     source: '',
     style: [],
+    delegateAccountID: 0,
+    actorIcon: {},
 };
 
 function ReportActionItemFragment(props) {
@@ -145,7 +154,11 @@ function ReportActionItemFragment(props) {
         }
         case 'TEXT':
             return (
-                <UserDetailsTooltip accountID={props.accountID}>
+                <UserDetailsTooltip
+                    accountID={props.accountID}
+                    delegateAccountID={props.delegateAccountID}
+                    icon={props.actorIcon}
+                >
                     <Text
                         numberOfLines={props.isSingleLine ? 1 : undefined}
                         style={[styles.chatItemMessageHeaderSender, props.isSingleLine ? styles.pre : styles.preWrap]}

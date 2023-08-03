@@ -111,17 +111,17 @@ function ContactMethodsPage(props) {
     });
 
     return (
-        <ScreenWrapper>
+        <ScreenWrapper shouldEnableKeyboardAvoidingView={false}>
             <HeaderWithBackButton
                 title={props.translate('contacts.contactMethods')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_PROFILE)}
             />
             <ScrollView>
                 <View style={[styles.ph5, styles.mv3, styles.flexRow, styles.flexWrap]}>
-                    <Text numberOfLines={100}>
+                    <Text>
                         {props.translate('contacts.helpTextBeforeEmail')}
                         <CopyTextToClipboard
-                            text="receipts@expensify.com"
+                            text={CONST.EMAIL.RECEIPTS}
                             textStyles={[styles.textBlue]}
                         />
                         <Text>{props.translate('contacts.helpTextAfterEmail')}</Text>

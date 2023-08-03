@@ -4,7 +4,6 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import ONYXKEYS from '../../../ONYXKEYS';
-import RoomHeaderAvatars from '../../../components/RoomHeaderAvatars';
 import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import participantPropTypes from '../../../components/participantPropTypes';
 import * as ReportUtils from '../../../libs/ReportUtils';
@@ -18,6 +17,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import compose from '../../../libs/compose';
 import withLocalize from '../../../components/withLocalize';
 import PressableWithoutFeedback from '../../../components/Pressable/PressableWithoutFeedback';
+import MultipleAvatars from '../../../components/MultipleAvatars';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** The id of the report */
@@ -52,6 +53,7 @@ function ReportActionItemCreated(props) {
     }
 
     const icons = ReportUtils.getIcons(props.report, props.personalDetails);
+    const shouldDisableDetailPage = ReportUtils.shouldDisableDetailPage(props.report);
 
     return (
         <OfflineWithFeedback
@@ -59,6 +61,7 @@ function ReportActionItemCreated(props) {
             errors={lodashGet(props.report, 'errorFields.addWorkspaceRoom') || lodashGet(props.report, 'errorFields.createChat')}
             errorRowStyles={[styles.ml10, styles.mr2]}
             onClose={() => Report.navigateToConciergeChatAndDeleteReport(props.report.reportID)}
+            needsOffscreenAlphaCompositing
         >
             <View style={StyleUtils.getReportWelcomeContainerStyle(props.isSmallScreenWidth)}>
                 <Image
@@ -72,11 +75,18 @@ function ReportActionItemCreated(props) {
                 >
                     <PressableWithoutFeedback
                         onPress={() => ReportUtils.navigateToDetailsPage(props.report)}
-                        style={[styles.ph5, styles.pb3, styles.alignSelfStart]}
+                        style={[styles.mh5, styles.mb3, styles.alignSelfStart]}
                         accessibilityLabel={props.translate('common.details')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
+                        disabled={shouldDisableDetailPage}
                     >
-                        <RoomHeaderAvatars icons={icons} />
+                        <MultipleAvatars
+                            icons={icons}
+                            size={props.isLargeScreenWidth || (icons && icons.length < 3) ? CONST.AVATAR_SIZE.LARGE : CONST.AVATAR_SIZE.MEDIUM}
+                            shouldStackHorizontally
+                            shouldDisplayAvatarsInRows={props.isSmallScreenWidth}
+                            maxAvatarsInRow={props.isSmallScreenWidth ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN}
+                        />
                     </PressableWithoutFeedback>
                     <View style={[styles.ph5]}>
                         <ReportWelcomeText report={props.report} />

@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import * as Expensicons from '../Icon/Expensicons';
-import compose from '../../libs/compose';
 import Icon from '../Icon';
 import Tooltip from '../Tooltip';
 import Text from '../Text';
@@ -9,14 +8,12 @@ import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 import getButtonState from '../../libs/getButtonState';
 import * as StyleUtils from '../../styles/StyleUtils';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import withDelayToggleButtonState, {withDelayToggleButtonStatePropTypes} from '../withDelayToggleButtonState';
 import PressableWithoutFeedback from './PressableWithoutFeedback';
+import useThrottledButtonState from '../../hooks/useThrottledButtonState';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
-    ...withDelayToggleButtonStatePropTypes,
+    /** Ref passed to the component by React.forwardRef (do not pass from parent) */
+    innerRef: PropTypes.oneOfType([PropTypes.func, PropTypes.shape({current: PropTypes.instanceOf(React.Component)})]),
 
     /** The text to display */
     text: PropTypes.string,
@@ -70,14 +67,17 @@ const defaultProps = {
     icon: null,
     inline: true,
     iconChecked: Expensicons.Checkmark,
+    innerRef: () => {},
 };
 
 function PressableWithDelayToggle(props) {
+    const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
+
     const updatePressState = () => {
-        if (props.isDelayButtonStateComplete) {
+        if (!isActive) {
             return;
         }
-        props.toggleDelayButtonState(true);
+        temporarilyDisableInteractions();
         props.onPress();
     };
 
@@ -85,48 +85,53 @@ function PressableWithDelayToggle(props) {
     // for elements that are supposed to be inline, we need to use a Text element instead
     // of a Pressable
     const PressableView = props.inline ? Text : PressableWithoutFeedback;
-    const tooltipText = props.isDelayButtonStateComplete ? props.tooltipTextChecked : props.tooltipText;
+    const tooltipText = !isActive ? props.tooltipTextChecked : props.tooltipText;
+    const labelText = (
+        <Text
+            suppressHighlighting
+            style={props.textStyles}
+        >
+            {!isActive && props.textChecked ? props.textChecked : props.text}
+            &nbsp;
+        </Text>
+    );
 
     return (
         <PressableView
             ref={props.innerRef}
-            style={[styles.flexRow, ...props.styles]}
             onPress={updatePressState}
             accessibilityLabel={tooltipText}
         >
-            <Tooltip
-                containerStyles={[styles.flexRow]}
-                text={tooltipText}
-            >
-                <>
-                    <Text
-                        suppressHighlighting
-                        style={props.textStyles}
-                    >
-                        {props.isDelayButtonStateComplete && props.textChecked ? props.textChecked : props.text}
-                        &nbsp;
-                    </Text>
+            <>
+                {props.inline && labelText}
+                <Tooltip
+                    containerStyles={[styles.flexRow]}
+                    text={tooltipText}
+                >
                     <PressableWithoutFeedback
                         focusable={false}
                         accessible={false}
                         onPress={updatePressState}
+                        style={[styles.flexRow, ...props.styles]}
                     >
                         {({hovered, pressed}) => (
                             <>
+                                {!props.inline && labelText}
                                 {props.icon && (
                                     <Icon
-                                        src={props.isDelayButtonStateComplete ? props.iconChecked : props.icon}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, props.isDelayButtonStateComplete))}
+                                        src={!isActive ? props.iconChecked : props.icon}
+                                        fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
                                         style={props.iconStyles}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
+                                        inline={props.inline}
                                     />
                                 )}
                             </>
                         )}
                     </PressableWithoutFeedback>
-                </>
-            </Tooltip>
+                </Tooltip>
+            </>
         </PressableView>
     );
 }
@@ -134,15 +139,10 @@ function PressableWithDelayToggle(props) {
 PressableWithDelayToggle.propTypes = propTypes;
 PressableWithDelayToggle.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withDelayToggleButtonState,
-)(
-    React.forwardRef((props, ref) => (
-        <PressableWithDelayToggle
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            innerRef={ref}
-        />
-    )),
-);
+export default React.forwardRef((props, ref) => (
+    <PressableWithDelayToggle
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        innerRef={ref}
+    />
+));

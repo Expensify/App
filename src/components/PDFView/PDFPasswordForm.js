@@ -30,6 +30,9 @@ const propTypes = {
     /** Notify parent that a text field has been focused or blurred */
     onPasswordFieldFocused: PropTypes.func,
 
+    /** Should focus to the password input  */
+    isFocused: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -54,6 +57,25 @@ class PDFPasswordForm extends Component {
         this.updatePassword = this.updatePassword.bind(this);
         this.showForm = this.showForm.bind(this);
         this.validateAndNotifyPasswordBlur = this.validateAndNotifyPasswordBlur.bind(this);
+        this.getErrorText = this.getErrorText.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isFocused || !this.props.isFocused || !this.textInputRef) {
+            return;
+        }
+        this.textInputRef.focus();
+    }
+
+    getErrorText() {
+        if (this.props.isPasswordInvalid) {
+            return this.props.translate('attachmentView.passwordIncorrect');
+        }
+        if (!_.isEmpty(this.state.validationErrorText)) {
+            return this.props.translate(this.state.validationErrorText);
+        }
+
+        return '';
     }
 
     submitPassword() {
@@ -72,12 +94,16 @@ class PDFPasswordForm extends Component {
     }
 
     validate() {
-        if (!_.isEmpty(this.state.password)) {
+        if (!this.props.isPasswordInvalid && !_.isEmpty(this.state.password)) {
             return true;
         }
-        this.setState({
-            validationErrorText: this.props.translate('attachmentView.passwordRequired'),
-        });
+
+        if (_.isEmpty(this.state.password)) {
+            this.setState({
+                validationErrorText: 'attachmentView.passwordRequired',
+            });
+        }
+
         return false;
     }
 
@@ -91,6 +117,7 @@ class PDFPasswordForm extends Component {
     }
 
     render() {
+        const errorText = this.getErrorText();
         const containerStyle = this.props.isSmallScreenWidth ? [styles.flex1, styles.w100] : styles.pdfPasswordForm.wideScreenWidth;
 
         return (
@@ -105,7 +132,10 @@ class PDFPasswordForm extends Component {
                             <Text>{this.props.translate('attachmentView.pdfPasswordForm.formLabel')}</Text>
                         </View>
                         <TextInput
+                            ref={(el) => (this.textInputRef = el)}
                             label={this.props.translate('common.password')}
+                            accessibilityLabel={this.props.translate('common.password')}
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                             /**
                              * This is a workaround to bypass Safari's autofill odd behaviour.
                              * This tricks the browser not to fill the username somewhere else and still fill the password correctly.
@@ -116,7 +146,7 @@ class PDFPasswordForm extends Component {
                             onChangeText={this.updatePassword}
                             returnKeyType="done"
                             onSubmitEditing={this.submitPassword}
-                            errorText={this.props.isPasswordInvalid ? this.props.translate('attachmentView.passwordIncorrect') : this.state.validationErrorText}
+                            errorText={errorText}
                             onFocus={() => this.props.onPasswordFieldFocused(true)}
                             onBlur={this.validateAndNotifyPasswordBlur}
                             autoFocus

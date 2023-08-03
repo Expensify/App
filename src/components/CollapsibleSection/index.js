@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import PressableWithFeedback from '../Pressable/PressableWithFeedback';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Title of the Collapsible section */
@@ -42,7 +43,7 @@ class CollapsibleSection extends React.Component {
                 <PressableWithFeedback
                     onPress={this.toggleSection}
                     style={[styles.pb4, styles.flexRow]}
-                    accessibilityRole="button"
+                    accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                     accessibilityLabel={this.props.title}
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}

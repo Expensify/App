@@ -20,7 +20,9 @@ import * as Report from '../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import * as ReportActionsUtils from '../../libs/ReportActionsUtils';
 import refPropTypes from '../refPropTypes';
+import RenderHTML from '../RenderHTML';
 import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
+import reportPropTypes from '../../pages/reportPropTypes';
 
 const propTypes = {
     /** All the data of the action */
@@ -43,13 +45,7 @@ const propTypes = {
 
     /* Onyx Props */
     /** chatReport associated with iouReport */
-    chatReport: PropTypes.shape({
-        /** The participants of this report */
-        participants: PropTypes.arrayOf(PropTypes.string),
-
-        /** Whether the chat report has an outstanding IOU */
-        hasOutstandingIOU: PropTypes.bool.isRequired,
-    }),
+    chatReport: reportPropTypes,
 
     /** IOU report data object */
     iouReport: iouReportPropTypes,
@@ -78,9 +74,7 @@ const propTypes = {
 const defaultProps = {
     contextMenuAnchor: undefined,
     checkIfContextMenuActive: () => {},
-    chatReport: {
-        participants: [],
-    },
+    chatReport: {},
     iouReport: {},
     reportActions: {},
     isHovered: false,
@@ -112,10 +106,10 @@ function MoneyRequestAction(props) {
                 }),
                 '',
                 CONST.POLICY.OWNER_EMAIL_FAKE,
-                CONST.POLICY.OWNER_EMAIL_FAKE,
                 CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
                 false,
                 '',
+                undefined,
                 undefined,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 props.action.reportActionID,
@@ -132,6 +126,7 @@ function MoneyRequestAction(props) {
     };
 
     let shouldShowPendingConversionMessage = false;
+    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
     if (
         !_.isEmpty(props.iouReport) &&
         !_.isEmpty(props.reportActions) &&
@@ -143,21 +138,21 @@ function MoneyRequestAction(props) {
         shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(props.reportActions, props.iouReport);
     }
 
-    return (
-        <>
-            <IOUPreview
-                iouReportID={props.requestReportID}
-                chatReportID={props.chatReportID}
-                isBillSplit={isSplitBillAction}
-                action={props.action}
-                contextMenuAnchor={props.contextMenuAnchor}
-                checkIfContextMenuActive={props.checkIfContextMenuActive}
-                shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
-                onPreviewPressed={onIOUPreviewPressed}
-                containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
-                isHovered={props.isHovered}
-            />
-        </>
+    return isDeletedParentAction ? (
+        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedRequest')}</comment>`} />
+    ) : (
+        <IOUPreview
+            iouReportID={props.requestReportID}
+            chatReportID={props.chatReportID}
+            isBillSplit={isSplitBillAction}
+            action={props.action}
+            contextMenuAnchor={props.contextMenuAnchor}
+            checkIfContextMenuActive={props.checkIfContextMenuActive}
+            shouldShowPendingConversionMessage={shouldShowPendingConversionMessage}
+            onPreviewPressed={onIOUPreviewPressed}
+            containerStyles={[styles.cursorPointer, props.isHovered ? styles.iouPreviewBoxHover : undefined, ...props.style]}
+            isHovered={props.isHovered}
+        />
     );
 }
 

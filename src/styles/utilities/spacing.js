@@ -113,6 +113,10 @@ export default {
         marginLeft: 'auto',
     },
 
+    ml0: {
+        marginLeft: 0,
+    },
+
     ml1: {
         marginLeft: 4,
     },
@@ -262,6 +266,11 @@ export default {
     p5: {
         padding: 20,
     },
+
+    p9: {
+        padding: 36,
+    },
+
     p10: {
         padding: 40,
     },
@@ -328,6 +337,10 @@ export default {
 
     ph8: {
         paddingHorizontal: 32,
+    },
+
+    ph9: {
+        paddingHorizontal: 36,
     },
 
     ph10: {
@@ -424,6 +437,10 @@ export default {
 
     pt20: {
         paddingTop: 80,
+    },
+
+    pb0: {
+        paddingBottom: 0,
     },
 
     pb1: {

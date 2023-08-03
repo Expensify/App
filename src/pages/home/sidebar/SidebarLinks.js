@@ -4,7 +4,6 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -17,19 +16,13 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
-import participantPropTypes from '../../../components/participantPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
 import withCurrentUserPersonalDetails from '../../../components/withCurrentUserPersonalDetails';
 import withWindowDimensions from '../../../components/withWindowDimensions';
-import reportActionPropTypes from '../report/reportActionPropTypes';
 import LHNOptionsList from '../../../components/LHNOptionsList/LHNOptionsList';
 import SidebarUtils from '../../../libs/SidebarUtils';
-import reportPropTypes from '../../reportPropTypes';
 import OfflineWithFeedback from '../../../components/OfflineWithFeedback';
-import withNavigationFocus from '../../../components/withNavigationFocus';
-import withCurrentReportId, {withCurrentReportIdPropTypes} from '../../../components/withCurrentReportId';
-import withNavigation, {withNavigationPropTypes} from '../../../components/withNavigation';
 import Header from '../../../components/Header';
 import defaultTheme from '../../../styles/themes/default';
 import OptionsListSkeletonView from '../../../components/OptionsListSkeletonView';
@@ -40,70 +33,43 @@ import * as Session from '../../../libs/actions/Session';
 import Button from '../../../components/Button';
 import * as UserUtils from '../../../libs/UserUtils';
 import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import onyxSubscribe from '../../../libs/onyxSubscribe';
+import personalDetailsPropType from '../../personalDetailsPropType';
+import * as ReportActionContextMenu from '../report/ContextMenu/ReportActionContextMenu';
 
-const propTypes = {
+const basePropTypes = {
     /** Toggles the navigation menu open and closed */
     onLinkClick: PropTypes.func.isRequired,
 
     /** Safe area insets required for mobile devices margins */
     insets: safeAreaInsetPropTypes.isRequired,
 
-    /* Onyx Props */
-    /** List of reports */
-    // eslint-disable-next-line react/no-unused-prop-types
-    chatReports: PropTypes.objectOf(reportPropTypes),
-
-    /** All report actions for all reports */
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportActions: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.shape(reportActionPropTypes))),
-
-    /** List of users' personal details */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
-
-    /** The personal details of the person who is logged in */
-    currentUserPersonalDetails: PropTypes.shape({
-        /** Display name of the current user */
-        displayName: PropTypes.string,
-
-        /** Avatar URL or SVG of the current user */
-        avatar: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
-
-        /** Login email of the current user */
-        login: PropTypes.string,
-
-        /** AccountID of the current user */
-        accountID: PropTypes.number,
-    }),
-
     /** Whether we are viewing below the responsive breakpoint */
     isSmallScreenWidth: PropTypes.bool.isRequired,
+};
 
-    /** The chat priority mode */
-    priorityMode: PropTypes.string,
+const propTypes = {
+    ...basePropTypes,
 
-    /** Details about any modals being used */
-    modal: PropTypes.shape({
-        /** Indicates when an Alert modal is about to be visible */
-        willAlertModalBecomeVisible: PropTypes.bool,
-    }),
+    optionListItems: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    isLoading: PropTypes.bool.isRequired,
+
+    currentUserPersonalDetails: personalDetailsPropType,
+
+    priorityMode: PropTypes.oneOf(_.values(CONST.PRIORITY_MODE)),
 
     ...withLocalizePropTypes,
-    ...withCurrentReportIdPropTypes,
-    ...withNavigationPropTypes,
 };
 
 const defaultProps = {
-    chatReports: {},
-    reportActions: {},
-    personalDetails: {},
     currentUserPersonalDetails: {
         avatar: '',
     },
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
-    modal: {},
 };
 
-class SidebarLinks extends React.Component {
+class SidebarLinks extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -121,11 +87,19 @@ class SidebarLinks extends React.Component {
         SidebarUtils.setIsSidebarLoadedReady();
         this.isSidebarLoaded = true;
 
+        let modal = {};
+        this.unsubscribeOnyxModal = onyxSubscribe({
+            key: ONYXKEYS.MODAL,
+            callback: (modalArg) => {
+                modal = modalArg;
+            },
+        });
+
         const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(
             shortcutConfig.shortcutKey,
             () => {
-                if (this.props.modal.willAlertModalBecomeVisible) {
+                if (modal.willAlertModalBecomeVisible) {
                     return;
                 }
 
@@ -136,12 +110,17 @@ class SidebarLinks extends React.Component {
             true,
             true,
         );
+
+        ReportActionContextMenu.hideContextMenu(false);
     }
 
     componentWillUnmount() {
         SidebarUtils.resetIsSidebarLoadedReadyPromise();
         if (this.unsubscribeEscapeKey) {
             this.unsubscribeEscapeKey();
+        }
+        if (this.unsubscribeOnyxModal) {
+            this.unsubscribeOnyxModal();
         }
     }
 
@@ -170,8 +149,11 @@ class SidebarLinks extends React.Component {
      * @param {String} option.reportID
      */
     showReportPage(option) {
-        if (this.props.isCreateMenuOpen) {
-            // Prevent opening Report page when click LHN row quickly after clicking FAB icon
+        // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
+        // or when clicking the active LHN row
+        // or when continuously clicking different LHNs, only apply to small screen
+        // since getTopmostReportId always returns on other devices
+        if (this.props.isCreateMenuOpen || this.props.currentReportID === option.reportID || (this.props.isSmallScreenWidth && Navigation.getTopmostReportId())) {
             return;
         }
         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
@@ -179,17 +161,8 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        const isLoading = _.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.chatReports);
-        const optionListItems = SidebarUtils.getOrderedReportIDs(this.props.currentReportId);
-
-        const skeletonPlaceholder = <OptionsListSkeletonView shouldAnimate />;
-
         return (
-            <View
-                accessibilityElementsHidden={!this.props.isFocused}
-                accessibilityLabel={this.props.translate('sidebarScreen.listOfChats')}
-                style={[styles.flex1, styles.h100]}
-            >
+            <View style={[styles.flex1, styles.h100]}>
                 <View
                     style={[styles.flexRow, styles.ph5, styles.pv3, styles.justifyContentBetween, styles.alignItemsCenter]}
                     nativeID="drag-area"
@@ -202,13 +175,13 @@ class SidebarLinks extends React.Component {
                                 height={variables.lhnLogoHeight}
                             />
                         }
-                        accessibilityRole="text"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         shouldShowEnvironmentBadge
                     />
                     <Tooltip text={this.props.translate('common.search')}>
                         <PressableWithoutFeedback
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            accessibilityRole="button"
+                            accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                             style={[styles.flexRow, styles.ph5]}
                             onPress={Session.checkIfActionIsAllowed(this.showSearchPage)}
                         >
@@ -217,7 +190,7 @@ class SidebarLinks extends React.Component {
                     </Tooltip>
                     <PressableWithoutFeedback
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                        accessibilityRole="button"
+                        accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                         onPress={Session.checkIfActionIsAllowed(this.showSettingsPage)}
                     >
                         {Session.isAnonymousUser() ? (
@@ -239,13 +212,12 @@ class SidebarLinks extends React.Component {
                         )}
                     </PressableWithoutFeedback>
                 </View>
-                {isLoading ? (
-                    skeletonPlaceholder
+                {this.props.isLoading ? (
+                    <OptionsListSkeletonView shouldAnimate />
                 ) : (
                     <LHNOptionsList
                         contentContainerStyles={[styles.sidebarListContainer, {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom}]}
-                        data={optionListItems}
-                        focusedIndex={_.findIndex(optionListItems, (option) => option.toString() === this.props.currentReportId)}
+                        data={this.props.optionListItems}
                         onSelectRow={this.showReportPage}
                         shouldDisableFocusOptions={this.props.isSmallScreenWidth}
                         optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT}
@@ -258,118 +230,5 @@ class SidebarLinks extends React.Component {
 
 SidebarLinks.propTypes = propTypes;
 SidebarLinks.defaultProps = defaultProps;
-
-/**
- * This function (and the few below it), narrow down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
- * and makes the entire component more performant because it's not re-rendering when a bunch of properties change which aren't ever used in the UI.
- * @param {Object} [report]
- * @returns {Object|undefined}
- */
-const chatReportSelector = (report) =>
-    report && {
-        reportID: report.reportID,
-        participants: report.participants,
-        hasDraft: report.hasDraft,
-        isPinned: report.isPinned,
-        errorFields: {
-            addWorkspaceRoom: report.errorFields && report.errorFields.addWorkspaceRoom,
-        },
-        lastReadTime: report.lastReadTime,
-        lastMentionedTime: report.lastMentionedTime,
-        lastMessageText: report.lastMessageText,
-        lastVisibleActionCreated: report.lastVisibleActionCreated,
-        iouReportID: report.iouReportID,
-        hasOutstandingIOU: report.hasOutstandingIOU,
-        statusNum: report.statusNum,
-        stateNum: report.stateNum,
-        chatType: report.chatType,
-        policyID: report.policyID,
-        reportName: report.reportName,
-    };
-
-/**
- * @param {Object} [personalDetails]
- * @returns {Object|undefined}
- */
-const personalDetailsSelector = (personalDetails) =>
-    _.reduce(
-        personalDetails,
-        (finalPersonalDetails, personalData, accountID) => {
-            // It's OK to do param-reassignment in _.reduce() because we absolutely know the starting state of finalPersonalDetails
-            // eslint-disable-next-line no-param-reassign
-            finalPersonalDetails[accountID] = {
-                accountID: Number(accountID),
-                login: personalData.login,
-                displayName: personalData.displayName,
-                firstName: personalData.firstName,
-                avatar: UserUtils.getAvatar(personalData.avatar, personalData.accountID),
-            };
-            return finalPersonalDetails;
-        },
-        {},
-    );
-
-/**
- * @param {Object} [reportActions]
- * @returns {Object|undefined}
- */
-const reportActionsSelector = (reportActions) =>
-    reportActions &&
-    _.map(reportActions, (reportAction) => ({
-        errors: reportAction.errors,
-    }));
-
-/**
- * @param {Object} [policy]
- * @returns {Object|undefined}
- */
-const policySelector = (policy) =>
-    policy && {
-        type: policy.type,
-        name: policy.name,
-        avatar: policy.avatar,
-    };
-
-export default compose(
-    withLocalize,
-    withCurrentUserPersonalDetails,
-    withNavigationFocus,
-    withWindowDimensions,
-    withCurrentReportId,
-    withNavigation,
-    withOnyx({
-        // Note: It is very important that the keys subscribed to here are the same
-        // keys that are subscribed to at the top of SidebarUtils.js. If there was a key missing from here and data was updated
-        // for that key, then there would be no re-render and the options wouldn't reflect the new data because SidebarUtils.getOrderedReportIDs() wouldn't be triggered.
-        // This could be changed if each OptionRowLHN used withOnyx() to connect to the Onyx keys, but if you had 10,000 reports
-        // with 10,000 withOnyx() connections, it would have unknown performance implications.
-        chatReports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
-            selector: chatReportSelector,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            selector: personalDetailsSelector,
-        },
-        priorityMode: {
-            key: ONYXKEYS.NVP_PRIORITY_MODE,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        reportActions: {
-            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-            selector: reportActionsSelector,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
-            selector: policySelector,
-        },
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        modal: {
-            key: ONYXKEYS.MODAL,
-        },
-    }),
-)(SidebarLinks);
+export default compose(withLocalize, withCurrentUserPersonalDetails, withWindowDimensions)(SidebarLinks);
+export {basePropTypes};

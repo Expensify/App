@@ -1,5 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import _ from 'underscore';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -15,7 +16,8 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import personalDetailsPropType from '../personalDetailsPropType';
 import reportPropTypes from '../reportPropTypes';
-import * as TaskUtils from '../../libs/actions/Task';
+import * as Task from '../../libs/actions/Task';
+import * as ReportUtils from '../../libs/ReportUtils';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
@@ -43,34 +45,36 @@ function TaskShareDestinationSelectorModal(props) {
     const [searchValue, setSearchValue] = useState('');
     const [headerMessage, setHeaderMessage] = useState('');
     const [filteredRecentReports, setFilteredRecentReports] = useState([]);
-    const [filteredPersonalDetails, setFilteredPersonalDetails] = useState([]);
-    const [filteredUserToInvite, setFilteredUserToInvite] = useState(null);
 
-    useEffect(() => {
-        const results = OptionsListUtils.getShareDestinationOptions(props.reports, props.personalDetails, props.betas, '', [], CONST.EXPENSIFY_EMAILS, true);
+    const filteredReports = useMemo(() => {
+        const reports = {};
+        _.keys(props.reports).forEach((reportKey) => {
+            if (
+                !ReportUtils.isAllowedToComment(props.reports[reportKey]) ||
+                ReportUtils.isArchivedRoom(props.reports[reportKey]) ||
+                ReportUtils.isExpensifyOnlyParticipantInReport(props.reports[reportKey])
+            ) {
+                return;
+            }
+            reports[reportKey] = props.reports[reportKey];
+        });
+        return reports;
+    }, [props.reports]);
+    const updateOptions = useCallback(() => {
+        const {recentReports} = OptionsListUtils.getShareDestinationOptions(filteredReports, props.personalDetails, props.betas, searchValue.trim(), [], CONST.EXPENSIFY_EMAILS, true);
 
-        setFilteredUserToInvite(results.userToInvite);
-        setFilteredRecentReports(results.recentReports);
-        setFilteredPersonalDetails(results.personalDetails);
-    }, [props]);
+        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length !== 0, false, searchValue));
 
-    useEffect(() => {
-        const {recentReports, personalDetails, userToInvite} = OptionsListUtils.getShareDestinationOptions(
-            props.reports,
-            props.personalDetails,
-            props.betas,
-            searchValue.trim(),
-            [],
-            CONST.EXPENSIFY_EMAILS,
-            true,
-        );
-
-        setHeaderMessage(OptionsListUtils.getHeaderMessage(recentReports?.length + personalDetails?.length !== 0, Boolean(userToInvite), searchValue));
-
-        setFilteredUserToInvite(userToInvite);
         setFilteredRecentReports(recentReports);
-        setFilteredPersonalDetails(personalDetails);
-    }, [props, searchValue]);
+    }, [props, searchValue, filteredReports]);
+
+    useEffect(() => {
+        const debouncedSearch = _.debounce(updateOptions, 150);
+        debouncedSearch();
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [updateOptions]);
 
     const onChangeText = (newSearchTerm = '') => {
         setSearchValue(newSearchTerm);
@@ -89,23 +93,6 @@ function TaskShareDestinationSelectorModal(props) {
             indexOffset += filteredRecentReports?.length;
         }
 
-        if (filteredPersonalDetails?.length > 0) {
-            sections.push({
-                data: filteredPersonalDetails,
-                shouldShow: true,
-                indexOffset,
-            });
-            indexOffset += filteredRecentReports?.length;
-        }
-
-        if (filteredUserToInvite) {
-            sections.push({
-                data: [filteredUserToInvite],
-                shouldShow: true,
-                indexOffset,
-            });
-        }
-
         return sections;
     };
 
@@ -117,8 +104,8 @@ function TaskShareDestinationSelectorModal(props) {
         if (option.reportID) {
             // Clear out the state value, set the assignee and navigate back to the NewTaskPage
             setSearchValue('');
-            TaskUtils.setShareDestinationValue(option.reportID);
-            Navigation.goBack();
+            Task.setShareDestinationValue(option.reportID);
+            Navigation.goBack(ROUTES.NEW_TASK);
         }
     };
 
@@ -142,7 +129,7 @@ function TaskShareDestinationSelectorModal(props) {
                             Headers
                             showTitleTooltip
                             shouldShowOptions={didScreenTransitionEnd}
-                            placeholderText={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                            textInputLabel={props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
                         />
                     </View>

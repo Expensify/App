@@ -7,16 +7,11 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import CONST from '../../../CONST';
-import styles from '../../../styles/styles';
 import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import compose from '../../../libs/compose';
-import OptionsSelector from '../../../components/OptionsSelector';
-import themeColors from '../../../styles/themes/default';
-import * as Expensicons from '../../../components/Icon/Expensicons';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-
-const greenCheckmark = {src: Expensicons.Checkmark, color: themeColors.success};
+import SelectionListRadio from '../../../components/SelectionListRadio';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -84,12 +79,7 @@ class TimezoneSelectPage extends Component {
         return {
             text,
             keyForList: this.getKey(text),
-
-            // Include the green checkmark icon to indicate the currently selected value
-            customIcon: text === this.timezone.selected ? greenCheckmark : undefined,
-
-            // This property will make the currently selected value have bold text
-            boldStyle: text === this.timezone.selected,
+            isSelected: text === this.timezone.selected,
         };
     }
 
@@ -122,25 +112,18 @@ class TimezoneSelectPage extends Component {
     render() {
         return (
             <ScreenWrapper includeSafeAreaPaddingBottom={false}>
-                {({safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <HeaderWithBackButton
-                            title={this.props.translate('timezonePage.timezone')}
-                            onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
-                        />
-                        <OptionsSelector
-                            textInputLabel={this.props.translate('timezonePage.timezone')}
-                            value={this.state.timezoneInputText}
-                            onChangeText={this.filterShownTimezones}
-                            onSelectRow={this.saveSelectedTimezone}
-                            optionHoveredStyle={styles.hoveredComponentBG}
-                            sections={[{data: this.state.timezoneOptions, indexOffset: 0, isDisabled: this.timezone.automatic}]}
-                            shouldHaveOptionSeparator
-                            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
-                            initiallyFocusedOptionKey={_.get(_.filter(this.state.timezoneOptions, (tz) => tz.text === this.timezone.selected)[0], 'keyForList')}
-                        />
-                    </>
-                )}
+                <HeaderWithBackButton
+                    title={this.props.translate('timezonePage.timezone')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_TIMEZONE)}
+                />
+                <SelectionListRadio
+                    textInputLabel={this.props.translate('timezonePage.timezone')}
+                    textInputValue={this.state.timezoneInputText}
+                    onChangeText={this.filterShownTimezones}
+                    onSelectRow={this.saveSelectedTimezone}
+                    sections={[{data: this.state.timezoneOptions, indexOffset: 0, isDisabled: this.timezone.automatic}]}
+                    initiallyFocusedOptionKey={_.get(_.filter(this.state.timezoneOptions, (tz) => tz.text === this.timezone.selected)[0], 'keyForList')}
+                />
             </ScreenWrapper>
         );
     }
