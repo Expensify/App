@@ -3555,6 +3555,21 @@ const styles = {
     willChangeTransform: {
         willChange: 'transform',
     },
+ 
+    emojiPickerButtonDropdown: {
+        backgroundColor: themeColors.activeComponentBG,
+        width: 86,
+        height: 52,
+        borderRadius: 26,
+        alignItems: 'center',
+        paddingLeft: 10,
+        paddingRight: 4,
+        marginBottom: 32,
+        alignSelf: 'flex-start',
+    },
+    emojiPickerButtonDropdownIcon: {
+      fontSize: 30
+    }
 };
 
 export default styles;
