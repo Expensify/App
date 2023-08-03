@@ -38,12 +38,12 @@ const defaultProps = {
 };
 
 function filterOptions(searchValue, data) {
-    const trimmedSearchValue = searchValue.trim();
-    if (trimmedSearchValue.length === 0) {
+    const searchValueWithOnlyAlphabets = searchValue.toLowerCase().replaceAll(' ', '');
+    if (searchValueWithOnlyAlphabets.length === 0) {
         return [];
     }
 
-    return _.filter(data, (country) => country.text.toLowerCase().includes(searchValue.toLowerCase()));
+    return _.filter(data, (country) => country.searchValue.includes(searchValueWithOnlyAlphabets));
 }
 
 function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, searchValue, setSearchValue, label}) {
@@ -56,6 +56,7 @@ function StateSelectorModal({currentState, isVisible, onClose, onStateSelected, 
                 keyForList: state.stateISO,
                 text: state.stateName,
                 isSelected: currentState === state.stateISO,
+                searchValue: state.stateName.toLowerCase().replaceAll(' ', ''),
             })),
         [translate, currentState],
     );
