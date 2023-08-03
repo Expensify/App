@@ -13,6 +13,7 @@ import * as Expensicons from './Icon/Expensicons';
 import theme from '../styles/themes/default';
 import Button from './Button';
 import styles from '../styles/styles';
+import LinearGradient from './LinearGradient';
 
 const propTypes = {
     /** The transactionID of this request */
@@ -62,7 +63,8 @@ function DistanceRequest({transactionID, transaction, translate}) {
     };
 
     // Show 4 waypoints plus 1/2 of one
-    const scrollContainerHeight = menuItemHeight * 4 + Math.floor(menuItemHeight / 2);
+    const halfMenuItemHeight = Math.floor(menuItemHeight / 2);
+    const scrollContainerHeight = menuItemHeight * 4 + halfMenuItemHeight;
     return (
         <>
             <View style={{height: scrollContainerHeight}}>
@@ -95,6 +97,10 @@ function DistanceRequest({transactionID, transaction, translate}) {
                         );
                     })}
                 </ScrollView>
+                <LinearGradient
+                    style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0, {height: halfMenuItemHeight}]}
+                    colors={[theme.transparent, theme.shadow]}
+                />
             </View>
             <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                 <Button
