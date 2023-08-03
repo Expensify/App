@@ -43,7 +43,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    country: '', 
+    country: '',
     privatePersonalDetails: {
         address: {
             street: '',
