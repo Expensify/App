@@ -1,0 +1,15 @@
+diff --git a/node_modules/react-native/React/Views/RCTModalHostViewManager.m b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
+index 4b9f9ad..4992874 100644
+--- a/node_modules/react-native/React/Views/RCTModalHostViewManager.m
++++ b/node_modules/react-native/React/Views/RCTModalHostViewManager.m
+@@ -79,6 +79,10 @@ RCT_EXPORT_MODULE()
+     if (self->_presentationBlock) {
+       self->_presentationBlock([modalHostView reactViewController], viewController, animated, completionBlock);
+     } else {
++      UIWindow *window = RCTKeyWindow();
++      if (window && window.rootViewController && [window.rootViewController.view isFirstResponder]) {
++        [window.rootViewController.view resignFirstResponder];
++      }
+       [[modalHostView reactViewController] presentViewController:viewController
+                                                         animated:animated
+                                                       completion:completionBlock];
