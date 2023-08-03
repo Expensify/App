@@ -1,14 +1,14 @@
 import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
 const propTypes = {
     ref: PropTypes.oneOfType([PropTypes.func, PropTypes.object]),
-}
+};
 
 const defaultProps = {
     ref: () => {},
-}
+};
 
 function PopoverReactionList(props) {
     const innerReactionListRef = useRef();
