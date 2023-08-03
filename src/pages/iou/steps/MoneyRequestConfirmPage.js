@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -219,6 +219,9 @@ function MoneyRequestConfirmPage(props) {
                         canModifyParticipants={!_.isEmpty(reportID.current)}
                         policyID={props.report.policyID}
                         bankAccountRoute={ReportUtils.getBankAccountRoute(props.report)}
+                        iouMerchant={props.iou.merchant}
+                        iouModifiedMerchant={props.iou.modifiedMerchant}
+                        iouDate={props.iou.date}
                     />
                 </View>
             )}
