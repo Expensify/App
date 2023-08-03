@@ -463,9 +463,9 @@ function ReportActionItem(props) {
             if (ReportActionsUtils.isDeletedParentAction(parentReportAction)) {
                 return (
                     <ReportActionItemParentAction
-                    shouldHideThreadDividerLine={false}
-                    reportID={props.report.reportID}
-                    parentReportID={`${props.report.parentReportID}`}
+                        shouldHideThreadDividerLine={false}
+                        reportID={props.report.reportID}
+                        parentReportID={`${props.report.parentReportID}`}
                 />
                 )
             }

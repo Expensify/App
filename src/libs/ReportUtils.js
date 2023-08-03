@@ -159,13 +159,22 @@ function isOpenTaskReport(report) {
 }
 
 /**
- * Checks if the current user is assigned to the task report
+ * Checks if a task has been cancelled
+ * When a task is deleted, the parentReportAction is updated to have a isDeletedParentAction deleted flag
+ * This is because when you delete a task, we still allow you to chat on the report itself
+ * There's another situation where you don't have access to the parentReportAction (because it was created in a chat you don't have access to)
+ * In this case, we have added the key to the report itself
  *
  * @param {Object} report
+ * @param {Object} parentReportAction
  * @returns {Boolean}
  */
-function isCanceledTaskReport(report) {
-    return isTaskReport(report) && report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report.statusNum === CONST.REPORT.STATUS.CLOSED;
+function isCanceledTaskReport(report, parentReportAction = {}) {
+    if (parentReportAction && ReportActionsUtils.isMessageDeleted(parentReportAction)) {
+        return true;
+    }
+
+    return isTaskReport(report) && report.isDeletedParentAction;
 }
 
 /**
