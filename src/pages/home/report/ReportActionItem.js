@@ -64,6 +64,7 @@ import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import * as store from '../../../libs/actions/ReimbursementAccount/store';
 import * as BankAccounts from '../../../libs/actions/BankAccounts';
+import ReportActionItemParentAction from './ReportActionItemParentAction';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -458,7 +459,17 @@ function ReportActionItem(props) {
                 />
             );
         }
-        if (ReportUtils.isTaskReport(props.report) && !ReportActionsUtils.isDeletedParentAction(parentReportAction)) {
+        if (ReportUtils.isTaskReport(props.report)) {
+            if (ReportActionsUtils.isDeletedParentAction(parentReportAction)) {
+                return (
+                    <ReportActionItemParentAction
+                    shouldHideThreadDividerLine={false}
+                    reportID={props.report.reportID}
+                    parentReportID={`${props.report.parentReportID}`}
+                />
+                )
+            }
+
             return (
                 <TaskView
                     report={props.report}
