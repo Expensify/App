@@ -662,7 +662,7 @@ describe('Migrations', () => {
                 .then(CheckForPreviousReportActionID)
                 .then(() => {
                     expect(LogSpy).toHaveBeenCalledWith(
-                        '[Migrate Onyx] CheckForPreviousReportActionID Migration: removing all reportActions because previousReportActionID not found in the first reportAction',
+                        '[Migrate Onyx] CheckForPreviousReportActionID Migration: removing all reportActions because previousReportActionID not found in the first valid reportAction',
                     );
                     const connectionID = Onyx.connect({
                         key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -675,7 +675,7 @@ describe('Migrations', () => {
                     });
                 }));
 
-        it('Should not remove any report action given that previousReportActionID exists in every action', () => {
+        it('Should not remove any report action given that previousReportActionID exists in first valid report action', () =>
             Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
                     1: {
@@ -705,7 +705,106 @@ describe('Migrations', () => {
                             expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
                         },
                     });
-                });
-        });
+                }));
+
+        it('Should skip zombie report actions and proceed to remove all reportActions given that a previousReportActionID does not exist', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: {
+                    1: {
+                        actorEmail: 'sample_email@example.com',
+                    },
+                    2: {
+                        actorEmail: 'another_sample_email@example.com',
+                    },
+                },
+            })
+                .then(CheckForPreviousReportActionID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith(
+                        '[Migrate Onyx] CheckForPreviousReportActionID Migration: removing all reportActions because previousReportActionID not found in the first valid reportAction',
+                    );
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReportAction = {};
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeNull();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toBeNull();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toMatchObject(expectedReportAction);
+                        },
+                    });
+                }));
+
+        it('Should skip zombie report actions and should not remove any report action given that previousReportActionID exists in first valid report action', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: {
+                    1: {
+                        actorEmail: 'sample_email@example.com',
+                        previousReportActionID: 10,
+                    },
+                    2: {
+                        actorEmail: 'another_sample_email@example.com',
+                        previousReportActionID: 23,
+                    },
+                },
+            })
+                .then(CheckForPreviousReportActionID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] CheckForPreviousReportActionID Migration: previousReportActionID found. Migration complete');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReportAction1 = {};
+                            const expectedReportAction4 = {
+                                1: {
+                                    actorEmail: 'sample_email@example.com',
+                                    previousReportActionID: 10,
+                                },
+                                2: {
+                                    actorEmail: 'another_sample_email@example.com',
+                                    previousReportActionID: 23,
+                                },
+                            };
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toMatchObject(expectedReportAction1);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toBeNull();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toBeNull();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toMatchObject(expectedReportAction4);
+                        },
+                    });
+                }));
+
+        it('Should skip if no valid reportActions', () =>
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: {},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: null,
+            })
+                .then(CheckForPreviousReportActionID)
+                .then(() => {
+                    expect(LogSpy).toHaveBeenCalledWith('[Migrate Onyx] Skipped migration CheckForPreviousReportActionID because there were no valid reportActions');
+                    const connectionID = Onyx.connect({
+                        key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                        waitForCollectionCallback: true,
+                        callback: (allReportActions) => {
+                            Onyx.disconnect(connectionID);
+                            const expectedReportAction = {};
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]).toBeNull();
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]).toMatchObject(expectedReportAction);
+                            expect(allReportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]).toBeNull();
+                        },
+                    });
+                }));
     });
 });
