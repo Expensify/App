@@ -461,6 +461,17 @@ function isConciergeChatReport(report) {
 }
 
 /**
+ * Returns true if we can share a task in this report
+ * @param {Object} report
+ * @returns {Boolean}
+ */
+
+function canShareTaskInReport(report) {
+    const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
+    return (lodashGet(report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID)))
+}
+
+/**
  * Returns true if there are any Expensify accounts (i.e. with domain 'expensify.com') in the set of accountIDs
  * by cross-referencing the accountIDs with personalDetails.
  *
@@ -2834,6 +2845,7 @@ export {
     findLastAccessedReport,
     canEditReportAction,
     canFlagReportAction,
+    canShareTaskInReport,
     shouldShowFlagComment,
     canDeleteReportAction,
     canLeaveRoom,
