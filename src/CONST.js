@@ -479,6 +479,13 @@ const CONST = {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
     },
+    RECEIPT: {
+        ICON_SIZE: 164,
+        PERMISSION_AUTHORIZED: 'authorized',
+        HAND_ICON_HEIGHT: 152,
+        HAND_ICON_WIDTH: 200,
+        SHUTTER_SIZE: 90,
+    },
     REPORT: {
         MAXIMUM_PARTICIPANTS: 8,
         SPLIT_REPORTID: '-2',
@@ -1054,6 +1061,15 @@ const CONST = {
             DELETE: 'delete',
         },
         AMOUNT_MAX_LENGTH: 10,
+        RECEIPT_STATE: {
+            SCANREADY: 'SCANREADY',
+        },
+        FILE_TYPES: {
+            HTML: 'html',
+            DOC: 'doc',
+            DOCX: 'docx',
+            SVG: 'svg',
+        },
     },
 
     GROWL: {
@@ -1106,6 +1122,10 @@ const CONST = {
     ICON_TYPE_AVATAR: 'avatar',
     ICON_TYPE_WORKSPACE: 'workspace',
 
+    ACTIVITY_INDICATOR_SIZE: {
+        LARGE: 'large',
+    },
+
     AVATAR_SIZE: {
         LARGE: 'large',
         MEDIUM: 'medium',
@@ -1131,7 +1151,7 @@ const CONST = {
     REGEX: {
         SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
-        ALPHABETIC_CHARS_WITH_NUMBER: /^[a-zA-ZÀ-ÿ0-9 ]*$/,
+        ALPHABETIC_AND_LATIN_CHARS: /^[a-zA-ZÀ-ÿ ]*$/,
         POSITIVE_INTEGER: /^\d+$/,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -2541,6 +2561,11 @@ const CONST = {
     },
     TRANSLATION_KEYS: {
         ATTACHMENT: 'common.attachment',
+    },
+    TAB: {
+        RECEIPT_TAB_ID: 'ReceiptTab',
+        MANUAL: 'manual',
+        SCAN: 'scan',
     },
 };
 
