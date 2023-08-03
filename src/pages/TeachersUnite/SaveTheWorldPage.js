@@ -51,7 +51,7 @@ function SaveTheWorldPage(props) {
             <MenuItem
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iAmATeacher')}
-                onPress={() => (isLoggedInEmailPublicDomain ? Navigation.navigate(ROUTES.I_Am_A_TEACHER) : Navigation.navigate(ROUTES.INTRO_SCHOOL_PRINCIPAL))}
+                onPress={() => (isLoggedInEmailPublicDomain ? Navigation.navigate(ROUTES.I_AM_A_TEACHER) : Navigation.navigate(ROUTES.INTRO_SCHOOL_PRINCIPAL))}
             />
         </IllustratedHeaderPageLayout>
     );

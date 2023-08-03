@@ -12,7 +12,6 @@ const IOU_SEND = 'send/new';
 const NEW_TASK = 'new/task';
 const SETTINGS_PERSONAL_DETAILS = 'settings/profile/personal-details';
 const SETTINGS_CONTACT_METHODS = 'settings/profile/contact-methods';
-const SAVE_THE_WORLD = 'save-the-world';
 
 export default {
     BANK_ACCOUNT: 'bank-account',
@@ -115,10 +114,10 @@ export default {
     FLAG_COMMENT: `flag/:reportID/:reportActionID`,
     getFlagCommentRoute: (reportID, reportActionID) => `flag/${reportID}/${reportActionID}`,
     SEARCH: 'search',
-    SAVE_THE_WORLD,
-    I_KNOW_A_TEACHER: `${SAVE_THE_WORLD}/i-know-a-teacher`,
-    INTRO_SCHOOL_PRINCIPAL: `${SAVE_THE_WORLD}/intro-school-principal`,
-    I_Am_A_TEACHER: `${SAVE_THE_WORLD}/i-am-a-teacher`,
+    SAVE_THE_WORLD: 'save-the-world',
+    I_KNOW_A_TEACHER: 'save-the-world/i-know-a-teacher',
+    INTRO_SCHOOL_PRINCIPAL: 'save-the-world/intro-school-principal',
+    I_AM_A_TEACHER: 'save-the-world/i-am-a-teacher',
     DETAILS: 'details',
     getDetailsRoute: (login) => `details?login=${encodeURIComponent(login)}`,
     PROFILE: 'a/:accountID',
