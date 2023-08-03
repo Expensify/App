@@ -151,6 +151,8 @@ export default {
         edit: 'Edit',
         letsDoThis: `Let's do this!`,
         letsStart: `Let's start`,
+        showMore: 'Show more',
+        merchant: 'Merchant',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
