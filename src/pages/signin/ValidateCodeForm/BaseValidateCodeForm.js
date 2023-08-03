@@ -232,7 +232,7 @@ function BaseValidateCodeForm(props) {
         } else {
             Session.signIn(validateCode, twoFactorAuthCode, props.preferredLocale);
         }
-    }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode, props.isInModal]);
+    }, [props.account.requiresTwoFactorAuth, props.credentials, props.preferredLocale, twoFactorAuthCode, validateCode]);
 
     return (
         <>
