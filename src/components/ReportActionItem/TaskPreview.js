@@ -73,6 +73,11 @@ function TaskPreview(props) {
     const taskAssignee = assigneeLogin || assigneeDisplayName;
     const htmlForTaskPreview = taskAssignee ? `<comment><mention-user>@${taskAssignee}</mention-user> ${taskTitle}</comment>` : `<comment>${taskTitle}</comment>`;
     const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(props.action);
+
+    if (isDeletedParentAction) {
+        return <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />;
+    }
+
     return (
         <View style={[styles.chatItemMessage]}>
             <PressableWithoutFeedback
@@ -81,11 +86,7 @@ function TaskPreview(props) {
                 accessibilityRole={CONST.ACCESSIBILITY_ROLE.BUTTON}
                 accessibilityLabel={props.translate('task.task')}
             >
-                {
-                    isDeletedParentAction ? (
-                        <RenderHTML html={`<comment>${props.translate('parentReportAction.deletedTask')}</comment>`} />
-                    ) : (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
+                <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart]}>
                     <Checkbox
                         style={[styles.mr2]}
                         containerStyle={[styles.taskCheckbox]}
@@ -102,8 +103,7 @@ function TaskPreview(props) {
                     />
                     <RenderHTML html={htmlForTaskPreview} />
                 </View>
-                    )
-                }
+
                 <Icon
                     src={Expensicons.ArrowRight}
                     fill={StyleUtils.getIconFillColor(getButtonState(props.isHovered))}
