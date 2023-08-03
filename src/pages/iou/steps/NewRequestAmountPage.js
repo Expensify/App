@@ -206,10 +206,12 @@ function NewRequestAmountPage({route, iou, report, currentUserPersonalDetails, e
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!IOUUtils.isValidMoneyRequestType(iouType)}>
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={titleForStep}
-                            onBackButonBackButtonPress={navigateBack}
-                        />
+                        {isEditing && (
+                            <HeaderWithBackButton
+                                title={titleForStep}
+                                onBackButonBackButtonPress={navigateBack}
+                            />
+                        )}
                         <MoneyRequestAmountForm
                             isEditing={isEditing}
                             currency={currency}
