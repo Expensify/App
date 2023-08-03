@@ -1287,13 +1287,15 @@ function getReportPreviewMessage(report, reportAction = {}) {
 }
 
 /**
- * Get the report action message when expense has been modified
+ * Get the report action message when expense has been modified.
+ * User either reportAction or the originalMessage object.
  *
- * @param {Object} reportAction
+ * @param {Object} [reportAction]
+ * @param {Object} [originalMessage]
  * @returns {String}
  */
-function getModifiedExpenseMessage(reportAction) {
-    const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', []);
+function getModifiedExpenseMessage(reportAction = {}, originalMessage = {}) {
+    const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', originalMessage);
     if (reportActionOriginalMessage.oldAmount && reportActionOriginalMessage.oldCurrency && reportActionOriginalMessage.amount && reportActionOriginalMessage.currency) {
         const oldCurrency = reportActionOriginalMessage.oldCurrency;
         const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
@@ -1306,6 +1308,41 @@ function getModifiedExpenseMessage(reportAction) {
         return `changed the request to ${amount} (previously ${oldAmount})`;
     }
     return `changed the request`;
+}
+
+/**
+ * Given the updates user made to the request, compose the originalMessage
+ * object of the modified expense action.
+ * 
+ * At the moment, we only allow changing one transaction field at the time.
+ *
+ * @param {Object} oldTransaction
+ * @param {Object} transactionChanges
+ * @returns {Object}
+ */
+function getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges) {
+    const originalMessage = {};
+
+    // Remark: Comment field is the only one which has new/old prefixes for the keys (newComment/ oldComment),
+    // all others have old/- pattern such as oldCreated/created
+    if (_.has(transactionChanges, 'comment')) {
+        originalMessage['oldComment'] = oldTransaction.comment.comment;
+        originalMessage['newComment'] = transactionChanges.comment;
+    }
+    if (_.has(transactionChanges, 'created')) {
+        originalMessage['oldCreated'] = oldTransaction.created;
+        originalMessage['created'] = transactionChanges.created;
+    }
+    if (_.has(transactionChanges, 'amount')) {
+        originalMessage['oldAmount'] = oldTransaction.amount;
+        originalMessage['amount'] = transactionChanges.amount;
+    }
+    if (_.has(transactionChanges, 'currency')) {
+        originalMessage['oldCurrency'] = oldTransaction.currency;
+        originalMessage['currency'] = transactionChanges.currency;
+    }
+
+    return originalMessage;
 }
 
 /**
@@ -1872,11 +1909,13 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
  *
  * @param {Object} transactionThread
  * @param {Object} iouReport
+ * @param {Object} transactionChanges
  *
  * @returns {Object}
  */
-function buildOptimisticModifiedExpenseReportAction(transactionThread, iouReport) {
-    const message = getReportPreviewMessage(iouReport);
+function buildOptimisticModifiedExpenseReportAction(transactionThread, iouReport, transactionChanges) {
+    const originalMessage = getModifiedExpenseOriginalMessage(transactionChanges);
+    const message = getModifiedExpenseMessage(originalMessage);
     return {
         reportActionID: NumberUtils.rand64(),
         reportID: transactionThread.reportID,

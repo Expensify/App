@@ -783,8 +783,9 @@ function splitBillAndOpenReport(participants, currentUserLogin, currentUserAccou
  * @param {String} transactionID
  * @param {Number} transactionThreadReportID
  * @param {Object} updatedTransaction
+ * @param {Object} transactionChanges
  */
-function editIOUTransaction(transactionID, transactionThreadReportID, updatedTransaction) {
+function editIOUTransaction(transactionID, transactionThreadReportID, transactionChanges) {
     // STEP 1: Get all collections we're updating
     const transactionThread = allReports[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -793,7 +794,7 @@ function editIOUTransaction(transactionID, transactionThreadReportID, updatedTra
     const chatReport = allReports[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
 
     // STEP 2: Build new modified expense report action.
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread);
+    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges);
     
     // STEP 3: Compose the data for the API command
     const optimisticData = [

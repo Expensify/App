@@ -12,6 +12,7 @@ import EditRequestDescriptionPage from './EditRequestDescriptionPage';
 import EditRequestCreatedPage from './EditRequestCreatedPage';
 import reportPropTypes from './reportPropTypes';
 import * as ReportUtils from '../libs/ReportUtils';
+import * as IOU from '../libs/actions/IOU';
 
 const propTypes = {
     /** Route from navigation */
@@ -49,6 +50,8 @@ function EditRequestPage({report, route}) {
         // eslint-disable-next-line no-console
         console.log({changes});
 
+        IOU.editIOUTransaction(transactionID, report.reportID, );
+
         // Note: The "modal" we are dismissing is the MoneyRequestAmountPage
         Navigation.dismissModal();
     }
@@ -71,6 +74,8 @@ function EditRequestPage({report, route}) {
                 }}
             />
         );
+    } else if (field === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
+        return null;
     }
 
     return null;
