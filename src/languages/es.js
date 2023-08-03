@@ -148,6 +148,8 @@ export default {
         someone: 'Alguien',
         total: 'Total',
         edit: 'Editar',
+        showMore: 'Mostrar más',
+        merchant: 'Comerciante',
     },
     anonymousReportFooter: {
         logoTagline: 'Únete a la discussion.',

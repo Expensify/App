@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 import CONST from '../../CONST';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -57,17 +58,28 @@ Onyx.connect({
     },
 });
 
+let currentDate = '';
+Onyx.connect({
+    key: ONYXKEYS.CURRENT_DATE,
+    callback: (val) => {
+        currentDate = val;
+    },
+});
+
 /**
  * Reset money request info from the store with its initial value
  * @param {String} id
  */
 function resetMoneyRequestInfo(id = '') {
+    const date = currentDate || moment().format('YYYY-MM-DD');
     Onyx.merge(ONYXKEYS.IOU, {
         id,
         amount: 0,
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
+        merchant: '',
+        date,
         receiptPath: '',
         receiptSource: '',
     });

@@ -149,6 +149,8 @@ export default {
         someone: 'Someone',
         total: 'Total',
         edit: 'Edit',
+        showMore: 'Show more',
+        merchant: 'Merchant',
     },
     anonymousReportFooter: {
         logoTagline: 'Join in on the discussion.',
