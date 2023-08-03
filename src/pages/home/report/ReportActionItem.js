@@ -613,7 +613,7 @@ export default compose(
             prevProps.translate === nextProps.translate &&
             // TaskReport's created actions render the TaskView, which updates depending on certain fields in the TaskReport
             ReportUtils.isTaskReport(prevProps.report) === ReportUtils.isTaskReport(nextProps.report) &&
-            prevProps.action.actionName === nextProps.action.actionName  &&
+            prevProps.action.actionName === nextProps.action.actionName &&
             prevProps.report.reportName === nextProps.report.reportName &&
             prevProps.report.description === nextProps.report.description &&
             ReportUtils.isCompletedTaskReport(prevProps.report) === ReportUtils.isCompletedTaskReport(nextProps.report) &&
