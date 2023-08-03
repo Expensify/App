@@ -523,6 +523,28 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Status',
     },
     {
+      getComponent: () => {
+          const SettingsStatusSet = require('../../../pages/settings/Profile/CustomStatus/StatusSetPage').default;
+          return SettingsStatusSet;
+      },
+      name: 'Settings_Status_Set',
+    },
+    {
+      getComponent: () => {
+          const SettingsStatusClearAfter = require('../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default;
+          return SettingsStatusClearAfter;
+      },
+      name: 'Settings_Status_Clear_After',
+    },
+    {
+      getComponent: () => {
+          const SettingsStatusCustomClearAfter = require('../../../pages/settings/Profile/CustomStatus/CustomClearAfterPage').default;
+          return SettingsStatusCustomClearAfter;
+      },
+      name: 'Settings_Status_Custom_Clear_After',
+    },
+
+    {
         getComponent: () => {
             const WorkspaceInitialPage = require('../../../pages/workspace/WorkspaceInitialPage').default;
             return WorkspaceInitialPage;

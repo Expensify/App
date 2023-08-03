@@ -80,7 +80,7 @@ function StatusPage(props) {
                 title={localize.translate('statusPage.today')}
                 description="Clear after"
                 shouldShowRightIcon
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
+                onPress={() => {}}
             />
 
             {hasDraftStatus && (

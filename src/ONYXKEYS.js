@@ -44,6 +44,9 @@ export default {
 
     // Contains all the personalDetails of the user
     PERSONAL_DETAILS: 'personalDetails',
+
+    // draft status
+    CUSTOM_STATUS_DRAFT: 'customStatusDraft',
     
     // Contains all the personalDetails the user has access to, keyed by accountID
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
