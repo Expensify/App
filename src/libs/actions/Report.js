@@ -475,6 +475,7 @@ function openReport(reportID, participantLoginList = [], newReportObject = {}, p
                 accountID,
                 avatar: UserUtils.getDefaultAvatarURL(accountID),
                 displayName: login,
+                isOptimisticPersonalDetail: true,
             };
 
             failurePersonalDetails[accountID] = allPersonalDetails[accountID] || null;
