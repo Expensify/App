@@ -271,9 +271,9 @@ export default {
                     TeachersUnite: {
                         screens: {
                             SaveTheWorld_Root: ROUTES.SAVE_THE_WORLD,
-                            I_Know_A_Teacher: ROUTES.I_Know_A_TEACHER,
-                            Intro_School_Principal: ROUTES.Intro_School_Principal,
-                            I_Am_A_Teacher: ROUTES.I_Am_A_Teacher,
+                            I_Know_A_Teacher: ROUTES.I_KNOW_A_TEACHER,
+                            Intro_School_Principal: ROUTES.INTRO_SCHOOL_PRINCIPAL,
+                            I_Am_A_Teacher: ROUTES.I_Am_A_TEACHER,
                         },
                     },
                     Search: {

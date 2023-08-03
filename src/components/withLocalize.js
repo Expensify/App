@@ -54,20 +54,11 @@ const localeProviderPropTypes = {
             selected: PropTypes.string,
         }),
     }),
-
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        /** Email address */
-        email: PropTypes.string.isRequired,
-    }),
 };
 
 const localeProviderDefaultProps = {
     preferredLocale: CONST.LOCALES.DEFAULT,
     currentUserPersonalDetails: {},
-    session: {
-        email: null,
-    },
 };
 
 class LocaleContextProvider extends React.Component {
@@ -161,9 +152,6 @@ const Provider = compose(
     withOnyx({
         preferredLocale: {
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(LocaleContextProvider);

@@ -34,7 +34,7 @@ function SaveTheWorldPage(props) {
             shouldShowBackButton
             title={translate('sidebarScreen.saveTheWorld')}
             onBackButtonPress={() => Navigation.goBack()}
-            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.I_Know_A_TEACHER]}
+            backgroundColor={themeColors.PAGE_BACKGROUND_COLORS[ROUTES.I_KNOW_A_TEACHER]}
             illustration={LottieAnimations.SaveTheWorld}
         >
             <View style={[styles.mb4, styles.justifyContentBetween, styles.mh5]}>
@@ -45,13 +45,13 @@ function SaveTheWorldPage(props) {
             <MenuItem
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iKnowATeacher')}
-                onPress={() => Navigation.navigate(ROUTES.I_Know_A_TEACHER)}
+                onPress={() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)}
             />
 
             <MenuItem
                 shouldShowRightIcon
                 title={translate('teachersUnitePage.iAmATeacher')}
-                onPress={() => (isLoggedInEmailPublicDomain ? Navigation.navigate(ROUTES.I_Am_A_Teacher) : Navigation.navigate(ROUTES.Intro_School_Principal))}
+                onPress={() => (isLoggedInEmailPublicDomain ? Navigation.navigate(ROUTES.I_Am_A_TEACHER) : Navigation.navigate(ROUTES.INTRO_SCHOOL_PRINCIPAL))}
             />
         </IllustratedHeaderPageLayout>
     );

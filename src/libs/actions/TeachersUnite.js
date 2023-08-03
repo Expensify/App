@@ -25,11 +25,10 @@ Onyx.connect({
 });
 
 /**
- * @param {String} values.firstName
- * @param {String} values.phoneOrEmail
- * @param {String} [values.lastName]
+ * @param {String} firstName
+ * @param {String} phoneOrEmail
+ * @param {String} [lastName]
  */
-
 function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
     const reportID = CONST.TEACHER_UNITE.PUBLIC_ROOM_ID;
     const optimisticData = [
@@ -62,7 +61,6 @@ function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
  * @param {String} email
  * @param {String} [lastName]
  */
-
 function createExpenseChatSchoolPrincipal(firstName, email, lastName = '') {
     const policyName = 'TeacherUniteSchoolPrincipal';
     const policyID = CONST.TEACHER_UNITE.SCHOOL_PRINCIPAL_POLICY_ID;
