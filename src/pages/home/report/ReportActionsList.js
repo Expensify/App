@@ -82,6 +82,10 @@ const defaultProps = {
 const VERTICAL_OFFSET_THRESHOLD = 200;
 const MSG_VISIBLE_THRESHOLD = 250;
 
+// Seems that there is an architecture issue that prevents us from using the reportID with useRef
+// the useRef value gets reset when the reportID changes, so we use a global variable to keep track
+let prevReportID = null;
+
 /**
  * Create a unique key for each action in the FlatList.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
@@ -104,9 +108,9 @@ function ReportActionsList(props) {
     const userActiveSince = useRef(null);
     const currentUnreadMarker = useRef(null);
     const scrollingVerticalOffset = useRef(0);
+    const report = props.report;
     const readActionSkipped = useRef(false);
     const [messageManuallyMarked, setMessageManuallyMarked] = useState(false);
-    const report = props.report;
     const sortedReportActions = props.sortedReportActions;
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
     const [reportActionSize, setReportActionSize] = useState(sortedReportActions.length);
@@ -122,13 +126,22 @@ function ReportActionsList(props) {
     const windowHeight = props.windowHeight;
 
     useEffect(() => {
-        userActiveSince.current = DateUtils.getDBTime();
-    }, []);
+        // If the reportID changes, we reset the userActiveSince to null, we need to do it because
+        // the parent component is sending the previous reportID even when the user isn't activily
+        // into the report
+        if (userActiveSince.current && prevReportID && prevReportID !== report.reportID) {
+            userActiveSince.current = null;
+        } else {
+            userActiveSince.current = DateUtils.getDBTime();
+        }
+        prevReportID = report.reportID;
+    }, [report.reportID]);
 
     useEffect(() => {
-        if (!userActiveSince.current) {
+        if (!userActiveSince.current || report.reportID !== prevReportID) {
             return;
         }
+
         if (ReportUtils.isUnread(report)) {
             if (scrollingVerticalOffset.current < MSG_VISIBLE_THRESHOLD) {
                 Report.readNewestAction(report.reportID);
@@ -144,7 +157,7 @@ function ReportActionsList(props) {
         setReportActionSize(sortedReportActions.length);
         currentUnreadMarker.current = null;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sortedReportActions.length, report.reportID]);
+    }, [sortedReportActions.length, report.reportID, reportActionSize]);
 
     useEffect(() => {
         const didManuallyMarkReportAsUnread = report.lastReadTime < DateUtils.getDBTime() && ReportUtils.isUnread(report);
