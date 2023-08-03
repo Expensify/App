@@ -81,6 +81,9 @@ function getContainerStyles(size) {
         case CONST.AVATAR_SIZE.SMALLER:
             containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];
             break;
+        case CONST.AVATAR_SIZE.MEDIUM:
+            containerStyles = [styles.emptyAvatarMedium, styles.emptyAvatarMargin];
+            break;
         default:
             containerStyles = [styles.emptyAvatar, styles.emptyAvatarMargin];
     }
