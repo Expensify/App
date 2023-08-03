@@ -1288,15 +1288,13 @@ function getReportPreviewMessage(report, reportAction = {}) {
 
 /**
  * Get the report action message when expense has been modified.
- * User either reportAction or the originalMessage object.
  *
- * @param {Object} [reportAction]
- * @param {Object} [originalMessage]
+ * @param {Object} reportAction
  * @returns {String}
  */
-function getModifiedExpenseMessage(reportAction = {}, originalMessage = {}) {
-    const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', originalMessage);
-    if (reportActionOriginalMessage.oldAmount && reportActionOriginalMessage.oldCurrency && reportActionOriginalMessage.amount && reportActionOriginalMessage.currency) {
+function getModifiedExpenseMessage(reportAction) {
+    const reportActionOriginalMessage = lodashGet(reportAction, 'originalMessage', {});
+    if (!_.isEmpty(reportActionOriginalMessage) && reportActionOriginalMessage.oldAmount && reportActionOriginalMessage.oldCurrency && reportActionOriginalMessage.amount && reportActionOriginalMessage.currency) {
         const oldCurrency = reportActionOriginalMessage.oldCurrency;
         const oldCurrencyUnit = CurrencyUtils.getCurrencyUnit(oldCurrency);
         const oldAmount = NumberFormatUtils.format(preferredLocale, Math.abs(reportActionOriginalMessage.oldAmount) / oldCurrencyUnit, {style: 'currency', oldCurrency});
@@ -1908,33 +1906,41 @@ function buildOptimisticReportPreview(chatReport, iouReport) {
  * Builds an optimistic report preview action with a randomly generated reportActionID.
  *
  * @param {Object} transactionThread
- * @param {Object} iouReport
+ * @param {Object} oldTransaction
  * @param {Object} transactionChanges
  *
  * @returns {Object}
  */
-function buildOptimisticModifiedExpenseReportAction(transactionThread, iouReport, transactionChanges) {
-    const originalMessage = getModifiedExpenseOriginalMessage(transactionChanges);
-    const message = getModifiedExpenseMessage(originalMessage);
+function buildOptimisticModifiedExpenseReportAction(transactionThread, oldTransaction, transactionChanges) {
+    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges);
     return {
-        reportActionID: NumberUtils.rand64(),
-        reportID: transactionThread.reportID,
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        originalMessage: {
-            linkedReportID: iouReport.reportID,
-        },
+        actorAccountID: currentUserAccountID,
+        automatic: false,
+        avatar: lodashGet(currentUserPersonalDetails, 'avatar', UserUtils.getDefaultAvatar(currentUserAccountID)),
+        created: DateUtils.getDBTime(),
+        isAttachment: false,
         message: [
             {
-                html: message,
-                text: message,
-                isEdited: false,
-                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                // Currently we are composing the message from the originalMessage and message is only used in OldDot,
+                // so this message is not used in the App
+                text: 'You',
+                style: 'strong',
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
         ],
-        created: DateUtils.getDBTime(),
-        accountID: iouReport.managerID || 0,
-        actorAccountID: iouReport.managerID || 0,
+        originalMessage,
+        person: [
+            {
+                style: 'strong',
+                text: lodashGet(currentUserPersonalDetails, 'displayName', currentUserAccountID),
+                type: 'TEXT',
+            },
+        ],
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        reportActionID: NumberUtils.rand64(),
+        reportID: transactionThread.reportID,
+        shouldShow: true,
     };
 }
 
