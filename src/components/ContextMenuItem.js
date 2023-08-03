@@ -47,7 +47,7 @@ const defaultProps = {
 
 function ContextMenuItem({onPress, successIcon, successText, icon, text, isMini, description, isAnonymousAction}) {
     const {windowWidth} = useWindowDimensions();
-    const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
+    const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState(ReportActionComposeFocusManager.focus);
 
     const triggerPressAndUpdateSuccess = () => {
         if (!isThrottledButtonActive) {
