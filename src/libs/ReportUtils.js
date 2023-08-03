@@ -461,12 +461,12 @@ function isConciergeChatReport(report) {
 }
 
 /**
- * Returns true if we can share a task in this report
+ * Returns true if this report has only one participant and it's an Expensify account.
  * @param {Object} report
  * @returns {Boolean}
  */
 
-function isExpensifyChatReport(report) {
+function isExpensifyOnlyParticipantInReport(report) {
     const reportParticipants = _.without(lodashGet(report, 'participantAccountIDs', []), currentUserAccountID);
     return lodashGet(report, 'participantAccountIDs', []).length === 1 && _.some(reportParticipants, (accountID) => _.contains(CONST.EXPENSIFY_ACCOUNT_IDS, accountID));
 }
@@ -2859,7 +2859,7 @@ export {
     getPolicyName,
     getPolicyType,
     isArchivedRoom,
-    isExpensifyChatReport,
+    isExpensifyOnlyParticipantInReport,
     isPolicyExpenseChatAdmin,
     isPolicyAdmin,
     isPublicRoom,

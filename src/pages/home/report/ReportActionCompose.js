@@ -452,7 +452,7 @@ class ReportActionCompose extends React.Component {
      */
     getTaskOption() {
         // We only prevent the task option from showing if it's a DM and the other user is an Expensify default email
-        if (!Permissions.canUseTasks(this.props.betas) || ReportUtils.isExpensifyChatReport(this.props.report)) {
+        if (!Permissions.canUseTasks(this.props.betas) || ReportUtils.isExpensifyOnlyParticipantInReport(this.props.report)) {
             return [];
         }
 
