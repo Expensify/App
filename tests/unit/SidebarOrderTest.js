@@ -29,6 +29,7 @@ describe('Sidebar', () => {
         Onyx.init({
             keys: ONYXKEYS,
             registerStorageEventListener: () => {},
+            safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         }),
     );
 

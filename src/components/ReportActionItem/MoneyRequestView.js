@@ -79,6 +79,7 @@ function MoneyRequestView(props) {
             <MenuItemWithTopDescription
                 description={translate('common.date')}
                 title={formattedTransactionDate}
+                disabled={isSettled}
                 // shouldShowRightIcon={!isSettled}
                 // onPress={() => Navigation.navigate(ROUTES.getEditRequestRoute(props.report.reportID, CONST.EDIT_REQUEST_FIELD.DATE))}
             />
