@@ -211,7 +211,7 @@ function AttachmentModal(props) {
 
             return true;
         },
-        [translate],
+        [],
     );
     /**
      * @param {Object} _data
@@ -227,7 +227,7 @@ function AttachmentModal(props) {
             }
             return true;
         },
-        [translate],
+        [],
     );
 
     /**
