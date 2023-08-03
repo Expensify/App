@@ -17,9 +17,6 @@ import MoneyRequestAmount from './steps/MoneyRequestAmount';
 import ReceiptSelector from './ReceiptSelector';
 import * as IOU from '../../libs/actions/IOU';
 import DistanceRequest from '../../components/DistanceRequest';
-import reportPropTypes from '../reportPropTypes';
-import NavigateToNextIOUPage from './NavigateToNextIOUPage';
-import AttachmentUtils from '../../libs/AttachmentUtils';
 import DragAndDropProvider from '../../components/DragAndDrop/Provider';
 import usePermissions from '../../hooks/usePermissions';
 import OnyxTabNavigator, {TopTab} from '../../libs/Navigation/OnyxTabNavigator';
@@ -66,7 +63,7 @@ function MoneyRequestSelectorPage(props) {
     const iouType = lodashGet(props.route, 'params.iouType', '');
     const reportID = lodashGet(props.route, 'params.reportID', '');
     const {translate} = useLocalize();
-    const {canUseScanReceipts} = usePermissions();
+    const {canUseScanReceipts, canUseDistanceRequests} = usePermissions();
 
     const title = {
         [CONST.IOU.MONEY_REQUEST_TYPE.REQUEST]: translate('iou.requestMoney'),
@@ -110,11 +107,12 @@ function MoneyRequestSelectorPage(props) {
                                         component={ReceiptSelector}
                                         initialParams={{reportID, iouType}}
                                     />
-                                    <TopTab.Screen
-                                        name={CONST.TAB.DISTANCE}
-                                        component={DistanceRequest}
-                                        initialParams={{route, report, iou}}
-                                    />
+                                    {canUseDistanceRequests && (
+                                        <TopTab.Screen
+                                            name={CONST.TAB.DISTANCE}
+                                            component={DistanceRequest}
+                                        />
+                                    )}
                                 </OnyxTabNavigator>
                             ) : (
                                 <MoneyRequestAmount route={props.route} />
