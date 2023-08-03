@@ -53,6 +53,9 @@ const propTypes = {
     /** Are we adding a withdrawal account? */
     allowDebit: PropTypes.bool,
 
+    /** The workspace policy ID */
+    policyID: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -66,6 +69,7 @@ const defaultProps = {
     plaidLinkOAuthToken: '',
     allowDebit: false,
     bankAccountID: 0,
+    policyID: '',
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -84,7 +88,7 @@ class AddPlaidBankAccount extends React.Component {
             return;
         }
 
-        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID, this.props.policyID);
     }
 
     componentDidUpdate(prevProps) {
@@ -93,7 +97,7 @@ class AddPlaidBankAccount extends React.Component {
         }
 
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
-        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID);
+        BankAccounts.openPlaidBankLogin(this.props.allowDebit, this.props.bankAccountID, this.props.policyID);
     }
 
     componentWillUnmount() {

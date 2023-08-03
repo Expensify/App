@@ -111,6 +111,7 @@ function BankAccountPlaidStep(props) {
                     allowDebit
                     bankAccountID={bankAccountID}
                     selectedPlaidAccountID={selectedPlaidAccountID}
+                    policyID={policyID}
                 />
                 {Boolean(selectedPlaidAccountID) && !_.isEmpty(lodashGet(plaidData, 'bankAccounts')) && (
                     <CheckboxWithLabel

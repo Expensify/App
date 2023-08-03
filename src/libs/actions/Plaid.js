@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
 import getPlaidLinkTokenParameters from '../getPlaidLinkTokenParameters';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -8,8 +9,9 @@ import * as PlaidDataProps from '../../pages/ReimbursementAccount/plaidDataPropT
  * Gets the Plaid Link token used to initialize the Plaid SDK
  * @param {Boolean} allowDebit
  * @param {Number} bankAccountID
+ * @param {String} [policyID]
  */
-function openPlaidBankLogin(allowDebit, bankAccountID) {
+function openPlaidBankLogin(allowDebit, bankAccountID, policyID = '') {
     const params = getPlaidLinkTokenParameters();
     params.allowDebit = allowDebit;
     params.bankAccountID = bankAccountID;
@@ -24,14 +26,17 @@ function openPlaidBankLogin(allowDebit, bankAccountID) {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
             value: '',
         },
-        {
+    ];
+
+    if (!_.isEmpty(policyID)) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+            key: `${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT_DRAFT}${policyID}`,
             value: {
                 plaidAccountID: '',
             },
-        },
-    ];
+        });
+    }
 
     API.read('OpenPlaidBankLogin', params, {optimisticData});
 }
