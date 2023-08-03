@@ -6,6 +6,7 @@ import * as API from '../API';
 import Navigation from '../Navigation/Navigation';
 import CONST from '../../CONST';
 import * as ReportUtils from '../ReportUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 let sessionEmail = '';
 let sessionAccountID = 0;
@@ -65,8 +66,15 @@ function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
 function createExpenseChatSchoolPrincipal(firstName, email, lastName = '') {
     const policyName = 'TeacherUniteSchoolPrincipal';
     const policyID = CONST.TEACHER_UNITE.SCHOOL_PRINCIPAL_POLICY_ID;
+    const loggedInEmail = OptionsListUtils.addSMSDomainIfPhoneNumber(sessionEmail);
+    const reportCreationData = {};
 
     const {expenseChatReportID, expenseChatData, expenseReportActionData, expenseCreatedReportActionID} = ReportUtils.buildOptimisticExpenseChatForSchoolPrincipal(policyID, policyName);
+
+    reportCreationData[loggedInEmail] = {
+        reportID: expenseChatReportID,
+        reportActionID: expenseCreatedReportActionID,
+    };
 
     API.write(
         'AddSchoolPrincipal',
@@ -74,9 +82,7 @@ function createExpenseChatSchoolPrincipal(firstName, email, lastName = '') {
             firstName,
             lastName,
             email,
-            expenseCreatedReportActionID,
-            policyExpenseChatReportID: expenseChatReportID,
-            policyExpenseCreatedReportActionID: expenseCreatedReportActionID,
+            reportCreationData,
         },
         {
             optimisticData: [
