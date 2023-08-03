@@ -112,7 +112,7 @@ function TaskAssigneeSelectorModal(props) {
         if (!props.route.params || !props.route.params.reportID) {
             return null;
         }
-        return lodashGet(props.reports, `${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`, undefined);
+        return props.reports[`${ONYXKEYS.COLLECTION.REPORT}${props.route.params.reportID}`];
     }, [props.reports, props.route.params]);
 
     const sections = useMemo(() => {
