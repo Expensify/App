@@ -47,7 +47,8 @@ function DistanceRequest({transactionID, transaction, translate}) {
     const firstMenuItem = useRef(null);
 
     const waypoints = lodashGet(transaction, 'comment.waypoints', {});
-    const lastWaypointIndex = _.size(waypoints) - 1;
+    const numberOfWaypoints = _.size(waypoints);
+    const lastWaypointIndex = numberOfWaypoints - 1;
 
     useEffect(() => {
         if (!transaction.transactionID || !_.isEmpty(waypoints)) {
@@ -67,18 +68,23 @@ function DistanceRequest({transactionID, transaction, translate}) {
         });
     };
 
-    // Show the proper number of waypoints plus 1/2 of one
+    // The scroll container should be as small as possible and grow as waypoints are added
+    let scrollContainerHeight = menuItemHeight * numberOfWaypoints;
     const halfMenuItemHeight = Math.floor(menuItemHeight / 2);
-    const scrollContainerHeight = menuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
+
+    // When there are more than we want to display, show the proper number of waypoints plus 1/2 of one to hint at scrolling
+    if (numberOfWaypoints > MAX_WAYPOINTS_TO_DISPLAY) {
+        scrollContainerHeight = menuItemHeight * MAX_WAYPOINTS_TO_DISPLAY + halfMenuItemHeight;
+    }
 
     const updateGradientVisibility = (event = {}) => {
         // If a waypoint extends past the bottom of the scroll container then show the gradient, else hide it.
-        const waypointEnd = _.size(waypoints) * menuItemHeight;
+        const waypointEnd = numberOfWaypoints * menuItemHeight;
         const visibleAreaEnd = lodashGet(event, 'nativeEvent.contentOffset.y', 0) + scrollContainerHeight;
         setShouldShowGradient(waypointEnd > visibleAreaEnd);
     };
 
-    useEffect(updateGradientVisibility, [waypoints, menuItemHeight, scrollContainerHeight]);
+    useEffect(updateGradientVisibility, [waypoints, numberOfWaypoints, menuItemHeight, scrollContainerHeight]);
 
     return (
         <>
@@ -129,7 +135,7 @@ function DistanceRequest({transactionID, transaction, translate}) {
                     icon={Expensicons.Plus}
                     onPress={() => Transaction.addStop(transactionID, lastWaypointIndex + 1)}
                     text={translate('distance.addStop')}
-                    isDisabled={_.size(waypoints) === MAX_WAYPOINTS}
+                    isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
                     innerStyles={[styles.ph10]}
                 />
             </View>
