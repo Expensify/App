@@ -68,6 +68,8 @@ function resetMoneyRequestInfo(id = '') {
         currency: lodashGet(currentUserPersonalDetails, 'localCurrencyCode', CONST.CURRENCY.USD),
         comment: '',
         participants: [],
+        receiptPath: '',
+        receiptSource: '',
     });
 }
 
@@ -1478,6 +1480,50 @@ function setMoneyRequestParticipants(participants) {
     Onyx.merge(ONYXKEYS.IOU, {participants});
 }
 
+/**
+ * @param {String} receiptPath
+ * @param {String} receiptSource
+ */
+function setMoneyRequestReceipt(receiptPath, receiptSource) {
+    Onyx.merge(ONYXKEYS.IOU, {receiptPath, receiptSource});
+}
+
+/**
+ * Navigates to the next IOU page based on where the IOU request was started
+ *
+ * @param {Object} iou
+ * @param {String} iouType
+ * @param {String} reportID
+ * @param {Object} report
+ */
+function navigateToNextPage(iou, iouType, reportID, report) {
+    const moneyRequestID = `${iouType}${reportID}`;
+    const shouldReset = iou.id !== moneyRequestID;
+    // If the money request ID in Onyx does not match the ID from params, we want to start a new request
+    // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
+    if (shouldReset) {
+        resetMoneyRequestInfo(moneyRequestID);
+    }
+
+    // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
+    if (report.reportID) {
+        // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
+        if (_.isEmpty(iou.participants) || shouldReset) {
+            const currentUserAccountID = currentUserPersonalDetails.accountID;
+            const participants = ReportUtils.isPolicyExpenseChat(report)
+                ? [{reportID: report.reportID, isPolicyExpenseChat: true, selected: true}]
+                : _.chain(report.participantAccountIDs)
+                      .filter((accountID) => currentUserAccountID !== accountID)
+                      .map((accountID) => ({accountID, selected: true}))
+                      .value();
+            setMoneyRequestParticipants(participants);
+        }
+        Navigation.navigate(ROUTES.getMoneyRequestConfirmationRoute(iouType, reportID));
+        return;
+    }
+    Navigation.navigate(ROUTES.getMoneyRequestParticipantsRoute(iouType));
+}
+
 export {
     deleteMoneyRequest,
     splitBill,
@@ -1494,4 +1540,6 @@ export {
     setMoneyRequestCurrency,
     setMoneyRequestDescription,
     setMoneyRequestParticipants,
+    setMoneyRequestReceipt,
+    navigateToNextPage,
 };
