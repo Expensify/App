@@ -79,7 +79,8 @@ function MoneyRequestDetails(props) {
     const transactionDate = lodashGet(props.parentReportAction, ['created']);
     const formattedTransactionDate = DateUtils.getDateStringFromISOTimestamp(transactionDate);
 
-    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
+    const reportTotal = ReportUtils.getMoneyRequestTotal(props.report);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, props.report.currency);
     const moneyRequestReport = props.isSingleTransactionView ? props.parentReport : props.report;
     const isSettled = ReportUtils.isSettled(moneyRequestReport.reportID);
     const isExpenseReport = ReportUtils.isExpenseReport(moneyRequestReport);
@@ -89,7 +90,8 @@ function MoneyRequestDetails(props) {
         : UserUtils.getAvatar(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'avatar']), moneyRequestReport.managerID);
     const isPayer =
         Policy.isAdminOfFreePolicy([props.policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = moneyRequestReport.reportID && !isSettled && !props.isSingleTransactionView && isPayer && !moneyRequestReport.isWaitingOnBankAccount;
+    const shouldShowSettlementButton =
+        moneyRequestReport.reportID && !isSettled && !props.isSingleTransactionView && isPayer && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.ownerAccountID, 'payPalMeAddress']));
     let description = `${props.translate('iou.amount')} • ${props.translate('iou.cash')}`;

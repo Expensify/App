@@ -203,7 +203,7 @@ describe('EmojiTest', () => {
                     lastUpdatedAt: 1,
                 },
             ];
-            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
+            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
             return waitForPromisesToResolve().then(() => {
                 // When add a new emoji
@@ -293,7 +293,7 @@ describe('EmojiTest', () => {
                 },
                 {...smileEmoji, count: 1, lastUpdatedAt: 1},
             ];
-            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
+            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
             return waitForPromisesToResolve().then(() => {
                 // When add multiple emojis that either exist or not exist in the list
@@ -464,7 +464,7 @@ describe('EmojiTest', () => {
                 {...bookEmoji, count: 3, lastUpdatedAt: 1},
             ];
             expect(frequentlyEmojisList.length).toBe(CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW);
-            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
+            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyEmojisList);
 
             return waitForPromisesToResolve().then(() => {
                 // When add new emojis

@@ -50,8 +50,10 @@ function AttachmentCarousel(props) {
 
     useEffect(() => {
         const initialState = createInitialState(props);
-        setPage(initialState.page);
-        setAttachments(initialState.attachments);
+        if (initialState) {
+            setPage(initialState.page);
+            setAttachments(initialState.attachments);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.reportActions]);
 
