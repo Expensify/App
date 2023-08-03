@@ -246,4 +246,10 @@ export default {
         // The ID of the previous Onyx update that was applied to this client
         PREVIOUS_UPDATE_ID: 'onyxUpdatesPreviousUpdateID',
     },
+
+    // Manual request tab selector
+    SELECTED_TAB: 'selectedTab',
+
+    // Receipt upload modal
+    RECEIPT_MODAL: 'receiptModal',
 };

@@ -26,6 +26,7 @@ import * as Browser from '../libs/Browser';
 import cursor from './utilities/cursor';
 import userSelect from './utilities/userSelect';
 import textUnderline from './utilities/textUnderline';
+import Colors from './colors';
 
 // touchCallout is an iOS safari only property that controls the display of the callout information when you touch and hold a target
 const touchCalloutNone = Browser.isMobileSafari() ? {WebkitTouchCallout: 'none'} : {};
@@ -772,6 +773,39 @@ const styles = {
         borderColor: themeColors.danger,
     },
 
+    uploadReceiptView: (isSmallScreenWidth) => ({
+        borderRadius: variables.componentBorderRadiusLarge,
+        borderWidth: isSmallScreenWidth ? 0 : 2,
+        borderColor: themeColors.borderFocus,
+        borderStyle: 'dotted',
+        marginBottom: 20,
+        marginLeft: 20,
+        marginRight: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 40,
+        gap: 4,
+        flex: 1,
+    }),
+
+    cameraView: {
+        flex: 1,
+        overflow: 'hidden',
+        padding: 10,
+        borderRadius: 28,
+        borderStyle: 'solid',
+        borderWidth: 8,
+        backgroundColor: Colors.greenHighlightBackground,
+        borderColor: Colors.greenAppBackground,
+    },
+
+    permissionView: {
+        paddingVertical: 108,
+        paddingHorizontal: 61,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
     headerAnonymousFooter: {
         color: themeColors.heading,
         fontFamily: fontFamily.EXP_NEW_KANSAS_MEDIUM,
@@ -1073,6 +1107,20 @@ const styles = {
         fontFamily: fontFamily.EXP_NEUE,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,
+    },
+
+    textReceiptUpload: {
+        ...headlineFont,
+        fontSize: variables.fontSizeXLarge,
+        color: themeColors.textLight,
+        textAlign: 'center',
+    },
+
+    subTextReceiptUpload: {
+        fontFamily: fontFamily.EXP_NEUE,
+        lineHeight: variables.lineHeightLarge,
+        textAlign: 'center',
+        color: themeColors.textLight,
     },
 
     furtherDetailsText: {
@@ -3174,6 +3222,16 @@ const styles = {
         zIndex: 2,
     },
 
+    receiptDropOverlay: {
+        backgroundColor: themeColors.receiptDropUIBG,
+        zIndex: 2,
+    },
+
+    receiptImageWrapper: (receiptImageTopPosition) => ({
+        position: 'absolute',
+        top: receiptImageTopPosition,
+    }),
+
     cardSection: {
         backgroundColor: themeColors.cardBG,
         borderRadius: variables.componentBorderRadiusCard,
@@ -3533,6 +3591,29 @@ const styles = {
         textAlign: 'center',
     },
 
+    tabSelectorButton: (isSelected) => ({
+        height: 40,
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: variables.buttonBorderRadius,
+        backgroundColor: isSelected ? themeColors.midtone : themeColors.appBG,
+    }),
+
+    tabSelector: {
+        flexDirection: 'row',
+        paddingHorizontal: 20,
+        paddingBottom: 12,
+    },
+
+    tabText: (isSelected) => ({
+        marginHorizontal: 8,
+        fontFamily: isSelected ? fontFamily.EXP_NEUE_BOLD : fontFamily.EXP_NEUE,
+        fontWeight: isSelected ? fontWeightBold : 400,
+        color: isSelected ? themeColors.textLight : themeColors.textSupporting,
+    }),
+
     /**
      * @param {String} backgroundColor
      * @param {Number} height
@@ -3550,6 +3631,12 @@ const styles = {
 
     willChangeTransform: {
         willChange: 'transform',
+    },
+
+    moneyRequestImage: {
+        height: 200,
+        borderRadius: 16,
+        margin: 20,
     },
 };
 

@@ -53,18 +53,6 @@ function confirmReadyToOpenApp() {
 
 /**
  * @param {Array} policies
- * @return {Array<String>} array of policy ids
- */
-function getNonOptimisticPolicyIDs(policies) {
-    return _.chain(policies)
-        .reject((policy) => lodashGet(policy, 'pendingAction', null) === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-        .pluck('id')
-        .compact()
-        .value();
-}
-
-/**
- * @param {Array} policies
  * @return {Object} map of policy id to lastUpdated
  */
 function getNonOptimisticPolicyIDToLastModifiedMap(policies) {
@@ -137,7 +125,7 @@ AppState.addEventListener('change', (nextAppState) => {
  * Gets the policy IDs that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
  * @returns {Object}
  */
-function getPolicyIDsForOpenOrReconnect() {
+function getPolicyParamsForOpenOrReconnect() {
     return new Promise((resolve) => {
         isReadyToOpenApp.then(() => {
             const connectionID = Onyx.connect({
@@ -145,7 +133,7 @@ function getPolicyIDsForOpenOrReconnect() {
                 waitForCollectionCallback: true,
                 callback: (policies) => {
                     Onyx.disconnect(connectionID);
-                    resolve({policyIDList: getNonOptimisticPolicyIDs(policies), policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))});
+                    resolve({policyIDToLastModified: JSON.stringify(getNonOptimisticPolicyIDToLastModifiedMap(policies))});
                 },
             });
         });
@@ -186,8 +174,8 @@ function getOnyxDataForOpenOrReconnect() {
  * Fetches data needed for app initialization
  */
 function openApp() {
-    getPolicyIDsForOpenOrReconnect().then((policyIDs) => {
-        API.read('OpenApp', policyIDs, getOnyxDataForOpenOrReconnect());
+    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        API.read('OpenApp', policyParams, getOnyxDataForOpenOrReconnect());
     });
 }
 
@@ -198,8 +186,8 @@ function openApp() {
  */
 function reconnectApp(updateIDFrom = 0, updateIDTo = 0) {
     console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
-    getPolicyIDsForOpenOrReconnect().then((policyIDs) => {
-        const params = {...policyIDs};
+    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
+        const params = {...policyParams};
 
         // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
         // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
