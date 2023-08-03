@@ -12,29 +12,22 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import compose from '../../../libs/compose';
 import * as ReportUtils from '../../../libs/ReportUtils';
-import * as IOUUtils from '../../../libs/IOUUtils';
 import * as CurrencyUtils from '../../../libs/CurrencyUtils';
 import Button from '../../../components/Button';
 import CONST from '../../../CONST';
 import * as DeviceCapabilities from '../../../libs/DeviceCapabilities';
 import TextInputWithCurrencySymbol from '../../../components/TextInputWithCurrencySymbol';
-import ScreenWrapper from '../../../components/ScreenWrapper';
-import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
 import reportPropTypes from '../../reportPropTypes';
 import * as IOU from '../../../libs/actions/IOU';
 import useLocalize from '../../../hooks/useLocalize';
 import FormHelpMessage from '../../../components/FormHelpMessage';
 import withCurrentUserPersonalDetails, {withCurrentUserPersonalDetailsDefaultProps, withCurrentUserPersonalDetailsPropTypes} from '../../../components/withCurrentUserPersonalDetails';
+import FullPageNotFoundView from '../../../components/BlockingViews/FullPageNotFoundView';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import HeaderWithBackButton from '../../../components/HeaderWithBackButton';
+import * as IOUUtils from '../../../libs/IOUUtils';
 
 const propTypes = {
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            iouType: PropTypes.string,
-            reportID: PropTypes.string,
-        }),
-    }),
-
     /** The report on which the request is initiated on */
     report: reportPropTypes,
 
@@ -54,22 +47,29 @@ const propTypes = {
         ),
     }),
 
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            iouType: PropTypes.string,
+            reportID: PropTypes.string,
+        }),
+    }),
+
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
 const defaultProps = {
-    route: {
-        params: {
-            iouType: '',
-            reportID: '',
-        },
-    },
     report: {},
     iou: {
         id: '',
         amount: 0,
         currency: CONST.CURRENCY.USD,
         participants: [],
+    },
+    route: {
+        params: {
+            iouType: '',
+            reportID: '',
+        },
     },
     ...withCurrentUserPersonalDetailsDefaultProps,
 };
@@ -175,7 +175,7 @@ const replaceAllDigits = (text, convertFn) =>
         .join('')
         .value();
 
-function MoneyRequestAmountPage(props) {
+function MoneyRequestAmount(props) {
     const {translate, toLocaleDigit, fromLocaleDigit, numberFormat} = useLocalize();
     const selectedAmountAsString = props.iou.amount ? CurrencyUtils.convertToWholeUnit(props.iou.currency, props.iou.amount).toString() : '';
 
@@ -286,16 +286,14 @@ function MoneyRequestAmountPage(props) {
     }, [props.iou.participants, props.iou.amount, props.iou.id]);
 
     useEffect(() => {
-        if (!props.route.params.currency) {
+        if (props.route.params.currency) {
+            setSelectedCurrencyCode(props.route.params.currency);
             return;
         }
-
-        setSelectedCurrencyCode(props.route.params.currency);
-    }, [props.route.params.currency]);
-
-    useEffect(() => {
-        setSelectedCurrencyCode(props.iou.currency);
-    }, [props.iou.currency]);
+        if (props.iou.currency) {
+            setSelectedCurrencyCode(props.iou.currency);
+        }
+    }, [props.route.params.currency, props.iou.currency]);
 
     useEffect(() => {
         saveAmountToState(props.iou.currency, props.iou.amount);
@@ -448,10 +446,12 @@ function MoneyRequestAmountPage(props) {
             >
                 {({safeAreaPaddingBottomStyle}) => (
                     <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
-                        <HeaderWithBackButton
-                            title={titleForStep}
-                            onBackButtonPress={navigateBack}
-                        />
+                        {isEditing.current && (
+                            <HeaderWithBackButton
+                                title={titleForStep}
+                                onBackButtonPress={navigateBack}
+                            />
+                        )}
                         <View
                             nativeID={amountViewID}
                             onMouseDown={(event) => onMouseDown(event, [amountViewID])}
@@ -509,9 +509,9 @@ function MoneyRequestAmountPage(props) {
     );
 }
 
-MoneyRequestAmountPage.propTypes = propTypes;
-MoneyRequestAmountPage.defaultProps = defaultProps;
-MoneyRequestAmountPage.displayName = 'MoneyRequestAmountPage';
+MoneyRequestAmount.propTypes = propTypes;
+MoneyRequestAmount.defaultProps = defaultProps;
+MoneyRequestAmount.displayName = 'MoneyRequestAmount';
 
 export default compose(
     withCurrentUserPersonalDetails,
@@ -521,4 +521,4 @@ export default compose(
             key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
         },
     }),
-)(MoneyRequestAmountPage);
+)(MoneyRequestAmount);
