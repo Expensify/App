@@ -24,13 +24,13 @@ Onyx.connect({
 });
 
 /**
- * @param {String} reportID
  * @param {String} values.firstName
  * @param {String} values.phoneOrEmail
  * @param {String} [values.lastName]
  */
 
-function referTeachersUniteVolunteer(reportID, firstName, phoneOrEmail, lastName = '') {
+function referTeachersUniteVolunteer(firstName, phoneOrEmail, lastName = '') {
+    const reportID = CONST.TEACHER_UNITE.PUBLIC_ROOM_ID;
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

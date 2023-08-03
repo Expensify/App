@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {parsePhoneNumber} from 'awesome-phonenumber';
 import Str from 'expensify-common/lib/str';
@@ -6,7 +6,6 @@ import _ from 'underscore';
 import {withCurrentUserPersonalDetailsPropTypes, withCurrentUserPersonalDetailsDefaultProps} from '../../components/withCurrentUserPersonalDetails';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithBackButton from '../../components/HeaderWithBackButton';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Form from '../../components/Form';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
@@ -18,9 +17,9 @@ import * as ErrorUtils from '../../libs/ErrorUtils';
 import ROUTES from '../../ROUTES';
 import Navigation from '../../libs/Navigation/Navigation';
 import TeachersUnite from '../../libs/actions/TeachersUnite';
+import useLocalize from '../../hooks/useLocalize';
 
 const propTypes = {
-    ...withLocalizePropTypes,
     ...withCurrentUserPersonalDetailsPropTypes,
 };
 
@@ -36,7 +35,8 @@ function getPhoneLogin(phoneOrEmail) {
     return LoginUtils.appendCountryCode(LoginUtils.getPhoneNumberWithoutSpecialChars(phoneOrEmail));
 }
 
-function KnowATeacherPage(props) {
+function KnowATeacherPage() {
+    const {translate} = useLocalize();
     /**
      * Submit form to pass firstName, phoneOrEmail and lastName
      * @param {Object} values
@@ -44,9 +44,9 @@ function KnowATeacherPage(props) {
      * @param {String} values.phoneOrEmail
      * @param {String} values.lastName
      */
-    function onSubmit(values) {
-        TeachersUnite.referTeachersUniteVolunteer(CONST.TEACHER_UNITE.PUBLIC_ROOM_ID, values.firstName.trim(), values.phoneOrEmail.trim(), values.lastName);
-    }
+    const onSubmit = (values) => {
+        TeachersUnite.referTeachersUniteVolunteer(values.firstName.trim(), values.phoneOrEmail.trim(), values.lastName);
+    };
 
     /**
      * @param {Object} values
@@ -54,44 +54,47 @@ function KnowATeacherPage(props) {
      * @param {String} values.phoneOrEmail
      * @returns {Object} - An object containing the errors for each inputID
      */
-    function validate(values) {
-        const errors = {};
-        const phoneLogin = getPhoneLogin(values.phoneOrEmail);
+    const validate = useCallback(
+        (values) => {
+            const errors = {};
+            const phoneLogin = getPhoneLogin(values.phoneOrEmail);
 
-        if (_.isEmpty(values.firstName)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', props.translate('teachersUnitePage.error.enterName'));
-        }
-        if (_.isEmpty(values.phoneOrEmail)) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', props.translate('teachersUnitePage.error.enterPhoneEmail'));
-        }
-        if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
-            ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
-        }
+            if (_.isEmpty(values.firstName)) {
+                ErrorUtils.addErrorMessage(errors, 'firstName', translate('teachersUnitePage.error.enterName'));
+            }
+            if (_.isEmpty(values.phoneOrEmail)) {
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', translate('teachersUnitePage.error.enterPhoneEmail'));
+            }
+            if (!_.isEmpty(values.phoneOrEmail) && !((parsePhoneNumber(phoneLogin).possible && Str.isValidPhone(phoneLogin.slice(0))) || Str.isValidEmail(values.phoneOrEmail))) {
+                ErrorUtils.addErrorMessage(errors, 'phoneOrEmail', 'contacts.genericFailureMessages.invalidContactMethod');
+            }
 
-        return errors;
-    }
+            return errors;
+        },
+        [translate],
+    );
 
     return (
         <ScreenWrapper includeSafeAreaPaddingBottom={false}>
             <HeaderWithBackButton
-                title={props.translate('teachersUnitePage.iKnowATeacher')}
+                title={translate('teachersUnitePage.iKnowATeacher')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SAVE_THE_WORLD)}
             />
             <Form
                 enabledWhenOffline
                 style={[styles.flexGrow1, styles.ph5]}
                 formID={ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM}
-                validate={(values) => validate(values)}
-                onSubmit={(values) => onSubmit(values)}
-                submitButtonText={props.translate('common.letsDoThis')}
+                validate={validate}
+                onSubmit={onSubmit}
+                submitButtonText={translate('common.letsDoThis')}
             >
-                <Text style={[styles.mb6]}>{props.translate('teachersUnitePage.getInTouch')}</Text>
+                <Text style={[styles.mb6]}>{translate('teachersUnitePage.getInTouch')}</Text>
                 <View>
                     <TextInput
                         inputID="firstName"
                         name="fname"
-                        label={props.translate('common.firstName')}
-                        accessibilityLabel={props.translate('common.firstName')}
+                        label={translate('common.firstName')}
+                        accessibilityLabel={translate('common.firstName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
@@ -101,8 +104,8 @@ function KnowATeacherPage(props) {
                     <TextInput
                         inputID="lastName"
                         name="lname"
-                        label={props.translate('common.lastName')}
-                        accessibilityLabel={props.translate('common.lastName')}
+                        label={translate('common.lastName')}
+                        accessibilityLabel={translate('common.lastName')}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
@@ -112,8 +115,8 @@ function KnowATeacherPage(props) {
                     <TextInput
                         inputID="phoneOrEmail"
                         name="phoneOrEmail"
-                        label={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
-                        accessibilityLabel={`${props.translate('common.email')}/${props.translate('common.phoneNumber')}`}
+                        label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
+                        accessibilityLabel={`${translate('common.email')}/${translate('common.phoneNumber')}`}
                         accessibilityRole={CONST.ACCESSIBILITY_ROLE.TEXT}
                         keyboardType={CONST.KEYBOARD_TYPE.EMAIL_ADDRESS}
                         autoCapitalize="none"
@@ -128,4 +131,4 @@ KnowATeacherPage.propTypes = propTypes;
 KnowATeacherPage.defaultProps = defaultProps;
 KnowATeacherPage.displayName = 'KnowATeacherPage';
 
-export default withLocalize(KnowATeacherPage);
+export default KnowATeacherPage;
