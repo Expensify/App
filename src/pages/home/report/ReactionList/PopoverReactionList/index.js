@@ -1,4 +1,4 @@
-import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
@@ -12,7 +12,17 @@ const defaultProps = {
 
 function PopoverReactionList(props) {
     const innerReactionListRef = useRef();
+    const callbackRef = useRef(() => {});
     const [reactionListReportActionID, setReactionListReportActionID] = useState('');
+
+    // Avoid race condition since setState is asynchronous
+    useEffect(() => {
+        if (!reactionListReportActionID) {
+            return;
+        }
+
+        callbackRef.current();
+    }, [reactionListReportActionID]);
 
     /**
      * Show the ReactionList modal popover.
@@ -20,12 +30,14 @@ function PopoverReactionList(props) {
      * @param {Object} [event] - A press event.
      * @param {Element} reactionListAnchor - reactionListAnchor
      * @param {String} emojiName - Name of emoji
+     * @param {String} reportActionID - ID of the report action
      */
-    const showReactionList = (event, reactionListAnchor, emojiName) => {
-        innerReactionListRef.current.showReactionList(event, reactionListAnchor, emojiName);
+    const showReactionList = (event, reactionListAnchor, emojiName, reportActionID) => {
+        callbackRef.current = () => innerReactionListRef.current.showReactionList(event, reactionListAnchor, emojiName);
+        setReactionListReportActionID(reportActionID);
     };
 
-    useImperativeHandle(props.innerRef, () => ({showReactionList, setReactionListReportActionID}), []);
+    useImperativeHandle(props.innerRef, () => ({showReactionList}), []);
 
     return (
         <BasePopoverReactionList
