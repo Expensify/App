@@ -199,18 +199,20 @@ function getActiveRoute() {
     return '';
 }
 
-/** Returns the active route name
- * @returns {String}
+/** Returns the active route name from a state event from the navigationRef
+ * @returns {String | undefined}
  * */
 
-function getActiveRouteName() {
-    const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
-    const currentRouteHasName = lodashGet(currentRoute, 'name', false);
-    if (!currentRouteHasName) {
-        return '';
+function getRouteNameFromStateEvent(event) {
+    if (!event.data.state) {
+        return;
     }
+    const currentRouteName = event.data.state.routes.slice(-1).name;
 
-    return currentRoute.name;
+    // Check to make sure we have a route name
+    if (currentRouteName) {
+        return currentRouteName;
+    }
 }
 
 /**
@@ -264,7 +266,7 @@ export default {
     isNavigationReady,
     setIsNavigationReady,
     getTopmostReportId,
-    getActiveRouteName,
+    getRouteNameFromStateEvent,
 };
 
 export {navigationRef};

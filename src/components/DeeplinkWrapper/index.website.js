@@ -36,7 +36,7 @@ function DeeplinkWrapper({children, isAuthenticated}) {
     const [currentScreen, setCurrentScreen] = useState();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef();
-    // CONFIG.ENVIRONMENT = CONST.ENVIRONMENT.STAGING;
+    CONFIG.ENVIRONMENT = CONST.ENVIRONMENT.STAGING;
 
     useEffect(() => {
         // If we've shown the prompt and still have a listener registered,
@@ -53,8 +53,8 @@ function DeeplinkWrapper({children, isAuthenticated}) {
                 const initialRoute = navigationRef.current.getCurrentRoute();
                 setCurrentScreen(initialRoute.name);
 
-                removeListener.current = navigationRef.current.addListener('state', () => {
-                    setCurrentScreen(Navigation.getActiveRouteName());
+                removeListener.current = navigationRef.current.addListener('state', (event) => {
+                    setCurrentScreen(Navigation.getRouteNameFromStateEvent(event));
                 });
             });
         }
