@@ -57,10 +57,11 @@ function MoneyReportHeader(props) {
     const policy = props.policies[`${ONYXKEYS.COLLECTION.POLICY}${props.report.policyID}`];
     const isPayer =
         Policy.isAdminOfFreePolicy([policy]) || (ReportUtils.isMoneyRequestReport(moneyRequestReport) && lodashGet(props.session, 'accountID', null) === moneyRequestReport.managerID);
-    const shouldShowSettlementButton = !isSettled && isPayer && !moneyRequestReport.isWaitingOnBankAccount;
+    const reportTotal = ReportUtils.getMoneyRequestTotal(props.report);
+    const shouldShowSettlementButton = !isSettled && isPayer && !moneyRequestReport.isWaitingOnBankAccount && reportTotal !== 0;
     const bankAccountRoute = ReportUtils.getBankAccountRoute(props.chatReport);
     const shouldShowPaypal = Boolean(lodashGet(props.personalDetails, [moneyRequestReport.managerID, 'payPalMeAddress']));
-    const formattedAmount = CurrencyUtils.convertToDisplayString(ReportUtils.getMoneyRequestTotal(props.report), props.report.currency);
+    const formattedAmount = CurrencyUtils.convertToDisplayString(reportTotal, props.report.currency);
 
     return (
         <View style={[styles.pt0]}>

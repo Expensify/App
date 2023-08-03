@@ -60,6 +60,7 @@ function RoomNameInput({autoFocus, disabled, errorText, forwardedRef, value, onB
             onBlur={onBlur}
             autoFocus={autoFocus}
             maxLength={CONST.REPORT.MAX_ROOM_NAME_LENGTH}
+            spellCheck={false}
         />
     );
 }
